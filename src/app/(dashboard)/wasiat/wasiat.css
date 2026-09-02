@@ -1,0 +1,327 @@
+/* ====================================================
+   WASIAT PAGE — SYNCED WITH TEMPLATE
+   ==================================================== */
+.wasiat-page-wrapper {
+  --gold-light: #f9f5e8;
+  --gold-main: #d4af37;
+  --gold-dark: #aa771c;
+  --wax-red: #9e1b1b;
+
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  /* background and color are inherited from body in template.css */
+}
+
+/* ---- VAULT WRAPPER ---- */
+.wasiat-page-wrapper .vault-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  z-index: 10;
+  min-height: 100vh;
+}
+
+/* ---- HEADER ---- */
+.wasiat-page-wrapper .vault-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 50px;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 20px;
+}
+
+.wasiat-page-wrapper .btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--gold-main);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: all 0.4s;
+}
+.wasiat-page-wrapper .btn-back:hover {
+  color: var(--text-primary);
+  transform: translateX(-5px);
+}
+
+.wasiat-page-wrapper .header-titles {
+  text-align: right;
+}
+.wasiat-page-wrapper .page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  color: var(--gold-main);
+  margin: 0;
+  letter-spacing: 3px;
+  text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+:root[data-theme="light"] .wasiat-page-wrapper .page-title {
+  text-shadow: 0 5px 15px rgba(212,175,55,0.2);
+}
+
+.wasiat-page-wrapper .status-badge {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  color: var(--text-secondary);
+  margin-top: 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- LIST ---- */
+.wasiat-page-wrapper .wasiat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ---- LEGACY CARD ---- */
+.wasiat-page-wrapper .legacy-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 40px;
+  position: relative;
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.wasiat-page-wrapper .legacy-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(212,175,55,0.4);
+}
+.wasiat-page-wrapper .legacy-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 5px;
+  background: linear-gradient(90deg, transparent, var(--gold-main), transparent);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  opacity: 0.5;
+}
+
+/* ---- CARD HEADER ---- */
+.wasiat-page-wrapper .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.wasiat-page-wrapper .author-info {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.wasiat-page-wrapper .author-avatar {
+  width: 50px; height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--gold-dark);
+  box-shadow: 0 0 15px rgba(212,175,55,0.2);
+}
+.wasiat-page-wrapper .author-meta .box-id {
+  color: var(--gold-dark);
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.wasiat-page-wrapper .author-meta .box-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+.wasiat-page-wrapper .document-meta {
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ---- SECRET CONTENT ---- */
+.wasiat-page-wrapper .secret-content {
+  background: rgba(0,0,0,0.1);
+  padding: 30px;
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  position: relative;
+  min-height: 120px;
+  margin-bottom: 25px;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+}
+:root[data-theme="light"] .wasiat-page-wrapper .secret-content {
+  background: rgba(255,255,255,0.3);
+}
+
+.wasiat-page-wrapper .scramble-text {
+  filter: blur(4px);
+  opacity: 0.6;
+  user-select: none;
+  transition: all 0.5s;
+}
+
+/* ---- BUTTONS ---- */
+.wasiat-page-wrapper .seal-btn {
+  background: transparent;
+  color: var(--gold-main);
+  border: 1px solid var(--gold-main);
+  padding: 12px 30px;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 30px;
+  font-family: 'Inter', sans-serif;
+}
+.wasiat-page-wrapper .seal-btn:hover:not(:disabled) {
+  background: rgba(212,175,55,0.1);
+  box-shadow: 0 0 20px rgba(212,175,55,0.2);
+}
+.wasiat-page-wrapper .seal-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.wasiat-page-wrapper .wax-seal-icon {
+  color: var(--wax-red);
+  font-size: 1.2rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+:root[data-theme="light"] .wasiat-page-wrapper .wax-seal-icon {
+  filter: none;
+}
+
+.wasiat-page-wrapper .unlock-btn {
+  border-color: var(--glass-border);
+  color: var(--text-primary);
+}
+.wasiat-page-wrapper .unlock-btn:hover:not(:disabled) {
+  background: var(--text-primary);
+  color: var(--bg-main);
+  border-color: var(--text-primary);
+}
+
+/* ---- FORM INPUTS ---- */
+.wasiat-page-wrapper .form-input {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  padding: 15px;
+  font-family: 'Inter', sans-serif;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+.wasiat-page-wrapper .form-input:focus {
+  border-color: var(--gold-main);
+}
+.wasiat-page-wrapper .form-input::placeholder {
+  color: var(--text-secondary);
+}
+
+/* ---- MODAL ---- */
+.wasiat-page-wrapper .elegant-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+  box-sizing: border-box;
+}
+:root[data-theme="light"] .wasiat-page-wrapper .elegant-modal {
+  background: rgba(255,255,255,0.7);
+}
+
+.wasiat-page-wrapper .elegant-modal.open {
+  display: flex;
+}
+.wasiat-page-wrapper .modal-paper {
+  background: #fdfbf7;
+  color: #1a1a1a;
+  max-width: 650px;
+  width: 100%;
+  padding: 50px;
+  border-radius: 4px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  position: relative;
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+:root[data-theme="light"] .wasiat-page-wrapper .modal-paper {
+  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+}
+
+.wasiat-page-wrapper .modal-paper::before {
+  content: '';
+  position: absolute;
+  top: 10px; left: 10px; right: 10px; bottom: 10px;
+  border: 1px solid rgba(212,175,55,0.3);
+  pointer-events: none;
+}
+
+.wasiat-page-wrapper .close-modal-btn {
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid #1a1a1a;
+  padding: 10px 30px;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 1px;
+  transition: 0.3s;
+  border-radius: 30px;
+}
+.wasiat-page-wrapper .close-modal-btn:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+/* ---- MOBILE ---- */
+@media (max-width: 768px) {
+  .wasiat-page-wrapper .vault-header {
+    flex-direction: column-reverse;
+    text-align: center;
+    gap: 15px;
+  }
+  .wasiat-page-wrapper .header-titles { text-align: center; }
+  .wasiat-page-wrapper .page-title { font-size: 1.8rem; }
+  .wasiat-page-wrapper .legacy-card { padding: 25px; }
+  .wasiat-page-wrapper .card-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .wasiat-page-wrapper .document-meta { text-align: left; }
+  .wasiat-page-wrapper .form-row { flex-direction: column !important; }
+  .wasiat-page-wrapper .form-row .form-input,
+  .wasiat-page-wrapper .form-row .seal-btn { width: 100% !important; }
+  .wasiat-page-wrapper .modal-paper { padding: 28px 16px !important; width: 95% !important; }
+  .wasiat-page-wrapper .vault-wrapper { padding: 30px 12px !important; }
+}

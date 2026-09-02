@@ -1,0 +1,417 @@
+[
+  {
+    "content_key": "beranda_kirim_ucapan_996",
+    "content_value": "Kirim Ucapan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_hari_ini_adalah_855",
+    "content_value": "Hari ini adalah ulang tahun",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_notifikasi_ulan_613",
+    "content_value": "Notifikasi Ulang Tahun",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_lihat_seluruh_c_80",
+    "content_value": "Lihat Seluruh Catatan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_jejak_terkini_163",
+    "content_value": "Jejak Terkini",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_masuk_sekarang_308",
+    "content_value": "Masuk Sekarang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_masuk_ke_portal_930",
+    "content_value": "Masuk ke portal untuk menandatangani buku tamu.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_geser_untuk_men_696",
+    "content_value": "GESER UNTUK MENYEGEL",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_stempel_kehadir_323",
+    "content_value": "STEMPEL KEHADIRAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_tuliskan_pesan_6",
+    "content_value": "Tuliskan pesan berharga Anda...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_tanda_tangan__n_369",
+    "content_value": "Tanda Tangan (Nama)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_melewati_berbag_460",
+    "content_value": "Melewati berbagai ujian dan dinamika pondok yang membentuk mental baja, kemandirian, serta ukhuwah islamiyah yang tak tergoyahkan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_masa_penempaan_58",
+    "content_value": "MASA PENEMPAAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_angkatan_expedi_446",
+    "content_value": "Angkatan Expedient pertama kali menapakkan jejaknya di bumi Arrisalah, mengikat janji untuk menjadi barisan pelopor peradaban.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_awal_mula_975",
+    "content_value": "AWAL MULA",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_tutup_penjelasa_834",
+    "content_value": "Tutup Penjelasan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_penjelasan_724",
+    "content_value": "Penjelasan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_judul_687",
+    "content_value": "Judul",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_kebebasan_244",
+    "content_value": "Kebebasan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_ukhuwwah_islami_801",
+    "content_value": "Ukhuwwah Islamiyyah",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_kemandirian_34",
+    "content_value": "Kemandirian",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_kesederhanaan_793",
+    "content_value": "Kesederhanaan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_keikhlasan_457",
+    "content_value": "Keikhlasan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_poin_terakumula_258",
+    "content_value": "POIN TERAKUMULASI",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_tutup_manuskrip_757",
+    "content_value": "TUTUP MANUSKRIP",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_title_663",
+    "content_value": "TITLE",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_sovereign_archi_577",
+    "content_value": "SOVEREIGN ARCHIVE",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_baca_dokumen_741",
+    "content_value": "BACA DOKUMEN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_simpul_kesucian_157",
+    "content_value": "Simpul Kesucian: Menjaga Nilai-Nilai Arrisalah",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_15_februari_202_991",
+    "content_value": "15 FEBRUARI 2026",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_baca_dokumen_420",
+    "content_value": "BACA DOKUMEN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_penetapan_visi_380",
+    "content_value": "Penetapan Visi Angkatan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_30_maret_2026_684",
+    "content_value": "30 MARET 2026",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_belum_ada_memor_37",
+    "content_value": "Belum ada memori yang terekam.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_tutup_933",
+    "content_value": "TUTUP",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_deskripsi_filos_538",
+    "content_value": "Deskripsi filosofi.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_judul_242",
+    "content_value": "Judul",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_pencar_formasi_636",
+    "content_value": "Pencar Formasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_tahan___geser_u_151",
+    "content_value": "Tahan & Geser Untuk Memutar",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_expedient_136",
+    "content_value": "EXPEDIENT",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda_mempersiapkan_r_543",
+    "content_value": "Mempersiapkan Ruang Pameran",
+    "content_type": "text"
+  },
+  {
+    "content_key": "beranda__sovereign_prot_588",
+    "content_value": "\"Sovereign Protocol Initiated...\"",
+    "content_type": "text"
+  },
+  {
+    "content_key": "event_wib_556",
+    "content_value": "WIB",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_untuk_saling_me_480",
+    "content_value": "untuk saling melengkapi di setiap langkah.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_utuh_27",
+    "content_value": "utuh",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_expedient_berma_529",
+    "content_value": "Expedient bermakna kepraktisan dan ketepatan dalam bertindak. Ia adalah filosofi tentang bagaimana mencapai tujuan dengan cara yang paling efisien dan bijaksana. Generasi yang membawa nama ini tidak terjebak pada hal-hal yang rumit tanpa alasan; mereka berfokus pada apa yang benar-benar bermakna dan membawa kebaikan bersama. Kemampuan untuk menempatkan segala sesuatu pada proporsi yang tepat adalah bentuk kedewasaan. Pada akhirnya, keindahan dari sebuah perjalanan terletak pada kesederhanaan niat dan keyakinan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_batal_118",
+    "content_value": "Batal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_konfirmasi_sand_159",
+    "content_value": "Konfirmasi Sandi untuk Hapus",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_apakah_anda_ben_574",
+    "content_value": "Apakah Anda benar-benar yakin?",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_nonaktifkan_aku_628",
+    "content_value": "Nonaktifkan Akun",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_tindakan_ini_ak_156",
+    "content_value": "Tindakan ini akan menonaktifkan akun Anda secara permanen dari sistem. Data tidak dapat dipulihkan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_zona_berbahaya_475",
+    "content_value": "Zona Berbahaya",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_perbarui_kata_s_732",
+    "content_value": "Perbarui Kata Sandi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_memproses_603",
+    "content_value": "Memproses...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_konfirmasi_kata_188",
+    "content_value": "Konfirmasi Kata Sandi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_kata_sandi_baru_365",
+    "content_value": "Kata Sandi Baru",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_ubah_kata_sandi_87",
+    "content_value": "Ubah Kata Sandi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_buka_sovereign_194",
+    "content_value": "BUKA SOVEREIGN ID 5D",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_identitas_eksek_13",
+    "content_value": "Identitas Eksekutif",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_gunakan_biometr_797",
+    "content_value": "Gunakan biometrik bawaan (Touch ID/Face ID) pada gawai Anda sebagai otentikasi lapis kedua tanpa sandi.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_autentikasi_per_549",
+    "content_value": "Autentikasi Perangkat Ini",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_kredensial_fisi_580",
+    "content_value": "Kredensial Fisik (Passkey)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_wajah_anda_menj_567",
+    "content_value": "Wajah Anda menjadi kunci tunggal untuk membedah data Sovereign ini. Tingkat akurasi pemindaian telah dimaksimalkan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_keamanan_visual_638",
+    "content_value": "Keamanan Visual Aktif",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_akses__amp__kea_287",
+    "content_value": "Akses &amp; Keamanan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_menyimpan_928",
+    "content_value": "Menyimpan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_target_pencapai_531",
+    "content_value": "Target Pencapaian",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_visi__amp__moti_210",
+    "content_value": "Visi &amp; Motivasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_tiktok__opsiona_456",
+    "content_value": "TikTok (Opsional)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_instagram__opsi_457",
+    "content_value": "Instagram (Opsional)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_alamat_surel_ut_873",
+    "content_value": "Alamat Surel Utama",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_nama_lengkap_re_709",
+    "content_value": "Nama Lengkap Resmi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_event_baru__pen_81",
+    "content_value": "Event baru, pengumuman, &amp; alumni bergabung",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_notifikasi_what_109",
+    "content_value": "Notifikasi WhatsApp",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_nomor_kontak__w_548",
+    "content_value": "Nomor Kontak (WhatsApp)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_nama_sandi___pa_353",
+    "content_value": "Nama Sandi / Panggilan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_maksimum_resolu_490",
+    "content_value": "Maksimum resolusi HD disarankan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_pilih_potret_494",
+    "content_value": "Pilih Potret",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_potret_resmi_927",
+    "content_value": "Potret Resmi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_identitas_perso_261",
+    "content_value": "Identitas Personal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_prestise_143",
+    "content_value": "PRESTISE",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_mengkalibrasi_o_552",
+    "content_value": "Mengkalibrasi optik...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "profil_verifikasi_keam_636",
+    "content_value": "Verifikasi Keamanan",
+    "content_type": "text"
+  }
+]

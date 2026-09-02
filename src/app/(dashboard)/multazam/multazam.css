@@ -1,0 +1,78 @@
+.multazam-page-wrapper {
+  --gold-light: #fff2cd;
+  --gold-main: #d4af37;
+  --gold-dark: #aa771c;
+
+  background-color: transparent;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.multazam-page-wrapper .multazam-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+.multazam-page-wrapper .multazam-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; }
+.multazam-page-wrapper .btn-back { display: inline-flex; align-items: center; gap: 10px; color: var(--gold-main); text-decoration: none; font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; font-weight: 600; transition: all 0.4s; padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(212,175,55,0.2); background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); }
+.multazam-page-wrapper .btn-back:hover { background: rgba(212,175,55,0.1); transform: translateX(-5px); box-shadow: 0 5px 15px rgba(212,175,55,0.1); }
+.multazam-page-wrapper .page-title { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--gold-main); margin: 0; text-align: right; }
+.multazam-page-wrapper .page-subtitle { color: #8899a6; font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; text-align: right; margin-top: 5px; }
+
+.multazam-page-wrapper .ticket-container { perspective: 1500px; margin-bottom: 50px; }
+.multazam-page-wrapper .vip-ticket { width: 100%; max-width: 350px; height: 600px; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border-radius: 20px; position: relative; transform-style: preserve-3d; box-shadow: var(--glass-shadow); border: 1px solid var(--glass-border); display: flex; flex-direction: column; overflow: hidden; margin: 0 auto; }
+.multazam-page-wrapper .vip-ticket::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 45%, rgba(212,175,55,0.4) 50%, rgba(255,255,255,0.1) 55%, transparent 100%); transform: translateZ(1px); pointer-events: none; opacity: 0; transition: opacity 0.5s; mix-blend-mode: color-dodge; }
+.multazam-page-wrapper .vip-ticket:hover::after { opacity: 1; animation: holoFoil 3s infinite linear; }
+@keyframes holoFoil { 0% { transform: translateY(-50%) translateX(-50%) rotate(0deg); } 100% { transform: translateY(0%) translateX(0%) rotate(360deg); } }
+
+.multazam-page-wrapper .ticket-top { height: 250px; background-image: url('https://images.unsplash.com/photo-1519671482749-fd098f392a56?q=80&w=2670&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative; border-bottom: 2px dashed rgba(212,175,55,0.5); }
+.multazam-page-wrapper .ticket-top::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-main) 0%, transparent 100%); }
+.multazam-page-wrapper .ticket-badge { position: absolute; top: 20px; right: 20px; background: var(--gold-main); color: #000; font-size: 0.7rem; font-weight: bold; padding: 5px 12px; border-radius: 20px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+
+.multazam-page-wrapper .cutout { position: absolute; bottom: -15px; width: 30px; height: 30px; background: var(--bg-main); border-radius: 50%; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+.multazam-page-wrapper .cutout-left { left: -15px; } 
+.multazam-page-wrapper .cutout-right { right: -15px; }
+
+.multazam-page-wrapper .ticket-body { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; transform: translateZ(30px); }
+.multazam-page-wrapper .event-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--gold-main); margin: 0 0 10px 0; line-height: 1.2; }
+.multazam-page-wrapper .event-desc { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px; }
+.multazam-page-wrapper .ticket-details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+.multazam-page-wrapper .detail-item { display: flex; flex-direction: column; }
+.multazam-page-wrapper .detail-label { color: var(--text-secondary); font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+.multazam-page-wrapper .detail-value { color: var(--text-primary); font-size: 0.9rem; font-weight: bold; }
+
+.multazam-page-wrapper .qr-section { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
+.multazam-page-wrapper .qr-code { width: 80px; height: 80px; background: #fff; padding: 5px; border-radius: 8px; background-image: url('https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg'); background-size: cover; }
+.multazam-page-wrapper .seat-info { text-align: right; }
+.multazam-page-wrapper .seat-number { font-size: 2rem; font-family: 'Playfair Display', serif; color: var(--gold-main); }
+
+.multazam-page-wrapper .action-buttons { display: flex; gap: 20px; justify-content: center; }
+.multazam-page-wrapper .btn-wallet { background: var(--text-primary); color: var(--bg-main); border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: transform 0.3s, box-shadow 0.3s; text-decoration: none; }
+.multazam-page-wrapper .btn-wallet:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255,255,255,0.2); }
+.multazam-page-wrapper .btn-secondary { background: transparent; color: var(--gold-main); border: 1px solid var(--gold-main); padding: 15px 30px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.3s; }
+.multazam-page-wrapper .btn-secondary:hover { background: rgba(212,175,55,0.1); }
+
+.multazam-page-wrapper .prayer-panel { position: fixed; top: 0; right: -450px; width: 100%; max-width: 450px; height: 100vh; background: var(--bg-main); border-left: 1px solid var(--glass-border); z-index: 1000; transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1); padding: 40px 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; color: var(--text-primary); box-shadow: -20px 0 50px rgba(0,0,0,0.3); }
+.multazam-page-wrapper .prayer-panel.open { right: 0; }
+.multazam-page-wrapper .btn-close-panel { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; z-index: 10; transition: color 0.3s; }
+.multazam-page-wrapper .btn-close-panel:hover { color: var(--gold-main); }
+.multazam-page-wrapper .panel-title { font-family: 'Playfair Display', serif; color: var(--gold-main); font-size: 1.5rem; letter-spacing: 2px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 10px; margin-bottom: 10px; padding-right: 30px; }
+.multazam-page-wrapper .prayer-form textarea { width: 100%; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 12px; margin-bottom: 15px; border-radius: 5px; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; box-sizing: border-box; }
+.multazam-page-wrapper .btn-submit-prayer { width: 100%; background: var(--gold-main); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; letter-spacing: 2px; text-transform: uppercase; }
+.multazam-page-wrapper .prayer-card { background: var(--glass-bg); border: 1px dashed var(--glass-border); padding: 20px; border-radius: 8px; margin-bottom: 15px; position: relative; }
+.multazam-page-wrapper .prayer-date { font-size: 0.75rem; color: var(--gold-main); margin-bottom: 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
+.multazam-page-wrapper .prayer-content { font-size: 1rem; line-height: 1.6; color: var(--text-primary); font-family: 'Playfair Display', serif; font-style: italic; }
+.multazam-page-wrapper .prayer-status { position: absolute; bottom: 15px; right: 15px; font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+
+@media (max-width: 768px) {
+    .multazam-page-wrapper .multazam-header { flex-direction: column; gap: 15px; align-items: flex-start; margin-bottom: 30px; }
+    .multazam-page-wrapper .btn-back { align-self: flex-start; }
+    .multazam-page-wrapper .page-title { text-align: left; font-size: 2rem; }
+    .multazam-page-wrapper .page-subtitle { text-align: left; }
+    .multazam-page-wrapper .vip-ticket { max-width: 320px; height: 550px; margin: 0 auto; }
+    .multazam-page-wrapper .action-buttons { flex-direction: column; width: 100%; max-width: 320px; }
+    .multazam-page-wrapper .btn-wallet, .multazam-page-wrapper .btn-secondary { width: 100%; justify-content: center; }
+    .multazam-page-wrapper .prayer-panel { width: 100%; right: -100%; padding: 30px 20px; }
+}

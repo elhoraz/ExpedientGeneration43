@@ -1,0 +1,753 @@
+/* ================= 1. DUAL THEME VARIABLES ================= */
+:root {
+    --bg-main: #030504; --bg-radial: #0a110e; --bg-secondary: rgba(12, 18, 15, 0.92); --bg-card: rgba(12, 18, 15, 0.88);
+    --aurora-1: rgba(0, 255, 136, 0.08); --aurora-2: rgba(0, 162, 255, 0.06); --aurora-3: rgba(212, 175, 55, 0.05);
+    --glass-bg: rgba(255, 255, 255, 0.02); --glass-blur: blur(40px) saturate(150%);
+    --glass-border: rgba(255, 255, 255, 0.08); --glass-shadow: 0 30px 60px rgba(0,0,0,0.4);
+    --text-primary: #ffffff; --text-secondary: #8b9ba8;
+    --gold-main: #d4af37; /* Emas cerah untuk mode malam */
+    --awwwards-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+:root[data-theme="light"] {
+    --bg-main: #fcfbf8; /* Gading / Pearl White yang elegan */
+    --bg-radial: #ffffff; --bg-secondary: rgba(255, 255, 255, 0.92); --bg-card: rgba(255, 255, 255, 0.95);
+    --aurora-1: rgba(212, 175, 55, 0.12); /* Emas Mewah */
+    --aurora-2: rgba(3, 5, 4, 0.05); /* Sedikit sentuhan gelap */
+    --aurora-3: rgba(184, 150, 40, 0.15); /* Emas Tua */
+    --glass-bg: rgba(255, 255, 255, 0.75); 
+    --glass-border: rgba(212, 175, 55, 0.4); 
+    --glass-shadow: 0 25px 50px rgba(212, 175, 55, 0.15);
+    --text-primary: #0a110e; /* Hijau sangat gelap (hampir hitam) */
+    --text-secondary: #5d6e66; /* Abu-abu kehijauan */
+    --gold-main: #aa771c; /* Emas gelap untuk mode siang */
+}
+
+html, body { overscroll-behavior: none; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 10px; }
+
+body { background-color: var(--bg-main); background-image: radial-gradient(circle at 50% 50%, var(--bg-radial), transparent 80%); color: var(--text-primary); height: 100vh; overflow: hidden; transition: background 1s ease, color 0.5s ease; cursor: default; }
+
+/* Utility Classes */
+.no-select { user-select: none; -webkit-user-select: none; }
+body.custom-cursor-ready { cursor: none; }
+
+/* ================= 2. KEMEWAHAN: FILM GRAIN & MAGNETIC CURSOR ================= */
+.film-grain { position: fixed; inset: 0; pointer-events: none; z-index: 99999; opacity: 0.04; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"); }
+[data-theme="light"] .film-grain { opacity: 0.05; filter: invert(1); }
+
+@media (pointer: fine) {
+    .cursor-dot { position: fixed; top: 0; left: 0; width: 6px; height: 6px; background: #d4af37; border-radius: 50%; pointer-events: none; z-index: 999999; transform: translate(-50%, -50%); transition: width 0.2s, height 0.2s; }
+    .cursor-ring { position: fixed; top: 0; left: 0; width: 36px; height: 36px; border: 1px solid rgba(212,175,55,0.6); border-radius: 50%; pointer-events: none; z-index: 999998; transform: translate(-50%, -50%); transition: width 0.3s, height 0.3s, background 0.3s, border-color 0.3s; transition-timing-function: ease-out; }
+    body.cursor-hovering .cursor-dot { width: 0; height: 0; opacity: 0; }
+    body.cursor-hovering .cursor-ring { width: 60px; height: 60px; background: rgba(212,175,55,0.15); border-color: rgba(212,175,55,0.8); backdrop-filter: blur(4px); }
+}
+@media (pointer: coarse) { body { cursor: auto; } .cursor-dot, .cursor-ring { display: none; } }
+
+/* ================= 3. BACKGROUND ENGINE ================= */
+.aurora-container { position: fixed; inset: -30%; z-index: 0; pointer-events: none; filter: blur(30px); transition: opacity 1s; }
+.aurora-blob { position: absolute; border-radius: 50%; opacity: 0.9; mix-blend-mode: screen; animation: morphBlob 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1); }
+:root[data-theme="light"] .aurora-blob { mix-blend-mode: multiply; opacity: 0.7; }
+.blob-1 { width: 55vw; height: 55vw; background: var(--aurora-1); top: -10%; left: 0; transform-origin: center right; }
+.blob-2 { width: 65vw; height: 65vw; background: var(--aurora-2); bottom: -10%; right: -10%; transform-origin: center left; animation-delay: -7s; }
+.blob-3 { width: 45vw; height: 45vw; background: var(--aurora-3); top: 40%; left: 30%; transform-origin: bottom center; animation-delay: -14s; }
+@keyframes morphBlob { 0% { transform: scale(1) translate(0, 0) rotate(0deg); } 100% { transform: scale(1.4) translate(120px, -80px) rotate(90deg); } }
+#particles-js { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+/* ================= 4. THE 10 CELESTIAL LOADERS ================= */
+#loadingScreen { position: fixed; inset: 0; background: var(--bg-main); z-index: 999990; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s; }
+.loader-logo-wrap { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin-bottom: 40px; }
+.loader-logo { width: 130px; filter: drop-shadow(0 0 25px rgba(212,175,55,0.8)); position: relative; z-index: 10; mix-blend-mode: screen; animation: fadeInScale 1s ease-out forwards; }
+:root[data-theme="light"] .loader-logo { mix-blend-mode: normal; filter: drop-shadow(0 0 25px rgba(212,175,55,0.4)); }
+
+@keyframes fadeInScale { 0% { opacity: 0; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes spinFull { 100% { transform: rotate(360deg); } }
+
+.load-v1 .pure-ripple { position: absolute; width: 150px; height: 150px; border: 2px solid #d4af37; border-radius: 50%; opacity: 0; animation: pureRipple 2.5s infinite ease-out; } .load-v1 .pure-ripple:nth-child(2) { animation-delay: 1.25s; } @keyframes pureRipple { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+.load-v2 { perspective: 1200px; } .load-v2 .cosmos-orbit { position: absolute; width: 200px; height: 200px; border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; animation: cosmosSpin 4s infinite linear; } .load-v2 .orbit-1 { animation-duration: 3s; } .load-v2 .orbit-2 { animation-duration: 5s; animation-direction: reverse; } @keyframes cosmosSpin { 0% { transform: rotateX(70deg) rotateY(20deg) rotateZ(0deg); } 100% { transform: rotateX(70deg) rotateY(20deg) rotateZ(360deg); } }
+.load-v3 .loader-logo { filter: grayscale(1); opacity: 0.1; } .load-v3 .gilded-reveal { font-family: 'Playfair Display', serif; color: #d4af37; font-size: 1.2rem; letter-spacing: 5px; text-transform: uppercase; animation: shimmer 2s infinite linear; } @keyframes shimmer { 0% { opacity: 0.3; } 50% { opacity: 1; text-shadow: 0 0 15px #d4af37; } 100% { opacity: 0.3; } }
+.load-v4 .loader-logo { animation: fadeInScale 1s ease-out forwards, bloom 2s ease-in-out 1s infinite alternate; } @keyframes bloom { 0% { filter: drop-shadow(0 0 10px rgba(212,175,55,0.4)); } 100% { filter: drop-shadow(0 0 40px rgba(212,175,55,1)); } }
+.load-v5 .loader-logo { z-index: 1; } .load-v5 .lunar-eclipse { position: absolute; width: 140px; height: 140px; background: var(--bg-main); border-radius: 50%; z-index: 5; box-shadow: -20px 0 30px #d4af37; animation: lunarEclipse 4s infinite ease-in-out; } :root[data-theme="light"] .load-v5 .lunar-eclipse { box-shadow: -20px 0 30px #aa771c; } @keyframes lunarEclipse { 0% { left: -120%; box-shadow: 20px 0 30px #d4af37; } 50% { left: 20px; box-shadow: 0 0 40px #d4af37; } 100% { left: 120%; box-shadow: -20px 0 30px #d4af37; } }
+.load-v6 .solar-crown { position: absolute; inset: -25px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 70%, rgba(212,175,55,0.6) 100%); animation: spinFull 2s linear infinite; border: 2px solid rgba(212,175,55,0.1); }
+.load-v7 .sacred-lattice { position: absolute; width: 160px; height: 160px; border: 1px solid rgba(212,175,55,0.2); animation: latticePulse 3s infinite alternate; opacity: 0; } @keyframes latticePulse { 0% { opacity: 0.1; } 100% { opacity: 0.7; transform: scale(1.1); } }
+.load-v8 .prismatic-pulse { position: absolute; width: 180px; height: 180px; border: 2px solid #00ff88; animation: prismRipple 3s infinite ease-out; opacity: 0; } :root[data-theme="light"] .load-v8 .prismatic-pulse { border-color: #00a2ff; } @keyframes prismRipple { 0% { transform: scale(0.8); opacity: 1; filter: hue-rotate(0deg); } 100% { transform: scale(2.5); opacity: 0; filter: hue-rotate(360deg); } }
+.load-v9 .flowing-veils { position: absolute; bottom: -60px; display: flex; gap: 10px; height: 35px; align-items: center; justify-content: center; } .load-v9 .veil { width: 7px; background: #d4af37; border-radius: 4px; animation: veilFlow 1.2s infinite alternate ease-in-out; box-shadow: 0 0 15px #d4af37; } @keyframes veilFlow { 0% { transform: scaleY(0.5); opacity: 0.4; } 100% { transform: scaleY(1.3); opacity: 1; } }
+.load-v10 { perspective: 1500px; } .load-v10 .stellar-orbit { position: absolute; width: 250px; height: 90px; border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; animation: spinX 4s infinite linear; } .load-v10 .stellar-orbit:nth-child(2) { animation: spinY 4s infinite linear; } .load-v10 .stellar-dot { position: absolute; width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff; top: -6px; left: 50%; transform: translateX(-50%); } :root[data-theme="light"] .load-v10 .stellar-dot { background: #d4af37; box-shadow: 0 0 20px #d4af37; }
+
+/* ================= 5. AWWWARDS LEVEL FLOATING SIDEBAR (DI-UPGRADE) ================= */
+.sidebar { 
+    position: fixed; top: 20px; left: 20px; bottom: 20px; width: 75px; /* Dipersempit agar elegan */
+    background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border); border-radius: 20px;
+    display: flex; flex-direction: column; align-items: center; padding: 25px 0; gap: 20px; 
+    z-index: 100; box-shadow: var(--glass-shadow); 
+    transition: transform 0.3s var(--awwwards-ease), opacity 0.3s var(--awwwards-ease), width 0.3s var(--awwwards-ease);
+}
+
+.nav-item { 
+    width: 45px; height: 45px; border-radius: 14px; display: flex; justify-content: center; align-items: center; 
+    color: var(--text-secondary); font-size: 1.15rem; cursor: pointer; position: relative; text-decoration: none; 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 1; transform: translateY(0);
+}
+.nav-label {
+    display: none;
+}
+.nav-item::after { 
+    content: attr(data-tooltip); position: absolute; left: 60px; background: var(--glass-bg); 
+    backdrop-filter: var(--glass-blur); padding: 8px 16px; border-radius: 10px; 
+    border: 1px solid var(--glass-border); font-size: 0.8rem; font-weight: 600; color: var(--text-primary); 
+    opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); white-space: nowrap; 
+    transform: translateX(-15px) scale(0.95); box-shadow: var(--glass-shadow); font-family: 'Inter', sans-serif; letter-spacing: 1px; 
+}
+.nav-item:hover, .nav-item.active { 
+    background: rgba(212,175,55,0.15); color: #d4af37; 
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(212,175,55,0.5); 
+    transform: translateY(-4px); 
+}
+.nav-item:hover::after { opacity: 1; transform: translateX(0) scale(1); }
+
+/* Staggered Animation for Nav Items */
+.sidebar .nav-item:nth-child(1) { transition-delay: 0.05s; }
+.sidebar .nav-item:nth-child(2) { transition-delay: 0.10s; }
+.sidebar .nav-item:nth-child(3) { transition-delay: 0.15s; }
+.sidebar .nav-item:nth-child(4) { transition-delay: 0.20s; }
+.sidebar .nav-item:nth-child(5) { transition-delay: 0.25s; }
+.sidebar .nav-item:nth-child(6) { transition-delay: 0.30s; }
+.sidebar .nav-item:nth-child(8) { transition-delay: 0.35s; }
+
+/* Sidebar Closed State (Desktop) */
+body.sidebar-closed .sidebar { transform: translateX(-150px); opacity: 0; pointer-events: none; }
+body.sidebar-closed .sidebar .nav-item { opacity: 0; transform: translateY(20px); transition-delay: 0s !important; }
+
+/* ================= KEMEWAHAN BARU: EDGE-SNAP TOGGLE (2 GARIS) ================= */
+.menu-toggle {
+    position: fixed; top: 50%; left: 0; z-index: 110;
+    transform: translateY(-50%);
+    background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(212,175,55,0.05) 100%);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border); border-left: none; /* Hilangkan border kiri agar menempel */
+    border-radius: 0 16px 16px 0; /* Melengkung di kanan saja */
+    width: 40px; height: 75px; 
+    display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px;
+    cursor: pointer;
+    transition: all 0.6s var(--awwwards-ease); 
+    box-shadow: 5px 0 20px rgba(0,0,0,0.15);
+}
+/* Garis Minimalis (Asimetris) */
+.menu-toggle .line {
+    width: 18px; height: 2px; background: var(--text-primary); border-radius: 2px; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.menu-toggle .line.short { width: 10px; align-self: flex-start; margin-left: 11px; } /* Garis bawah lebih pendek */
+
+/* Interaksi Hover Mewah */
+.menu-toggle:hover { 
+    width: 48px; border-color: rgba(212,175,55,0.5); background: rgba(212,175,55,0.15); 
+    box-shadow: 10px 0 25px rgba(212, 175, 55, 0.2); 
+}
+.menu-toggle:hover .line { background: #d4af37; }
+.menu-toggle:hover .line.short { width: 18px; margin-left: 0; } /* Garis memanjang saat dihover */
+
+/* Sembunyikan toggle dengan mulus saat sidebar terbuka */
+body:not(.sidebar-closed) .menu-toggle { opacity: 0; transform: translateY(-50%) translateX(-100%); pointer-events: none; }
+
+/* Main Wrapper Dynamic Adjustments */
+.main-wrapper { 
+    position: absolute; top: 0; left: 115px; /* Disesuaikan dengan lebar sidebar baru */
+    right: 0; bottom: 0; z-index: 10; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    transition: left 0.3s var(--awwwards-ease);
+}
+body.sidebar-closed .main-wrapper { left: 0; }
+
+/* ================= 6. AEGIS DYNAMIC ISLAND NOTIFICATION ================= */
+.aegis-toast { 
+    position: fixed; top: -100px; left: 50%; transform: translateX(-50%) scale(0.8); 
+    width: auto; min-width: 250px; max-width: 90vw; 
+    background: #000; /* Solid deep black for true notch illusion */
+    backdrop-filter: blur(10px); 
+    border: 1px solid rgba(255,255,255,0.1); 
+    border-radius: 40px; /* Pill shape */
+    padding: 14px 28px; 
+    display: flex; align-items: center; justify-content: center; gap: 18px; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(212,175,55,0.1); 
+    z-index: 999999; 
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Spring Physics */
+    opacity: 0; pointer-events: none; overflow: hidden; cursor: pointer; 
+}
+.aegis-toast.show { top: 25px; transform: translateX(-50%) scale(1); opacity: 1; pointer-events: auto; }
+:root[data-theme="light"] .aegis-toast { background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.1), 0 0 0 1px rgba(212,175,55,0.2); }
+
+.aegis-toast::after { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(212,175,55,0.15), transparent); transform: skewX(-20deg); }
+.aegis-toast.show::after { animation: shimmerToast 2.5s ease-out forwards 0.5s; }
+@keyframes shimmerToast { 100% { left: 200%; } }
+
+.aegis-icon { color: #d4af37; font-size: 1.6rem; filter: drop-shadow(0 0 10px rgba(212,175,55,0.4)); animation: pulseAegis 2s infinite alternate; }
+@keyframes pulseAegis { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+.aegis-content { display: flex; flex-direction: column; justify-content: center; }
+.aegis-title { font-size: 0.65rem; color: #8b9ba8; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 3px; font-weight: 700; }
+.aegis-name { font-family: 'Inter', sans-serif; font-size: 1rem; color: #fff; font-weight: 600; line-height: 1.2; }
+:root[data-theme="light"] .aegis-name { color: #000; }
+
+/* ================= 7. THEME & NOTIF WIDGETS ================= */
+.theme-widget { position: fixed; top: 30px; right: 40px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px 16px 6px 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); pointer-events: auto; }
+.theme-widget:hover { transform: translateY(-3px) scale(1.05); border-color: #d4af37; }
+.icon-orb { width: 35px; height: 35px; border-radius: 50%; background: var(--bg-main); display: flex; justify-content: center; align-items: center; color: var(--text-primary); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); transition: 0.4s; }
+:root[data-theme="light"] .icon-orb { box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+.theme-widget:hover .icon-orb { background: var(--text-primary); color: var(--bg-main); }
+.widget-text { font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-secondary); transition: 0.4s; }
+
+.notif-widget { position: fixed; top: 30px; right: 170px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px; cursor: pointer; display: flex; align-items: center; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); pointer-events: auto; }
+.notif-widget:hover { transform: translateY(-3px) scale(1.05); border-color: #d4af37; }
+.notif-widget:hover .icon-orb { background: var(--text-primary); color: var(--bg-main); }
+
+.chat-widget { position: fixed; top: 30px; right: 235px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px; cursor: pointer; display: flex; align-items: center; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); text-decoration: none; pointer-events: auto; }
+.chat-widget:hover { transform: translateY(-3px) scale(1.05); border-color: #d4af37; }
+.chat-widget:hover .icon-orb { background: var(--text-primary); color: var(--bg-main); }
+.chat-dropdown { display: flex; flex-direction: column; position: fixed; top: 75px; right: 235px; width: 340px; max-width: calc(100vw - 32px); background: var(--glass-bg, rgba(10, 15, 12, 0.95)); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.25)); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 10002; overflow: hidden; pointer-events: auto; }
+
+/* Top widgets (theme, notif, chat) remain accessible */
+.theme-widget,
+.notif-widget,
+.chat-widget {
+    pointer-events: auto !important;
+}
+
+/* ================= 8. MOBILE RESPONSIVENESS ================= */
+@media (max-width: 768px) {
+    /* ===== GLOBAL MOBILE PERF: Kurangi glass-blur drastis ===== */
+    /* blur(40px) sangat berat di GPU mobile — turunkan ke blur(10px) */
+    :root {
+        --glass-blur: blur(10px);
+        --aurora-1: rgba(0, 255, 136, 0.12); 
+        --aurora-2: rgba(0, 162, 255, 0.10); 
+        --aurora-3: rgba(212, 175, 55, 0.10);
+    }
+    :root[data-theme="light"] {
+        --glass-blur: blur(8px);
+        --aurora-1: rgba(212, 175, 55, 0.2);
+        --aurora-2: rgba(3, 5, 4, 0.1);
+        --aurora-3: rgba(184, 150, 40, 0.25);
+    }
+
+    /* Aurora blobs: perkecil & matikan mix-blend-mode yang paling mahal */
+    .aurora-blob { mix-blend-mode: normal !important; }
+    .blob-1 { width: 100vw; height: 100vw; top: -10%; left: -10%; filter: blur(30px); }
+    .blob-2 { width: 120vw; height: 120vw; bottom: -10%; right: -10%; filter: blur(30px); }
+    .blob-3 { display: none; } /* blob ke-3 tidak terlihat, hapus untuk hemat resource */
+
+    .sidebar { 
+        top: auto; bottom: 20px; left: 8px; right: 8px; width: calc(100vw - 16px); height: 75px; 
+        flex-direction: row; padding: 0 4px; justify-content: space-around;
+        align-items: center;
+        gap: 0;
+    }
+    #btnMenuClose {
+        display: none !important;
+    }
+    .nav-item { 
+        width: auto; height: 100%; min-height: 48px; font-size: 0.95rem; margin: 0; 
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 2px; flex: 1;
+        min-width: 0; /* allows flex item to shrink properly */
+    }
+    .nav-label {
+        display: block;
+        font-size: 0.55rem;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        margin-top: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        text-align: center;
+    }
+    .nav-item.active .nav-label, .nav-item:hover .nav-label {
+        color: #d4af37;
+    }
+    .nav-item::after { display: none; }
+    .nav-spacer { display: none; }
+    
+    /* P2-15: CSS var agar chat & main-wrapper bisa referensi nilai yang sama */
+    :root { --nav-clearance: 105px; }
+    .main-wrapper { 
+        left: 0; 
+        bottom: var(--nav-clearance); 
+        max-width: 100vw !important; 
+        overflow-x: hidden !important; 
+        transition: bottom 0.3s var(--awwwards-ease); 
+    }
+    
+    /* Sidebar Closed State (Mobile) */
+    body.sidebar-closed .sidebar { transform: translateY(150px); opacity: 0; }
+    body.sidebar-closed .main-wrapper { bottom: 0; height: 100vh; max-width: 100vw !important; overflow-x: hidden !important; }
+    
+    /* Ultra-Minimalist Drawer Handle (iOS Style) */
+    .menu-toggle { 
+        top: auto; bottom: 0; left: 50%; transform: translateX(-50%); 
+        width: 100px; height: 28px; min-height: 28px;
+        background: transparent; border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
+        flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 5px;
+    }
+    .menu-toggle .line { width: 40px; height: 4px; background: var(--text-secondary); border-radius: 10px; margin: 0; transform: none !important; transition: background 0.3s, width 0.3s; opacity: 0.5; }
+    .menu-toggle .line.short { display: none; }
+    .menu-toggle:hover { width: 100px; height: 28px; background: transparent; border: none; box-shadow: none; }
+    .menu-toggle:hover .line { background: var(--text-primary); width: 50px; opacity: 0.8; }
+
+    body:not(.sidebar-closed) .menu-toggle { transform: translateX(-50%) translateY(-80px) !important; opacity: 1 !important; pointer-events: auto !important; }
+    body.sidebar-closed .menu-toggle { transform: translateX(-50%) translateY(0) !important; opacity: 1 !important; pointer-events: auto !important; }
+
+    .theme-widget { top: 20px; right: 20px; padding: 6px; min-width: 44px; min-height: 44px; } .widget-text { display: none; }
+    .notif-widget { top: 20px; right: auto; left: 20px; min-width: 44px; min-height: 44px; }
+    .notif-dropdown { top: 70px; right: auto; left: 20px; }
+    .chat-dropdown { top: 70px; right: auto; left: 75px; }
+    .chat-widget { top: 20px; right: auto; left: 75px; min-width: 44px; min-height: 44px; }
+
+    /* ===== P0-2: SAFE AREA INSETS (iPhone Notch / Dynamic Island) ===== */
+    /* Menggunakan env() agar sidebar, widget, dan toast tidak tertimpa UI iOS */
+    @supports (padding: max(0px)) {
+        .sidebar {
+            bottom: max(20px, env(safe-area-inset-bottom, 20px));
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        body.sidebar-closed .main-wrapper {
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+        .theme-widget {
+            top: max(20px, env(safe-area-inset-top, 20px));
+        }
+        .notif-widget, .chat-widget {
+            top: max(20px, env(safe-area-inset-top, 20px));
+        }
+        .notif-dropdown, .chat-dropdown {
+            top: max(70px, calc(env(safe-area-inset-top, 20px) + 50px));
+        }
+        .aegis-toast.show {
+            top: max(25px, calc(env(safe-area-inset-top, 25px) + 10px));
+        }
+        .menu-toggle {
+            bottom: max(0px, env(safe-area-inset-bottom, 0px));
+        }
+        body:not(.sidebar-closed) .menu-toggle {
+            transform: translateX(-50%) translateY(calc(-80px - env(safe-area-inset-bottom, 0px))) !important;
+        }
+    }
+
+    /* ===== P0-4: GLOBAL BACKDROP-FILTER KILL (Mobile GPU Performance) ===== */
+    /* backdrop-filter: blur() sangat berat di GPU mobile (Snapdragon 6xx/7xx).
+       Matikan di seluruh komponen glassmorphic, kompensasi dengan background solid. */
+    .premium-panel,
+    .bio-status-box,
+    .status-display,
+    .glass-panel,
+    .phil-content,
+    .archive-paper,
+    .chat-container,
+    .bday-notif-card,
+    .notif-dropdown,
+    .chat-dropdown,
+    .emoji-picker {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background: rgba(10, 17, 14, 0.95) !important;
+    }
+    :root[data-theme="light"] .premium-panel,
+    :root[data-theme="light"] .bio-status-box,
+    :root[data-theme="light"] .status-display,
+    :root[data-theme="light"] .glass-panel,
+    :root[data-theme="light"] .phil-content,
+    :root[data-theme="light"] .archive-paper,
+    :root[data-theme="light"] .chat-container,
+    :root[data-theme="light"] .bday-notif-card,
+    :root[data-theme="light"] .notif-dropdown,
+    :root[data-theme="light"] .chat-dropdown,
+    :root[data-theme="light"] .emoji-picker {
+        background: rgba(252, 251, 248, 0.97) !important;
+    }
+}
+
+/* ================= 8B. TABLET RESPONSIVENESS (769px — 1024px) ================= */
+/* iPad, iPad Mini, Android Tablets — Intermediate layout */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .sidebar { width: 65px; }
+    .sidebar .nav-label { font-size: 0.45rem; }
+    .main-wrapper { left: 85px; }
+    
+    /* Grid layouts: max 2 columns on tablet */
+    .cinematic-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 25px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .profil-grid { grid-template-columns: 1fr; }
+    
+    /* Widgets: slightly smaller spacing */
+    .theme-widget { top: 15px; right: 15px; }
+    .notif-widget { top: 15px; right: 120px; }
+    .chat-widget { top: 15px; right: 65px; }
+    
+    /* Reduce heavy effects for tablet GPU */
+    :root { --glass-blur: blur(15px); }
+}
+
+/* ================= 8C. SMALL MOBILE (≤ 380px — iPhone SE, Galaxy S mini) ================= */
+@media (max-width: 380px) {
+    .sidebar { height: 65px; bottom: 15px; left: 5px; right: 5px; width: calc(100vw - 10px); }
+    .nav-item { font-size: 0.85rem; }
+    .nav-label { font-size: 0.42rem; }
+    .theme-widget { top: 15px; right: 15px; }
+    .notif-widget { top: 15px; left: 15px; }
+    .chat-widget { top: 15px; left: 70px; }
+    .aegis-toast { font-size: 0.8rem; padding: 10px 15px; }
+    .main-wrapper { bottom: 100px; }
+    body.sidebar-closed .main-wrapper { bottom: 0; }
+}
+
+/* ================= 9. ELITE UX: GOLDEN SKELETON SHIMMER ================= */
+@keyframes goldenShimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+.skeleton-shimmer {
+    background: #111;
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0.02) 0%,
+        rgba(212, 175, 55, 0.15) 20%, /* Efek cahaya Emas mengkilap */
+        rgba(255, 255, 255, 0.02) 40%,
+        rgba(255, 255, 255, 0.02) 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 1000px 100%;
+    animation: goldenShimmer 2s infinite linear forwards;
+    border-radius: 8px;
+    color: transparent !important;
+    border: none !important;
+    pointer-events: none;
+    box-shadow: none !important;
+}
+
+/* Fallback jika alumni memilih Tema Terang */
+:root[data-theme="light"] .skeleton-shimmer {
+    background: #e5e7eb;
+    background-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 0.02) 0%,
+        rgba(212, 175, 55, 0.25) 20%,
+        rgba(0, 0, 0, 0.02) 40%,
+        rgba(0, 0, 0, 0.02) 100%
+    );
+}
+
+/* Mencegah bingkai/border jelek (broken image icon) muncul saat gambar belum terload penuh */
+img.skeleton-shimmer {
+    object-position: -9999px -9999px;
+}
+
+/* ================= 10. AEGIS NATIVE ENGINE (TOUCH RIPPLE) ================= */
+.btn-ripple-container {
+    position: relative;
+    overflow: hidden;
+    /* Elemen yang ingin diberi ripple WAJIB punya class ini, atau ditambahkan via JS */
+}
+
+.aegis-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,175,55,0.4) 0%, rgba(212,175,55,0.1) 60%, transparent 100%);
+    backdrop-filter: blur(2px);
+    transform: scale(0);
+    animation: aegisRippleAnim 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none;
+    z-index: 10;
+}
+
+:root[data-theme="light"] .aegis-ripple {
+    background: radial-gradient(circle, rgba(212,175,55,0.6) 0%, rgba(212,175,55,0.2) 60%, transparent 100%);
+}
+
+@keyframes aegisRippleAnim {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(4); opacity: 0; }
+}
+
+/* Spring Transition Class (digunakan oleh JS saat Rubber Band snap-back) */
+.spring-snap-back {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* ================= 11. AEGIS NATIVE BOTTOM SHEET ================= */
+.aegis-sheet-overlay {
+    position: fixed; inset: 0; 
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index: 999990; opacity: 0; pointer-events: none; 
+    transition: opacity 0.4s ease;
+}
+.aegis-sheet-overlay.show { opacity: 1; pointer-events: auto; }
+
+.aegis-bottom-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(180deg, var(--glass-bg) 0%, var(--bg-main) 100%);
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 28px 28px 0 0;
+    padding: 24px; padding-top: 35px;
+    z-index: 999995;
+    transform: translateY(100%);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); /* Apple Spring */
+    box-shadow: 0 -15px 40px rgba(0,0,0,0.6);
+    max-height: 85vh; 
+    overflow-y: auto; overflow-x: hidden;
+    touch-action: pan-y; /* Penting agar isi laci bisa di-scroll tanpa macet */
+}
+:root[data-theme="light"] .aegis-bottom-sheet {
+    box-shadow: 0 -15px 40px rgba(0,0,0,0.1);
+}
+.aegis-bottom-sheet.show { transform: translateY(0); }
+
+/* Matikan transisi saat laci sedang ditarik oleh jari secara live */
+.aegis-bottom-sheet.dragging { transition: none !important; }
+
+.sheet-grabber-area {
+    position: absolute; top: 0; left: 0; 
+    width: 100%; height: 35px; 
+    display: flex; justify-content: center; align-items: flex-start;
+    padding-top: 10px; cursor: grab; z-index: 10;
+}
+.sheet-grabber-area:active { cursor: grabbing; }
+
+.sheet-grabber {
+    width: 45px; height: 5px; 
+    background: rgba(255,255,255,0.3); 
+    border-radius: 5px;
+}
+:root[data-theme="light"] .sheet-grabber { background: rgba(0,0,0,0.2); }
+
+/* ================= 12. AEGIS NATIVE GESTURES (PHASE 3) ================= */
+
+/* Pull to Refresh Indicator */
+.pull-to-refresh-indicator {
+    position: absolute; top: -50px; left: 0; width: 100%; height: 50px;
+    display: flex; justify-content: center; align-items: center;
+    z-index: 10; pointer-events: none; opacity: 0;
+    transition: opacity 0.3s;
+}
+.ptr-icon {
+    width: 32px; height: 32px; 
+    border: 3px solid rgba(212,175,55,0.2); border-top-color: #d4af37;
+    border-radius: 50%;
+    transform: rotate(0deg);
+}
+.ptr-icon.spinning { 
+    animation: ptrSpin 0.8s linear infinite; 
+    border: 3px solid #d4af37; border-top-color: transparent; 
+}
+@keyframes ptrSpin { 100% { transform: rotate(360deg); } }
+
+/* Double Tap Floating Sparkle */
+.aegis-sparkle {
+    position: fixed; pointer-events: none; z-index: 999999;
+    color: #d4af37; font-size: 2.5rem; filter: drop-shadow(0 0 15px #d4af37);
+    animation: sparkleFloat 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes sparkleFloat {
+    0% { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 1; }
+    50% { transform: translate(-50%, -100%) scale(1.2) rotate(10deg); opacity: 1; }
+    100% { transform: translate(-50%, -150%) scale(0.5) rotate(20deg); opacity: 0; }
+}
+
+/* Swipe to Action Engine */
+.swipe-action-wrapper {
+    position: relative; width: 100%; overflow: hidden;
+    touch-action: pan-y; /* Sangat penting: jangan kunci scroll atas-bawah */
+    border-radius: inherit;
+}
+.swipe-action-bg {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 25px; font-size: 1.4rem; border-radius: inherit; z-index: 0; opacity: 0;
+    transition: opacity 0.3s, background 0.3s;
+}
+.swipe-action-bg.left-active { opacity: 1; background: rgba(0, 255, 136, 0.15); color: #00ff88; justify-content: flex-start; }
+.swipe-action-bg.right-active { opacity: 1; background: rgba(255, 50, 50, 0.15); color: #ff3232; justify-content: flex-end; }
+.swipe-action-card {
+    position: relative; z-index: 1; width: 100%; height: 100%;
+    background: inherit; border-radius: inherit;
+    /* CSS transition dipasang via JS kelas spring-snap-back */
+}
+
+/* ================= 13. SMART PREFERS-REDUCED-MOTION ================= */
+/* Hanya matikan animasi berat yang menyebabkan motion sickness.
+   Animasi feedback (ripple, hover, toast, slide-in) TETAP berjalan. */
+@media (prefers-reduced-motion: reduce) {
+    /* Matikan aurora blob yang terus bergerak */
+    .aurora-blob { animation: none !important; }
+
+    /* Matikan film grain flickering */
+    .film-grain { display: none !important; }
+
+    /* Matikan parallax scroll (loading screen loader animasi juga) */
+    .load-v1 .pure-ripple,
+    .load-v2 .cosmos-orbit,
+    .load-v5 .lunar-eclipse,
+    .load-v6 .solar-crown,
+    .load-v7 .sacred-lattice,
+    .load-v8 .prismatic-pulse,
+    .load-v9 .veil,
+    .load-v10 .stellar-orbit { animation-duration: 3s !important; } /* Perlambat, jangan hentikan */
+
+    /* Percepat transisi halaman — jangan hilangkan, cukup instan */
+    .aegis-transit-bar { transition: none !important; }
+
+    /* Kurangi durasi page fade */
+    body.transit-fade-out { transition: opacity 0.05s !important; }
+
+    /* Skeleton shimmer: matikan shimmer, tapi tetap tampilkan placeholder */
+    .skeleton-shimmer { animation: none !important; background-image: none !important; }
+
+    /* PTR & sparkle: matikan */
+    .ptr-icon.spinning { animation: none !important; }
+    .aegis-sparkle { animation: none !important; }
+}
+
+/* ================= 13.5. UTILITIES (CHAT BADGE & CMD HINT) ================= */
+.chat-badge {
+    position: absolute; top: 2px; right: 2px;
+    width: 12px; height: 12px; background: #d4af37;
+    border-radius: 50%; box-shadow: 0 0 10px #d4af37;
+}
+@media (max-width: 768px) {
+    .cmd-hint-mobile { display: block !important; }
+}
+
+/* ================= 14. P3: COMMAND PALETTE (⌘K) ================= */
+.cmd-palette-overlay {
+    position: fixed; inset: 0; z-index: 9999998;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: clamp(60px, 12vh, 120px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.cmd-palette-overlay.open { opacity: 1; pointer-events: auto; }
+.cmd-palette-box {
+    width: min(640px, 92vw);
+    background: rgba(8,14,11,0.97);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(212,175,55,0.1);
+    overflow: hidden;
+    transform: translateY(-20px) scale(0.97);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.cmd-palette-overlay.open .cmd-palette-box { transform: translateY(0) scale(1); }
+.cmd-search-bar {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(212,175,55,0.12);
+}
+.cmd-search-icon { color: rgba(212,175,55,0.6); font-size: 1rem; flex-shrink: 0; }
+.cmd-input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text-primary); font-size: 1rem;
+    font-family: 'Inter', sans-serif; font-weight: 400;
+}
+.cmd-input::placeholder { color: var(--text-secondary); }
+.cmd-esc-hint {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 5px; padding: 2px 7px; font-size: 0.7rem;
+    color: var(--text-secondary); font-family: 'Inter', sans-serif; flex-shrink: 0;
+}
+.cmd-results { max-height: 360px; overflow-y: auto; padding: 8px 0; }
+.cmd-section-label {
+    font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-secondary); padding: 8px 20px 4px; font-weight: 600;
+}
+.cmd-item {
+    display: flex; align-items: center; gap: 14px; padding: 11px 20px;
+    cursor: pointer; transition: background 0.15s;
+    text-decoration: none; color: var(--text-primary);
+}
+.cmd-item:hover, .cmd-item.selected { background: rgba(212,175,55,0.1); }
+.cmd-item.selected { border-left: 2px solid #d4af37; padding-left: 18px; }
+.cmd-item-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(212,175,55,0.08); border: 1px solid rgba(212,175,55,0.15);
+    display: flex; align-items: center; justify-content: center;
+    color: #d4af37; font-size: 0.85rem; flex-shrink: 0;
+}
+.cmd-item-text { flex: 1; min-width: 0; }
+.cmd-item-title { font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmd-item-subtitle { font-size: 0.72rem; color: var(--text-secondary); margin-top: 1px; }
+.cmd-item-shortcut { font-size: 0.7rem; color: rgba(212,175,55,0.5); flex-shrink: 0; }
+.cmd-no-results { padding: 30px 20px; text-align: center; color: var(--text-secondary); font-size: 0.85rem; }
+.cmd-footer {
+    display: flex; gap: 16px; padding: 10px 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.3);
+}
+.cmd-footer span { font-size: 0.68rem; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
+.cmd-footer kbd, .cmd-esc-hint {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px; padding: 1px 5px; font-size: 0.7rem; font-family: 'Inter', sans-serif;
+}
+:root[data-theme="light"] .cmd-palette-box {
+    background: rgba(252,251,248,0.98);
+    border-color: rgba(184,134,11,0.3);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.2);
+}
+:root[data-theme="light"] .cmd-item:hover,
+:root[data-theme="light"] .cmd-item.selected { background: rgba(212,175,55,0.08); }
+@media (max-width: 768px) {
+    .cmd-palette-overlay { align-items: flex-end; padding-top: 0; }
+    .cmd-palette-box { border-radius: 18px 18px 0 0; width: 100%; }
+    .cmd-footer { display: none; }
+}
+
+/* ================= 15. P3: SKELETON VARIANTS (#21) ================= */
+.skeleton-line { height: 14px; border-radius: 7px; margin-bottom: 8px; }
+.skeleton-line.lg { height: 20px; }
+.skeleton-line.sm { height: 10px; }
+.skeleton-line.w-full { width: 100%; }
+.skeleton-line.w-3q { width: 75%; }
+.skeleton-line.w-half { width: 50%; }
+.skeleton-line.w-third { width: 33%; }
+.skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
+.skeleton-avatar.lg { width: 72px; height: 72px; }
+.skeleton-avatar.sm { width: 32px; height: 32px; }
+.skeleton-card { border-radius: 16px; padding: 20px; background: rgba(212,175,55,0.02); border: 1px solid rgba(212,175,55,0.07); }
+.skeleton-card-media { width: 100%; height: 180px; border-radius: 10px; margin-bottom: 16px; }
+/* All skeleton variants use the shared shimmer animation */
+.skeleton-line, .skeleton-avatar, .skeleton-card-media { @extend .skeleton-shimmer; }
+
+/* ================= 16. P3: SMART SCROLL-TO-TOP (#26) ================= */
+.scroll-top-btn {
+    position: fixed; right: 24px; bottom: 140px;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(10,17,14,0.88);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(212,175,55,0.4);
+    color: #d4af37; font-size: 1rem; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 9000;
+    opacity: 0; pointer-events: none;
+    transform: translateY(10px) scale(0.9);
+    transition: opacity 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    display: flex; align-items: center; justify-content: center;
+}
+.scroll-top-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+.scroll-top-btn:hover { background: rgba(212,175,55,0.15); transform: translateY(-2px) scale(1.05); }
+:root[data-theme="light"] .scroll-top-btn {
+    background: rgba(252,251,248,0.95);
+    border-color: rgba(184,134,11,0.4);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+@media (max-width: 768px) {
+    .scroll-top-btn { right: 16px; bottom: max(140px, calc(115px + env(safe-area-inset-bottom, 0px))); }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+    .scroll-top-btn { bottom: 30px; right: 20px; }
+}
+

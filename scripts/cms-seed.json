@@ -1,0 +1,2842 @@
+[
+  {
+    "content_key": "forgotpassword_kembali_ke_port_58",
+    "content_value": "Kembali ke Portal Utama",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_kirim_ulang_92",
+    "content_value": "Kirim Ulang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_untuk_instruksi_29",
+    "content_value": "untuk instruksi selanjutnya.\n                Jika tidak ditemukan, cek folder spam Anda.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_periksa_kotak_m_961",
+    "content_value": "Periksa kotak masuk",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_tautan_pemuliha_751",
+    "content_value": "Tautan pemulihan telah dikirim",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_kirim_tautan_pe_378",
+    "content_value": "Kirim Tautan Pemulihan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_mengirim_635",
+    "content_value": "Mengirim...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_surel_resmi_429",
+    "content_value": "Surel Resmi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_masukkan_alamat_556",
+    "content_value": "Masukkan alamat surel yang terdaftar. Kami akan mengirimkan tautan pemulihan ke kotak masuk Anda.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_expedient_gener_988",
+    "content_value": "Expedient Generation",
+    "content_type": "text"
+  },
+  {
+    "content_key": "forgotpassword_ganti_mode_418",
+    "content_value": "Ganti Mode",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_saya_mengerti_921",
+    "content_value": "SAYA MENGERTI",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login__tambah_ke_laya_714",
+    "content_value": "\"Tambah ke Layar Utama\"",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login__kotak_dengan_p_116",
+    "content_value": "(kotak dengan panah) di bawah layar, geser ke bawah, lalu pilih",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_bagikan_share_204",
+    "content_value": "Bagikan/Share",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_ketuk_ikon_96",
+    "content_value": "Ketuk ikon",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_ios___iphone__s_541",
+    "content_value": "iOS / iPhone (Safari)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login__tambahkan_ke_l_512",
+    "content_value": "\"Tambahkan ke Layar Utama\"",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_di_pojok_kanan_352",
+    "content_value": "di pojok kanan atas browser, lalu pilih",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_titik_tiga_403",
+    "content_value": "Titik Tiga",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_ketuk_ikon_114",
+    "content_value": "Ketuk ikon",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_android__chrome_209",
+    "content_value": "Android (Chrome)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_instalasi_vvip_102",
+    "content_value": "Instalasi VVIP App",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_kembali_ke_gerb_899",
+    "content_value": "Kembali ke Gerbang Utama",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_alternatif_368",
+    "content_value": "ALTERNATIF",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_lupa_sandi_573",
+    "content_value": "Lupa Sandi?",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_ingat_saya_537",
+    "content_value": "Ingat Saya",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_install_app_673",
+    "content_value": "Install App",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_panduan_install_700",
+    "content_value": "Panduan Install",
+    "content_type": "text"
+  },
+  {
+    "content_key": "login_ganti_mode_151",
+    "content_value": "Ganti Mode",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_batalkan_inisia_259",
+    "content_value": "BATALKAN INISIASI",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_protokol_keaman_837",
+    "content_value": "Protokol Keamanan VVIP",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_terapkan_pemoto_741",
+    "content_value": "Terapkan Pemotongan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_batalkan_184",
+    "content_value": "Batalkan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_sesuaikan_presi_623",
+    "content_value": "Sesuaikan Presisi Foto",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_selesaikan_inis_215",
+    "content_value": "Selesaikan Inisiasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_saya_menyatakan_666",
+    "content_value": "Saya menyatakan dengan sadar bahwa data ini benar dan menyetujui penyimpanannya ke dalam direktori angkatan Expedient.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_ubah_pilihan_fo_179",
+    "content_value": "Ubah Pilihan Foto",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_tap_klik_di_are_146",
+    "content_value": "Tap/Klik di area ini untuk menelusuri galeri",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_unggah_pasfoto_38",
+    "content_value": "Unggah Pasfoto Terbaik",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_foto_profil_eks_252",
+    "content_value": "Foto Profil Eksklusif",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_tiktok___userna_154",
+    "content_value": "TikTok (@username)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_instagram___use_284",
+    "content_value": "Instagram (@username)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_cita_cita_terbe_923",
+    "content_value": "Cita-Cita Terbesar",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_motivasi___filo_739",
+    "content_value": "Motivasi & Filosofi Hidup",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_kata_sandi_akse_62",
+    "content_value": "Kata Sandi Akses",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_wajib_menggunak_533",
+    "content_value": "Wajib menggunakan format 62 (Kode Negara).",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_nomor_whatsapp_596",
+    "content_value": "Nomor WhatsApp (Contoh: 628123456789)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_surel_resmi__em_27",
+    "content_value": "Surel Resmi (Email Aktif)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_alamat_lengkap_489",
+    "content_value": "Alamat Lengkap Domisili",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_tanggal_lahir_243",
+    "content_value": "Tanggal Lahir",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_tempat_lahir_447",
+    "content_value": "Tempat Lahir",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_jenis_kelamin_597",
+    "content_value": "Jenis Kelamin",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_perempuan_102",
+    "content_value": "Perempuan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_laki_laki_143",
+    "content_value": "Laki-laki",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_pilih_gender_161",
+    "content_value": "Pilih Gender...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_wajib_diisi_den_745",
+    "content_value": "Wajib diisi dengan benar.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_nama_panggilan_725",
+    "content_value": "Nama Panggilan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_wajib_diisi_den_656",
+    "content_value": "Wajib diisi dengan benar.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_nama_lengkap__s_994",
+    "content_value": "Nama Lengkap (Sesuai Ijazah)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_ganti_mode_464",
+    "content_value": "Ganti Mode",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_kembali_633",
+    "content_value": "Kembali",
+    "content_type": "text"
+  },
+  {
+    "content_key": "register_akses_ditolak_86",
+    "content_value": "Akses Ditolak",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_tarik_kartu__am_591",
+    "content_value": "Tarik Kartu &amp; Usap Layar",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_berinteraksi_478",
+    "content_value": "Berinteraksi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_access__granted_582",
+    "content_value": "ACCESS: GRANTED [",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_noir_vault_acti_922",
+    "content_value": "NOIR_VAULT_ACTIVE",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_environment_580",
+    "content_value": "ENVIRONMENT:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_sys_ver__4_0_4_435",
+    "content_value": "SYS_VER: 4.0.4_SOVEREIGN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_simpan_kartu_id_198",
+    "content_value": "Simpan Kartu ID (PNG)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_toggle_day_nigh_369",
+    "content_value": "Toggle Day/Night Mode",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_exit_vault_311",
+    "content_value": "Exit Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "sovereign_decrypting_omni_295",
+    "content_value": "DECRYPTING OMNIPRESENCE...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_catat_sebagai_h_27",
+    "content_value": "Catat Sebagai Hamba Allah (Anonim)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_deskripsi_detai_146",
+    "content_value": "Deskripsi detail transaksi...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_keterangan_tuju_449",
+    "content_value": "KETERANGAN/TUJUAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_contoh__500000_715",
+    "content_value": "Contoh: 500000",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_nominal__rupiah_150",
+    "content_value": "NOMINAL (RUPIAH)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_pengeluaran__op_730",
+    "content_value": "Pengeluaran (Operasional)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_pemasukan__khid_476",
+    "content_value": "Pemasukan (Khidmah/Infaq)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_jenis_transaksi_511",
+    "content_value": "JENIS TRANSAKSI",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_anda_login_seba_232",
+    "content_value": "Anda login sebagai otoritas pengelola kas. Harap pastikan data dimasukkan dengan teliti untuk menjaga integritas Buku Besar.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_pencatatan_entr_12",
+    "content_value": "Pencatatan Entri",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_belum_ada_catat_849",
+    "content_value": "Belum ada catatan transaksi di dalam buku besar ini.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_laporan_transpa_314",
+    "content_value": "Laporan Transparansi Arus Keuangan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_buku_besar_kas_248",
+    "content_value": "Buku Besar Kas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_catat_transaksi_495",
+    "content_value": "Catat Transaksi Baru",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_total_pengeluar_617",
+    "content_value": "Total Pengeluaran",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_total_pemasukan_871",
+    "content_value": "Total Pemasukan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_total_saldo_kas_605",
+    "content_value": "Total Saldo Kas Terkini",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_baitul_maal_228",
+    "content_value": "Baitul Maal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "baitulmaal_kembali_ke_vaul_969",
+    "content_value": "Kembali ke Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "bukutamu_belum_ada_pesan_752",
+    "content_value": "Belum ada pesan. Jadilah yang pertama mengisi buku tamu.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "bukutamu_tuliskan_pesan_571",
+    "content_value": "Tuliskan pesan atau kesan Anda di sini...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "bukutamu_jejak_sejarah_y_602",
+    "content_value": "Jejak Sejarah Yang Ditinggalkan Oleh Entitas Expedient",
+    "content_type": "text"
+  },
+  {
+    "content_key": "bukutamu_arsip_kehadiran_263",
+    "content_value": "Arsip Kehadiran",
+    "content_type": "text"
+  },
+  {
+    "content_key": "bukutamu_kembali_601",
+    "content_value": "Kembali",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_masuk_untuk_lih_954",
+    "content_value": "Masuk untuk lihat profil lengkap",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_tiktok_620",
+    "content_value": "TikTok",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_instagram_66",
+    "content_value": "Instagram",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_kirim_pesan_804",
+    "content_value": "Kirim Pesan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_visi___aspirasi_686",
+    "content_value": "Visi & Aspirasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_domisili_676",
+    "content_value": "Domisili",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_asal_984",
+    "content_value": "Asal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_arsip_belum_men_240",
+    "content_value": "Arsip belum mencatat histori apapun.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_reset_pencarian_331",
+    "content_value": "Reset pencarian",
+    "content_type": "text"
+  },
+  {
+    "content_key": "direktori_temukan_rekam_j_156",
+    "content_value": "Temukan Rekam Jejak...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_lihat_kilas_bal_497",
+    "content_value": "Lihat Kilas Balik",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_kilas_balik_int_898",
+    "content_value": "Kilas balik interaktif perjalanan digital Anda di The Vault sepanjang tahun ini.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_expedient_wrapp_902",
+    "content_value": "Expedient Wrapped",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_lihat_jadwal_282",
+    "content_value": "Lihat Jadwal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_jadwalkan__kelo_295",
+    "content_value": "Jadwalkan, kelola, dan hadiri pertemuan eksklusif angkatan. Integrasi sistem RSVP pintar untuk entitas Expedient.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_agenda___eksibi_92",
+    "content_value": "Agenda & Eksibisi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_inisiasi_analit_17",
+    "content_value": "Inisiasi Analitik",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_algoritma_anali_460",
+    "content_value": "Algoritma analitik cerdas yang menghubungkan visi Anda dengan Kolega Strategis. Merajut jaringan eksekutif masa depan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_the_nexus_140",
+    "content_value": "The Nexus",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_jelajahi_asal_u_855",
+    "content_value": "Jelajahi Asal-Usul",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_inti_dari_segal_465",
+    "content_value": "Inti dari segalanya. Jelajahi asal-usul, filosofi, dan fondasi spiritual yang membangun identitas Expedient Generation.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_genesis_core_449",
+    "content_value": "Genesis Core",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_buka_brankas_935",
+    "content_value": "Buka Brankas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_brankas_digital_155",
+    "content_value": "Brankas digital terenkripsi. Simpan catatan rahasia, memori tersembunyi, dan arsip pribadi yang hanya Anda yang bisa membukanya.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_enigma_vault_131",
+    "content_value": "Enigma Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_resapi_ayat_500",
+    "content_value": "Resapi Ayat",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_jelajahi_untaia_604",
+    "content_value": "Jelajahi untaian ayat suci dan refleksi harian. Sentuhan spiritual dalam balutan teknologi tingkat tinggi.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_divine_verse_954",
+    "content_value": "Divine Verse",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_buka_codex_919",
+    "content_value": "Buka Codex",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_tarik_tiga_kart_232",
+    "content_value": "Tarik tiga kartu takdir dari dek misterius. Ungkap ramalan dan kebijaksanaan hari ini.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_the_celestial_c_354",
+    "content_value": "The Celestial Codex",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_masuki_kehening_224",
+    "content_value": "Masuki Keheningan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_mode_sanctuary_759",
+    "content_value": "Mode sanctuary layar penuh. Temukan kedamaian dari bisingnya dunia dengan keheningan, tata napas, dan audio ambience Islami.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_ruang_kontempla_119",
+    "content_value": "Ruang Kontemplasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_lihat_jadwal_ac_529",
+    "content_value": "Lihat Jadwal Acara",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_sistem_rsvp___t_79",
+    "content_value": "Sistem RSVP & Tiket Cerdas untuk acara VVIP. Hadiri kajian akbar dan gala diner angkatan dengan otorisasi pass digital eksklusif.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_protokol_multaz_837",
+    "content_value": "Protokol Multazam",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_mulai_pemindaia_128",
+    "content_value": "Mulai Pemindaian",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_pemindai_kamera_249",
+    "content_value": "Pemindai kamera interaktif untuk mengekstraksi dan membaca Aura Eksekutif Anda secara langsung.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_the_oracle_s_vi_895",
+    "content_value": "The Oracle's Vision",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_bergabung_350",
+    "content_value": "Bergabung",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_jaringan_mentor_287",
+    "content_value": "Jaringan mentorship elit & ekosistem B2B Halal. Ruang kolaborasi profesional antar entitas untuk memperkuat muamalah dan karir.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_tarbiyah_nexus_307",
+    "content_value": "Tarbiyah Nexus",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_masuk_ruang_maj_348",
+    "content_value": "Masuk Ruang Majlis",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_bilik_suara_vvi_48",
+    "content_value": "Bilik suara VVIP eksklusif. Dengarkan kajian, bertukar pikiran, dan jalin ukhuwah dalam keheningan yang elegan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_majlis_syura_464",
+    "content_value": "Majlis Syura",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_buka_khasanah_591",
+    "content_value": "Buka Khasanah",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_pusat_kontribus_816",
+    "content_value": "Pusat kontribusi dan wakaf elit. Visualisasi rekam jejak sedekah jariyah angkatan dalam bentuk tabungan cahaya keabadian.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_baitul_maal_248",
+    "content_value": "Baitul Maal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_buka_brankas_947",
+    "content_value": "Buka Brankas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_brankas_pesan_t_867",
+    "content_value": "Brankas pesan terenkripsi tingkat tinggi. Titipkan pesan rahasia, wasiat, atau data vital yang hanya terbuka dengan pemicu otentikasi spesifik.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_amanah___wasiat_257",
+    "content_value": "Amanah & Wasiat",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_buka_pemindai_437",
+    "content_value": "Buka Pemindai",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_pemindai_kta_in_726",
+    "content_value": "Pemindai KTA in-app. Baca kode matriks entitas lain untuk langsung melompat ke bilik profil holografik mereka.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_omni_scanner_285",
+    "content_value": "Omni Scanner",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_jelajahi_sekara_39",
+    "content_value": "Jelajahi Sekarang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_modul_identitas_726",
+    "content_value": "Modul identitas 5D interaktif. Merender ulang data biometrik dan arsip Anda dalam bentuk holografik.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_sovereign_id_970",
+    "content_value": "Sovereign ID",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_akses_eksklusif_109",
+    "content_value": "Akses Eksklusif Entitas Expedient Terverifikasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "fitur_the_sovereign_v_64",
+    "content_value": "The Sovereign Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_immersive_mode_107",
+    "content_value": "Immersive Mode",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_teleportasi_ke_402",
+    "content_value": "Teleportasi ke Memori",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_simpan_halaman_558",
+    "content_value": "Simpan Halaman Ini",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_tutup_buku_973",
+    "content_value": "Tutup Buku",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_cover_depan_165",
+    "content_value": "COVER DEPAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_constellation_g_100",
+    "content_value": "Constellation Grid",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_cinematic_auto_388",
+    "content_value": "Cinematic Auto-Play",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_nyalakan_musik_861",
+    "content_value": "Nyalakan Musik Kenangan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_dengarkan_pesan_526",
+    "content_value": "Dengarkan Pesan Memori",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_shift_to_omega_113",
+    "content_value": "SHIFT TO OMEGA (PUTRI)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_the_syndicate_169",
+    "content_value": "THE SYNDICATE",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_double_click_fo_457",
+    "content_value": "Double Click for Epilogue",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_silakan_putar_p_783",
+    "content_value": "Silakan putar perangkat Anda.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_ruang_kenangan_581",
+    "content_value": "Ruang Kenangan membutuhkan mode Landscape.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "galeri_akses_terkunci_596",
+    "content_value": "AKSES TERKUNCI",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_tutup_voting_752",
+    "content_value": "Tutup Voting",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_hasil_akhir_16",
+    "content_value": "Hasil Akhir",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_tolak_160",
+    "content_value": "Tolak",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_setuju_991",
+    "content_value": "Setuju",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_suara_anda_tela_420",
+    "content_value": "Suara Anda telah direkam.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_tidak_923",
+    "content_value": "Tidak:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_setuju_570",
+    "content_value": "Setuju:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_oleh_615",
+    "content_value": "Oleh:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_belum_ada_mosi_842",
+    "content_value": "Belum ada mosi yang diajukan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_daftar_agenda_141",
+    "content_value": "Daftar Agenda",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_deskripsi_landa_831",
+    "content_value": "Deskripsi landasan masalah... (min. 10 karakter)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_judul_mosi__min_174",
+    "content_value": "Judul Mosi (min. 5 karakter)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis__times_535",
+    "content_value": "&times;",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_ajukan_mosi_bar_878",
+    "content_value": "Ajukan Mosi Baru",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_hentikan_pembic_407",
+    "content_value": "Hentikan Pembicara Aktif",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_beri_izin_674",
+    "content_value": "Beri Izin",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_antrean_bicara_423",
+    "content_value": "Antrean Bicara (",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_forum___agenda_500",
+    "content_value": "Forum & Agenda",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_daftar_perminta_314",
+    "content_value": "Daftar Permintaan Bicara",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_hentikan_pembic_146",
+    "content_value": "Hentikan Pembicara",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis__agora_id_missi_870",
+    "content_value": "[AGORA ID MISSING]",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_kolega_hadir_487",
+    "content_value": "Kolega Hadir",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_majlis_syura_ut_690",
+    "content_value": "Majlis Syura Utama",
+    "content_type": "text"
+  },
+  {
+    "content_key": "majlis_kembali_ke_vaul_66",
+    "content_value": "Kembali ke Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_belum_ada_munaj_507",
+    "content_value": "Belum ada munajat yang dipanjatkan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_dinding_harapan_91",
+    "content_value": "Dinding Harapan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_tuliskan_harapa_320",
+    "content_value": "Tuliskan harapan, doa, atau munajat Anda...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_panjatkan_doa_60",
+    "content_value": "Panjatkan Doa",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_dinding_multaza_851",
+    "content_value": "Dinding Multazam",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_apple___univers_104",
+    "content_value": "Apple / Universal Pass (.pkpass)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_anda_belum_terd_424",
+    "content_value": "Anda belum terdaftar untuk acara eksklusif mendatang, atau tiket belum diterbitkan oleh Admin.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_belum_ada_tiket_830",
+    "content_value": "Belum Ada Tiket Tersedia",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_meja_vip_557",
+    "content_value": "Meja VIP",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_dresscode_227",
+    "content_value": "Dresscode",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_lokasi_760",
+    "content_value": "Lokasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_wib_265",
+    "content_value": "WIB",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_waktu_458",
+    "content_value": "Waktu",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_tanggal_223",
+    "content_value": "Tanggal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_vvip_pass_387",
+    "content_value": "VVIP PASS",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_sistem_tiket_vv_460",
+    "content_value": "Sistem Tiket VVIP Eksklusif",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_protokol_multaz_767",
+    "content_value": "Protokol Multazam",
+    "content_type": "text"
+  },
+  {
+    "content_key": "multazam_vault_448",
+    "content_value": "Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_analisis_ulang_734",
+    "content_value": "Analisis Ulang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_lihat_profil_189",
+    "content_value": "Lihat Profil",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_belum_ada_data_118",
+    "content_value": "Belum ada data kolega yang memadai untuk analisis saat ini.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_kolega_strategi_232",
+    "content_value": "Kolega Strategis Anda",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_analisis_857",
+    "content_value": "ANALISIS",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_aktivasi_920",
+    "content_value": "AKTIVASI",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_algoritma_anali_194",
+    "content_value": "Algoritma Analitik Menghubungkan Visi, Merajut Jaringan Bisnis Eksekutif Masa Depan Anda.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_the_nexus_610",
+    "content_value": "The Nexus",
+    "content_type": "text"
+  },
+  {
+    "content_key": "nexus_kembali_602",
+    "content_value": "Kembali",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_loading_radar_398",
+    "content_value": "Loading Radar...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_lihat_profil_348",
+    "content_value": "Lihat Profil",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_hubungi_via_wha_300",
+    "content_value": "Hubungi via WhatsApp",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_jarak_dari_pond_38",
+    "content_value": "Jarak dari Pondok",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_gender_745",
+    "content_value": "Gender",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_domisili_5",
+    "content_value": "Domisili",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_hacker__to_550",
+    "content_value": "Peta Hacker (Toner)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_tata_kota_952",
+    "content_value": "Peta Tata Kota",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_navigasi_l_172",
+    "content_value": "Peta Navigasi Laut",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_lalu_linta_612",
+    "content_value": "Peta Lalu Lintas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_nasa_malam_662",
+    "content_value": "Peta NASA Malam",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_relief_127",
+    "content_value": "Peta Relief",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_google_sta_236",
+    "content_value": "Peta Google Standar",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_navigasi_m_417",
+    "content_value": "Peta Navigasi Malam",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_satelit_be_367",
+    "content_value": "Peta Satelit Bersih",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_rupa_bumi_586",
+    "content_value": "Peta Rupa Bumi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_hot_52",
+    "content_value": "Peta HOT",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_kanvas_117",
+    "content_value": "Peta Kanvas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_hybrid_882",
+    "content_value": "Peta Hybrid",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_voyager_983",
+    "content_value": "Peta Voyager",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_natgeo_98",
+    "content_value": "Peta NatGeo",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_klasik_238",
+    "content_value": "Peta Klasik",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_google_784",
+    "content_value": "Peta Google",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_gelap_736",
+    "content_value": "Peta Gelap",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_terrain_482",
+    "content_value": "Peta Terrain",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_satelit_265",
+    "content_value": "Peta Satelit",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_datar_967",
+    "content_value": "Peta Datar",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_globe_3d_989",
+    "content_value": "Globe 3D",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_peta_455",
+    "content_value": "Peta",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_pilih_327",
+    "content_value": "Pilih",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_jaringan_889",
+    "content_value": "Jaringan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_jelajahi_964",
+    "content_value": "Jelajahi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_domisili_635",
+    "content_value": "Domisili",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_perbarui_3",
+    "content_value": "Perbarui",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_top_5_kota_20",
+    "content_value": "Top 5 Kota",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_leaderboard_367",
+    "content_value": "Leaderboard",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_akhwat_84",
+    "content_value": "Akhwat",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_ikhwan_477",
+    "content_value": "Ikhwan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_semua_131",
+    "content_value": "Semua",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_km_terjauh_179",
+    "content_value": "KM Terjauh",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_area_889",
+    "content_value": "Area",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_total_42",
+    "content_value": "Total",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_persebaran_alum_319",
+    "content_value": "Persebaran Alumni Global",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_jaringan_silatu_135",
+    "content_value": "Jaringan Silaturahmi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_cari_nama_alumn_240",
+    "content_value": "Cari nama alumni...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_menghubungkan_t_41",
+    "content_value": "Menghubungkan titik-titik persaudaraan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "radar_jaringan_silatu_583",
+    "content_value": "Jaringan Silaturahmi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_hapus_962",
+    "content_value": "Hapus",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_edit_522",
+    "content_value": "Edit",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_n_a_839",
+    "content_value": "N/A",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_kunjungi_889",
+    "content_value": "Kunjungi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_hubungi_177",
+    "content_value": "Hubungi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_direktur___foun_373",
+    "content_value": "Direktur / Founder",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_jadilah_agen_pe_85",
+    "content_value": "Jadilah agen pertama yang memamerkan kerajaan bisnis Anda di sini.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_brankas_masih_k_443",
+    "content_value": "Brankas Masih Kosong",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_registrasi_bisn_72",
+    "content_value": "Registrasi Bisnis Anda",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_alumni_business_582",
+    "content_value": "Alumni Business & Professional Network",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_the_syndicate_957",
+    "content_value": "The Syndicate",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_misal__08123456_253",
+    "content_value": "Misal: 08123456789",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_nomor_whatsapp_639",
+    "content_value": "Nomor WhatsApp (Aktif)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_https_805",
+    "content_value": "https://...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_link_website_704",
+    "content_value": "Link Website / Instagram (Opsional)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_ceritakan_singk_693",
+    "content_value": "Ceritakan singkat tentang produk/jasa yang ditawarkan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_deskripsi_singk_520",
+    "content_value": "Deskripsi Singkat",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_kategori_545",
+    "content_value": "Kategori",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_misal__pt_binta_713",
+    "content_value": "Misal: PT Bintang Cemerlang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_nama_bisnis_62",
+    "content_value": "Nama Bisnis",
+    "content_type": "text"
+  },
+  {
+    "content_key": "syndicate_upload_logo_696",
+    "content_value": "Upload Logo",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_belum_ada_mater_478",
+    "content_value": "Belum ada materi kajian.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_ajukan_proposal_650",
+    "content_value": "Ajukan Proposal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_belum_ada_tende_364",
+    "content_value": "Belum ada tender bisnis tersedia.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_ajukan_bimbinga_131",
+    "content_value": "Ajukan Bimbingan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_mentor_elite_909",
+    "content_value": "Mentor Elite",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_belum_ada_mento_602",
+    "content_value": "Belum ada mentor tersedia.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_materi_kajian_888",
+    "content_value": "Materi Kajian",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_syndicate_tende_358",
+    "content_value": "Syndicate Tender",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_mentoring_157",
+    "content_value": "Mentoring",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_pusat_pengemban_271",
+    "content_value": "Pusat Pengembangan Spiritual & Kapasitas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_tarbiyah_nexus_225",
+    "content_value": "Tarbiyah Nexus",
+    "content_type": "text"
+  },
+  {
+    "content_key": "tarbiyah_kembali_774",
+    "content_value": "Kembali",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_tutup_kembali_198",
+    "content_value": "Tutup Kembali",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_amanah_terbuka_694",
+    "content_value": "Amanah Terbuka",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_buka_dokumen_20",
+    "content_value": "Buka Dokumen",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_dekripsi_lokal_766",
+    "content_value": "DEKRIPSI LOKAL...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_masukkan_kunci_918",
+    "content_value": "Masukkan Kunci Akses...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_amanah_ini_dala_421",
+    "content_value": "Amanah ini dalam keadaan tertutup rapat. Hanya otoritas atau pewaris yang memiliki kunci persetujuan yang dapat membaca isi pesan yang terkandung di dalamnya. Menjaga kerahasiaan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_akses_tertutup_754",
+    "content_value": "Akses Tertutup",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_terenkripsi_pen_252",
+    "content_value": "Terenkripsi Penuh",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_amanah_dari_73",
+    "content_value": "Amanah dari",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_diarsipkan_pada_241",
+    "content_value": "Diarsipkan pada:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_belum_ada_amana_182",
+    "content_value": "Belum ada amanah yang diarsipkan di ruang ini.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_segel_dokumen_900",
+    "content_value": "SEGEL DOKUMEN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_mengamankan_704",
+    "content_value": "MENGAMANKAN...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_kunci_akses__pa_558",
+    "content_value": "Kunci Akses (Passphrase)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_tulis_pesan_rah_720",
+    "content_value": "Tulis pesan rahasia yang akan disegel...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_tuliskan_amanah_23",
+    "content_value": "Tuliskan amanah yang hanya dapat dibaca oleh mereka yang memegang kunci otorisasinya.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_buat_dokumen_se_653",
+    "content_value": "Buat Dokumen Segel Baru",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_arsip_personal_861",
+    "content_value": "Arsip Personal Tertutup",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_amanah__amp__wa_714",
+    "content_value": "Amanah &amp; Wasiat",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wasiat_kembali_ke_vaul_680",
+    "content_value": "Kembali ke Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "celestial_tarik_ulang_567",
+    "content_value": "Tarik Ulang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "celestial_tarik_kartu_tak_750",
+    "content_value": "Tarik Kartu Takdir",
+    "content_type": "text"
+  },
+  {
+    "content_key": "celestial_the_celestial_c_891",
+    "content_value": "The Celestial Codex",
+    "content_type": "text"
+  },
+  {
+    "content_key": "celestial_exit_codex_871",
+    "content_value": "Exit Codex",
+    "content_type": "text"
+  },
+  {
+    "content_key": "divine_terima_kalam_la_45",
+    "content_value": "Terima Kalam Lain",
+    "content_type": "text"
+  },
+  {
+    "content_key": "divine__nbsp__terima_k_82",
+    "content_value": "&nbsp; Terima Kalam",
+    "content_type": "text"
+  },
+  {
+    "content_key": "divine_terima_pesan_su_37",
+    "content_value": "Terima pesan suci yang ditakdirkan untuk Anda hari ini",
+    "content_type": "text"
+  },
+  {
+    "content_key": "divine_kalam_ilahi_520",
+    "content_value": "Kalam Ilahi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "divine_kembali_976",
+    "content_value": "Kembali",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_kunci_ulang_48",
+    "content_value": "Kunci Ulang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_kembali_ke_vaul_367",
+    "content_value": "Kembali ke Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_melainkan_melih_234",
+    "content_value": "melainkan melihat apa yang disembunyikan oleh dunia.\"",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma__intelijen_seja_548",
+    "content_value": "\"Intelijen sejati bukanlah mengetahui segalanya,",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_clearance__apex_557",
+    "content_value": "Clearance: Apex",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_kombinasi_tidak_944",
+    "content_value": "Kombinasi tidak selaras. Getaran ditolak.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_yang_maha_esa_517",
+    "content_value": "Yang Maha Esa. (X)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_lapis_dalam_247",
+    "content_value": "Lapis Dalam:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_perisai_waktu_l_836",
+    "content_value": "Perisai waktu lima waktu. (II)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_lapis_tengah_651",
+    "content_value": "Lapis Tengah:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_bintang_kejayaa_894",
+    "content_value": "Bintang kejayaan peradaban. (IV)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_lapis_luar_896",
+    "content_value": "Lapis Luar:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_selaraskan_cinc_575",
+    "content_value": "Selaraskan cincin untuk membuka gerbang:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_kunci_ulang_bra_203",
+    "content_value": "KUNCI ULANG BRANKAS",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_simpul_telah_te_95",
+    "content_value": "SIMPUL TELAH TERPECAHKAN.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_the_grand_align_346",
+    "content_value": "The Grand Alignment",
+    "content_type": "text"
+  },
+  {
+    "content_key": "enigma_exit_enigma_617",
+    "content_value": "Exit Enigma",
+    "content_type": "text"
+  },
+  {
+    "content_key": "genesis_kembali_ke_vaul_172",
+    "content_value": "Kembali ke Vault",
+    "content_type": "text"
+  },
+  {
+    "content_key": "genesis_ribuan_entitas_495",
+    "content_value": "Ribuan entitas, satu kekuatan tak tertembus.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "genesis_we_are_one_704",
+    "content_value": "WE ARE ONE",
+    "content_type": "text"
+  },
+  {
+    "content_key": "genesis_initiate_singul_0",
+    "content_value": "Initiate Singularity",
+    "content_type": "text"
+  },
+  {
+    "content_key": "genesis_biarkan_untuk_m_772",
+    "content_value": "Biarkan untuk membentuk identitas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "genesis_usap_layar_untu_920",
+    "content_value": "Usap layar untuk mendisrupsi partikel",
+    "content_type": "text"
+  },
+  {
+    "content_key": "genesis_exit_genesis_537",
+    "content_value": "Exit Genesis",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_rekam_jejak_761",
+    "content_value": "REKAM JEJAK",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_gelisah___cemas_859",
+    "content_value": "Gelisah / Cemas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_penuh_rasa_syuk_766",
+    "content_value": "Penuh Rasa Syukur",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_damai___sejuk_91",
+    "content_value": "Damai & Sejuk",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_netral___tenang_552",
+    "content_value": "Netral / Tenang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_apa_yang_sedang_506",
+    "content_value": "Apa yang sedang Anda renungkan hari ini?",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_rekam_jejak_spi_316",
+    "content_value": "Rekam jejak spiritual dan pikiran Anda di sini.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi__times_442",
+    "content_value": "&times;",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_the_codex_312",
+    "content_value": "The Codex",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_heningkan_semua_88",
+    "content_value": "Heningkan Semua",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____binaural_bea_708",
+    "content_value": "🧠 Binaural Beats",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____angin__sinte_719",
+    "content_value": "🍃 Angin (Sintesis)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____angkasa__sin_620",
+    "content_value": "🌌 Angkasa (Sintesis)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____ombak__sinte_253",
+    "content_value": "🌊 Ombak (Sintesis)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____hujan__sinte_574",
+    "content_value": "💻 Hujan (Sintesis)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi___sintesis_ai_50",
+    "content_value": "— SINTESIS AI (100% OFFLINE CPU) —",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____ar_rahman_285",
+    "content_value": "📖 Ar-Rahman",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____angin_gurun_487",
+    "content_value": "🍃 Angin Gurun",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____ruang_angkas_322",
+    "content_value": "🌌 Ruang Angkasa",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi____ombak_samudr_968",
+    "content_value": "🌊 Ombak Samudra",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_____hujan_deras_836",
+    "content_value": "🌧️ Hujan Deras",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi___audio_klasik_11",
+    "content_value": "— AUDIO KLASIK (MP4 MEDIA) —",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_buka_jurnal_696",
+    "content_value": "Buka Jurnal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_atur_suara_36",
+    "content_value": "Atur Suara",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_mulai_keheninga_537",
+    "content_value": "Mulai Keheningan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_tinggalkan_seje_70",
+    "content_value": "Tinggalkan sejenak urusan duniawi. Posisikan diri Anda dengan nyaman, aktifkan suara, dan ikuti ritme keheningan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_ruang_kontempla_657",
+    "content_value": "Ruang Kontemplasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "kontemplasi_kembali_646",
+    "content_value": "Kembali",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_pindai_ulang_964",
+    "content_value": "Pindai Ulang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_mulai_pemindaia_893",
+    "content_value": "Mulai Pemindaian",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_tutup_dokumen_48",
+    "content_value": "Tutup Dokumen",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_pesan_masa_depa_885",
+    "content_value": "Pesan Masa Depan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_baca_nasihat_ma_404",
+    "content_value": "BACA NASIHAT MASA DEPAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_memproses_nasih_189",
+    "content_value": "MEMPROSES NASIHAT AI...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_current_maqam_167",
+    "content_value": "CURRENT MAQAM     :",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle__gt_551",
+    "content_value": "&gt;",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_dominant_emotio_613",
+    "content_value": "DOMINANT EMOTION  :",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle__gt_963",
+    "content_value": "&gt;",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_resonance_stabi_191",
+    "content_value": "RESONANCE STABILITY :",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle__gt_866",
+    "content_value": "&gt;",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_tutup_dokumen_549",
+    "content_value": "TUTUP DOKUMEN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_pesan_terbuka_67",
+    "content_value": "PESAN TERBUKA",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_belum_ada_pesan_373",
+    "content_value": "Belum ada pesan yang tersegel.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_segel_waktu_akt_514",
+    "content_value": "Segel Waktu Aktif. Menunggu takdir.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_buka_segel_478",
+    "content_value": "BUKA SEGEL",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_terjadwal_282",
+    "content_value": "Terjadwal:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_arsip_pesan_and_655",
+    "content_value": "ARSIP PESAN ANDA",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_segel_pesan_396",
+    "content_value": "SEGEL PESAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_tanggal_dibuka_313",
+    "content_value": "Tanggal Dibuka:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_tuliskan_visi_a_422",
+    "content_value": "Tuliskan visi atau pesan rahasia untuk diri Anda di masa depan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_tulis_pesan_mas_547",
+    "content_value": "TULIS PESAN MASA DEPAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_pesan_masa_depa_388",
+    "content_value": "Pesan Masa Depan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "oracle_exit_vision_733",
+    "content_value": "Exit Vision",
+    "content_type": "text"
+  },
+  {
+    "content_key": "scanner__klik_kotak_unt_690",
+    "content_value": "(Klik kotak untuk simulasi scan sukses)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "scanner_arahkan_kamera_362",
+    "content_value": "Arahkan kamera ke Sovereign ID atau QR Code",
+    "content_type": "text"
+  },
+  {
+    "content_key": "scanner_tutup_scanner_920",
+    "content_value": "Tutup Scanner",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_kembali_ke_vaul_161",
+    "content_value": "KEMBALI KE VAULT",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_mari_buat_kenan_942",
+    "content_value": "Mari buat kenangan baru di Expedient Generation tahun depan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_terima_kasih_371",
+    "content_value": "Terima Kasih.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_pesan_telah_and_170",
+    "content_value": "Pesan telah Anda kirim ke seluruh jaringan.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_anda_juga_aktif_243",
+    "content_value": "Anda juga aktif berkomunikasi di Majlis,",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_prestise_points_222",
+    "content_value": "Prestise Points dari berbagai aktivitas.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_tahun_ini_anda_977",
+    "content_value": "Tahun ini Anda berhasil mengumpulkan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_ketuk_untuk_mel_713",
+    "content_value": "KETUK UNTUK MELANJUTKAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_tahun_ini_adala_503",
+    "content_value": "Tahun ini adalah tahun yang luar biasa bagi Anda.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_halo_847",
+    "content_value": "Halo,",
+    "content_type": "text"
+  },
+  {
+    "content_key": "wrapped_tutup_280",
+    "content_value": "Tutup",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_kembali_ke_port_531",
+    "content_value": "Kembali ke Portal Utama",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_perbarui_kata_s_29",
+    "content_value": "Perbarui Kata Sandi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_memproses_645",
+    "content_value": "Memproses...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_konfirmasi_kata_964",
+    "content_value": "Konfirmasi Kata Sandi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_kata_sandi_baru_882",
+    "content_value": "Kata Sandi Baru",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_masukkan_kata_s_223",
+    "content_value": "Masukkan kata sandi baru Anda. Pastikan minimal 8 karakter.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_anda_akan_diali_570",
+    "content_value": "Anda akan dialihkan ke beranda dalam beberapa detik...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_kata_sandi_berh_720",
+    "content_value": "Kata sandi berhasil diperbarui!",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_expedient_gener_679",
+    "content_value": "Expedient Generation",
+    "content_type": "text"
+  },
+  {
+    "content_key": "resetpassword_ganti_mode_489",
+    "content_value": "Ganti Mode",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_kembali_ke_bera_477",
+    "content_value": "Kembali ke Beranda",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_gunakan_faceid_322",
+    "content_value": "Gunakan FaceID / Sidik Jari",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_atau_251",
+    "content_value": "ATAU",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_verifikasi_252",
+    "content_value": "Verifikasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_memproses_475",
+    "content_value": "Memproses...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_kata_sandi_mast_631",
+    "content_value": "Kata Sandi Master",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_otorisasi_admin_612",
+    "content_value": "Otorisasi Administrator Diperlukan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "unlock_akses_terbatas_411",
+    "content_value": "Akses Terbatas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_expedient_gener_120",
+    "content_value": "Expedient Generation — 42nd Arrisalah",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_kirim_ucapan_313",
+    "content_value": "Kirim Ucapan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_semoga_allah_sw_398",
+    "content_value": "Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, dan kebahagiaan di setiap langkahmu. Barakallahu fiik! 🤲",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_tahun_501",
+    "content_value": "Tahun",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_ke_444",
+    "content_value": "Ke-",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_selamat_ulang_t_520",
+    "content_value": "Selamat Ulang Tahun",
+    "content_type": "text"
+  },
+  {
+    "content_key": "lounge_tulis_pesan_621",
+    "content_value": "Tulis pesan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "lounge_kirim_gambar_977",
+    "content_value": "Kirim Gambar",
+    "content_type": "text"
+  },
+  {
+    "content_key": "lounge_emoji_940",
+    "content_value": "Emoji",
+    "content_type": "text"
+  },
+  {
+    "content_key": "lounge_belum_ada_disku_423",
+    "content_value": "Belum ada diskusi. Jadilah yang pertama.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "lounge_hapus_754",
+    "content_value": "Hapus",
+    "content_type": "text"
+  },
+  {
+    "content_key": "lounge_ruang_diskusi_a_237",
+    "content_value": "RUANG DISKUSI ANGKATAN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "lounge_the_lounge_963",
+    "content_value": "The Lounge",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id___mensimulasika_383",
+    "content_value": "[ MENSIMULASIKAN KONEKSI AR_CORE ]",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_verified_asset_117",
+    "content_value": "Verified Asset",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_aegis_ar_core_169",
+    "content_value": "Aegis AR Core",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_id_896",
+    "content_value": "ID:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_alumni_data_30",
+    "content_value": "Alumni Data",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_tutup_hologram_556",
+    "content_value": "Tutup Hologram",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_save_dossier_266",
+    "content_value": "SAVE DOSSIER",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_instagram_925",
+    "content_value": "INSTAGRAM",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_secure_comms_802",
+    "content_value": "SECURE COMMS",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_exp_649",
+    "content_value": "EXP-",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_sovereign_entit_43",
+    "content_value": "SOVEREIGN ENTITY",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_secure_verified_366",
+    "content_value": "SECURE VERIFIED",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_return_192",
+    "content_value": "RETURN",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_percobaan_160",
+    "content_value": "Percobaan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_terkirim_433",
+    "content_value": "Terkirim",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_pesan_980",
+    "content_value": "Pesan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_penerima_33",
+    "content_value": "Penerima",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_status_158",
+    "content_value": "Status",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_belum_ada_antri_251",
+    "content_value": "Belum ada antrian WhatsApp.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_log_antrian_ter_553",
+    "content_value": "Log Antrian Terbaru (50)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_cron_jobs_533",
+    "content_value": "Cron Jobs",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_antrian_pending_144",
+    "content_value": "Antrian Pending",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_proses_945",
+    "content_value": "Proses",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_pesan_pending_s_352",
+    "content_value": "pesan pending sekarang tanpa menunggu cron.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_kirim_372",
+    "content_value": "Kirim",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_proses_sekarang_303",
+    "content_value": "Proses Sekarang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_pesan_gagal_477",
+    "content_value": "Pesan Gagal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_reset_894",
+    "content_value": "Reset",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_reset_pesan_yan_799",
+    "content_value": "Reset pesan yang gagal agar dicoba ulang.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_retry_gagal_61",
+    "content_value": "Retry Gagal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_tambahkan_ke_an_531",
+    "content_value": "Tambahkan ke Antrian & Kirim",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_mengirim_803",
+    "content_value": "Mengirim...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast__4096_karakter_235",
+    "content_value": "/4096 karakter",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_markdown_wa___b_20",
+    "content_value": "Markdown WA: *bold*, _italic_, ~coret~",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_tulis_pesan_wha_94",
+    "content_value": "Tulis pesan WhatsApp di sini...&#10;&#10;Contoh:&#10;📢 *Expedient Generation*&#10;&#10;Informasi penting untuk seluruh alumni...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_hanya_bendahara_990",
+    "content_value": "Hanya Bendahara",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_hanya_member_bi_78",
+    "content_value": "Hanya Member Biasa",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_hanya_administr_368",
+    "content_value": "Hanya Administrator",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_semua_anggota_172",
+    "content_value": "Semua Anggota",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_kontak_277",
+    "content_value": "Kontak):",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_target_penerima_527",
+    "content_value": "Target Penerima (",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast__italic_285",
+    "content_value": "_italic_",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast__bold_873",
+    "content_value": "*bold*",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_kirim_pesan_kus_689",
+    "content_value": "Kirim pesan kustom ke semua alumni yang opt-in. Mendukung format WhatsApp:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_manual_blast_981",
+    "content_value": "Manual Blast",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_gagal_297",
+    "content_value": "Gagal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_menunggu_828",
+    "content_value": "Menunggu",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_terkirim_768",
+    "content_value": "Terkirim",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_total_antrian_800",
+    "content_value": "Total Antrian",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_cek_ulang_262",
+    "content_value": "Cek Ulang",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_status_koneksi_474",
+    "content_value": "Status Koneksi Fonnte API",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_broadcast_739",
+    "content_value": "Broadcast",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_users_648",
+    "content_value": "Users",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_dashboard_808",
+    "content_value": "Dashboard",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_kelola_antrian_635",
+    "content_value": "Kelola antrian notifikasi alumni",
+    "content_type": "text"
+  },
+  {
+    "content_key": "broadcast_whatsapp_broadc_540",
+    "content_value": "WhatsApp Broadcast",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_entitas_terdaft_432",
+    "content_value": "entitas terdaftar",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_total_730",
+    "content_value": "Total:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_admin_790",
+    "content_value": "Admin",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_bendahara_719",
+    "content_value": "Bendahara",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_member_438",
+    "content_value": "Member",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_poin_476",
+    "content_value": "Poin",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_belum_ada_data_365",
+    "content_value": "Belum ada data pengguna.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_aksi_824",
+    "content_value": "Aksi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_status_443",
+    "content_value": "Status",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_ubah_role_609",
+    "content_value": "Ubah Role",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_role_saat_ini_944",
+    "content_value": "Role Saat Ini",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_email_623",
+    "content_value": "Email",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_entitas_88",
+    "content_value": "Entitas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_cms_strings_116",
+    "content_value": "CMS Strings",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_moderasi_919",
+    "content_value": "Moderasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_users_821",
+    "content_value": "Users",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_dashboard_938",
+    "content_value": "Dashboard",
+    "content_type": "text"
+  },
+  {
+    "content_key": "users_manajemen_entit_704",
+    "content_value": "Manajemen Entitas",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_pindai_kode_qr_155",
+    "content_value": "Pindai kode QR ini di Gerbang Kehadiran",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_pilih_anggota_258",
+    "content_value": "Pilih Anggota",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_id_945",
+    "content_value": "ID:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_diterbitkan_unt_705",
+    "content_value": "Diterbitkan Untuk",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_event_access_66",
+    "content_value": "Event Access",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_live_preview_323",
+    "content_value": "Live Preview",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator__apple_wallet_n_694",
+    "content_value": "(Apple Wallet Native) membutuhkan lisensi Apple Developer Certificate aktif.",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator__pkpass_450",
+    "content_value": ".pkpass",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_tiket_akan_dire_16",
+    "content_value": "Tiket akan dirender sebagai gambar PNG resolusi tinggi karena format",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_sistem_fallback_733",
+    "content_value": "Sistem Fallback:",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_ekspor_tiket_291",
+    "content_value": "EKSPOR TIKET (.PNG)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_memproses_tiket_390",
+    "content_value": "MEMPROSES TIKET...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_regular_pass__s_818",
+    "content_value": "Regular Pass (Standard - Area Utama)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_vip_pass__silve_317",
+    "content_value": "VIP Pass (Silver - Akses Terbatas)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_vvip_pass__gold_321",
+    "content_value": "VVIP Pass (Gold - Akses Penuh)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_kelas_akses__ti_65",
+    "content_value": "Kelas Akses (Tier)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_nama_acara___ke_951",
+    "content_value": "Nama Acara / Keterangan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator____pilih_identi_537",
+    "content_value": "-- Pilih Identitas Anggota --",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_identitas_pener_893",
+    "content_value": "Identitas Penerima",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_parameter_tiket_734",
+    "content_value": "Parameter Tiket",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_wallet_69",
+    "content_value": "Wallet",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_users_651",
+    "content_value": "Users",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_dashboard_933",
+    "content_value": "Dashboard",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_terbitkan_tiket_519",
+    "content_value": "Terbitkan tiket VVIP digital & ID Card",
+    "content_type": "text"
+  },
+  {
+    "content_key": "walletgenerator_wallet_generato_304",
+    "content_value": "Wallet Generator",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_tulis_pesan_116",
+    "content_value": "Tulis pesan...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "id_mulai_obrolan_p_372",
+    "content_value": "Mulai obrolan privat dengan",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_batal_534",
+    "content_value": "Batal",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_sematkan_di_ata_829",
+    "content_value": "Sematkan di atas (Pinned)",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_tanggal_publika_121",
+    "content_value": "Tanggal Publikasi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_mosi_598",
+    "content_value": "Mosi",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_pengumuman_412",
+    "content_value": "Pengumuman",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_berita_585",
+    "content_value": "Berita",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_kategori_741",
+    "content_value": "Kategori",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_tulis_isi_pengu_779",
+    "content_value": "Tulis isi pengumuman secara detail...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_konten_210",
+    "content_value": "Konten",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_masukkan_judul_920",
+    "content_value": "Masukkan judul pengumuman...",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_judul_193",
+    "content_value": "Judul",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_publikasikan_in_63",
+    "content_value": "Publikasikan informasi untuk seluruh entitas Expedient",
+    "content_type": "text"
+  },
+  {
+    "content_key": "create_buat_pengumuman_428",
+    "content_value": "Buat Pengumuman",
+    "content_type": "text"
+  }
+]

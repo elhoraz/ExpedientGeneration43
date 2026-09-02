@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/admin/broadcast/process",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/run?run_birthday=true",
+      "schedule": "0 7 * * *"
+    }
+  ]
+}
+

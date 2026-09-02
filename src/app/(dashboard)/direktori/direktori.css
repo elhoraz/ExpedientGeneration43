@@ -1,0 +1,163 @@
+/*
+ * ===================================================
+ * direktori.css — Styles for The Archive (Direktori Page)
+ * Scoped under .direktori-container & body.page-direktori
+ * ===================================================
+ */
+
+body.page-direktori .direktori-container,
+.direktori-container { 
+    padding: 120px 0 50px 0; 
+    min-height: 100vh; 
+    width: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    position: relative; 
+    z-index: 10; 
+    overflow: hidden; 
+}
+
+/* THE ELEGANT SEARCH PILL */
+.direktori-container .search-wrapper { position: relative; width: 90%; max-width: 500px; margin: 0 auto 40px auto; z-index: 50; }
+.direktori-container .search-input { width: 100%; padding: 18px 30px 18px 65px; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 50px; color: var(--text-primary); font-family: 'Manrope', sans-serif; font-size: 1rem; font-weight: 500; outline: none; box-shadow: var(--glass-shadow); transition: all 0.5s ease; text-transform: uppercase; letter-spacing: 2px; }
+.direktori-container .search-input:focus { border-color: #d4af37; box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2); }
+.direktori-container .search-icon { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #d4af37; font-size: 1.2rem; pointer-events: none; transition: 0.5s; }
+
+/* ETHEREAL PEDESTAL */
+.direktori-container .ethereal-glow { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100vw; max-width: 900px; height: 300px; background: radial-gradient(ellipse at bottom, rgba(212,175,55,0.1) 0%, transparent 70%); pointer-events: none; z-index: 1; filter: blur(20px); }
+
+/* SWIPER CONTAINER */
+.direktori-container .swiper { width: 100%; padding-top: 20px; padding-bottom: 80px; z-index: 10; }
+.direktori-container .swiper-slide { width: 340px; height: auto; display: flex; flex-direction: column; opacity: 0.4; transition: opacity 0.6s ease; cursor: grab; }
+.direktori-container .swiper-slide-active { opacity: 1; } 
+
+/* LUXURY DOSSIER CARD */
+.direktori-container .luminary-card { 
+    background: var(--bg-secondary, rgba(12, 18, 15, 0.92)); 
+    backdrop-filter: var(--glass-blur); 
+    border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.25)); 
+    border-radius: 24px; 
+    padding: 40px 25px; 
+    text-align: center; 
+    box-shadow: var(--glass-shadow); 
+    transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.27); 
+    position: relative; 
+    overflow: hidden; 
+    color: var(--text-primary);
+}
+
+.direktori-container .swiper-slide-active .luminary-card { 
+    border-color: rgba(212,175,55,0.4); 
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 30px rgba(212,175,55,0.05); 
+    transform: translateY(-15px); 
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .direktori-container .luminary-card {
+    background: #ffffff;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.12);
+    color: #0a110e;
+}
+[data-theme="light"] .direktori-container .swiper-slide-active .luminary-card { 
+    box-shadow: 0 25px 50px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05); 
+    border-color: #aa771c;
+}
+[data-theme="light"] .direktori-container .search-input {
+    background: #ffffff;
+    border-color: rgba(212, 175, 55, 0.4);
+    color: #0a110e;
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.1);
+}
+[data-theme="light"] .direktori-container .card-name { color: #0a110e; }
+[data-theme="light"] .direktori-container .swiper-slide-active .card-name { color: #aa771c; }
+[data-theme="light"] .direktori-container .card-full-name { color: #5d6e66; }
+[data-theme="light"] .direktori-container .d-label { color: #aa771c; }
+[data-theme="light"] .direktori-container .d-value { color: #0a110e; }
+[data-theme="light"] .direktori-container .card-quote { color: #2d3e36; }
+[data-theme="light"] .direktori-container .agent-serial { color: #7a8b84; }
+
+/* Serial Number */
+.direktori-container .agent-serial { position: absolute; top: 20px; right: 25px; font-family: 'Courier New', monospace; font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 2px; opacity: 0; transition: opacity 0.5s ease; }
+.direktori-container .swiper-slide-active .agent-serial { opacity: 0.7; }
+
+/* Foto Profil */
+.direktori-container .photo-ring { width: 140px; height: 140px; margin: 0 auto 25px auto; border-radius: 50%; padding: 4px; background: linear-gradient(135deg, #d4af37, transparent, #d4af37); position: relative; transition: all 0.6s ease; filter: grayscale(80%) opacity(0.8); }
+.direktori-container .swiper-slide-active .photo-ring { width: 160px; height: 160px; box-shadow: 0 20px 40px rgba(212,175,55,0.3); filter: grayscale(0%) opacity(1); margin-bottom: 30px; }
+.direktori-container .card-photo { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg-card, #000); transition: 0.6s; }
+
+/* Header Info */
+.direktori-container .card-name { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--text-primary); font-weight: 700; line-height: 1.2; margin-bottom: 5px; transition: color 0.5s ease; }
+.direktori-container .swiper-slide-active .card-name { color: #d4af37; font-size: 2.2rem; }
+.direktori-container .card-full-name { font-family: 'Manrope', sans-serif; font-size: 0.85rem; color: var(--text-secondary); letter-spacing: 3px; text-transform: uppercase; font-weight: 600; }
+
+/* ================= CINEMATIC REVEAL DETAILS ================= */
+.direktori-container .card-details { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.8s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease; margin-top: 0; }
+.direktori-container .swiper-slide-active .card-details { max-height: 800px; opacity: 1; margin-top: 30px; }
+
+.direktori-container .reveal-item { opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.direktori-container .swiper-slide-active .reveal-item { opacity: 1; transform: translateY(0); }
+
+.direktori-container .swiper-slide-active .r-1 { transition-delay: 0.2s; }
+.direktori-container .swiper-slide-active .r-2 { transition-delay: 0.3s; }
+.direktori-container .swiper-slide-active .r-3 { transition-delay: 0.4s; }
+.direktori-container .swiper-slide-active .r-4 { transition-delay: 0.5s; }
+
+.direktori-container .detail-group { margin-bottom: 18px; }
+.direktori-container .d-label { font-family: 'Courier New', monospace; font-size: 0.65rem; color: #d4af37; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px; opacity: 0.8; }
+.direktori-container .d-value { font-family: 'Manrope', sans-serif; font-size: 0.95rem; color: var(--text-primary); font-weight: 500; }
+
+.direktori-container .card-quote { font-style: italic; font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text-primary); line-height: 1.6; margin: 30px 0 20px; position: relative; opacity: 0.9; }
+
+.direktori-container .card-socials { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+.direktori-container .soc-btn { width: 45px; height: 45px; border-radius: 50%; background: var(--glass-border); color: var(--text-secondary); display: flex; justify-content: center; align-items: center; text-decoration: none; font-size: 1.2rem; transition: all 0.3s ease; }
+.direktori-container .soc-btn:hover { background: #d4af37; color: #000; transform: scale(1.1); box-shadow: 0 10px 20px rgba(212,175,55,0.4); }
+
+/* NAVIGASI PANAH ELEGAN */
+.direktori-container .nav-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 60px; height: 60px; border-radius: 50%; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid rgba(212,175,55,0.3); color: #d4af37; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; z-index: 50; transition: all 0.4s ease; box-shadow: var(--glass-shadow); }
+.direktori-container .nav-arrow:hover { background: #d4af37; color: #fff; box-shadow: 0 15px 30px rgba(212,175,55,0.4); scale: 1.05; }
+.direktori-container .nav-prev { left: 50px; } .direktori-container .nav-next { right: 50px; }
+.direktori-container .swiper-button-disabled { opacity: 0; pointer-events: none; }
+
+@media (max-width: 768px) {
+    .direktori-container { padding: 90px 0 20px 0; }
+    .direktori-container .search-wrapper { margin-top: 10px; margin-bottom: 25px; }
+    .direktori-container .swiper-slide { width: 300px; }
+
+    /* Hapus backdrop-filter di mobile — penyebab utama lag pada semua card */
+    .direktori-container .luminary-card {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        padding: 25px 18px;
+        background: var(--bg-secondary, rgba(12, 18, 15, 0.92));
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        transition: all 0.4s ease;
+    }
+    [data-theme="light"] .direktori-container .luminary-card {
+        background: #ffffff;
+        box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
+    }
+    .direktori-container .swiper-slide-active .luminary-card {
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5), inset 0 0 15px rgba(212,175,55,0.04);
+        transform: translateY(-8px);
+    }
+    [data-theme="light"] .direktori-container .swiper-slide-active .luminary-card {
+        box-shadow: 0 15px 35px rgba(212, 175, 55, 0.2);
+    }
+
+    /* Matikan glow blur di mobile */
+    .direktori-container .ethereal-glow { display: none; }
+
+    /* Search input */
+    .direktori-container .search-input { backdrop-filter: none; -webkit-backdrop-filter: none; }
+
+    .direktori-container .swiper-slide-active .r-1 { transition-delay: 0.1s; }
+    .direktori-container .swiper-slide-active .r-2 { transition-delay: 0.15s; }
+    .direktori-container .swiper-slide-active .r-3 { transition-delay: 0.2s; }
+    .direktori-container .swiper-slide-active .r-4 { transition-delay: 0.25s; }
+
+    .direktori-container .nav-arrow { display: none; }
+    .direktori-container .swiper-slide-active .photo-ring { width: 130px; height: 130px; margin-bottom: 20px; }
+    .direktori-container .swiper-slide-active .card-name { font-size: 1.8rem; }
+}

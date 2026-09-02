@@ -1,0 +1,112 @@
+/* Admin Styles - Scoped */
+body.page-admin .admin-wrapper,
+.admin-wrapper { padding: clamp(80px, 15vh, 120px) 20px 40px; max-width: 1200px; margin: 0 auto; }
+.admin-wrapper .admin-header { text-align: center; margin-bottom: 40px; position: relative; padding-right: 160px; }
+.admin-wrapper .admin-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); color: #d4af37; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px; }
+.admin-wrapper .admin-subtitle { color: var(--text-secondary); font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; }
+
+.admin-wrapper .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+
+.admin-wrapper .metric-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    transition: 0.3s;
+}
+.admin-wrapper .metric-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(212,175,55,0.1);
+    border-color: rgba(212,175,55,0.4);
+}
+.admin-wrapper .hover-glow-emerald:hover { box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2); border-color: #00ff88; }
+.admin-wrapper .hover-glow-gold:hover { box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); border-color: #d4af37; }
+.admin-wrapper .hover-glow-danger:hover { box-shadow: 0 10px 30px rgba(255, 51, 102, 0.2); border-color: #ff3366; }
+.admin-wrapper .hover-glow-cyan:hover { box-shadow: 0 10px 30px rgba(0, 191, 255, 0.2); border-color: #00bfff; }
+
+.admin-wrapper .metric-value { font-size: 3rem; font-family: 'Inter', sans-serif; font-weight: 900; color: #d4af37; margin-bottom: 10px; }
+.admin-wrapper .metric-label { font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; }
+
+.admin-wrapper .panel-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--text-primary); margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; }
+
+.admin-wrapper .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .admin-wrapper .charts-grid { grid-template-columns: 1fr; } }
+.admin-wrapper .chart-panel { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 30px; }
+
+.admin-wrapper .log-item { display: flex; flex-direction: column; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.admin-wrapper .log-item:last-child { border-bottom: none; }
+.admin-wrapper .log-time { color: var(--text-secondary); font-family: monospace; font-size: 0.8rem; margin-bottom: 5px; }
+.admin-wrapper .log-action { color: #d4af37; font-weight: bold; font-size: 0.95rem; }
+.admin-wrapper .log-desc { color: var(--text-primary); font-size: 0.85rem; margin-top: 3px; }
+
+/* Existing components css... */
+.admin-wrapper .users-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(0,0,0,0.4); border-radius: 8px; overflow: hidden; }
+.admin-wrapper .users-table th { background: rgba(212,175,55,0.1); color: #d4af37; padding: 15px; text-align: left; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(212,175,55,0.3); }
+.admin-wrapper .users-table td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; font-size: 0.95rem; }
+.admin-wrapper .users-table tr:hover { background: rgba(255,255,255,0.02); }
+.admin-wrapper .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+.admin-wrapper .badge.admin { background: rgba(212,175,55,0.2); color: #d4af37; border: 1px solid #d4af37; }
+.admin-wrapper .badge.member { background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid #555; }
+.admin-wrapper .badge.active { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid #00ff88; }
+.admin-wrapper .badge.inactive { background: rgba(255,51,102,0.1); color: #ff3366; border: 1px solid #ff3366; }
+.admin-wrapper .btn-action { background: transparent; border: 1px solid #555; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; margin-right: 5px; }
+.admin-wrapper .btn-action:hover { border-color: #d4af37; color: #d4af37; }
+.admin-wrapper .btn-action:disabled { opacity: 0.5; pointer-events: none; }
+.admin-wrapper .btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; margin-bottom: 20px; font-size: 0.9rem; transition: 0.3s; }
+.admin-wrapper .btn-back:hover { color: #d4af37; }
+
+@media (max-width: 768px) {
+    body.page-admin .admin-wrapper,
+    .admin-wrapper {
+        padding: clamp(30px, 6vh, 60px) 12px 100px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+    }
+    .admin-wrapper .admin-header {
+        padding-right: 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        gap: 15px !important;
+        text-align: left !important;
+    }
+    .admin-wrapper .admin-header > div:first-child {
+        position: relative !important;
+        align-self: flex-start !important;
+        margin-left: 0 !important;
+    }
+    .admin-wrapper .admin-title {
+        font-size: clamp(1.5rem, 6vw, 2.2rem) !important;
+        letter-spacing: 1.5px !important;
+    }
+    .admin-wrapper .admin-subtitle {
+        font-size: 0.78rem !important;
+        letter-spacing: 1px !important;
+    }
+    .admin-wrapper .metrics-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+        margin-bottom: 25px !important;
+    }
+    .admin-wrapper .metric-card {
+        padding: 20px 14px !important;
+        border-radius: 14px !important;
+    }
+    .admin-wrapper .metric-value {
+        font-size: 2.2rem !important;
+    }
+    .admin-wrapper .metric-label {
+        font-size: 0.78rem !important;
+        letter-spacing: 1px !important;
+    }
+    .admin-wrapper .panel-title {
+        font-size: 1.25rem !important;
+        margin-top: 30px !important;
+    }
+    .admin-wrapper .chart-panel {
+        padding: 20px 14px !important;
+        border-radius: 14px !important;
+    }
+}
