@@ -1,13 +1,16 @@
 /**
  * radar-2d.js — Engine untuk 6 Varian Peta Datar (Flat Maps) menggunakan Leaflet.js
  */
-(function initRadar2D() {
+function initRadar2D() {
     if (typeof window.L === 'undefined') {
         setTimeout(initRadar2D, 100);
         return;
     }
     const elem = document.getElementById('mapViz');
-    if (!elem) return;
+    if (!elem) {
+        setTimeout(initRadar2D, 100);
+        return;
+    }
 
     let alumniData = window.__radarData || [];
     if (!Array.isArray(alumniData)) {
@@ -24,8 +27,16 @@
     
     let map;
     try {
+        if (window.__leafletMap) {
+            try { window.__leafletMap.remove(); } catch(err) {}
+            window.__leafletMap = null;
+        }
+        if (elem && elem._leaflet_id) {
+            elem._leaflet_id = null;
+        }
         // Matikan zoom control bawaan agar UI lebih bersih seperti globe
         map = L.map('mapViz', { zoomControl: false }).setView([CENTER.lat, CENTER.lng], initialZoom);
+        window.__leafletMap = map;
         
         // Opsi untuk menyalakan kembali zoom control tapi di pojok kanan atas
         L.control.zoom({ position: 'topright' }).addTo(map);
@@ -284,10 +295,10 @@
             const rl = document.getElementById('radarLoading');
             if (rl) {
                 rl.style.opacity = '0';
-                setTimeout(() => { if(rl) rl.style.display = 'none'; }, 1500);
+                setTimeout(() => { if(rl) rl.style.display = 'none'; }, 400);
             }
         }
-    }, 1800);
+    }, 200);
 
     // ===== 2. INFO DRAWER =====
     const drawer = document.getElementById('infoDrawer');
@@ -477,4 +488,13 @@
             });
         }
     } catch (e) { /* Pusher not available, silently ignore */ }
-})();
+}
+
+window.initRadar2D = initRadar2D;
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRadar2D);
+    } else {
+        initRadar2D();
+    }
+}

@@ -1,13 +1,16 @@
 /**
  * radar-globe.js — All 12 features for Jaringan Silaturahmi
  */
-(function initGlobe() {
+function initGlobe() {
     if (typeof window.Globe === 'undefined') {
         setTimeout(initGlobe, 100);
         return;
     }
     const elem = document.getElementById('globeViz');
-    if (!elem) return;
+    if (!elem) {
+        setTimeout(initGlobe, 100);
+        return;
+    }
 
     const CENTER = { lat: -8.0358875, lng: 111.414528 };
     let alumniData = window.__radarData || [];
@@ -327,4 +330,13 @@
     // ===== 10. SUPABASE REALTIME NOTIFICATION =====
     // Supabase Realtime is now handled inside RadarClient.tsx 
     // to maintain React state context and simplify dependencies.
-})();
+}
+
+window.initRadarGlobe = initGlobe;
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initGlobe);
+    } else {
+        initGlobe();
+    }
+}

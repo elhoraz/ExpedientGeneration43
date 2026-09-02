@@ -59,7 +59,28 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
       })
       .subscribe();
 
+    // Safety watchdog: ensure loading screen is never stuck longer than 2.8s
+    const safetyTimer = setTimeout(() => {
+      const rl = document.getElementById('radarLoading');
+      if (rl && rl.style.display !== 'none') {
+        rl.style.opacity = '0';
+        setTimeout(() => { if (rl) rl.style.display = 'none'; }, 400);
+      }
+    }, 2800);
+
+    // Trigger map engines if scripts were already cached/loaded
+    if (!is3DMode) {
+      if (typeof (window as any).initRadar2D === 'function') {
+        (window as any).initRadar2D();
+      }
+    } else {
+      if (typeof (window as any).initRadarGlobe === 'function') {
+        (window as any).initRadarGlobe();
+      }
+    }
+
     return () => {
+      clearTimeout(safetyTimer);
       supabase.removeChannel(channel);
       // Hapus class saat keluar halaman radar
       document.body.classList.remove('page-radar');
@@ -136,28 +157,28 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                   <i className="fa-solid fa-layer-group"></i> <span className="hide-mobile">Pilih </span>Peta
                 </button>
                 <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown">
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=globe'; }}><i className="fa-solid fa-earth-asia"></i> Globe 3D</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=minimalist'; }}><i className="fa-solid fa-map"></i> Peta Datar</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=satellite'; }}><i className="fa-solid fa-satellite"></i> Peta Satelit</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=terrain'; }}><i className="fa-solid fa-mountain-sun"></i> Peta Terrain</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=dark'; }}><i className="fa-solid fa-moon"></i> Peta Gelap</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=google'; }}><i className="fa-solid fa-map-location-dot"></i> Peta Google</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=classic'; }}><i className="fa-solid fa-signs-post"></i> Peta Klasik</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=natgeo'; }}><i className="fa-solid fa-compass"></i> Peta NatGeo</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=voyager'; }}><i className="fa-solid fa-paper-plane"></i> Peta Voyager</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=hybrid'; }}><i className="fa-solid fa-satellite-dish"></i> Peta Hybrid</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=graycanvas'; }}><i className="fa-solid fa-palette"></i> Peta Kanvas</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=hot'; }}><i className="fa-solid fa-train-subway"></i> Peta HOT</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=googleterrain'; }}><i className="fa-solid fa-mountain"></i> Peta Rupa Bumi</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=esriclarity'; }}><i className="fa-solid fa-cloud-sun"></i> Peta Satelit Bersih</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=nightnav'; }}><i className="fa-solid fa-car-tunnel"></i> Peta Navigasi Malam</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=googletransit'; }}><i className="fa-solid fa-car"></i> Peta Google Standar</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=physical'; }}><i className="fa-solid fa-mound"></i> Peta Relief</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=nasamarble'; }}><i className="fa-solid fa-star"></i> Peta NASA Malam</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=googletraffic'; }}><i className="fa-solid fa-traffic-light"></i> Peta Lalu Lintas</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=navigation'; }}><i className="fa-solid fa-anchor"></i> Peta Navigasi Laut</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=esristreet'; }}><i className="fa-solid fa-city"></i> Peta Tata Kota</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '?map=toner'; }}><i className="fa-solid fa-microchip"></i> Peta Hacker (Toner)</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=globe'; }}><i className="fa-solid fa-earth-asia"></i> Globe 3D</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=minimalist'; }}><i className="fa-solid fa-map"></i> Peta Datar</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=satellite'; }}><i className="fa-solid fa-satellite"></i> Peta Satelit</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=terrain'; }}><i className="fa-solid fa-mountain-sun"></i> Peta Terrain</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=dark'; }}><i className="fa-solid fa-moon"></i> Peta Gelap</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=google'; }}><i className="fa-solid fa-map-location-dot"></i> Peta Google</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=classic'; }}><i className="fa-solid fa-signs-post"></i> Peta Klasik</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=natgeo'; }}><i className="fa-solid fa-compass"></i> Peta NatGeo</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=voyager'; }}><i className="fa-solid fa-paper-plane"></i> Peta Voyager</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=hybrid'; }}><i className="fa-solid fa-satellite-dish"></i> Peta Hybrid</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=graycanvas'; }}><i className="fa-solid fa-palette"></i> Peta Kanvas</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=hot'; }}><i className="fa-solid fa-train-subway"></i> Peta HOT</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googleterrain'; }}><i className="fa-solid fa-mountain"></i> Peta Rupa Bumi</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=esriclarity'; }}><i className="fa-solid fa-cloud-sun"></i> Peta Satelit Bersih</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=nightnav'; }}><i className="fa-solid fa-car-tunnel"></i> Peta Navigasi Malam</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googletransit'; }}><i className="fa-solid fa-car"></i> Peta Google Standar</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=physical'; }}><i className="fa-solid fa-mound"></i> Peta Relief</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=nasamarble'; }}><i className="fa-solid fa-star"></i> Peta NASA Malam</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googletraffic'; }}><i className="fa-solid fa-traffic-light"></i> Peta Lalu Lintas</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=navigation'; }}><i className="fa-solid fa-anchor"></i> Peta Navigasi Laut</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=esristreet'; }}><i className="fa-solid fa-city"></i> Peta Tata Kota</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=toner'; }}><i className="fa-solid fa-microchip"></i> Peta Hacker (Toner)</button>
                 </div>
             </div>
         </div>
@@ -188,13 +209,46 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
 
         {is3DMode ? (
             <>
-                <Script src="https://cdn.jsdelivr.net/npm/globe.gl" strategy="lazyOnload" />
-                <Script src="/assets/js/radar-globe.js?v=1.0" strategy="lazyOnload" />
+                <Script 
+                  src="https://cdn.jsdelivr.net/npm/globe.gl" 
+                  strategy="afterInteractive" 
+                  onLoad={() => {
+                    if (typeof (window as any).initRadarGlobe === 'function') {
+                      (window as any).initRadarGlobe();
+                    }
+                  }}
+                />
+                <Script 
+                  src="/assets/js/radar-globe.js?v=1.2" 
+                  strategy="afterInteractive" 
+                  onLoad={() => {
+                    if (typeof (window as any).initRadarGlobe === 'function') {
+                      (window as any).initRadarGlobe();
+                    }
+                  }}
+                />
             </>
         ) : (
             <>
-                <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" strategy="afterInteractive" />
-                <Script src="/assets/js/radar-2d.js?v=1.0" strategy="lazyOnload" />
+                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                <Script 
+                  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+                  strategy="afterInteractive" 
+                  onLoad={() => {
+                    if (typeof (window as any).initRadar2D === 'function') {
+                      (window as any).initRadar2D();
+                    }
+                  }}
+                />
+                <Script 
+                  src="/assets/js/radar-2d.js?v=1.2" 
+                  strategy="afterInteractive" 
+                  onLoad={() => {
+                    if (typeof (window as any).initRadar2D === 'function') {
+                      (window as any).initRadar2D();
+                    }
+                  }}
+                />
             </>
         )}
     </>
