@@ -2,7 +2,7 @@
  * radar-2d.js — Engine untuk Varian Peta Datar (Flat Maps) menggunakan Leaflet.js
  */
 let radar2DAttempts = 0;
-(function initRadar2D() {
+function initRadar2D() {
     radar2DAttempts++;
     if (typeof window.L === 'undefined') {
         if (radar2DAttempts < 50) {
@@ -30,6 +30,12 @@ let radar2DAttempts = 0;
     if (!Array.isArray(alumniData)) {
         alumniData = Object.values(alumniData);
     }
+    // If alumni data is still being set by React, wait briefly
+    if (alumniData.length === 0 && radar2DAttempts < 25) {
+        setTimeout(initRadar2D, 100);
+        return;
+    }
+
     const CENTER = { lat: -8.0358875, lng: 111.414528 };
     let centerNode = alumniData.find(n => n.type === 'center') || { ...CENTER, type: 'center', name: 'Pondok Modern Arrisalah', city: 'Ponorogo', nick: 'Arrisalah' };
     let agentNodes = alumniData.filter(n => n.type !== 'center');
@@ -50,6 +56,10 @@ let radar2DAttempts = 0;
         // Matikan zoom control bawaan agar UI lebih bersih seperti globe
         map = L.map('mapViz', { zoomControl: false }).setView([CENTER.lat, CENTER.lng], initialZoom);
         window.__leafletMap = map;
+        
+        // Force invalidate size once DOM layout is stable so tiles fill viewport
+        setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 150);
+        setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 600);
         
         // Opsi untuk menyalakan kembali zoom control tapi di pojok kanan atas
         L.control.zoom({ position: 'topright' }).addTo(map);
@@ -533,4 +543,13 @@ let radar2DAttempts = 0;
             });
         }
     } catch (e) { /* Pusher not available, silently ignore */ }
-})();
+}
+
+window.initRadar2D = initRadar2D;
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRadar2D);
+    } else {
+        initRadar2D();
+    }
+}

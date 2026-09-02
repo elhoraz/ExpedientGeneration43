@@ -5,6 +5,7 @@ import Script from "next/script";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import "leaflet/dist/leaflet.css";
 import "./radar.css";
 
 function RadarMapContent({ nodes }: { nodes: any[] }) {
@@ -67,6 +68,11 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             setTimeout(() => { if (loader) loader.style.display = 'none'; }, 400);
         }
     }, 2500);
+
+    // Trigger 2D radar init if already loaded on client
+    if (!is3DMode && typeof (window as any).initRadar2D === 'function') {
+        (window as any).initRadar2D();
+    }
 
     return () => {
       clearTimeout(failsafeTimer);
@@ -199,13 +205,28 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         {is3DMode ? (
             <>
                 <Script src="/vendor/globe/globe.gl.min.js" strategy="afterInteractive" />
-                <Script src="/assets/js/radar-globe.js?v=1.1" strategy="afterInteractive" />
+                <Script src="/assets/js/radar-globe.js?v=2.0" strategy="afterInteractive" />
             </>
         ) : (
             <>
-                <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
-                <Script src="/vendor/leaflet/leaflet.js" strategy="beforeInteractive" />
-                <Script src="/assets/js/radar-2d.js?v=1.1" strategy="afterInteractive" />
+                <Script 
+                    src="/vendor/leaflet/leaflet.js" 
+                    strategy="afterInteractive" 
+                    onLoad={() => {
+                        if (typeof (window as any).initRadar2D === 'function') {
+                            (window as any).initRadar2D();
+                        }
+                    }}
+                />
+                <Script 
+                    src="/assets/js/radar-2d.js?v=2.0" 
+                    strategy="afterInteractive" 
+                    onLoad={() => {
+                        if (typeof (window as any).initRadar2D === 'function') {
+                            (window as any).initRadar2D();
+                        }
+                    }}
+                />
             </>
         )}
     </>

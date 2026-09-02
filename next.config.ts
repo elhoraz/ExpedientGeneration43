@@ -41,12 +41,14 @@ const nextConfig: NextConfig = {
 
     const cspDirectives = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://va.vercel-scripts.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://va.vercel-scripts.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com",
       "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
-      "img-src 'self' data: blob: https: *.supabase.co *.supabase.in images.unsplash.com ui-avatars.com",
+      "img-src 'self' data: blob: https: *.supabase.co *.supabase.in images.unsplash.com ui-avatars.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://clarity.maptiles.arcgis.com https://mt1.google.com https://tiles.stadiamaps.com https://gibs.earthdata.nasa.gov",
       "media-src 'self' blob: data: https: *.supabase.co",
-      "connect-src 'self' https: wss: *.supabase.co *.supabase.in *.agora.io *.sd-rtn.com https://api.fonnte.com https://generativelanguage.googleapis.com",
+      "connect-src 'self' https: wss: *.supabase.co *.supabase.in *.agora.io *.sd-rtn.com https://api.fonnte.com https://generativelanguage.googleapis.com https://api.bigdatacloud.net https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com",
+      "worker-src 'self' blob:",
+      "child-src 'self' blob:",
       "frame-ancestors 'self'",
       "object-src 'none'",
       "base-uri 'self'",
