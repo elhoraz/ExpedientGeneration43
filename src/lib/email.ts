@@ -29,7 +29,7 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
   }
 
   // Production: send via Resend API
-  const fromAddress = process.env.EMAIL_FROM || "Expedient <noreply@expedientgeneration.com>";
+  const fromAddress = process.env.EMAIL_FROM || "Expedient Generation <onboarding@resend.dev>";
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
