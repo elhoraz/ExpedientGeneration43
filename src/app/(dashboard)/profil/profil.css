@@ -548,8 +548,8 @@
     textarea.form-input { resize: none; overflow: hidden; min-height: 40px; }
 
     /* MOBILE RESPONSIVENESS */
-    @media (max-width: 600px) {
-        .profil-wrapper { padding: 90px 15px 50px; }
+    @media (max-width: 768px) {
+        .profil-wrapper { padding: 80px 14px 120px; }
         .premium-panel { padding: 25px 18px; border-radius: 20px; }
         .photo-upload-wrapper { flex-direction: column; text-align: center; gap: 15px; margin-bottom: 40px; }
         .magnetic-btn-wrap { margin-left: 0; padding: 0; }
@@ -559,4 +559,5 @@
         .action-btn { justify-content: center; width: 100%; }
         .retina-container { width: 250px; height: 250px; }
         .camera-frame { width: 200px; height: 200px; }
+        .form-row { grid-template-columns: 1fr; }
     }

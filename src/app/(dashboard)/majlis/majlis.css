@@ -153,12 +153,18 @@ body.page-majlis .main-wrapper {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .majlis-page-wrapper .majlis-header { padding: 20px; flex-direction: column; gap: 15px; align-items: flex-start; }
-    .majlis-page-wrapper .room-info { text-align: left; }
-    .majlis-page-wrapper .room-status { justify-content: flex-start; }
-    .majlis-page-wrapper .speaker-orb { width: 140px; height: 140px; }
-    .majlis-page-wrapper .listeners-container { bottom: 130px; max-height: 250px; overflow-y: auto; align-items: flex-start; }
-    .majlis-page-wrapper .control-dock { bottom: 30px; padding: 10px 20px; gap: 15px; }
-    .majlis-page-wrapper .ctrl-btn { width: 45px; height: 45px; font-size: 1rem; }
+    .majlis-page-wrapper .majlis-header { padding: 20px 16px; flex-direction: row; justify-content: space-between; align-items: center; }
+    .majlis-page-wrapper .btn-back { font-size: 0.75rem; padding: 8px 14px; letter-spacing: 1px; }
+    .majlis-page-wrapper .room-title { font-size: 1.15rem; }
+    .majlis-page-wrapper .room-info { text-align: right; }
+    .majlis-page-wrapper .room-status { justify-content: flex-end; font-size: 0.68rem; }
+    .majlis-page-wrapper .speaker-orb { width: 130px; height: 130px; }
+    .majlis-page-wrapper .speaker-info { padding: 10px 20px; }
+    .majlis-page-wrapper .speaker-name { font-size: 1.05rem; }
+    .majlis-page-wrapper .listeners-container { bottom: 180px; max-height: 180px; overflow-y: auto; align-items: flex-start; gap: 14px; }
+    .majlis-page-wrapper .listener-avatar { width: 48px; height: 48px; }
+    .majlis-page-wrapper .control-dock { bottom: 105px; padding: 8px 16px; gap: 12px; }
+    body.sidebar-closed .majlis-page-wrapper .control-dock { bottom: 30px; }
+    .majlis-page-wrapper .ctrl-btn { width: 44px; height: 44px; font-size: 0.95rem; }
     .majlis-page-wrapper .majlis-panel { width: 100%; right: -100%; }
 }

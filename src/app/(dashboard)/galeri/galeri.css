@@ -179,4 +179,45 @@ body.page-galeri .portrait-lock,
 .portrait-lock h2 { color: #fff; font-family: 'Playfair Display', serif; font-size: clamp(1.2rem, 5vw, 2rem); margin-bottom: 10px; }
 .portrait-lock p { color: #ccc; font-size: clamp(0.8rem, 3vw, 1rem); line-height: 1.5; }
 @keyframes tiltPhone { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); color: #fff; } }
-@media (orientation: portrait) { body.page-galeri .portrait-lock, .portrait-lock { display: flex !important; } body.page-galeri .gallery-stage, .gallery-stage { display: none !important; } }
+
+@media (orientation: portrait) { 
+    body.page-galeri:not(.bypass-portrait) .portrait-lock, 
+    .portrait-lock:not(.bypass-portrait) { display: flex !important; } 
+    body.page-galeri:not(.bypass-portrait) .gallery-stage, 
+    .gallery-stage:not(.bypass-portrait) { display: none !important; } 
+}
+
+body.page-galeri.bypass-portrait .portrait-lock { display: none !important; }
+body.page-galeri.bypass-portrait .gallery-stage { display: flex !important; }
+
+@media (max-width: 768px) {
+    body.page-galeri .dimension-core {
+        transform: scale(0.55);
+        transform-origin: center center;
+    }
+    body.page-galeri .gallery-hud {
+        bottom: 95px;
+        padding: 6px 12px;
+        gap: 6px;
+        max-width: 90vw;
+    }
+    body.page-galeri .gallery-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 0.95rem;
+    }
+    body.page-galeri .nav-prev { left: 10px; }
+    body.page-galeri .nav-next { right: 10px; }
+    body.page-galeri .dimension-shift-btn {
+        top: 20px;
+        font-size: 0.68rem;
+        padding: 8px 14px;
+        letter-spacing: 1px;
+    }
+    body.page-galeri .whisper-btn {
+        bottom: 95px;
+        right: 15px;
+        width: 44px;
+        height: 44px;
+    }
+}

@@ -1,16 +1,24 @@
-.buku-tamu-wrapper { padding: 40px 20px; max-width: 800px; margin: 0 auto; }
-.buku-tamu-wrapper .bt-title { font-family: 'Playfair Display', serif; color: #d4af37; font-size: 2.5rem; margin-bottom: 10px; text-align: center; }
-.buku-tamu-wrapper .bt-subtitle { color: var(--text-muted); font-size: 0.9rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 40px; text-align: center; }
+.buku-tamu-wrapper { padding: 90px 20px 100px; max-width: 800px; margin: 0 auto; }
+.buku-tamu-wrapper .bt-title { font-family: 'Playfair Display', serif; color: #d4af37; font-size: clamp(1.8rem, 6vw, 2.5rem); margin-bottom: 8px; text-align: center; }
+.buku-tamu-wrapper .bt-subtitle { color: var(--text-secondary); font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; text-align: center; }
 
-.buku-tamu-wrapper .bt-form { background: rgba(0,0,0,0.5); padding: 25px; border-radius: 15px; border: 1px solid rgba(212,175,55,0.2); margin-bottom: 40px; }
-.buku-tamu-wrapper .bt-textarea { width: 100%; min-height: 100px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 15px; border-radius: 10px; font-family: 'Inter', sans-serif; resize: vertical; margin-bottom: 15px; }
-.buku-tamu-wrapper .bt-textarea:focus { outline: none; border-color: #d4af37; }
-.buku-tamu-wrapper .bt-submit { background: linear-gradient(135deg, #d4af37, #aa771c); color: #000; border: none; padding: 12px 30px; font-weight: bold; border-radius: 30px; cursor: pointer; transition: 0.3s; font-family: 'Inter', sans-serif; letter-spacing: 2px; text-transform: uppercase; float: right; }
-.buku-tamu-wrapper .bt-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(212,175,55,0.4); }
+.buku-tamu-wrapper .bt-form { background: var(--bg-secondary, rgba(15, 20, 18, 0.85)); padding: 22px; border-radius: 18px; border: 1px solid var(--glass-border); margin-bottom: 30px; box-shadow: var(--glass-shadow); backdrop-filter: var(--glass-blur); }
+.buku-tamu-wrapper .bt-textarea { width: 100%; min-height: 110px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 14px; border-radius: 12px; font-family: 'Manrope', sans-serif; resize: vertical; margin-bottom: 15px; font-size: 0.95rem; box-sizing: border-box; }
+.buku-tamu-wrapper .bt-textarea:focus { outline: none; border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
+.buku-tamu-wrapper .bt-actions { display: flex; justify-content: flex-end; }
+.buku-tamu-wrapper .bt-submit { background: linear-gradient(135deg, #d4af37, #aa771c); color: #000; border: none; padding: 12px 28px; font-weight: 700; border-radius: 30px; cursor: pointer; transition: 0.3s; font-family: 'Manrope', sans-serif; letter-spacing: 1.5px; text-transform: uppercase; font-size: 0.85rem; }
+.buku-tamu-wrapper .bt-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }
 .buku-tamu-wrapper .bt-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.buku-tamu-wrapper .msg-card { background: linear-gradient(145deg, rgba(20,20,20,0.8), rgba(5,5,5,0.9)); border: 1px solid rgba(255,255,255,0.05); border-left: 3px solid #d4af37; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-.buku-tamu-wrapper .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
-.buku-tamu-wrapper .msg-author { color: #d4af37; font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: bold; }
-.buku-tamu-wrapper .msg-date { color: #666; font-size: 0.8rem; font-family: monospace; }
-.buku-tamu-wrapper .msg-body { color: #ddd; font-style: italic; line-height: 1.6; font-size: 0.95rem; }
+.buku-tamu-wrapper .msg-card { background: var(--bg-secondary, rgba(15, 20, 18, 0.8)); border: 1px solid var(--glass-border); border-left: 3px solid #d4af37; padding: 20px; border-radius: 14px; margin-bottom: 18px; box-shadow: var(--glass-shadow); }
+.buku-tamu-wrapper .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+.buku-tamu-wrapper .msg-author { color: #d4af37; font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: bold; }
+.buku-tamu-wrapper .msg-date { color: var(--text-secondary); font-size: 0.75rem; font-family: 'Courier New', monospace; }
+.buku-tamu-wrapper .msg-body { color: var(--text-primary); font-style: italic; line-height: 1.6; font-size: 0.92rem; }
+
+@media (max-width: 768px) {
+    .buku-tamu-wrapper { padding: 80px 14px 120px; }
+    .buku-tamu-wrapper .bt-form { padding: 16px; border-radius: 14px; }
+    .buku-tamu-wrapper .bt-submit { width: 100%; text-align: center; }
+    .buku-tamu-wrapper .msg-card { padding: 16px; border-radius: 12px; }
+}

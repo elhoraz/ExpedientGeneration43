@@ -1011,6 +1011,7 @@
 
 /* ================= MOBILE RESPONSIVENESS ================= */
 @media (max-width: 768px) {
+  .tarbiyah-page-wrapper .tarbiyah-wrapper { padding: 80px 14px 120px 14px; }
   .tarbiyah-page-wrapper .tarbiyah-title { font-size: 1.8rem; }
   .tarbiyah-page-wrapper .tarbiyah-subtitle { font-size: 0.75rem; letter-spacing: 1px; }
   .tarbiyah-page-wrapper .nexus-tabs-bar { gap: 6px; }

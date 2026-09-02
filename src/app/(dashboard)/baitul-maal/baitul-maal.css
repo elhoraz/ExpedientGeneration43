@@ -960,6 +960,9 @@
 }
 
 @media (max-width: 768px) {
+    .maal-page-wrapper .maal-wrapper {
+        padding: 80px 14px 120px 14px;
+    }
     .maal-page-wrapper .maal-header {
         flex-direction: column-reverse;
         gap: 15px;

@@ -32,14 +32,24 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
             if (swiperRef.current) swiperRef.current.destroy(true, true);
             
             setTimeout(() => {
+                const isMobile = window.innerWidth < 768;
                 swiperRef.current = new Swiper('.mySwiper', {
                     effect: 'coverflow',
                     grabCursor: true,
                     centeredSlides: true,
                     slidesPerView: 'auto',
                     initialSlide: 0,
-                    speed: 800,
-                    coverflowEffect: { rotate: 15, stretch: 0, depth: 400, modifier: 1, slideShadows: false },
+                    speed: 600,
+                    touchRatio: 1.2,
+                    touchAngle: 45,
+                    threshold: 5,
+                    coverflowEffect: {
+                        rotate: isMobile ? 0 : 15,
+                        stretch: 0,
+                        depth: isMobile ? 80 : 350,
+                        modifier: 1,
+                        slideShadows: false,
+                    },
                     navigation: { nextEl: '#btnNext', prevEl: '#btnPrev' },
                     keyboard: { enabled: true },
                     on: { 
@@ -101,8 +111,12 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                 <i className="fa-solid fa-book-open" style={{ fontSize: "2rem", opacity: 0.5, marginBottom: "15px" }}></i><br/>Arsip belum mencatat histori apapun.
             </div>
         ) : (
-            <div className="swiper mySwiper">
-                <div className="swiper-wrapper" id="swiperWrapper">
+            <>
+                <div className="mobile-swipe-hint">
+                    <i className="fa-solid fa-arrows-left-right" style={{ marginRight: "6px" }}></i> Geser kartu untuk melihat alumni
+                </div>
+                <div className="swiper mySwiper">
+                    <div className="swiper-wrapper" id="swiperWrapper">
                     
                     {filteredAlumni.map((user) => {
                         const foto = user.foto_profil ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${user.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nama_panggilan || 'A')}&background=d4af37&color=000`;
@@ -159,6 +173,7 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                     })}
                 </div>
             </div>
+            </>
         )}
 
         <div className="nav-arrow nav-prev" id="btnPrev"><i className="fa-solid fa-chevron-left"></i></div>
@@ -172,14 +187,24 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
               if ((window as any).Swiper) {
                   const Swiper = (window as any).Swiper;
                   if (swiperRef.current) swiperRef.current.destroy();
+                  const isMobile = window.innerWidth < 768;
                   swiperRef.current = new Swiper('.mySwiper', {
                       effect: 'coverflow',
                       grabCursor: true,
                       centeredSlides: true,
                       slidesPerView: 'auto',
                       initialSlide: 0,
-                      speed: 800,
-                      coverflowEffect: { rotate: 15, stretch: 0, depth: 400, modifier: 1, slideShadows: false },
+                      speed: 600,
+                      touchRatio: 1.2,
+                      touchAngle: 45,
+                      threshold: 5,
+                      coverflowEffect: {
+                          rotate: isMobile ? 0 : 15,
+                          stretch: 0,
+                          depth: isMobile ? 80 : 350,
+                          modifier: 1,
+                          slideShadows: false,
+                      },
                       navigation: { nextEl: '#btnNext', prevEl: '#btnPrev' },
                       keyboard: { enabled: true },
                       on: { slideChangeTransitionStart: () => { if (navigator.vibrate) navigator.vibrate(10); } }

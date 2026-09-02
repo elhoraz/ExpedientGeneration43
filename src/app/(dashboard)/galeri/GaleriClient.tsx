@@ -72,7 +72,28 @@ export default function GaleriClient() {
         <div className="portrait-lock">
             <i className="fa-solid fa-mobile-screen"></i>
             <h2>AKSES TERKUNCI</h2>
-            <p>Ruang Kenangan membutuhkan mode Landscape.<br/>Silakan putar perangkat Anda.</p>
+            <p>Ruang Kenangan terbaik dinikmati dalam mode Landscape.<br/>Silakan putar perangkat Anda.</p>
+            <button 
+              id="btnBypassLock" 
+              onClick={() => {
+                document.body.classList.add("bypass-portrait");
+              }}
+              style={{
+                marginTop: "20px",
+                padding: "10px 22px",
+                background: "rgba(212,175,55,0.15)",
+                border: "1px solid #d4af37",
+                color: "#d4af37",
+                borderRadius: "50px",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                textTransform: "uppercase",
+                letterSpacing: "1px"
+              }}
+            >
+              <i className="fa-solid fa-unlock" style={{ marginRight: "6px" }}></i> Tetap Buka dalam Mode Tegak
+            </button>
         </div>
 
         <div className="gallery-stage" id="galleryStage">

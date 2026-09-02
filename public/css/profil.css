@@ -1,4 +1,4 @@
-﻿/*
+/*
  * profil.css - Profil Entitas Expedient
  * Extracted from: app/Views/profil.php
  */
@@ -546,3 +546,18 @@
     .sys-msg.error { border-left: 4px solid var(--danger-elegant); color: var(--text-primary); }
 
     textarea.form-input { resize: none; overflow: hidden; min-height: 40px; }
+
+    /* MOBILE RESPONSIVENESS */
+    @media (max-width: 768px) {
+        .profil-wrapper { padding: 80px 14px 120px; }
+        .premium-panel { padding: 25px 18px; border-radius: 20px; }
+        .photo-upload-wrapper { flex-direction: column; text-align: center; gap: 15px; margin-bottom: 40px; }
+        .magnetic-btn-wrap { margin-left: 0; padding: 0; }
+        .dashboard-title { font-size: 2.2rem; }
+        .dashboard-subtitle { font-size: 0.72rem; letter-spacing: 3px; }
+        .nav-actions { flex-direction: column; gap: 12px; align-items: stretch; margin-bottom: 30px; }
+        .action-btn { justify-content: center; width: 100%; }
+        .retina-container { width: 250px; height: 250px; }
+        .camera-frame { width: 200px; height: 200px; }
+        .form-row { grid-template-columns: 1fr; }
+    }
