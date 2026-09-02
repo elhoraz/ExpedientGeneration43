@@ -169,51 +169,62 @@ export default function OnboardingTour({
       );
 
       // Calculate tooltip position
-      const tooltipWidth = 380;
-      const tooltipHeight = 260; // approximate
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isMobile = vw < 768;
+      const tooltipWidth = isMobile ? Math.min(340, vw - 24) : 380;
+      const tooltipHeight = isMobile ? 220 : 260;
       let top = 0;
       let left = 0;
       let arrow: "left" | "right" | "top" | "bottom" = "left";
 
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-
-      switch (step.position) {
-        case "right":
-          top = rect.top - 10;
-          left = rect.right + 20;
-          arrow = "left";
-          // Fallback if tooltip goes off-screen right
-          if (left + tooltipWidth > vw - 20) {
-            left = rect.left - tooltipWidth - 20;
-            arrow = "right";
-          }
-          break;
-        case "left":
-          top = rect.top - 10;
-          left = rect.left - tooltipWidth - 20;
-          arrow = "right";
-          // Fallback if tooltip goes off-screen left
-          if (left < 20) {
+      if (isMobile) {
+        left = Math.max(12, (vw - tooltipWidth) / 2);
+        // If spotlight is in lower half of viewport (e.g. sidebar), place tooltip above it
+        if (rect.top > vh / 2) {
+          top = Math.max(20, rect.top - tooltipHeight - 16);
+          arrow = "bottom";
+        } else {
+          // If spotlight is in upper half (e.g. widgets), place tooltip below it
+          top = Math.min(vh - tooltipHeight - 20, rect.bottom + 16);
+          arrow = "top";
+        }
+      } else {
+        switch (step.position) {
+          case "right":
+            top = rect.top - 10;
             left = rect.right + 20;
             arrow = "left";
-          }
-          break;
-        case "bottom":
-          top = rect.bottom + 20;
-          left = rect.left + rect.width / 2 - tooltipWidth / 2;
-          arrow = "top";
-          break;
-        case "top":
-          top = rect.top - tooltipHeight - 20;
-          left = rect.left + rect.width / 2 - tooltipWidth / 2;
-          arrow = "bottom";
-          break;
-      }
+            if (left + tooltipWidth > vw - 20) {
+              left = rect.left - tooltipWidth - 20;
+              arrow = "right";
+            }
+            break;
+          case "left":
+            top = rect.top - 10;
+            left = rect.left - tooltipWidth - 20;
+            arrow = "right";
+            if (left < 20) {
+              left = rect.right + 20;
+              arrow = "left";
+            }
+            break;
+          case "bottom":
+            top = rect.bottom + 20;
+            left = rect.left + rect.width / 2 - tooltipWidth / 2;
+            arrow = "top";
+            break;
+          case "top":
+            top = rect.top - tooltipHeight - 20;
+            left = rect.left + rect.width / 2 - tooltipWidth / 2;
+            arrow = "bottom";
+            break;
+        }
 
-      // Clamp within viewport
-      top = Math.max(20, Math.min(top, vh - tooltipHeight - 20));
-      left = Math.max(20, Math.min(left, vw - tooltipWidth - 20));
+        // Clamp within viewport
+        top = Math.max(20, Math.min(top, vh - tooltipHeight - 20));
+        left = Math.max(20, Math.min(left, vw - tooltipWidth - 20));
+      }
 
       setTooltipPos({ top, left });
       setArrowDir(arrow);

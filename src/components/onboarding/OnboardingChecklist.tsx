@@ -66,6 +66,49 @@ export default function OnboardingChecklist() {
   const [hasAnimated, setHasAnimated] = useState(false);
   const pathname = usePathname();
 
+  const reloadQuests = useCallback(async () => {
+    if (typeof window === "undefined") return;
+    const done = new Set<string>();
+    done.add("login");
+    localStorage.setItem("expedient_quest_login", "true");
+
+    QUESTS.forEach((q) => {
+      if (localStorage.getItem(q.storageKey) === "true") {
+        done.add(q.id);
+      }
+    });
+
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("foto_profil, no_whatsapp, no_hp, lat, lng, motivasi_hidup")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profile) {
+          const hasGps = profile.lat !== null && profile.lng !== null && Number(profile.lat) !== 0 && Number(profile.lng) !== 0;
+          if (hasGps) {
+            done.add("radar");
+            localStorage.setItem("expedient_quest_radar", "true");
+          }
+          const hasCustomPhoto = profile.foto_profil && !profile.foto_profil.includes("ui-avatars.com");
+          const hasPhone = profile.no_whatsapp || profile.no_hp;
+          if (hasCustomPhoto || (hasPhone && profile.motivasi_hidup)) {
+            done.add("profile");
+            localStorage.setItem("expedient_quest_profile", "true");
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    setCompletedIds(new Set(done));
+  }, []);
+
   // Check auth & initialize quest state
   useEffect(() => {
     const init = async () => {
@@ -78,21 +121,20 @@ export default function OnboardingChecklist() {
       const dismissed = localStorage.getItem(WIDGET_DISMISSED_KEY) === "true";
       setIsDismissed(dismissed);
 
-      // Load completed quests
-      const done = new Set<string>();
-      done.add("login"); // Always done if logged in
-      localStorage.setItem("expedient_quest_login", "true");
-
-      QUESTS.forEach((q) => {
-        if (localStorage.getItem(q.storageKey) === "true") {
-          done.add(q.id);
-        }
-      });
-      setCompletedIds(done);
+      await reloadQuests();
     };
 
     init();
-  }, []);
+
+    const handleUpdate = () => reloadQuests();
+    window.addEventListener("expedient-quest-updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      window.removeEventListener("expedient-quest-updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, [reloadQuests]);
 
   // Track page visits reactively when pathname changes
   useEffect(() => {
@@ -109,17 +151,10 @@ export default function OnboardingChecklist() {
     });
 
     if (changed) {
-      // Re-evaluate completion
-      const done = new Set<string>();
-      done.add("login");
-      QUESTS.forEach((q) => {
-        if (localStorage.getItem(q.storageKey) === "true") {
-          done.add(q.id);
-        }
-      });
-      setCompletedIds(done);
+      reloadQuests();
+      window.dispatchEvent(new CustomEvent("expedient-quest-updated"));
     }
-  }, [pathname, isLoggedIn]);
+  }, [pathname, isLoggedIn, reloadQuests]);
 
   // Bounce animation on first render to draw attention
   useEffect(() => {

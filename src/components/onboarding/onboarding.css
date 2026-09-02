@@ -385,17 +385,54 @@
 
 
 /* ===========================
-   RESPONSIVE
+   RESPONSIVE & MOBILE PERFORMANCE
    =========================== */
 @media (max-width: 768px) {
-  .onboarding-tooltip {
-    width: min(340px, 88vw);
-    padding: 20px;
+  .onboarding-spotlight {
+    box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.78);
+    transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
   }
   
+  .onboarding-spotlight::after {
+    animation: none !important;
+    opacity: 0.8 !important;
+    border-color: var(--gold-main, #d4af37) !important;
+  }
+
+  .onboarding-tooltip {
+    width: min(340px, 92vw);
+    padding: 18px 16px;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(12, 16, 14, 0.96) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.15) !important;
+    transition: opacity 0.2s ease;
+  }
+  
+  .onboarding-tooltip-desc {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  .onboarding-tooltip-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
+  .onboarding-tooltip-title {
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+  }
+
   .welcome-modal {
     padding: 28px 20px 24px;
     margin: 16px;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(12, 16, 14, 0.96) !important;
   }
 
   .welcome-title {

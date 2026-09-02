@@ -18,6 +18,7 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
   };
 
   useEffect(() => {
+    triggerQuest();
     document.body.classList.add("page-direktori");
     return () => {
       document.body.classList.remove("page-direktori");

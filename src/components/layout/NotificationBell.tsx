@@ -86,13 +86,18 @@ export default function NotificationBell({ userId }: { userId: string }) {
       });
     }
 
+    if (typeof window !== "undefined" && window.location.pathname.includes("direktori")) {
+      done.add("directory");
+      localStorage.setItem("expedient_quest_directory", "true");
+    }
+
     // Fetch profile from Supabase to auto-verify if already done in DB
     try {
       const { data: profile } = await supabase
         .from("profiles")
         .select("foto_profil, no_whatsapp, no_hp, lat, lng, motivasi_hidup")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (profile) {
         // Radar quest is ONLY complete if user has actual non-null, non-zero GPS coordinates
