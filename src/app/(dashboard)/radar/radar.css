@@ -1,6 +1,9 @@
-/* ===== GLOBE - SCOPED ===== */
+/* ===== GLOBE & MAP - SCOPED ===== */
 body.page-radar #globeViz { position:fixed; inset:0; width:100vw; height:100vh; z-index:2; cursor:grab; }
 body.page-radar #globeViz:active { cursor:grabbing; }
+body.page-radar #mapViz { position:fixed; inset:0; width:100vw; height:100vh; z-index:2; background:#080b10; }
+body.page-radar #mapViz .leaflet-pane { z-index: 10; }
+body.page-radar #mapViz .leaflet-top, body.page-radar #mapViz .leaflet-bottom { z-index: 20; }
 /* Hanya hide overflow di halaman radar */
 body.page-radar .main-wrapper { overflow:hidden !important; }
 

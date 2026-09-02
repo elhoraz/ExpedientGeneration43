@@ -5,6 +5,7 @@ import Script from "next/script";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import "leaflet/dist/leaflet.css";
 import "./radar.css";
 
 function RadarMapContent({ nodes }: { nodes: any[] }) {
@@ -71,11 +72,11 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
     // Trigger map engines if scripts were already cached/loaded
     if (!is3DMode) {
       if (typeof (window as any).initRadar2D === 'function') {
-        (window as any).initRadar2D();
+        (window as any).initRadar2D(nodes, mapStyle);
       }
     } else {
       if (typeof (window as any).initRadarGlobe === 'function') {
-        (window as any).initRadarGlobe();
+        (window as any).initRadarGlobe(nodes, mapStyle);
       }
     }
 
@@ -104,7 +105,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             </>
         ) : (
             <>
-                <div id="mapViz" style={{ position: 'fixed', inset: 0, zIndex: 2, background: '#000' }}></div>
+                <div id="mapViz" style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 2, background: '#080b10' }}></div>
             </>
         )}
 
@@ -230,22 +231,21 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             </>
         ) : (
             <>
-                <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
                 <Script 
                   src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
                   strategy="afterInteractive" 
                   onLoad={() => {
                     if (typeof (window as any).initRadar2D === 'function') {
-                      (window as any).initRadar2D();
+                      (window as any).initRadar2D(nodes, mapStyle);
                     }
                   }}
                 />
                 <Script 
-                  src="/assets/js/radar-2d.js?v=1.2" 
+                  src="/assets/js/radar-2d.js?v=1.4" 
                   strategy="afterInteractive" 
                   onLoad={() => {
                     if (typeof (window as any).initRadar2D === 'function') {
-                      (window as any).initRadar2D();
+                      (window as any).initRadar2D(nodes, mapStyle);
                     }
                   }}
                 />

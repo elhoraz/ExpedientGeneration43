@@ -1,18 +1,18 @@
 /**
  * radar-2d.js — Engine untuk 6 Varian Peta Datar (Flat Maps) menggunakan Leaflet.js
  */
-function initRadar2D() {
+function initRadar2D(passedData, passedStyle) {
     if (typeof window.L === 'undefined') {
-        setTimeout(initRadar2D, 100);
+        setTimeout(() => initRadar2D(passedData, passedStyle), 100);
         return;
     }
     const elem = document.getElementById('mapViz');
     if (!elem) {
-        setTimeout(initRadar2D, 100);
+        setTimeout(() => initRadar2D(passedData, passedStyle), 100);
         return;
     }
 
-    let alumniData = window.__radarData || [];
+    let alumniData = passedData || window.__radarData || [];
     if (!Array.isArray(alumniData)) {
         alumniData = Object.values(alumniData);
     }
@@ -35,11 +35,20 @@ function initRadar2D() {
             elem._leaflet_id = null;
         }
         // Matikan zoom control bawaan agar UI lebih bersih seperti globe
-        map = L.map('mapViz', { zoomControl: false }).setView([CENTER.lat, CENTER.lng], initialZoom);
+        map = L.map('mapViz', { zoomControl: false, preferCanvas: true }).setView([CENTER.lat, CENTER.lng], initialZoom);
         window.__leafletMap = map;
         
         // Opsi untuk menyalakan kembali zoom control tapi di pojok kanan atas
         L.control.zoom({ position: 'topright' }).addTo(map);
+
+        // Force Leaflet to recalculate container dimensions so tiles are fetched immediately
+        map.whenReady(() => {
+            map.invalidateSize();
+        });
+        setTimeout(() => { if (map) map.invalidateSize(); }, 100);
+        setTimeout(() => { if (map) map.invalidateSize(); }, 400);
+        setTimeout(() => { if (map) map.invalidateSize(); }, 1000);
+        window.addEventListener('resize', () => { if (map) map.invalidateSize(); });
     } catch(e) {
         console.error("Leaflet init error:", e);
         // Force remove loading screen if leaflet fails
@@ -54,7 +63,7 @@ function initRadar2D() {
     let layerMaxZoom = 19;
     let nativeZoom = 19;
     
-    const style = window.__mapStyle || 'classic';
+    const style = passedStyle || window.__mapStyle || 'classic';
     
     switch(style) {
         case 'natgeo':
@@ -64,7 +73,7 @@ function initRadar2D() {
             nativeZoom = 16;
             break;
         case 'voyager':
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+            tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
             tileAttribution = '&copy; CARTO';
             break;
         case 'hybrid': 
@@ -137,11 +146,11 @@ function initRadar2D() {
             nativeZoom = 21;
             break;
         case 'toner':
-            tileUrl = 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png';
+            tileUrl = 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png';
             tileAttribution = '&copy; Stadia Maps, &copy; Stamen Design';
             break;
         case 'minimalist': // Menggantikan flat
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+            tileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
             tileAttribution = '&copy; <a href="https://carto.com/attributions">CARTO</a>';
             break;
         case 'satellite':
@@ -157,7 +166,7 @@ function initRadar2D() {
             nativeZoom = 17;
             break;
         case 'dark':
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+            tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
             tileAttribution = '&copy; CARTO';
             break;
         case 'google': // Google Streets
@@ -179,6 +188,7 @@ function initRadar2D() {
 
     L.tileLayer(tileUrl, {
         attribution: tileAttribution,
+        subdomains: 'abcd',
         maxZoom: layerMaxZoom,
         maxNativeZoom: nativeZoom
     }).addTo(map);
@@ -210,11 +220,16 @@ function initRadar2D() {
 
     // ===== 12. LEADERBOARD =====
     const buildLeaderboard = (agents) => {
+        const lbEl = document.getElementById('lbContent');
+        if (!lbEl) return;
+        if (!agents || agents.length === 0) {
+            lbEl.innerHTML = `<div style="padding:12px 14px; color:var(--text-secondary); font-size:0.75rem; text-align:center;">Belum ada persebaran alumni tersinkron.</div>`;
+            return;
+        }
         const counts = {};
         agents.forEach(a => { const c = a.city || 'Unknown'; counts[c] = (counts[c] || 0) + 1; });
         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
         const max = sorted[0]?.[1] || 1;
-        const lbEl = document.getElementById('lbContent');
         lbEl.innerHTML = sorted.map(([city, count], i) =>
             `<div class="lb-row">
                 <span class="lb-rank">${i + 1}</span>
