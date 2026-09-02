@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import "./baitul-maal.css";
@@ -54,6 +54,7 @@ export default function BaitulMaalClient({
   const [donatePrayer, setDonatePrayer] = useState("");
   const [donateAnonim, setDonateAnonim] = useState(false);
   const [isDonating, setIsDonating] = useState(false);
+  const donateInputRef = useRef<HTMLInputElement>(null);
 
   // Admin Record Form States
   const [adminAmount, setAdminAmount] = useState("");
@@ -238,6 +239,63 @@ export default function BaitulMaalClient({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Export & Print Official Receipt (Task 11)
+  const handlePrintReceipt = (tx: Transaction) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      showAlert("Peringatan", "Harap izinkan popup browser untuk mencetak bukti tanda terima donasi.");
+      return;
+    }
+    const receiptHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Tanda Terima Infaq — Baitul Maal Expedient 42</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; padding: 40px; color: #111; max-width: 620px; margin: 0 auto; line-height: 1.6; border: 2px solid #b8860b; }
+          .header { text-align: center; border-bottom: 2px solid #b8860b; padding-bottom: 15px; margin-bottom: 20px; }
+          .title { font-size: 20px; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; color: #b8860b; margin: 0; }
+          .subtitle { font-size: 13px; color: #555; margin: 5px 0 0 0; }
+          .row { display: flex; justify-content: space-between; margin: 10px 0; border-bottom: 1px dotted #ccc; padding-bottom: 5px; }
+          .label { font-weight: bold; font-size: 14px; color: #333; }
+          .value { font-size: 14px; color: #111; }
+          .amount-box { text-align: center; background: #fdfaf0; border: 1px dashed #b8860b; padding: 15px; margin: 25px 0; font-size: 24px; font-weight: bold; color: #b8860b; }
+          .stamp { border: 2px solid #2e7d32; color: #2e7d32; display: inline-block; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 12px; letter-spacing: 1px; transform: rotate(-3deg); margin-top: 15px; text-transform: uppercase; }
+          .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+          @media print { .no-print { display: none; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1 class="title">Baitul Maal Expedient Generation</h1>
+          <p class="subtitle">Pondok Modern Arrisalah — Angkatan 42</p>
+          <p class="subtitle" style="font-size: 11px; margin-top: 2px;">No. Registrasi: EXP42-BM-${tx.id.slice(0, 8).toUpperCase()}</p>
+        </div>
+        <div class="row"><span class="label">Nama Donatur / Penyalur:</span><span class="value">${tx.donor_name || "Hamba Allah"}</span></div>
+        <div class="row"><span class="label">Tanggal Diterima:</span><span class="value">${new Date(tx.created_at).toLocaleString("id-ID")}</span></div>
+        <div class="row"><span class="label">Alokasi Program:</span><span class="value">${tx.description || "Infaq & Ta'awun Kas Angkatan"}</span></div>
+        <div class="amount-box">${formatRupiah(Number(tx.amount))}</div>
+        <div style="text-align: center;">
+          <div class="stamp">✓ TERVERIFIKASI BENDAHARA RESMI</div>
+        </div>
+        <div class="footer">
+          <p>Jazakumullah khairan katsiran atas kontribusi infaq dan ta'awun Anda demi kemaslahatan ukhuwah alumni angkatan 42.</p>
+        </div>
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+          <button onclick="window.print()" style="padding: 10px 24px; background: #b8860b; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cetak / Simpan PDF</button>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+    printWindow.document.write(receiptHtml);
+    printWindow.document.close();
   };
 
   // Zakat Calculator Logic
@@ -505,8 +563,31 @@ export default function BaitulMaalClient({
                       </div>
                     </div>
                   </div>
-                  <div className={`tx-amount ${tx.transaction_type === "IN" ? "in" : "out"}`}>
-                    {tx.transaction_type === "IN" ? "+" : "-"} {formatRupiah(Number(tx.amount))}
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div className={`tx-amount ${tx.transaction_type === "IN" ? "in" : "out"}`}>
+                      {tx.transaction_type === "IN" ? "+" : "-"} {formatRupiah(Number(tx.amount))}
+                    </div>
+                    {tx.transaction_type === "IN" && (
+                      <button
+                        type="button"
+                        onClick={() => handlePrintReceipt(tx)}
+                        style={{
+                          background: "rgba(212, 175, 55, 0.1)",
+                          border: "1px solid rgba(212, 175, 55, 0.35)",
+                          color: "var(--gold-main, #d4af37)",
+                          padding: "6px 10px",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "0.75rem",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px"
+                        }}
+                        title="Cetak Bukti Tanda Terima Donasi Resmi"
+                      >
+                        <i className="fa-solid fa-receipt"></i> Bukti
+                      </button>
+                    )}
                   </div>
                 </div>
               ))
@@ -625,10 +706,21 @@ export default function BaitulMaalClient({
                       {formatRupiah(amt)}
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    className={`btn-preset ${donateAmount && ![25000, 50000, 100000, 250000, 500000, 1000000].includes(Number(donateAmount)) ? "active" : ""}`}
+                    onClick={() => {
+                      donateInputRef.current?.focus();
+                      donateInputRef.current?.select();
+                    }}
+                  >
+                    Nominal Lain...
+                  </button>
                 </div>
                 <input
+                  ref={donateInputRef}
                   type="number"
-                  placeholder="Contoh: 100000"
+                  placeholder="Contoh: 150000"
                   value={donateAmount}
                   onChange={e => setDonateAmount(e.target.value)}
                   required

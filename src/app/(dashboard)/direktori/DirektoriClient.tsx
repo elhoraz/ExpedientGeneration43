@@ -8,6 +8,7 @@ import "./direktori.css";
 
 export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[], isLoggedIn: boolean }) {
   const [search, setSearch] = useState("");
+  const [qrModalUser, setQrModalUser] = useState<any | null>(null);
   const swiperRef = useRef<any>(null);
 
   const triggerQuest = () => {
@@ -156,6 +157,8 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
 
                                                 <div className="card-socials reveal-item r-4">
                                                     <Link href={`/chat/personal/${user.id}`} className="soc-btn" title="Kirim Pesan"><i className="fa-solid fa-comment-dots"></i></Link>
+                                                    <a href={`/api/vcard/${user.id}`} className="soc-btn" title="Simpan Kontak vCard (.vcf)"><i className="fa-solid fa-address-card"></i></a>
+                                                    <button type="button" onClick={() => setQrModalUser(user)} className="soc-btn" title="Tampilkan QR Kontak (Scan)"><i className="fa-solid fa-qrcode"></i></button>
                                                     {user.akun_ig && <a href={`https://instagram.com/${user.akun_ig.replace('@', '')}`} target="_blank" className="soc-btn" title="Instagram"><i className="fa-brands fa-instagram"></i></a>}
                                                     {user.akun_tiktok && <a href={`https://tiktok.com/@${user.akun_tiktok.replace('@', '')}`} target="_blank" className="soc-btn" title="TikTok"><i className="fa-brands fa-tiktok"></i></a>}
                                                 </div>
@@ -220,6 +223,95 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                // Handled by useEffect in React
             `}
         </Script>
+        {/* QR CODE VCARD MODAL (TASK 20) */}
+        {qrModalUser && (
+          <div 
+            onClick={() => setQrModalUser(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 999999,
+              background: "rgba(0, 0, 0, 0.85)",
+              backdropFilter: "blur(10px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px"
+            }}
+          >
+            <div 
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: "var(--bg-secondary, #0c120f)",
+                border: "1px solid rgba(212, 175, 55, 0.4)",
+                borderRadius: "24px",
+                padding: "30px 24px",
+                maxWidth: "340px",
+                width: "100%",
+                textAlign: "center",
+                boxShadow: "0 25px 60px rgba(0, 0, 0, 0.8)"
+              }}
+            >
+              <div style={{ fontSize: "0.75rem", fontFamily: "Courier New, monospace", color: "#d4af37", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "8px" }}>
+                KARTU KONTAK DIGITAL
+              </div>
+              <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.3rem", color: "var(--text-primary)", marginBottom: "4px" }}>
+                {qrModalUser.nama_panggilan || qrModalUser.nama_lengkap}
+              </h3>
+              <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "20px" }}>
+                Arahkan kamera smartphone untuk menyimpan nomor langsung ke kontak.
+              </p>
+
+              <div style={{ background: "#ffffff", padding: "12px", borderRadius: "16px", display: "inline-block", boxShadow: "0 8px 20px rgba(0,0,0,0.3)", marginBottom: "20px" }}>
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(
+                    `BEGIN:VCARD\nVERSION:3.0\nFN:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan}\nNICKNAME:${qrModalUser.nama_panggilan || ''}\nTEL;TYPE=CELL:+${(qrModalUser.no_whatsapp || '').replace(/\\D/g, '')}\nNOTE:Alumni Expedient Generation Angkatan 42\nEND:VCARD`
+                  )}`}
+                  alt="QR Code Kontak"
+                  style={{ width: "190px", height: "190px", display: "block" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <a 
+                  href={`/api/vcard/${qrModalUser.id}`}
+                  download
+                  style={{
+                    background: "rgba(212, 175, 55, 0.15)",
+                    border: "1px solid #d4af37",
+                    color: "#d4af37",
+                    padding: "10px",
+                    borderRadius: "12px",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px"
+                  }}
+                >
+                  <i className="fa-solid fa-download"></i> Unduh File .vcf
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setQrModalUser(null)}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--glass-border)",
+                    color: "var(--text-secondary)",
+                    padding: "8px",
+                    borderRadius: "12px",
+                    fontSize: "0.8rem",
+                    cursor: "pointer"
+                  }}
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 }

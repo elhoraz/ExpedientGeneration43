@@ -498,6 +498,48 @@ export default function PersonalChatClient({
           </div>
         )}
 
+        {messages.length === 0 && (
+          <div style={{ textAlign: "center", padding: "40px 16px", color: "var(--text-secondary)" }}>
+            <div style={{ width: "54px", height: "54px", borderRadius: "50%", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--gold-main, #d4af37)", fontSize: "1.4rem" }}>
+              <i className="fa-solid fa-handshake-angle"></i>
+            </div>
+            <h4 style={{ color: "var(--text-primary)", fontFamily: "'Playfair Display', serif", fontSize: "1.2rem", marginBottom: "8px" }}>
+              Mulai Silaturahmi dengan {contact.nama_panggilan}
+            </h4>
+            <p style={{ fontSize: "0.85rem", maxWidth: "340px", margin: "0 auto 20px", lineHeight: 1.5 }}>
+              Kirim salam atau sapaan pertama untuk menyambung kembali tali ukhuwah masa pondok:
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px", maxWidth: "420px", margin: "0 auto" }}>
+              {[
+                `Assalamu'alaikum, antum di mana sekarang?`,
+                `Ahlan ya akhi! Gimana kabarnya?`,
+                `Kapan ada waktu luang untuk ngopi santai?`,
+                `Assalamu'alaikum, salam rindu dari kawan pondok!`
+              ].map((greeting, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setInputMessage(greeting)}
+                  style={{
+                    background: "rgba(212, 175, 55, 0.08)",
+                    border: "1px solid rgba(212, 175, 55, 0.25)",
+                    color: "var(--gold-main, #d4af37)",
+                    borderRadius: "16px",
+                    padding: "8px 14px",
+                    fontSize: "0.8rem",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(212, 175, 55, 0.2)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(212, 175, 55, 0.08)")}
+                >
+                  "{greeting}"
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {messages.map((msg) => {
           if (msg.is_deleted) return null;
           

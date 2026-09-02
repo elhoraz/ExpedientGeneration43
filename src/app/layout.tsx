@@ -1,12 +1,34 @@
 import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/react";
+import { Inter, Playfair_Display, Manrope } from "next/font/google";
 import "./globals.css";
 import "../../public/css/design-system.css";
 import "../../public/css/template.css";
 import ClientLayout from "@/components/layout/ClientLayout";
 import { CmsProvider } from "@/components/layout/CmsProvider";
 import { createClient } from "@/lib/supabase/server";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["500", "700", "900"],
+  variable: "--font-playfair",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   themeColor: "#030504",
@@ -60,7 +82,7 @@ export default async function RootLayout({
   const timeoutPromise = new Promise<{ data: null }>((resolve) => setTimeout(() => resolve({ data: null }), 5000));
   const { data: allCms } = await Promise.race([cmsPromise, timeoutPromise]);
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" className={`${inter.variable} ${playfair.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
         {/* Inline script to set theme before first paint (prevent FOUC) */}
         <script

@@ -207,6 +207,42 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const totalCount = INITIAL_QUESTS.length;
   const isAllQuestsDone = completedCount >= totalCount;
 
+  // Dynamic unread dot on favicon
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (!faviconLink) return;
+
+    const originalHref = "/icon-32.png";
+
+    if (unreadCount > 0) {
+      const img = new window.Image();
+      img.crossOrigin = "anonymous";
+      img.src = originalHref;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, 32, 32);
+
+        // Draw notification badge dot at top-right
+        ctx.beginPath();
+        ctx.arc(24, 8, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ff3366";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        faviconLink.href = canvas.toDataURL("image/png");
+      };
+    } else {
+      faviconLink.href = originalHref;
+    }
+  }, [unreadCount]);
+
   const markAsRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))

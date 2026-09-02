@@ -55,10 +55,30 @@ function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initia
   // Inject body class saat page Majlis aktif (untuk override CSS .main-wrapper)
   useEffect(() => {
     document.body.classList.add('page-majlis');
+
+    // Auto-load draft mosi musyawarah (Task 14)
+    if (typeof window !== "undefined") {
+      const savedTitle = sessionStorage.getItem("expedient_majlis_draft_title");
+      const savedDesc = sessionStorage.getItem("expedient_majlis_draft_desc");
+      if (savedTitle) setNewTopicTitle(savedTitle);
+      if (savedDesc) setNewTopicDesc(savedDesc);
+    }
+
     return () => {
       document.body.classList.remove('page-majlis');
     };
   }, []);
+
+  // Auto-save draft to sessionStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (newTopicTitle) sessionStorage.setItem("expedient_majlis_draft_title", newTopicTitle);
+      else sessionStorage.removeItem("expedient_majlis_draft_title");
+
+      if (newTopicDesc) sessionStorage.setItem("expedient_majlis_draft_desc", newTopicDesc);
+      else sessionStorage.removeItem("expedient_majlis_draft_desc");
+    }
+  }, [newTopicTitle, newTopicDesc]);
 
   // ==========================================
   // AGORA RTC LOGIC
@@ -517,6 +537,8 @@ function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initia
         }
 
         await showAlert("Berhasil", "Mosi berhasil diajukan ke forum.");
+        sessionStorage.removeItem("expedient_majlis_draft_title");
+        sessionStorage.removeItem("expedient_majlis_draft_desc");
         setNewTopicTitle("");
         setNewTopicDesc("");
         if (json.data) {

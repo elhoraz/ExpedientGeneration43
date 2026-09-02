@@ -98,8 +98,8 @@
 [data-theme="light"] .agent-serial { color: #7a8b84; }
 
 /* Serial Number */
-.agent-serial { position: absolute; top: 18px; right: 20px; font-family: 'Courier New', monospace; font-size: 0.68rem; color: var(--text-secondary); letter-spacing: 2px; opacity: 0; transition: opacity 0.5s ease; }
-.swiper-slide-active .agent-serial { opacity: 0.75; }
+.agent-serial { position: absolute; top: 18px; right: 20px; font-family: 'Courier New', monospace; font-size: 0.68rem; color: #a8b8c5; letter-spacing: 2px; opacity: 0; font-weight: 600; transition: opacity 0.5s ease; }
+.swiper-slide-active .agent-serial { opacity: 0.95; color: #f3e5ab; }
 
 /* Foto Profil */
 .photo-ring { width: 130px; height: 130px; margin: 0 auto 20px auto; border-radius: 50%; padding: 4px; background: linear-gradient(135deg, #d4af37, transparent, #d4af37); position: relative; transition: all 0.5s ease; filter: grayscale(80%) opacity(0.8); }
@@ -109,7 +109,7 @@
 /* Header Info */
 .card-name { font-family: 'Playfair Display', serif; font-size: 1.7rem; color: var(--text-primary); font-weight: 700; line-height: 1.2; margin-bottom: 4px; transition: color 0.4s ease; }
 .swiper-slide-active .card-name { color: #d4af37; font-size: 2rem; }
-.card-full-name { font-family: 'Manrope', sans-serif; font-size: 0.8rem; color: var(--text-secondary); letter-spacing: 2.5px; text-transform: uppercase; font-weight: 600; }
+.card-full-name { font-family: 'Manrope', sans-serif; font-size: 0.8rem; color: #a8b8c5; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 600; }
 
 /* ================= CINEMATIC REVEAL DETAILS ================= */
 .card-details { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease; margin-top: 0; }
@@ -124,13 +124,13 @@
 .swiper-slide-active .r-4 { transition-delay: 0.45s; }
 
 .detail-group { margin-bottom: 15px; }
-.d-label { font-family: 'Courier New', monospace; font-size: 0.65rem; color: #d4af37; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 4px; opacity: 0.85; }
+.d-label { font-family: 'Courier New', monospace; font-size: 0.65rem; color: #f3e5ab; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 4px; font-weight: 600; opacity: 0.95; }
 .d-value { font-family: 'Manrope', sans-serif; font-size: 0.92rem; color: var(--text-primary); font-weight: 500; }
 
 .card-quote { font-style: italic; font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text-primary); line-height: 1.5; margin: 24px 0 18px; position: relative; opacity: 0.9; }
 
 .card-socials { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
-.soc-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--glass-border); color: var(--text-secondary); display: flex; justify-content: center; align-items: center; text-decoration: none; font-size: 1.1rem; transition: all 0.3s ease; }
+.soc-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-radius: 50%; background: var(--glass-border); color: var(--text-secondary); display: flex; justify-content: center; align-items: center; text-decoration: none; font-size: 1.1rem; transition: all 0.3s ease; border: none; cursor: pointer; outline: none; }
 .soc-btn:hover { background: #d4af37; color: #000; transform: scale(1.08); box-shadow: 0 8px 18px rgba(212,175,55,0.4); }
 
 /* NAVIGASI PANAH ELEGAN */

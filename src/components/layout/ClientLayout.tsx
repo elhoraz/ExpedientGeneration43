@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import LoadingScreen from "./LoadingScreen";
 import { ToastProvider } from "./AegisToast";
@@ -13,6 +13,22 @@ if (typeof window !== "undefined") {
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isOffline, setIsOffline] = useState(false);
+
+  // Network offline/online detector (Task 16)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsOffline(!navigator.onLine);
+      const handleOnline = () => setIsOffline(false);
+      const handleOffline = () => setIsOffline(true);
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+      return () => {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      };
+    }
+  }, []);
 
 
 
@@ -122,6 +138,33 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   return (
     <ConfirmProvider>
       <ToastProvider>
+        {isOffline && (
+          <div
+            style={{
+              position: "fixed",
+              top: "16px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 999999,
+              background: "rgba(25, 18, 12, 0.95)",
+              border: "1px solid rgba(212, 175, 55, 0.5)",
+              color: "#f3e5ab",
+              padding: "10px 22px",
+              borderRadius: "50px",
+              fontSize: "0.82rem",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.8)",
+              backdropFilter: "blur(12px)",
+              pointerEvents: "none"
+            }}
+          >
+            <i className="fa-solid fa-triangle-exclamation" style={{ color: "#e6a100" }}></i>
+            <span>Koneksi internet terputus — Sinkronisasi real-time dijeda</span>
+          </div>
+        )}
         <LoadingScreen />
         {children}
       </ToastProvider>

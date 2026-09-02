@@ -5,10 +5,24 @@ import Script from "next/script";
 import "./galeri.css";
 
 export default function GaleriClient() {
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+
   useEffect(() => {
     document.body.classList.add("page-galeri");
+
+    // Double-click on any page image opens the full-screen lightbox (Task 13)
+    const handleImageDblClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && target.tagName === "IMG" && target.closest(".book-scene")) {
+        const src = (target as HTMLImageElement).src || target.getAttribute("data-src");
+        if (src) setLightboxImg(src);
+      }
+    };
+    document.addEventListener("dblclick", handleImageDblClick);
+
     return () => {
       document.body.classList.remove("page-galeri");
+      document.removeEventListener("dblclick", handleImageDblClick);
     };
   }, []);
 
@@ -133,6 +147,84 @@ export default function GaleriClient() {
                 <button className="btn-icon hover-trigger" id="btnFullscreen" title="Immersive Mode"><i className="fa-solid fa-expand"></i></button>
             </div>
         </div>
+
+        {/* FULLSCREEN IMAGE LIGHTBOX MODAL (TASK 13) */}
+        {lightboxImg && (
+          <div 
+            onClick={() => setLightboxImg(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 999999,
+              background: "rgba(0, 0, 0, 0.92)",
+              backdropFilter: "blur(12px)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px"
+            }}
+          >
+            <div style={{ position: "relative", maxWidth: "92vw", maxHeight: "90vh", display: "flex", flexDirection: "column", alignItems: "center" }} onClick={(e) => e.stopPropagation()}>
+              <img 
+                src={lightboxImg} 
+                alt="Arsip Kenangan" 
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "80vh",
+                  objectFit: "contain",
+                  borderRadius: "12px",
+                  border: "1px solid rgba(212, 175, 55, 0.4)",
+                  boxShadow: "0 10px 40px rgba(0, 0, 0, 0.9)"
+                }} 
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", marginTop: "14px", gap: "10px" }}>
+                <span style={{ color: "var(--gold-main, #d4af37)", fontFamily: "Courier New, monospace", fontSize: "0.8rem", letterSpacing: "2px" }}>
+                  <i className="fa-solid fa-gem" style={{ marginRight: "6px" }}></i> ARSIP FOTO RESMI
+                </span>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <a 
+                    href={lightboxImg} 
+                    download 
+                    target="_blank" 
+                    rel="noreferrer"
+                    style={{
+                      background: "rgba(212, 175, 55, 0.2)",
+                      border: "1px solid #d4af37",
+                      color: "#d4af37",
+                      padding: "8px 16px",
+                      borderRadius: "20px",
+                      fontSize: "0.8rem",
+                      textDecoration: "none",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontWeight: 600
+                    }}
+                  >
+                    <i className="fa-solid fa-download"></i> Unduh
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImg(null)}
+                    style={{
+                      background: "rgba(255, 255, 255, 0.12)",
+                      border: "1px solid rgba(255, 255, 255, 0.25)",
+                      color: "#fff",
+                      padding: "8px 16px",
+                      borderRadius: "20px",
+                      fontSize: "0.8rem",
+                      cursor: "pointer",
+                      fontWeight: 600
+                    }}
+                  >
+                    <i className="fa-solid fa-xmark"></i> Tutup
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Script src="/vendor/gsap/gsap.min.js" strategy="beforeInteractive" />
         <Script src="/assets/js/galeri.js" strategy="afterInteractive" />
