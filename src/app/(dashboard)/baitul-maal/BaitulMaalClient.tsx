@@ -70,7 +70,8 @@ export default function BaitulMaalClient({
   const [monthlyExpense, setMonthlyExpense] = useState("");
   const [goldPrice, setGoldPrice] = useState(1350000); // Rp 1.350.000 / gram emas
 
-  const { showAlert } = useConfirm();
+  const { showAlert, showConfirm } = useConfirm();
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
 
   const formatRupiah = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -298,6 +299,211 @@ export default function BaitulMaalClient({
     printWindow.document.close();
   };
 
+  // Formal Certificate of Appreciation / Piagam Penghargaan Donatur (Task B-2)
+  const handlePrintCertificate = (tx: Transaction) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      showAlert("Peringatan", "Harap izinkan popup browser untuk mencetak piagam penghargaan donatur.");
+      return;
+    }
+    const certHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Piagam Penghargaan Donatur — ${tx.donor_name || "Hamba Allah"}</title>
+        <style>
+          @page { size: landscape; margin: 12mm; }
+          body {
+            font-family: 'Times New Roman', Georgia, serif;
+            margin: 0;
+            padding: 30px;
+            background: #fffdf9;
+            color: #1a1a1a;
+            box-sizing: border-box;
+          }
+          .cert-frame {
+            border: 8px double #b8860b;
+            outline: 2px solid #855800;
+            outline-offset: -16px;
+            padding: 40px 45px;
+            text-align: center;
+            background: radial-gradient(circle at center, #ffffff 60%, #faf5ea 100%);
+            position: relative;
+            box-shadow: inset 0 0 30px rgba(184, 134, 11, 0.1);
+          }
+          .cert-header {
+            font-size: 13px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #855800;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 8px;
+            font-weight: bold;
+          }
+          .cert-title {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: #855800;
+            margin: 0 0 8px;
+            text-transform: uppercase;
+          }
+          .cert-subtitle {
+            font-size: 13px;
+            font-style: italic;
+            color: #555;
+            margin: 0 auto 20px;
+            max-width: 600px;
+          }
+          .recipient-name {
+            font-size: 30px;
+            font-weight: bold;
+            color: #111;
+            border-bottom: 2px solid #b8860b;
+            display: inline-block;
+            padding: 0 35px 6px;
+            margin: 12px 0 16px;
+            font-family: 'Times New Roman', serif;
+            letter-spacing: 1px;
+          }
+          .cert-desc {
+            font-size: 14px;
+            line-height: 1.8;
+            max-width: 720px;
+            margin: 0 auto 20px;
+            color: #333;
+          }
+          .amount-highlight {
+            font-size: 20px;
+            font-weight: bold;
+            color: #855800;
+            background: rgba(184, 134, 11, 0.08);
+            padding: 4px 16px;
+            border-radius: 4px;
+            border: 1px dashed #b8860b;
+            display: inline-block;
+            margin: 5px 0;
+          }
+          .cert-footer {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            margin-top: 35px;
+            padding: 0 40px;
+          }
+          .sig-box {
+            text-align: center;
+            width: 220px;
+          }
+          .sig-line {
+            border-top: 1px solid #777;
+            margin-top: 45px;
+            padding-top: 6px;
+            font-weight: bold;
+            font-size: 13px;
+          }
+          .sig-role {
+            font-size: 11px;
+            color: #666;
+            font-family: sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+          }
+          .seal-box {
+            width: 86px;
+            height: 86px;
+            border: 3px double #b8860b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #b8860b;
+            font-size: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(184, 134, 11, 0.2);
+            background: #fffdf5;
+          }
+          @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="cert-frame">
+          <div class="cert-header">BAITUL MAAL EXPEDIENT GENERATION 42</div>
+          <h1 class="cert-title">Piagam Apresiasi Donatur</h1>
+          <p class="cert-subtitle">Nomor Registrasi: CERT/BM42/${tx.id.slice(0, 8).toUpperCase()}/${new Date().getFullYear()}</p>
+          
+          <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 2px;">Dianugerahkan Dengan Penuh Takzim Kepada:</div>
+          <div class="recipient-name">${tx.donor_name || "Hamba Allah"}</div>
+          
+          <p class="cert-desc">
+            Atas ketulusan, keikhlasan, dan komitmen ta'awun infaq senilai<br/>
+            <span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>
+            untuk dialokasikan pada program <strong>${tx.description || "Kas Rutin & Operasional Ukhuwah"}</strong>.<br/>
+            Semoga Allah Subhanahu Wa Ta'ala melipatgandakan pahala kebaikan, memperluas pintu rezeki, dan menjadikannya amal jariyah abadi bagi antum sekeluarga. Aamiin.
+          </p>
+
+          <div class="cert-footer">
+            <div class="sig-box">
+              <div class="sig-line">Ketua Angkatan 42</div>
+              <div class="sig-role">Expedient Generation</div>
+            </div>
+
+            <div class="seal-box">
+              <span>★ RESMI ★</span>
+              <span>BAITUL MAAL</span>
+              <span>ANGKATAN 42</span>
+            </div>
+
+            <div class="sig-box">
+              <div class="sig-line">Bendahara Baitul Maal</div>
+              <div class="sig-role">Verifikasi Kas Terpercaya</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="no-print" style="text-align: center; margin-top: 25px;">
+          <button onclick="window.print()" style="padding: 12px 30px; background: #b8860b; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+            Cetak / Simpan PDF (Landscape)
+          </button>
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+    printWindow.document.write(certHtml);
+    printWindow.document.close();
+  };
+
+  // Trigger monthly infaq reminder via WhatsApp Queue (Task B-1)
+  const handleTriggerInfaqReminder = async () => {
+    const isConfirmed = await showConfirm(
+      "Kirim Pengingat Infaq Bulanan",
+      "Apakah Anda yakin ingin memicu pesan pengingat kas rutin bulanan via WhatsApp ke seluruh alumni yang mengaktifkan notifikasi?"
+    );
+    if (!isConfirmed) return;
+
+    setIsSendingReminder(true);
+    try {
+      const res = await fetch("/api/cron/run?run_infaq_reminder=true");
+      await res.text();
+      await showAlert("Berhasil", "Pesan pengingat infaq kas rutin bulanan berhasil dimasukkan ke antrean WhatsApp!");
+    } catch (e: any) {
+      await showAlert("Gagal", "Gagal memproses pengingat: " + e.message);
+    } finally {
+      setIsSendingReminder(false);
+    }
+  };
+
   // Zakat Calculator Logic
   const nisabTahunan = 85 * goldPrice; // Nisab 85g emas
   const nisabBulanan = nisabTahunan / 12;
@@ -383,13 +589,25 @@ export default function BaitulMaalClient({
             <i className="fa-solid fa-file-csv"></i> Unduh Laporan (CSV)
           </button>
           {isAdmin && (
-            <button
-              type="button"
-              className="btn-action-admin"
-              onClick={() => setIsRecordPanelOpen(true)}
-            >
-              <i className="fa-solid fa-file-signature"></i> Catat Entri Kas
-            </button>
+            <>
+              <button
+                type="button"
+                className="btn-action-admin"
+                onClick={() => setIsRecordPanelOpen(true)}
+              >
+                <i className="fa-solid fa-file-signature"></i> Catat Entri Kas
+              </button>
+              <button
+                type="button"
+                className="btn-action-admin"
+                style={{ background: "rgba(37,211,102,0.15)", borderColor: "#25d366", color: "#25d366" }}
+                disabled={isSendingReminder}
+                onClick={handleTriggerInfaqReminder}
+                title="Pemicu broadcast pengingat infaq bulanan via WA"
+              >
+                <i className="fa-brands fa-whatsapp"></i> {isSendingReminder ? "Memproses..." : "Pengingat Kas (WA)"}
+              </button>
+            </>
           )}
         </div>
 
@@ -568,25 +786,46 @@ export default function BaitulMaalClient({
                       {tx.transaction_type === "IN" ? "+" : "-"} {formatRupiah(Number(tx.amount))}
                     </div>
                     {tx.transaction_type === "IN" && (
-                      <button
-                        type="button"
-                        onClick={() => handlePrintReceipt(tx)}
-                        style={{
-                          background: "rgba(212, 175, 55, 0.1)",
-                          border: "1px solid rgba(212, 175, 55, 0.35)",
-                          color: "var(--gold-main, #d4af37)",
-                          padding: "6px 10px",
-                          borderRadius: "8px",
-                          cursor: "pointer",
-                          fontSize: "0.75rem",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "5px"
-                        }}
-                        title="Cetak Bukti Tanda Terima Donasi Resmi"
-                      >
-                        <i className="fa-solid fa-receipt"></i> Bukti
-                      </button>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <button
+                          type="button"
+                          onClick={() => handlePrintReceipt(tx)}
+                          style={{
+                            background: "rgba(212, 175, 55, 0.1)",
+                            border: "1px solid rgba(212, 175, 55, 0.35)",
+                            color: "var(--gold-main, #d4af37)",
+                            padding: "6px 10px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "5px"
+                          }}
+                          title="Cetak Bukti Tanda Terima Donasi Resmi"
+                        >
+                          <i className="fa-solid fa-receipt"></i> Bukti
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handlePrintCertificate(tx)}
+                          style={{
+                            background: "rgba(212, 175, 55, 0.18)",
+                            border: "1px solid #d4af37",
+                            color: "#f3e5ab",
+                            padding: "6px 10px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "5px"
+                          }}
+                          title="Cetak Piagam Penghargaan Apresiasi Donatur (Landscape)"
+                        >
+                          <i className="fa-solid fa-award"></i> Piagam
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

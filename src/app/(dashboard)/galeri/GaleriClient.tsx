@@ -6,6 +6,63 @@ import "./galeri.css";
 
 export default function GaleriClient() {
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Bundle Export to Printable PDF (Task B-5)
+  const handleOpenPrintView = (dim: "putra" | "putri") => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      alert("Harap izinkan pop-up browser untuk mengekspor buku kenangan.");
+      return;
+    }
+
+    const title = dim === "putra" ? "Buku Kenangan Putra — Expedient 42" : "Buku Kenangan Putri — Expedient 42";
+    const totalPages = dim === "putra" ? 75 : 41;
+    const folder = dim === "putra" ? "foto_putra" : "foto_putri";
+
+    let imagesHtml = `
+      <div class="page-break"><img src="/assets/${folder}/Cover Depan.webp" alt="Cover Depan" /></div>
+      <div class="page-break"><img src="/assets/${folder}/Cover Dalem Depan.webp" alt="Cover Dalem Depan" /></div>
+    `;
+
+    for (let i = 1; i <= totalPages * 2; i++) {
+      imagesHtml += `<div class="page-break"><img src="/assets/${folder}/Hal ${i}.webp" alt="Halaman ${i}" /></div>`;
+    }
+
+    imagesHtml += `
+      <div class="page-break"><img src="/assets/${folder}/Cover Dalem Belakang.webp" alt="Cover Dalem Belakang" /></div>
+      <div class="page-break"><img src="/assets/${folder}/Cover Belakang.webp" alt="Cover Belakang" /></div>
+    `;
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${title}</title>
+        <style>
+          @page { size: A4 portrait; margin: 0; }
+          body { margin: 0; padding: 0; background: #000; text-align: center; }
+          .page-break { page-break-after: always; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+          img { max-width: 100vw; max-height: 100vh; object-fit: contain; display: block; margin: 0 auto; }
+          .no-print { position: fixed; top: 15px; right: 15px; z-index: 9999; background: #d4af37; color: #000; border: none; padding: 12px 24px; border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+          @media print { .no-print { display: none !important; } }
+        </style>
+      </head>
+      <body>
+        <button class="no-print" onclick="window.print()">Simpan Seluruh Buku ke PDF / Cetak</button>
+        ${imagesHtml}
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 1500);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
 
   useEffect(() => {
     document.body.classList.add("page-galeri");
@@ -144,6 +201,7 @@ export default function GaleriClient() {
                 <button className="btn-icon hover-trigger" id="btnCloseBook" title="Tutup Buku"><i className="fa-solid fa-book"></i></button>
                 <button className="btn-icon hover-trigger" id="btnPin" title="Simpan Halaman Ini"><i className="fa-regular fa-bookmark"></i></button>
                 <button className="btn-icon hover-trigger" id="btnGoToPin" title="Teleportasi ke Memori" style={{ display: "none" }}><i className="fa-solid fa-map-location-dot"></i></button>
+                <button className="btn-icon hover-trigger" onClick={() => setIsExportModalOpen(true)} title="Unduh Arsip & Ekspor Bundle PDF Buku Kenangan"><i className="fa-solid fa-file-pdf"></i></button>
                 <button className="btn-icon hover-trigger" id="btnFullscreen" title="Immersive Mode"><i className="fa-solid fa-expand"></i></button>
             </div>
         </div>
@@ -221,6 +279,153 @@ export default function GaleriClient() {
                     <i className="fa-solid fa-xmark"></i> Tutup
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* YEARBOOK BUNDLE EXPORT MODAL (TASK B-5) */}
+        {isExportModalOpen && (
+          <div 
+            onClick={() => setIsExportModalOpen(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 999999,
+              background: "rgba(0, 0, 0, 0.88)",
+              backdropFilter: "blur(14px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "20px"
+            }}
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "var(--bg-secondary, #0c120f)",
+                border: "1px solid rgba(212, 175, 55, 0.4)",
+                borderRadius: "24px",
+                padding: "32px 28px",
+                maxWidth: "460px",
+                width: "100%",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.8)"
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                <div>
+                  <span style={{ fontFamily: "Courier New, monospace", color: "#d4af37", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase" }}>
+                    ARSIP RESMI ANGKATAN 42
+                  </span>
+                  <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", color: "var(--text-primary)", margin: "4px 0 0 0" }}>
+                    Ekspor Buku Kenangan
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(false)}
+                  style={{ background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "1.2rem", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "22px" }}>
+                Pilih edisi buku kenangan yang ingin dicetak atau disimpan sebagai arsip digital resolusi tinggi (High-Definition PDF Pack):
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
+                {/* Opsi Putra */}
+                <div 
+                  style={{
+                    background: "rgba(212, 175, 55, 0.06)",
+                    border: "1px solid rgba(212, 175, 55, 0.3)",
+                    borderRadius: "16px",
+                    padding: "16px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: "bold", fontSize: "0.95rem", color: "#f3e5ab" }}>
+                      <i className="fa-solid fa-mars" style={{ color: "#00bfff", marginRight: "6px" }}></i> Edisi Putra (The Syndicate)
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
+                      150 Halaman Lengkap (Cover + Hal 1 - 150)
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsExportModalOpen(false);
+                      handleOpenPrintView("putra");
+                    }}
+                    style={{
+                      background: "rgba(212, 175, 55, 0.2)",
+                      border: "1px solid #d4af37",
+                      color: "#d4af37",
+                      padding: "8px 16px",
+                      borderRadius: "20px",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px"
+                    }}
+                  >
+                    <i className="fa-solid fa-print"></i> Cetak / PDF
+                  </button>
+                </div>
+
+                {/* Opsi Putri */}
+                <div 
+                  style={{
+                    background: "rgba(212, 175, 55, 0.06)",
+                    border: "1px solid rgba(212, 175, 55, 0.3)",
+                    borderRadius: "16px",
+                    padding: "16px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: "bold", fontSize: "0.95rem", color: "#f3e5ab" }}>
+                      <i className="fa-solid fa-venus" style={{ color: "#ff69b4", marginRight: "6px" }}></i> Edisi Putri (Omega Dynasty)
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
+                      82 Halaman Lengkap (Cover + Hal 1 - 82)
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsExportModalOpen(false);
+                      handleOpenPrintView("putri");
+                    }}
+                    style={{
+                      background: "rgba(212, 175, 55, 0.2)",
+                      border: "1px solid #d4af37",
+                      color: "#d4af37",
+                      padding: "8px 16px",
+                      borderRadius: "20px",
+                      fontSize: "0.8rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px"
+                    }}
+                  >
+                    <i className="fa-solid fa-print"></i> Cetak / PDF
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", textAlign: "center" }}>
+                <i className="fa-solid fa-circle-info" style={{ marginRight: "4px" }}></i> Seluruh lembar akan disusun berurutan per halaman A4 portrait siap cetak ke percetakan atau disimpan sebagai PDF.
               </div>
             </div>
           </div>

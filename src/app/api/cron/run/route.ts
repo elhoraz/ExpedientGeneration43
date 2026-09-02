@@ -159,6 +159,58 @@ export async function GET(request: Request) {
     }
   }
 
+  // 4. Monthly Baitul Maal Infaq Auto-Reminder (Task B-1)
+  const isFirstDayOfMonth = new Date().getDate() === 1;
+  if (searchParams.get('run_infaq_reminder') === 'true' || isFirstDayOfMonth) {
+    output += `\n[4] Memproses Pengingat Infaq Kas Rutin Bulanan...\n`;
+    try {
+      const today = new Date();
+      const monthNames = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+      ];
+      const currentMonthName = monthNames[today.getMonth()];
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.com";
+
+      const { data: optInUsers, error: optInError } = await supabase
+        .from('profiles')
+        .select('id, nama_panggilan, nama_lengkap, no_whatsapp')
+        .eq('is_active', true)
+        .or('wa_notif_opt_in.eq.true,wa_notif_opt_in.eq.1')
+        .not('no_whatsapp', 'is', null);
+
+      if (optInError) throw optInError;
+
+      let infaqSent = 0;
+      for (const u of (optInUsers || [])) {
+        const name = u.nama_panggilan || u.nama_lengkap || "Sahabat Expedient";
+        const message = 
+`Assalamu'alaikum Warahmatullahi Wabarakatuh, Akhi ${name} ✨
+
+Mengingatkan kembali ladang amal jariyah kita di awal bulan ${currentMonthName}:
+*Kas Rutin & Dana Ta'awun Angkatan 42 (Baitul Maal Expedient)*
+
+Rekening Resmi:
+🏛️ BSI: 7234 8901 2345 (a.n. Baitul Maal Expedient)
+🏛️ BCA: 8091 2345 67 (a.n. Bendahara Kas Angkatan)
+📱 Salurkan & Cek Mutasi: ${siteUrl}/baitul-maal
+
+"Perumpamaan orang yang menafkahkan hartanya di jalan Allah adalah serupa dengan sebutir benih yang menumbuhkan tujuh bulir..." (QS. Al-Baqarah: 261)
+
+Jazakumullah khairan katsiran. Semoga Allah melapangkan rezeki antum sekeluarga. 🤲`;
+
+        await supabase.from('whatsapp_queue').insert([{
+          no_whatsapp: u.no_whatsapp,
+          message: message
+        }]);
+        infaqSent++;
+      }
+      output += `  Total Pengingat Infaq Dimasukkan Antrian: ${infaqSent}\n`;
+    } catch (e: any) {
+      output += `  ERROR Pengingat Infaq: ${e.message}\n`;
+    }
+  }
+
   output += `\n===== SELESAI =====\n`;
 
   return new NextResponse(output, { 
