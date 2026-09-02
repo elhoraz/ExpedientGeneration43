@@ -41,6 +41,9 @@ export default function Sidebar() {
       document.body.classList.add("sidebar-closed");
       localStorage.setItem("expedient_sidebar", "closed");
     }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("expedient-sidebar-toggle", { detail: { isOpen: newState } }));
+    }
   };
 
   // Initialize sidebar state on mount

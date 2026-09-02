@@ -106,6 +106,18 @@ function urlBase64ToUint8Array(base64String: string) {
     };
   }, [supabase, chatOpen]);
 
+  // Close open dropdowns when sidebar panel is collapsed/hidden
+  useEffect(() => {
+    const handleSidebarToggle = (e: any) => {
+      if (e.detail && !e.detail.isOpen) {
+        setChatOpen(false);
+        setNotifOpen(false);
+      }
+    };
+    window.addEventListener("expedient-sidebar-toggle", handleSidebarToggle);
+    return () => window.removeEventListener("expedient-sidebar-toggle", handleSidebarToggle);
+  }, []);
+
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputChat.trim()) return;

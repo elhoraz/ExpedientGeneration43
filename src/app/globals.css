@@ -46,3 +46,18 @@ a {
     color-scheme: dark;
   }
 }
+
+/* Sembunyikan widget navbar saat panel disembunyikan (Desktop & Mobile) */
+body.sidebar-closed .theme-widget,
+body.sidebar-closed .notif-widget,
+body.sidebar-closed .chat-widget,
+body.sidebar-closed .chat-dropdown,
+body.sidebar-closed .notif-dropdown {
+  opacity: 0 !important;
+  transform: translateY(-25px) scale(0.92) !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.35s !important;
+}
