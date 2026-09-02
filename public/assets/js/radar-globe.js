@@ -1,7 +1,7 @@
 /**
  * radar-globe.js — All 12 features for Jaringan Silaturahmi
  */
-function initGlobe() {
+(function initGlobe() {
     if (typeof window.Globe === 'undefined') {
         setTimeout(initGlobe, 100);
         return;
@@ -330,7 +330,4 @@ function initGlobe() {
     // ===== 10. SUPABASE REALTIME NOTIFICATION =====
     // Supabase Realtime is now handled inside RadarClient.tsx 
     // to maintain React state context and simplify dependencies.
-}
-
-// Only expose on window — React (RadarClient.tsx) controls when to call it.
-window.initRadarGlobe = initGlobe;
+})();

@@ -1,18 +1,32 @@
 /**
- * radar-2d.js — Engine untuk 6 Varian Peta Datar (Flat Maps) menggunakan Leaflet.js
+ * radar-2d.js — Engine untuk Varian Peta Datar (Flat Maps) menggunakan Leaflet.js
  */
-function initRadar2D(passedData, passedStyle) {
+let radar2DAttempts = 0;
+(function initRadar2D() {
+    radar2DAttempts++;
     if (typeof window.L === 'undefined') {
-        setTimeout(() => initRadar2D(passedData, passedStyle), 100);
+        if (radar2DAttempts < 50) {
+            setTimeout(initRadar2D, 100);
+        } else {
+            console.error("Leaflet failed to load in time.");
+            const rl = document.getElementById('radarLoading');
+            if (rl) { rl.style.opacity = '0'; setTimeout(() => { rl.style.display = 'none'; }, 300); }
+        }
         return;
     }
     const elem = document.getElementById('mapViz');
     if (!elem) {
-        setTimeout(() => initRadar2D(passedData, passedStyle), 100);
+        if (radar2DAttempts < 50) {
+            setTimeout(initRadar2D, 100);
+        } else {
+            console.error("#mapViz container element not found.");
+            const rl = document.getElementById('radarLoading');
+            if (rl) { rl.style.opacity = '0'; setTimeout(() => { rl.style.display = 'none'; }, 300); }
+        }
         return;
     }
 
-    let alumniData = passedData || window.__radarData || [];
+    let alumniData = window.__radarData || [];
     if (!Array.isArray(alumniData)) {
         alumniData = Object.values(alumniData);
     }
@@ -27,33 +41,23 @@ function initRadar2D(passedData, passedStyle) {
     
     let map;
     try {
-        if (window.__leafletMap) {
-            try { window.__leafletMap.remove(); } catch(err) {}
-            window.__leafletMap = null;
-        }
-        if (elem && elem._leaflet_id) {
+        if (elem._leaflet_id) {
             elem._leaflet_id = null;
         }
+        if (window.__leafletMap) {
+            try { window.__leafletMap.remove(); } catch(e) {}
+        }
         // Matikan zoom control bawaan agar UI lebih bersih seperti globe
-        map = L.map('mapViz', { zoomControl: false, preferCanvas: true }).setView([CENTER.lat, CENTER.lng], initialZoom);
+        map = L.map('mapViz', { zoomControl: false }).setView([CENTER.lat, CENTER.lng], initialZoom);
         window.__leafletMap = map;
         
         // Opsi untuk menyalakan kembali zoom control tapi di pojok kanan atas
         L.control.zoom({ position: 'topright' }).addTo(map);
-
-        // Force Leaflet to recalculate container dimensions so tiles are fetched immediately
-        map.whenReady(() => {
-            map.invalidateSize();
-        });
-        setTimeout(() => { if (map) map.invalidateSize(); }, 100);
-        setTimeout(() => { if (map) map.invalidateSize(); }, 400);
-        setTimeout(() => { if (map) map.invalidateSize(); }, 1000);
-        window.addEventListener('resize', () => { if (map) map.invalidateSize(); });
     } catch(e) {
         console.error("Leaflet init error:", e);
         // Force remove loading screen if leaflet fails
         const rl = document.getElementById('radarLoading');
-        if (rl) rl.style.display = 'none';
+        if (rl) { rl.style.opacity = '0'; setTimeout(() => { rl.style.display = 'none'; }, 300); }
         return;
     }
 
@@ -63,7 +67,7 @@ function initRadar2D(passedData, passedStyle) {
     let layerMaxZoom = 19;
     let nativeZoom = 19;
     
-    const style = passedStyle || window.__mapStyle || 'classic';
+    const style = window.__mapStyle || 'classic';
     
     switch(style) {
         case 'natgeo':
@@ -73,7 +77,7 @@ function initRadar2D(passedData, passedStyle) {
             nativeZoom = 16;
             break;
         case 'voyager':
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+            tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
             tileAttribution = '&copy; CARTO';
             break;
         case 'hybrid': 
@@ -146,11 +150,11 @@ function initRadar2D(passedData, passedStyle) {
             nativeZoom = 21;
             break;
         case 'toner':
-            tileUrl = 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png';
+            tileUrl = 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png';
             tileAttribution = '&copy; Stadia Maps, &copy; Stamen Design';
             break;
         case 'minimalist': // Menggantikan flat
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png';
+            tileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
             tileAttribution = '&copy; <a href="https://carto.com/attributions">CARTO</a>';
             break;
         case 'satellite':
@@ -166,7 +170,7 @@ function initRadar2D(passedData, passedStyle) {
             nativeZoom = 17;
             break;
         case 'dark':
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+            tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
             tileAttribution = '&copy; CARTO';
             break;
         case 'google': // Google Streets
@@ -188,7 +192,6 @@ function initRadar2D(passedData, passedStyle) {
 
     L.tileLayer(tileUrl, {
         attribution: tileAttribution,
-        subdomains: 'abcd',
         maxZoom: layerMaxZoom,
         maxNativeZoom: nativeZoom
     }).addTo(map);
@@ -220,16 +223,11 @@ function initRadar2D(passedData, passedStyle) {
 
     // ===== 12. LEADERBOARD =====
     const buildLeaderboard = (agents) => {
-        const lbEl = document.getElementById('lbContent');
-        if (!lbEl) return;
-        if (!agents || agents.length === 0) {
-            lbEl.innerHTML = `<div style="padding:12px 14px; color:var(--text-secondary); font-size:0.75rem; text-align:center;">Belum ada persebaran alumni tersinkron.</div>`;
-            return;
-        }
         const counts = {};
         agents.forEach(a => { const c = a.city || 'Unknown'; counts[c] = (counts[c] || 0) + 1; });
         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
         const max = sorted[0]?.[1] || 1;
+        const lbEl = document.getElementById('lbContent');
         lbEl.innerHTML = sorted.map(([city, count], i) =>
             `<div class="lb-row">
                 <span class="lb-rank">${i + 1}</span>
@@ -313,69 +311,88 @@ function initRadar2D(passedData, passedStyle) {
                 setTimeout(() => { if(rl) rl.style.display = 'none'; }, 400);
             }
         }
-    }, 200);
+    }, 350);
 
     // ===== 2. INFO DRAWER =====
     const drawer = document.getElementById('infoDrawer');
     const overlay = document.getElementById('idOverlay');
     const openDrawer = (d) => {
-        document.getElementById('idAvatar').src = d.foto ? '/uploads/profiles/' + d.foto : '/images/default-avatar.webp';
-        document.getElementById('idName').textContent = d.name;
-        document.getElementById('idNick').textContent = d.nick ? '"' + d.nick + '"' : '';
-        document.getElementById('idCity').textContent = d.city;
-        document.getElementById('idGender').textContent = d.gender || '-';
-        document.getElementById('idDist').textContent = haversine(CENTER, d) + ' km';
-        const waEl = document.getElementById('idWa');
-        if (d.wa) { waEl.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); waEl.style.display = 'flex'; }
-        else { waEl.style.display = 'none'; }
-        document.getElementById('idProfile').href = '/syndicate';
+        const idAvatar = document.getElementById('idAvatar');
+        const idName = document.getElementById('idName');
+        const idNick = document.getElementById('idNick');
+        const idCity = document.getElementById('idCity');
+        const idGender = document.getElementById('idGender');
+        const idDist = document.getElementById('idDist');
+        const idWa = document.getElementById('idWa');
+        const idProfile = document.getElementById('idProfile');
+
+        if (idAvatar) idAvatar.src = d.foto ? '/uploads/profiles/' + d.foto : '/images/default-avatar.webp';
+        if (idName) idName.textContent = d.name;
+        if (idNick) idNick.textContent = d.nick ? '"' + d.nick + '"' : '';
+        if (idCity) idCity.textContent = d.city;
+        if (idGender) idGender.textContent = d.gender || '-';
+        if (idDist) idDist.textContent = haversine(CENTER, d) + ' km';
+        if (idWa) {
+            if (d.wa) { idWa.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); idWa.style.display = 'flex'; }
+            else { idWa.style.display = 'none'; }
+        }
+        if (idProfile) idProfile.href = '/syndicate';
         
-        drawer.classList.add('open');
-        overlay.classList.add('open');
+        if (drawer) drawer.classList.add('open');
+        if (overlay) overlay.classList.add('open');
         
         // 9. FLY TO MARKER
         map.flyTo([d.lat, d.lng], 12, { animate: true, duration: 1.5 });
     };
-    const closeDrawer = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
-    document.getElementById('idClose').addEventListener('click', closeDrawer);
-    overlay.addEventListener('click', closeDrawer);
+    const closeDrawer = () => { 
+        if (drawer) drawer.classList.remove('open'); 
+        if (overlay) overlay.classList.remove('open'); 
+    };
+    const idCloseBtn = document.getElementById('idClose');
+    if (idCloseBtn) idCloseBtn.addEventListener('click', closeDrawer);
+    if (overlay) overlay.addEventListener('click', closeDrawer);
 
     // ===== 3. SEARCH =====
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
-    searchInput.addEventListener('input', () => {
-        const q = searchInput.value.toLowerCase().trim();
-        if (q.length < 2) { searchResults.classList.remove('open'); return; }
-        const matches = agentNodes.filter(n => n.name.toLowerCase().includes(q) || (n.nick && n.nick.toLowerCase().includes(q))).slice(0, 8);
-        if (!matches.length) { searchResults.classList.remove('open'); return; }
-        searchResults.innerHTML = matches.map(m =>
-            `<div class="sr-item" data-id="${m.id}">
-                <img class="sr-avatar" src="${m.foto ? '/uploads/profiles/' + m.foto : '/images/default-avatar.webp'}" alt="">
-                <div><div class="sr-name">${m.name}</div><div class="sr-city">${m.city}</div></div>
-            </div>`
-        ).join('');
-        searchResults.classList.add('open');
-        searchResults.querySelectorAll('.sr-item').forEach(el => {
-            el.addEventListener('click', () => {
-                const node = agentNodes.find(n => n.id == el.dataset.id);
-                if (node) { openDrawer(node); searchResults.classList.remove('open'); searchInput.value = ''; }
+    if (searchInput && searchResults) {
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value.toLowerCase().trim();
+            if (q.length < 2) { searchResults.classList.remove('open'); return; }
+            const matches = agentNodes.filter(n => n.name.toLowerCase().includes(q) || (n.nick && n.nick.toLowerCase().includes(q))).slice(0, 8);
+            if (!matches.length) { searchResults.classList.remove('open'); return; }
+            searchResults.innerHTML = matches.map(m =>
+                `<div class="sr-item" data-id="${m.id}">
+                    <img class="sr-avatar" src="${m.foto ? '/uploads/profiles/' + m.foto : '/images/default-avatar.webp'}" alt="">
+                    <div><div class="sr-name">${m.name}</div><div class="sr-city">${m.city}</div></div>
+                </div>`
+            ).join('');
+            searchResults.classList.add('open');
+            searchResults.querySelectorAll('.sr-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const node = agentNodes.find(n => n.id == el.dataset.id);
+                    if (node) { openDrawer(node); searchResults.classList.remove('open'); searchInput.value = ''; }
+                });
             });
         });
-    });
-    document.addEventListener('click', e => { if (!e.target.closest('.search-pill') && !e.target.closest('.search-results')) searchResults.classList.remove('open'); });
+        document.addEventListener('click', e => { if (!e.target.closest('.search-pill') && !e.target.closest('.search-results')) searchResults.classList.remove('open'); });
+    }
 
     // ===== 6. MAP DROPDOWN =====
     const btnMap = document.getElementById('btnMapMenu');
     const mapDD = document.getElementById('mapDropdown');
-    btnMap.addEventListener('click', () => mapDD.classList.toggle('open'));
-    document.addEventListener('click', e => { if (!e.target.closest('.map-dropdown-wrap')) mapDD.classList.remove('open'); });
+    if (btnMap && mapDD) {
+        btnMap.addEventListener('click', () => mapDD.classList.toggle('open'));
+        document.addEventListener('click', e => { if (!e.target.closest('.map-dropdown-wrap')) mapDD.classList.remove('open'); });
+    }
 
     // ===== 8. FILTER =====
     document.querySelectorAll('.filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             const f = chip.dataset.filter;
             if (f === 'lb') {
-                document.getElementById('leaderboard').classList.toggle('open');
+                const lb = document.getElementById('leaderboard');
+                if (lb) lb.classList.toggle('open');
                 chip.classList.toggle('active');
                 return;
             }
@@ -404,87 +421,100 @@ function initRadar2D(passedData, passedStyle) {
     const btnTour = document.getElementById('btnAutoTour');
     const tourOverlay = document.getElementById('tourOverlay');
     let isTouring = false, tourInterval;
-    btnTour.addEventListener('click', () => {
-        if (isTouring) {
-            clearInterval(tourInterval);
-            map.flyTo([CENTER.lat, CENTER.lng], initialZoom);
-            btnTour.innerHTML = '<i class="fa-solid fa-plane-departure"></i> <span class="hide-mobile">Jelajahi </span>Jaringan';
-            tourOverlay.classList.remove('show');
-            isTouring = false;
-        } else {
-            isTouring = true;
-            btnTour.innerHTML = '<i class="fa-solid fa-stop"></i> <span class="hide-mobile">Hentikan </span>Jelajah';
-            const nodes = filteredAgents.filter(n => n.lat && n.lng);
-            if (!nodes.length) return;
-            let idx = 0;
-            const fly = () => {
-                if (idx >= nodes.length) idx = 0;
-                const t = nodes[idx];
-                
-                map.flyTo([t.lat, t.lng], 10, { animate: true, duration: 2 });
-                
-                // Tour overlay
-                document.getElementById('tourName').textContent = t.name;
-                document.getElementById('tourCity').textContent = t.city + ' • ' + haversine(CENTER, t) + ' km dari Pondok';
-                tourOverlay.classList.add('show');
-                setTimeout(() => tourOverlay.classList.remove('show'), 4500);
-                idx++;
-            };
-            fly();
-            tourInterval = setInterval(fly, 5500);
-        }
-    });
+    if (btnTour) {
+        btnTour.addEventListener('click', () => {
+            if (isTouring) {
+                clearInterval(tourInterval);
+                map.flyTo([CENTER.lat, CENTER.lng], initialZoom);
+                btnTour.innerHTML = '<i class="fa-solid fa-plane-departure"></i> <span class="hide-mobile">Jelajahi </span>Jaringan';
+                if (tourOverlay) tourOverlay.classList.remove('show');
+                isTouring = false;
+            } else {
+                isTouring = true;
+                btnTour.innerHTML = '<i class="fa-solid fa-stop"></i> <span class="hide-mobile">Hentikan </span>Jelajah';
+                const nodes = filteredAgents.filter(n => n.lat && n.lng);
+                if (!nodes.length) return;
+                let idx = 0;
+                const fly = () => {
+                    if (idx >= nodes.length) idx = 0;
+                    const t = nodes[idx];
+                    
+                    map.flyTo([t.lat, t.lng], 10, { animate: true, duration: 2 });
+                    
+                    // Tour overlay
+                    const tourName = document.getElementById('tourName');
+                    const tourCity = document.getElementById('tourCity');
+                    if (tourName) tourName.textContent = t.name;
+                    if (tourCity) tourCity.textContent = t.city + ' • ' + haversine(CENTER, t) + ' km dari Pondok';
+                    if (tourOverlay) {
+                        tourOverlay.classList.add('show');
+                        setTimeout(() => tourOverlay.classList.remove('show'), 4500);
+                    }
+                    idx++;
+                };
+                fly();
+                tourInterval = setInterval(fly, 5500);
+            }
+        });
+    }
 
     // ===== SYNC LOCATION =====
     const btnSync = document.getElementById('btnSyncLocation');
     const statusEl = document.getElementById('syncStatus');
-    const showStatus = (msg, color = '#d4af37') => { statusEl.innerText = msg; statusEl.style.color = color; statusEl.style.opacity = 1; };
-    const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const showStatus = (msg, color = '#d4af37') => { 
+        if (statusEl) {
+            statusEl.innerText = msg; 
+            statusEl.style.color = color; 
+            statusEl.style.opacity = 1; 
+        }
+    };
 
-    btnSync.addEventListener('click', () => {
-        if (!('geolocation' in navigator)) { showStatus('GPS tidak didukung.', '#ff3366'); return; }
-        btnSync.disabled = true;
-        showStatus('Mengakses GPS...');
-        navigator.geolocation.getCurrentPosition(
-            pos => {
-                const { latitude: lat, longitude: lng } = pos.coords;
-                showStatus('Menyelaraskan...');
-                fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`)
-                    .then(r => r.ok ? r.json() : {})
-                    .catch(err => { console.warn('Geocoding blocked or failed:', err); return {}; }) // Fallback API Geolocation
-                    .then(geo => {
-                        const city = geo.city || geo.locality || geo.principalSubdivision || 'Dari Titik Radar';
-                        const payload = { latitude: lat, longitude: lng, city: city };
-                        return fetch('/api/radar/update-location', { 
-                            method: 'POST', 
-                            headers: { 'Content-Type': 'application/json' }, 
-                            body: JSON.stringify(payload) 
-                        });
-                    })
-                    .then(async r => {
-                        const text = await r.text();
-                        let data;
-                        try { data = JSON.parse(text); } catch(e) { throw new Error('Response tidak valid: ' + text.substring(0, 100)); }
-                        if (!r.ok) throw new Error(data.message || data.error || 'Server error ' + r.status);
-                        return data;
-                    })
-                    .then(data => {
-                        if (data.status === 'success' || data.success) {
-                            showStatus('Berhasil disimpan!', '#4ade80');
-                            try {
-                                localStorage.setItem('expedient_quest_radar', 'true');
-                                window.dispatchEvent(new CustomEvent('expedient-quest-updated'));
-                            } catch(e) {}
-                            setTimeout(() => location.reload(), 1500);
-                        }
-                        else throw new Error(data.message || data.error || 'Gagal menyimpan');
-                    })
-                    .catch(err => { showStatus('Gagal: ' + err.message, '#ff3366'); btnSync.disabled = false; });
-            },
-            () => { showStatus('Izin lokasi ditolak.', '#ff3366'); btnSync.disabled = false; },
-            { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-        );
-    });
+    if (btnSync) {
+        btnSync.addEventListener('click', () => {
+            if (!('geolocation' in navigator)) { showStatus('GPS tidak didukung.', '#ff3366'); return; }
+            btnSync.disabled = true;
+            showStatus('Mengakses GPS...');
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const { latitude: lat, longitude: lng } = pos.coords;
+                    showStatus('Menyelaraskan...');
+                    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`)
+                        .then(r => r.ok ? r.json() : {})
+                        .catch(err => { console.warn('Geocoding blocked or failed:', err); return {}; })
+                        .then(geo => {
+                            const city = geo.city || geo.locality || geo.principalSubdivision || 'Dari Titik Radar';
+                            const payload = { latitude: lat, longitude: lng, city: city };
+                            return fetch('/api/radar/update-location', { 
+                                method: 'POST', 
+                                headers: { 'Content-Type': 'application/json' }, 
+                                body: JSON.stringify(payload) 
+                            });
+                        })
+                        .then(async r => {
+                            const text = await r.text();
+                            let data;
+                            try { data = JSON.parse(text); } catch(e) { throw new Error('Response tidak valid: ' + text.substring(0, 100)); }
+                            if (!r.ok) throw new Error(data.message || data.error || 'Server error ' + r.status);
+                            return data;
+                        })
+                        .then(data => {
+                            if (data.status === 'success' || data.success) {
+                                showStatus('Berhasil disimpan!', '#4ade80');
+                                try {
+                                    localStorage.setItem('expedient_quest_radar', 'true');
+                                    window.dispatchEvent(new CustomEvent('expedient-quest-updated'));
+                                } catch(e) {}
+                                setTimeout(() => location.reload(), 1500);
+                            }
+                            else throw new Error(data.message || data.error || 'Gagal menyimpan');
+                        })
+                        .catch(err => { showStatus('Gagal: ' + err.message, '#ff3366'); btnSync.disabled = false; });
+                },
+                () => { showStatus('Izin lokasi ditolak.', '#ff3366'); btnSync.disabled = false; },
+                { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+            );
+        });
+    }
 
     // ===== 10. PUSHER REALTIME NOTIFICATION =====
     try {
@@ -503,8 +533,4 @@ function initRadar2D(passedData, passedStyle) {
             });
         }
     } catch (e) { /* Pusher not available, silently ignore */ }
-}
-
-// Only expose on window — React (RadarClient.tsx) controls when to call it.
-// Do NOT self-invoke here; the Script onLoad callback handles timing.
-window.initRadar2D = initRadar2D;
+})();

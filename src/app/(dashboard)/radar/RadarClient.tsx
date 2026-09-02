@@ -1,33 +1,15 @@
 "use client";
 
-import { useEffect, useState, useRef, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
+import Script from "next/script";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import "leaflet/dist/leaflet.css";
 import "./radar.css";
-
-/** Load a script by URL, reusing if already in DOM */
-function loadScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    // Check if script already exists in DOM
-    const existing = document.querySelector(`script[src="${src}"]`);
-    if (existing) {
-      resolve();
-      return;
-    }
-    const s = document.createElement('script');
-    s.src = src;
-    s.async = true;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error(`Failed to load script: ${src}`));
-    document.head.appendChild(s);
-  });
-}
 
 function RadarMapContent({ nodes }: { nodes: any[] }) {
   const [isClient, setIsClient] = useState(false);
   const [isMapMenuOpen, setIsMapMenuOpen] = useState(false);
-  const initDone = useRef(false);
   const searchParams = useSearchParams();
   const mapStyle = searchParams.get("map") || "globe";
   
@@ -77,88 +59,22 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
       })
       .subscribe();
 
-    // Safety watchdog: ensure loading screen is never stuck longer than 4s
-    const safetyTimer = setTimeout(() => {
-      const rl = document.getElementById('radarLoading');
-      if (rl && rl.style.display !== 'none') {
-        rl.style.opacity = '0';
-        setTimeout(() => { if (rl) rl.style.display = 'none'; }, 400);
-      }
-    }, 4000);
+    // Safety failsafe: Ensure radarLoading NEVER gets stuck forever
+    const failsafeTimer = setTimeout(() => {
+        const loader = document.getElementById('radarLoading');
+        if (loader && loader.style.display !== 'none') {
+            loader.style.opacity = '0';
+            setTimeout(() => { if (loader) loader.style.display = 'none'; }, 400);
+        }
+    }, 2500);
 
     return () => {
-      clearTimeout(safetyTimer);
+      clearTimeout(failsafeTimer);
       supabase.removeChannel(channel);
+      // Hapus class saat keluar halaman radar
       document.body.classList.remove('page-radar');
     };
   }, [nodes, mapStyle, is3DMode]);
-
-  // Separate useEffect for script loading — runs ONCE after isClient becomes true
-  useEffect(() => {
-    if (!isClient) return;
-    if (initDone.current) return;
-
-    let cancelled = false;
-
-    const initMap = async () => {
-      try {
-        if (is3DMode) {
-          // Load globe.gl first, then our engine
-          await loadScript('https://cdn.jsdelivr.net/npm/globe.gl');
-          if (cancelled) return;
-          await loadScript('/assets/js/radar-globe.js?v=2');
-          if (cancelled) return;
-          // Wait for DOM container
-          await new Promise<void>((resolve) => {
-            const check = () => {
-              if (document.getElementById('globeViz')) resolve();
-              else setTimeout(check, 50);
-            };
-            check();
-          });
-          if (cancelled) return;
-          if (typeof (window as any).initRadarGlobe === 'function') {
-            console.log('[Radar] Initializing Globe');
-            (window as any).initRadarGlobe();
-            initDone.current = true;
-          }
-        } else {
-          // Load Leaflet first, then our engine
-          await loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js');
-          if (cancelled) return;
-          await loadScript('/assets/js/radar-2d.js?v=2');
-          if (cancelled) return;
-          // Wait for DOM container
-          await new Promise<void>((resolve) => {
-            const check = () => {
-              if (document.getElementById('mapViz')) resolve();
-              else setTimeout(check, 50);
-            };
-            check();
-          });
-          if (cancelled) return;
-          if (typeof (window as any).initRadar2D === 'function') {
-            console.log('[Radar] Initializing 2D map with style:', mapStyle);
-            (window as any).initRadar2D(nodes, mapStyle);
-            initDone.current = true;
-          }
-        }
-      } catch (err) {
-        console.error('[Radar] Script loading error:', err);
-      }
-
-      // Dismiss loading screen after init
-      const rl = document.getElementById('radarLoading');
-      if (rl) {
-        rl.style.opacity = '0';
-        setTimeout(() => { if (rl) rl.style.display = 'none'; }, 500);
-      }
-    };
-
-    initMap();
-
-    return () => { cancelled = true; };
-  }, [isClient, is3DMode, nodes, mapStyle]);
 
   if (!isClient) return null;
 
@@ -177,7 +93,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             </>
         ) : (
             <>
-                <div id="mapViz" style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', zIndex: 2, background: '#080b10' }}></div>
+                <div id="mapViz" style={{ position: 'fixed', inset: 0, zIndex: 2, background: '#000' }}></div>
             </>
         )}
 
@@ -279,6 +195,19 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                 <a className="id-btn id-btn-profile" id="idProfile" href="#"><i className="fa-solid fa-user"></i> Lihat Profil</a>
             </div>
         </div>
+
+        {is3DMode ? (
+            <>
+                <Script src="/vendor/globe/globe.gl.min.js" strategy="afterInteractive" />
+                <Script src="/assets/js/radar-globe.js?v=1.1" strategy="afterInteractive" />
+            </>
+        ) : (
+            <>
+                <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+                <Script src="/vendor/leaflet/leaflet.js" strategy="beforeInteractive" />
+                <Script src="/assets/js/radar-2d.js?v=1.1" strategy="afterInteractive" />
+            </>
+        )}
     </>
   );
 }
