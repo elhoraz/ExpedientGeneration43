@@ -69,7 +69,7 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
   }, [search]); // re-run when search changes since filteredAlumni is derived from it
 
   const filteredAlumni = alumni.filter(user => {
-    const searchString = `${user.nama_lengkap} ${user.nama_panggilan}`.toLowerCase();
+    const searchString = `${user.nama_lengkap || ''} ${user.nama_panggilan || ''} ${user.alamat_lengkap || ''} ${user.tempat_lahir || ''} ${user.motivasi_hidup || ''}`.toLowerCase();
     return searchString.includes(search.toLowerCase());
   });
 

@@ -61,11 +61,11 @@ export default function GaleriClient() {
 
   return (
     <>
-        <audio id="bgMusic" loop preload="auto">
+        <audio id="bgMusic" loop preload="none">
             <source src="/assets/audio/memori.mp3" type="audio/mpeg" />
         </audio>
 
-        <audio id="whisperAudio" preload="auto">
+        <audio id="whisperAudio" preload="none">
             <source src="/assets/audio/pesan_angkatan.mp3" type="audio/mpeg" />
         </audio>
 

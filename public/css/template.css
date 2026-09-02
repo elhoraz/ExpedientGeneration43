@@ -751,3 +751,18 @@ img.skeleton-shimmer {
     .scroll-top-btn { bottom: 30px; right: 20px; }
 }
 
+/* ========================================================
+   ACCESSIBILITY: PREFERS-REDUCED-MOTION SUPPORT
+   ======================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    .aurora-blob, .film-grain, #particles-js {
+        display: none !important;
+    }
+}
+
