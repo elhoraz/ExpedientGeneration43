@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       .from("profiles")
       .select("nama_panggilan, role")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     const isManager = profile?.role === "admin" || profile?.role === "bendahara";
 

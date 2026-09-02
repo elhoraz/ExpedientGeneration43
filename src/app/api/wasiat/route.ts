@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       .from("wasiats")
       .select("passphrase_hash")
       .eq("id", wasiat_id)
-      .single();
+      .maybeSingle();
 
     if (error || !wasiat) {
       return NextResponse.json({ status: "error", msg: "Wasiat not found" }, { status: 404 });

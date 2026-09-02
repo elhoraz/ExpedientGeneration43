@@ -29,25 +29,28 @@ export async function POST(request: Request) {
       .from("profiles")
       .select("nama_panggilan, nama_lengkap")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
     
-    actualNama = profile?.nama_panggilan || profile?.nama_lengkap || "Hamba Allah";
+    actualNama = profile?.nama_panggilan || profile?.nama_lengkap || user.user_metadata?.nama_panggilan || user.user_metadata?.nama_lengkap || "Hamba Allah";
   }
 
   // Insert into buku_tamu using correct columns: user_id, nama, pesan
   const { data, error } = await supabase
     .from("buku_tamu")
     .insert([{ user_id: user.id, nama: actualNama, pesan: actualPesan }])
-    .select("*, profiles!buku_tamu_user_id_fkey(nama_panggilan)");
+    .select();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  const inserted = data && data.length > 0 ? data[0] : { user_id: user.id, nama: actualNama, pesan: actualPesan, created_at: new Date().toISOString() };
+
   // Map database response to match both formats if necessary
   const result = {
-    ...data[0],
-    message: data[0].pesan // for any legacy component expecting message
+    ...inserted,
+    nama: inserted.nama || actualNama,
+    message: inserted.pesan || actualPesan,
   };
 
   // Add Prestise Points (Guestbook Entry) - 1x lifetime limit

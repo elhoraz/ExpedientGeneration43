@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   // Update progress to not completed
-  const { data: progress } = await supabase.from('enigma_progress').select('*').eq('user_id', user.id).single();
+  const { data: progress } = await supabase.from('enigma_progress').select('*').eq('user_id', user.id).maybeSingle();
   
   if (progress) {
     await supabase.from('enigma_progress').update({

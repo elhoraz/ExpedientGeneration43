@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       .from("profiles")
       .select("nama_panggilan")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
     if (callerProfile?.nama_panggilan) {
       callerName = callerProfile.nama_panggilan;
     }

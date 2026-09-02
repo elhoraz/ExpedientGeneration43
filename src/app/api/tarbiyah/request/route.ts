@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       .from("profiles")
       .select("nama_panggilan, role")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     const body = await req.json();
     const action = body.action || "create_request";
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
         .select("id, status")
         .eq("user_id", user.id)
         .eq("target_id", targetId)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         return jsonResponse(
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
           .from("syndicate")
           .select("user_id")
           .eq("id", reqData.target_id)
-          .single();
+          .maybeSingle();
         if (syndicateItem?.user_id === user.id) {
           isAuthorized = true;
         }

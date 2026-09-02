@@ -19,11 +19,19 @@ export default async function ProfilPage() {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (!profile) {
-    redirect("/beranda");
-  }
+  // Merge email from auth user into profile data with resilient fallback
+  const userData = {
+    id: user.id,
+    nama_lengkap: profile?.nama_lengkap || user.user_metadata?.nama_lengkap || user.user_metadata?.full_name || "Alumni Expedient",
+    nama_panggilan: profile?.nama_panggilan || user.user_metadata?.nama_panggilan || "Alumni",
+    role: profile?.role || "user",
+    prestise_points: profile?.prestise_points || 0,
+    is_active: profile?.is_active ?? true,
+    ...(profile || {}),
+    email: user.email || "",
+  };
 
   // Fetch registered biometrics
   const { data: biometrics } = await supabase
@@ -31,12 +39,6 @@ export default async function ProfilPage() {
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
-
-  // Merge email from auth user into profile data
-  const userData = {
-    ...profile,
-    email: user.email || "",
-  };
 
   return <ProfilClient user={userData} initialBiometrics={biometrics || []} />;
 }

@@ -125,7 +125,7 @@ export async function POST(request: Request) {
         .from("profiles")
         .select("nama_panggilan")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       const creatorName = creatorProfile?.nama_panggilan || "Anonim";
 
@@ -267,7 +267,7 @@ export async function POST(request: Request) {
         .from("profiles")
         .select("role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       const isAdmin = profile?.role === "admin";
       const isCreator = topic.created_by === user.id;

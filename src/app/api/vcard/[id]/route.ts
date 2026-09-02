@@ -10,7 +10,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       .from("profiles")
       .select("*")
       .or(`id.eq.${id},public_token.eq.${id}`)
-      .single();
+      .maybeSingle();
 
     if (!profile) {
       return new NextResponse("Profile not found", { status: 404 });
