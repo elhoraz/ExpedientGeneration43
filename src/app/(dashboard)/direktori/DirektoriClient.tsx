@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import Script from "next/script";
 import Link from "next/link";
+import Swiper from "swiper";
+import { EffectCoverflow, Navigation, Keyboard } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/effect-coverflow";
+import "swiper/css/navigation";
 import "./direktori.css";
-// import "swiper/css"; // Provided by CI4 vendor css or we can load it from CDN like CI4 did.
 
 export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[], isLoggedIn: boolean }) {
   const [search, setSearch] = useState("");
@@ -27,47 +30,60 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
   }, []);
 
   useEffect(() => {
-    // Re-initialize Swiper when filteredAlumni changes (DOM nodes are re-mounted by React)
-    const initSwiper = () => {
-        if (typeof window !== 'undefined' && (window as any).Swiper) {
-            const Swiper = (window as any).Swiper;
-            if (swiperRef.current) swiperRef.current.destroy(true, true);
-            
-            setTimeout(() => {
-                const isMobile = window.innerWidth < 768;
-                swiperRef.current = new Swiper('.mySwiper', {
-                    effect: 'coverflow',
-                    grabCursor: true,
-                    centeredSlides: true,
-                    slidesPerView: 'auto',
-                    initialSlide: 0,
-                    speed: 600,
-                    touchRatio: 1.2,
-                    touchAngle: 45,
-                    threshold: 5,
-                    coverflowEffect: {
-                        rotate: isMobile ? 0 : 15,
-                        stretch: 0,
-                        depth: isMobile ? 80 : 350,
-                        modifier: 1,
-                        slideShadows: false,
-                    },
-                    navigation: { nextEl: '#btnNext', prevEl: '#btnPrev' },
-                    keyboard: { enabled: true },
-                    on: { 
-                      slideChangeTransitionStart: () => { 
-                        if (navigator.vibrate) navigator.vibrate(10); 
-                        triggerQuest();
-                      } 
-                    },
-                    observer: true,
-                    observeParents: true
-                });
-            }, 100); // give React time to flush DOM
-        }
+    if (typeof window === "undefined") return;
+
+    if (swiperRef.current) {
+      try {
+        swiperRef.current.destroy(true, true);
+      } catch {}
+    }
+
+    const timer = setTimeout(() => {
+      const isMobile = window.innerWidth < 768;
+      try {
+        swiperRef.current = new Swiper(".mySwiper", {
+          modules: [EffectCoverflow, Navigation, Keyboard],
+          effect: "coverflow",
+          grabCursor: true,
+          centeredSlides: true,
+          slidesPerView: "auto",
+          initialSlide: 0,
+          speed: 600,
+          touchRatio: 1.2,
+          touchAngle: 45,
+          threshold: 5,
+          coverflowEffect: {
+            rotate: isMobile ? 0 : 15,
+            stretch: 0,
+            depth: isMobile ? 80 : 350,
+            modifier: 1,
+            slideShadows: false,
+          },
+          navigation: { nextEl: "#btnNext", prevEl: "#btnPrev" },
+          keyboard: { enabled: true },
+          on: { 
+            slideChangeTransitionStart: () => { 
+              if (navigator.vibrate) navigator.vibrate(10); 
+              triggerQuest();
+            } 
+          },
+          observer: true,
+          observeParents: true
+        });
+      } catch (err) {
+        console.error("Swiper init error:", err);
+      }
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      if (swiperRef.current) {
+        try {
+          swiperRef.current.destroy(true, true);
+        } catch {}
+      }
     };
-    initSwiper();
-  }, [search]); // re-run when search changes since filteredAlumni is derived from it
+  }, [search]);
 
   const filteredAlumni = alumni.filter(user => {
     const searchString = `${user.nama_lengkap || ''} ${user.nama_panggilan || ''} ${user.alamat_lengkap || ''} ${user.tempat_lahir || ''} ${user.motivasi_hidup || ''}`.toLowerCase();
@@ -182,47 +198,6 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
 
         <div className="nav-arrow nav-prev" id="btnPrev"><i className="fa-solid fa-chevron-left"></i></div>
         <div className="nav-arrow nav-next" id="btnNext"><i className="fa-solid fa-chevron-right"></i></div>
-        
-        {/* Load Script */}
-        <Script 
-          src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js" 
-          strategy="lazyOnload" 
-          onLoad={() => {
-              if ((window as any).Swiper) {
-                  const Swiper = (window as any).Swiper;
-                  if (swiperRef.current) swiperRef.current.destroy();
-                  const isMobile = window.innerWidth < 768;
-                  swiperRef.current = new Swiper('.mySwiper', {
-                      effect: 'coverflow',
-                      grabCursor: true,
-                      centeredSlides: true,
-                      slidesPerView: 'auto',
-                      initialSlide: 0,
-                      speed: 600,
-                      touchRatio: 1.2,
-                      touchAngle: 45,
-                      threshold: 5,
-                      coverflowEffect: {
-                          rotate: isMobile ? 0 : 15,
-                          stretch: 0,
-                          depth: isMobile ? 80 : 350,
-                          modifier: 1,
-                          slideShadows: false,
-                      },
-                      navigation: { nextEl: '#btnNext', prevEl: '#btnPrev' },
-                      keyboard: { enabled: true },
-                      on: { slideChangeTransitionStart: () => { if (navigator.vibrate) navigator.vibrate(10); } }
-                  });
-              }
-          }}
-        />
-
-        {/* Dynamic Swiper update hook if alumni list length changes via search */}
-        <Script id="swiper-update" strategy="afterInteractive">
-            {`
-               // Handled by useEffect in React
-            `}
-        </Script>
         {/* QR CODE VCARD MODAL (TASK 20) */}
         {qrModalUser && (
           <div 
