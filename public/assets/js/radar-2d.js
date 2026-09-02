@@ -505,11 +505,6 @@ function initRadar2D(passedData, passedStyle) {
     } catch (e) { /* Pusher not available, silently ignore */ }
 }
 
+// Only expose on window — React (RadarClient.tsx) controls when to call it.
+// Do NOT self-invoke here; the Script onLoad callback handles timing.
 window.initRadar2D = initRadar2D;
-if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initRadar2D);
-    } else {
-        initRadar2D();
-    }
-}

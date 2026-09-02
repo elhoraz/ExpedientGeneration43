@@ -332,11 +332,5 @@ function initGlobe() {
     // to maintain React state context and simplify dependencies.
 }
 
+// Only expose on window — React (RadarClient.tsx) controls when to call it.
 window.initRadarGlobe = initGlobe;
-if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initGlobe);
-    } else {
-        initGlobe();
-    }
-}

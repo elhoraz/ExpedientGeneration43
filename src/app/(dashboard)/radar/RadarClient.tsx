@@ -69,19 +69,36 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
       }
     }, 2800);
 
-    // Trigger map engines if scripts were already cached/loaded
-    if (!is3DMode) {
-      if (typeof (window as any).initRadar2D === 'function') {
-        (window as any).initRadar2D(nodes, mapStyle);
+    // Robust initialization: poll until both library + engine are loaded,
+    // then initialize the map. Handles fresh loads, cached scripts, and
+    // client-side navigation where onLoad won't re-fire.
+    let initAttempt = 0;
+    const maxAttempts = 50; // 50 * 200ms = 10 seconds max
+    const tryInit = () => {
+      initAttempt++;
+      if (!is3DMode) {
+        if (typeof (window as any).L !== 'undefined' && typeof (window as any).initRadar2D === 'function') {
+          console.log('[Radar] Initializing 2D map, attempt:', initAttempt);
+          (window as any).initRadar2D(nodes, mapStyle);
+          return;
+        }
+      } else {
+        if (typeof (window as any).Globe !== 'undefined' && typeof (window as any).initRadarGlobe === 'function') {
+          console.log('[Radar] Initializing Globe, attempt:', initAttempt);
+          (window as any).initRadarGlobe();
+          return;
+        }
       }
-    } else {
-      if (typeof (window as any).initRadarGlobe === 'function') {
-        (window as any).initRadarGlobe(nodes, mapStyle);
+      if (initAttempt < maxAttempts) {
+        setTimeout(tryInit, 200);
       }
-    }
+    };
+    // Start polling after a small delay to let React commit the DOM
+    const initTimer = setTimeout(tryInit, 300);
 
     return () => {
       clearTimeout(safetyTimer);
+      clearTimeout(initTimer);
       supabase.removeChannel(channel);
       // Hapus class saat keluar halaman radar
       document.body.classList.remove('page-radar');
@@ -213,16 +230,12 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                 <Script 
                   src="https://cdn.jsdelivr.net/npm/globe.gl" 
                   strategy="afterInteractive" 
-                  onLoad={() => {
-                    if (typeof (window as any).initRadarGlobe === 'function') {
-                      (window as any).initRadarGlobe();
-                    }
-                  }}
                 />
                 <Script 
-                  src="/assets/js/radar-globe.js?v=1.2" 
+                  src={`/assets/js/radar-globe.js?v=${Date.now()}`}
                   strategy="afterInteractive" 
                   onLoad={() => {
+                    // globe.gl is loaded, radar-globe.js just defined initRadarGlobe — call it now
                     if (typeof (window as any).initRadarGlobe === 'function') {
                       (window as any).initRadarGlobe();
                     }
@@ -234,16 +247,12 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                 <Script 
                   src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
                   strategy="afterInteractive" 
-                  onLoad={() => {
-                    if (typeof (window as any).initRadar2D === 'function') {
-                      (window as any).initRadar2D(nodes, mapStyle);
-                    }
-                  }}
                 />
                 <Script 
-                  src="/assets/js/radar-2d.js?v=1.4" 
+                  src={`/assets/js/radar-2d.js?v=${Date.now()}`}
                   strategy="afterInteractive" 
                   onLoad={() => {
+                    // Leaflet is loaded, radar-2d.js just defined initRadar2D — call it now
                     if (typeof (window as any).initRadar2D === 'function') {
                       (window as any).initRadar2D(nodes, mapStyle);
                     }
