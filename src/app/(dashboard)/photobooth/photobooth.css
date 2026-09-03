@@ -291,6 +291,13 @@
   transform: translateY(-2px);
 }
 
+.btn-icon-tool.active-tool {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+}
+
 /* Studio Tabs & Tool Pickers */
 .studio-tools-accordion {
   display: flex;
@@ -905,19 +912,27 @@
   border: 1px solid #dbdbdb;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  padding: 12px 14px;
-  border-radius: 8px;
+  padding: 12px 0 14px; /* Authentic edge-to-edge photo layout */
+  border-radius: 12px;
+  overflow: hidden;
 }
 .photostrip-card.theme-instagram .photo-cell {
-  border: none;
-  border-radius: 0;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
-.ig-header-bar {
+.photostrip-card.theme-instagram .strip-grid-slots {
+  width: 100%;
+  gap: 2px !important;
+  background: #ffffff;
+}
+.photostrip-card.theme-instagram .ig-header-bar {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
+  padding: 0 12px 10px;
 }
 .ig-user-info {
   display: flex;
@@ -963,7 +978,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 2px 4px;
+  padding: 8px 12px 4px;
   font-size: 1.05rem;
 }
 .ig-left-actions {
@@ -977,12 +992,14 @@
   color: #262626;
   text-align: left;
   margin: 2px 0 4px;
+  padding: 0 12px;
 }
 .ig-caption-text {
   font-size: 0.68rem;
   color: #262626;
   text-align: left;
   line-height: 1.35;
+  padding: 0 12px;
 }
 .ig-caption-bold {
   font-weight: 700;
@@ -995,6 +1012,7 @@
   text-align: left;
   margin-top: 4px;
   letter-spacing: 0.5px;
+  padding: 0 12px;
 }
 
 /* THEME 21: VINTAGE KRAFT LUGGAGE TAG (Pinterest Exact) */
@@ -1173,28 +1191,57 @@
   color: rgba(212, 175, 55, 0.4);
 }
 
-.cell-retake-btn {
+/* Per-Cell Action Overlay (Rotate 90° & Retake) */
+.cell-action-bar {
   position: absolute;
   top: 6px;
   right: 6px;
-  width: 24px;
-  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 25;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.photo-cell:hover .cell-action-bar,
+.photo-cell.active-slot-border .cell-action-bar {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .cell-action-bar {
+    opacity: 0.85;
+  }
+}
+
+.cell-action-btn {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
-  font-size: 0.65rem;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 10;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-.photo-cell:hover .cell-retake-btn {
-  opacity: 1;
+.cell-action-btn:hover {
+  background: #d4af37;
+  color: #0b0b0d;
+  border-color: #ffd700;
+  transform: scale(1.15);
+}
+
+.cell-action-btn:active {
+  transform: scale(0.9);
 }
 
 

@@ -60,6 +60,7 @@ export default function PhotoboothClient() {
   // Studio States
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
+  const [isMirrored, setIsMirrored] = useState(true);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
 
@@ -166,11 +167,13 @@ export default function PhotoboothClient() {
         throw new Error("Browser ini tidak mendukung akses kamera langsung.");
       }
 
+      const isPortrait = typeof window !== "undefined" && window.innerHeight > window.innerWidth;
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facing,
-          width: { ideal: 1280 },
-          height: { ideal: 960 },
+          width: { ideal: isPortrait ? 960 : 1280 },
+          height: { ideal: isPortrait ? 1280 : 960 },
+          aspectRatio: { ideal: isPortrait ? 3 / 4 : 4 / 3 },
         },
         audio: false,
       });
@@ -250,14 +253,46 @@ export default function PhotoboothClient() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    // If front camera, mirror image to match viewfinder
-    if (cameraFacing === "user") {
+    // If mirror is enabled and front camera, mirror image to match viewfinder
+    if (isMirrored && cameraFacing === "user") {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL("image/jpeg", 0.95);
+  };
+
+  // Rotate single photo in a slot by 90 degrees clockwise
+  const handleRotateSlot = (slotIdx: number) => {
+    const currentPhoto = photos[slotIdx];
+    if (!currentPhoto) return;
+    triggerHaptic(20);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const rotCanvas = document.createElement("canvas");
+      // Swapping width & height for 90 deg rotation
+      rotCanvas.width = img.height;
+      rotCanvas.height = img.width;
+      const ctx = rotCanvas.getContext("2d");
+      if (!ctx) return;
+      ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
+      ctx.rotate((90 * Math.PI) / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      const newBase64 = rotCanvas.toDataURL("image/jpeg", 0.95);
+
+      setPhotos((prev) => {
+        const next = [...prev];
+        next[slotIdx] = {
+          ...next[slotIdx],
+          image: newBase64,
+        };
+        return next;
+      });
+    };
+    img.src = currentPhoto.image;
   };
 
   // Start Live Motion Clip Recording (MediaRecorder)
@@ -497,6 +532,13 @@ export default function PhotoboothClient() {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
+        ignoreElements: (element) => {
+          return (
+            element.classList?.contains("cell-action-bar") ||
+            element.classList?.contains("cell-action-btn") ||
+            element.classList?.contains("cell-retake-btn")
+          );
+        },
       });
 
       let finalCanvas = canvas;
@@ -701,7 +743,7 @@ export default function PhotoboothClient() {
                 autoPlay
                 playsInline
                 muted
-                className={`viewfinder-video ${cameraFacing === "environment" ? "unmirrored" : ""}`}
+                className={`viewfinder-video ${(!isMirrored || cameraFacing === "environment") ? "unmirrored" : ""}`}
                 style={{ filter: getFilterStyle() }}
               />
             )}
@@ -738,9 +780,17 @@ export default function PhotoboothClient() {
                   <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#ffd700" }}></i> {filter}
                 </div>
                 {cameraFacing === "user" && (
-                  <div className="hud-pill">
-                    <i className="fa-solid fa-arrows-split-up-and-left"></i> Selfie View
-                  </div>
+                  <button
+                    type="button"
+                    className="hud-pill"
+                    style={{ cursor: "pointer", pointerEvents: "auto", border: "1px solid rgba(212, 175, 55, 0.4)", background: isMirrored ? "rgba(212, 175, 55, 0.2)" : "rgba(0,0,0,0.6)" }}
+                    onClick={() => {
+                      triggerHaptic(15);
+                      setIsMirrored(!isMirrored);
+                    }}
+                  >
+                    <i className="fa-solid fa-arrows-left-right"></i> {isMirrored ? "Cermin: ON" : "Cermin: OFF (Asli)"}
+                  </button>
                 )}
               </div>
             </div>
@@ -765,6 +815,21 @@ export default function PhotoboothClient() {
             >
               <i className="fa-solid fa-camera-rotate"></i>
             </button>
+
+            {/* Mirror Toggle Button */}
+            {cameraFacing === "user" && (
+              <button
+                type="button"
+                className={`btn-icon-tool ${isMirrored ? "active-tool" : ""}`}
+                title={isMirrored ? "Mode Cermin Aktif (Klik untuk Mode Asli/Teks Terbaca)" : "Mode Asli Aktif (Klik untuk Mode Cermin)"}
+                onClick={() => {
+                  triggerHaptic(15);
+                  setIsMirrored(!isMirrored);
+                }}
+              >
+                <i className="fa-solid fa-arrows-left-right"></i>
+              </button>
+            )}
 
             {/* Main Shutter Button */}
             <button
@@ -1336,7 +1401,7 @@ export default function PhotoboothClient() {
             {/* Slots Grid with Custom Gap */}
             <div
               className={`strip-grid-slots ${layout === "grid-2x2" ? "layout-grid" : layout === "polaroid" ? "layout-polaroid" : ""}`}
-              style={{ gap: `${frameGap}px` }}
+              style={{ gap: theme === "instagram" ? "2px" : `${frameGap}px` }}
             >
               {Array.from({ length: totalSlots }).map((_, idx) => {
                 const photoObj = photos[idx];
@@ -1345,7 +1410,7 @@ export default function PhotoboothClient() {
                     key={idx}
                     className={`photo-cell aspect-${photoAspect} ${activeSlot === idx ? "active-slot-border" : ""}`}
                     style={{
-                      borderRadius: `${frameRadius}px`,
+                      borderRadius: theme === "instagram" ? 0 : `${frameRadius}px`,
                       filter: getFilterStyle(),
                     }}
                   >
@@ -1373,14 +1438,31 @@ export default function PhotoboothClient() {
                           </div>
                         )}
 
-                        {/* Retake Button */}
-                        <button
-                          className="cell-retake-btn"
-                          onClick={() => handleRetakeSlot(idx)}
-                          title="Foto Ulang Slot Ini"
-                        >
-                          <i className="fa-solid fa-arrow-rotate-right"></i>
-                        </button>
+                        {/* Cell Actions Overlay: Rotate & Retake */}
+                        <div className="cell-action-bar">
+                          <button
+                            type="button"
+                            className="cell-action-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRotateSlot(idx);
+                            }}
+                            title="Putar Foto 90°"
+                          >
+                            <i className="fa-solid fa-rotate-right"></i>
+                          </button>
+                          <button
+                            type="button"
+                            className="cell-action-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRetakeSlot(idx);
+                            }}
+                            title="Foto Ulang Slot Ini"
+                          >
+                            <i className="fa-solid fa-camera-rotate"></i>
+                          </button>
+                        </div>
                       </>
                     ) : (
                       <div className="photo-cell-placeholder">
