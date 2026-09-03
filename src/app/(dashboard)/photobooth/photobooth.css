@@ -677,7 +677,8 @@
 }
 
 /* -------------------------------------------------------------
-   STICKERS PICKER GRID
+/* -------------------------------------------------------------
+   STICKERS PICKER & INTERACTIVE DELETION
    ------------------------------------------------------------- */
 .stickers-picker-grid {
   display: flex;
@@ -705,6 +706,212 @@
   background: rgba(212, 175, 55, 0.2);
   border-color: #ffd700;
   transform: scale(1.1);
+}
+
+/* Placed Interactive Stickers inside Strip */
+.strip-sticker {
+  position: absolute;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 25;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+.strip-sticker:hover {
+  transform: scale(1.2);
+}
+
+.sticker-delete-cross {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff3344;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #fff;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.strip-sticker:hover .sticker-delete-cross {
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------
+   LIVE PHOTO MODE STYLES
+   ------------------------------------------------------------- */
+.live-mode-toggle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 6px 14px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 12px;
+}
+
+.live-mode-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-mode-btn.active {
+  background: linear-gradient(135deg, #ffd700, #d4af37);
+  color: #0b0b0d;
+  box-shadow: 0 2px 10px rgba(212, 175, 55, 0.3);
+}
+
+.live-badge-indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #ffd700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 15;
+  letter-spacing: 1px;
+}
+
+.live-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: #ff3344;
+  border-radius: 50%;
+  animation: recPulse 1s infinite ease-in-out;
+}
+
+/* -------------------------------------------------------------
+   FRAME LAYOUT CUSTOMIZER STYLES
+   ------------------------------------------------------------- */
+.layout-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.layout-slider-label {
+  font-size: 0.78rem;
+  color: #a0a0a8;
+  min-width: 90px;
+}
+
+.custom-range-slider {
+  flex: 1;
+  accent-color: #ffd700;
+  cursor: pointer;
+}
+
+.color-swatches-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.color-swatch-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.color-swatch-circle.active {
+  border-color: #ffd700;
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}
+
+.color-picker-input-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px dashed rgba(212, 175, 55, 0.6);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd700;
+  font-size: 0.8rem;
+}
+
+/* Aspect Ratio Variations */
+.aspect-classic {
+  aspect-ratio: 4 / 3 !important;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.aspect-portrait {
+  aspect-ratio: 3 / 4 !important;
+}
+
+/* Extra Filter Presets */
+.filter-cyber {
+  filter: hue-rotate(180deg) saturate(1.4) contrast(1.15);
+}
+
+.filter-pastel {
+  filter: sepia(0.15) brightness(1.08) saturate(0.9) contrast(0.95);
+}
+
+/* Toggle Switch Buttons */
+.toggle-element-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c4c4cc;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.toggle-element-btn.active {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: #ffd700;
+  color: #ffd700;
 }
 
 /* -------------------------------------------------------------

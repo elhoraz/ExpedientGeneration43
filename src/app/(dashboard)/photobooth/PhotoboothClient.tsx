@@ -5,8 +5,14 @@ import html2canvas from "html2canvas";
 import "./photobooth.css";
 
 type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
-type FilterMode = "normal" | "golden" | "noir" | "vintage" | "emerald";
-type FrameTheme = "sovereign" | "white" | "film" | "santri";
+type FilterMode = "normal" | "golden" | "noir" | "vintage" | "emerald" | "cyber" | "pastel";
+type FrameTheme = "sovereign" | "white" | "film" | "santri" | "custom";
+type AspectRatioMode = "classic" | "square" | "portrait";
+
+interface PhotoItem {
+  image: string;
+  video?: string;
+}
 
 interface PlacedSticker {
   id: string;
@@ -19,6 +25,8 @@ export default function PhotoboothClient() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   // Studio States
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -26,10 +34,30 @@ export default function PhotoboothClient() {
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
 
+  // Mode: Foto Diam vs Foto Live
+  const [isLiveMode, setIsLiveMode] = useState(false);
+  const [isLivePlaying, setIsLivePlaying] = useState(true);
+
   // Configuration
   const [layout, setLayout] = useState<LayoutMode>("korean-4cut");
   const [filter, setFilter] = useState<FilterMode>("normal");
+  const [brightness, setBrightness] = useState<number>(100);
+  const [contrast, setContrast] = useState<number>(100);
   const [theme, setTheme] = useState<FrameTheme>("sovereign");
+
+  // Frame Layout Customizations
+  const [frameGap, setFrameGap] = useState<number>(10);
+  const [frameRadius, setFrameRadius] = useState<number>(6);
+  const [photoAspect, setPhotoAspect] = useState<AspectRatioMode>("classic");
+  const [customBgColor, setCustomBgColor] = useState<string>("#0d0d10");
+
+  // Frame Element Toggles
+  const [showHeader, setShowHeader] = useState(true);
+  const [showDivider, setShowDivider] = useState(true);
+  const [showFooter, setShowFooter] = useState(true);
+  const [showCrest, setShowCrest] = useState(true);
+
+  // Captions
   const [captionTitle, setCaptionTitle] = useState("Expedient Generation");
   const [captionDate, setCaptionDate] = useState(() => {
     const d = new Date();
@@ -37,7 +65,7 @@ export default function PhotoboothClient() {
   });
 
   // Photo captures
-  const [photos, setPhotos] = useState<(string | null)[]>([null, null, null, null]);
+  const [photos, setPhotos] = useState<(PhotoItem | null)[]>([null, null, null, null]);
   const [activeSlot, setActiveSlot] = useState<number>(0);
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [countdownNum, setCountdownNum] = useState<number | null>(null);
@@ -133,7 +161,32 @@ export default function PhotoboothClient() {
     startCamera(nextFacing);
   };
 
-  // Capture Video Frame to Base64 Image
+  // Compute CSS filter string
+  const getFilterStyle = () => {
+    let base = "";
+    if (filter === "golden") {
+      base = "sepia(0.25) saturate(1.2) contrast(1.05) brightness(1.04)";
+    } else if (filter === "noir") {
+      base = "grayscale(1) contrast(1.3) brightness(0.95)";
+    } else if (filter === "vintage") {
+      base = "sepia(0.4) saturate(0.85) contrast(1.1) hue-rotate(-10deg)";
+    } else if (filter === "emerald") {
+      base = "hue-rotate(45deg) saturate(1.15) brightness(1.02)";
+    } else if (filter === "cyber") {
+      base = "hue-rotate(180deg) saturate(1.4) contrast(1.15)";
+    } else if (filter === "pastel") {
+      base = "sepia(0.15) brightness(1.08) saturate(0.9) contrast(0.95)";
+    } else {
+      base = "none";
+    }
+
+    if (brightness !== 100 || contrast !== 100) {
+      base += ` brightness(${brightness / 100}) contrast(${contrast / 100})`;
+    }
+    return base;
+  };
+
+  // Capture Still Video Frame to Base64 Image
   const captureFrame = (): string | null => {
     if (!videoRef.current) return null;
     const video = videoRef.current;
@@ -149,25 +202,54 @@ export default function PhotoboothClient() {
       ctx.scale(-1, 1);
     }
 
-    // Apply active filter to the canvas context directly for crisp bake-in
-    if (filter === "golden") {
-      ctx.filter = "sepia(0.25) saturate(1.2) contrast(1.05) brightness(1.04)";
-    } else if (filter === "noir") {
-      ctx.filter = "grayscale(1) contrast(1.3) brightness(0.95)";
-    } else if (filter === "vintage") {
-      ctx.filter = "sepia(0.4) saturate(0.85) contrast(1.1) hue-rotate(-10deg)";
-    } else if (filter === "emerald") {
-      ctx.filter = "hue-rotate(45deg) saturate(1.15) brightness(1.02)";
-    } else {
-      ctx.filter = "none";
-    }
-
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL("image/jpeg", 0.95);
   };
 
+  // Start Live Motion Clip Recording (MediaRecorder)
+  const recordLiveClip = (): Promise<string | null> => {
+    return new Promise((resolve) => {
+      if (!stream || typeof MediaRecorder === "undefined") {
+        resolve(null);
+        return;
+      }
+
+      try {
+        let mimeType = "video/webm";
+        if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+          mimeType = "video/webm;codecs=vp8";
+        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+          mimeType = "video/mp4";
+        }
+
+        const recorder = new MediaRecorder(stream, { mimeType });
+        const chunks: Blob[] = [];
+
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
+
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: mimeType });
+          const videoUrl = URL.createObjectURL(blob);
+          resolve(videoUrl);
+        };
+
+        recorder.start();
+        setTimeout(() => {
+          if (recorder.state === "recording") {
+            recorder.stop();
+          }
+        }, 1800); // Record 1.8 seconds live snippet
+      } catch (err) {
+        console.warn("Live recording error:", err);
+        resolve(null);
+      }
+    });
+  };
+
   // Trigger Countdown & Shutter
-  const triggerShutter = () => {
+  const triggerShutter = async () => {
     if (isCountingDown) return;
     triggerHaptic(40);
     setIsCountingDown(true);
@@ -175,7 +257,7 @@ export default function PhotoboothClient() {
     setCountdownNum(count);
     playBeep(440, 0.1);
 
-    const timer = setInterval(() => {
+    const timer = setInterval(async () => {
       count -= 1;
       if (count > 0) {
         setCountdownNum(count);
@@ -192,12 +274,23 @@ export default function PhotoboothClient() {
         setIsFlashing(true);
         setTimeout(() => setIsFlashing(false), 200);
 
-        // Save Photo
-        const photoData = captureFrame();
-        if (photoData) {
+        // Save Still Frame
+        const stillFrame = captureFrame();
+
+        // If Live Photo Mode, record video loop concurrently
+        let liveVideoUrl: string | undefined;
+        if (isLiveMode && stream) {
+          const recorded = await recordLiveClip();
+          if (recorded) liveVideoUrl = recorded;
+        }
+
+        if (stillFrame) {
           setPhotos((prev) => {
             const next = [...prev];
-            next[activeSlot] = photoData;
+            next[activeSlot] = {
+              image: stillFrame,
+              video: liveVideoUrl,
+            };
             return next;
           });
 
@@ -220,7 +313,7 @@ export default function PhotoboothClient() {
       if (dataUrl) {
         setPhotos((prev) => {
           const next = [...prev];
-          next[activeSlot] = dataUrl;
+          next[activeSlot] = { image: dataUrl };
           return next;
         });
         setActiveSlot((prev) => (prev + 1) % totalSlots);
@@ -254,7 +347,7 @@ export default function PhotoboothClient() {
   const handleAddSticker = (emoji: string) => {
     triggerHaptic(15);
     const newSticker: PlacedSticker = {
-      id: "stk_" + Date.now(),
+      id: "stk_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
       emoji,
       top: 30 + Math.random() * 40,
       left: 10 + Math.random() * 70,
@@ -262,7 +355,20 @@ export default function PhotoboothClient() {
     setStickers((prev) => [...prev, newSticker]);
   };
 
-  // Export Photostrip to PNG
+  // Delete Individual Sticker
+  const handleDeleteSticker = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic(25);
+    setStickers((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  // Delete All Stickers
+  const handleClearAllStickers = () => {
+    triggerHaptic(30);
+    setStickers([]);
+  };
+
+  // Export Photostrip to PNG or Story
   const handleDownloadStrip = async (mode: "strip" | "story") => {
     if (!stripRef.current) return;
     setIsExporting(true);
@@ -343,6 +449,68 @@ export default function PhotoboothClient() {
     }
   };
 
+  // Export Live Video Strip (WebM / Video Loop)
+  const handleExportLiveVideo = async () => {
+    if (!stripRef.current) return;
+    setIsExporting(true);
+    triggerHaptic(40);
+
+    try {
+      const canvas = await html2canvas(stripRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+      });
+
+      // Check if captureStream is available
+      if (!(canvas as any).captureStream) {
+        alert("Browser Anda belum mendukung ekspor video canvas. Mengunduh format PNG HD sebagai gantinya.");
+        handleDownloadStrip("strip");
+        return;
+      }
+
+      const stream = (canvas as any).captureStream(30);
+      let mimeType = "video/webm";
+      if (MediaRecorder.isTypeSupported("video/mp4")) {
+        mimeType = "video/mp4";
+      }
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: mimeType });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `Expedient_Live_Photostrip_${Date.now()}.${mimeType.includes("mp4") ? "mp4" : "webm"}`;
+        a.click();
+        triggerHaptic(50);
+        setIsExporting(false);
+      };
+
+      recorder.start();
+      setTimeout(() => {
+        if (recorder.state === "recording") recorder.stop();
+      }, 2500);
+    } catch (err) {
+      console.error("Live video export error:", err);
+      handleDownloadStrip("strip");
+    }
+  };
+
+  // Determine container background styling
+  const getStripBackgroundStyle = () => {
+    if (theme === "custom") {
+      return { background: customBgColor };
+    }
+    return {};
+  };
+
   return (
     <div className="photobooth-page">
       {/* Studio Header */}
@@ -354,8 +522,24 @@ export default function PhotoboothClient() {
           Studio Kenangan <span className="gold-accent">Expedient 42</span>
         </h1>
         <p className="studio-subtitle">
-          Abadikan pose terbaikmu dalam photostrip eksklusif. Pilih tata letak, terapkan filter vintage, dan simpan dalam resolusi HD siap cetak atau Instagram Story.
+          Abadikan pose terbaikmu dalam photostrip eksklusif. Edit tata letak frame, hapus & pasang stiker sesukamu, terapkan filter tone, dan coba mode Foto Live bergerak!
         </p>
+
+        {/* Live Photo Mode Switcher */}
+        <div className="live-mode-toggle-bar">
+          <button
+            className={`live-mode-btn ${!isLiveMode ? "active" : ""}`}
+            onClick={() => { triggerHaptic(15); setIsLiveMode(false); }}
+          >
+            <i className="fa-solid fa-camera"></i> Foto Diam (Standard)
+          </button>
+          <button
+            className={`live-mode-btn ${isLiveMode ? "active" : ""}`}
+            onClick={() => { triggerHaptic(15); setIsLiveMode(true); }}
+          >
+            <i className="fa-solid fa-video"></i> 📹 Foto Live (Bergerak)
+          </button>
+        </div>
       </div>
 
       {/* Main Studio Container */}
@@ -400,7 +584,8 @@ export default function PhotoboothClient() {
                 autoPlay
                 playsInline
                 muted
-                className={`viewfinder-video ${cameraFacing === "environment" ? "unmirrored" : ""} filter-${filter}`}
+                className={`viewfinder-video ${cameraFacing === "environment" ? "unmirrored" : ""}`}
+                style={{ filter: getFilterStyle() }}
               />
             )}
 
@@ -419,7 +604,7 @@ export default function PhotoboothClient() {
               <div className="hud-top-bar">
                 <div className="hud-pill">
                   <span className="hud-rec-dot"></span>
-                  <span>LIVE STUDIO</span>
+                  <span>{isLiveMode ? "LIVE MOTION READY" : "STUDIO SHOT"}</span>
                 </div>
                 <div className="hud-pill">
                   <span>
@@ -437,7 +622,7 @@ export default function PhotoboothClient() {
                 </div>
                 {cameraFacing === "user" && (
                   <div className="hud-pill">
-                    <i className="fa-solid fa-arrows-split-up-and-left"></i> Selfie Mode
+                    <i className="fa-solid fa-arrows-split-up-and-left"></i> Selfie View
                   </div>
                 )}
               </div>
@@ -470,8 +655,8 @@ export default function PhotoboothClient() {
               onClick={triggerShutter}
               disabled={isCountingDown}
             >
-              <i className="fa-solid fa-camera"></i>
-              <span>{isCountingDown ? "Bersiap..." : `Ambil Foto (${activeSlot + 1}/${totalSlots})`}</span>
+              <i className={isLiveMode ? "fa-solid fa-video" : "fa-solid fa-camera"}></i>
+              <span>{isCountingDown ? "Bersiap..." : isLiveMode ? `Rekam Live (${activeSlot + 1}/${totalSlots})` : `Ambil Foto (${activeSlot + 1}/${totalSlots})`}</span>
             </button>
 
             {/* Upload Fallback Button */}
@@ -489,7 +674,7 @@ export default function PhotoboothClient() {
             {/* 1. Layout Mode */}
             <div>
               <div className="tool-group-label">
-                <i className="fa-solid fa-table-cells-large"></i> 1. Tata Letak (Layout)
+                <i className="fa-solid fa-table-cells-large"></i> 1. Format Susunan Foto
               </div>
               <div className="chips-scroll-row">
                 <button
@@ -519,17 +704,147 @@ export default function PhotoboothClient() {
               </div>
             </div>
 
-            {/* 2. Filter Selector */}
+            {/* 2. Frame Layout Editor (Jarak, Sudut, Rasio, & Warna) */}
+            <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)" }}>
+              <div className="tool-group-label">
+                <i className="fa-solid fa-sliders"></i> 2. Edit Tata Letak & Desain Frame
+              </div>
+
+              {/* Aspect Ratio */}
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Bentuk Bidang Foto:</span>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    className={`toggle-element-btn ${photoAspect === "classic" ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setPhotoAspect("classic"); }}
+                  >
+                    4:3 (Klasik)
+                  </button>
+                  <button
+                    className={`toggle-element-btn ${photoAspect === "square" ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setPhotoAspect("square"); }}
+                  >
+                    1:1 (Kotak)
+                  </button>
+                  <button
+                    className={`toggle-element-btn ${photoAspect === "portrait" ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setPhotoAspect("portrait"); }}
+                  >
+                    3:4 (Potret)
+                  </button>
+                </div>
+              </div>
+
+              {/* Sliders: Gap & Radius */}
+              <div className="layout-slider-row">
+                <span className="layout-slider-label">Jarak Foto:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="24"
+                  value={frameGap}
+                  onChange={(e) => setFrameGap(Number(e.target.value))}
+                  className="custom-range-slider"
+                />
+                <span style={{ fontSize: "0.75rem", color: "#ffd700", width: "35px" }}>{frameGap}px</span>
+              </div>
+
+              <div className="layout-slider-row">
+                <span className="layout-slider-label">Sudut Lengkung:</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="24"
+                  value={frameRadius}
+                  onChange={(e) => setFrameRadius(Number(e.target.value))}
+                  className="custom-range-slider"
+                />
+                <span style={{ fontSize: "0.75rem", color: "#ffd700", width: "35px" }}>{frameRadius}px</span>
+              </div>
+
+              {/* Color Swatches */}
+              <div style={{ marginTop: "10px" }}>
+                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Warna Dasar Bingkai:</span>
+                <div className="color-swatches-row">
+                  {[
+                    { color: "#0d0d10", label: "Obsidian" },
+                    { color: "#ffffff", label: "White" },
+                    { color: "#fbf7ee", label: "Cream" },
+                    { color: "#0d1b2a", label: "Navy" },
+                    { color: "#061a10", label: "Emerald" },
+                    { color: "#1a080d", label: "Velvet" },
+                  ].map((sw) => (
+                    <div
+                      key={sw.color}
+                      className={`color-swatch-circle ${theme === "custom" && customBgColor === sw.color ? "active" : ""}`}
+                      style={{ background: sw.color }}
+                      onClick={() => {
+                        triggerHaptic(10);
+                        setTheme("custom");
+                        setCustomBgColor(sw.color);
+                      }}
+                      title={sw.label}
+                    />
+                  ))}
+                  {/* Custom Color Input */}
+                  <label className="color-picker-input-btn" title="Pilih Warna Kustom">
+                    <i className="fa-solid fa-palette"></i>
+                    <input
+                      type="color"
+                      value={customBgColor}
+                      onChange={(e) => {
+                        setTheme("custom");
+                        setCustomBgColor(e.target.value);
+                      }}
+                      style={{ opacity: 0, width: 0, height: 0, position: "absolute" }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Frame Elements Toggles */}
+              <div style={{ marginTop: "12px" }}>
+                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Tampilkan / Sembunyikan Bagian:</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  <button
+                    className={`toggle-element-btn ${showHeader ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setShowHeader(!showHeader); }}
+                  >
+                    <i className={showHeader ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Header
+                  </button>
+                  <button
+                    className={`toggle-element-btn ${showDivider ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setShowDivider(!showDivider); }}
+                  >
+                    <i className={showDivider ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Garis
+                  </button>
+                  <button
+                    className={`toggle-element-btn ${showFooter ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setShowFooter(!showFooter); }}
+                  >
+                    <i className={showFooter ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Teks Bawah
+                  </button>
+                  <button
+                    className={`toggle-element-btn ${showCrest ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setShowCrest(!showCrest); }}
+                  >
+                    <i className={showCrest ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Cap Angkatan
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Filter Selector */}
             <div>
               <div className="tool-group-label">
-                <i className="fa-solid fa-sliders"></i> 2. Filter Tone Warna
+                <i className="fa-solid fa-wand-magic-sparkles"></i> 3. Filter Tone Warna (Bisa Diubah Kapan Saja)
               </div>
               <div className="chips-scroll-row">
                 <button
                   className={`chip-btn ${filter === "normal" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("normal"); }}
                 >
-                  Normal
+                  Asli
                 </button>
                 <button
                   className={`chip-btn ${filter === "golden" ? "active" : ""}`}
@@ -553,51 +868,74 @@ export default function PhotoboothClient() {
                   className={`chip-btn ${filter === "emerald" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("emerald"); }}
                 >
-                  🌿 Emerald Glow
+                  🌿 Emerald
                 </button>
+                <button
+                  className={`chip-btn ${filter === "cyber" ? "active" : ""}`}
+                  onClick={() => { triggerHaptic(10); setFilter("cyber"); }}
+                >
+                  🔮 Cyber Glow
+                </button>
+                <button
+                  className={`chip-btn ${filter === "pastel" ? "active" : ""}`}
+                  onClick={() => { triggerHaptic(10); setFilter("pastel"); }}
+                >
+                  🌸 Soft Pastel
+                </button>
+              </div>
+
+              {/* Sliders for Brightness and Contrast */}
+              <div style={{ marginTop: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <span style={{ fontSize: "0.72rem", color: "#888" }}>Kecerahan ({brightness}%):</span>
+                  <input
+                    type="range"
+                    min="75"
+                    max="140"
+                    value={brightness}
+                    onChange={(e) => setBrightness(Number(e.target.value))}
+                    className="custom-range-slider"
+                  />
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.72rem", color: "#888" }}>Kontras ({contrast}%):</span>
+                  <input
+                    type="range"
+                    min="75"
+                    max="140"
+                    value={contrast}
+                    onChange={(e) => setContrast(Number(e.target.value))}
+                    className="custom-range-slider"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* 3. Theme Frame */}
+            {/* 4. Digital Stickers & Deletion */}
             <div>
-              <div className="tool-group-label">
-                <i className="fa-solid fa-crop-simple"></i> 3. Tema Bingkai (Frame)
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div className="tool-group-label" style={{ marginBottom: 0 }}>
+                  <i className="fa-solid fa-icons"></i> 4. Tempel Simbol & Stiker
+                </div>
+                {stickers.length > 0 && (
+                  <button
+                    onClick={handleClearAllStickers}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#ff4d4d",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <i className="fa-solid fa-trash-can"></i> Hapus Semua Stiker
+                  </button>
+                )}
               </div>
-              <div className="chips-scroll-row">
-                <button
-                  className={`chip-btn ${theme === "sovereign" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setTheme("sovereign"); }}
-                >
-                  👑 Sovereign Gold
-                </button>
-                <button
-                  className={`chip-btn ${theme === "white" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setTheme("white"); }}
-                >
-                  🤍 Minimalist White
-                </button>
-                <button
-                  className={`chip-btn ${theme === "film" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setTheme("film"); }}
-                >
-                  🎞️ 35mm Analog Film
-                </button>
-                <button
-                  className={`chip-btn ${theme === "santri" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setTheme("santri"); }}
-                >
-                  🕌 Nostalgia Santri
-                </button>
-              </div>
-            </div>
 
-            {/* 4. Digital Stickers */}
-            <div>
-              <div className="tool-group-label">
-                <i className="fa-solid fa-icons"></i> 4. Tempel Stiker Digital
-              </div>
               <div className="stickers-picker-grid">
-                {["👑", "🎓", "✨", "🌙", "📸", "🤍", "🕶️", "🕌", "🤝", "⚡"].map((emoji) => (
+                {["👑", "🎓", "✨", "🌙", "📸", "🤍", "🕶️", "🕌", "🤝", "⚡", "⭐", "🌺"].map((emoji) => (
                   <button
                     key={emoji}
                     className="sticker-item-btn"
@@ -608,12 +946,15 @@ export default function PhotoboothClient() {
                   </button>
                 ))}
               </div>
+              <p style={{ fontSize: "0.72rem", color: "#888", marginTop: "4px" }}>
+                💡 <em>Sentuh stiker di pratinjau untuk memunculkan tanda silang (×) dan menghapusnya.</em>
+              </p>
             </div>
 
             {/* 5. Custom Text */}
             <div>
               <div className="tool-group-label">
-                <i className="fa-solid fa-pen-nib"></i> 5. Judul & Tanggal Momen
+                <i className="fa-solid fa-pen-nib"></i> 5. Judul & Tanggal Kenangan
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                 <input
@@ -657,22 +998,40 @@ export default function PhotoboothClient() {
             <div className="preview-heading">
               <i className="fa-solid fa-eye"></i> Pratinjau Photostrip
             </div>
-            <button
-              onClick={handleResetAll}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#ff4d4d",
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <i className="fa-solid fa-rotate-left"></i> Reset
-            </button>
+            <div style={{ display: "flex", gap: "10px" }}>
+              {isLiveMode && (
+                <button
+                  onClick={() => { triggerHaptic(15); setIsLivePlaying(!isLivePlaying); }}
+                  style={{
+                    background: "rgba(212,175,55,0.15)",
+                    border: "1px solid #d4af37",
+                    color: "#ffd700",
+                    padding: "3px 8px",
+                    borderRadius: "8px",
+                    fontSize: "0.75rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  <i className={isLivePlaying ? "fa-solid fa-pause" : "fa-solid fa-play"}></i> {isLivePlaying ? "Jeda" : "Putar"}
+                </button>
+              )}
+              <button
+                onClick={handleResetAll}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#ff4d4d",
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <i className="fa-solid fa-rotate-left"></i> Reset
+              </button>
+            </div>
           </div>
 
           {/* THE PHOTOSTRIP TO BE RENDERED INTO HIGH-RES IMAGE */}
@@ -680,46 +1039,79 @@ export default function PhotoboothClient() {
             ref={stripRef}
             className={`photostrip-card theme-${theme}`}
             id="photostrip-render-target"
+            style={getStripBackgroundStyle()}
           >
             {/* Header Brand */}
-            <div className="strip-header">
-              <div className="strip-badge-text">
-                {theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION"}
+            {showHeader && (
+              <div className="strip-header">
+                <div className="strip-badge-text">
+                  {theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION"}
+                </div>
+                {showDivider && <div className="strip-divider" />}
               </div>
-              <div className="strip-divider" />
-            </div>
+            )}
 
-            {/* Slots Grid */}
+            {/* Slots Grid with Custom Gap */}
             <div
               className={`strip-grid-slots ${layout === "grid-2x2" ? "layout-grid" : layout === "polaroid" ? "layout-polaroid" : ""}`}
+              style={{ gap: `${frameGap}px` }}
             >
-              {Array.from({ length: totalSlots }).map((_, idx) => (
-                <div
-                  key={idx}
-                  className={`photo-cell ${activeSlot === idx ? "active-slot-border" : ""}`}
-                >
-                  {photos[idx] ? (
-                    <>
-                      <img src={photos[idx]!} alt={`Pose ${idx + 1}`} />
-                      <button
-                        className="cell-retake-btn"
-                        onClick={() => handleRetakeSlot(idx)}
-                        title="Foto Ulang Slot Ini"
-                      >
-                        <i className="fa-solid fa-arrow-rotate-right"></i>
-                      </button>
-                    </>
-                  ) : (
-                    <div className="photo-cell-placeholder">
-                      <i className="fa-solid fa-camera"></i>
-                      <span>Slot {idx + 1}</span>
-                    </div>
-                  )}
-                </div>
-              ))}
+              {Array.from({ length: totalSlots }).map((_, idx) => {
+                const photoObj = photos[idx];
+                return (
+                  <div
+                    key={idx}
+                    className={`photo-cell aspect-${photoAspect} ${activeSlot === idx ? "active-slot-border" : ""}`}
+                    style={{
+                      borderRadius: `${frameRadius}px`,
+                      filter: getFilterStyle(),
+                    }}
+                  >
+                    {photoObj ? (
+                      <>
+                        {/* If Live Video is available and active */}
+                        {isLiveMode && photoObj.video && isLivePlaying ? (
+                          <video
+                            src={photoObj.video}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                          />
+                        ) : (
+                          <img src={photoObj.image} alt={`Pose ${idx + 1}`} />
+                        )}
+
+                        {/* Live Photo Badge */}
+                        {photoObj.video && (
+                          <div className="live-badge-indicator">
+                            <span className="live-pulse-dot"></span>
+                            <span>LIVE</span>
+                          </div>
+                        )}
+
+                        {/* Retake Button */}
+                        <button
+                          className="cell-retake-btn"
+                          onClick={() => handleRetakeSlot(idx)}
+                          title="Foto Ulang Slot Ini"
+                        >
+                          <i className="fa-solid fa-arrow-rotate-right"></i>
+                        </button>
+                      </>
+                    ) : (
+                      <div className="photo-cell-placeholder">
+                        <i className="fa-solid fa-camera"></i>
+                        <span>Slot {idx + 1}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            {/* Placed Stickers */}
+            {/* Placed Interactive Stickers with Delete Cross */}
             {stickers.map((stk) => (
               <div
                 key={stk.id}
@@ -727,20 +1119,41 @@ export default function PhotoboothClient() {
                 style={{ top: `${stk.top}%`, left: `${stk.left}%`, fontSize: "1.8rem" }}
               >
                 {stk.emoji}
+                <button
+                  className="sticker-delete-cross"
+                  onClick={(e) => handleDeleteSticker(stk.id, e)}
+                  title="Hapus Stiker Ini"
+                >
+                  ✕
+                </button>
               </div>
             ))}
 
             {/* Footer Brand & Custom Text */}
-            <div className="strip-footer">
-              <div className="strip-divider" />
-              <div className="strip-caption-title">{captionTitle}</div>
-              <div className="strip-caption-date">{captionDate}</div>
-              <div className="strip-brand-crest">42ND ARRISALAH COHORT</div>
-            </div>
+            {showFooter && (
+              <div className="strip-footer">
+                {showDivider && <div className="strip-divider" />}
+                <div className="strip-caption-title">{captionTitle}</div>
+                <div className="strip-caption-date">{captionDate}</div>
+                {showCrest && <div className="strip-brand-crest">42ND ARRISALAH COHORT</div>}
+              </div>
+            )}
           </div>
 
           {/* Export & Sharing Buttons */}
           <div className="strip-export-actions">
+            {isLiveMode && (
+              <button
+                className="btn-export-primary"
+                onClick={handleExportLiveVideo}
+                disabled={isExporting}
+                style={{ background: "linear-gradient(135deg, #00c9ff, #92fe9d)", color: "#05131a" }}
+              >
+                <i className="fa-solid fa-video"></i>
+                <span>{isExporting ? "Mengekspor Live..." : "Unduh Foto Live Bergerak (Video)"}</span>
+              </button>
+            )}
+
             <button
               className="btn-export-primary"
               onClick={() => handleDownloadStrip("strip")}
