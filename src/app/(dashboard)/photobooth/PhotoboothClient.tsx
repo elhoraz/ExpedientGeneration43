@@ -7,6 +7,8 @@ import "./photobooth.css";
 type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
 type FilterMode = "normal" | "golden" | "noir" | "vintage" | "emerald" | "cyber" | "pastel";
 type FrameTheme =
+  | "gingham"
+  | "cobalt"
   | "doily"
   | "portra"
   | "instagram"
@@ -52,6 +54,15 @@ export default function PhotoboothClient() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const previewPaneRef = useRef<HTMLDivElement | null>(null);
+
+  // Smooth scroll to results
+  const scrollToPreview = () => {
+    triggerHaptic(25);
+    if (previewPaneRef.current) {
+      previewPaneRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   // Sticker dragging states
   const [draggingStickerId, setDraggingStickerId] = useState<string | null>(null);
@@ -78,6 +89,7 @@ export default function PhotoboothClient() {
   const [frameGap, setFrameGap] = useState<number>(10);
   const [frameRadius, setFrameRadius] = useState<number>(6);
   const [photoAspect, setPhotoAspect] = useState<AspectRatioMode>("classic");
+
   const [customBgColor, setCustomBgColor] = useState<string>("#0d0d10");
 
   // Frame Element Toggles
@@ -106,6 +118,9 @@ export default function PhotoboothClient() {
 
   // Total slots based on layout
   const totalSlots = layout === "polaroid" ? 1 : layout === "retro-3cut" ? 3 : 4;
+
+  // Determine if all photo slots for current layout are complete
+  const isAllFilled = photos.slice(0, totalSlots).every((p) => p !== null && p !== undefined);
 
   // Safe Haptic Vibration
   const triggerHaptic = (ms: number = 30) => {
@@ -422,18 +437,41 @@ export default function PhotoboothClient() {
         }
 
         if (stillFrame) {
+          const slotToFill = activeSlot >= 0 ? activeSlot : 0;
+          let isAllComplete = false;
+
           setPhotos((prev) => {
             const next = [...prev];
-            next[activeSlot] = {
+            next[slotToFill] = {
               image: stillFrame,
               video: liveVideoUrl,
             };
+            isAllComplete = next.slice(0, totalSlots).every((p) => p !== null && p !== undefined);
             return next;
           });
 
-          // Advance to next empty slot
-          const nextSlot = (activeSlot + 1) % totalSlots;
-          setActiveSlot(nextSlot);
+          if (isAllComplete) {
+            // All slots filled: STOP and direct to preview (do not wrap around!)
+            setActiveSlot(-1);
+            triggerHaptic(60);
+            setTimeout(() => {
+              if (previewPaneRef.current) {
+                previewPaneRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }, 350);
+          } else {
+            // Find next empty slot
+            setPhotos((latestPhotos) => {
+              for (let i = 0; i < totalSlots; i++) {
+                const nextIdx = (slotToFill + 1 + i) % totalSlots;
+                if (!latestPhotos[nextIdx]) {
+                  setActiveSlot(nextIdx);
+                  break;
+                }
+              }
+              return latestPhotos;
+            });
+          }
         }
       }
     }, 1000);
@@ -448,15 +486,39 @@ export default function PhotoboothClient() {
     reader.onload = async (event) => {
       const dataUrl = event.target?.result as string;
       if (dataUrl) {
+        const slotToFill = activeSlot >= 0 ? activeSlot : 0;
         const targetAspect = getCurrentSlotAspectRatio();
         const croppedUrl = await cropImageToAspect(dataUrl, targetAspect);
+        let isAllComplete = false;
+
         setPhotos((prev) => {
           const next = [...prev];
-          next[activeSlot] = { image: croppedUrl };
+          next[slotToFill] = { image: croppedUrl };
+          isAllComplete = next.slice(0, totalSlots).every((p) => p !== null && p !== undefined);
           return next;
         });
-        setActiveSlot((prev) => (prev + 1) % totalSlots);
-        triggerHaptic(20);
+
+        if (isAllComplete) {
+          setActiveSlot(-1);
+          triggerHaptic(60);
+          setTimeout(() => {
+            if (previewPaneRef.current) {
+              previewPaneRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          }, 350);
+        } else {
+          setPhotos((latestPhotos) => {
+            for (let i = 0; i < totalSlots; i++) {
+              const nextIdx = (slotToFill + 1 + i) % totalSlots;
+              if (!latestPhotos[nextIdx]) {
+                setActiveSlot(nextIdx);
+                break;
+              }
+            }
+            return latestPhotos;
+          });
+          triggerHaptic(20);
+        }
       }
     };
     reader.readAsDataURL(file);
@@ -472,6 +534,11 @@ export default function PhotoboothClient() {
       return next;
     });
     setActiveSlot(index);
+    // Smooth scroll back to camera viewfinder for taking the retake photo
+    const cameraEl = document.querySelector(".camera-studio-box");
+    if (cameraEl) {
+      cameraEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   };
 
   // Reset All Slots
@@ -889,6 +956,25 @@ export default function PhotoboothClient() {
             onChange={handleFileUpload}
           />
 
+          {/* Slots Progress & Retake Selector Bar */}
+          <div className="slots-selector-bar">
+            {Array.from({ length: totalSlots }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`slot-indicator-pill ${activeSlot === i ? "active" : photos[i] ? "filled" : ""}`}
+                onClick={() => {
+                  triggerHaptic(15);
+                  setActiveSlot(i);
+                }}
+                title={photos[i] ? `Pose ${i + 1} terisi (klik untuk retake / foto ulang)` : `Pilih Pose ${i + 1}`}
+              >
+                {photos[i] ? <i className="fa-solid fa-check" style={{ fontSize: "0.68rem" }}></i> : null}
+                <span>Pose {i + 1}</span>
+              </button>
+            ))}
+          </div>
+
           {/* Camera Controls Bar */}
           <div className="camera-controls-bar">
             {/* Flip Camera Button */}
@@ -900,15 +986,32 @@ export default function PhotoboothClient() {
               <i className="fa-solid fa-camera-rotate"></i>
             </button>
 
-            {/* Main Shutter Button */}
-            <button
-              className="btn-shutter"
-              onClick={triggerShutter}
-              disabled={isCountingDown}
-            >
-              <i className={isLiveMode ? "fa-solid fa-video" : "fa-solid fa-camera"}></i>
-              <span>{isCountingDown ? "Bersiap..." : isLiveMode ? `Rekam Live (${activeSlot + 1}/${totalSlots})` : `Ambil Foto (${activeSlot + 1}/${totalSlots})`}</span>
-            </button>
+            {/* Main Shutter Button / Completion Action */}
+            {isAllFilled && activeSlot === -1 ? (
+              <button
+                className="btn-shutter btn-shutter-success"
+                onClick={scrollToPreview}
+                title="Semua pose lengkap, klik untuk melihat photostrip Anda"
+              >
+                <i className="fa-solid fa-sparkles"></i>
+                <span>Lihat Hasil ({totalSlots}/{totalSlots})</span>
+              </button>
+            ) : (
+              <button
+                className="btn-shutter"
+                onClick={triggerShutter}
+                disabled={isCountingDown}
+              >
+                <i className={isLiveMode ? "fa-solid fa-video" : "fa-solid fa-camera"}></i>
+                <span>
+                  {isCountingDown
+                    ? "Bersiap..."
+                    : isLiveMode
+                    ? `Rekam Live (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})`
+                    : `Ambil Foto (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})`}
+                </span>
+              </button>
+            )}
 
             {/* Upload Fallback Button */}
             <button
@@ -919,6 +1022,35 @@ export default function PhotoboothClient() {
               <i className="fa-solid fa-upload"></i>
             </button>
           </div>
+
+          {/* All Slots Completed Interactive Notice */}
+          {isAllFilled && (
+            <div
+              className="all-captured-banner"
+              onClick={scrollToPreview}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "1.4rem" }}>🎉</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "0.85rem", color: "#ffd700" }}>
+                    Semua Pose Terisi ({totalSlots}/{totalSlots})!
+                  </div>
+                  <div style={{ fontSize: "0.72rem", color: "#d0d0d8" }}>
+                    Ketuk di sini untuk melihat & mengunduh photostrip di <span className="mobile-only">bawah 👇</span><span className="desktop-only">samping 👉</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                className="banner-view-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  scrollToPreview();
+                }}
+              >
+                Lihat <i className="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          )}
 
           {/* Studio Customizer Controls */}
           <div className="studio-tools-accordion">
@@ -1060,6 +1192,8 @@ export default function PhotoboothClient() {
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
                   {[
+                    { id: "gingham", label: "🧺 Beige Gingham & Washi Tape" },
+                    { id: "cobalt", label: "⚡ Cobalt Y2K Every Moment" },
                     { id: "doily", label: "🌺 Korduroi & Renda Doily" },
                     { id: "portra", label: "🎞️ Kodak Portra 400" },
                     { id: "instagram", label: "📱 Instagram Feed UI" },
@@ -1316,7 +1450,7 @@ export default function PhotoboothClient() {
         {/* =========================================================
             RIGHT COLUMN: RENDERABLE PHOTOSTRIP PREVIEW
             ========================================================= */}
-        <div className="photostrip-preview-pane">
+        <div className="photostrip-preview-pane" ref={previewPaneRef} id="photostrip-preview-pane">
           <div className="preview-top-actions">
             <div className="preview-heading">
               <i className="fa-solid fa-eye"></i> Pratinjau Photostrip
@@ -1367,7 +1501,29 @@ export default function PhotoboothClient() {
             {/* Header Brand */}
             {showHeader && (
               <div className="strip-header">
-                {theme === "doily" ? (
+                {theme === "cobalt" ? (
+                  <div className="cobalt-banner-card">
+                    <div className="cobalt-top-row">
+                      <i className="fa-solid fa-asterisk"></i>
+                      <div className="cobalt-top-line" />
+                      <span>1.0</span>
+                    </div>
+                    <div className="cobalt-headline-box">
+                      <span className="cobalt-headline-bold">EVERY</span>
+                      <span className="cobalt-script-matters">matters.</span>
+                      <span className="cobalt-headline-bold">MOMENT</span>
+                    </div>
+                    <div className="cobalt-barcode-box">
+                      |||| | |||| || ||| |||| | ||||
+                    </div>
+                  </div>
+                ) : theme === "gingham" ? (
+                  <div style={{ textAlign: "center", padding: "4px 0 2px" }}>
+                    <div style={{ fontSize: "0.72rem", color: "#8b7355", letterSpacing: "2px", fontWeight: 800, textTransform: "uppercase" }}>
+                      ✦ EXPEDIENT SCRAPBOOK ✦
+                    </div>
+                  </div>
+                ) : theme === "doily" ? (
                   <div style={{ textAlign: "center", position: "relative", padding: "4px 0" }}>
                     <span className="doily-flower-badge">🌺</span>
                     <span className="doily-flower-badge-left">🌸</span>
@@ -1463,7 +1619,7 @@ export default function PhotoboothClient() {
                     {theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION"}
                   </div>
                 )}
-                {showDivider && !["receipt", "portra", "instagram", "luggage", "spiral"].includes(theme) && <div className="strip-divider" />}
+                {showDivider && !["receipt", "portra", "instagram", "luggage", "spiral", "gingham", "cobalt"].includes(theme) && <div className="strip-divider" />}
               </div>
             )}
 
@@ -1497,6 +1653,16 @@ export default function PhotoboothClient() {
                           />
                         ) : (
                           <img src={photoObj.image} alt={`Pose ${idx + 1}`} />
+                        )}
+
+                        {/* Theme Gingham: realistic washi tape & kraft sticker on 2nd slot */}
+                        {theme === "gingham" && idx === 1 && (
+                          <>
+                            <div className="gingham-washi-corner" />
+                            <div className="gingham-kraft-sticker-wrap">
+                              <span className="gingham-kraft-sticker">love yourself</span>
+                            </div>
+                          </>
                         )}
 
                         {/* Live Photo Badge */}
@@ -1619,7 +1785,45 @@ export default function PhotoboothClient() {
             {/* Footer Brand & Custom Text */}
             {showFooter && (
               <div className="strip-footer">
-                {theme === "portra" ? (
+                {theme === "gingham" ? (
+                  <div style={{ width: "100%", marginTop: "12px", textAlign: "center" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 6px" }}>
+                      <div className="gingham-masking-wrap">
+                        <span className="gingham-masking-tape">i'd be a fool</span>
+                        <span className="gingham-masking-tape" style={{ transform: "rotate(-2deg)", marginTop: "2px" }}>not to love you</span>
+                      </div>
+                      <div className="gingham-ransom-badge">
+                        <span className="ransom-char ransom-c">C</span>
+                        <span className="ransom-char ransom-u">u</span>
+                        <span className="ransom-char ransom-t">t</span>
+                        <span className="ransom-char ransom-semi">;</span>
+                        <span className="ransom-char ransom-e">E</span>
+                      </div>
+                    </div>
+                    <div className="gingham-quote-text">
+                      - your eyes tell a story
+                    </div>
+                    <div style={{ fontSize: "0.62rem", color: "#8b7355", letterSpacing: "1px", marginTop: "4px", fontWeight: 700 }}>
+                      ✦ {captionTitle} • {captionDate} ✦
+                    </div>
+                  </div>
+                ) : theme === "cobalt" ? (
+                  <div className="cobalt-footer-card">
+                    <div style={{ fontSize: "0.85rem", fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase" }}>
+                      {captionTitle}
+                    </div>
+                    <div style={{ fontSize: "0.62rem", opacity: 0.85, letterSpacing: "1px", margin: "2px 0 8px" }}>
+                      {captionDate} • ARRISALAH COHORT 43
+                    </div>
+                    <div className="cobalt-banner-card" style={{ padding: "6px 10px", margin: 0 }}>
+                      <div className="cobalt-top-row" style={{ justifyContent: "center", gap: "10px" }}>
+                        <i className="fa-solid fa-asterisk"></i>
+                        <span style={{ fontSize: "0.68rem" }}>EXPEDIENT 43 • EVERY MOMENT MATTERS</span>
+                        <span>1.0</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : theme === "portra" ? (
                   <div className="portra-film-footer-codes">
                     <span>S1</span>
                     <span>◄ 5 ►</span>
