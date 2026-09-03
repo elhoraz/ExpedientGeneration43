@@ -5,6 +5,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import "./syndicate.css";
 
 export default function SyndicateClient({ initialPortofolio, userId }: { initialPortofolio: any[]; userId: string }) {
   const [portofolio, setPortofolio] = useState<any[]>(initialPortofolio);
@@ -14,6 +15,13 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
   const handleFilter = (cat: string) => setFilter(cat);
 
   const filteredBiz = filter === "all" ? portofolio : portofolio.filter(b => b.kategori === filter);
+
+  useEffect(() => {
+    document.body.classList.add("page-syndicate");
+    return () => {
+      document.body.classList.remove("page-syndicate");
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined" && (window as any).VanillaTilt) {
@@ -37,21 +45,10 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
   };
 
   return (
-    <div style={{
-      position: "relative",
-      width: "100%",
-      minHeight: "100vh",
-      padding: "120px 5% 50px",
-      background: "radial-gradient(circle at top right, rgba(212, 175, 55, 0.05), transparent 40%), radial-gradient(circle at bottom left, rgba(0, 255, 136, 0.05), transparent 40%)",
-      zIndex: 1
-    }}>
+    <div className="syndicate-page">
       <div style={{ textAlign: "center", marginBottom: "50px" }}>
-        <h1 style={{
-          fontFamily: "'Playfair Display', serif", fontSize: "3.5rem", color: "#fff",
-          fontWeight: 900, letterSpacing: "4px", textTransform: "uppercase",
-          textShadow: "0 10px 30px rgba(212, 175, 55, 0.3)", marginBottom: "10px"
-        }}>The Syndicate</h1>
-        <div style={{ fontFamily: "'Courier New', monospace", fontSize: "1rem", color: "#d4af37", letterSpacing: "6px", textTransform: "uppercase" }}>
+        <h1 className="syndicate-title">The Syndicate</h1>
+        <div className="syndicate-subtitle">
           Alumni Business & Professional Network
         </div>
       </div>
@@ -62,14 +59,11 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
       }}>
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           {["all", "F&B", "Teknologi", "Jasa", "Kreatif", "Retail"].map(cat => (
-            <button key={cat} onClick={() => handleFilter(cat)} style={{
-              background: filter === cat ? "rgba(212, 175, 55, 0.2)" : "rgba(255, 255, 255, 0.05)",
-              border: `1px solid ${filter === cat ? "#d4af37" : "rgba(255, 255, 255, 0.1)"}`,
-              color: filter === cat ? "#d4af37" : "#aaa",
-              padding: "10px 20px", borderRadius: "50px", fontSize: "0.8rem",
-              fontWeight: 600, textTransform: "uppercase", letterSpacing: "2px", cursor: "pointer",
-              transition: "0.3s ease"
-            }}>
+            <button 
+              key={cat} 
+              onClick={() => handleFilter(cat)} 
+              className={`syndicate-filter-btn ${filter === cat ? "active" : ""}`}
+            >
               {cat === "all" ? "Semua" : cat}
             </button>
           ))}
@@ -95,11 +89,11 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
         {filteredBiz.length === 0 ? (
           <div style={{
             gridColumn: "1 / -1", textAlign: "center", padding: "80px 20px",
-            background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(212,175,55,0.3)", borderRadius: "15px"
+            background: "var(--glass-bg)", border: "1px dashed var(--glass-border)", borderRadius: "18px"
           }}>
-            <i className="fa-solid fa-vault" style={{ fontSize: "4rem", color: "rgba(212,175,55,0.3)", marginBottom: "20px" }}></i>
-            <h3 style={{ color: "#fff", fontFamily: "'Playfair Display', serif" }}>Brankas Masih Kosong</h3>
-            <p style={{ color: "#aaa" }}>Jadilah agen pertama yang memamerkan kerajaan bisnis Anda di sini.</p>
+            <i className="fa-solid fa-vault" style={{ fontSize: "4rem", color: "var(--gold-main)", opacity: 0.4, marginBottom: "20px" }}></i>
+            <h3 style={{ color: "var(--text-primary)", fontFamily: "var(--font-playfair, 'Playfair Display', serif)", fontSize: "1.6rem", marginBottom: "10px" }}>Brankas Masih Kosong</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>Jadilah agen pertama yang memamerkan kerajaan bisnis Anda di sini.</p>
           </div>
         ) : (
           filteredBiz.map(biz => {
@@ -111,80 +105,62 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
             const logo = biz.logo_bisnis ? `/uploads/bisnis/${biz.logo_bisnis}` : `https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`;
 
             return (
-              <div key={biz.id} className="biz-item" style={{
-                background: "rgba(15, 18, 16, 0.7)", backdropFilter: "blur(20px)",
-                border: "1px solid rgba(212, 175, 55, 0.3)", borderRadius: "15px",
-                overflow: "hidden", position: "relative", boxShadow: "0 15px 35px rgba(0,0,0,0.5)",
-                display: "flex", flexDirection: "column", borderTop: "1px solid rgba(255, 255, 255, 0.1)",
-                borderLeft: "1px solid rgba(255, 255, 255, 0.1)", transition: "0.4s ease"
-              }}>
+              <div key={biz.id} className="biz-item syndicate-card">
                 <div style={{ width: "100%", height: "180px", background: "#0a0a0a", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <div style={{
-                    position: "absolute", top: "15px", right: "15px", background: "rgba(0, 0, 0, 0.8)",
-                    border: "1px solid #d4af37", color: "#d4af37", padding: "5px 12px", borderRadius: "5px",
-                    fontSize: "0.7rem", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase",
-                    backdropFilter: "blur(5px)", zIndex: 2
+                    position: "absolute", top: "15px", right: "15px", background: "rgba(0, 0, 0, 0.75)",
+                    border: "1px solid var(--gold-main)", color: "var(--gold-main)", padding: "5px 12px", borderRadius: "6px",
+                    fontSize: "0.7rem", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase",
+                    backdropFilter: "blur(6px)", zIndex: 2
                   }}>{biz.kategori}</div>
-                  <img src={logo} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
+                  <img src={logo} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }} />
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "15px", padding: "0 20px", transform: "translateY(-20px)" }}>
-                  <img src={ownerAvatar} alt="Owner" style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", border: "3px solid #111", boxShadow: "0 5px 15px rgba(0,0,0,0.5)" }} />
+                  <img src={ownerAvatar} alt="Owner" style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", border: "3px solid var(--bg-card)", boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }} />
                   <div style={{ display: "flex", flexDirection: "column", marginTop: "25px" }}>
-                    <h4 style={{ fontFamily: "'Playfair Display', serif", color: "#fff", fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>{ownerName}</h4>
-                    <span style={{ fontFamily: "'Courier New', monospace", color: "#00ff88", fontSize: "0.7rem", letterSpacing: "1px" }}>Direktur / Founder</span>
+                    <h4 className="biz-owner-name">{ownerName}</h4>
+                    <span className="biz-founder-badge">Direktur / Founder</span>
                   </div>
                 </div>
 
                 <div style={{ padding: "0 20px 20px", flexGrow: 1, marginTop: "-10px" }}>
-                  <h2 style={{ fontFamily: "'Inter', sans-serif", fontSize: "1.4rem", color: "#fff", fontWeight: 800, marginBottom: "10px", lineHeight: 1.2 }}>{biz.nama_bisnis}</h2>
-                  <div style={{ fontSize: "0.85rem", color: "#aaa", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{biz.deskripsi}</div>
+                  <h2 className="biz-name">{biz.nama_bisnis}</h2>
+                  <div className="biz-desc">{biz.deskripsi}</div>
                 </div>
 
-                <div style={{ display: "flex", borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(0,0,0,0.3)" }}>
+                <div className="biz-footer-actions">
                   <a href={wa ? `https://wa.me/${wa}` : "#"} target={wa ? "_blank" : "_self"} onClick={async (e) => {
                     if (!wa) {
                       e.preventDefault();
                       await showConfirm("Tidak Tersedia", "Pemilik bisnis belum mencantumkan nomor WhatsApp.");
                     }
-                  }} style={{
-                    flex: 1, padding: "15px", textAlign: "center", color: "#fff", textDecoration: "none",
-                    fontSize: "0.85rem", fontWeight: 600, letterSpacing: "1px", display: "flex", alignItems: "center",
-                    justifyContent: "center", gap: "8px", borderRight: "1px solid rgba(255,255,255,0.05)"
-                  }}>
-                    <i className="fa-brands fa-whatsapp"></i> Hubungi
+                  }} className="biz-footer-btn" style={{ borderRight: "1px solid var(--glass-border, rgba(255,255,255,0.08))" }}>
+                    <i className="fa-brands fa-whatsapp" style={{ color: "#25D366" }}></i> Hubungi
                   </a>
                   {biz.link_url ? (
-                    <a href={biz.link_url} target="_blank" style={{
-                      flex: 1, padding: "15px", textAlign: "center", color: "#fff", textDecoration: "none",
-                      fontSize: "0.85rem", fontWeight: 600, letterSpacing: "1px", display: "flex", alignItems: "center",
-                      justifyContent: "center", gap: "8px"
-                    }}>
-                      <i className="fa-solid fa-globe"></i> Kunjungi
+                    <a href={biz.link_url} target="_blank" className="biz-footer-btn">
+                      <i className="fa-solid fa-globe" style={{ color: "var(--gold-main)" }}></i> Kunjungi
                     </a>
                   ) : (
-                    <a href="#" onClick={e => e.preventDefault()} style={{
-                      flex: 1, padding: "15px", textAlign: "center", color: "#fff", textDecoration: "none",
-                      fontSize: "0.85rem", fontWeight: 600, letterSpacing: "1px", display: "flex", alignItems: "center",
-                      justifyContent: "center", gap: "8px", opacity: 0.3, cursor: "not-allowed"
-                    }}>
+                    <a href="#" onClick={e => e.preventDefault()} className="biz-footer-btn" style={{ opacity: 0.35, cursor: "not-allowed" }}>
                       <i className="fa-solid fa-globe"></i> N/A
                     </a>
                   )}
                 </div>
 
                 {biz.user_id === userId && (
-                  <div style={{ display: "flex", background: "rgba(0,0,0,0.5)" }}>
+                  <div style={{ display: "flex", background: "rgba(0,0,0,0.25)", borderTop: "1px solid var(--glass-border)" }}>
                     <Link href={`/syndicate/edit/${biz.id}`} style={{
-                      flex: 1, padding: "15px", textAlign: "center", color: "#d4af37", background: "transparent", border: "none", borderRight: "1px solid rgba(255,255,255,0.05)",
-                      fontSize: "0.85rem", fontWeight: 600, letterSpacing: "1px", display: "flex", alignItems: "center",
+                      flex: 1, padding: "12px", textAlign: "center", color: "var(--gold-main)", background: "transparent", border: "none", borderRight: "1px solid var(--glass-border)",
+                      fontSize: "0.82rem", fontWeight: 600, letterSpacing: "1px", display: "flex", alignItems: "center",
                       justifyContent: "center", gap: "8px", textDecoration: "none"
                     }}>
                       <i className="fa-solid fa-edit"></i> Edit
                     </Link>
                     <button onClick={() => handleDelete(biz.id)} style={{
-                      flex: 1, padding: "15px", textAlign: "center", color: "#ff3366", background: "transparent", border: "none",
-                      fontSize: "0.85rem", fontWeight: 600, letterSpacing: "1px", display: "flex", alignItems: "center",
+                      flex: 1, padding: "12px", textAlign: "center", color: "#ff4d6d", background: "transparent", border: "none",
+                      fontSize: "0.82rem", fontWeight: 600, letterSpacing: "1px", display: "flex", alignItems: "center",
                       justifyContent: "center", gap: "8px", cursor: "pointer"
                     }}>
                       <i className="fa-solid fa-trash"></i> Hapus

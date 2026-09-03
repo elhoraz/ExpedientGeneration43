@@ -70,7 +70,7 @@ export default async function BirthdayListPage() {
       ) : (
           <div className="bday-empty js-reveal">
               <i className="fa-regular fa-face-smile"></i>
-              <h3 style={{ color: '#fff', marginBottom: '10px', fontFamily: "'Playfair Display', serif" }}>Tidak Ada Ulang Tahun Hari Ini</h3>
+              <h3 style={{ color: 'var(--text-primary)', marginBottom: '10px', fontFamily: "'Playfair Display', serif" }}>Tidak Ada Ulang Tahun Hari Ini</h3>
               <p>Belum ada kolega yang berulang tahun hari ini. Kembali lagi besok!</p>
               <Link href="/beranda" className="bday-btn" style={{ marginTop: '20px' }}>
                   <i className="fa-solid fa-arrow-left" style={{ marginRight: '8px' }}></i> Kembali

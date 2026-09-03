@@ -113,15 +113,15 @@ export default async function EventsPage() {
         <form action={addEvent} style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 200px" }}>
             <label style={{ display: "block", marginBottom: "6px", color: "var(--text-secondary)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "1px" }}>Nama Acara</label>
-            <input type="text" name="title" required placeholder="Contoh: Gala Dinner 2027" style={{ width: "100%", padding: "10px 14px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--glass-border)", color: "#fff", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
+            <input type="text" name="title" required placeholder="Contoh: Gala Dinner 2027" style={{ width: "100%", padding: "10px 14px", background: "var(--bg-secondary)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
           </div>
           <div style={{ flex: "1 1 200px" }}>
             <label style={{ display: "block", marginBottom: "6px", color: "var(--text-secondary)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "1px" }}>Tanggal & Waktu</label>
-            <input type="datetime-local" name="event_date" required style={{ width: "100%", padding: "10px 14px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--glass-border)", color: "#fff", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
+            <input type="datetime-local" name="event_date" required style={{ width: "100%", padding: "10px 14px", background: "var(--bg-secondary)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
           </div>
           <div style={{ flex: "2 1 260px" }}>
             <label style={{ display: "block", marginBottom: "6px", color: "var(--text-secondary)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "1px" }}>Deskripsi Singkat</label>
-            <input type="text" name="description" placeholder="Deskripsi atau lokasi acara..." style={{ width: "100%", padding: "10px 14px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--glass-border)", color: "#fff", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
+            <input type="text" name="description" placeholder="Deskripsi atau lokasi acara..." style={{ width: "100%", padding: "10px 14px", background: "var(--bg-secondary)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
           </div>
           <div style={{ flex: "1 1 140px" }}>
             <button type="submit" style={{ width: "100%", padding: "10px 16px", background: "linear-gradient(135deg, #8a2be2, #4b0082)", border: "none", color: "#fff", borderRadius: "10px", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", letterSpacing: "1px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }} className="hover-trigger">

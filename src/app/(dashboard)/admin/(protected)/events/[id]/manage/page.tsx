@@ -127,7 +127,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
           
           <div style={{ flex: "1 1 140px" }}>
             <label style={{ display: "block", marginBottom: "6px", color: "var(--text-secondary)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "1px" }}>Nomor Kursi/Zona</label>
-            <input type="text" name="seat_number" placeholder="Contoh: VIP-A1" required style={{ width: "100%", padding: "10px 14px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--glass-border)", color: "#fff", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
+            <input type="text" name="seat_number" placeholder="Contoh: VIP-A1" required style={{ width: "100%", padding: "10px 14px", background: "var(--bg-secondary)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
           </div>
           
           <div style={{ flex: "1 1 140px" }}>
