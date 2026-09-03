@@ -6,7 +6,20 @@ import "./photobooth.css";
 
 type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
 type FilterMode = "normal" | "golden" | "noir" | "vintage" | "emerald" | "cyber" | "pastel";
-type FrameTheme = "sovereign" | "white" | "film" | "santri" | "custom";
+type FrameTheme =
+  | "sovereign"
+  | "white"
+  | "film"
+  | "santri"
+  | "sakura"
+  | "cyber"
+  | "parchment"
+  | "ocean"
+  | "velvet"
+  | "y2k"
+  | "botanical"
+  | "monolith"
+  | "custom";
 type AspectRatioMode = "classic" | "square" | "portrait";
 
 interface PhotoItem {
@@ -28,6 +41,7 @@ export default function PhotoboothClient() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
 
   // Sticker dragging states
   const [draggingStickerId, setDraggingStickerId] = useState<string | null>(null);
@@ -112,14 +126,30 @@ export default function PhotoboothClient() {
     } catch {}
   };
 
+  // Completely Stop Camera Hardware
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch {}
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setStream(null);
+    setIsCameraReady(false);
+  }, []);
+
   // Initialize Camera Stream
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     setCameraError(null);
     setIsCameraReady(false);
 
-    if (stream) {
-      stream.getTracks().forEach((t) => t.stop());
-    }
+    // Stop any existing stream first to avoid hardware lock
+    stopCamera();
 
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -135,6 +165,7 @@ export default function PhotoboothClient() {
         audio: false,
       });
 
+      streamRef.current = newStream;
       setStream(newStream);
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
@@ -147,16 +178,24 @@ export default function PhotoboothClient() {
       setCameraError(err.message || "Izin akses kamera tidak diberikan.");
       setIsCameraReady(false);
     }
-  }, [stream]);
+  }, [stopCamera]);
 
   useEffect(() => {
     startCamera(cameraFacing);
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach((t) => t.stop());
-      }
+
+    // Guarantee camera turns off when leaving the page or closing tab
+    const handleUnload = () => {
+      stopCamera();
     };
-  }, []);
+    window.addEventListener("beforeunload", handleUnload);
+    window.addEventListener("pagehide", handleUnload);
+
+    return () => {
+      stopCamera();
+      window.removeEventListener("beforeunload", handleUnload);
+      window.removeEventListener("pagehide", handleUnload);
+    };
+  }, [stopCamera]);
 
   // Flip Camera (Mobile)
   const handleToggleFacing = () => {
@@ -402,8 +441,11 @@ export default function PhotoboothClient() {
   };
 
   // Resize Individual Sticker (+ / -)
-  const handleResizeSticker = (id: string, delta: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleResizeSticker = (id: string, delta: number, e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     triggerHaptic(15);
     setStickers((prev) =>
       prev.map((s) => {
@@ -416,8 +458,11 @@ export default function PhotoboothClient() {
   };
 
   // Delete Individual Sticker
-  const handleDeleteSticker = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDeleteSticker = (id: string, e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     triggerHaptic(25);
     setStickers((prev) => prev.filter((s) => s.id !== id));
     if (selectedStickerId === id) setSelectedStickerId(null);
@@ -826,7 +871,7 @@ export default function PhotoboothClient() {
 
               {/* Color Swatches */}
               <div style={{ marginTop: "10px" }}>
-                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Warna Dasar Bingkai:</span>
+                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Warna Dasar Bingkai (Kustom):</span>
                 <div className="color-swatches-row">
                   {[
                     { color: "#0d0d10", label: "Obsidian" },
@@ -849,7 +894,7 @@ export default function PhotoboothClient() {
                     />
                   ))}
                   {/* Custom Color Input */}
-                  <label className="color-picker-input-btn" title="Pilih Warna Kustom">
+                  <label className="color-picker-input-btn" title="Pilih Warna Kustom Bebas">
                     <i className="fa-solid fa-palette"></i>
                     <input
                       type="color"
@@ -861,6 +906,42 @@ export default function PhotoboothClient() {
                       style={{ opacity: 0, width: 0, height: 0, position: "absolute" }}
                     />
                   </label>
+                </div>
+              </div>
+
+              {/* 12 Frame Themes Picker */}
+              <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <span style={{ fontSize: "0.75rem", color: "#ffd700", display: "block", marginBottom: "8px", fontWeight: 700 }}>
+                  <i className="fa-solid fa-wand-magic-sparkles"></i> 12 Tema Eksklusif Frame:
+                </span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                  {[
+                    { id: "sovereign", label: "👑 Sovereign Gold" },
+                    { id: "white", label: "🤍 Minimalist White" },
+                    { id: "film", label: "🎞️ 35mm Analog" },
+                    { id: "santri", label: "🕌 Nostalgia Santri" },
+                    { id: "sakura", label: "🌸 Sakura Pastel" },
+                    { id: "cyber", label: "🌌 Cyberpunk Neon" },
+                    { id: "parchment", label: "📜 Vintage Parchment" },
+                    { id: "ocean", label: "🌊 Deep Ocean" },
+                    { id: "velvet", label: "💜 Royal Velvet" },
+                    { id: "y2k", label: "⚡ Y2K Chrome" },
+                    { id: "botanical", label: "🍃 Sage Botanical" },
+                    { id: "monolith", label: "🖤 Dark Monolith" },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={`toggle-element-btn ${theme === t.id ? "active" : ""}`}
+                      onClick={() => {
+                        triggerHaptic(10);
+                        setTheme(t.id as FrameTheme);
+                      }}
+                      style={{ fontSize: "0.74rem", padding: "5px 10px" }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -1203,25 +1284,56 @@ export default function PhotoboothClient() {
                   <div
                     className="sticker-mini-toolbar"
                     data-html2canvas-ignore="true"
+                    onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
+                      type="button"
                       className="sticker-tool-mini-btn"
-                      onClick={(e) => handleResizeSticker(stk.id, -0.2, e)}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleResizeSticker(stk.id, -0.2, e);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleResizeSticker(stk.id, -0.2, e);
+                      }}
                       title="Perkecil"
                     >
                       −
                     </button>
                     <button
+                      type="button"
                       className="sticker-tool-mini-btn"
-                      onClick={(e) => handleResizeSticker(stk.id, 0.2, e)}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleResizeSticker(stk.id, 0.2, e);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleResizeSticker(stk.id, 0.2, e);
+                      }}
                       title="Perbesar"
                     >
                       +
                     </button>
                     <button
+                      type="button"
                       className="sticker-tool-mini-btn btn-del"
-                      onClick={(e) => handleDeleteSticker(stk.id, e)}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDeleteSticker(stk.id, e);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleDeleteSticker(stk.id, e);
+                      }}
                       title="Hapus Stiker"
                     >
                       ✕

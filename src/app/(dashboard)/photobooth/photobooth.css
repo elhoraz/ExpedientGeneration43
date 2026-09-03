@@ -472,6 +472,146 @@
   background: linear-gradient(90deg, transparent, #52b788, transparent);
 }
 
+/* THEME 5: SAKURA PASTEL */
+.photostrip-card.theme-sakura {
+  background: linear-gradient(180deg, #fff0f5 0%, #ffe4ec 100%);
+  border: 2px solid #ffb6c1;
+  box-shadow: 0 20px 50px rgba(255, 182, 193, 0.3), 0 0 20px rgba(255, 192, 203, 0.2);
+}
+.photostrip-card.theme-sakura .strip-header,
+.photostrip-card.theme-sakura .strip-footer {
+  color: #c71f66;
+}
+.photostrip-card.theme-sakura .strip-divider {
+  background: linear-gradient(90deg, transparent, #ff69b4, transparent);
+}
+.photostrip-card.theme-sakura .photo-cell {
+  border-color: #ffd1dc;
+}
+
+/* THEME 6: CYBERPUNK NEON */
+.photostrip-card.theme-cyber {
+  background: #080812;
+  border: 2px solid #00f0ff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.4), inset 0 0 15px rgba(255, 0, 128, 0.15);
+}
+.photostrip-card.theme-cyber .strip-header,
+.photostrip-card.theme-cyber .strip-footer {
+  color: #00f0ff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+}
+.photostrip-card.theme-cyber .strip-divider {
+  background: linear-gradient(90deg, transparent, #ff007f, transparent);
+}
+.photostrip-card.theme-cyber .photo-cell {
+  border-color: #1a1a36;
+}
+
+/* THEME 7: VINTAGE PARCHMENT */
+.photostrip-card.theme-parchment {
+  background: #f5eedb;
+  border: 2px solid #9c7a5b;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 0 40px rgba(112, 66, 20, 0.15);
+}
+.photostrip-card.theme-parchment .strip-header,
+.photostrip-card.theme-parchment .strip-footer {
+  color: #4a2c11;
+  font-family: serif;
+}
+.photostrip-card.theme-parchment .strip-divider {
+  background: linear-gradient(90deg, transparent, #8b5a2b, transparent);
+}
+.photostrip-card.theme-parchment .photo-cell {
+  border-color: #d8c29d;
+}
+
+/* THEME 8: DEEP OCEAN NAVY */
+.photostrip-card.theme-ocean {
+  background: linear-gradient(180deg, #0b192c 0%, #030810 100%);
+  border: 2px solid #00b4d8;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(0, 180, 216, 0.3);
+}
+.photostrip-card.theme-ocean .strip-header,
+.photostrip-card.theme-ocean .strip-footer {
+  color: #90e0ef;
+}
+.photostrip-card.theme-ocean .strip-divider {
+  background: linear-gradient(90deg, transparent, #00b4d8, transparent);
+}
+.photostrip-card.theme-ocean .photo-cell {
+  border-color: #132a48;
+}
+
+/* THEME 9: ROYAL VELVET AMETHYST */
+.photostrip-card.theme-velvet {
+  background: radial-gradient(circle at 50% 0%, #240046 0%, #10002b 100%);
+  border: 2px solid #9d4edd;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(157, 78, 221, 0.35);
+}
+.photostrip-card.theme-velvet .strip-header,
+.photostrip-card.theme-velvet .strip-footer {
+  color: #e0aaff;
+}
+.photostrip-card.theme-velvet .strip-divider {
+  background: linear-gradient(90deg, transparent, #c77dff, transparent);
+}
+.photostrip-card.theme-velvet .photo-cell {
+  border-color: #3c096c;
+}
+
+/* THEME 10: MIDNIGHT Y2K CHROME */
+.photostrip-card.theme-y2k {
+  background: linear-gradient(135deg, #1b1c20 0%, #35363e 50%, #1b1c20 100%);
+  border: 2px solid #e0e0e8;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(255, 255, 255, 0.25);
+}
+.photostrip-card.theme-y2k .strip-header,
+.photostrip-card.theme-y2k .strip-footer {
+  color: #ffffff;
+  letter-spacing: 3px;
+}
+.photostrip-card.theme-y2k .strip-divider {
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
+}
+.photostrip-card.theme-y2k .photo-cell {
+  border-color: #484952;
+}
+
+/* THEME 11: FOREST SAGE BOTANICAL */
+.photostrip-card.theme-botanical {
+  background: linear-gradient(180deg, #1c2820 0%, #0c140e 100%);
+  border: 2px solid #588157;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 20px rgba(88, 129, 87, 0.25);
+}
+.photostrip-card.theme-botanical .strip-header,
+.photostrip-card.theme-botanical .strip-footer {
+  color: #a3b18a;
+}
+.photostrip-card.theme-botanical .strip-divider {
+  background: linear-gradient(90deg, transparent, #a3b18a, transparent);
+}
+.photostrip-card.theme-botanical .photo-cell {
+  border-color: #2b3d30;
+}
+
+/* THEME 12: DARK MONOLITH GRUNGE */
+.photostrip-card.theme-monolith {
+  background: #18191d;
+  border: 2px solid #444752;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95);
+}
+.photostrip-card.theme-monolith .strip-header,
+.photostrip-card.theme-monolith .strip-footer {
+  color: #dee2e6;
+  font-weight: 900;
+}
+.photostrip-card.theme-monolith .strip-divider {
+  background: linear-gradient(90deg, transparent, #6c757d, transparent);
+}
+.photostrip-card.theme-monolith .photo-cell {
+  border-color: #2b2d35;
+}
+
 /* Strip Header */
 .strip-header {
   width: 100%;
