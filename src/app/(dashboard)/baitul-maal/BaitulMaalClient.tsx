@@ -45,7 +45,15 @@ export default function BaitulMaalClient({
   
   // Ledger Filters
   const [filterType, setFilterType] = useState<"ALL" | "IN" | "OUT">("ALL");
+  const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleFilterChange = (type: "ALL" | "IN" | "OUT") => {
+    if (type === filterType) return;
+    setIsFilterLoading(true);
+    setFilterType(type);
+    setTimeout(() => setIsFilterLoading(false), 220);
+  };
   
   // Donation Form States
   const [donateAmount, setDonateAmount] = useState("");
@@ -710,21 +718,21 @@ export default function BaitulMaalClient({
               <button
                 type="button"
                 className={`filter-tab ${filterType === "ALL" ? "active" : ""}`}
-                onClick={() => setFilterType("ALL")}
+                onClick={() => handleFilterChange("ALL")}
               >
                 Semua ({transactions.length})
               </button>
               <button
                 type="button"
                 className={`filter-tab ${filterType === "IN" ? "active" : ""}`}
-                onClick={() => setFilterType("IN")}
+                onClick={() => handleFilterChange("IN")}
               >
                 <i className="fa-solid fa-arrow-down" style={{ color: "#00ff88" }}></i> Pemasukan
               </button>
               <button
                 type="button"
                 className={`filter-tab ${filterType === "OUT" ? "active" : ""}`}
-                onClick={() => setFilterType("OUT")}
+                onClick={() => handleFilterChange("OUT")}
               >
                 <i className="fa-solid fa-arrow-up" style={{ color: "#ff5555" }}></i> Pengeluaran
               </button>
@@ -748,7 +756,26 @@ export default function BaitulMaalClient({
 
           {/* TRANSACTION LIST */}
           <div className="ledger-list">
-            {filteredTransactions.length === 0 ? (
+            {isFilterLoading ? (
+              [1, 2, 3].map((i) => (
+                <div className="tx-item" key={i} style={{ opacity: 0.9 }}>
+                  <div className="tx-left">
+                    <div className="skeleton-shimmer skeleton-circle" style={{ width: 44, height: 44, flexShrink: 0 }} />
+                    <div className="tx-details" style={{ width: "100%" }}>
+                      <div className="skeleton-shimmer" style={{ width: "55%", height: 16, borderRadius: 4, marginBottom: 8 }} />
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <div className="skeleton-shimmer" style={{ width: 110, height: 12, borderRadius: 4 }} />
+                        <div className="skeleton-shimmer" style={{ width: 130, height: 12, borderRadius: 4 }} />
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div className="skeleton-shimmer skeleton-pill" style={{ width: 110, height: 26 }} />
+                    <div className="skeleton-shimmer skeleton-pill hide-mobile" style={{ width: 70, height: 28 }} />
+                  </div>
+                </div>
+              ))
+            ) : filteredTransactions.length === 0 ? (
               <div style={{ textAlign: "center", padding: "50px 20px", color: "var(--text-secondary, #8b9ba8)" }}>
                 <i className="fa-solid fa-folder-open" style={{ fontSize: "3rem", marginBottom: "15px", opacity: 0.3 }}></i>
                 <br />

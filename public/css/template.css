@@ -421,39 +421,40 @@ body.sidebar-closed .notif-dropdown {
 
 /* ================= 9. ELITE UX: GOLDEN SKELETON SHIMMER ================= */
 @keyframes goldenShimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 .skeleton-shimmer {
-    background: #111;
+    background: rgba(255, 255, 255, 0.03);
     background-image: linear-gradient(
-        to right,
+        90deg,
         rgba(255, 255, 255, 0.02) 0%,
-        rgba(212, 175, 55, 0.15) 20%, /* Efek cahaya Emas mengkilap */
-        rgba(255, 255, 255, 0.02) 40%,
+        rgba(212, 175, 55, 0.18) 50%,
         rgba(255, 255, 255, 0.02) 100%
     );
     background-repeat: no-repeat;
-    background-size: 1000px 100%;
-    animation: goldenShimmer 2s infinite linear forwards;
+    background-size: 200% 100%;
+    animation: goldenShimmer 1.8s infinite ease-in-out;
     border-radius: 8px;
     color: transparent !important;
-    border: none !important;
+    border: 1px solid rgba(212, 175, 55, 0.12) !important;
     pointer-events: none;
     box-shadow: none !important;
+    display: inline-block;
+    box-sizing: border-box;
 }
 
 /* Fallback jika alumni memilih Tema Terang */
 :root[data-theme="light"] .skeleton-shimmer {
-    background: #e5e7eb;
+    background: #e2e8f0;
     background-image: linear-gradient(
-        to right,
-        rgba(0, 0, 0, 0.02) 0%,
-        rgba(212, 175, 55, 0.25) 20%,
-        rgba(0, 0, 0, 0.02) 40%,
-        rgba(0, 0, 0, 0.02) 100%
+        90deg,
+        rgba(0, 0, 0, 0.03) 0%,
+        rgba(212, 175, 55, 0.28) 50%,
+        rgba(0, 0, 0, 0.03) 100%
     );
+    border: 1px solid rgba(212, 175, 55, 0.25) !important;
 }
 
 /* Mencegah bingkai/border jelek (broken image icon) muncul saat gambar belum terload penuh */
@@ -727,15 +728,35 @@ img.skeleton-shimmer {
 .skeleton-line.sm { height: 10px; }
 .skeleton-line.w-full { width: 100%; }
 .skeleton-line.w-3q { width: 75%; }
+.skeleton-line {
+    height: 14px;
+    border-radius: 4px;
+}
+.skeleton-line.w-full { width: 100%; }
+.skeleton-line.w-three-quarter { width: 75%; }
 .skeleton-line.w-half { width: 50%; }
 .skeleton-line.w-third { width: 33%; }
 .skeleton-avatar { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
 .skeleton-avatar.lg { width: 72px; height: 72px; }
 .skeleton-avatar.sm { width: 32px; height: 32px; }
-.skeleton-card { border-radius: 16px; padding: 20px; background: rgba(212,175,55,0.02); border: 1px solid rgba(212,175,55,0.07); }
-.skeleton-card-media { width: 100%; height: 180px; border-radius: 10px; margin-bottom: 16px; }
-/* All skeleton variants use the shared shimmer animation */
-.skeleton-line, .skeleton-avatar, .skeleton-card-media { @extend .skeleton-shimmer; }
+.skeleton-circle { border-radius: 50% !important; }
+.skeleton-pill { border-radius: 50px !important; }
+.skeleton-card {
+    border-radius: 20px;
+    padding: 24px;
+    background: rgba(14, 18, 16, 0.65);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-sizing: border-box;
+}
+:root[data-theme="light"] .skeleton-card {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+.skeleton-card-media { width: 100%; height: 180px; border-radius: 12px; margin-bottom: 16px; }
 
 /* ================= 16. P3: SMART SCROLL-TO-TOP (#26) ================= */
 .scroll-top-btn {

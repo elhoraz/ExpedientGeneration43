@@ -446,9 +446,10 @@ Root (Expedient 42 Portal)
 * **Effort:** Low (10 menit).
 
 ### #19 — Skeleton Loading pada Daftar Donatur
-* **Severity:** 🟢 LOW
+* **Severity:** 🟢 LOW (SELESAI ✅)
 * **Principle Violated:** Perceived Performance (Doherty Threshold).
 * **Recommendation:** Tampilkan 3 placeholder skeleton berkilau emas saat data transaksi kas dimuat pertama kali.
+* **Status:** SELESAI ✅ — Komponen `BaitulMaalSkeleton` dan in-page shimmer rows telah diimplementasikan penuh.
 * **Effort:** Low (15 menit).
 
 ### #20 — Quick VCard Sharing via QR Code
