@@ -194,7 +194,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
           </div>
         </div>
 
-        <div className="bday-watermark bday-body bday-text">Expedient Generation — 42nd Arrisalah</div>
+        <div className="bday-watermark bday-body bday-text">Expedient Generation — 43rd Arrisalah</div>
       </div>
     </>
   );

@@ -39,10 +39,10 @@ export default async function LandingPage() {
             />
           </div>
 
-          <p className="landing-eyebrow">{getCms(cms, 'landing_hero_eyebrow', '42nd Pondok Modern Arrisalah')}</p>
+          <p className="landing-eyebrow">{getCms(cms, 'landing_hero_eyebrow', '43rd Pondok Modern Arrisalah')}</p>
           <h1 className="landing-title">{getCms(cms, 'landing_hero_title', 'Expedient Generation')}</h1>
           <p className="landing-subtitle">
-            {getCms(cms, 'landing_hero_subtitle', 'Museum digital eksklusif dan platform komunitas alumni angkatan ke-42. Menjaga warisan, membangun masa depan, mempersatukan barisan.')}
+            {getCms(cms, 'landing_hero_subtitle', 'Museum digital eksklusif dan platform komunitas alumni angkatan ke-43. Menjaga warisan, membangun masa depan, mempersatukan barisan.')}
           </p>
 
           <div className="cta-group">
@@ -129,7 +129,7 @@ export default async function LandingPage() {
 
         {/* ====== FOOTER ====== */}
         <footer className="landing-footer">
-          &copy; {currentYear} {getCms(cms, 'landing_footer_text', 'Expedient Generation — 42nd Pondok Modern Arrisalah')}
+          &copy; {currentYear} {getCms(cms, 'landing_footer_text', 'Expedient Generation — 43rd Pondok Modern Arrisalah')}
         </footer>
       </main>
     </>

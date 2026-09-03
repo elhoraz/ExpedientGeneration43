@@ -256,9 +256,9 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                     `FN:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan}`,
                     `N:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan};;;;`,
                     `NICKNAME:${qrModalUser.nama_panggilan || ""}`,
-                    "ORG:Expedient Generation 42",
+                    "ORG:Expedient Generation 43",
                     phoneFormatted ? `TEL;TYPE=CELL,VOICE:${phoneFormatted}` : "",
-                    "NOTE:Alumni Expedient Generation Angkatan 42",
+                    "NOTE:Alumni Expedient Generation Angkatan 43",
                     "END:VCARD"
                   ].filter(Boolean).join("\r\n");
 

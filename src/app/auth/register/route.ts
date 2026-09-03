@@ -132,7 +132,7 @@ export async function POST(request: Request) {
 
 *Assalamu'alaikum Warahmatullahi Wabarakatuh*
 
-Ahlan wa sahlan! Segala puji bagi Allah SWT, selamat bergabung dalam portal eksklusif *Expedient Generation — 42nd Arrisalah*, Sahabat *${nama_lengkap}* (${nama_panggilan}).
+Ahlan wa sahlan! Segala puji bagi Allah SWT, selamat bergabung dalam portal eksklusif *Expedient Generation — 43rd Arrisalah*, Sahabat *${nama_lengkap}* (${nama_panggilan}).
 
 Sungguh kebersamaan kita di dalam barisan ini adalah rahmat yang besar. Mari kita jaga ukhuwah ini berlandaskan petunjuk-Nya:
 

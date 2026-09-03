@@ -827,7 +827,7 @@ export default function CmsClient({
                   rows={3} 
                   value={galeriCaption}
                   onChange={(e) => setGaleriCaption(e.target.value)}
-                  placeholder="Contoh: Malam Keakraban Angkatan 42..."
+                  placeholder="Contoh: Malam Keakraban Angkatan 43..."
                 />
               </div>
               <button type="submit" className="btn-submit hover-trigger" disabled={loading || (!galeriFile && !galeriUrl)}>

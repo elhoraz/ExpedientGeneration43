@@ -45,7 +45,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       vcardLines.push(`NICKNAME:${nick}`);
     }
 
-    vcardLines.push("ORG:Expedient Generation 42");
+    vcardLines.push("ORG:Expedient Generation 43");
     vcardLines.push("TITLE:Alumni");
 
     if (phone) {

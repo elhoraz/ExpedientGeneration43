@@ -362,7 +362,7 @@ function RegisterFormContent() {
               <img src={t('register_hero_image', '/images/logo-utuh.webp')} className="logo-utuh" alt="Expedient Logo" />
             </div>
             <h1 className="title-holographic">{t('register_title', 'Inisiasi Angkatan')}</h1>
-            <p className="subtitle-spec">{t('register_subtitle', 'Pahat identitas Anda dalam sejarah 42nd Arrisalah Expedient Generation.')}</p>
+            <p className="subtitle-spec">{t('register_subtitle', 'Pahat identitas Anda dalam sejarah 43rd Arrisalah Expedient Generation.')}</p>
           </div>
 
           <form action="/auth/register" method="POST" id="registerForm" noValidate onSubmit={handleSubmit}>

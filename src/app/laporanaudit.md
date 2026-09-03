@@ -10,7 +10,7 @@
 
 * **Nama Produk:** Expedient Generation 42 Portal & Grand Exhibition
 * **Jenis Website:** Exclusive Alumni Community Portal, Interactive 3D Digital Museum, & Social-Fintech Hub (Hybrid Dashboard/PWA).
-* **Target Pengguna:** Alumni santriwan & santriwati angkatan 42 Pondok Modern Arrisalah, pengurus angkatan, dewan asatidz, dan keluarga besar alumni.
+* **Target Pengguna:** Alumni santriwan & santriwati angkatan 43 Pondok Modern Arrisalah, pengurus angkatan, dewan asatidz, dan keluarga besar alumni.
 * **Target Usia:** 18 – 35 tahun (Digital-native, mobile-first users).
 * **Target Negara:** Indonesia (dan persebaran global alumni di Timur Tengah, Eropa, Asia).
 * **Tujuan Produk & Bisnis:** 
@@ -132,7 +132,7 @@
 
 ### Current Information Architecture:
 ```
-Root (Expedient 42 Portal)
+Root (Expedient 43 Portal)
 ├── Beranda (Museum Kenangan 3D, Serpihan Logo, Timeline, Buku Tamu)
 ├── Direktori (Dossier Alumni, Search Pill, VCard Export, Quick Chat)
 ├── Galeri (Buku Tahunan 3D Flip Putra/Putri, Audio Memori, Video Arsip)

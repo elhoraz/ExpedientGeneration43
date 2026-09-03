@@ -542,7 +542,7 @@ export default function PhotoboothClient() {
           ctx.font = "bold 28px 'Inter', sans-serif";
           ctx.fillStyle = "#d4af37";
           ctx.textAlign = "center";
-          ctx.fillText("EXPEDIENT GENERATION 42ND ARRISALAH", targetWidth / 2, 90);
+          ctx.fillText("EXPEDIENT GENERATION 43RD ARRISALAH", targetWidth / 2, 90);
 
           ctx.font = "18px 'Inter', sans-serif";
           ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
@@ -636,7 +636,7 @@ export default function PhotoboothClient() {
           <i className="fa-solid fa-camera-retro"></i> Aegis Studio Photobooth
         </div>
         <h1 className="studio-title">
-          Studio Kenangan <span className="gold-accent">Expedient 42</span>
+          Studio Kenangan <span className="gold-accent">Expedient 43</span>
         </h1>
         <p className="studio-subtitle">
           Abadikan pose terbaikmu dalam photostrip eksklusif. Edit tata letak frame, hapus & pasang stiker sesukamu, terapkan filter tone, dan coba mode Foto Live bergerak!
@@ -1238,7 +1238,7 @@ export default function PhotoboothClient() {
                     <span className="doily-flower-badge">🌺</span>
                     <span className="doily-flower-badge-left">🌸</span>
                     <div style={{ fontSize: "0.86rem", fontWeight: 800, color: "#faebd7", letterSpacing: "1px", fontStyle: "italic" }}>
-                      Mahabbah Fillah • '42
+                      Mahabbah Fillah • '43
                     </div>
                   </div>
                 ) : theme === "portra" ? (
@@ -1254,7 +1254,7 @@ export default function PhotoboothClient() {
                   <div className="ig-header-bar">
                     <div className="ig-user-info">
                       <div className="ig-avatar-ring">
-                        <div className="ig-avatar-inner">42</div>
+                        <div className="ig-avatar-inner">43</div>
                       </div>
                       <div>
                         <div className="ig-username-text">
@@ -1277,7 +1277,7 @@ export default function PhotoboothClient() {
                       ))}
                     </div>
                     <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#faebd7", letterSpacing: "1px" }}>
-                      📓 JURNAL ANGKATAN 42
+                      📓 JURNAL ANGKATAN 43
                     </div>
                   </div>
                 ) : theme === "ticket" ? (
@@ -1295,11 +1295,11 @@ export default function PhotoboothClient() {
                 ) : theme === "receipt" ? (
                   <div className="receipt-header-box">
                     <div style={{ fontSize: "0.82rem", fontWeight: 900, color: "#111", letterSpacing: "1px" }}>
-                      ★ KOPONTREN MART 42 ★
+                      ★ KOPONTREN MART 43 ★
                     </div>
                     <div style={{ fontSize: "0.62rem", opacity: 0.8 }}>Pesantren Arrisalah Slahung</div>
                     <div style={{ fontSize: "0.58rem", opacity: 0.7, marginTop: "2px" }}>
-                      Tgl: {captionDate} • Kasir: Santri-42
+                      Tgl: {captionDate} • Kasir: Santri-43
                     </div>
                   </div>
                 ) : theme === "scrapbook" ? (
@@ -1307,14 +1307,14 @@ export default function PhotoboothClient() {
                     <span className="scrapbook-pin-corner">🧷</span>
                     <span className="scrapbook-washi-tape"></span>
                     <div style={{ fontSize: "0.82rem", fontWeight: 800, color: "#ffe4e8", letterSpacing: "1px" }}>
-                      ✨ AKHI FILLAH • '42
+                      ✨ AKHI FILLAH • '43
                     </div>
                   </div>
                 ) : theme === "doodle" ? (
                   <div style={{ textAlign: "center", paddingBottom: "4px" }}>
                     <div className="doodle-speech-tag">★ WE LIT ★</div>
                     <div style={{ fontSize: "1.1rem", fontWeight: 900, letterSpacing: "1px", textShadow: "2px 2px 0px #0a1f5c" }}>
-                      EXPEDIENT 42
+                      EXPEDIENT 43
                     </div>
                   </div>
                 ) : theme === "mihrab" ? (
@@ -1489,7 +1489,7 @@ export default function PhotoboothClient() {
                   <div className="portra-film-footer-codes">
                     <span>S1</span>
                     <span>◄ 5 ►</span>
-                    <span className="portra-main-brand">KODAK PORTRA 400 - EXPEDIENT 42</span>
+                    <span className="portra-main-brand">KODAK PORTRA 400 - EXPEDIENT 43</span>
                     <span>P80/2 120</span>
                     <span>J A N F</span>
                   </div>
@@ -1503,7 +1503,7 @@ export default function PhotoboothClient() {
                       </div>
                       <i className="fa-regular fa-bookmark" style={{ color: "#262626" }}></i>
                     </div>
-                    <div className="ig-likes-text">4,242 likes</div>
+                    <div className="ig-likes-text">4,343 likes</div>
                     <div className="ig-caption-text">
                       <span className="ig-caption-bold">expedientgeneration</span>
                       {captionTitle} • Nostalgia ukhuwah santri takkan pernah pudar.
@@ -1515,7 +1515,7 @@ export default function PhotoboothClient() {
                     <div className="luggage-vintage-box">
                       <span className="luggage-icon-art">🧳</span>
                       <div className="luggage-vintage-text">
-                        <div className="luggage-title-main">EXPEDIENT GENERATION 42</div>
+                        <div className="luggage-title-main">EXPEDIENT GENERATION 43</div>
                         <div className="luggage-subtitle-date">Arrisalah Slahung • {captionDate}</div>
                       </div>
                     </div>
@@ -1525,7 +1525,7 @@ export default function PhotoboothClient() {
                     {showDivider && <div className="strip-divider" />}
                     <div className="strip-caption-title" style={{ fontStyle: "italic", color: "#faebd7" }}>{captionTitle}</div>
                     <div className="strip-caption-date" style={{ color: "#d5c4a8" }}>✦ {captionDate} ✦</div>
-                    {showCrest && <div className="strip-brand-crest" style={{ color: "#c4b59d" }}>42ND ARRISALAH COHORT</div>}
+                    {showCrest && <div className="strip-brand-crest" style={{ color: "#c4b59d" }}>43RD ARRISALAH COHORT</div>}
                   </div>
                 ) : theme === "spiral" ? (
                   <div>
@@ -1544,7 +1544,7 @@ export default function PhotoboothClient() {
                       <div className="receipt-row"><span>1x Ukhuwah Selamanya</span><span>GRATIS</span></div>
                       <div className="receipt-row"><span>1x Tawa & Kenangan</span><span>PRICELESS</span></div>
                       <div style={{ borderTop: "1px dashed #777", margin: "4px 0" }} />
-                      <div className="receipt-row" style={{ fontWeight: 800 }}><span>TOTAL: 42 ITEM</span><span>KEKAL</span></div>
+                      <div className="receipt-row" style={{ fontWeight: 800 }}><span>TOTAL: 43 ITEM</span><span>KEKAL</span></div>
                       <div className="receipt-row" style={{ fontSize: "0.56rem", opacity: 0.8 }}><span>BAYAR: DOA BERSAMA</span><span>LUNAS</span></div>
                     </div>
                     <div style={{ textAlign: "center", fontSize: "0.62rem", marginTop: "6px", fontWeight: 700 }}>
@@ -1556,10 +1556,10 @@ export default function PhotoboothClient() {
                   <div style={{ width: "100%", textAlign: "center" }}>
                     {showDivider && <div className="strip-divider" />}
                     <div className="strip-caption-title" style={{ fontWeight: 800 }}>{captionTitle}</div>
-                    <div className="strip-caption-date">{captionDate} • GATE 42</div>
+                    <div className="strip-caption-date">{captionDate} • GATE 43</div>
                     <div className="ticket-barcode-wrap" style={{ marginTop: "4px" }}>
                       <div className="ticket-barcode-lines" style={{ fontSize: "1.5rem" }}>|||| | |||| || ||| ||||</div>
-                      <div style={{ fontSize: "0.55rem", letterSpacing: "2px", opacity: 0.8 }}>EXP-42ND-ARRISALAH</div>
+                      <div style={{ fontSize: "0.55rem", letterSpacing: "2px", opacity: 0.8 }}>EXP-43RD-ARRISALAH</div>
                     </div>
                   </div>
                 ) : theme === "scrapbook" ? (
@@ -1589,14 +1589,14 @@ export default function PhotoboothClient() {
                     </div>
                     <div className="strip-caption-title">{captionTitle}</div>
                     <div className="strip-caption-date">{captionDate}</div>
-                    {showCrest && <div className="strip-brand-crest">42ND ARRISALAH COHORT</div>}
+                    {showCrest && <div className="strip-brand-crest">43RD ARRISALAH COHORT</div>}
                   </div>
                 ) : (
                   <>
                     {showDivider && <div className="strip-divider" />}
                     <div className="strip-caption-title">{captionTitle}</div>
                     <div className="strip-caption-date">{captionDate}</div>
-                    {showCrest && <div className="strip-brand-crest">42ND ARRISALAH COHORT</div>}
+                    {showCrest && <div className="strip-brand-crest">43RD ARRISALAH COHORT</div>}
                   </>
                 )}
               </div>

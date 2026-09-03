@@ -23,7 +23,7 @@ export default function WelcomeModal({
         <p className="welcome-subtitle">
           Selamat datang di portal resmi alumni angkatan{" "}
           <strong>Expedient Generation</strong> — Pondok Modern Arrisalah
-          ke-42. Portal ini dibuat untuk mempermudah silaturahmi dan
+          ke-43. Portal ini dibuat untuk mempermudah silaturahmi dan
           mendokumentasikan kenangan bersama.
         </p>
 

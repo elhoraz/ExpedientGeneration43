@@ -261,7 +261,7 @@ export default function BaitulMaalClient({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Tanda Terima Infaq — Baitul Maal Expedient 42</title>
+        <title>Tanda Terima Infaq — Baitul Maal Expedient 43</title>
         <style>
           body { font-family: 'Times New Roman', serif; padding: 40px; color: #111; max-width: 620px; margin: 0 auto; line-height: 1.6; border: 2px solid #b8860b; }
           .header { text-align: center; border-bottom: 2px solid #b8860b; padding-bottom: 15px; margin-bottom: 20px; }
@@ -279,8 +279,8 @@ export default function BaitulMaalClient({
       <body>
         <div class="header">
           <h1 class="title">Baitul Maal Expedient Generation</h1>
-          <p class="subtitle">Pondok Modern Arrisalah — Angkatan 42</p>
-          <p class="subtitle" style="font-size: 11px; margin-top: 2px;">No. Registrasi: EXP42-BM-${tx.id.slice(0, 8).toUpperCase()}</p>
+          <p class="subtitle">Pondok Modern Arrisalah — Angkatan 43</p>
+          <p class="subtitle" style="font-size: 11px; margin-top: 2px;">No. Registrasi: EXP43-BM-${tx.id.slice(0, 8).toUpperCase()}</p>
         </div>
         <div class="row"><span class="label">Nama Donatur / Penyalur:</span><span class="value">${tx.donor_name || "Hamba Allah"}</span></div>
         <div class="row"><span class="label">Tanggal Diterima:</span><span class="value">${new Date(tx.created_at).toLocaleString("id-ID")}</span></div>
@@ -290,7 +290,7 @@ export default function BaitulMaalClient({
           <div class="stamp">✓ TERVERIFIKASI BENDAHARA RESMI</div>
         </div>
         <div class="footer">
-          <p>Jazakumullah khairan katsiran atas kontribusi infaq dan ta'awun Anda demi kemaslahatan ukhuwah alumni angkatan 42.</p>
+          <p>Jazakumullah khairan katsiran atas kontribusi infaq dan ta'awun Anda demi kemaslahatan ukhuwah alumni angkatan 43.</p>
         </div>
         <div class="no-print" style="text-align: center; margin-top: 20px;">
           <button onclick="window.print()" style="padding: 10px 24px; background: #b8860b; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cetak / Simpan PDF</button>
@@ -442,9 +442,9 @@ export default function BaitulMaalClient({
       </head>
       <body>
         <div class="cert-frame">
-          <div class="cert-header">BAITUL MAAL EXPEDIENT GENERATION 42</div>
+          <div class="cert-header">BAITUL MAAL EXPEDIENT GENERATION 43</div>
           <h1 class="cert-title">Piagam Apresiasi Donatur</h1>
-          <p class="cert-subtitle">Nomor Registrasi: CERT/BM42/${tx.id.slice(0, 8).toUpperCase()}/${new Date().getFullYear()}</p>
+          <p class="cert-subtitle">Nomor Registrasi: CERT/BM43/${tx.id.slice(0, 8).toUpperCase()}/${new Date().getFullYear()}</p>
           
           <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 2px;">Dianugerahkan Dengan Penuh Takzim Kepada:</div>
           <div class="recipient-name">${tx.donor_name || "Hamba Allah"}</div>
@@ -458,14 +458,14 @@ export default function BaitulMaalClient({
 
           <div class="cert-footer">
             <div class="sig-box">
-              <div class="sig-line">Ketua Angkatan 42</div>
+              <div class="sig-line">Ketua Angkatan 43</div>
               <div class="sig-role">Expedient Generation</div>
             </div>
 
             <div class="seal-box">
               <span>★ RESMI ★</span>
               <span>BAITUL MAAL</span>
-              <span>ANGKATAN 42</span>
+              <span>ANGKATAN 43</span>
             </div>
 
             <div class="sig-box">

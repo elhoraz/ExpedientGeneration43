@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import SyndicateClient from "./SyndicateClient";
 
 export const metadata = {
-  title: "The Syndicate - Ruang Eksekutif 42nd Expedient",
+  title: "The Syndicate - Ruang Eksekutif 43rd Expedient",
 };
 
 export default async function SyndicatePage() {

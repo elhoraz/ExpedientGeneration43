@@ -17,7 +17,7 @@ export default function GaleriClient() {
       return;
     }
 
-    const title = dim === "putra" ? "Buku Kenangan Putra — Expedient 42" : "Buku Kenangan Putri — Expedient 42";
+    const title = dim === "putra" ? "Buku Kenangan Putra — Expedient 43" : "Buku Kenangan Putri — Expedient 43";
     const totalPages = dim === "putra" ? 75 : 41;
     const folder = dim === "putra" ? "foto_putra" : "foto_putri";
 
@@ -317,7 +317,7 @@ export default function GaleriClient() {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <div>
                   <span style={{ fontFamily: "Courier New, monospace", color: "#d4af37", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase" }}>
-                    ARSIP RESMI ANGKATAN 42
+                    ARSIP RESMI ANGKATAN 43
                   </span>
                   <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", color: "var(--text-primary)", margin: "4px 0 0 0" }}>
                     Ekspor Buku Kenangan

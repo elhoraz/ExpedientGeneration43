@@ -188,7 +188,7 @@ export async function GET(request: Request) {
 `Assalamu'alaikum Warahmatullahi Wabarakatuh, Akhi ${name} ✨
 
 Mengingatkan kembali ladang amal jariyah kita di awal bulan ${currentMonthName}:
-*Kas Rutin & Dana Ta'awun Angkatan 42 (Baitul Maal Expedient)*
+*Kas Rutin & Dana Ta'awun Angkatan 43 (Baitul Maal Expedient)*
 
 Rekening Resmi:
 🏛️ BSI: 7234 8901 2345 (a.n. Baitul Maal Expedient)

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import DirektoriClient from "./DirektoriClient";
 
 export const metadata = {
-  title: "The Archive - 42nd Expedient",
+  title: "The Archive - 43rd Expedient",
 };
 
 export default async function DirektoriPage() {
