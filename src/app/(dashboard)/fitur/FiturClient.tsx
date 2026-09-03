@@ -96,6 +96,17 @@ export default function FiturClient() {
         </div>
 
         <div className="cinematic-grid">
+          {/* Photobooth Studio */}
+          <Link href="/photobooth" className="premium-card js-tilt-card" ref={el => { cardsRef.current[16] = el; }}>
+            <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2564&auto=format&fit=crop')" }}></div>
+            <i className="fa-solid fa-camera-retro card-icon"></i>
+            <div className="card-content">
+              <h3 className="card-title">Studio Photobooth</h3>
+              <p className="card-desc">Studio photostrip virtual interaktif. Ambil 4-pose klasik, filter vintage, stiker digital, dan cetak photostrip HD / IG Story.</p>
+              <div className="launch-btn">Masuk Studio <i className="fa-solid fa-arrow-right-long"></i></div>
+            </div>
+          </Link>
+
           {/* 1. Sovereign ID */}
           <Link href="/sovereign" className="premium-card js-tilt-card" ref={el => { cardsRef.current[0] = el; }}>
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')" }}></div>

@@ -1,0 +1,739 @@
+/* ==========================================================================
+   AEGIS PHOTOBOOTH — LUXURY STUDIO EXPERIENCE
+   Expedient Generation 42nd Arrisalah
+   ========================================================================== */
+
+.photobooth-page {
+  min-height: 100vh;
+  padding: 100px 20px 80px;
+  background: radial-gradient(circle at 50% 15%, rgba(212, 175, 55, 0.08) 0%, #08080a 70%);
+  color: #f1f1f1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Studio Header */
+.studio-header {
+  text-align: center;
+  max-width: 750px;
+  margin-bottom: 28px;
+}
+
+.studio-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 50px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #ffd700;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.15);
+}
+
+.studio-title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.7);
+}
+
+.studio-title .gold-accent {
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 50%, #f3e5ab 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.studio-subtitle {
+  font-size: 0.95rem;
+  color: #a0a0a8;
+  line-height: 1.5;
+}
+
+/* Main Studio Layout Grid */
+.studio-container {
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 32px;
+  width: 100%;
+  max-width: 1280px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .studio-container {
+    grid-template-columns: 1fr;
+    max-width: 650px;
+  }
+}
+
+/* -------------------------------------------------------------
+   LEFT: VIEWFINDER & CONTROLS
+   ------------------------------------------------------------- */
+.camera-studio-box {
+  background: rgba(18, 18, 22, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Viewfinder Viewport */
+.viewfinder-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.9), 0 8px 24px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.viewfinder-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror selfie view */
+  transition: filter 0.3s ease;
+}
+
+.viewfinder-video.unmirrored {
+  transform: scaleX(1);
+}
+
+/* Flash Animation Overlay */
+.screen-flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 50;
+  transition: opacity 0.08s ease-out;
+}
+
+.screen-flash.flashing {
+  opacity: 1;
+  transition: none;
+}
+
+/* Viewfinder HUD Overlays */
+.viewfinder-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px;
+  z-index: 10;
+}
+
+.hud-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hud-pill {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-rec-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff3344;
+  border-radius: 50%;
+  animation: recPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes recPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.85); }
+}
+
+.hud-frame-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 65%;
+  height: 75%;
+  border: 1px dashed rgba(212, 175, 55, 0.35);
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+/* Countdown Overlay */
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  z-index: 40;
+}
+
+.countdown-number {
+  font-size: clamp(6rem, 18vw, 11rem);
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 40px rgba(212, 175, 55, 0.8), 0 4px 20px rgba(0, 0, 0, 0.8);
+  animation: countdownPop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+}
+
+@keyframes countdownPop {
+  0% { transform: scale(0.6); opacity: 0; }
+  40% { transform: scale(1.15); opacity: 1; }
+  80% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.2; }
+}
+
+/* Camera Bar / Action Buttons */
+.camera-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn-shutter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 36px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+  color: #0b0b0d;
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.btn-shutter:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.6);
+}
+
+.btn-shutter:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-shutter:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-icon-tool {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon-tool:hover {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: #ffd700;
+  color: #ffd700;
+  transform: translateY(-2px);
+}
+
+/* Studio Tabs & Tool Pickers */
+.studio-tools-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tool-group-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #d4af37;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Horizontal Chip Scrollers */
+.chips-scroll-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+}
+
+.chip-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #c4c4cc;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.chip-btn.active {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 2px 12px rgba(212, 175, 55, 0.25);
+}
+
+/* -------------------------------------------------------------
+   RIGHT: LIVE PHOTOSTRIP PREVIEW CANVAS
+   ------------------------------------------------------------- */
+.photostrip-preview-pane {
+  background: rgba(18, 18, 22, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  position: sticky;
+  top: 90px;
+}
+
+.preview-top-actions {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preview-heading {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #d4af37;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* THE RENDERABLE PHOTOSTRIP CONTAINER */
+.photostrip-card {
+  width: 290px;
+  border-radius: 12px;
+  padding: 16px 14px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+/* THEME 1: SOVEREIGN GOLD (Default) */
+.photostrip-card.theme-sovereign {
+  background: #0d0d10;
+  border: 2px solid #d4af37;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.2);
+}
+
+.photostrip-card.theme-sovereign .strip-header,
+.photostrip-card.theme-sovereign .strip-footer {
+  color: #ffd700;
+}
+
+.photostrip-card.theme-sovereign .strip-divider {
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+
+/* THEME 2: MINIMALIST WHITE */
+.photostrip-card.theme-white {
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #e0e0e0;
+}
+
+.photostrip-card.theme-white .strip-header,
+.photostrip-card.theme-white .strip-footer {
+  color: #111111;
+}
+
+.photostrip-card.theme-white .strip-divider {
+  background: linear-gradient(90deg, transparent, #888888, transparent);
+}
+
+.photostrip-card.theme-white .photo-cell {
+  background: #f0f0f3;
+  border-color: #e5e5ea;
+}
+
+/* THEME 3: VINTAGE 35MM FILM */
+.photostrip-card.theme-film {
+  background: #111114;
+  border-left: 12px dashed #333339;
+  border-right: 12px dashed #333339;
+  padding: 16px 8px 20px;
+}
+
+.photostrip-card.theme-film .strip-header,
+.photostrip-card.theme-film .strip-footer {
+  color: #e5a93c;
+  font-family: monospace;
+}
+
+/* THEME 4: NOSTALGIA SANTRI EDITION */
+.photostrip-card.theme-santri {
+  background: radial-gradient(circle at 50% 0%, #0d2818 0%, #06120b 100%);
+  border: 2px solid #2d6a4f;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(45, 106, 79, 0.3);
+}
+
+.photostrip-card.theme-santri .strip-header,
+.photostrip-card.theme-santri .strip-footer {
+  color: #74c69d;
+}
+
+.photostrip-card.theme-santri .strip-divider {
+  background: linear-gradient(90deg, transparent, #52b788, transparent);
+}
+
+/* Strip Header */
+.strip-header {
+  width: 100%;
+  text-align: center;
+  padding-bottom: 10px;
+}
+
+.strip-badge-text {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.strip-divider {
+  width: 80%;
+  height: 1px;
+  margin: 6px auto 10px;
+}
+
+/* Layout Slots */
+.strip-grid-slots {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 2x2 Grid Layout */
+.strip-grid-slots.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Single Polaroid Layout */
+.strip-grid-slots.layout-polaroid {
+  gap: 0;
+}
+
+.strip-grid-slots.layout-polaroid .photo-cell {
+  aspect-ratio: 1 / 1;
+}
+
+/* Photo Cell */
+.photo-cell {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #18181c;
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-cell-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.photo-cell-placeholder i {
+  font-size: 1.4rem;
+  color: rgba(212, 175, 55, 0.4);
+}
+
+.cell-retake-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.photo-cell:hover .cell-retake-btn {
+  opacity: 1;
+}
+
+/* Placed Stickers inside Strip */
+.strip-sticker {
+  position: absolute;
+  pointer-events: none;
+  z-index: 20;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
+}
+
+/* Strip Footer */
+.strip-footer {
+  width: 100%;
+  margin-top: 14px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.strip-caption-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.strip-caption-date {
+  font-size: 0.68rem;
+  opacity: 0.7;
+  font-family: monospace;
+}
+
+.strip-brand-crest {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  opacity: 0.85;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Strip Export Action Buttons */
+.strip-export-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-export-primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+  color: #0b0b0d;
+  font-size: 0.92rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-export-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.5);
+}
+
+.btn-export-secondary {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-export-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #ffd700;
+  color: #ffd700;
+}
+
+/* -------------------------------------------------------------
+   FILTER CSS DEFINITIONS
+   ------------------------------------------------------------- */
+.filter-normal {
+  filter: none;
+}
+
+.filter-golden {
+  filter: sepia(0.25) saturate(1.2) contrast(1.05) brightness(1.04);
+}
+
+.filter-noir {
+  filter: grayscale(1) contrast(1.3) brightness(0.95);
+}
+
+.filter-vintage {
+  filter: sepia(0.4) saturate(0.85) contrast(1.1) hue-rotate(-10deg);
+}
+
+.filter-emerald {
+  filter: hue-rotate(45deg) saturate(1.15) brightness(1.02);
+}
+
+/* -------------------------------------------------------------
+   STICKERS PICKER GRID
+   ------------------------------------------------------------- */
+.stickers-picker-grid {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.sticker-item-btn {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sticker-item-btn:hover {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: #ffd700;
+  transform: scale(1.1);
+}
+
+/* -------------------------------------------------------------
+   MOBILE OPTIMIZATIONS
+   ------------------------------------------------------------- */
+@media (max-width: 600px) {
+  .photobooth-page {
+    padding: 80px 12px 100px;
+  }
+
+  .camera-studio-box {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .photostrip-preview-pane {
+    padding: 16px;
+    border-radius: 18px;
+    position: static;
+  }
+
+  .photostrip-card {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .btn-shutter {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+  }
+}

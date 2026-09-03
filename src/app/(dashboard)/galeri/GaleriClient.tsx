@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Script from "next/script";
 import "./galeri.css";
 
@@ -202,6 +203,7 @@ export default function GaleriClient() {
                 <button className="btn-icon hover-trigger" id="btnPin" title="Simpan Halaman Ini"><i className="fa-regular fa-bookmark"></i></button>
                 <button className="btn-icon hover-trigger" id="btnGoToPin" title="Teleportasi ke Memori" style={{ display: "none" }}><i className="fa-solid fa-map-location-dot"></i></button>
                 <button className="btn-icon hover-trigger" onClick={() => setIsExportModalOpen(true)} title="Unduh Arsip & Ekspor Bundle PDF Buku Kenangan"><i className="fa-solid fa-file-pdf"></i></button>
+                <Link href="/photobooth" className="btn-icon hover-trigger" title="Studio Photobooth Angkatan" style={{ color: "#ffd700", display: "flex", alignItems: "center", justifyContent: "center" }}><i className="fa-solid fa-camera-retro"></i></Link>
                 <button className="btn-icon hover-trigger" id="btnFullscreen" title="Immersive Mode"><i className="fa-solid fa-expand"></i></button>
             </div>
         </div>
