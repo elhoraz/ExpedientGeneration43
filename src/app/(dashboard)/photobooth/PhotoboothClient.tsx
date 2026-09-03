@@ -19,6 +19,7 @@ interface PlacedSticker {
   emoji: string;
   top: number;
   left: number;
+  scale?: number;
 }
 
 export default function PhotoboothClient() {
@@ -27,6 +28,10 @@ export default function PhotoboothClient() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+
+  // Sticker dragging states
+  const [draggingStickerId, setDraggingStickerId] = useState<string | null>(null);
+  const [selectedStickerId, setSelectedStickerId] = useState<string | null>(null);
 
   // Studio States
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -349,10 +354,65 @@ export default function PhotoboothClient() {
     const newSticker: PlacedSticker = {
       id: "stk_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
       emoji,
-      top: 30 + Math.random() * 40,
-      left: 10 + Math.random() * 70,
+      top: 35 + Math.random() * 30,
+      left: 20 + Math.random() * 60,
+      scale: 1,
     };
     setStickers((prev) => [...prev, newSticker]);
+    setSelectedStickerId(newSticker.id);
+  };
+
+  // Sticker Dragging Pointer Events (Universal for Mouse & Mobile Touch)
+  const handleStickerPointerDown = (e: React.PointerEvent, id: string) => {
+    e.stopPropagation();
+    triggerHaptic(15);
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    setDraggingStickerId(id);
+    setSelectedStickerId(id);
+  };
+
+  const handleStickerPointerMove = (e: React.PointerEvent, id: string) => {
+    if (draggingStickerId !== id || !stripRef.current) return;
+    e.stopPropagation();
+
+    const stripRect = stripRef.current.getBoundingClientRect();
+    const rawX = e.clientX - stripRect.left;
+    const rawY = e.clientY - stripRect.top;
+
+    // Convert to percentage of photostrip card
+    let leftPercent = (rawX / stripRect.width) * 100;
+    let topPercent = (rawY / stripRect.height) * 100;
+
+    // Strict boundary clamping so stickers NEVER escape the photostrip card
+    leftPercent = Math.max(6, Math.min(92, leftPercent));
+    topPercent = Math.max(4, Math.min(94, topPercent));
+
+    setStickers((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, left: leftPercent, top: topPercent } : s))
+    );
+  };
+
+  const handleStickerPointerUp = (e: React.PointerEvent) => {
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    setDraggingStickerId(null);
+  };
+
+  // Resize Individual Sticker (+ / -)
+  const handleResizeSticker = (id: string, delta: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    triggerHaptic(15);
+    setStickers((prev) =>
+      prev.map((s) => {
+        if (s.id !== id) return s;
+        const currentScale = s.scale || 1;
+        const nextScale = Math.max(0.7, Math.min(2.2, Number((currentScale + delta).toFixed(1))));
+        return { ...s, scale: nextScale };
+      })
+    );
   };
 
   // Delete Individual Sticker
@@ -360,12 +420,14 @@ export default function PhotoboothClient() {
     e.stopPropagation();
     triggerHaptic(25);
     setStickers((prev) => prev.filter((s) => s.id !== id));
+    if (selectedStickerId === id) setSelectedStickerId(null);
   };
 
   // Delete All Stickers
   const handleClearAllStickers = () => {
     triggerHaptic(30);
     setStickers([]);
+    setSelectedStickerId(null);
   };
 
   // Export Photostrip to PNG or Story
@@ -1111,23 +1173,63 @@ export default function PhotoboothClient() {
               })}
             </div>
 
-            {/* Placed Interactive Stickers with Delete Cross */}
-            {stickers.map((stk) => (
-              <div
-                key={stk.id}
-                className="strip-sticker"
-                style={{ top: `${stk.top}%`, left: `${stk.left}%`, fontSize: "1.8rem" }}
-              >
-                {stk.emoji}
-                <button
-                  className="sticker-delete-cross"
-                  onClick={(e) => handleDeleteSticker(stk.id, e)}
-                  title="Hapus Stiker Ini"
+            {/* Placed Interactive Draggable Stickers with Full Mobile & Desktop Support */}
+            {stickers.map((stk) => {
+              const isSelected = selectedStickerId === stk.id;
+              const isDragging = draggingStickerId === stk.id;
+              const currentScale = stk.scale || 1;
+
+              return (
+                <div
+                  key={stk.id}
+                  className={`strip-sticker ${isDragging ? "is-dragging" : ""} ${isSelected ? "is-selected" : ""}`}
+                  style={{
+                    top: `${stk.top}%`,
+                    left: `${stk.left}%`,
+                    fontSize: `${1.8 * currentScale}rem`,
+                  }}
+                  onPointerDown={(e) => handleStickerPointerDown(e, stk.id)}
+                  onPointerMove={(e) => handleStickerPointerMove(e, stk.id)}
+                  onPointerUp={handleStickerPointerUp}
+                  onPointerCancel={handleStickerPointerUp}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedStickerId(stk.id);
+                  }}
                 >
-                  ✕
-                </button>
-              </div>
-            ))}
+                  <span className="sticker-emoji-body">{stk.emoji}</span>
+
+                  {/* Floating Action Controls (Resize & Delete) — ignored by html2canvas export */}
+                  <div
+                    className="sticker-mini-toolbar"
+                    data-html2canvas-ignore="true"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      className="sticker-tool-mini-btn"
+                      onClick={(e) => handleResizeSticker(stk.id, -0.2, e)}
+                      title="Perkecil"
+                    >
+                      −
+                    </button>
+                    <button
+                      className="sticker-tool-mini-btn"
+                      onClick={(e) => handleResizeSticker(stk.id, 0.2, e)}
+                      title="Perbesar"
+                    >
+                      +
+                    </button>
+                    <button
+                      className="sticker-tool-mini-btn btn-del"
+                      onClick={(e) => handleDeleteSticker(stk.id, e)}
+                      title="Hapus Stiker"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
 
             {/* Footer Brand & Custom Text */}
             {showFooter && (

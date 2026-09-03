@@ -708,43 +708,94 @@
   transform: scale(1.1);
 }
 
-/* Placed Interactive Stickers inside Strip */
+/* Placed Interactive Draggable Stickers inside Strip */
 .strip-sticker {
   position: absolute;
   pointer-events: auto;
-  cursor: pointer;
+  cursor: grab;
   z-index: 25;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
   user-select: none;
-  transition: transform 0.15s ease;
+  -webkit-user-select: none;
+  touch-action: none;
+  transform: translate(-50%, -50%);
+  transition: filter 0.2s ease, box-shadow 0.2s ease;
+  padding: 4px;
+  border-radius: 8px;
 }
 
-.strip-sticker:hover {
-  transform: scale(1.2);
+.strip-sticker:hover,
+.strip-sticker.is-selected {
+  outline: 1.5px dashed rgba(212, 175, 55, 0.8);
+  background: rgba(212, 175, 55, 0.08);
 }
 
-.sticker-delete-cross {
+.strip-sticker.is-dragging {
+  cursor: grabbing;
+  z-index: 50;
+  outline: 2px solid #ffd700;
+  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.9));
+  transform: translate(-50%, -50%) scale(1.18);
+}
+
+.sticker-emoji-body {
+  display: block;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Floating Action Toolbar on Sticker */
+.sticker-mini-toolbar {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 18px;
-  height: 18px;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 15, 20, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 20px;
+  padding: 2px 4px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 30;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+.strip-sticker:hover .sticker-mini-toolbar,
+.strip-sticker.is-selected .sticker-mini-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.sticker-tool-mini-btn {
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: #ff3344;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #fff;
-  opacity: 0;
-  transition: opacity 0.2s ease;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.strip-sticker:hover .sticker-delete-cross {
-  opacity: 1;
+.sticker-tool-mini-btn:hover {
+  background: #ffd700;
+  color: #0b0b0d;
+}
+
+.sticker-tool-mini-btn.btn-del:hover {
+  background: #ff3344;
+  color: #fff;
 }
 
 /* -------------------------------------------------------------
