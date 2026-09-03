@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getAvatarUrl } from "@/lib/avatar";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -8,7 +9,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("*")
+      .select("id, nama_lengkap, nama_panggilan, no_whatsapp, motivasi_hidup, foto_profil")
       .or(`id.eq.${id},public_token.eq.${id}`)
       .maybeSingle();
 
@@ -19,9 +20,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const name = profile.nama_lengkap || profile.nama_panggilan || "Anggota";
     const phone = profile.no_whatsapp ? `+${profile.no_whatsapp.replace(/\D/g, '')}` : "";
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.com";
-    const photoUrl = profile.foto_profil 
-        ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${profile.foto_profil}` 
-        : "";
+    const photoUrl = profile.foto_profil ? getAvatarUrl(profile.foto_profil, name) : "";
 
     const vcard = `BEGIN:VCARD
 VERSION:3.0

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface ChatCallModalProps {
   isOpen: boolean;
@@ -96,9 +97,7 @@ export default function ChatCallModal({
     }
   }, [pendingOffer]);
 
-  const contactAvatar = contact.foto_profil
-    ? `/uploads/profiles/${contact.foto_profil}`
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.nama_panggilan)}&background=d4af37&color=000`;
+  const contactAvatar = getAvatarUrl(contact.foto_profil, contact.nama_panggilan || contact.nama_lengkap);
 
   // ─── Ringtone ───
   const startRingtone = useCallback(() => {

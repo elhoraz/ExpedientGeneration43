@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import { getAvatarUrl } from "@/lib/avatar";
 import "./tarbiyah.css";
 
 interface Mentor {
@@ -144,20 +145,12 @@ export default function TarbiyahClient({
     return localSentRequests.find(r => r.target_id === targetId)?.status;
   };
 
-  const getAvatarUrl = (photoPath?: string, defaultName: string = "U") => {
-    if (!photoPath) {
-      return `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=d4af37&color=000`;
-    }
-    if (photoPath.startsWith("http")) return photoPath;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${photoPath}`;
-  };
-
   const getSyndicateLogoUrl = (logoPath?: string, defaultName: string = "B") => {
     if (!logoPath) {
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=222&color=fff`;
     }
-    if (logoPath.startsWith("http")) return logoPath;
-    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/syndicate/${logoPath}`;
+    if (logoPath.startsWith("http") || logoPath.startsWith("/")) return logoPath;
+    return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/bisnis/${logoPath}`;
   };
 
   const formatDate = (dateString: string) => {

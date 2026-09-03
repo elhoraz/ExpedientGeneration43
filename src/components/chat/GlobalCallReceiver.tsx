@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface GlobalCallReceiverProps {
   userId: string;
@@ -84,7 +85,7 @@ export default function GlobalCallReceiver({ userId }: GlobalCallReceiverProps) 
         setIncomingCall({
           callerId: data.callerId,
           callerName: profile?.nama_panggilan || profile?.nama_lengkap || "Seseorang",
-          callerAvatar: profile?.foto_profil || undefined,
+          callerAvatar: getAvatarUrl(profile?.foto_profil, profile?.nama_panggilan || profile?.nama_lengkap || "Seseorang"),
           callType: data.callType || "voice",
         });
 

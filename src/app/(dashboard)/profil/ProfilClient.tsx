@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import gsap from "gsap";
 import { getGelar, getBadgeColor, getGelarIcon } from "@/lib/gamification";
+import { getAvatarUrl } from "@/lib/avatar";
 import { useCms } from "@/components/layout/CmsProvider";
 import "./profil.css";
 
@@ -49,9 +50,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const [registeringBio, setRegisteringBio] = useState(false);
   const [deletingBioId, setDeletingBioId] = useState<string | null>(null);
   const [avatarPreviewSrc, setAvatarPreviewSrc] = useState(
-    user.foto_profil
-      ? (user.foto_profil.startsWith("http") ? user.foto_profil : `/uploads/profiles/${user.foto_profil}`)
-      : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nama_panggilan || user.nama_lengkap)}&background=d4af37&color=000`
+    getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap)
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -110,22 +109,39 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       akun_tiktok: formData.get("akun_tiktok") as string,
     };
 
-    // Handle photo upload
+    // Handle photo upload via server-side storage API (Service Role)
     const fileInput = fileInputRef.current;
     if (fileInput?.files?.[0]) {
       const file = fileInput.files[0];
-      const ext = file.name.split(".").pop();
-      const fileName = `${user.id}_${Date.now()}.${ext}`;
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+      uploadData.append("folder", "profiles");
 
-      const { error: uploadError } = await supabase.storage
-        .from("profile-photos")
-        .upload(fileName, file, { upsert: true });
+      try {
+        const uploadResp = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadData,
+        });
 
-      if (!uploadError) {
-        const { data: publicUrl } = supabase.storage
-          .from("profile-photos")
-          .getPublicUrl(fileName);
-        updateData.foto_profil = publicUrl.publicUrl;
+        if (!uploadResp.ok) {
+          const errJson = await uploadResp.json().catch(() => ({}));
+          showToast("Gagal mengunggah foto profil: " + (errJson.error || "Gagal upload"), "error");
+          setSaving(false);
+          return;
+        }
+
+        const uploadJson = await uploadResp.json();
+        if (uploadJson.url) {
+          updateData.foto_profil = uploadJson.url;
+        } else {
+          showToast("Gagal mendapatkan tautan foto profil dari server.", "error");
+          setSaving(false);
+          return;
+        }
+      } catch (uploadErr: any) {
+        showToast("Koneksi gagal saat mengunggah foto: " + uploadErr.message, "error");
+        setSaving(false);
+        return;
       }
     }
 
@@ -147,8 +163,11 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       .eq("id", user.id);
 
     if (error) {
-      showToast("Gagal menyimpan: " + error.message, "error");
+      showToast("Gagal menyimpan data profil: " + error.message, "error");
     } else {
+      if (updateData.foto_profil) {
+        setAvatarPreviewSrc(updateData.foto_profil);
+      }
       // Log activity
       await supabase.from("activity_logs").insert([{
         user_id: user.id,

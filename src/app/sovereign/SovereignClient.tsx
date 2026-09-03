@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import type * as THREE_TYPES from "three";
+import { getAvatarUrl } from "@/lib/avatar";
 
 interface SovereignUser {
   id: string;
@@ -17,11 +18,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInitialized = useRef(false);
 
-  // Resolve foto URL — bisa berupa URL penuh atau nama file saja
+  // Resolve foto URL secara aman
   const fotoUrl = user.foto_profil
-    ? user.foto_profil.startsWith("http")
-      ? user.foto_profil
-      : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${user.foto_profil}`
+    ? getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap)
     : "";
 
   // QR Code menggunakan public_token atau fallback ke id

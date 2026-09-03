@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { getAvatarUrl } from "@/lib/avatar";
 
 /**
  * GlobalCallListener — mounted in dashboard layout.
@@ -104,14 +105,12 @@ export default function GlobalCallListener() {
               .single();
             if (profile) {
               callerName = profile.nama_panggilan || callerName;
-              callerAvatar = profile.foto_profil
-                ? `/uploads/profiles/${profile.foto_profil}`
-                : `https://ui-avatars.com/api/?name=${encodeURIComponent(callerName)}&background=d4af37&color=000`;
+              callerAvatar = getAvatarUrl(profile.foto_profil, callerName);
             }
           } catch { /* use defaults */ }
 
           if (!callerAvatar) {
-            callerAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(callerName)}&background=d4af37&color=000`;
+            callerAvatar = getAvatarUrl(null, callerName);
           }
 
           setIncomingCall({

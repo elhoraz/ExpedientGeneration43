@@ -5,6 +5,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import { getAvatarUrl } from "@/lib/avatar";
 import "./syndicate.css";
 
 export default function SyndicateClient({ initialPortofolio, userId }: { initialPortofolio: any[]; userId: string }) {
@@ -98,11 +99,11 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
         ) : (
           filteredBiz.map(biz => {
             const ownerName = biz.profiles?.nama_panggilan || "Unknown";
-            const ownerAvatar = biz.profiles?.foto_profil 
-              ? `/uploads/profiles/${biz.profiles.foto_profil}` 
-              : `https://ui-avatars.com/api/?name=${encodeURIComponent(ownerName)}&background=0D0D0D&color=D4AF37&bold=true`;
+            const ownerAvatar = getAvatarUrl(biz.profiles?.foto_profil, ownerName);
             const wa = biz.profiles?.no_whatsapp ? biz.profiles.no_whatsapp.replace(/^0/, '62').replace(/[^0-9]/g, '') : '';
-            const logo = biz.logo_bisnis ? `/uploads/bisnis/${biz.logo_bisnis}` : `https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`;
+            const logo = biz.logo_bisnis 
+              ? (biz.logo_bisnis.startsWith("http") || biz.logo_bisnis.startsWith("/") ? biz.logo_bisnis : `/uploads/bisnis/${biz.logo_bisnis}`)
+              : `https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80`;
 
             return (
               <div key={biz.id} className="biz-item syndicate-card">

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import RadarClient from "./RadarClient";
+import { getAvatarUrl } from "@/lib/avatar";
 import "./radar.css";
 
 export const metadata = {
@@ -51,7 +52,7 @@ export default async function RadarPage() {
         lat: parseFloat(u.lat),
         lng: parseFloat(u.lng),
         type: "agent",
-        foto: u.foto_profil || null,
+        foto: u.foto_profil ? getAvatarUrl(u.foto_profil, u.nama_panggilan || u.nama_lengkap) : null,
         wa: u.no_whatsapp || null,
         gender: u.jenis_kelamin || null,
       });

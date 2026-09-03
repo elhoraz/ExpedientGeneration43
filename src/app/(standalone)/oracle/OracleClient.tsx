@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
+import { getAvatarUrl } from "@/lib/avatar";
 
 // @ts-ignore
 // Let faceapi be accessible globally after script loads
@@ -51,7 +52,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
 
           if (userProfile?.foto_profil) {
             try {
-              const fotoUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${userProfile.foto_profil}`;
+              const fotoUrl = getAvatarUrl(userProfile.foto_profil);
               const img = await window.faceapi.fetchImage(fotoUrl);
               const det = await window.faceapi.detectSingleFace(img, new window.faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
               if (det) setReferenceDescriptor(det.descriptor);

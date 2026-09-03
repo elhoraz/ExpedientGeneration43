@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { createClient } from "@/lib/supabase/client";
 import { addPrestise } from "@/lib/gamification";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import { getAvatarUrl } from "@/lib/avatar";
 import "./wasiat.css";
 
 export default function WasiatClient({ currentUser, initialWasiats }: { currentUser: any, initialWasiats: any[] }) {
@@ -112,9 +113,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
         const formatted = {
           ...data[0],
           author_name: data[0].profiles?.nama_panggilan || "Anonim",
-          author_avatar: data[0].profiles?.foto_profil
-            ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${data[0].profiles.foto_profil}`
-            : `https://ui-avatars.com/api/?name=${encodeURIComponent(data[0].profiles?.nama_panggilan || "A")}&background=d4af37&color=000`
+          author_avatar: getAvatarUrl(data[0].profiles?.foto_profil, data[0].profiles?.nama_panggilan || "A")
         };
         setWasiats([formatted, ...wasiats]);
         setNewMessage("");

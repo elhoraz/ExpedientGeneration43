@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getAvatarUrl } from "@/lib/avatar";
 
 export default function DossierClient({ targetUser, age }: { targetUser: any, age: string | number }) {
   const [loading, setLoading] = useState(true);
@@ -100,9 +101,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
       }
   }, [loading]);
 
-  const fotoUrl = targetUser.foto_profil && targetUser.foto_profil !== 'default.webp' 
-      ? (targetUser.foto_profil.startsWith('http') ? targetUser.foto_profil : `/uploads/profiles/${targetUser.foto_profil}`)
-      : `https://ui-avatars.com/api/?name=${encodeURIComponent(targetUser.nama_panggilan || targetUser.nama_lengkap || 'U')}&background=d4af37&color=000`;
+  const fotoUrl = getAvatarUrl(targetUser.foto_profil, targetUser.nama_panggilan || targetUser.nama_lengkap || 'U');
 
   return (
     <>

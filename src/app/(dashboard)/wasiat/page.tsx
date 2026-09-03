@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import WasiatClient from "./WasiatClient";
+import { getAvatarUrl } from "@/lib/avatar";
 
 export const metadata = {
   title: "Amanah & Wasiat - The Legacy Vault",
@@ -23,7 +24,7 @@ export default async function WasiatPage() {
   const formattedWasiats = wasiats?.map((w: any) => ({
     ...w,
     author_name: w.profiles?.nama_panggilan || "Anonim",
-    author_avatar: w.profiles?.foto_profil ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${w.profiles.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(w.profiles?.nama_panggilan || 'A')}&background=d4af37&color=000`
+    author_avatar: getAvatarUrl(w.profiles?.foto_profil, w.profiles?.nama_panggilan || "A")
   })) || [];
 
   return (

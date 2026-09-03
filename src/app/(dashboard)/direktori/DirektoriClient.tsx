@@ -7,6 +7,7 @@ import { EffectCoverflow, Navigation, Keyboard } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
+import { getAvatarUrl } from "@/lib/avatar";
 import "./direktori.css";
 
 export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[], isLoggedIn: boolean }) {
@@ -137,7 +138,7 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                     <div className="swiper-wrapper" id="swiperWrapper">
                     
                     {filteredAlumni.map((user) => {
-                        const foto = user.foto_profil ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${user.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(user.nama_panggilan || 'A')}&background=d4af37&color=000`;
+                        const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
                         // Simple hash simulation for serial (CI4 used md5, we will just use padded id)
                         const serial = `ID-42.${String(user.id).padStart(4, "0")}`;
 

@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join, extname } from 'path';
 import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
 
-const ALLOWED_FOLDERS = ['gallery', 'profiles', 'chat', 'feed', 'documents'];
+const ALLOWED_FOLDERS = ['gallery', 'profiles', 'chat', 'feed', 'documents', 'bisnis'];
 
 const ALLOWED_MIME_TYPES = new Set([
   'image/jpeg',
@@ -71,20 +72,72 @@ export async function POST(req: Request) {
     const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1e9)}`;
     const sanitizedFilename = `${user.id.slice(0, 8)}_${uniqueSuffix}${safeExt}`;
 
-    const uploadDir = join(process.cwd(), 'public', 'uploads', folderInput);
+    // 6. Prefer Supabase Cloud Storage (Permanent, Vercel-Compatible, Global CDN)
+    const bucketMapping: Record<string, string> = {
+      profiles: 'profile-photos',
+      bisnis: 'bisnis',
+      gallery: 'gallery',
+      chat: 'chat-attachments',
+      feed: 'cms-assets',
+      documents: 'announcement-assets',
+    };
+    const bucketName = bucketMapping[folderInput] || 'profile-photos';
 
-    // Ensure directory exists
-    await mkdir(uploadDir, { recursive: true });
+    try {
+      const adminSupabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        {
+          cookies: {
+            getAll() { return []; },
+            setAll() {},
+          },
+        }
+      );
 
-    const filePath = join(uploadDir, sanitizedFilename);
-    await writeFile(filePath, buffer);
+      const { error: storageError } = await adminSupabase.storage
+        .from(bucketName)
+        .upload(sanitizedFilename, buffer, {
+          contentType: file.type || 'image/webp',
+          upsert: true,
+        });
 
-    return NextResponse.json({
-      success: true,
-      url: `/uploads/${folderInput}/${sanitizedFilename}`,
-    });
-  } catch (e) {
+      if (!storageError) {
+        const { data: publicUrlData } = adminSupabase.storage
+          .from(bucketName)
+          .getPublicUrl(sanitizedFilename);
+
+        return NextResponse.json({
+          success: true,
+          url: publicUrlData.publicUrl,
+          filename: sanitizedFilename,
+        });
+      }
+
+      console.warn('Supabase Storage upload warning:', storageError);
+    } catch (storageErr) {
+      console.warn('Supabase storage execution error:', storageErr);
+    }
+
+    // 7. Secondary Fallback: Local filesystem (for local dev environments)
+    try {
+      const uploadDir = join(process.cwd(), 'public', 'uploads', folderInput);
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = join(uploadDir, sanitizedFilename);
+      await writeFile(filePath, buffer);
+
+      return NextResponse.json({
+        success: true,
+        url: `/uploads/${folderInput}/${sanitizedFilename}`,
+        filename: sanitizedFilename,
+      });
+    } catch (fsErr) {
+      console.error('Local filesystem upload failed:', fsErr);
+      return NextResponse.json({ error: 'Gagal mengunggah file ke penyimpanan server' }, { status: 500 });
+    }
+
+  } catch (e: any) {
     console.error('Upload error:', e);
-    return NextResponse.json({ error: 'Gagal memproses unggahan file' }, { status: 500 });
+    return NextResponse.json({ error: 'Gagal memproses unggahan file: ' + (e?.message || '') }, { status: 500 });
   }
 }

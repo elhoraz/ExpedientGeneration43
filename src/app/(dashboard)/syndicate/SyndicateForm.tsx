@@ -65,16 +65,24 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
     try {
       let logoName = formData.logo_bisnis;
 
-      // Upload logo jika ada file baru
+      // Upload logo via server-side storage API
       if (selectedFile) {
-        const fileExt = selectedFile.name.split('.').pop();
-        const fileName = `${userId}_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from("bisnis")
-          .upload(fileName, selectedFile);
-          
-        if (uploadError) throw uploadError;
-        logoName = fileName;
+        const uploadData = new FormData();
+        uploadData.append("file", selectedFile);
+        uploadData.append("folder", "bisnis");
+
+        const uploadResp = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadData,
+        });
+
+        if (!uploadResp.ok) {
+          const errJson = await uploadResp.json().catch(() => ({}));
+          throw new Error(errJson.error || "Gagal mengunggah logo bisnis");
+        }
+
+        const uploadJson = await uploadResp.json();
+        logoName = uploadJson.url;
       }
 
       const payload = {
