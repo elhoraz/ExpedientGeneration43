@@ -612,6 +612,180 @@
   border-color: #2b2d35;
 }
 
+/* THEME 13: EXPEDIENT BOARDING PASS / TICKET STUB (Pinterest Trend) */
+.photostrip-card.theme-ticket {
+  background: #fffdf9;
+  color: #1a1a1a;
+  border: 2px solid #8b0000;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  position: relative;
+}
+.photostrip-card.theme-ticket::before,
+.photostrip-card.theme-ticket::after {
+  content: "";
+  position: absolute;
+  top: 90px;
+  width: 20px;
+  height: 20px;
+  background: #08080a;
+  border-radius: 50%;
+  z-index: 10;
+}
+.photostrip-card.theme-ticket::before {
+  left: -11px;
+  border-right: 2px solid #8b0000;
+}
+.photostrip-card.theme-ticket::after {
+  right: -11px;
+  border-left: 2px solid #8b0000;
+}
+.photostrip-card.theme-ticket .strip-header,
+.photostrip-card.theme-ticket .strip-footer {
+  color: #8b0000;
+}
+.photostrip-card.theme-ticket .strip-divider {
+  background: linear-gradient(90deg, transparent, #8b0000, transparent);
+}
+.photostrip-card.theme-ticket .photo-cell {
+  border-color: #8b0000;
+}
+
+/* THEME 14: STRUK KOPONTREN MART / RECEIPT (Pinterest Trend) */
+.photostrip-card.theme-receipt {
+  background: #fdfdf9;
+  color: #1a1a1c;
+  border: 1px solid #d4d4cb;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  font-family: 'Courier New', Courier, monospace;
+}
+.photostrip-card.theme-receipt .strip-header,
+.photostrip-card.theme-receipt .strip-footer {
+  color: #1a1a1c;
+  font-family: 'Courier New', Courier, monospace;
+}
+.photostrip-card.theme-receipt .strip-divider {
+  background: repeating-linear-gradient(90deg, #444 0px, #444 4px, transparent 4px, transparent 8px);
+  height: 1px;
+}
+.photostrip-card.theme-receipt .photo-cell {
+  background: #f0f0ea;
+  border-color: #cccccc;
+}
+
+/* THEME 15: SCRAPBOOK SANTRI / JOURNAL (Pinterest Trend) */
+.photostrip-card.theme-scrapbook {
+  background: #54121d;
+  color: #ffffff;
+  border: 2px dashed #ff99a8;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(84, 18, 29, 0.6);
+  position: relative;
+}
+.photostrip-card.theme-scrapbook .strip-header,
+.photostrip-card.theme-scrapbook .strip-footer {
+  color: #ffe4e8;
+}
+.photostrip-card.theme-scrapbook .strip-divider {
+  background: linear-gradient(90deg, transparent, #ff99a8, transparent);
+}
+.photostrip-card.theme-scrapbook .photo-cell {
+  border-color: #78202f;
+}
+
+/* THEME 16: Y2K DOODLE POP / STREETWEAR (Pinterest Trend) */
+.photostrip-card.theme-doodle {
+  background: #103396;
+  color: #ffffff;
+  border: 3px solid #ffffff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(16, 51, 150, 0.5);
+  position: relative;
+}
+.photostrip-card.theme-doodle .strip-header,
+.photostrip-card.theme-doodle .strip-footer {
+  color: #ffffff;
+}
+.photostrip-card.theme-doodle .strip-divider {
+  background: #ffffff;
+}
+.photostrip-card.theme-doodle .photo-cell {
+  border-color: #ffffff;
+}
+
+/* THEME 17: MIHRAB ARRISALAH DOME */
+.photostrip-card.theme-mihrab {
+  background: radial-gradient(circle at 50% 10%, #0d2818 0%, #06120b 100%);
+  border: 2px solid #d4af37;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(212, 175, 55, 0.3);
+  position: relative;
+}
+.photostrip-card.theme-mihrab .strip-header,
+.photostrip-card.theme-mihrab .strip-footer {
+  color: #ffd700;
+}
+.photostrip-card.theme-mihrab .strip-divider {
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+.photostrip-card.theme-mihrab .photo-cell {
+  border-color: #1e4d30;
+}
+
+/* Custom Special Badges for Ticket & Receipt */
+.ticket-barcode-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 6px 0;
+  user-select: none;
+}
+.barcode-svg-pattern {
+  width: 160px;
+  height: 28px;
+}
+.receipt-itemized-table {
+  width: 100%;
+  font-family: 'Courier New', monospace;
+  font-size: 0.64rem;
+  line-height: 1.4;
+  text-align: left;
+  margin-top: 6px;
+  padding: 0 4px;
+}
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+}
+.scrapbook-pin-corner {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  font-size: 1.1rem;
+  transform: rotate(-30deg);
+  z-index: 15;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+}
+.scrapbook-washi-tape {
+  position: absolute;
+  top: -6px;
+  right: 18px;
+  width: 48px;
+  height: 14px;
+  background: rgba(255, 235, 150, 0.85);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transform: rotate(6deg);
+  z-index: 15;
+}
+.doodle-speech-tag {
+  display: inline-block;
+  background: #ffffff;
+  color: #103396;
+  font-weight: 900;
+  font-size: 0.65rem;
+  padding: 1px 7px;
+  border-radius: 4px;
+  box-shadow: 2px 2px 0px #000;
+  transform: rotate(-4deg);
+  margin-bottom: 2px;
+}
+
 /* Strip Header */
 .strip-header {
   width: 100%;

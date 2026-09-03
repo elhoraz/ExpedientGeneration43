@@ -7,6 +7,11 @@ import "./photobooth.css";
 type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
 type FilterMode = "normal" | "golden" | "noir" | "vintage" | "emerald" | "cyber" | "pastel";
 type FrameTheme =
+  | "ticket"
+  | "receipt"
+  | "scrapbook"
+  | "doodle"
+  | "mihrab"
   | "sovereign"
   | "white"
   | "film"
@@ -909,10 +914,41 @@ export default function PhotoboothClient() {
                 </div>
               </div>
 
-              {/* 12 Frame Themes Picker */}
+              {/* 17 Frame Themes Picker */}
               <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                 <span style={{ fontSize: "0.75rem", color: "#ffd700", display: "block", marginBottom: "8px", fontWeight: 700 }}>
-                  <i className="fa-solid fa-wand-magic-sparkles"></i> 12 Tema Eksklusif Frame:
+                  <i className="fa-solid fa-fire"></i> Edisi Viral Pinterest (Khas Santri & Expedient):
+                </span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
+                  {[
+                    { id: "ticket", label: "🎟️ Boarding Pass Ticket" },
+                    { id: "receipt", label: "🧾 Struk Kopontren Mart" },
+                    { id: "scrapbook", label: "📌 Scrapbook Santri" },
+                    { id: "doodle", label: "⚡ Y2K Doodle Pop" },
+                    { id: "mihrab", label: "🕌 Mihrab Kubah Emas" },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={`toggle-element-btn ${theme === t.id ? "active" : ""}`}
+                      onClick={() => {
+                        triggerHaptic(10);
+                        setTheme(t.id as FrameTheme);
+                      }}
+                      style={{
+                        fontSize: "0.76rem",
+                        padding: "6px 11px",
+                        fontWeight: 700,
+                        borderColor: theme === t.id ? "#ffd700" : "rgba(255,215,0,0.3)",
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+
+                <span style={{ fontSize: "0.75rem", color: "#a0a0a8", display: "block", marginBottom: "6px", fontWeight: 600 }}>
+                  <i className="fa-solid fa-crown"></i> Edisi Studio & Luxury:
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                   {[
@@ -1187,10 +1223,56 @@ export default function PhotoboothClient() {
             {/* Header Brand */}
             {showHeader && (
               <div className="strip-header">
-                <div className="strip-badge-text">
-                  {theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION"}
-                </div>
-                {showDivider && <div className="strip-divider" />}
+                {theme === "ticket" ? (
+                  <div className="ticket-barcode-wrap">
+                    <div style={{ fontSize: "0.72rem", fontWeight: 900, color: "#8b0000", letterSpacing: "1.5px" }}>
+                      EXPEDIENT BOARDING PASS
+                    </div>
+                    <div style={{ fontSize: "0.56rem", color: "#555", fontWeight: 700, margin: "2px 0 4px" }}>
+                      FROM: ARRISALAH ➔ TO: SUCCESS & JANNAH
+                    </div>
+                    <div style={{ fontSize: "1.4rem", letterSpacing: "3px", color: "#111", lineHeight: 0.8, fontFamily: "monospace", userSelect: "none" }}>
+                      ||| | |||| || ||| |
+                    </div>
+                  </div>
+                ) : theme === "receipt" ? (
+                  <div className="receipt-header-box">
+                    <div style={{ fontSize: "0.82rem", fontWeight: 900, color: "#111", letterSpacing: "1px" }}>
+                      ★ KOPONTREN MART 42 ★
+                    </div>
+                    <div style={{ fontSize: "0.62rem", opacity: 0.8 }}>Pesantren Arrisalah Slahung</div>
+                    <div style={{ fontSize: "0.58rem", opacity: 0.7, marginTop: "2px" }}>
+                      Tgl: {captionDate} • Kasir: Santri-42
+                    </div>
+                  </div>
+                ) : theme === "scrapbook" ? (
+                  <div style={{ position: "relative", textAlign: "center", padding: "4px 0 6px" }}>
+                    <span className="scrapbook-pin-corner">🧷</span>
+                    <span className="scrapbook-washi-tape"></span>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 800, color: "#ffe4e8", letterSpacing: "1px" }}>
+                      ✨ AKHI FILLAH • '42
+                    </div>
+                  </div>
+                ) : theme === "doodle" ? (
+                  <div style={{ textAlign: "center", paddingBottom: "4px" }}>
+                    <div className="doodle-speech-tag">★ WE LIT ★</div>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 900, letterSpacing: "1px", textShadow: "2px 2px 0px #0a1f5c" }}>
+                      EXPEDIENT 42
+                    </div>
+                  </div>
+                ) : theme === "mihrab" ? (
+                  <div style={{ textAlign: "center", paddingBottom: "4px" }}>
+                    <div style={{ fontSize: "1.2rem", color: "#ffd700", marginBottom: "1px" }}>🕌</div>
+                    <div style={{ fontFamily: "serif", fontSize: "0.92rem", color: "#ffd700", fontWeight: 700 }}>
+                      بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ
+                    </div>
+                  </div>
+                ) : (
+                  <div className="strip-badge-text">
+                    {theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION"}
+                  </div>
+                )}
+                {showDivider && theme !== "receipt" && <div className="strip-divider" />}
               </div>
             )}
 
@@ -1346,10 +1428,68 @@ export default function PhotoboothClient() {
             {/* Footer Brand & Custom Text */}
             {showFooter && (
               <div className="strip-footer">
-                {showDivider && <div className="strip-divider" />}
-                <div className="strip-caption-title">{captionTitle}</div>
-                <div className="strip-caption-date">{captionDate}</div>
-                {showCrest && <div className="strip-brand-crest">42ND ARRISALAH COHORT</div>}
+                {theme === "receipt" ? (
+                  <div className="receipt-footer-box">
+                    <div className="receipt-itemized-table">
+                      <div className="receipt-row"><span>1x Momen Nostalgia</span><span>Rp 0</span></div>
+                      <div className="receipt-row"><span>1x Ukhuwah Selamanya</span><span>GRATIS</span></div>
+                      <div className="receipt-row"><span>1x Tawa & Kenangan</span><span>PRICELESS</span></div>
+                      <div style={{ borderTop: "1px dashed #777", margin: "4px 0" }} />
+                      <div className="receipt-row" style={{ fontWeight: 800 }}><span>TOTAL: 42 ITEM</span><span>KEKAL</span></div>
+                      <div className="receipt-row" style={{ fontSize: "0.56rem", opacity: 0.8 }}><span>BAYAR: DOA BERSAMA</span><span>LUNAS</span></div>
+                    </div>
+                    <div style={{ textAlign: "center", fontSize: "0.62rem", marginTop: "6px", fontWeight: 700 }}>
+                      *** JAZAKUMULLAHU KHAIRAN ***
+                    </div>
+                    <div className="receipt-barcode">|||| | |||| || ||| |||| | ||||</div>
+                  </div>
+                ) : theme === "ticket" ? (
+                  <div style={{ width: "100%", textAlign: "center" }}>
+                    {showDivider && <div className="strip-divider" />}
+                    <div className="strip-caption-title" style={{ fontWeight: 800 }}>{captionTitle}</div>
+                    <div className="strip-caption-date">{captionDate} • GATE 42</div>
+                    <div className="ticket-barcode-wrap" style={{ marginTop: "4px" }}>
+                      <div className="ticket-barcode-lines" style={{ fontSize: "1.5rem" }}>|||| | |||| || ||| ||||</div>
+                      <div style={{ fontSize: "0.55rem", letterSpacing: "2px", opacity: 0.8 }}>EXP-42ND-ARRISALAH</div>
+                    </div>
+                  </div>
+                ) : theme === "scrapbook" ? (
+                  <div style={{ width: "100%", textAlign: "center", position: "relative" }}>
+                    {showDivider && <div className="strip-divider" />}
+                    <div className="strip-caption-title" style={{ fontFamily: "cursive, sans-serif" }}>{captionTitle}</div>
+                    <div className="strip-caption-date">✦ {captionDate} ✦</div>
+                    <div className="scrapbook-plaid-corner" />
+                    <div style={{ fontSize: "0.62rem", letterSpacing: "1px", opacity: 0.9, marginTop: "4px" }}>
+                      BEST MEMORIES EVER
+                    </div>
+                  </div>
+                ) : theme === "doodle" ? (
+                  <div style={{ width: "100%", textAlign: "center" }}>
+                    {showDivider && <div className="strip-divider" />}
+                    <div className="strip-caption-title" style={{ fontWeight: 900 }}>{captionTitle}</div>
+                    <div className="strip-caption-date">{captionDate}</div>
+                    <div style={{ display: "inline-block", background: "#fff", color: "#103396", padding: "2px 8px", borderRadius: "4px", fontSize: "0.62rem", fontWeight: 900, marginTop: "4px", boxShadow: "2px 2px 0px #000" }}>
+                      ✦ SQUAD ARRISALAH ✦
+                    </div>
+                  </div>
+                ) : theme === "mihrab" ? (
+                  <div style={{ width: "100%", textAlign: "center" }}>
+                    {showDivider && <div className="strip-divider" />}
+                    <div style={{ fontFamily: "serif", fontSize: "0.85rem", color: "#ffd700", marginBottom: "2px" }}>
+                      أُخُوَّةٌ فِي سَبِيلِ اللهِ حَتَّى الْجَنَّةِ
+                    </div>
+                    <div className="strip-caption-title">{captionTitle}</div>
+                    <div className="strip-caption-date">{captionDate}</div>
+                    {showCrest && <div className="strip-brand-crest">42ND ARRISALAH COHORT</div>}
+                  </div>
+                ) : (
+                  <>
+                    {showDivider && <div className="strip-divider" />}
+                    <div className="strip-caption-title">{captionTitle}</div>
+                    <div className="strip-caption-date">{captionDate}</div>
+                    {showCrest && <div className="strip-brand-crest">42ND ARRISALAH COHORT</div>}
+                  </>
+                )}
               </div>
             )}
           </div>
