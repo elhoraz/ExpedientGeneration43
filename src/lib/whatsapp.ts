@@ -27,9 +27,12 @@ export async function sendWhatsAppMessage(target: string, message: string) {
     });
 
     const result = await response.json();
-    return response.ok && result.status;
+    if (!result.status) {
+      console.error("[WhatsApp Fonnte Failed]:", result.reason || result);
+    }
+    return response.ok && Boolean(result.status);
   } catch (error) {
-    console.error("WhatsApp Send Error:", error);
+    console.error("[WhatsApp Send Exception]:", error);
     return false;
   }
 }
@@ -70,9 +73,12 @@ export async function broadcastWhatsAppMessage(targets: string[], message: strin
     });
 
     const result = await response.json();
-    return response.ok && result.status;
+    if (!result.status) {
+      console.error("[WhatsApp Broadcast Failed]:", result.reason || result);
+    }
+    return response.ok && Boolean(result.status);
   } catch (error) {
-    console.error("WhatsApp Broadcast Error:", error);
+    console.error("[WhatsApp Broadcast Exception]:", error);
     return false;
   }
 }
