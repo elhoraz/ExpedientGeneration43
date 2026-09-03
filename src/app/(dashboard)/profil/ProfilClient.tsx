@@ -21,6 +21,25 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     return () => { document.body.classList.remove('page-profil'); };
   }, []);
 
+  // Tab switching memory (Task 18)
+  const [profileTab, setProfileTab] = useState<"identitas" | "keamanan">("identitas");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash.replace("#", "");
+      if (hash === "keamanan" || hash === "identitas") {
+        setProfileTab(hash as any);
+      }
+    }
+  }, []);
+
+  const handleTabChange = (tab: "identitas" | "keamanan") => {
+    setProfileTab(tab);
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", `#${tab}`);
+    }
+  };
+
   const [waOptIn, setWaOptIn] = useState(user.wa_notif_opt_in === 1 || user.wa_notif_opt_in === true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -450,7 +469,57 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                 </div>
             </div>
 
-            <div className="profil-grid tilt-container">
+            {/* TAB SWITCHER (KHUSUS MOBILE SCREEN < 900PX, HILANG DI DESKTOP) */}
+            <div className="profil-tabs-nav">
+              <button
+                type="button"
+                className={`action-btn ${profileTab === "identitas" ? "active-tab" : ""}`}
+                onClick={() => handleTabChange("identitas")}
+                style={{
+                  flex: 1,
+                  padding: "12px 20px",
+                  borderRadius: "50px",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  background: profileTab === "identitas" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
+                  color: profileTab === "identitas" ? "#000" : "var(--text-primary)",
+                  border: "1px solid var(--glass-border)",
+                  transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px"
+                }}
+              >
+                <i className="fa-regular fa-id-card"></i> Identitas
+              </button>
+              <button
+                type="button"
+                className={`action-btn ${profileTab === "keamanan" ? "active-tab" : ""}`}
+                onClick={() => handleTabChange("keamanan")}
+                style={{
+                  flex: 1,
+                  padding: "12px 20px",
+                  borderRadius: "50px",
+                  fontSize: "0.82rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  background: profileTab === "keamanan" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
+                  color: profileTab === "keamanan" ? "#000" : "var(--text-primary)",
+                  border: "1px solid var(--glass-border)",
+                  transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px"
+                }}
+              >
+                <i className="fa-solid fa-fingerprint"></i> Keamanan
+              </button>
+            </div>
+
+            <div className="profil-grid tilt-container" data-tab={profileTab}>
                 
                 {/* KOLOM KIRI: EDIT PROFIL */}
                 <div className="premium-panel stagger-item parallax-card">

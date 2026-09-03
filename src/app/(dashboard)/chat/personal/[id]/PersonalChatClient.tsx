@@ -271,6 +271,15 @@ export default function PersonalChatClient({
       showAlert("Gagal", "Pesan gagal terkirim. Silakan coba lagi.");
     } else if (data) {
       setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)));
+      // Send real-time in-app & push notification to recipient
+      fetch("/api/chat/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          receiverId: contact.id,
+          message: messageText || (media?.imageUrl ? "📷 Mengirim gambar" : media?.audioUrl ? "🎤 Mengirim pesan suara" : "🎥 Mengirim video"),
+        }),
+      }).catch((err) => console.warn("Failed to send chat notification:", err));
     }
   };
 

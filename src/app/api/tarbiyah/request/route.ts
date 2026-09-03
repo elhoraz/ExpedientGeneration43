@@ -86,6 +86,17 @@ export async function POST(req: Request) {
 
       if (error) throw error;
 
+      // Send notification to mentor/target
+      await adminSupabase.from("notifications").insert([
+        {
+          user_id: targetId,
+          title: `Permohonan ${type} Baru`,
+          message: `${profile?.nama_panggilan || "Rekan Angkatan"} mengajukan bimbingan/tender: "${subject || "Permohonan Tarbiyah"}"`,
+          link: "/tarbiyah",
+          is_read: false,
+        },
+      ]);
+
       // Log Activity
       await adminSupabase.from("activity_logs").insert([
         {
@@ -152,6 +163,17 @@ export async function POST(req: Request) {
         await addPrestise(adminSupabase as any, reqData.user_id, "TARBIYAH_MENTORSHIP_APPROVED", 20);
         await addPrestise(adminSupabase as any, user.id, "TARBIYAH_MENTOR_ACCEPTED", 20);
       }
+
+      // Send notification to applicant
+      await adminSupabase.from("notifications").insert([
+        {
+          user_id: reqData.user_id,
+          title: `Permohonan ${reqData.type}: ${newStatus === 'Approved' ? 'Disetujui' : 'Ditolak'}`,
+          message: `Permohonan bimbingan/tender ${reqData.type} Anda telah ${newStatus === 'Approved' ? 'diterima oleh Mentor' : 'ditolak'}.`,
+          link: "/tarbiyah",
+          is_read: false,
+        },
+      ]);
 
       // Log Activity
       await adminSupabase.from("activity_logs").insert([
