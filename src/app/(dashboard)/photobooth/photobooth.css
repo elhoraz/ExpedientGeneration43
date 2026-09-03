@@ -5,13 +5,16 @@
 
 .photobooth-page {
   min-height: 100vh;
-  padding: 100px 20px 80px;
+  padding: 85px 16px 80px;
   background: radial-gradient(circle at 50% 15%, rgba(212, 175, 55, 0.08) 0%, #08080a 70%);
   color: #f1f1f1;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   overflow-x: hidden;
 }
 
@@ -63,17 +66,21 @@
 /* Main Studio Layout Grid */
 .studio-container {
   display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
   width: 100%;
-  max-width: 1280px;
+  max-width: 1040px;
+  margin: 0 auto;
   align-items: start;
+  box-sizing: border-box;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1060px) {
   .studio-container {
     grid-template-columns: 1fr;
-    max-width: 650px;
+    max-width: 540px;
+    margin: 0 auto;
+    gap: 24px;
   }
 }
 
@@ -85,12 +92,16 @@
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 24px;
-  padding: 24px;
+  border-radius: 20px;
+  padding: 20px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Viewfinder Viewport */
@@ -345,14 +356,18 @@
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 24px;
-  padding: 24px;
+  border-radius: 20px;
+  padding: 18px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   position: sticky;
-  top: 90px;
+  top: 85px;
+  min-width: 0;
+  width: 100%;
+  max-width: 300px;
+  box-sizing: border-box;
 }
 
 .preview-top-actions {
@@ -360,13 +375,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .preview-heading {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: #d4af37;
   letter-spacing: 1px;
@@ -375,9 +390,10 @@
 
 /* THE RENDERABLE PHOTOSTRIP CONTAINER */
 .photostrip-card {
-  width: 290px;
+  width: 100%;
+  max-width: 270px;
   border-radius: 12px;
-  padding: 16px 14px 20px;
+  padding: 14px 12px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -385,6 +401,8 @@
   position: relative;
   transition: all 0.3s ease;
   overflow: hidden;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
 /* THEME 1: SOVEREIGN GOLD (Default) */
@@ -558,13 +576,7 @@
   opacity: 1;
 }
 
-/* Placed Stickers inside Strip */
-.strip-sticker {
-  position: absolute;
-  pointer-events: none;
-  z-index: 20;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
-}
+
 
 /* Strip Footer */
 .strip-footer {
