@@ -174,7 +174,14 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
 
                                                 <div className="card-socials reveal-item r-4">
                                                     <Link href={`/chat/personal/${user.id}`} className="soc-btn" title="Kirim Pesan"><i className="fa-solid fa-comment-dots"></i></Link>
-                                                    <a href={`/api/vcard/${user.id}`} className="soc-btn" title="Simpan Kontak vCard (.vcf)"><i className="fa-solid fa-address-card"></i></a>
+                                                    <a 
+                                                      href={`/api/vcard/${user.id}`} 
+                                                      download={`Expedient_${(user.nama_panggilan || user.nama_lengkap || 'Kontak').replace(/[^a-zA-Z0-9_-]/g, '_')}.vcf`} 
+                                                      className="soc-btn" 
+                                                      title="Simpan Kontak vCard (.vcf)"
+                                                    >
+                                                      <i className="fa-solid fa-address-card"></i>
+                                                    </a>
                                                     <button type="button" onClick={() => setQrModalUser(user)} className="soc-btn" title="Tampilkan QR Kontak (Scan)"><i className="fa-solid fa-qrcode"></i></button>
                                                     {user.akun_ig && <a href={`https://instagram.com/${user.akun_ig.replace('@', '')}`} target="_blank" className="soc-btn" title="Instagram"><i className="fa-brands fa-instagram"></i></a>}
                                                     {user.akun_tiktok && <a href={`https://tiktok.com/@${user.akun_tiktok.replace('@', '')}`} target="_blank" className="soc-btn" title="TikTok"><i className="fa-brands fa-tiktok"></i></a>}
@@ -239,19 +246,36 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
               </p>
 
               <div style={{ background: "#ffffff", padding: "12px", borderRadius: "16px", display: "inline-block", boxShadow: "0 8px 20px rgba(0,0,0,0.3)", marginBottom: "20px" }}>
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(
-                    `BEGIN:VCARD\nVERSION:3.0\nFN:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan}\nNICKNAME:${qrModalUser.nama_panggilan || ''}\nTEL;TYPE=CELL:+${(qrModalUser.no_whatsapp || '').replace(/\\D/g, '')}\nNOTE:Alumni Expedient Generation Angkatan 42\nEND:VCARD`
-                  )}`}
-                  alt="QR Code Kontak"
-                  style={{ width: "190px", height: "190px", display: "block" }}
-                />
+                {(() => {
+                  let rawPhone = (qrModalUser.no_whatsapp || "").replace(/\D/g, "");
+                  if (rawPhone.startsWith("0")) rawPhone = "62" + rawPhone.slice(1);
+                  const phoneFormatted = rawPhone ? `+${rawPhone}` : "";
+                  const vcardPayload = [
+                    "BEGIN:VCARD",
+                    "VERSION:3.0",
+                    `FN:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan}`,
+                    `N:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan};;;;`,
+                    `NICKNAME:${qrModalUser.nama_panggilan || ""}`,
+                    "ORG:Expedient Generation 42",
+                    phoneFormatted ? `TEL;TYPE=CELL,VOICE:${phoneFormatted}` : "",
+                    "NOTE:Alumni Expedient Generation Angkatan 42",
+                    "END:VCARD"
+                  ].filter(Boolean).join("\r\n");
+
+                  return (
+                    <img 
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(vcardPayload)}`}
+                      alt="QR Code Kontak"
+                      style={{ width: "190px", height: "190px", display: "block" }}
+                    />
+                  );
+                })()}
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 <a 
                   href={`/api/vcard/${qrModalUser.id}`}
-                  download
+                  download={`Expedient_${(qrModalUser.nama_panggilan || qrModalUser.nama_lengkap || 'Kontak').replace(/[^a-zA-Z0-9_-]/g, '_')}.vcf`}
                   style={{
                     background: "rgba(212, 175, 55, 0.15)",
                     border: "1px solid #d4af37",
