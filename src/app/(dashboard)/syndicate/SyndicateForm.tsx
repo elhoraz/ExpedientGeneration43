@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import "./syndicate.css";
 
 type SyndicateData = {
@@ -40,21 +41,49 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewLogo, setPreviewLogo] = useState<string | null>(
-    initialData?.logo_bisnis ? `/uploads/bisnis/${initialData.logo_bisnis}` : null
+    initialData?.logo_bisnis ? (initialData.logo_bisnis.startsWith("http") || initialData.logo_bisnis.startsWith("/") ? initialData.logo_bisnis : `/uploads/bisnis/${initialData.logo_bisnis}`) : null
   );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [rawCropImage, setRawCropImage] = useState<string | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
 
   const categories = ["F&B", "Teknologi", "Jasa", "Kreatif", "Retail"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        showAlert("Peringatan", "Ukuran logo maksimal 2MB.");
+      if (file.size > 10 * 1024 * 1024) {
+        showAlert("Peringatan", "Ukuran logo maksimal 10MB.");
         return;
       }
-      setSelectedFile(file);
-      setPreviewLogo(URL.createObjectURL(file));
+      const objectUrl = URL.createObjectURL(file);
+      setRawCropImage(objectUrl);
+      setIsCropperOpen(true);
+    }
+  };
+
+  const handleCropApply = (croppedBlob: Blob, croppedDataUrl: string) => {
+    const ext = croppedBlob.type === "image/png" ? "png" : "jpg";
+    const croppedFile = new File([croppedBlob], `logo_${userId}_${Date.now()}.${ext}`, {
+      type: croppedBlob.type || "image/jpeg",
+    });
+    setSelectedFile(croppedFile);
+    setPreviewLogo(croppedDataUrl);
+    setIsCropperOpen(false);
+    if (rawCropImage) {
+      URL.revokeObjectURL(rawCropImage);
+      setRawCropImage(null);
+    }
+  };
+
+  const handleCropCancel = () => {
+    setIsCropperOpen(false);
+    if (rawCropImage) {
+      URL.revokeObjectURL(rawCropImage);
+      setRawCropImage(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -189,6 +218,17 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
         </form>
 
       </div>
+
+      <ImageCropperModal
+        isOpen={isCropperOpen}
+        imageSrc={rawCropImage || ""}
+        title="Sesuaikan Logo Bisnis"
+        aspectRatio={1}
+        outputWidth={600}
+        outputHeight={600}
+        onApply={handleCropApply}
+        onCancel={handleCropCancel}
+      />
     </div>
   );
 }

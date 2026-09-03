@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import gsap from "gsap";
 import { getGelar, getBadgeColor, getGelarIcon } from "@/lib/gamification";
 import { getAvatarUrl } from "@/lib/avatar";
+import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { useCms } from "@/components/layout/CmsProvider";
 import "./profil.css";
 
@@ -52,6 +53,9 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const [avatarPreviewSrc, setAvatarPreviewSrc] = useState(
     getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap)
   );
+  const [rawCropImage, setRawCropImage] = useState<string | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [croppedAvatarFile, setCroppedAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const supabase = createClient();
@@ -110,11 +114,10 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     };
 
     // Handle photo upload via server-side storage API (Service Role)
-    const fileInput = fileInputRef.current;
-    if (fileInput?.files?.[0]) {
-      const file = fileInput.files[0];
+    const photoFileToUpload = croppedAvatarFile || fileInputRef.current?.files?.[0];
+    if (photoFileToUpload) {
       const uploadData = new FormData();
-      uploadData.append("file", file);
+      uploadData.append("file", photoFileToUpload);
       uploadData.append("folder", "profiles");
 
       try {
@@ -168,6 +171,8 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       if (updateData.foto_profil) {
         setAvatarPreviewSrc(updateData.foto_profil);
       }
+      setCroppedAvatarFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
       // Log activity
       await supabase.from("activity_logs").insert([{
         user_id: user.id,
@@ -349,15 +354,43 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     router.refresh();
   };
 
-  // ========== FILE PREVIEW ==========
+  // ========== FILE SELECTION & CROPPING ==========
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setAvatarPreviewSrc(ev.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      if (file.size > 10 * 1024 * 1024) {
+        showToast("Ukuran foto maksimal 10MB.", "error");
+        return;
+      }
+      const objectUrl = URL.createObjectURL(file);
+      setRawCropImage(objectUrl);
+      setIsCropperOpen(true);
+    }
+  };
+
+  const handleCropApply = (croppedBlob: Blob, croppedDataUrl: string) => {
+    const ext = croppedBlob.type === "image/png" ? "png" : "jpg";
+    const croppedFile = new File([croppedBlob], `avatar_${user.id}_${Date.now()}.${ext}`, {
+      type: croppedBlob.type || "image/jpeg",
+    });
+    setCroppedAvatarFile(croppedFile);
+    setAvatarPreviewSrc(croppedDataUrl);
+    setIsCropperOpen(false);
+    if (rawCropImage) {
+      URL.revokeObjectURL(rawCropImage);
+      setRawCropImage(null);
+    }
+    showToast("Posisi foto disesuaikan. Klik 'Simpan Perubahan' di bawah untuk menyimpan.");
+  };
+
+  const handleCropCancel = () => {
+    setIsCropperOpen(false);
+    if (rawCropImage) {
+      URL.revokeObjectURL(rawCropImage);
+      setRawCropImage(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -796,6 +829,18 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
 
             </div>
         </div>
+
+        {/* CROPPER MODAL UNTUK ATUR POSISI & ZOOM FOTO PROFIL */}
+        <ImageCropperModal
+          isOpen={isCropperOpen}
+          imageSrc={rawCropImage || ""}
+          title="Sesuaikan Potret Profil"
+          aspectRatio={1}
+          outputWidth={600}
+          outputHeight={600}
+          onApply={handleCropApply}
+          onCancel={handleCropCancel}
+        />
 
         <Script src="/vendor/gsap/gsap.min.js" strategy="beforeInteractive" />
         <Script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js" strategy="afterInteractive" />
