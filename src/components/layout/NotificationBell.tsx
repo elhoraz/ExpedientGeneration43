@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { triggerHaptic } from "@/lib/haptic";
 import "./notifications.css";
 
 type Notification = {
@@ -14,56 +15,52 @@ type Notification = {
   created_at: string;
 };
 
-type QuestItem = {
-  id: string;
-  icon: string;
-  label: string;
-  href: string;
-  actionText: string;
-  storageKey: string;
-};
+function formatTimeAgo(dateString: string): string {
+  const now = new Date();
+  const date = new Date(dateString);
+  const diffMs = Math.max(0, now.getTime() - date.getTime());
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
 
-const INITIAL_QUESTS: QuestItem[] = [
-  {
-    id: "login",
-    icon: "fa-solid fa-right-to-bracket",
-    label: "Login ke portal alumni",
-    href: "#",
-    actionText: "Selesai ✓",
-    storageKey: "expedient_quest_login",
-  },
-  {
-    id: "profile",
-    icon: "fa-solid fa-user-pen",
-    label: "Lengkapi foto & data profil",
-    href: "/profil",
-    actionText: "Buka Profil →",
-    storageKey: "expedient_quest_profile",
-  },
-  {
-    id: "radar",
-    icon: "fa-solid fa-map-location-dot",
-    label: "Perbarui lokasi tinggal di radar",
-    href: "/radar",
-    actionText: "Buka Radar →",
-    storageKey: "expedient_quest_radar",
-  },
-  {
-    id: "directory",
-    icon: "fa-solid fa-address-book",
-    label: "Cari kawan lama di direktori",
-    href: "/direktori",
-    actionText: "Buka Direktori →",
-    storageKey: "expedient_quest_directory",
-  },
-];
+  if (diffSec < 60) return "Baru saja";
+  if (diffMin < 60) return `${diffMin} mnt lalu`;
+  if (diffHour < 24) return `${diffHour} jam lalu`;
+  if (diffDay === 1) return "Kemarin";
+  if (diffDay < 7) return `${diffDay} hari lalu`;
+  return date.toLocaleDateString("id-ID", { day: "numeric", month: "short" });
+}
+
+function getNotificationIcon(title: string, message: string) {
+  const text = `${title} ${message}`.toLowerCase();
+  if (text.includes("pengumuman") || text.includes("edar") || text.includes("info")) {
+    return { icon: "fa-solid fa-bullhorn", color: "#d4af37", bg: "rgba(212,175,55,0.15)" };
+  }
+  if (text.includes("panggilan") || text.includes("telepon") || text.includes("call")) {
+    return { icon: "fa-solid fa-phone-volume", color: "#2ecc71", bg: "rgba(46,204,113,0.15)" };
+  }
+  if (text.includes("acara") || text.includes("event") || text.includes("reuni") || text.includes("agenda")) {
+    return { icon: "fa-solid fa-calendar-check", color: "#3498db", bg: "rgba(52,152,219,0.15)" };
+  }
+  if (text.includes("maal") || text.includes("kas") || text.includes("donasi") || text.includes("infaq")) {
+    return { icon: "fa-solid fa-hand-holding-dollar", color: "#00ff88", bg: "rgba(0,255,136,0.15)" };
+  }
+  if (text.includes("syndicate") || text.includes("bisnis") || text.includes("tender")) {
+    return { icon: "fa-solid fa-briefcase", color: "#f39c12", bg: "rgba(243,156,18,0.15)" };
+  }
+  if (text.includes("pesan") || text.includes("chat")) {
+    return { icon: "fa-solid fa-comment-dots", color: "#9b59b6", bg: "rgba(155,89,182,0.15)" };
+  }
+  return { icon: "fa-solid fa-bell", color: "#d4af37", bg: "rgba(212,175,55,0.15)" };
+}
 
 export default function NotificationBell({ userId }: { userId: string }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"quest" | "notif">("quest");
-  const [completedQuests, setCompletedQuests] = useState<Set<string>>(new Set(["login"]));
-  
+  const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [loading, setLoading] = useState(false);
+
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -72,81 +69,30 @@ export default function NotificationBell({ userId }: { userId: string }) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Re-evaluate completed quests from storage and database
-  const evaluateQuests = useCallback(async () => {
-    const done = new Set<string>();
-    done.add("login");
-    if (typeof window !== "undefined") {
-      localStorage.setItem("expedient_quest_login", "true");
-
-      INITIAL_QUESTS.forEach((q) => {
-        if (localStorage.getItem(q.storageKey) === "true") {
-          done.add(q.id);
-        }
-      });
-    }
-
-    if (typeof window !== "undefined" && window.location.pathname.includes("direktori")) {
-      done.add("directory");
-      localStorage.setItem("expedient_quest_directory", "true");
-    }
-
-    // Fetch profile from Supabase to auto-verify if already done in DB
+  const fetchNotifications = useCallback(async () => {
     try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("foto_profil, no_whatsapp, no_hp, lat, lng, motivasi_hidup")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (profile) {
-        // Radar quest is ONLY complete if user has actual non-null, non-zero GPS coordinates
-        const hasGps = profile.lat !== null && profile.lng !== null && Number(profile.lat) !== 0 && Number(profile.lng) !== 0;
-        if (hasGps) {
-          done.add("radar");
-          if (typeof window !== "undefined") {
-            localStorage.setItem("expedient_quest_radar", "true");
-          }
-        }
-        // Profile quest is complete if user has a custom uploaded photo or updated WhatsApp/bio
-        const hasCustomPhoto = profile.foto_profil && !profile.foto_profil.includes("ui-avatars.com");
-        const hasPhone = profile.no_whatsapp || profile.no_hp;
-        if (hasCustomPhoto || (hasPhone && profile.motivasi_hidup)) {
-          done.add("profile");
-          if (typeof window !== "undefined") {
-            localStorage.setItem("expedient_quest_profile", "true");
-          }
-        }
-      }
-    } catch {
-      // ignore fetch error
-    }
-
-    setCompletedQuests(new Set(done));
-  }, [supabase, userId]);
-
-  useEffect(() => {
-    evaluateQuests();
-
-    const fetchNotifications = async () => {
+      setLoading(true);
       const { data } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(10);
-        
+        .limit(20);
+
       if (data) {
         setNotifications(data);
-        const unread = data.filter((n) => !n.is_read).length;
-        if (unread > 0) setActiveTab("notif");
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase, userId]);
 
+  useEffect(() => {
     fetchNotifications();
 
+    // Supabase Realtime Subscription for new incoming notifications
     const channel = supabase
-      .channel("notifications_channel")
+      .channel(`notifications_user_${userId}`)
       .on(
         "postgres_changes",
         {
@@ -157,28 +103,38 @@ export default function NotificationBell({ userId }: { userId: string }) {
         },
         (payload) => {
           const newNotif = payload.new as Notification;
-          setNotifications((prev) => [newNotif, ...prev].slice(0, 10));
-          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+          setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)].slice(0, 20));
+          triggerHaptic("notification");
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const updatedNotif = payload.new as Notification;
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === updatedNotif.id ? updatedNotif : n))
+          );
         }
       )
       .subscribe();
 
-    const handleQuestUpdate = () => evaluateQuests();
-    window.addEventListener("expedient-quest-updated", handleQuestUpdate);
-    window.addEventListener("storage", handleQuestUpdate);
-
     return () => {
       supabase.removeChannel(channel);
-      window.removeEventListener("expedient-quest-updated", handleQuestUpdate);
-      window.removeEventListener("storage", handleQuestUpdate);
     };
-  }, [userId, supabase, evaluateQuests]);
+  }, [fetchNotifications, supabase, userId]);
 
-  // Click outside and ESC key to close dropdown
+  // Click outside & Escape handler
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        isOpen &&
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
         buttonRef.current &&
@@ -189,7 +145,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && isOpen) {
+      if (event.key === "Escape") {
         setIsOpen(false);
       }
     };
@@ -203,11 +159,8 @@ export default function NotificationBell({ userId }: { userId: string }) {
   }, [isOpen]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
-  const completedCount = completedQuests.size;
-  const totalCount = INITIAL_QUESTS.length;
-  const isAllQuestsDone = completedCount >= totalCount;
 
-  // Dynamic unread dot on favicon
+  // Favicon dynamic indicator
   useEffect(() => {
     if (typeof window === "undefined") return;
     const faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -227,7 +180,6 @@ export default function NotificationBell({ userId }: { userId: string }) {
         if (!ctx) return;
         ctx.drawImage(img, 0, 0, 32, 32);
 
-        // Draw notification badge dot at top-right
         ctx.beginPath();
         ctx.arc(24, 8, 6, 0, 2 * Math.PI);
         ctx.fillStyle = "#ff3366";
@@ -252,190 +204,269 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
   const markAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    await supabase.from("notifications").update({ is_read: true }).eq("user_id", userId).eq("is_read", false);
+    await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("is_read", false);
+    triggerHaptic("light");
   };
 
-  const restartTour = () => {
-    setIsOpen(false);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("expedient-restart-tour"));
-    }
-  };
+  const filteredNotifications = notifications.filter((n) => {
+    if (filter === "unread") return !n.is_read;
+    return true;
+  });
 
   return (
     <div className="notif-wrapper" style={{ position: "relative", zIndex: 1001 }}>
-      <button 
+      <button
         ref={buttonRef}
         type="button"
-        className="notif-widget hover-trigger" 
+        className="notif-widget hover-trigger"
         id="btnNotifWidget"
-        title="Pengumuman & Misi Alumni"
+        title={unreadCount > 0 ? `${unreadCount} pemberitahuan belum dibaca` : "Pemberitahuan"}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsOpen((prev) => !prev);
+          triggerHaptic("selection");
         }}
         style={{ cursor: "pointer", pointerEvents: "auto" }}
       >
         <div className="icon-orb">
           <i className="fa-solid fa-bell"></i>
         </div>
-        {(unreadCount > 0 || !isAllQuestsDone) && (
-          <span id="notifBadge" style={{
-            position: "absolute", top: "2px", right: "2px", 
-            width: "12px", height: "12px", 
-            background: unreadCount > 0 ? "#ff5555" : "#d4af37", 
-            borderRadius: "50%", 
-            boxShadow: `0 0 10px ${unreadCount > 0 ? "#ff5555" : "#d4af37"}`
-          }}></span>
+        {unreadCount > 0 && (
+          <span
+            id="notifBadge"
+            style={{
+              position: "absolute",
+              top: "2px",
+              right: "2px",
+              minWidth: unreadCount > 9 ? "18px" : "14px",
+              height: "14px",
+              padding: "0 3px",
+              background: "linear-gradient(135deg, #ff3366, #d90429)",
+              color: "#fff",
+              fontSize: "0.6rem",
+              fontWeight: 800,
+              borderRadius: "10px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 10px rgba(255, 51, 102, 0.7)",
+              lineHeight: 1,
+            }}
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
 
       {isOpen && (
-        <div 
+        <div
           ref={dropdownRef}
-          className="notif-dropdown" 
-          style={{ 
-            display: "block", 
-            opacity: 1, 
-            transform: "none", 
+          className="notif-dropdown"
+          style={{
+            display: "block",
+            opacity: 1,
+            transform: "none",
             pointerEvents: "auto",
-            zIndex: 10002 
+            zIndex: 10002,
           }}
         >
-          {/* Tabs header */}
-          <div className="notif-tabs">
+          {/* Header */}
+          <div className="notif-header">
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <i className="fa-solid fa-bell" style={{ color: "var(--gold-main, #d4af37)", fontSize: "0.9rem" }}></i>
+              <h4 style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: "var(--text-primary)" }}>
+                Pemberitahuan
+              </h4>
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    fontSize: "0.65rem",
+                    padding: "2px 7px",
+                    borderRadius: "12px",
+                    background: "rgba(255, 51, 102, 0.15)",
+                    color: "#ff3366",
+                    fontWeight: 700,
+                    border: "1px solid rgba(255, 51, 102, 0.3)",
+                  }}
+                >
+                  {unreadCount} baru
+                </span>
+              )}
+            </div>
+
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={markAllAsRead}
+                className="btn-mark-all"
+                title="Tandai semua sudah dibaca"
+              >
+                <i className="fa-solid fa-check-double" style={{ marginRight: "4px" }}></i>
+                Tandai Dibaca
+              </button>
+            )}
+          </div>
+
+          {/* Filter Tabs */}
+          <div className="notif-filter-bar">
             <button
               type="button"
-              className={`notif-tab-btn ${activeTab === "quest" ? "active" : ""}`}
+              className={`notif-filter-btn ${filter === "all" ? "active" : ""}`}
               onClick={(e) => {
                 e.stopPropagation();
-                setActiveTab("quest");
+                setFilter("all");
               }}
             >
-              <i className="fa-solid fa-scroll"></i>
-              <span>Misi Awal</span>
-              <span className={`tab-badge ${isAllQuestsDone ? "done" : ""}`}>
-                {isAllQuestsDone ? "✓" : `${completedCount}/${totalCount}`}
-              </span>
+              Semua ({notifications.length})
             </button>
             <button
               type="button"
-              className={`notif-tab-btn ${activeTab === "notif" ? "active" : ""}`}
+              className={`notif-filter-btn ${filter === "unread" ? "active" : ""}`}
               onClick={(e) => {
                 e.stopPropagation();
-                setActiveTab("notif");
+                setFilter("unread");
               }}
             >
-              <i className="fa-solid fa-bullhorn"></i>
-              <span>Pengumuman</span>
-              {unreadCount > 0 && (
-                <span className="tab-badge unread">{unreadCount}</span>
-              )}
+              Belum Dibaca ({unreadCount})
             </button>
           </div>
 
-          {/* TAB 1: QUEST / MISI ALUMNI */}
-          {activeTab === "quest" && (
-            <div className="quest-tab-content">
-              <div className="quest-header-bar">
-                <div className="quest-header-info">
-                  <span className="quest-header-title">Misi Langkah Awal</span>
-                  <span className="quest-header-progress">{completedCount} dari {totalCount} selesai</span>
-                </div>
-                <div className="quest-mini-progress">
-                  <div 
-                    className="quest-mini-progress-fill" 
-                    style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                  />
-                </div>
-              </div>
+          {/* Body / List of Notifications */}
+          <div className="notif-body">
+            {filteredNotifications.length > 0 ? (
+              filteredNotifications.map((n) => {
+                const iconMeta = getNotificationIcon(n.title, n.message);
+                const isUnread = !n.is_read;
 
-              <div className="quest-list">
-                {INITIAL_QUESTS.map((q) => {
-                  const isDone = completedQuests.has(q.id);
-                  return (
-                    <Link
-                      key={q.id}
-                      href={q.href}
-                      className={`quest-tab-item ${isDone ? "completed" : ""}`}
-                      onClick={(e) => {
-                        if (q.href === "#") e.preventDefault();
-                        else setIsOpen(false);
+                const content = (
+                  <div
+                    key={n.id}
+                    className={`notif-item ${isUnread ? "unread" : ""}`}
+                    onClick={() => {
+                      if (isUnread) markAsRead(n.id);
+                      if (n.link) setIsOpen(false);
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "34px",
+                        height: "34px",
+                        borderRadius: "10px",
+                        background: iconMeta.bg,
+                        color: iconMeta.color,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        fontSize: "0.85rem",
+                        marginTop: "2px",
                       }}
                     >
-                      <div className="quest-tab-icon">
-                        {isDone ? (
-                          <i className="fa-solid fa-circle-check"></i>
-                        ) : (
-                          <i className={q.icon}></i>
-                        )}
-                      </div>
-                      <div className="quest-tab-details">
-                        <span className="quest-tab-label">{q.label}</span>
-                        {!isDone && (
-                          <span className="quest-tab-action">{q.actionText}</span>
-                        )}
-                      </div>
-                      {isDone && <span className="quest-tab-check">✓</span>}
-                    </Link>
-                  );
-                })}
-              </div>
+                      <i className={iconMeta.icon}></i>
+                    </div>
 
-              <div className="quest-tab-footer">
-                <button type="button" className="btn-tour-restart" onClick={restartTour}>
-                  <i className="fa-solid fa-compass"></i> Ulangi Tur Panduan Portal
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: NOTIFIKASI & PENGUMUMAN */}
-          {activeTab === "notif" && (
-            <div className="notif-body-wrap">
-              <div className="notif-header">
-                <h4>Pemberitahuan</h4>
-                {unreadCount > 0 && (
-                  <button type="button" onClick={markAllAsRead} className="btn-mark-all">Tandai Semua Dibaca</button>
-                )}
-              </div>
-              <div className="notif-body">
-                {notifications.length > 0 ? (
-                  notifications.map((n) => (
-                    <div 
-                      key={n.id} 
-                      className={`notif-item ${!n.is_read ? 'unread' : ''}`}
-                      onClick={() => {
-                        if (!n.is_read) markAsRead(n.id);
-                        setIsOpen(false);
-                      }}
-                    >
-                      <div className="notif-content">
-                        {n.link ? (
-                          <Link href={n.link} style={{ textDecoration: 'none', color: 'inherit' }}>
-                            <h5>{n.title}</h5>
-                            <p>{n.message}</p>
-                          </Link>
-                        ) : (
-                          <>
-                            <h5>{n.title}</h5>
-                            <p>{n.message}</p>
-                          </>
-                        )}
-                        <span className="notif-time">
-                          {new Date(n.created_at).toLocaleDateString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                    <div className="notif-content" style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "8px", marginBottom: "2px" }}>
+                        <h5
+                          style={{
+                            margin: 0,
+                            fontSize: "0.83rem",
+                            fontWeight: isUnread ? 700 : 500,
+                            color: isUnread ? "var(--text-primary)" : "var(--text-secondary)",
+                          }}
+                        >
+                          {n.title}
+                        </h5>
+                        <span className="notif-time" style={{ flexShrink: 0 }}>
+                          {formatTimeAgo(n.created_at)}
                         </span>
                       </div>
-                      {!n.is_read && <div className="unread-dot"></div>}
+                      <p
+                        style={{
+                          margin: 0,
+                          fontSize: "0.76rem",
+                          color: isUnread ? "var(--text-primary)" : "var(--text-secondary)",
+                          opacity: isUnread ? 0.95 : 0.75,
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {n.message}
+                      </p>
                     </div>
-                  ))
-                ) : (
-                  <div className="notif-empty">Belum ada pengumuman baru.</div>
-                )}
+
+                    {isUnread && <div className="unread-dot" title="Belum dibaca"></div>}
+                  </div>
+                );
+
+                if (n.link) {
+                  return (
+                    <Link
+                      key={n.id}
+                      href={n.link}
+                      style={{ textDecoration: "none", color: "inherit", display: "block" }}
+                    >
+                      {content}
+                    </Link>
+                  );
+                }
+
+                return content;
+              })
+            ) : (
+              <div className="notif-empty-state">
+                <div
+                  style={{
+                    width: "56px",
+                    height: "56px",
+                    borderRadius: "50%",
+                    background: "rgba(212, 175, 55, 0.08)",
+                    border: "1px solid rgba(212, 175, 55, 0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 12px",
+                    color: "var(--gold-main, #d4af37)",
+                    fontSize: "1.4rem",
+                  }}
+                >
+                  <i className="fa-regular fa-bell"></i>
+                </div>
+                <h5 style={{ margin: "0 0 4px 0", color: "var(--text-primary)", fontSize: "0.9rem", fontWeight: 600 }}>
+                  {filter === "unread" ? "Tidak Ada Notifikasi Baru" : "Kotak Pemberitahuan Bersih"}
+                </h5>
+                <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.76rem", lineHeight: 1.4 }}>
+                  {filter === "unread"
+                    ? "Semua pemberitahuan telah Anda baca."
+                    : "Kabar, agenda, dan pengumuman terbaru akan otomatis muncul di sini."}
+                </p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+
+          {/* Footer */}
+          <div
+            style={{
+              padding: "9px 14px",
+              background: "rgba(0, 0, 0, 0.2)",
+              borderTop: "1px solid var(--glass-border, rgba(255, 255, 255, 0.05))",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontSize: "0.7rem",
+              color: "var(--text-secondary, #888)",
+            }}
+          >
+            <span>
+              <i className="fa-solid fa-satellite-dish" style={{ color: "#2ecc71", marginRight: "6px" }}></i>
+              Realtime Sinkron
+            </span>
+            <span style={{ fontFamily: "monospace", fontSize: "0.68rem" }}>Expedient Portal</span>
+          </div>
         </div>
       )}
     </div>
