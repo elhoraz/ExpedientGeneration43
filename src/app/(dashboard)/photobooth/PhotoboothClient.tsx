@@ -60,7 +60,6 @@ export default function PhotoboothClient() {
   // Studio States
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
-  const [isMirrored, setIsMirrored] = useState(true);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
 
@@ -167,13 +166,11 @@ export default function PhotoboothClient() {
         throw new Error("Browser ini tidak mendukung akses kamera langsung.");
       }
 
-      const isPortrait = typeof window !== "undefined" && window.innerHeight > window.innerWidth;
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facing,
-          width: { ideal: isPortrait ? 960 : 1280 },
-          height: { ideal: isPortrait ? 1280 : 960 },
-          aspectRatio: { ideal: isPortrait ? 3 / 4 : 4 / 3 },
+          width: { ideal: 1280 },
+          height: { ideal: 960 },
         },
         audio: false,
       });
@@ -243,56 +240,107 @@ export default function PhotoboothClient() {
     return base;
   };
 
-  // Capture Still Video Frame to Base64 Image
+  // Determine current slot aspect ratio for precise framing without distortion
+  const getCurrentSlotAspectRatio = (): number => {
+    if (layout === "polaroid" || photoAspect === "square") return 1 / 1;
+    if (photoAspect === "portrait") return 3 / 4;
+    return 4 / 3; // classic 4:3 default
+  };
+
+  // Helper to crop an uploaded image to target aspect ratio (prevents distortion)
+  const cropImageToAspect = (dataUrl: string, targetAspect: number): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const iw = img.naturalWidth || img.width;
+        const ih = img.naturalHeight || img.height;
+        if (!iw || !ih) {
+          resolve(dataUrl);
+          return;
+        }
+        const imgAspect = iw / ih;
+
+        let sx = 0, sy = 0, sw = iw, sh = ih;
+        if (imgAspect > targetAspect) {
+          sw = ih * targetAspect;
+          sx = (iw - sw) / 2;
+        } else {
+          sh = iw / targetAspect;
+          sy = (ih - sh) / 2;
+        }
+
+        const outCanvas = document.createElement("canvas");
+        outCanvas.width = Math.min(1280, Math.round(sw));
+        outCanvas.height = Math.round(outCanvas.width / targetAspect);
+        const ctx = outCanvas.getContext("2d");
+        if (!ctx) {
+          resolve(dataUrl);
+          return;
+        }
+
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, outCanvas.width, outCanvas.height);
+        resolve(outCanvas.toDataURL("image/jpeg", 0.95));
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  };
+
+  // Capture Still Video Frame to Base64 Image with Exact Aspect Ratio Crop (Fixes Mobile Stretch Distortion)
   const captureFrame = (): string | null => {
     if (!videoRef.current) return null;
     const video = videoRef.current;
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+    if (!vw || !vh) return null;
+
+    const targetAspect = getCurrentSlotAspectRatio();
+    const videoAspect = vw / vh;
+
+    let sx = 0;
+    let sy = 0;
+    let sWidth = vw;
+    let sHeight = vh;
+
+    if (videoAspect > targetAspect) {
+      // Video is wider than target aspect ratio -> crop left & right
+      sWidth = vh * targetAspect;
+      sx = (vw - sWidth) / 2;
+    } else {
+      // Video is taller than target aspect ratio (e.g. Mobile Portrait!) -> crop top & bottom
+      sHeight = vw / targetAspect;
+      sy = (vh - sHeight) / 2;
+    }
+
+    const outputWidth = Math.min(1280, Math.round(sWidth));
+    const outputHeight = Math.round(outputWidth / targetAspect);
+
     const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth || 800;
-    canvas.height = video.videoHeight || 600;
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
 
-    // If mirror is enabled and front camera, mirror image to match viewfinder
-    if (isMirrored && cameraFacing === "user") {
+    // If front camera, mirror image horizontally to match viewfinder preview
+    if (cameraFacing === "user") {
       ctx.translate(canvas.width, 0);
       ctx.scale(-1, 1);
     }
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Draw the cropped portion from video feed with exact target aspect ratio
+    ctx.drawImage(
+      video,
+      sx,
+      sy,
+      sWidth,
+      sHeight,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
     return canvas.toDataURL("image/jpeg", 0.95);
-  };
-
-  // Rotate single photo in a slot by 90 degrees clockwise
-  const handleRotateSlot = (slotIdx: number) => {
-    const currentPhoto = photos[slotIdx];
-    if (!currentPhoto) return;
-    triggerHaptic(20);
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const rotCanvas = document.createElement("canvas");
-      // Swapping width & height for 90 deg rotation
-      rotCanvas.width = img.height;
-      rotCanvas.height = img.width;
-      const ctx = rotCanvas.getContext("2d");
-      if (!ctx) return;
-      ctx.translate(rotCanvas.width / 2, rotCanvas.height / 2);
-      ctx.rotate((90 * Math.PI) / 180);
-      ctx.drawImage(img, -img.width / 2, -img.height / 2);
-      const newBase64 = rotCanvas.toDataURL("image/jpeg", 0.95);
-
-      setPhotos((prev) => {
-        const next = [...prev];
-        next[slotIdx] = {
-          ...next[slotIdx],
-          image: newBase64,
-        };
-        return next;
-      });
-    };
-    img.src = currentPhoto.image;
   };
 
   // Start Live Motion Clip Recording (MediaRecorder)
@@ -397,12 +445,14 @@ export default function PhotoboothClient() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const dataUrl = event.target?.result as string;
       if (dataUrl) {
+        const targetAspect = getCurrentSlotAspectRatio();
+        const croppedUrl = await cropImageToAspect(dataUrl, targetAspect);
         setPhotos((prev) => {
           const next = [...prev];
-          next[activeSlot] = { image: dataUrl };
+          next[activeSlot] = { image: croppedUrl };
           return next;
         });
         setActiveSlot((prev) => (prev + 1) % totalSlots);
@@ -520,6 +570,49 @@ export default function PhotoboothClient() {
     setSelectedStickerId(null);
   };
 
+  // Pre-normalize photo cells in cloned DOM so html2canvas NEVER squashes or stretches photos
+  const sanitizeClonedCellsForExport = (clonedDoc: Document) => {
+    const cells = clonedDoc.querySelectorAll<HTMLElement>(".photo-cell");
+    cells.forEach((cell) => {
+      const img = cell.querySelector("img");
+      if (!img || !img.src) return;
+
+      const cellW = cell.offsetWidth || cell.clientWidth || 300;
+      const cellH = cell.offsetHeight || cell.clientHeight || 225;
+      if (cellW <= 0 || cellH <= 0) return;
+
+      const targetAspect = cellW / cellH;
+      const nw = img.naturalWidth || img.width;
+      const nh = img.naturalHeight || img.height;
+      if (!nw || !nh) return;
+
+      const imgAspect = nw / nh;
+      // If aspect ratios match closely (within 2%), no adjustment needed
+      if (Math.abs(imgAspect - targetAspect) < 0.02) return;
+
+      let sx = 0, sy = 0, sw = nw, sh = nh;
+      if (imgAspect > targetAspect) {
+        sw = nh * targetAspect;
+        sx = (nw - sw) / 2;
+      } else {
+        sh = nw / targetAspect;
+        sy = (nh - sh) / 2;
+      }
+
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = Math.round(cellW * 3);
+      tempCanvas.height = Math.round(cellH * 3);
+      const tCtx = tempCanvas.getContext("2d");
+      if (tCtx) {
+        tCtx.drawImage(img, sx, sy, sw, sh, 0, 0, tempCanvas.width, tempCanvas.height);
+        img.src = tempCanvas.toDataURL("image/jpeg", 0.95);
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "cover";
+      }
+    });
+  };
+
   // Export Photostrip to PNG or Story
   const handleDownloadStrip = async (mode: "strip" | "story") => {
     if (!stripRef.current) return;
@@ -532,12 +625,8 @@ export default function PhotoboothClient() {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
-        ignoreElements: (element) => {
-          return (
-            element.classList?.contains("cell-action-bar") ||
-            element.classList?.contains("cell-action-btn") ||
-            element.classList?.contains("cell-retake-btn")
-          );
+        onclone: (clonedDoc) => {
+          sanitizeClonedCellsForExport(clonedDoc);
         },
       });
 
@@ -620,6 +709,9 @@ export default function PhotoboothClient() {
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
+        onclone: (clonedDoc) => {
+          sanitizeClonedCellsForExport(clonedDoc);
+        },
       });
 
       // Check if captureStream is available
@@ -708,7 +800,7 @@ export default function PhotoboothClient() {
             ========================================================= */}
         <div className="camera-studio-box">
           {/* Live Viewfinder */}
-          <div className="viewfinder-wrapper">
+          <div className={`viewfinder-wrapper aspect-${layout === "polaroid" ? "square" : photoAspect}`}>
             {cameraError ? (
               <div
                 style={{
@@ -743,7 +835,7 @@ export default function PhotoboothClient() {
                 autoPlay
                 playsInline
                 muted
-                className={`viewfinder-video ${(!isMirrored || cameraFacing === "environment") ? "unmirrored" : ""}`}
+                className={`viewfinder-video ${cameraFacing === "environment" ? "unmirrored" : ""}`}
                 style={{ filter: getFilterStyle() }}
               />
             )}
@@ -780,17 +872,9 @@ export default function PhotoboothClient() {
                   <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#ffd700" }}></i> {filter}
                 </div>
                 {cameraFacing === "user" && (
-                  <button
-                    type="button"
-                    className="hud-pill"
-                    style={{ cursor: "pointer", pointerEvents: "auto", border: "1px solid rgba(212, 175, 55, 0.4)", background: isMirrored ? "rgba(212, 175, 55, 0.2)" : "rgba(0,0,0,0.6)" }}
-                    onClick={() => {
-                      triggerHaptic(15);
-                      setIsMirrored(!isMirrored);
-                    }}
-                  >
-                    <i className="fa-solid fa-arrows-left-right"></i> {isMirrored ? "Cermin: ON" : "Cermin: OFF (Asli)"}
-                  </button>
+                  <div className="hud-pill">
+                    <i className="fa-solid fa-arrows-split-up-and-left"></i> Selfie View
+                  </div>
                 )}
               </div>
             </div>
@@ -815,21 +899,6 @@ export default function PhotoboothClient() {
             >
               <i className="fa-solid fa-camera-rotate"></i>
             </button>
-
-            {/* Mirror Toggle Button */}
-            {cameraFacing === "user" && (
-              <button
-                type="button"
-                className={`btn-icon-tool ${isMirrored ? "active-tool" : ""}`}
-                title={isMirrored ? "Mode Cermin Aktif (Klik untuk Mode Asli/Teks Terbaca)" : "Mode Asli Aktif (Klik untuk Mode Cermin)"}
-                onClick={() => {
-                  triggerHaptic(15);
-                  setIsMirrored(!isMirrored);
-                }}
-              >
-                <i className="fa-solid fa-arrows-left-right"></i>
-              </button>
-            )}
 
             {/* Main Shutter Button */}
             <button
@@ -1401,16 +1470,16 @@ export default function PhotoboothClient() {
             {/* Slots Grid with Custom Gap */}
             <div
               className={`strip-grid-slots ${layout === "grid-2x2" ? "layout-grid" : layout === "polaroid" ? "layout-polaroid" : ""}`}
-              style={{ gap: theme === "instagram" ? "2px" : `${frameGap}px` }}
+              style={{ gap: `${frameGap}px` }}
             >
               {Array.from({ length: totalSlots }).map((_, idx) => {
                 const photoObj = photos[idx];
                 return (
                   <div
                     key={idx}
-                    className={`photo-cell aspect-${photoAspect} ${activeSlot === idx ? "active-slot-border" : ""}`}
+                    className={`photo-cell aspect-${layout === "polaroid" ? "square" : photoAspect} ${activeSlot === idx ? "active-slot-border" : ""}`}
                     style={{
-                      borderRadius: theme === "instagram" ? 0 : `${frameRadius}px`,
+                      borderRadius: `${frameRadius}px`,
                       filter: getFilterStyle(),
                     }}
                   >
@@ -1438,31 +1507,14 @@ export default function PhotoboothClient() {
                           </div>
                         )}
 
-                        {/* Cell Actions Overlay: Rotate & Retake */}
-                        <div className="cell-action-bar">
-                          <button
-                            type="button"
-                            className="cell-action-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRotateSlot(idx);
-                            }}
-                            title="Putar Foto 90°"
-                          >
-                            <i className="fa-solid fa-rotate-right"></i>
-                          </button>
-                          <button
-                            type="button"
-                            className="cell-action-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRetakeSlot(idx);
-                            }}
-                            title="Foto Ulang Slot Ini"
-                          >
-                            <i className="fa-solid fa-camera-rotate"></i>
-                          </button>
-                        </div>
+                        {/* Retake Button */}
+                        <button
+                          className="cell-retake-btn"
+                          onClick={() => handleRetakeSlot(idx)}
+                          title="Foto Ulang Slot Ini"
+                        >
+                          <i className="fa-solid fa-arrow-rotate-right"></i>
+                        </button>
                       </>
                     ) : (
                       <div className="photo-cell-placeholder">
