@@ -7,6 +7,11 @@ import "./photobooth.css";
 type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
 type FilterMode = "normal" | "golden" | "noir" | "vintage" | "emerald" | "cyber" | "pastel";
 type FrameTheme =
+  | "doily"
+  | "portra"
+  | "instagram"
+  | "luggage"
+  | "spiral"
   | "ticket"
   | "receipt"
   | "scrapbook"
@@ -921,6 +926,11 @@ export default function PhotoboothClient() {
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
                   {[
+                    { id: "doily", label: "🌺 Korduroi & Renda Doily" },
+                    { id: "portra", label: "🎞️ Kodak Portra 400" },
+                    { id: "instagram", label: "📱 Instagram Feed UI" },
+                    { id: "luggage", label: "🧳 Vintage Luggage Tag" },
+                    { id: "spiral", label: "📒 Spiral Notebook" },
                     { id: "ticket", label: "🎟️ Boarding Pass Ticket" },
                     { id: "receipt", label: "🧾 Struk Kopontren Mart" },
                     { id: "scrapbook", label: "📌 Scrapbook Santri" },
@@ -1223,7 +1233,54 @@ export default function PhotoboothClient() {
             {/* Header Brand */}
             {showHeader && (
               <div className="strip-header">
-                {theme === "ticket" ? (
+                {theme === "doily" ? (
+                  <div style={{ textAlign: "center", position: "relative", padding: "4px 0" }}>
+                    <span className="doily-flower-badge">🌺</span>
+                    <span className="doily-flower-badge-left">🌸</span>
+                    <div style={{ fontSize: "0.86rem", fontWeight: 800, color: "#faebd7", letterSpacing: "1px", fontStyle: "italic" }}>
+                      Mahabbah Fillah • '42
+                    </div>
+                  </div>
+                ) : theme === "portra" ? (
+                  <div className="portra-film-header-codes">
+                    <span>90 F11.0</span>
+                    <span>X</span>
+                    <span>PRO/2 120</span>
+                    <span>50</span>
+                    <span>90 F11.0</span>
+                    <span>PRO/2 120</span>
+                  </div>
+                ) : theme === "instagram" ? (
+                  <div className="ig-header-bar">
+                    <div className="ig-user-info">
+                      <div className="ig-avatar-ring">
+                        <div className="ig-avatar-inner">42</div>
+                      </div>
+                      <div>
+                        <div className="ig-username-text">
+                          expedientgeneration <i className="fa-solid fa-circle-check" style={{ color: "#3897f0", fontSize: "0.68rem" }}></i>
+                        </div>
+                        <div className="ig-location-text">Pondok Pesantren Arrisalah</div>
+                      </div>
+                    </div>
+                    <i className="fa-solid fa-ellipsis" style={{ color: "#262626", fontSize: "0.85rem" }}></i>
+                  </div>
+                ) : theme === "luggage" ? (
+                  <div className="luggage-banner-ribbon">
+                    ⚜️ TRUE UKHUWAH IS THE BEST ADVENTURE ⚜️
+                  </div>
+                ) : theme === "spiral" ? (
+                  <div style={{ textAlign: "center", paddingBottom: "2px" }}>
+                    <div className="spiral-binding-bar">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <span key={i} className="spiral-ring-wire" />
+                      ))}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 800, color: "#faebd7", letterSpacing: "1px" }}>
+                      📓 JURNAL ANGKATAN 42
+                    </div>
+                  </div>
+                ) : theme === "ticket" ? (
                   <div className="ticket-barcode-wrap">
                     <div style={{ fontSize: "0.72rem", fontWeight: 900, color: "#8b0000", letterSpacing: "1.5px" }}>
                       EXPEDIENT BOARDING PASS
@@ -1272,7 +1329,7 @@ export default function PhotoboothClient() {
                     {theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION"}
                   </div>
                 )}
-                {showDivider && theme !== "receipt" && <div className="strip-divider" />}
+                {showDivider && !["receipt", "portra", "instagram", "luggage", "spiral"].includes(theme) && <div className="strip-divider" />}
               </div>
             )}
 
@@ -1428,7 +1485,59 @@ export default function PhotoboothClient() {
             {/* Footer Brand & Custom Text */}
             {showFooter && (
               <div className="strip-footer">
-                {theme === "receipt" ? (
+                {theme === "portra" ? (
+                  <div className="portra-film-footer-codes">
+                    <span>S1</span>
+                    <span>◄ 5 ►</span>
+                    <span className="portra-main-brand">KODAK PORTRA 400 - EXPEDIENT 42</span>
+                    <span>P80/2 120</span>
+                    <span>J A N F</span>
+                  </div>
+                ) : theme === "instagram" ? (
+                  <div>
+                    <div className="ig-actions-bar">
+                      <div className="ig-left-actions">
+                        <i className="fa-solid fa-heart" style={{ color: "#ed4956" }}></i>
+                        <i className="fa-regular fa-comment" style={{ color: "#262626" }}></i>
+                        <i className="fa-regular fa-paper-plane" style={{ color: "#262626" }}></i>
+                      </div>
+                      <i className="fa-regular fa-bookmark" style={{ color: "#262626" }}></i>
+                    </div>
+                    <div className="ig-likes-text">4,242 likes</div>
+                    <div className="ig-caption-text">
+                      <span className="ig-caption-bold">expedientgeneration</span>
+                      {captionTitle} • Nostalgia ukhuwah santri takkan pernah pudar.
+                    </div>
+                    <div className="ig-timestamp-text">{captionDate} • 2 HOURS AGO</div>
+                  </div>
+                ) : theme === "luggage" ? (
+                  <div>
+                    <div className="luggage-vintage-box">
+                      <span className="luggage-icon-art">🧳</span>
+                      <div className="luggage-vintage-text">
+                        <div className="luggage-title-main">EXPEDIENT GENERATION 42</div>
+                        <div className="luggage-subtitle-date">Arrisalah Slahung • {captionDate}</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : theme === "doily" ? (
+                  <div style={{ textAlign: "center" }}>
+                    {showDivider && <div className="strip-divider" />}
+                    <div className="strip-caption-title" style={{ fontStyle: "italic", color: "#faebd7" }}>{captionTitle}</div>
+                    <div className="strip-caption-date" style={{ color: "#d5c4a8" }}>✦ {captionDate} ✦</div>
+                    {showCrest && <div className="strip-brand-crest" style={{ color: "#c4b59d" }}>42ND ARRISALAH COHORT</div>}
+                  </div>
+                ) : theme === "spiral" ? (
+                  <div>
+                    <div className="spiral-binding-bar">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <span key={i} className="spiral-ring-wire" />
+                      ))}
+                    </div>
+                    <div className="strip-caption-title" style={{ color: "#faebd7" }}>{captionTitle}</div>
+                    <div className="strip-caption-date" style={{ color: "#d5c4a8" }}>{captionDate}</div>
+                  </div>
+                ) : theme === "receipt" ? (
                   <div className="receipt-footer-box">
                     <div className="receipt-itemized-table">
                       <div className="receipt-row"><span>1x Momen Nostalgia</span><span>Rp 0</span></div>

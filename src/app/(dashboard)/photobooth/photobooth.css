@@ -786,6 +786,313 @@
   margin-bottom: 2px;
 }
 
+/* THEME 18: VINTAGE CORDUROY & DOILY LACE (Pinterest Exact) */
+.photostrip-card.theme-doily {
+  background: repeating-linear-gradient(
+    90deg,
+    #320710 0px,
+    #320710 2.5px,
+    #450c18 2.5px,
+    #450c18 5.5px
+  );
+  color: #fdfaf2;
+  border: 3px solid #1c0308;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), inset 0 0 40px rgba(0, 0, 0, 0.7);
+  position: relative;
+  padding: 24px 14px;
+}
+.photostrip-card.theme-doily .strip-header,
+.photostrip-card.theme-doily .strip-footer {
+  color: #faebd7;
+  font-family: 'Playfair Display', Georgia, serif;
+}
+.photostrip-card.theme-doily .strip-divider {
+  background: linear-gradient(90deg, transparent, #d5c4a8, transparent);
+}
+.photostrip-card.theme-doily .photo-cell {
+  background: #ffffff;
+  padding: 8px;
+  border: 9px solid #fbf7ee;
+  outline: 2px dashed #cfbe9f;
+  outline-offset: -5px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0,0,0,0.15);
+  border-radius: 6px;
+  transition: transform 0.2s ease;
+}
+.photostrip-card.theme-doily .photo-cell:nth-child(1) {
+  transform: rotate(-2.5deg);
+}
+.photostrip-card.theme-doily .photo-cell:nth-child(2) {
+  transform: rotate(2deg);
+}
+.photostrip-card.theme-doily .photo-cell:nth-child(3) {
+  transform: rotate(-1.8deg);
+}
+.photostrip-card.theme-doily .photo-cell:nth-child(4) {
+  transform: rotate(2.2deg);
+}
+.doily-flower-badge {
+  position: absolute;
+  top: 14px;
+  right: 12px;
+  font-size: 1.6rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.7));
+  z-index: 15;
+  pointer-events: none;
+}
+.doily-flower-badge-left {
+  position: absolute;
+  bottom: 80px;
+  left: 8px;
+  font-size: 1.5rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.7));
+  z-index: 15;
+  pointer-events: none;
+}
+
+/* THEME 19: KODAK PORTRA 400 FILM NEGATIVE (Pinterest Exact) */
+.photostrip-card.theme-portra {
+  background: #000000;
+  color: #ffffff;
+  border: 1px solid #222222;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95);
+  font-family: 'Courier New', Courier, monospace;
+  padding: 16px 12px;
+}
+.photostrip-card.theme-portra .photo-cell {
+  border: 2px solid #000000;
+  border-radius: 0;
+  background: #111111;
+}
+.portra-film-header-codes {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.58rem;
+  color: #d1d1d1;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 0 2px 6px;
+  border-bottom: 1px solid #333333;
+  margin-bottom: 8px;
+  user-select: none;
+}
+.portra-film-footer-codes {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.58rem;
+  color: #d1d1d1;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 2px 0;
+  border-top: 1px solid #333333;
+  margin-top: 8px;
+  user-select: none;
+}
+.portra-main-brand {
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffffff;
+}
+
+/* THEME 20: INSTAGRAM POST FEED (Pinterest Exact) */
+.photostrip-card.theme-instagram {
+  background: #ffffff;
+  color: #262626;
+  border: 1px solid #dbdbdb;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding: 12px 14px;
+  border-radius: 8px;
+}
+.photostrip-card.theme-instagram .photo-cell {
+  border: none;
+  border-radius: 0;
+}
+.ig-header-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+.ig-user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ig-avatar-ring {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ig-avatar-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd700;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+.ig-username-text {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #262626;
+  line-height: 1.1;
+  text-align: left;
+}
+.ig-location-text {
+  font-size: 0.58rem;
+  color: #8e8e8e;
+  text-align: left;
+}
+.ig-actions-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 2px 4px;
+  font-size: 1.05rem;
+}
+.ig-left-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.ig-likes-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #262626;
+  text-align: left;
+  margin: 2px 0 4px;
+}
+.ig-caption-text {
+  font-size: 0.68rem;
+  color: #262626;
+  text-align: left;
+  line-height: 1.35;
+}
+.ig-caption-bold {
+  font-weight: 700;
+  margin-right: 4px;
+}
+.ig-timestamp-text {
+  font-size: 0.55rem;
+  color: #8e8e8e;
+  text-transform: uppercase;
+  text-align: left;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* THEME 21: VINTAGE KRAFT LUGGAGE TAG (Pinterest Exact) */
+.photostrip-card.theme-luggage {
+  background: #d5c3aa;
+  color: #3b2816;
+  border: 3px double #6b4d2e;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  font-family: 'Playfair Display', Georgia, serif;
+  padding: 16px 12px;
+  position: relative;
+}
+.photostrip-card.theme-luggage .photo-cell {
+  border: 2px solid #5a3f24;
+  background: #eae2d3;
+  border-radius: 4px;
+}
+.luggage-banner-ribbon {
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #3b2816;
+  border-top: 1px solid #6b4d2e;
+  border-bottom: 1px solid #6b4d2e;
+  padding: 3px 0;
+  margin-bottom: 8px;
+  font-style: italic;
+  text-align: center;
+}
+.luggage-vintage-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  border-top: 1px dashed #6b4d2e;
+  padding-top: 8px;
+}
+.luggage-icon-art {
+  font-size: 1.4rem;
+}
+.luggage-vintage-text {
+  text-align: left;
+  line-height: 1.2;
+}
+.luggage-title-main {
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #3b2816;
+}
+.luggage-subtitle-date {
+  font-size: 0.58rem;
+  color: #61462a;
+  font-style: italic;
+}
+
+/* THEME 22: SPIRAL NOTEBOOK SANTRI (Pinterest Exact) */
+.photostrip-card.theme-spiral {
+  background: repeating-linear-gradient(
+    90deg,
+    #2c060d 0px,
+    #2c060d 2.5px,
+    #3b0913 2.5px,
+    #3b0913 5.5px
+  );
+  color: #fdfaf2;
+  border: 3px solid #160206;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95);
+  position: relative;
+  padding: 22px 14px;
+}
+.photostrip-card.theme-spiral .photo-cell {
+  background: #ffffff;
+  padding: 6px;
+  border: 8px solid #f8f3e6;
+  outline: 2px dashed #cfbe9f;
+  outline-offset: -4px;
+  border-radius: 4px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
+}
+.spiral-binding-bar {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0;
+  z-index: 10;
+}
+.spiral-ring-wire {
+  width: 8px;
+  height: 16px;
+  background: linear-gradient(135deg, #111111 0%, #bbbbbb 50%, #222222 100%);
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
 /* Strip Header */
 .strip-header {
   width: 100%;
