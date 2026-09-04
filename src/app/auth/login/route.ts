@@ -16,10 +16,15 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    let errorMessage = "Email atau kata sandi yang Anda masukkan salah.";
     if (error.message.includes("Email not confirmed")) {
-      errorMessage = "Akun Anda belum diverifikasi. Silakan lakukan verifikasi OTP terlebih dahulu.";
-    } else if (error.message.includes("Invalid login credentials")) {
+      return NextResponse.redirect(
+        `${origin}/register?verify=true&email=${encodeURIComponent(email)}`,
+        { status: 303 }
+      );
+    }
+
+    let errorMessage = "Email atau kata sandi yang Anda masukkan salah.";
+    if (error.message.includes("Invalid login credentials")) {
       errorMessage = "Email atau kata sandi yang Anda masukkan salah.";
     } else {
       errorMessage = error.message;
@@ -30,9 +35,18 @@ export async function POST(request: Request) {
     );
   }
 
-  // Log activity and ensure is_active is true (since login succeeded, email must be confirmed)
+  // Ensure user is confirmed and profile is active
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
+    const { data: profile } = await supabase.from("profiles").select("is_active").eq("id", user.id).single();
+    if (profile && profile.is_active === false && !user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(
+        `${origin}/register?verify=true&email=${encodeURIComponent(email)}`,
+        { status: 303 }
+      );
+    }
+
     await supabase.from("profiles").update({ is_active: true }).eq("id", user.id);
     await supabase.from("activity_logs").insert([{
       user_id: user.id,

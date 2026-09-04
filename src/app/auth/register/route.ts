@@ -8,23 +8,36 @@ export async function POST(request: Request) {
   const origin = getRequestOrigin(request);
   const formData = await request.formData();
   
-  const email = String(formData.get("email"));
-  const password = String(formData.get("password"));
-  const nama_lengkap = String(formData.get("nama_lengkap"));
-  const nama_panggilan = String(formData.get("nama_panggilan"));
-  const jenis_kelamin = String(formData.get("jenis_kelamin"));
-  const tempat_lahir = String(formData.get("tempat_lahir"));
-  const tanggal_lahir = String(formData.get("tanggal_lahir"));
-  const alamat_lengkap = String(formData.get("alamat_lengkap"));
-  const no_whatsapp = String(formData.get("no_whatsapp"));
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const password = String(formData.get("password") || "");
+  const nama_lengkap = String(formData.get("nama_lengkap") || "").trim();
+  const nama_panggilan = String(formData.get("nama_panggilan") || "").trim();
+  const jenis_kelamin = String(formData.get("jenis_kelamin") || "").trim();
+  const tempat_lahir = String(formData.get("tempat_lahir") || "").trim();
+  const tanggal_lahir = String(formData.get("tanggal_lahir") || "").trim();
+  const alamat_lengkap = String(formData.get("alamat_lengkap") || "").trim();
+  
+  let rawWa = String(formData.get("no_whatsapp") || "").trim();
+  let cleanWa = rawWa.replace(/\D/g, "");
+  if (cleanWa.startsWith("0")) {
+    cleanWa = "62" + cleanWa.substring(1);
+  } else if (cleanWa && !cleanWa.startsWith("62")) {
+    cleanWa = "62" + cleanWa;
+  }
+  const no_whatsapp = cleanWa || rawWa;
 
-  const motivasi_hidup = String(formData.get("motivasi_hidup") || "");
-  const cita_cita = String(formData.get("cita_cita") || "");
-  const akun_ig = String(formData.get("akun_ig") || "");
-  const akun_tiktok = String(formData.get("akun_tiktok") || "");
+  const motivasi_hidup = String(formData.get("motivasi_hidup") || "").trim();
+  const cita_cita = String(formData.get("cita_cita") || "").trim();
+  const akun_ig = String(formData.get("akun_ig") || "").trim();
+  const akun_tiktok = String(formData.get("akun_tiktok") || "").trim();
   
   const face_data = String(formData.get("face_data") || "");
   const foto_profil_base64 = String(formData.get("foto_profil_base64") || "");
+
+  const isJsonRequest = 
+    request.headers.get("accept")?.includes("application/json") ||
+    request.headers.get("content-type")?.includes("application/json") ||
+    new URL(request.url).searchParams.get("json") === "true";
 
   const supabase = await createClient();
 
@@ -49,15 +62,55 @@ export async function POST(request: Request) {
     },
   });
 
-  const isJsonRequest = 
-    request.headers.get("accept")?.includes("application/json") ||
-    request.headers.get("content-type")?.includes("application/json") ||
-    new URL(request.url).searchParams.get("json") === "true";
-
   if (error) {
     let errorMessage = "Pendaftaran gagal.";
     if (error.message.includes("already registered") || error.message.includes("User already registered")) {
-      errorMessage = "Email ini sudah terdaftar. Silakan langsung login.";
+      // Periksa apakah akun yang sudah ada tersebut BELUM diverifikasi (bisa lanjutkan verifikasi OTP)
+      try {
+        const adminSupabase = createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!,
+          { auth: { autoRefreshToken: false, persistSession: false } }
+        );
+        const { data: { users } } = await adminSupabase.auth.admin.listUsers();
+        const existingUser = users?.find(u => u.email?.toLowerCase() === email);
+
+        if (existingUser && !existingUser.email_confirmed_at) {
+          const { data: existingProfile } = await adminSupabase
+            .from("profiles")
+            .select("no_whatsapp, is_active, nama_lengkap, nama_panggilan")
+            .eq("id", existingUser.id)
+            .single();
+
+          if (!existingProfile?.is_active) {
+            // Update nomor whatsapp jika pengguna memasukkan nomor baru saat retry
+            if (no_whatsapp) {
+              await adminSupabase.from("profiles").update({ no_whatsapp }).eq("id", existingUser.id);
+            }
+
+            if (isJsonRequest) {
+              return NextResponse.json({
+                success: true,
+                email: existingUser.email,
+                no_whatsapp: no_whatsapp || existingProfile?.no_whatsapp,
+                nama_lengkap: existingProfile?.nama_lengkap || nama_lengkap,
+                nama_panggilan: existingProfile?.nama_panggilan || nama_panggilan,
+                userId: existingUser.id,
+                resumed: true,
+                message: "Akun ditemukan dan belum diverifikasi. Silakan lanjutkan verifikasi OTP.",
+              });
+            }
+
+            return NextResponse.redirect(`${origin}/register?verify=true&email=${encodeURIComponent(email)}`, {
+              status: 303,
+            });
+          }
+        }
+      } catch (resumeErr) {
+        console.error("Resume OTP check error:", resumeErr);
+      }
+
+      errorMessage = "Email ini sudah terdaftar dan aktif. Silakan langsung masuk di halaman login.";
     } else {
       errorMessage = error.message;
     }

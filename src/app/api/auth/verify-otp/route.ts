@@ -41,7 +41,40 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Ambil metadata OTP
+    // 2. Cek apakah user sudah terverifikasi sebelumnya
+    const { data: currentProfile } = await adminSupabase
+      .from("profiles")
+      .select("is_active")
+      .eq("id", user.id)
+      .single();
+
+    if (user.email_confirmed_at && currentProfile?.is_active) {
+      return NextResponse.json({
+        success: true,
+        already_verified: true,
+        message: "Akun Anda sudah terverifikasi dan aktif. Silakan langsung masuk.",
+        redirect_url: "/login?success=Akun+Anda+sudah+terverifikasi.+Silakan+masuk.",
+      });
+    }
+
+    // 3. Ambil metadata OTP & Cek Percobaan (Anti Brute-Force)
+    const currentAttempts = Number(user.user_metadata?.otp_attempts || 0);
+    if (currentAttempts >= 5) {
+      // Hanguskan kode OTP karena sudah salah 5 kali
+      await adminSupabase.auth.admin.updateUserById(user.id, {
+        user_metadata: {
+          ...user.user_metadata,
+          otp_code: null,
+          otp_expires_at: null,
+          otp_attempts: 0,
+        },
+      });
+      return NextResponse.json(
+        { error: "Terlalu banyak percobaan kode OTP yang salah (maksimal 5 kali). Kode telah dibatalkan demi keamanan. Silakan minta kode OTP baru." },
+        { status: 429 }
+      );
+    }
+
     const savedOtp = String(user.user_metadata?.otp_code || "").trim();
     const expiresAt = Number(user.user_metadata?.otp_expires_at || 0);
 
@@ -74,14 +107,27 @@ export async function POST(request: Request) {
     }
 
     if (!isOtpValid) {
+      const nextAttempts = currentAttempts + 1;
+      await adminSupabase.auth.admin.updateUserById(user.id, {
+        user_metadata: {
+          ...user.user_metadata,
+          otp_attempts: nextAttempts,
+        },
+      });
+
+      const sisa = 5 - nextAttempts;
       return NextResponse.json(
-        { error: "Kode OTP yang Anda masukkan salah atau telah kedaluwarsa. Periksa kembali 6 digit angka yang Anda terima." },
+        {
+          error: sisa > 0
+            ? `Kode OTP yang Anda masukkan salah atau kedaluwarsa. Sisa kesempatan: ${sisa} kali.`
+            : "Terlalu banyak percobaan kode OTP yang salah. Kode telah dibatalkan demi keamanan. Silakan minta kode OTP baru.",
+        },
         { status: 400 }
       );
     }
 
-    // 3. OTP Valid! Bersihkan kode OTP dari metadata dan sahkan email
-    const { otp_code, otp_expires_at, ...cleanMetadata } = user.user_metadata || {};
+    // 4. OTP Valid! Bersihkan kode OTP dari metadata dan sahkan email
+    const { otp_code, otp_expires_at, otp_attempts, ...cleanMetadata } = user.user_metadata || {};
     const { error: activateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
       email_confirm: true,
       user_metadata: cleanMetadata,

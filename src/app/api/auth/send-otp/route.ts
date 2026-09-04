@@ -81,6 +81,7 @@ export async function POST(request: Request) {
         otp_expires_at: expiresAt,
         otp_channel: channel,
         otp_sent_at: Date.now(),
+        otp_attempts: 0,
       },
     });
 

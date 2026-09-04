@@ -19,6 +19,8 @@ function RegisterFormContent() {
   
   const searchParams = useSearchParams();
   const errorMsg = searchParams.get("error");
+  const verifyParam = searchParams.get("verify");
+  const emailParam = searchParams.get("email");
   const [showToast, setShowToast] = useState(!!errorMsg);
   const [toastMessage, setToastMessage] = useState(errorMsg || "");
   
@@ -80,6 +82,13 @@ function RegisterFormContent() {
       setToastMessage(errorMsg);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 5000);
+    }
+
+    // Dukungan langsung membuka modal OTP jika diarahkan dari login / URL
+    if (verifyParam === "true" && emailParam) {
+      setRegisteredEmail(emailParam);
+      setIsOtpModalOpen(true);
+      setOtpStep("choose_channel");
     }
 
     return () => {
@@ -313,51 +322,8 @@ function RegisterFormContent() {
     }
   };
 
-  const handleDigitChange = (index: number, value: string) => {
-    const cleanVal = value.replace(/\D/g, "");
-    if (!cleanVal) {
-      const newDigits = [...otpDigits];
-      newDigits[index] = "";
-      setOtpDigits(newDigits);
-      return;
-    }
-
-    const digit = cleanVal[cleanVal.length - 1];
-    const newDigits = [...otpDigits];
-    newDigits[index] = digit;
-    setOtpDigits(newDigits);
-
-    if (index < 5) {
-      const nextBox = document.getElementById(`otp-box-${index + 1}`) as HTMLInputElement;
-      nextBox?.focus();
-    }
-  };
-
-  const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
-      const prevBox = document.getElementById(`otp-box-${index - 1}`) as HTMLInputElement;
-      prevBox?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (!pasted) return;
-
-    const newDigits = [...otpDigits];
-    for (let i = 0; i < 6; i++) {
-      newDigits[i] = pasted[i] || "";
-    }
-    setOtpDigits(newDigits);
-
-    const nextIndex = Math.min(pasted.length, 5);
-    const targetBox = document.getElementById(`otp-box-${nextIndex}`) as HTMLInputElement;
-    targetBox?.focus();
-  };
-
-  const handleVerifyOtp = async () => {
-    const fullOtp = otpDigits.join("").trim();
+  const handleVerifyOtpWithDigits = async (digits: string[]) => {
+    const fullOtp = digits.join("").trim();
     if (fullOtp.length !== 6) {
       setOtpError("Masukkan 6 digit kode OTP secara lengkap.");
       return;
@@ -391,6 +357,64 @@ function RegisterFormContent() {
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     } finally {
       setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = () => {
+    handleVerifyOtpWithDigits(otpDigits);
+  };
+
+  const handleDigitChange = (index: number, value: string) => {
+    const cleanVal = value.replace(/\D/g, "");
+    if (!cleanVal) {
+      const newDigits = [...otpDigits];
+      newDigits[index] = "";
+      setOtpDigits(newDigits);
+      return;
+    }
+
+    const digit = cleanVal[cleanVal.length - 1];
+    const newDigits = [...otpDigits];
+    newDigits[index] = digit;
+    setOtpDigits(newDigits);
+
+    if (index < 5) {
+      const nextBox = document.getElementById(`otp-box-${index + 1}`) as HTMLInputElement;
+      nextBox?.focus();
+    } else if (newDigits.every(d => d !== "")) {
+      // Otomatis verifikasi jika semua 6 digit terisi
+      setTimeout(() => {
+        handleVerifyOtpWithDigits(newDigits);
+      }, 100);
+    }
+  };
+
+  const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      const prevBox = document.getElementById(`otp-box-${index - 1}`) as HTMLInputElement;
+      prevBox?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+
+    const newDigits = [...otpDigits];
+    for (let i = 0; i < 6; i++) {
+      newDigits[i] = pasted[i] || "";
+    }
+    setOtpDigits(newDigits);
+
+    const nextIndex = Math.min(pasted.length, 5);
+    const targetBox = document.getElementById(`otp-box-${nextIndex}`) as HTMLInputElement;
+    targetBox?.focus();
+
+    if (pasted.length === 6) {
+      setTimeout(() => {
+        handleVerifyOtpWithDigits(newDigits);
+      }, 100);
     }
   };
 
@@ -521,6 +545,7 @@ function RegisterFormContent() {
       setFaceStep(1);
 
       let isVerifying = false;
+      let detectedFrames = 0;
       faceIntervalRef.current = setInterval(async () => {
         if (!videoRef.current || isVerifying) return;
 
@@ -544,11 +569,12 @@ function RegisterFormContent() {
             return;
           }
 
+          detectedFrames++;
           setFaceStep(2);
           setFaceStatus("WAJAH TERDETEKSI! SILAKAN TERSENYUM :)");
 
-          // Check for happy expression (smile verification)
-          if (detection.expressions.happy > 0.8) {
+          // Check for happy expression (smile verification) atau stabil terdeteksi
+          if (detection.expressions.happy > 0.65 || (detectedFrames >= 6 && detection.detection.score > 0.6)) {
             isVerifying = true;
             clearInterval(faceIntervalRef.current);
             setFaceStep(4);
@@ -826,7 +852,21 @@ function RegisterFormContent() {
           <div className="status-value">{faceStatus}</div>
         </div>
 
-        <button type="button" className="crop-btn-cancel" style={{ marginTop: "40px", fontSize: "0.75rem" }} onClick={closeFaceScanner}>BATALKAN INISIASI</button>
+        {faceStatus.includes("ERROR") && (
+          <button
+            type="button"
+            className="btn-prime"
+            style={{ marginTop: "20px", fontSize: "0.75rem", padding: "8px 16px", borderRadius: "8px" }}
+            onClick={() => {
+              closeFaceScanner();
+              submitRegistrationAsync("");
+            }}
+          >
+            <i className="fa-solid fa-forward"></i> Lanjutkan Tanpa Face ID (Daftarkan Nanti di Profil)
+          </button>
+        )}
+
+        <button type="button" className="crop-btn-cancel" style={{ marginTop: "25px", fontSize: "0.75rem" }} onClick={closeFaceScanner}>BATALKAN INISIASI</button>
       </div>
 
       {/* OTP Verification Modal */}
