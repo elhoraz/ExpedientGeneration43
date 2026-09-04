@@ -398,14 +398,7 @@ export default function PhotoboothClient() {
         const recCanvas = document.createElement("canvas");
         recCanvas.width = recWidth;
         recCanvas.height = recHeight;
-        recCanvas.style.position = "fixed";
-        recCanvas.style.top = "-9999px";
-        recCanvas.style.left = "-9999px";
-        recCanvas.style.width = "1px";
-        recCanvas.style.height = "1px";
-        recCanvas.style.opacity = "0";
-        recCanvas.style.pointerEvents = "none";
-        recCanvas.style.zIndex = "-999";
+        recCanvas.style.cssText = "position:fixed;top:0;left:-9999px;width:320px;height:240px;pointer-events:none;z-index:-999;";
         document.body.appendChild(recCanvas);
 
         const recCtx = recCanvas.getContext("2d", { alpha: false });
@@ -418,15 +411,18 @@ export default function PhotoboothClient() {
         const canvasStream = recCanvas.captureStream ? recCanvas.captureStream(30) : stream;
         const recTrack = canvasStream.getVideoTracks ? canvasStream.getVideoTracks()[0] : null;
 
-        let mimeType = "video/webm";
-        if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
-          mimeType = "video/mp4;codecs=avc1";
-        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+        let mimeType = "video/mp4;codecs=avc1";
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
           mimeType = "video/mp4";
-        } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+        }
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
           mimeType = "video/webm;codecs=vp9";
-        } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+        }
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
           mimeType = "video/webm;codecs=vp8";
+        }
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          mimeType = "video/webm";
         }
 
         const recorder = new MediaRecorder(canvasStream, {
@@ -873,7 +869,7 @@ export default function PhotoboothClient() {
     }
   };
 
-  // Export Live Video Strip (WebM / MP4 Video Loop with Synchronized Animation, Filters & Exact Aspect Ratio)
+  // Export Live Video Strip (MP4 / WebM Video Loop with Synchronized Animation, Filters & Exact Aspect Ratio)
   const handleExportLiveVideo = async () => {
     if (!stripRef.current) return;
     setIsExporting(true);
@@ -899,16 +895,15 @@ export default function PhotoboothClient() {
       const exportScale = exportWidth / stripRect.width;
       const exportHeight = Math.round(stripRect.height * exportScale);
 
-      // Create export canvas and attach to DOM (required for captureStream in Chromium)
+      // Create export canvas with REAL dimensions in DOM (prevents Chromium compositor from freezing 1px / invisible canvas)
       const exportCanvas = document.createElement("canvas");
       exportCanvas.width = exportWidth;
       exportCanvas.height = exportHeight;
-      exportCanvas.style.cssText =
-        "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-999";
+      exportCanvas.style.cssText = `position:fixed;top:0;left:-9999px;width:${exportWidth}px;height:${exportHeight}px;pointer-events:none;z-index:-999;`;
       document.body.appendChild(exportCanvas);
       cleanupElements.push(exportCanvas);
 
-      const ctx = exportCanvas.getContext("2d");
+      const ctx = exportCanvas.getContext("2d", { alpha: false });
       if (!ctx) throw new Error("Could not create canvas context.");
 
       // captureStream support check
@@ -921,26 +916,26 @@ export default function PhotoboothClient() {
         return;
       }
 
-      // ── Capture static layers via html2canvas ──
-
-      // Background layer: card background + headers + footers (photo cells hidden)
+      // ── Capture static layers via html2canvas (WITHOUT TAINT) ──
+      // CRITICAL SECURITY RULE: NEVER set allowTaint: true!
+      // When a canvas is tainted, W3C specification dictates that captureStream tracks are permanently MUTED.
+      // Muted tracks deliver 0 frames to MediaRecorder, resulting in a frozen/static video file.
       const bgCanvasPromise = html2canvas(stripEl, {
         scale: exportScale,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: null,
         onclone: (doc) => {
           doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => (c.style.visibility = "hidden"));
           doc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((s) => (s.style.visibility = "hidden"));
-          doc.querySelectorAll<HTMLElement>(".cell-retake-btn,.sticker-mini-toolbar").forEach((b) => (b.style.display = "none"));
+          doc.querySelectorAll<HTMLElement>(".cell-retake-btn,.sticker-mini-toolbar,.live-badge-indicator").forEach((b) => (b.style.display = "none"));
         },
       });
 
-      // Overlay layer: cell borders, washi tape, stickers (background fully transparent)
       const overlayCanvasPromise = html2canvas(stripEl, {
         scale: exportScale,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: null,
         onclone: (doc) => {
           const card = doc.querySelector<HTMLElement>(".photostrip-card");
@@ -971,103 +966,110 @@ export default function PhotoboothClient() {
 
       const [bgCanvas, overlayCanvas] = await Promise.all([bgCanvasPromise, overlayCanvasPromise]);
 
-      // ── Build slot info & collect video sources ──
+      // Security verification: ensure canvases did not get tainted
+      let bgClean = true;
+      let overlayClean = true;
+      try {
+        bgCanvas.getContext("2d")?.getImageData(0, 0, 1, 1);
+      } catch (err) {
+        bgClean = false;
+        console.warn("bgCanvas tainted by browser security policy:", err);
+      }
+      try {
+        overlayCanvas.getContext("2d")?.getImageData(0, 0, 1, 1);
+      } catch (err) {
+        overlayClean = false;
+        console.warn("overlayCanvas tainted by browser security policy:", err);
+      }
 
+      // ── Build slot info & create fresh active playing video elements ──
       const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
 
-      const slots = Array.from(cellElements).map((cell, idx) => {
-        const cRect = cell.getBoundingClientRect();
-        const style = window.getComputedStyle(cell);
-        const radius = (parseFloat(style.borderRadius) || 6) * exportScale;
-        const photoObj = photos[idx];
+      const slots = await Promise.all(
+        Array.from(cellElements).map(async (cell, idx) => {
+          const cRect = cell.getBoundingClientRect();
+          const style = window.getComputedStyle(cell);
+          const radius = (parseFloat(style.borderRadius) || 6) * exportScale;
+          const photoObj = photos[idx];
 
-        // Use the EXISTING DOM <video> element (already playing in preview)
-        let videoEl = cell.querySelector("video") as HTMLVideoElement | null;
+          let videoEl: HTMLVideoElement | null = null;
 
-        // If no DOM video (e.g. live mode paused), create one from blob URL
-        if (!videoEl && photoObj?.video) {
-          videoEl = document.createElement("video");
-          videoEl.src = photoObj.video;
-          videoEl.muted = true;
-          videoEl.defaultMuted = true;
-          videoEl.volume = 0;
-          videoEl.loop = true;
-          videoEl.playsInline = true;
-          videoEl.style.cssText =
-            "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none";
-          document.body.appendChild(videoEl);
-          cleanupElements.push(videoEl);
-        }
+          if (photoObj?.video) {
+            videoEl = document.createElement("video");
+            videoEl.src = photoObj.video;
+            videoEl.muted = true;
+            videoEl.defaultMuted = true;
+            videoEl.volume = 0;
+            videoEl.loop = true;
+            videoEl.playsInline = true;
+            videoEl.autoplay = true;
+            // Real CSS dimensions in DOM to prevent Chromium hardware decode suspension
+            videoEl.style.cssText =
+              "position:fixed;top:0;left:-9999px;width:320px;height:240px;pointer-events:none;z-index:-999;";
+            document.body.appendChild(videoEl);
+            cleanupElements.push(videoEl);
 
-        // Preload the still image as a guaranteed fallback
-        let fallbackImg: HTMLImageElement | null = null;
-        if (photoObj?.image) {
-          const img = new Image();
-          img.src = photoObj.image;
-          fallbackImg = img;
-        }
+            const v = videoEl;
+            await new Promise<void>((resolve) => {
+              let resolved = false;
+              const finish = () => {
+                if (!resolved) {
+                  resolved = true;
+                  resolve();
+                }
+              };
 
-        return {
-          x: (cRect.left - stripRect.left) * exportScale,
-          y: (cRect.top - stripRect.top) * exportScale,
-          w: cRect.width * exportScale,
-          h: cRect.height * exportScale,
-          radius,
-          videoEl,
-          fallbackImg,
-        };
-      });
+              const tryPlay = () => {
+                v.play().then(finish).catch(finish);
+              };
 
-      // Ensure all videos are playing before we start recording
-      await Promise.all(
-        slots.map((slot) => {
-          if (!slot.videoEl) return Promise.resolve();
-          const v = slot.videoEl;
-          v.muted = true;
-          v.defaultMuted = true;
-          v.volume = 0;
-          v.currentTime = 0;
+              if (v.readyState >= 2) {
+                tryPlay();
+              } else {
+                v.addEventListener("canplay", tryPlay, { once: true });
+                v.addEventListener("loadeddata", tryPlay, { once: true });
+                v.addEventListener("error", finish, { once: true });
+                setTimeout(finish, 1500);
+              }
+            });
+          }
 
-          return new Promise<void>((resolve) => {
-            const onReady = () => {
-              v.play().then(() => resolve()).catch(() => resolve());
-            };
-            if (v.readyState >= 2) {
-              onReady();
-            } else {
-              v.addEventListener("canplay", onReady, { once: true });
-              v.addEventListener("error", () => resolve(), { once: true });
-              // Safety timeout — don't block forever
-              setTimeout(resolve, 800);
-            }
-          });
+          let fallbackImg: HTMLImageElement | null = null;
+          if (photoObj?.image) {
+            const img = new Image();
+            img.src = photoObj.image;
+            fallbackImg = img;
+          }
+
+          return {
+            x: (cRect.left - stripRect.left) * exportScale,
+            y: (cRect.top - stripRect.top) * exportScale,
+            w: cRect.width * exportScale,
+            h: cRect.height * exportScale,
+            radius,
+            videoEl,
+            fallbackImg,
+          };
         })
       );
 
-      // Allow one more tick so video decoders have definitely decoded at least one frame
-      await new Promise((r) => setTimeout(r, 200));
+      // ── Set up captureStream at 30 fps & MediaRecorder ──
+      const canvasStream: MediaStream = captureStreamFn.call(exportCanvas, 30);
+      const videoTrack = canvasStream.getVideoTracks ? canvasStream.getVideoTracks()[0] : null;
 
-      // ── Set up MediaRecorder with manual frame control ──
-
-      // captureStream(0) = manual mode: frames only emitted when we call track.requestFrame()
-      const canvasStream = captureStreamFn.call(exportCanvas, 0);
-      const videoTrack = canvasStream.getVideoTracks()[0];
-
-      // Prefer WebM (far more reliable with MediaRecorder on desktop)
-      let mimeType = "video/webm;codecs=vp9";
+      // Select MP4 first for universal playback across Windows, iOS, Android, and social media
+      let mimeType = "video/mp4;codecs=avc1";
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/mp4";
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/webm;codecs=vp9";
+      }
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "video/webm;codecs=vp8";
       }
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "video/webm";
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        // Last resort: try MP4
-        if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
-          mimeType = "video/mp4;codecs=avc1";
-        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
-          mimeType = "video/mp4";
-        }
       }
 
       const recorder = new MediaRecorder(canvasStream, {
@@ -1083,13 +1085,17 @@ export default function PhotoboothClient() {
       let animId = 0;
       const filterStr = getFilterStyle();
 
-      // ── The per-frame render function ──
-
+      // ── Per-frame render function ──
       const drawOneFrame = () => {
         ctx.clearRect(0, 0, exportWidth, exportHeight);
 
         // Layer 1: Background
-        ctx.drawImage(bgCanvas, 0, 0, exportWidth, exportHeight);
+        if (bgClean) {
+          ctx.drawImage(bgCanvas, 0, 0, exportWidth, exportHeight);
+        } else {
+          ctx.fillStyle = "#111115";
+          ctx.fillRect(0, 0, exportWidth, exportHeight);
+        }
 
         // Layer 2: Videos/Photos in slots
         slots.forEach((slot) => {
@@ -1109,12 +1115,13 @@ export default function PhotoboothClient() {
           }
           ctx.clip();
 
-          // Pick the best available media source
+          // Pick the best media source: ALWAYS prefer the active playing video
           let source: CanvasImageSource | null = null;
-          if (slot.videoEl && slot.videoEl.readyState >= 2 && slot.videoEl.videoWidth > 0) {
+          if (slot.videoEl && slot.videoEl.videoWidth > 0) {
             source = slot.videoEl;
-            // Re-trigger play if it got paused
-            if (slot.videoEl.paused) slot.videoEl.play().catch(() => {});
+            if (slot.videoEl.paused) {
+              slot.videoEl.play().catch(() => {});
+            }
           } else if (slot.fallbackImg && slot.fallbackImg.complete && slot.fallbackImg.naturalWidth > 0) {
             source = slot.fallbackImg;
           }
@@ -1125,10 +1132,17 @@ export default function PhotoboothClient() {
             const mAspect = mw / mh;
             const slotAspect = slot.w / slot.h;
             let sx = 0, sy = 0, sw = mw, sh = mh;
-            if (mAspect > slotAspect) { sw = mh * slotAspect; sx = (mw - sw) / 2; }
-            else { sh = mw / slotAspect; sy = (mh - sh) / 2; }
+            if (mAspect > slotAspect) {
+              sw = mh * slotAspect;
+              sx = (mw - sw) / 2;
+            } else {
+              sh = mw / slotAspect;
+              sy = (mh - sh) / 2;
+            }
 
-            if (filterStr && filterStr !== "none" && "filter" in ctx) ctx.filter = filterStr;
+            if (filterStr && filterStr !== "none" && "filter" in ctx) {
+              ctx.filter = filterStr;
+            }
             ctx.drawImage(source, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
             ctx.filter = "none";
           } else {
@@ -1140,56 +1154,59 @@ export default function PhotoboothClient() {
         });
 
         // Layer 3: Overlay
-        ctx.drawImage(overlayCanvas, 0, 0, exportWidth, exportHeight);
+        if (overlayClean) {
+          ctx.drawImage(overlayCanvas, 0, 0, exportWidth, exportHeight);
+        }
+
+        // Push frame update to hardware capture track
+        if (videoTrack && typeof (videoTrack as any).requestFrame === "function") {
+          (videoTrack as any).requestFrame();
+        }
       };
 
-      // Draw a few warm-up frames BEFORE starting the recorder
-      // (primes the canvas pipeline and video decoders)
+      // Warm-up frames
       for (let i = 0; i < 5; i++) {
         drawOneFrame();
-        if (videoTrack && typeof videoTrack.requestFrame === "function") {
-          videoTrack.requestFrame();
-        }
-        await new Promise((r) => setTimeout(r, 33)); // ~30fps
+        await new Promise((r) => setTimeout(r, 33));
       }
 
-      // ── Start recording ──
-      recorder.start();
+      // Start recording with 100ms chunk emission
+      recorder.start(100);
 
       const renderLoop = () => {
         if (!isRecording) return;
         drawOneFrame();
-
-        // Manually push this frame into the MediaRecorder stream
-        if (videoTrack && typeof videoTrack.requestFrame === "function") {
-          videoTrack.requestFrame();
-        }
-
         animId = requestAnimationFrame(renderLoop);
       };
 
-      renderLoop();
+      animId = requestAnimationFrame(renderLoop);
 
-      // Stop after ~3 seconds
-      setTimeout(() => {
-        isRecording = false;
-        cancelAnimationFrame(animId);
+      // Record for 3.5 seconds
+      await new Promise((r) => setTimeout(r, 3500));
+
+      isRecording = false;
+      cancelAnimationFrame(animId);
+
+      await new Promise<void>((resolveStop) => {
+        recorder.onstop = () => {
+          cleanup();
+          const blob = new Blob(chunks, { type: mimeType });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+          a.download = `Expedient_Live_Photostrip_${Date.now()}.${ext}`;
+          a.click();
+          triggerHaptic(50);
+          setIsExporting(false);
+          resolveStop();
+        };
+
         if (recorder.state === "recording") {
           recorder.stop();
+        } else {
+          resolveStop();
         }
-      }, 3000);
-
-      recorder.onstop = () => {
-        cleanup();
-        const blob = new Blob(chunks, { type: mimeType });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        const ext = mimeType.includes("mp4") ? "mp4" : "webm";
-        a.download = `Expedient_Live_Photostrip_${Date.now()}.${ext}`;
-        a.click();
-        triggerHaptic(50);
-        setIsExporting(false);
-      };
+      });
     } catch (err) {
       console.error("Live video export error:", err);
       cleanup();
