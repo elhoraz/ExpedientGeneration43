@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { getAvatarUrl } from "@/lib/avatar";
 
 /**
@@ -252,9 +253,12 @@ export default function GlobalCallListener() {
             animation: "pulseCallRing 2s infinite 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
-        <img
+        <Image
           src={incomingCall.callerAvatar}
           alt={incomingCall.callerName}
+          width={130}
+          height={130}
+          priority
           style={{
             width: "130px",
             height: "130px",
@@ -263,6 +267,7 @@ export default function GlobalCallListener() {
             objectFit: "cover",
             boxShadow: "0 15px 50px rgba(0, 0, 0, 0.8)",
           }}
+          unoptimized={incomingCall.callerAvatar.startsWith("data:") || incomingCall.callerAvatar.includes("ui-avatars.com")}
         />
       </div>
 

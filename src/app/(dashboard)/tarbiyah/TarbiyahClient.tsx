@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { getAvatarUrl } from "@/lib/avatar";
 import "./tarbiyah.css";
@@ -426,7 +427,14 @@ export default function TarbiyahClient({
                   return (
                     <div key={m.id} className="nexus-card item-card">
                       <div className="card-badge">{m.role === "admin" ? "Pimpinan Sidang" : "Mentor Elite"}</div>
-                      <img src={avatar} alt={displayName} className="item-img" />
+                      <Image
+                        src={avatar}
+                        alt={displayName}
+                        width={84}
+                        height={84}
+                        className="item-img"
+                        unoptimized={avatar.startsWith("data:") || avatar.includes("ui-avatars.com")}
+                      />
                       <h3 className="item-name">{displayName}</h3>
                       <div className="item-subtitle">{m.pekerjaan || "Mentor Profesional"}</div>
                       <p className="item-desc">
@@ -545,7 +553,14 @@ export default function TarbiyahClient({
                   return (
                     <div key={t.id} className="nexus-card item-card">
                       <div className="card-badge b2b">{t.kategori || "B2B"}</div>
-                      <img src={logo} alt={t.nama_bisnis} className="item-img logo-img" />
+                      <Image
+                        src={logo}
+                        alt={t.nama_bisnis}
+                        width={84}
+                        height={84}
+                        className="item-img logo-img"
+                        unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com")}
+                      />
                       <h3 className="item-name">{t.nama_bisnis}</h3>
                       <div className="item-subtitle">Sovereign Syndicate</div>
                       <p className="item-desc">
@@ -739,7 +754,14 @@ export default function TarbiyahClient({
                       </div>
 
                       <div className="incoming-requester-info">
-                        <img src={avatar} alt={r.requester_name} className="requester-avatar" />
+                        <Image
+                          src={avatar}
+                          alt={r.requester_name || "Pemohon"}
+                          width={46}
+                          height={46}
+                          className="requester-avatar"
+                          unoptimized={avatar.startsWith("data:") || avatar.includes("ui-avatars.com")}
+                        />
                         <div>
                           <h4 className="requester-name">{r.requester_name}</h4>
                           <span className="requester-role">{r.requester_role?.toUpperCase()}</span>

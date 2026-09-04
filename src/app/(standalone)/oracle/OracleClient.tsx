@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { getAvatarUrl } from "@/lib/avatar";
@@ -488,7 +489,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           <video ref={videoRef} autoPlay playsInline style={{ opacity: showResult ? 0 : 1 }}></video>
           <canvas ref={canvasRef} style={{ display: showResult ? 'block' : 'none' }}></canvas>
           
-          <img src="/images/logo-utuh.webp" className="logo-reticle" style={{ opacity: showResult ? 0 : 0.15 }} alt="Scanner" />
+          <Image src="/images/logo-utuh.webp" className="logo-reticle" width={180} height={180} priority style={{ opacity: showResult ? 0 : 0.15, width: "60%", height: "auto" }} alt="Scanner" />
           
           {isScanning && (
             <div className="scanner-laser" style={{ display: 'block', animation: 'scan 1.2s linear infinite alternate' }}></div>

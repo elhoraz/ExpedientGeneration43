@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import gsap from "gsap";
 import { createClient } from "@/lib/supabase/client";
 import { addPrestise } from "@/lib/gamification";
@@ -251,7 +252,14 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
               <div key={w.id} className="legacy-card">
                 <div className="card-header">
                   <div className="author-info">
-                    <img src={w.author_avatar} alt="Foto" className="author-avatar" />
+                    <Image
+                      src={w.author_avatar}
+                      alt={w.author_name || "Foto"}
+                      width={50}
+                      height={50}
+                      className="author-avatar"
+                      unoptimized={w.author_avatar?.startsWith("data:") || w.author_avatar?.includes("ui-avatars.com")}
+                    />
                     <div className="author-meta">
                       <div className="box-id">Diarsipkan pada: {new Date(w.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</div>
                       <h2 className="box-title">Amanah dari {w.author_name}</h2>

@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import gsap from "gsap";
+import { getAvatarUrl } from "@/lib/avatar";
 import "./nexus.css";
 
 export default function NexusClient({ currentUser, otherProfiles }: { currentUser: any, otherProfiles: any[] }) {
@@ -167,11 +169,19 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
             ) : (
                 <div className="match-grid">
                     {matches.map(m => {
-                        const avatarUrl = m.foto_profil ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${m.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(m.nama_panggilan || m.nama_lengkap || 'A')}&background=d4af37&color=000`;
+                        const avatarUrl = getAvatarUrl(m.foto_profil, m.nama_panggilan || m.nama_lengkap || 'A');
                         return (
                             <div key={m.id} className="match-card">
                                 <div className="match-percentage">{m.match_score}<span>%</span></div>
-                                <img src={avatarUrl} className="match-avatar" alt="Avatar" />
+                                <Image 
+                                    src={avatarUrl} 
+                                    width={100} 
+                                    height={100} 
+                                    className="match-avatar" 
+                                    alt={m.nama_panggilan || m.nama_lengkap || "Avatar"} 
+                                    loading="lazy"
+                                    unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")}
+                                />
                                 <div className="match-name">{m.nama_panggilan || m.nama_lengkap}</div>
                                 <div className="match-category">
                                     {m.syndicate ? (Array.isArray(m.syndicate) ? m.syndicate[0]?.kategori : m.syndicate.kategori) || 'Independen' : 'Independen'}

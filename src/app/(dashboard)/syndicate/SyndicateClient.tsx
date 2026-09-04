@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
@@ -114,11 +115,25 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
                     fontSize: "0.7rem", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase",
                     backdropFilter: "blur(6px)", zIndex: 2
                   }}>{biz.kategori}</div>
-                  <img src={logo} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }} />
+                  <Image 
+                    src={logo} 
+                    alt={biz.nama_bisnis || "Logo"} 
+                    width={400} 
+                    height={180} 
+                    style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }} 
+                    unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com")}
+                  />
                 </div>
 
                 <div style={{ display: "flex", alignItems: "center", gap: "15px", padding: "0 20px", transform: "translateY(-20px)" }}>
-                  <img src={ownerAvatar} alt="Owner" style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", border: "3px solid var(--bg-card)", boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }} />
+                  <Image 
+                    src={ownerAvatar} 
+                    alt={ownerName || "Owner"} 
+                    width={60} 
+                    height={60} 
+                    style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", border: "3px solid var(--bg-card)", boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }} 
+                    unoptimized={ownerAvatar.startsWith("data:") || ownerAvatar.includes("ui-avatars.com")}
+                  />
                   <div style={{ display: "flex", flexDirection: "column", marginTop: "25px" }}>
                     <h4 className="biz-owner-name">{ownerName}</h4>
                     <span className="biz-founder-badge">Direktur / Founder</span>

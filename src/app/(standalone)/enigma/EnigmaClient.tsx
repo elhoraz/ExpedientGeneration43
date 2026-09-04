@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import gsap from "gsap";
 
 export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boolean, userId: string }) {
@@ -279,7 +280,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
           <div className="ring middle" ref={ringMiddleRef} data-ring="1"></div>
           <div className="ring inner" ref={ringInnerRef} data-ring="2"></div>
           <div className="vault-core" id="vaultCore">
-              <img src="/images/logo-utuh.webp" className="core-logo" id="coreLogo" alt="Logo" />
+              <Image src="/images/logo-utuh.webp" className="core-logo" id="coreLogo" alt="Logo" width={100} height={100} priority style={{ width: "60%", height: "auto" }} />
           </div>
         </div>
 

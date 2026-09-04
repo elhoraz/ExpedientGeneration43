@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getAvatarUrl } from "@/lib/avatar";
 
@@ -372,7 +373,15 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
           
           <div className="dossier-card" id="tilt-card">
               <div className="avatar-container">
-                  <img src={fotoUrl} className="avatar" alt="Avatar" />
+                  <Image 
+                    src={fotoUrl} 
+                    width={140} 
+                    height={140} 
+                    priority 
+                    className="avatar" 
+                    alt={targetUser.nama_panggilan || targetUser.nama_lengkap || "Avatar"} 
+                    unoptimized={fotoUrl.startsWith("data:") || fotoUrl.includes("ui-avatars.com")}
+                  />
               </div>
 
               <div className="title-badge">SOVEREIGN ENTITY</div>

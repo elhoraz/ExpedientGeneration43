@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 const loaderVariants = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10"];
 
@@ -97,13 +98,13 @@ export default function LoadingScreen() {
             </div>
           </>
         )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/images/logo-utuh.webp"
           className="loader-logo"
           alt="Loading Expedient"
           width={80}
           height={80}
+          priority
           style={{ width: "auto", height: "80px", objectFit: "contain" }}
         />
       </div>

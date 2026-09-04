@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { getAvatarUrl } from "@/lib/avatar";
 
@@ -154,16 +155,20 @@ export default function GlobalCallReceiver({ userId }: GlobalCallReceiverProps) 
         width: "360px",
       }}
     >
-      <img
+      <Image
         src={avatarSrc}
         alt={incomingCall.callerName}
+        width={50}
+        height={50}
         style={{
           width: "50px",
           height: "50px",
           borderRadius: "50%",
           border: "2px solid var(--gold-main, #d4af37)",
           objectFit: "cover",
+          flexShrink: 0,
         }}
+        unoptimized={avatarSrc.startsWith("data:") || avatarSrc.includes("ui-avatars.com")}
       />
 
       <div style={{ flex: 1, minWidth: 0 }}>

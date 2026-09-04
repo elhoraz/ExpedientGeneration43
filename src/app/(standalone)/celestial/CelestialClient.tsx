@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import gsap from "gsap";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import "./celestial.css";
@@ -155,7 +156,7 @@ export default function CelestialClient() {
                 <div key={i} className="tarot-card" id={`card${i}`} style={{ cursor: isDrawing ? 'pointer' : 'default' }} onClick={() => isDrawing && handleFlip(i)}>
                     <div className="card-inner">
                         <div className="card-face card-back">
-                            <div className="card-back-design"><img src="/images/logo-utuh.webp" alt="Codex" /></div>
+                            <div className="card-back-design"><Image src="/images/logo-utuh.webp" alt="Codex" width={100} height={100} priority style={{ width: "50%", height: "auto" }} /></div>
                         </div>
                         <div className="card-face card-front">
                             {drawnCards[i] && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { getAvatarUrl } from "@/lib/avatar";
 
@@ -908,9 +909,12 @@ export default function ChatCallModal({
               </>
             )}
 
-            <img
+            <Image
               src={contactAvatar}
-              alt={contact.nama_panggilan}
+              alt={contact.nama_panggilan || "Avatar"}
+              width={130}
+              height={130}
+              priority
               style={{
                 width: "130px",
                 height: "130px",
@@ -919,6 +923,7 @@ export default function ChatCallModal({
                 objectFit: "cover",
                 boxShadow: "0 15px 50px rgba(0, 0, 0, 0.8)",
               }}
+              unoptimized={contactAvatar.startsWith("data:") || contactAvatar.includes("ui-avatars.com")}
             />
           </div>
 
