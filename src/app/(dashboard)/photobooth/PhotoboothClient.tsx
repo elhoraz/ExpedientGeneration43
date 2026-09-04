@@ -398,13 +398,25 @@ export default function PhotoboothClient() {
         const recCanvas = document.createElement("canvas");
         recCanvas.width = recWidth;
         recCanvas.height = recHeight;
+        recCanvas.style.position = "fixed";
+        recCanvas.style.top = "-9999px";
+        recCanvas.style.left = "-9999px";
+        recCanvas.style.width = "1px";
+        recCanvas.style.height = "1px";
+        recCanvas.style.opacity = "0";
+        recCanvas.style.pointerEvents = "none";
+        recCanvas.style.zIndex = "-999";
+        document.body.appendChild(recCanvas);
+
         const recCtx = recCanvas.getContext("2d", { alpha: false });
         if (!recCtx) {
+          if (recCanvas.parentNode) recCanvas.parentNode.removeChild(recCanvas);
           resolve(null);
           return;
         }
 
         const canvasStream = recCanvas.captureStream ? recCanvas.captureStream(30) : stream;
+        const recTrack = canvasStream.getVideoTracks ? canvasStream.getVideoTracks()[0] : null;
 
         let mimeType = "video/webm";
         if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
@@ -439,18 +451,25 @@ export default function PhotoboothClient() {
           }
           recCtx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, recWidth, recHeight);
           recCtx.restore();
+
+          // Force hardware capture track to process the new frame
+          if (recTrack && typeof (recTrack as any).requestFrame === "function") {
+            (recTrack as any).requestFrame();
+          }
+
           animId = requestAnimationFrame(renderFrame);
         };
 
         recorder.onstop = () => {
           isRecording = false;
           cancelAnimationFrame(animId);
+          if (recCanvas.parentNode) recCanvas.parentNode.removeChild(recCanvas);
           const blob = new Blob(chunks, { type: mimeType });
           const videoUrl = URL.createObjectURL(blob);
           resolve(videoUrl);
         };
 
-        recorder.start();
+        recorder.start(100);
         renderFrame();
 
         setTimeout(() => {
@@ -875,8 +894,19 @@ export default function PhotoboothClient() {
       const exportCanvas = document.createElement("canvas");
       exportCanvas.width = exportWidth;
       exportCanvas.height = exportHeight;
+      exportCanvas.style.position = "fixed";
+      exportCanvas.style.top = "-9999px";
+      exportCanvas.style.left = "-9999px";
+      exportCanvas.style.width = "1px";
+      exportCanvas.style.height = "1px";
+      exportCanvas.style.opacity = "0";
+      exportCanvas.style.pointerEvents = "none";
+      exportCanvas.style.zIndex = "-999";
+      document.body.appendChild(exportCanvas);
+
       const ctx = exportCanvas.getContext("2d");
       if (!ctx) {
+        if (exportCanvas.parentNode) exportCanvas.parentNode.removeChild(exportCanvas);
         throw new Error("Could not create canvas context.");
       }
 
@@ -884,6 +914,7 @@ export default function PhotoboothClient() {
       const captureStreamFn =
         (exportCanvas as any).captureStream || (exportCanvas as any).mozCaptureStream;
       if (!captureStreamFn || typeof MediaRecorder === "undefined") {
+        if (exportCanvas.parentNode) exportCanvas.parentNode.removeChild(exportCanvas);
         alert(
           "Browser Anda belum mendukung ekspor video animasi. Mengunduh format PNG sebagai gantinya."
         );
@@ -978,6 +1009,8 @@ export default function PhotoboothClient() {
 
       // 3. Prepare slot dimensions, coordinates, and media elements
       const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
+      const createdVideoElements: HTMLVideoElement[] = [];
+
       const slots = Array.from(cellElements).map((cell, idx) => {
         const cRect = cell.getBoundingClientRect();
         const style = window.getComputedStyle(cell);
@@ -988,10 +1021,25 @@ export default function PhotoboothClient() {
         if (!videoEl && photoObj?.video) {
           videoEl = document.createElement("video");
           videoEl.src = photoObj.video;
+          createdVideoElements.push(videoEl);
+        }
+
+        if (videoEl) {
           videoEl.muted = true;
+          videoEl.defaultMuted = true;
+          videoEl.volume = 0;
           videoEl.loop = true;
           videoEl.playsInline = true;
-          videoEl.autoplay = true;
+          if (!videoEl.parentNode) {
+            videoEl.style.position = "fixed";
+            videoEl.style.top = "-9999px";
+            videoEl.style.left = "-9999px";
+            videoEl.style.width = "1px";
+            videoEl.style.height = "1px";
+            videoEl.style.opacity = "0";
+            videoEl.style.pointerEvents = "none";
+            document.body.appendChild(videoEl);
+          }
         }
 
         return {
@@ -1028,21 +1076,40 @@ export default function PhotoboothClient() {
         )
       );
 
-      // Synchronize video playback from start
-      slots.forEach((s) => {
-        if (s.videoEl) {
-          s.videoEl.currentTime = 0;
-          const playP = s.videoEl.play();
-          if (playP !== undefined) {
-            playP.catch(() => {});
-          }
-        }
-      });
+      // Synchronize video playback from start and ensure decoder begins decoding frames
+      await Promise.all(
+        slots.map((s) => {
+          if (!s.videoEl) return Promise.resolve();
+          const v = s.videoEl;
+          v.muted = true;
+          v.defaultMuted = true;
+          v.volume = 0;
+          v.loop = true;
+          v.playsInline = true;
+          v.currentTime = 0;
 
-      // Brief delay to allow video hardware decoder to seek to frame 0
-      await new Promise((r) => setTimeout(r, 80));
+          return new Promise<void>((res) => {
+            const tryPlay = () => {
+              v.play()
+                .then(() => res())
+                .catch(() => res());
+            };
+            if (v.readyState >= 2) {
+              tryPlay();
+            } else {
+              v.addEventListener("canplay", tryPlay, { once: true });
+              v.addEventListener("error", () => res(), { once: true });
+              setTimeout(res, 400);
+            }
+          });
+        })
+      );
+
+      // Brief delay to allow video hardware decoder to seek and begin continuous playback
+      await new Promise((r) => setTimeout(r, 120));
 
       const stream = captureStreamFn.call(exportCanvas, 30);
+      const exportTrack = stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
 
       let mimeType = "video/webm";
       if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
@@ -1099,12 +1166,15 @@ export default function PhotoboothClient() {
           ctx.clip();
 
           // Prefer playing video with active frame data; fallback to crisp still photo
-          const isVideoReady =
-            slot.videoEl &&
-            slot.videoEl.readyState >= 2 &&
-            !slot.videoEl.paused &&
-            slot.videoEl.videoWidth > 0;
-          const media = isVideoReady ? slot.videoEl : slot.fallbackImg || slot.imgEl;
+          let media: CanvasImageSource | null = null;
+          if (slot.videoEl && slot.videoEl.readyState >= 2 && slot.videoEl.videoWidth > 0) {
+            media = slot.videoEl;
+            if (slot.videoEl.paused) {
+              slot.videoEl.play().catch(() => {});
+            }
+          } else {
+            media = slot.fallbackImg || slot.imgEl;
+          }
 
           if (media) {
             const mw =
@@ -1147,12 +1217,27 @@ export default function PhotoboothClient() {
         // Layer 3: Overlay (borders, washi tape, kraft stickers, user stickers) on top!
         ctx.drawImage(overlayCanvas, 0, 0, exportWidth, exportHeight);
 
+        // Force hardware capture track to process the new frame
+        if (exportTrack && typeof (exportTrack as any).requestFrame === "function") {
+          (exportTrack as any).requestFrame();
+        }
+
         animId = requestAnimationFrame(renderMasterFrame);
+      };
+
+      const cleanupExport = () => {
+        createdVideoElements.forEach((el) => {
+          if (el.parentNode) el.parentNode.removeChild(el);
+        });
+        if (exportCanvas.parentNode) {
+          exportCanvas.parentNode.removeChild(exportCanvas);
+        }
       };
 
       recorder.onstop = () => {
         isRecording = false;
         cancelAnimationFrame(animId);
+        cleanupExport();
         const blob = new Blob(chunks, { type: mimeType });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
@@ -1163,7 +1248,7 @@ export default function PhotoboothClient() {
         setIsExporting(false);
       };
 
-      recorder.start();
+      recorder.start(100);
       renderMasterFrame();
 
       setTimeout(() => {
@@ -2004,6 +2089,15 @@ export default function PhotoboothClient() {
                         {/* If Live Video is available and active */}
                         {isLiveMode && photoObj.video && isLivePlaying ? (
                           <video
+                            ref={(el) => {
+                              if (el) {
+                                el.muted = true;
+                                el.defaultMuted = true;
+                                if (el.paused && isLivePlaying) {
+                                  el.play().catch(() => {});
+                                }
+                              }
+                            }}
                             src={photoObj.video}
                             autoPlay
                             loop
