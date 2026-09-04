@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import "./landing.css";
 import { sanitizeHtml } from "@/lib/sanitize";
@@ -32,10 +33,14 @@ export default async function LandingPage() {
         <section className="landing-content">
           <div className="landing-logo-container">
             <div className="logo-ring"></div>
-            <img
+            <Image
               src={getCms(cms, 'landing_hero_image', '/images/logo-utuh.webp')}
               alt="Expedient Generation"
+              width={180}
+              height={180}
+              priority
               className="logo-img"
+              unoptimized={getCms(cms, 'landing_hero_image', '/images/logo-utuh.webp').startsWith('data:')}
             />
           </div>
 

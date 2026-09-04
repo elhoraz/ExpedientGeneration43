@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Script from "next/script";
+import { getAvatarUrl } from "@/lib/avatar";
 
 import "./birthday.css";
 
@@ -49,14 +51,19 @@ export default async function BirthdayListPage() {
       {birthdayUsers.length > 0 ? (
           <div className="bday-grid">
               {birthdayUsers.map(u => {
-                  const avatarUrl = u.foto_profil && u.foto_profil !== 'default.webp' 
-                      ? `/uploads/profiles/${u.foto_profil}` 
-                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nama_panggilan || u.nama_lengkap || 'U')}&background=d4af37&color=000&size=200`;
+                  const avatarUrl = getAvatarUrl(u.foto_profil, u.nama_panggilan || u.nama_lengkap || "U");
                   
                   return (
                       <div key={u.id} className="bday-card js-reveal">
                           <div className="bday-confetti">🎉</div>
-                          <img src={avatarUrl} className="bday-avatar" alt={u.nama_panggilan || u.nama_lengkap} />
+                          <Image 
+                            src={avatarUrl} 
+                            width={90} 
+                            height={90} 
+                            className="bday-avatar" 
+                            alt={u.nama_panggilan || u.nama_lengkap || "Foto"} 
+                            unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")}
+                          />
                           <div className="bday-name">{u.nama_panggilan || u.nama_lengkap}</div>
                           <div className="bday-fullname">{u.nama_lengkap}</div>
                           

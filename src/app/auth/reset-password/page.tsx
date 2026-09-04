@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import "../../login/login.css";
 
@@ -109,8 +110,7 @@ export default function ResetPasswordPage() {
         <div className="auth-prism" style={{ maxWidth: "480px", width: "90%" }}>
           <div className="prism-header">
             <div style={{ marginBottom: "20px" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/logo-utuh.webp" alt="Expedient" style={{ width: "80px", filter: "drop-shadow(0 0 20px rgba(212,175,55,0.4))" }} />
+              <Image src="/images/logo-utuh.webp" alt="Expedient" width={80} height={80} priority style={{ width: "80px", height: "auto", filter: "drop-shadow(0 0 20px rgba(212,175,55,0.4))" }} />
             </div>
             <div className="subtitle-spec">Expedient Generation</div>
             <h1 className="title-holo" style={{ fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>

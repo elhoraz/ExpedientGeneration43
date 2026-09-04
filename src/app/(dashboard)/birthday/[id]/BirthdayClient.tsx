@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const palettes = [
     ['#ff6b6b','#feca57','#ff9ff3','#ffffff','#ffffffcc'],
@@ -161,7 +162,14 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
         <div className="bday-card-content">
           <div className="bday-anim-el">
               <div className="bday-photo-wrap">
-                  <img src={avatarUrl} alt={userProfile.nama_panggilan} />
+                  <Image 
+                    src={avatarUrl} 
+                    width={160} 
+                    height={160} 
+                    alt={userProfile.nama_panggilan || "Foto"} 
+                    priority
+                    unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")} 
+                  />
               </div>
           </div>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Swiper from "swiper";
 import { EffectCoverflow, Navigation, Keyboard } from "swiper/modules";
 import "swiper/css";
@@ -147,7 +148,16 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                                 <div className="luminary-card">
                                     <div className="agent-serial">{serial}</div>
                                     <div className="photo-ring">
-                                        <img src={foto} className="card-photo" alt="Photo" />
+                                        <Image 
+                                            src={foto} 
+                                            width={150} 
+                                            height={150} 
+                                            className="card-photo" 
+                                            alt={user.nama_panggilan || user.nama_lengkap || "Foto Alumni"} 
+                                            loading="lazy"
+                                            sizes="(max-width: 768px) 130px, 150px"
+                                            unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
+                                        />
                                     </div>
                                     <h3 className="card-name">{user.nama_panggilan}</h3>
                                     <div className="card-full-name">{user.nama_lengkap}</div>

@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { getAvatarUrl } from "@/lib/avatar";
 import "./chat.css";
 
 export const metadata = {
@@ -88,16 +90,18 @@ export default async function ChatInboxPage() {
       <div className="inbox-list">
         {inboxList.length > 0 ? (
           inboxList.map((item) => {
-            const rawAvatar = item.contact.foto_profil;
-            const avatarUrl = rawAvatar
-              ? (rawAvatar.startsWith('http://') || rawAvatar.startsWith('https://') || rawAvatar.startsWith('/'))
-                ? rawAvatar
-                : `/uploads/profiles/${rawAvatar}`
-              : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.contact.nama_panggilan || 'Alumni')}&background=d4af37&color=000`;
+            const avatarUrl = getAvatarUrl(item.contact.foto_profil, item.contact.nama_panggilan || 'Alumni');
             
             return (
               <Link href={`/chat/personal/${item.contact.id}`} key={item.contact.id} className="inbox-item">
-                <img src={avatarUrl} alt="Avatar" className="inbox-avatar" />
+                <Image
+                  src={avatarUrl}
+                  alt={item.contact.nama_panggilan || "Avatar"}
+                  width={54}
+                  height={54}
+                  className="inbox-avatar"
+                  unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")}
+                />
                 <div className="inbox-content">
                   <div className="inbox-top">
                     <h4>{item.contact.nama_panggilan}</h4>
