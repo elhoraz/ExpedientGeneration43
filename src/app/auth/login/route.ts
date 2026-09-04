@@ -17,16 +17,19 @@ export async function POST(request: Request) {
 
   if (error) {
     let errorMessage = "Kredensial tidak valid atau akun belum diverifikasi.";
+    let isUnconfirmed = false;
     if (error.message.includes("Email not confirmed")) {
-      errorMessage = "Akun Anda belum diverifikasi. Silakan periksa email Anda.";
+      errorMessage = "Akun Anda belum diverifikasi. Silakan klik tombol Sahkan Akun di bawah.";
+      isUnconfirmed = true;
     } else if (error.message.includes("Invalid login credentials")) {
       errorMessage = "Email atau kata sandi salah.";
     } else {
       errorMessage = error.message;
     }
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorMessage)}`, {
-      status: 303,
-    });
+    return NextResponse.redirect(
+      `${origin}/login?error=${encodeURIComponent(errorMessage)}&email=${encodeURIComponent(email)}${isUnconfirmed ? "&unconfirmed=true&expired=true" : ""}`,
+      { status: 303 }
+    );
   }
 
   // Log activity and ensure is_active is true (since login succeeded, email must be confirmed)

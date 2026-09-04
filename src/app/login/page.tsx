@@ -22,8 +22,30 @@ function LoginContent() {
   const errorMsg = searchParams.get("error");
   const successMsg = searchParams.get("success");
   const verifyMsg = searchParams.get("verify");
+  const emailParam = searchParams.get("email");
+  const expiredParam = searchParams.get("expired");
   
   const [toastData, setToastData] = useState<{title: string, message: string, isError: boolean} | null>(null);
+  const [showSelfActivation, setShowSelfActivation] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
+
+  useEffect(() => {
+    if (emailParam && !email) {
+      setEmail(emailParam);
+    }
+    if (
+      expiredParam === "true" ||
+      (errorMsg && (
+        errorMsg.toLowerCase().includes("kedaluwarsa") ||
+        errorMsg.toLowerCase().includes("expired") ||
+        errorMsg.toLowerCase().includes("invalid") ||
+        errorMsg.toLowerCase().includes("belum diverifikasi") ||
+        errorMsg.toLowerCase().includes("not confirmed")
+      ))
+    ) {
+      setShowSelfActivation(true);
+    }
+  }, [errorMsg, emailParam, expiredParam]);
 
   useEffect(() => {
     if (errorMsg) {
@@ -41,6 +63,35 @@ function LoginContent() {
   const showToast = (title: string, message: string, isError: boolean) => {
     setToastData({ title, message, isError });
     setTimeout(() => setToastData(null), 5000);
+  };
+
+  const handleDirectActivate = async () => {
+    const targetEmail = email.trim();
+    if (!targetEmail) {
+      showToast("Email Diperlukan", "Silakan masukkan alamat email Anda terlebih dahulu.", true);
+      emailInputRef.current?.focus();
+      return;
+    }
+
+    try {
+      setIsActivating(true);
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: targetEmail }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        showToast("Akses Disahkan!", data.message || "Akun Anda berhasil disahkan dan aktif! Silakan masukkan kata sandi dan klik Masuk.", false);
+        setShowSelfActivation(false);
+      } else {
+        showToast("Gagal Mengesahkan", data.error || "Gagal mengesahkan akun.", true);
+      }
+    } catch (e: any) {
+      showToast("Gagal Mengesahkan", e.message || "Terjadi kesalahan koneksi.", true);
+    } finally {
+      setIsActivating(false);
+    }
   };
 
   useEffect(() => {
@@ -203,6 +254,29 @@ function LoginContent() {
           </div>
 
           <form action="/auth/login" method="POST">
+            {showSelfActivation && (
+              <div className="self-activation-banner">
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                  <i className="fa-solid fa-shield-halved" style={{ color: "#ffd700", fontSize: "1rem" }}></i>
+                  <strong style={{ fontSize: "0.85rem", color: "#ffd700", letterSpacing: "0.5px" }}>
+                    Pengesahan Akun Mandiri
+                  </strong>
+                </div>
+                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 10px 0", lineHeight: 1.4 }}>
+                  Tautan verifikasi email kedaluwarsa atau bermasalah? Masukkan email Anda di bawah lalu klik tombol ini untuk langsung mengesahkan akun:
+                </p>
+                <button
+                  type="button"
+                  className="btn-self-activate"
+                  onClick={handleDirectActivate}
+                  disabled={isActivating}
+                >
+                  <i className={isActivating ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check-double"}></i>
+                  <span>{isActivating ? "Mengesahkan..." : "Sahkan & Aktifkan Akun Ini Sekarang"}</span>
+                </button>
+              </div>
+            )}
+
             <div className="input-group">
               <input
                 type="email"
@@ -277,6 +351,25 @@ function LoginContent() {
               </div>
             </div>
           </form>
+
+          <div style={{ textAlign: "center", marginTop: "14px", marginBottom: "6px" }}>
+            <button
+              type="button"
+              onClick={() => setShowSelfActivation(!showSelfActivation)}
+              style={{
+                background: "none",
+                border: "none",
+                color: showSelfActivation ? "#ffd700" : "var(--text-muted)",
+                fontSize: "0.75rem",
+                cursor: "pointer",
+                textDecoration: "underline",
+                padding: "4px 8px",
+                transition: "color 0.2s ease"
+              }}
+            >
+              {showSelfActivation ? "Tutup formulir pengesahan" : "Tautan email bermasalah? Sahkan akun di sini"}
+            </button>
+          </div>
 
           <div className="register-link">
             {t('login_text_register', 'Identitas belum terdaftar?')} <Link href="/register">{t('login_link_register', 'Ajukan Registrasi')}</Link>

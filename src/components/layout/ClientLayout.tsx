@@ -7,6 +7,8 @@ import { ToastProvider } from "./AegisToast";
 import { ConfirmProvider } from "./AegisConfirm";
 import gsap from "gsap";
 
+import { createClient } from "@/lib/supabase/client";
+
 if (typeof window !== "undefined") {
   (window as any).gsap = gsap;
 }
@@ -14,6 +16,45 @@ if (typeof window !== "undefined") {
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isOffline, setIsOffline] = useState(false);
+
+  // Handle Supabase Auth Hash Fragment verification (solves implicit flow and email redirects)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (!hash || hash.length < 2) return;
+
+    if (hash.includes("access_token=") || hash.includes("error_description=")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+      const errorDesc = params.get("error_description");
+
+      if (accessToken) {
+        const supabase = createClient();
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || "",
+        }).then(async ({ data, error }) => {
+          if (!error && data.user) {
+            try {
+              await fetch("/api/auth/activate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId: data.user.id }),
+              });
+            } catch {}
+            window.history.replaceState(null, "", window.location.pathname);
+            window.location.href = "/beranda";
+          }
+        });
+      } else if (errorDesc) {
+        window.history.replaceState(null, "", window.location.pathname);
+        if (window.location.pathname !== "/login") {
+          window.location.href = `/login?error=${encodeURIComponent(errorDesc)}&expired=true`;
+        }
+      }
+    }
+  }, []);
 
   // Network offline/online detector (Task 16)
   useEffect(() => {

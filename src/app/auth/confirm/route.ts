@@ -24,7 +24,7 @@ export async function GET(request: Request) {
 
   const supabase = await createClient()
 
-  // 1. Check token_hash if present
+  // 1. Verify token_hash if present
   if (token_hash && type) {
     const { data, error } = await supabase.auth.verifyOtp({
       type,
@@ -37,23 +37,21 @@ export async function GET(request: Request) {
       }
       return NextResponse.redirect(`${origin}${next}`)
     } else {
-      console.warn("verifyOtp error in /auth/callback:", error)
+      console.warn("verifyOtp error in /auth/confirm:", error)
     }
   }
 
-  // 2. Check code (PKCE flow)
+  // 2. Verify PKCE code if present
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error && data.session) {
       await adminSupabase.from('profiles').update({ is_active: true }).eq('id', data.session.user.id)
       return NextResponse.redirect(`${origin}${next}`)
     } else {
-      console.warn("exchangeCodeForSession error in /auth/callback:", error)
+      console.warn("exchangeCodeForSession error in /auth/confirm:", error)
       return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("Tautan verifikasi sudah kedaluwarsa atau tidak valid.")}&expired=true`)
     }
   }
 
-  // Fallback if no code and no error (e.g. implicit flow)
   return NextResponse.redirect(`${origin}/login?success=${encodeURIComponent("Verifikasi berhasil! Silakan login.")}`)
 }
-

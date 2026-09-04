@@ -197,7 +197,7 @@ Semoga Allah SWT senantiasa memberkahi ikatan perjuangan alumni kita.
 *Wassalamu'alaikum Warahmatullahi Wabarakatuh*`;
   await sendWhatsAppMessage(no_whatsapp, message);
 
-  return NextResponse.redirect(`${origin}/login?verify=true`, {
+  return NextResponse.redirect(`${origin}/login?verify=true&email=${encodeURIComponent(email)}`, {
     status: 303,
   });
 }
