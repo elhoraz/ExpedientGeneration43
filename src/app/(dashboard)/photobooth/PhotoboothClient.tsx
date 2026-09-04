@@ -873,9 +873,14 @@ export default function PhotoboothClient() {
         allowTaint: false,
         backgroundColor: null,
         onclone: (doc) => {
-          doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => (c.style.visibility = "hidden"));
-          doc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((s) => (s.style.visibility = "hidden"));
-          doc.querySelectorAll<HTMLElement>(".cell-retake-btn,.sticker-mini-toolbar,.live-badge-indicator").forEach((b) => (b.style.display = "none"));
+          doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
+            // Physically remove all photos and videos so background canvas leaves empty transparent/dark frames
+            cell.querySelectorAll("video, img, .photo-cell-placeholder, .cell-retake-btn, .live-badge-indicator").forEach((el) => el.remove());
+            cell.style.setProperty("background", "#0d0d11", "important");
+            cell.style.setProperty("background-color", "#0d0d11", "important");
+            cell.style.setProperty("background-image", "none", "important");
+          });
+          doc.querySelectorAll<HTMLElement>(".strip-sticker, .sticker-mini-toolbar").forEach((s) => s.remove());
         },
       });
 
@@ -893,16 +898,17 @@ export default function PhotoboothClient() {
             card.style.setProperty("box-shadow", "none", "important");
             card.style.setProperty("border", "none", "important");
           }
-          doc.querySelectorAll<HTMLElement>(".strip-header,.strip-footer").forEach((el) => (el.style.visibility = "hidden"));
+          doc.querySelectorAll<HTMLElement>(".strip-header,.strip-footer,.strip-divider").forEach((el) => el.remove());
           doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
+            // CRITICAL FIX: Physically remove all img and video elements so NO static photo is EVER drawn on top of the live video!
+            cell.querySelectorAll("video, img, .photo-cell-placeholder, .cell-retake-btn, .live-badge-indicator").forEach((m) => m.remove());
             cell.style.setProperty("background", "transparent", "important");
             cell.style.setProperty("background-color", "transparent", "important");
             cell.style.setProperty("background-image", "none", "important");
             cell.style.setProperty("box-shadow", "none", "important");
-            cell.querySelectorAll<HTMLElement>("video,img").forEach((m) => (m.style.visibility = "hidden"));
-            cell.querySelectorAll<HTMLElement>(".cell-retake-btn,.photo-cell-placeholder,.live-badge-indicator").forEach((b) => (b.style.display = "none"));
+            cell.style.setProperty("border", "none", "important");
           });
-          doc.querySelectorAll<HTMLElement>(".sticker-mini-toolbar").forEach((tb) => (tb.style.display = "none"));
+          doc.querySelectorAll<HTMLElement>(".sticker-mini-toolbar").forEach((tb) => tb.remove());
           doc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((stk) => {
             stk.classList.remove("is-selected", "is-dragging");
             stk.style.outline = "none";
@@ -1064,12 +1070,12 @@ export default function PhotoboothClient() {
 
           // Pick the best media source: ALWAYS prefer the active playing video
           let source: CanvasImageSource | null = null;
-          if (slot.videoEl && slot.videoEl.videoWidth > 0) {
+          if (slot.videoEl) {
             source = slot.videoEl;
             if (slot.videoEl.paused) {
               slot.videoEl.play().catch(() => {});
             }
-          } else if (slot.fallbackImg && slot.fallbackImg.complete && slot.fallbackImg.naturalWidth > 0) {
+          } else if (slot.fallbackImg && slot.fallbackImg.complete) {
             source = slot.fallbackImg;
           }
 
