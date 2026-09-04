@@ -23,100 +23,31 @@ function LoginContent() {
   const successMsg = searchParams.get("success");
   const verifyMsg = searchParams.get("verify");
   const emailParam = searchParams.get("email");
-  const expiredParam = searchParams.get("expired");
   
   const [toastData, setToastData] = useState<{title: string, message: string, isError: boolean} | null>(null);
-  const [showSelfActivation, setShowSelfActivation] = useState(false);
-  const [isResending, setIsResending] = useState(false);
-  const [isActivating, setIsActivating] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-
-  useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [resendCooldown]);
 
   useEffect(() => {
     if (emailParam && !email) {
       setEmail(emailParam);
     }
-    if (
-      expiredParam === "true" ||
-      (errorMsg && (
-        errorMsg.toLowerCase().includes("kedaluwarsa") ||
-        errorMsg.toLowerCase().includes("expired") ||
-        errorMsg.toLowerCase().includes("invalid") ||
-        errorMsg.toLowerCase().includes("belum diverifikasi") ||
-        errorMsg.toLowerCase().includes("not confirmed")
-      ))
-    ) {
-      setShowSelfActivation(true);
-    }
-  }, [errorMsg, emailParam, expiredParam]);
+  }, [emailParam, email]);
 
   useEffect(() => {
     if (errorMsg) {
       setToastData({ title: "Akses Ditolak", message: errorMsg, isError: true });
       setTimeout(() => setToastData(null), 5000);
     } else if (successMsg) {
-      setToastData({ title: "Akses Diverifikasi", message: successMsg, isError: false });
+      setToastData({ title: "Akses Berhasil", message: successMsg, isError: false });
       setTimeout(() => setToastData(null), 5000);
     } else if (verifyMsg === "true") {
-      setToastData({ title: "Registrasi Berhasil", message: "Silakan periksa email Anda (juga folder spam) untuk verifikasi akun, serta pesan WhatsApp yang dikirimkan.", isError: false });
-      setTimeout(() => setToastData(null), 10000);
+      setToastData({ title: "Registrasi Berhasil", message: "Akun Anda telah terverifikasi. Silakan masuk.", isError: false });
+      setTimeout(() => setToastData(null), 6000);
     }
   }, [errorMsg, successMsg, verifyMsg]);
 
   const showToast = (title: string, message: string, isError: boolean) => {
     setToastData({ title, message, isError });
     setTimeout(() => setToastData(null), 5000);
-  };
-
-  const handleVerificationAction = async (mode: "resend_email" | "direct_activate") => {
-    const targetEmail = email.trim();
-    if (!targetEmail) {
-      showToast("Email Diperlukan", "Silakan masukkan alamat email Anda terlebih dahulu pada kolom surel.", true);
-      emailInputRef.current?.focus();
-      return;
-    }
-
-    if (mode === "resend_email" && resendCooldown > 0) {
-      showToast("Mohon Tunggu", `Tunggu ${resendCooldown} detik sebelum meminta pengiriman ulang berikutnya.`, true);
-      return;
-    }
-
-    try {
-      if (mode === "resend_email") {
-        setIsResending(true);
-      } else {
-        setIsActivating(true);
-      }
-
-      const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: targetEmail, mode }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        if (mode === "resend_email") {
-          setResendCooldown(60);
-          showToast("Tautan Terkirim!", data.message || "Tautan verifikasi baru berhasil dikirimkan ke email Anda! Periksa kotak masuk atau spam.", false);
-        } else {
-          showToast("Akses Disahkan!", data.message || "Akun Anda berhasil disahkan dan aktif! Silakan masukkan kata sandi dan klik Masuk.", false);
-          setShowSelfActivation(false);
-        }
-      } else {
-        showToast("Gagal", data.error || "Gagal memproses permintaan verifikasi.", true);
-      }
-    } catch (e: any) {
-      showToast("Gagal", e.message || "Terjadi kesalahan koneksi.", true);
-    } finally {
-      setIsResending(false);
-      setIsActivating(false);
-    }
   };
 
   useEffect(() => {
@@ -279,49 +210,6 @@ function LoginContent() {
           </div>
 
           <form action="/auth/login" method="POST">
-            {showSelfActivation && (
-              <div className="self-activation-banner">
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                  <i className="fa-solid fa-triangle-exclamation" style={{ color: "#ffd700", fontSize: "1rem" }}></i>
-                  <strong style={{ fontSize: "0.85rem", color: "#ffd700", letterSpacing: "0.5px" }}>
-                    Verifikasi Kedaluwarsa / Belum Terverifikasi
-                  </strong>
-                </div>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 12px 0", lineHeight: 1.4 }}>
-                  Tautan verifikasi email Anda kedaluwarsa atau belum masuk? Pastikan surel di bawah sudah sesuai, lalu klik tombol untuk mengirimkan tautan verifikasi baru:
-                </p>
-
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                  <button
-                    type="button"
-                    className="btn-self-activate"
-                    onClick={() => handleVerificationAction("resend_email")}
-                    disabled={isResending || isActivating || resendCooldown > 0}
-                  >
-                    <i className={isResending ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-paper-plane"}></i>
-                    <span>
-                      {isResending
-                        ? "Mengirimkan Tautan Baru..."
-                        : resendCooldown > 0
-                        ? `Kirim Lagi Verifikasi (${resendCooldown}s)`
-                        : "Kirim Lagi Verifikasinya ke Email"}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-self-activate-outline"
-                    onClick={() => handleVerificationAction("direct_activate")}
-                    disabled={isResending || isActivating}
-                    title="Opsi cadangan cepat jika email terkendala atau tidak masuk"
-                  >
-                    <i className={isActivating ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-bolt"}></i>
-                    <span>{isActivating ? "Mengesahkan Akun..." : "⚡ Sahkan Akun Langsung (Cadangan Cepat)"}</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
             <div className="input-group">
               <input
                 type="email"
@@ -396,25 +284,6 @@ function LoginContent() {
               </div>
             </div>
           </form>
-
-          <div style={{ textAlign: "center", marginTop: "14px", marginBottom: "6px" }}>
-            <button
-              type="button"
-              onClick={() => setShowSelfActivation(!showSelfActivation)}
-              style={{
-                background: "none",
-                border: "none",
-                color: showSelfActivation ? "#ffd700" : "var(--text-muted)",
-                fontSize: "0.75rem",
-                cursor: "pointer",
-                textDecoration: "underline",
-                padding: "4px 8px",
-                transition: "color 0.2s ease"
-              }}
-            >
-              {showSelfActivation ? "Tutup panel verifikasi" : "Tautan verifikasi kedaluwarsa? Kirim lagi verifikasinya"}
-            </button>
-          </div>
 
           <div className="register-link">
             {t('login_text_register', 'Identitas belum terdaftar?')} <Link href="/register">{t('login_link_register', 'Ajukan Registrasi')}</Link>

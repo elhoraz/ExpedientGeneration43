@@ -16,18 +16,16 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    let errorMessage = "Kredensial tidak valid atau akun belum diverifikasi.";
-    let isUnconfirmed = false;
+    let errorMessage = "Email atau kata sandi yang Anda masukkan salah.";
     if (error.message.includes("Email not confirmed")) {
-      errorMessage = "Email Anda belum diverifikasi atau tautan telah kedaluwarsa. Silakan kirim lagi verifikasinya di bawah.";
-      isUnconfirmed = true;
+      errorMessage = "Akun Anda belum diverifikasi. Silakan lakukan verifikasi OTP terlebih dahulu.";
     } else if (error.message.includes("Invalid login credentials")) {
-      errorMessage = "Email atau kata sandi salah.";
+      errorMessage = "Email atau kata sandi yang Anda masukkan salah.";
     } else {
       errorMessage = error.message;
     }
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(errorMessage)}&email=${encodeURIComponent(email)}${isUnconfirmed ? "&unconfirmed=true&expired=true" : ""}`,
+      `${origin}/login?error=${encodeURIComponent(errorMessage)}&email=${encodeURIComponent(email)}`,
       { status: 303 }
     );
   }
