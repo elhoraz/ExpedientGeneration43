@@ -61,3 +61,55 @@ body.sidebar-closed .notif-dropdown {
               transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
               visibility 0.35s !important;
 }
+
+/* ========================================================
+   ADAPTIVE HARDWARE PERFORMANCE (LITE MODE FOR MOBILE & LOW RAM)
+   ======================================================== */
+[data-perf="lite"] .film-grain,
+[data-perf="lite"] #particles-js,
+[data-perf="lite"] .cursor-dot,
+[data-perf="lite"] .cursor-ring {
+  display: none !important;
+}
+
+[data-perf="lite"] .aurora-container {
+  filter: none !important;
+  opacity: 0.5 !important;
+}
+
+[data-perf="lite"] .aurora-blob {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 0.12 !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+[data-perf="lite"] .ambient-field {
+  filter: none !important;
+}
+
+[data-perf="lite"] .core-orb {
+  animation: none !important;
+  mix-blend-mode: normal !important;
+  opacity: 0.12 !important;
+  transform: none !important;
+}
+
+/* Kurangi beban GPU dan matikan elemen desktop di HP / Layar Sentuh */
+@media (max-width: 768px), (pointer: coarse) {
+  .film-grain,
+  #particles-js,
+  .cursor-dot,
+  .cursor-ring {
+    display: none !important;
+  }
+
+  .aurora-blob,
+  .core-orb {
+    animation: none !important;
+    transform: none !important;
+    mix-blend-mode: normal !important;
+  }
+}
+

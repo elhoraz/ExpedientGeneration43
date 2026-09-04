@@ -278,3 +278,40 @@
     .widget-text { display: none; }
 }
 
+/* ================= 11. MOBILE & LITE-PERFORMANCE (LOGIN) ================= */
+@media (max-width: 768px), (pointer: coarse) {
+    .login-page {
+        perspective: none !important;
+    }
+    .ambient-field {
+        display: none !important;
+    }
+    .auth-prism {
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        background: rgba(4, 10, 7, 0.92) !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7) !important;
+        transform: none !important;
+    }
+    .toggle-widget {
+        top: 20px;
+        padding: 6px 14px;
+    }
+}
+
+[data-perf="lite"] .login-page {
+    perspective: none !important;
+}
+
+[data-perf="lite"] .ambient-field {
+    display: none !important;
+}
+
+[data-perf="lite"] .auth-prism {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: rgba(4, 10, 7, 0.95) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+    transform: none !important;
+}
+

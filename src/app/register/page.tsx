@@ -494,12 +494,16 @@ function RegisterFormContent() {
     try {
       let faceapi = (window as any).faceapi;
       if (!faceapi) {
-        setFaceStatus("MENGINISIALISASI MODULE AI...");
-        let count = 0;
-        while (!(window as any).faceapi && count < 15) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-          count++;
-        }
+        setFaceStatus("MENGUNDUH MODUL BIOMETRIK AI...");
+        await new Promise<void>((resolve, reject) => {
+          if ((window as any).faceapi) return resolve();
+          const script = document.createElement("script");
+          script.src = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js";
+          script.async = true;
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error("Gagal mengunduh modul AI dari CDN"));
+          document.head.appendChild(script);
+        });
         faceapi = (window as any).faceapi;
       }
 
@@ -1047,7 +1051,6 @@ function RegisterFormContent() {
           </div>
         </div>
       )}
-      <Script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js" strategy="afterInteractive" />
     </div>
   );
 }

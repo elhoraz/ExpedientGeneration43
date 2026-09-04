@@ -84,13 +84,27 @@ export default async function RootLayout({
   return (
     <html lang="id" className={`${inter.variable} ${playfair.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
-        {/* Inline script to set theme before first paint (prevent FOUC) */}
+        {/* Inline script to set theme and detect device performance before first paint */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                var t = localStorage.getItem('expedient_theme') || 'dark';
-                document.documentElement.setAttribute('data-theme', t);
+                try {
+                  var t = localStorage.getItem('expedient_theme') || 'dark';
+                  document.documentElement.setAttribute('data-theme', t);
+
+                  // Deteksi hardware, RAM, dan perangkat mobile
+                  var isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+                  var ram = navigator.deviceMemory || 8; // GB RAM jika browser mendukung
+                  var cpu = navigator.hardwareConcurrency || 8; // Jumlah core CPU
+                  var isSaveData = navigator.connection && navigator.connection.saveData;
+                  var isLowEnd = isMobile || ram <= 4 || cpu <= 4 || isSaveData;
+
+                  document.documentElement.setAttribute('data-perf', isLowEnd ? 'lite' : 'high');
+                  document.documentElement.setAttribute('data-device', isMobile ? 'mobile' : 'desktop');
+                } catch(e) {
+                  document.documentElement.setAttribute('data-perf', 'lite');
+                }
               })();
             `,
           }}

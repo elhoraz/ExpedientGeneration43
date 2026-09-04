@@ -492,3 +492,60 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
     }
 }
 
+/* ========================================================
+   MOBILE & LITE-PERFORMANCE OPTIMIZATIONS (REGISTER)
+   ======================================================== */
+@media (max-width: 768px), (pointer: coarse) {
+    .register-page {
+        --glass-blur: blur(8px);
+        --glass-bg: rgba(10, 15, 20, 0.92);
+        --glass-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+    }
+
+    .main-container {
+        padding: 85px 14px 60px 14px;
+        perspective: none;
+    }
+
+    .register-vault {
+        padding: 28px 18px;
+        border-radius: 20px;
+        transform: none !important;
+        animation: none !important;
+        opacity: 1 !important;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .aurora-container {
+        display: none !important;
+    }
+
+    .floating-nav, .theme-widget {
+        top: 20px;
+        padding: 8px 16px;
+    }
+
+    .floating-nav { left: 16px; }
+    .theme-widget { right: 16px; }
+    .widget-text { display: none; }
+}
+
+[data-perf="lite"] .register-page {
+    --glass-blur: none;
+    --glass-bg: rgba(10, 15, 20, 0.95);
+    --glass-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+}
+
+[data-perf="lite"] .register-vault {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    transform: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+}
+
+[data-perf="lite"] .aurora-container {
+    display: none !important;
+}
+

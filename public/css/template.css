@@ -788,7 +788,7 @@ img.skeleton-shimmer {
 }
 
 /* ========================================================
-   ACCESSIBILITY: PREFERS-REDUCED-MOTION SUPPORT
+   ACCESSIBILITY: PREFERS-REDUCED-MOTION & HARDWARE LITE MODE
    ======================================================== */
 @media (prefers-reduced-motion: reduce) {
     *, ::before, ::after {
@@ -800,5 +800,21 @@ img.skeleton-shimmer {
     .aurora-blob, .film-grain, #particles-js {
         display: none !important;
     }
+}
+
+/* HARDWARE PROFILER: LITE MODE OVERRIDES */
+[data-perf="lite"] .aurora-blob,
+[data-perf="lite"] .film-grain,
+[data-perf="lite"] #particles-js,
+[data-perf="lite"] .cursor-dot,
+[data-perf="lite"] .cursor-ring {
+    display: none !important;
+}
+
+[data-perf="lite"] .glass-panel,
+[data-perf="lite"] .modal-sheet,
+[data-perf="lite"] .hover-card {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
 }
 
