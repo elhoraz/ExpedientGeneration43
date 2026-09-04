@@ -73,114 +73,130 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
 
 
-  // Handle global visual effects
+  // 1. Handle theme and meta color
   useEffect(() => {
     const savedTheme = localStorage.getItem("expedient_theme") || "dark";
     document.documentElement.setAttribute("data-theme", savedTheme);
 
-    // Update meta theme-color based on theme
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       metaThemeColor.setAttribute("content", savedTheme === "light" ? "#fcfbf8" : "#030504");
     }
+  }, []);
 
-    // ===== CUSTOM CURSOR =====
+  // 2. Custom Cursor (Hanya Desktop / Non-touch)
+  useEffect(() => {
+    if (typeof window === "undefined" || window.innerWidth <= 768) return;
+    
+    const isLite = document.documentElement.getAttribute("data-perf") === "lite";
+    if (isLite) return;
+
     const cursorDot = document.getElementById("cursorDot");
     const cursorRing = document.getElementById("cursorRing");
+    if (!cursorDot || !cursorRing) return;
 
-    if (cursorDot && cursorRing && window.innerWidth > 768) {
-      const moveCursor = (e: MouseEvent) => {
-        cursorDot.style.left = e.clientX + "px";
-        cursorDot.style.top = e.clientY + "px";
-        cursorRing.style.left = e.clientX + "px";
-        cursorRing.style.top = e.clientY + "px";
-      };
-      document.addEventListener("mousemove", moveCursor);
+    const moveCursor = (e: MouseEvent) => {
+      cursorDot.style.left = e.clientX + "px";
+      cursorDot.style.top = e.clientY + "px";
+      cursorRing.style.left = e.clientX + "px";
+      cursorRing.style.top = e.clientY + "px";
+    };
+    document.addEventListener("mousemove", moveCursor);
 
-      // Hover effect on interactive elements
-      const interactiveEls = document.querySelectorAll("a, button, .hover-trigger, .cursor-bind, input, textarea, select");
+    const handleMouseEnter = () => {
+      cursorRing.style.transform = "translate(-50%, -50%) scale(1.5)";
+      cursorRing.style.borderColor = "#d4af37";
+    };
+    const handleMouseLeave = () => {
+      cursorRing.style.transform = "translate(-50%, -50%) scale(1)";
+      cursorRing.style.borderColor = "rgba(212,175,55,0.5)";
+    };
+
+    const interactiveEls = document.querySelectorAll("a, button, .hover-trigger, .cursor-bind, input, textarea, select");
+    interactiveEls.forEach((el) => {
+      el.addEventListener("mouseenter", handleMouseEnter);
+      el.addEventListener("mouseleave", handleMouseLeave);
+    });
+
+    return () => {
+      document.removeEventListener("mousemove", moveCursor);
       interactiveEls.forEach((el) => {
-        el.addEventListener("mouseenter", () => {
-          cursorRing.style.transform = "translate(-50%, -50%) scale(1.5)";
-          cursorRing.style.borderColor = "#d4af37";
-        });
-        el.addEventListener("mouseleave", () => {
-          cursorRing.style.transform = "translate(-50%, -50%) scale(1)";
-          cursorRing.style.borderColor = "rgba(212,175,55,0.5)";
-        });
+        el.removeEventListener("mouseenter", handleMouseEnter);
+        el.removeEventListener("mouseleave", handleMouseLeave);
       });
+    };
+  }, []);
 
-      return () => {
-        document.removeEventListener("mousemove", moveCursor);
-      };
-    }
+  // 3. Ambient Particles (Hanya Desktop & Performa Memadai)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
 
-    // ===== PARTICLES (Hanya diaktifkan pada Desktop dengan performa memadai) =====
     const perfMode = document.documentElement.getAttribute("data-perf");
     const isLite = perfMode === "lite" || window.innerWidth <= 768;
 
     const canvas = document.getElementById("particles-js") as HTMLCanvasElement;
-    if (canvas) {
-      if (isLite) {
-        canvas.style.display = "none";
-      } else {
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
+    if (!canvas) return;
 
-          const particles: Array<{
-            x: number; y: number; size: number; speedY: number; speedX: number;
-            opacity: number; life: number; maxLife: number;
-          }> = [];
-
-          for (let i = 0; i < 30; i++) {
-            particles.push({
-              x: Math.random() * canvas.width,
-              y: Math.random() * canvas.height,
-              size: Math.random() * 2 + 0.5,
-              speedY: -(Math.random() * 0.3 + 0.1),
-              speedX: (Math.random() - 0.5) * 0.2,
-              opacity: Math.random() * 0.4 + 0.1,
-              life: Math.random() * 200 + 100,
-              maxLife: 300,
-            });
-          }
-
-          let animId: number;
-          const animate = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach((p) => {
-              p.y += p.speedY;
-              p.x += p.speedX;
-              p.life--;
-              if (p.life <= 0 || p.y < -10) {
-                p.x = Math.random() * canvas.width;
-                p.y = canvas.height + 10;
-                p.life = p.maxLife;
-              }
-              ctx.beginPath();
-              ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
-              ctx.fill();
-            });
-            animId = requestAnimationFrame(animate);
-          };
-          animate();
-
-          const handleResize = () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-          };
-          window.addEventListener("resize", handleResize);
-
-          return () => {
-            cancelAnimationFrame(animId);
-            window.removeEventListener("resize", handleResize);
-          };
-        }
-      }
+    if (isLite) {
+      canvas.style.display = "none";
+      return;
     }
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles: Array<{
+      x: number; y: number; size: number; speedY: number; speedX: number;
+      opacity: number; life: number; maxLife: number;
+    }> = [];
+
+    for (let i = 0; i < 30; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 2 + 0.5,
+        speedY: -(Math.random() * 0.3 + 0.1),
+        speedX: (Math.random() - 0.5) * 0.2,
+        opacity: Math.random() * 0.4 + 0.1,
+        life: Math.random() * 200 + 100,
+        maxLife: 300,
+      });
+    }
+
+    let animId: number;
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p) => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+        p.life--;
+        if (p.life <= 0 || p.y < -10) {
+          p.x = Math.random() * canvas.width;
+          p.y = canvas.height + 10;
+          p.life = p.maxLife;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(212, 175, 55, ${p.opacity})`;
+        ctx.fill();
+      });
+      animId = requestAnimationFrame(animate);
+    };
+    animate();
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   return (
