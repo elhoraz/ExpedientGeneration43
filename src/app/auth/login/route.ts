@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     let errorMessage = "Kredensial tidak valid atau akun belum diverifikasi.";
     let isUnconfirmed = false;
     if (error.message.includes("Email not confirmed")) {
-      errorMessage = "Akun Anda belum diverifikasi. Silakan klik tombol Sahkan Akun di bawah.";
+      errorMessage = "Email Anda belum diverifikasi atau tautan telah kedaluwarsa. Silakan kirim lagi verifikasinya di bawah.";
       isUnconfirmed = true;
     } else if (error.message.includes("Invalid login credentials")) {
       errorMessage = "Email atau kata sandi salah.";

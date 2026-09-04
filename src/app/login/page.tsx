@@ -27,7 +27,16 @@ function LoginContent() {
   
   const [toastData, setToastData] = useState<{title: string, message: string, isError: boolean} | null>(null);
   const [showSelfActivation, setShowSelfActivation] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   useEffect(() => {
     if (emailParam && !email) {
@@ -65,31 +74,47 @@ function LoginContent() {
     setTimeout(() => setToastData(null), 5000);
   };
 
-  const handleDirectActivate = async () => {
+  const handleVerificationAction = async (mode: "resend_email" | "direct_activate") => {
     const targetEmail = email.trim();
     if (!targetEmail) {
-      showToast("Email Diperlukan", "Silakan masukkan alamat email Anda terlebih dahulu.", true);
+      showToast("Email Diperlukan", "Silakan masukkan alamat email Anda terlebih dahulu pada kolom surel.", true);
       emailInputRef.current?.focus();
       return;
     }
 
+    if (mode === "resend_email" && resendCooldown > 0) {
+      showToast("Mohon Tunggu", `Tunggu ${resendCooldown} detik sebelum meminta pengiriman ulang berikutnya.`, true);
+      return;
+    }
+
     try {
-      setIsActivating(true);
+      if (mode === "resend_email") {
+        setIsResending(true);
+      } else {
+        setIsActivating(true);
+      }
+
       const res = await fetch("/api/auth/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: targetEmail }),
+        body: JSON.stringify({ email: targetEmail, mode }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        showToast("Akses Disahkan!", data.message || "Akun Anda berhasil disahkan dan aktif! Silakan masukkan kata sandi dan klik Masuk.", false);
-        setShowSelfActivation(false);
+        if (mode === "resend_email") {
+          setResendCooldown(60);
+          showToast("Tautan Terkirim!", data.message || "Tautan verifikasi baru berhasil dikirimkan ke email Anda! Periksa kotak masuk atau spam.", false);
+        } else {
+          showToast("Akses Disahkan!", data.message || "Akun Anda berhasil disahkan dan aktif! Silakan masukkan kata sandi dan klik Masuk.", false);
+          setShowSelfActivation(false);
+        }
       } else {
-        showToast("Gagal Mengesahkan", data.error || "Gagal mengesahkan akun.", true);
+        showToast("Gagal", data.error || "Gagal memproses permintaan verifikasi.", true);
       }
     } catch (e: any) {
-      showToast("Gagal Mengesahkan", e.message || "Terjadi kesalahan koneksi.", true);
+      showToast("Gagal", e.message || "Terjadi kesalahan koneksi.", true);
     } finally {
+      setIsResending(false);
       setIsActivating(false);
     }
   };
@@ -257,23 +282,43 @@ function LoginContent() {
             {showSelfActivation && (
               <div className="self-activation-banner">
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                  <i className="fa-solid fa-shield-halved" style={{ color: "#ffd700", fontSize: "1rem" }}></i>
+                  <i className="fa-solid fa-triangle-exclamation" style={{ color: "#ffd700", fontSize: "1rem" }}></i>
                   <strong style={{ fontSize: "0.85rem", color: "#ffd700", letterSpacing: "0.5px" }}>
-                    Pengesahan Akun Mandiri
+                    Verifikasi Kedaluwarsa / Belum Terverifikasi
                   </strong>
                 </div>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 10px 0", lineHeight: 1.4 }}>
-                  Tautan verifikasi email kedaluwarsa atau bermasalah? Masukkan email Anda di bawah lalu klik tombol ini untuk langsung mengesahkan akun:
+                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 12px 0", lineHeight: 1.4 }}>
+                  Tautan verifikasi email Anda kedaluwarsa atau belum masuk? Pastikan surel di bawah sudah sesuai, lalu klik tombol untuk mengirimkan tautan verifikasi baru:
                 </p>
-                <button
-                  type="button"
-                  className="btn-self-activate"
-                  onClick={handleDirectActivate}
-                  disabled={isActivating}
-                >
-                  <i className={isActivating ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check-double"}></i>
-                  <span>{isActivating ? "Mengesahkan..." : "Sahkan & Aktifkan Akun Ini Sekarang"}</span>
-                </button>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <button
+                    type="button"
+                    className="btn-self-activate"
+                    onClick={() => handleVerificationAction("resend_email")}
+                    disabled={isResending || isActivating || resendCooldown > 0}
+                  >
+                    <i className={isResending ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-paper-plane"}></i>
+                    <span>
+                      {isResending
+                        ? "Mengirimkan Tautan Baru..."
+                        : resendCooldown > 0
+                        ? `Kirim Lagi Verifikasi (${resendCooldown}s)`
+                        : "Kirim Lagi Verifikasinya ke Email"}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn-self-activate-outline"
+                    onClick={() => handleVerificationAction("direct_activate")}
+                    disabled={isResending || isActivating}
+                    title="Opsi cadangan cepat jika email terkendala atau tidak masuk"
+                  >
+                    <i className={isActivating ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-bolt"}></i>
+                    <span>{isActivating ? "Mengesahkan Akun..." : "⚡ Sahkan Akun Langsung (Cadangan Cepat)"}</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -367,7 +412,7 @@ function LoginContent() {
                 transition: "color 0.2s ease"
               }}
             >
-              {showSelfActivation ? "Tutup formulir pengesahan" : "Tautan email bermasalah? Sahkan akun di sini"}
+              {showSelfActivation ? "Tutup panel verifikasi" : "Tautan verifikasi kedaluwarsa? Kirim lagi verifikasinya"}
             </button>
           </div>
 

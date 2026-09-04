@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getRequestOrigin } from "@/lib/url";
 
 export async function POST(request: Request) {
   try {
+    const origin = getRequestOrigin(request);
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || "").trim().toLowerCase();
+    const mode = body.mode || "resend_email"; // "resend_email" or "direct_activate"
 
     if (!email) {
       return NextResponse.json(
@@ -33,26 +36,63 @@ export async function POST(request: Request) {
     const user = users.find((u) => u.email?.toLowerCase() === email);
     if (!user) {
       return NextResponse.json(
-        { error: "Email ini belum terdaftar. Silakan lakukan inisiasi / registrasi terlebih dahulu." },
+        { error: "Email ini belum terdaftar. Silakan lakukan registrasi / inisiasi terlebih dahulu." },
         { status: 404 }
       );
     }
 
-    // Directly confirm email in Supabase Auth (solves expired token / prefetch burn issue permanently)
-    const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
-      email_confirm: true,
-    });
-
-    if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    // If user is already confirmed, activate profile and notify
+    if (user.email_confirmed_at) {
+      await adminSupabase.from("profiles").update({ is_active: true }).eq("id", user.id);
+      return NextResponse.json({
+        success: true,
+        mode: "already_confirmed",
+        message: "Akun Anda sudah terverifikasi & aktif! Silakan langsung masukkan kata sandi dan klik Masuk.",
+      });
     }
 
-    // Set profile is_active to true
-    await adminSupabase.from("profiles").update({ is_active: true }).eq("id", user.id);
+    // Direct Instant Activation Mode
+    if (mode === "direct_activate") {
+      const { error: updateError } = await adminSupabase.auth.admin.updateUserById(user.id, {
+        email_confirm: true,
+      });
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError.message }, { status: 500 });
+      }
+
+      await adminSupabase.from("profiles").update({ is_active: true }).eq("id", user.id);
+
+      return NextResponse.json({
+        success: true,
+        mode: "direct_activate",
+        message: "Akun Anda berhasil disahkan dan aktif! Silakan masukkan kata sandi Anda dan klik Masuk.",
+      });
+    }
+
+    // Resend Email Mode (Sends a new, fresh confirmation email to user inbox)
+    const { error: resendError } = await adminSupabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${origin}/auth/callback`,
+      },
+    });
+
+    if (resendError) {
+      if (resendError.message.includes("security purposes") || resendError.message.includes("rate limit") || resendError.message.includes("once every")) {
+        return NextResponse.json(
+          { error: "Email verifikasi baru saja dikirim. Mohon tunggu 60 detik sebelum meminta pengiriman ulang berikutnya." },
+          { status: 429 }
+        );
+      }
+      return NextResponse.json({ error: resendError.message }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
-      message: "Akun Anda berhasil disahkan dan diaktifkan! Silakan masukkan kata sandi Anda dan klik Masuk.",
+      mode: "resend_email",
+      message: "Tautan verifikasi baru berhasil dikirimkan ke email Anda! Silakan periksa kotak masuk atau folder spam.",
     });
   } catch (err: any) {
     console.error("Resend verification error:", err);

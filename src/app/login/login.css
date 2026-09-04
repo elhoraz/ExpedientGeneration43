@@ -325,3 +325,30 @@
     cursor: not-allowed;
 }
 
+.btn-self-activate-outline {
+    width: 100%;
+    padding: 8px 14px;
+    background: transparent;
+    color: #ffd700;
+    border: 1px dashed rgba(255, 215, 0, 0.45);
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+}
+
+.btn-self-activate-outline:hover:not(:disabled) {
+    background: rgba(255, 215, 0, 0.08);
+    border-color: #ffd700;
+}
+
+.btn-self-activate-outline:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
