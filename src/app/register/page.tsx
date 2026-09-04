@@ -64,10 +64,21 @@ function RegisterFormContent() {
     }
   }, [otpCooldown]);
 
-  const showToastAlert = (msg: string) => {
-    setToastMessage(msg);
+  const showToastAlert = (msg: any) => {
+    let text = "Pendaftaran gagal. Silakan coba lagi.";
+    if (typeof msg === "string") {
+      text = msg;
+    } else if (msg && typeof msg.message === "string") {
+      text = msg.message;
+    } else if (msg && typeof msg.error === "string") {
+      text = msg.error;
+    }
+    if (text === "[object Object]" || text.includes("[object Object]")) {
+      text = "Ukuran file atau data foto terlalu besar. Silakan gunakan foto lain yang lebih ringan.";
+    }
+    setToastMessage(text);
     setShowToast(true);
-    setTimeout(() => setShowToast(false), 5000);
+    setTimeout(() => setShowToast(false), 6000);
   };
 
   useEffect(() => {
@@ -79,9 +90,11 @@ function RegisterFormContent() {
     triggerLogoExplosion();
 
     if (errorMsg) {
-      setToastMessage(errorMsg);
+      let text = errorMsg;
+      if (text === "[object Object]") text = "Terjadi kendala saat registrasi. Silakan ulangi.";
+      setToastMessage(text);
       setShowToast(true);
-      setTimeout(() => setShowToast(false), 5000);
+      setTimeout(() => setShowToast(false), 6000);
     }
 
     // Dukungan langsung membuka modal OTP jika diarahkan dari login / URL
@@ -90,14 +103,7 @@ function RegisterFormContent() {
       setIsOtpModalOpen(true);
       setOtpStep("choose_channel");
     }
-
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(t => t.stop());
-      }
-      if (faceIntervalRef.current) clearInterval(faceIntervalRef.current);
-    };
-  }, [errorMsg]);
+  }, [errorMsg, verifyParam, emailParam]);
 
   const triggerLogoExplosion = () => {
     setLogoState("exploding");
@@ -107,107 +113,110 @@ function RegisterFormContent() {
   };
 
   const toggleTheme = () => {
-    if (navigator.vibrate) navigator.vibrate(50);
-    triggerLogoExplosion();
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
     document.documentElement.setAttribute("data-theme", nextTheme);
     localStorage.setItem("expedient_theme", nextTheme);
   };
 
-  // Helper to optimize image into base64 JPEG max 800x800
-  const optimizeImage = (dataUri: string, callback: (optimizedUri: string) => void) => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const maxDim = 800;
-        let w = img.naturalWidth || img.width;
-        let h = img.naturalHeight || img.height;
-        if (w > maxDim || h > maxDim) {
-          if (w > h) {
-            h = Math.round((h * maxDim) / w);
-            w = maxDim;
-          } else {
-            w = Math.round((w * maxDim) / h);
-            h = maxDim;
+  // Helper to compress any image file directly to a lightweight Base64 JPEG (max 600px, ~50-90KB)
+  // This guarantees payload will NEVER exceed Vercel's 4.5MB serverless limit
+  const compressFileToDataUrl = (file: File, maxDim = 600, quality = 0.82): Promise<string> => {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        try {
+          let w = img.naturalWidth || img.width;
+          let h = img.naturalHeight || img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
           }
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL("image/jpeg", quality);
+            resolve(dataUrl);
+            return;
+          }
+        } catch (err) {
+          console.error("Canvas compression error:", err);
         }
-        const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, w, h);
-          const result = canvas.toDataURL("image/jpeg", 0.88);
-          callback(result);
-          return;
-        }
-      } catch (err) {
-        console.error("Error optimizing image:", err);
-      }
-      callback(dataUri);
-    };
-    img.onerror = () => callback(dataUri);
-    img.src = dataUri;
+        // Fallback to FileReader if canvas fails
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string) || "");
+        reader.readAsDataURL(file);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string) || "");
+        reader.readAsDataURL(file);
+      };
+      img.src = url;
+    });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        if (event.target?.result) {
-          const resultStr = event.target.result as string;
+      try {
+        // Automatically compress before setting state so huge camera photos never bloat payload
+        const compressedBase64 = await compressFileToDataUrl(file, 600, 0.82);
+        if (!compressedBase64) return;
 
-          // 1. Immediately set base64 synchronously so hidden input is NEVER empty
-          setImagePreview(resultStr);
-          const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
-          if (hiddenInput) hiddenInput.value = resultStr;
+        setImagePreview(compressedBase64);
+        const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
+        if (hiddenInput) hiddenInput.value = compressedBase64;
 
-          // 2. Then optimize in background
-          optimizeImage(resultStr, (optimized) => {
-            setImagePreview(optimized);
-            if (hiddenInput) hiddenInput.value = optimized;
-          });
+        setCropSrc(compressedBase64);
+        setIsCropping(true);
 
-          setCropSrc(resultStr);
-          setIsCropping(true);
-
-          // Load Cropper dynamically if not loaded yet
-          let CropperClass = Cropper;
-          if (!CropperClass) {
-            try {
-              const mod = await import("cropperjs");
-              Cropper = mod.default;
-              CropperClass = Cropper;
-            } catch (err) {
-              console.error("Failed to load cropperjs:", err);
-            }
-          }
-
-          if (CropperClass && cropTargetRef.current) {
-            const initCropper = () => {
-              if (cropperInstance) cropperInstance.destroy();
-              const cropper = new CropperClass(cropTargetRef.current, {
-                aspectRatio: 1,
-                viewMode: 1,
-                dragMode: "move",
-                autoCropArea: 0.85,
-                background: false
-              });
-              setCropperInstance(cropper);
-            };
-
-            const targetImg = cropTargetRef.current;
-            if (targetImg.complete && targetImg.naturalWidth > 0) {
-              initCropper();
-            } else {
-              targetImg.onload = initCropper;
-            }
+        // Load Cropper dynamically if not loaded yet
+        let CropperClass = Cropper;
+        if (!CropperClass) {
+          try {
+            const mod = await import("cropperjs");
+            Cropper = mod.default;
+            CropperClass = Cropper;
+          } catch (err) {
+            console.error("Failed to load cropperjs:", err);
           }
         }
-      };
-      reader.readAsDataURL(file);
+
+        if (CropperClass && cropTargetRef.current) {
+          const initCropper = () => {
+            if (cropperInstance) cropperInstance.destroy();
+            const cropper = new CropperClass(cropTargetRef.current, {
+              aspectRatio: 1,
+              viewMode: 1,
+              dragMode: "move",
+              autoCropArea: 0.85,
+              background: false
+            });
+            setCropperInstance(cropper);
+          };
+
+          const targetImg = cropTargetRef.current;
+          if (targetImg.complete && targetImg.naturalWidth > 0) {
+            initCropper();
+          } else {
+            targetImg.onload = initCropper;
+          }
+        }
+      } catch (err) {
+        console.error("Error reading profile photo file:", err);
+      }
     }
   };
 
@@ -216,7 +225,7 @@ function RegisterFormContent() {
       try {
         const canvas = cropperInstance.getCroppedCanvas({ width: 500, height: 500 });
         if (canvas) {
-          const base64 = canvas.toDataURL("image/jpeg", 0.9);
+          const base64 = canvas.toDataURL("image/jpeg", 0.85);
           setImagePreview(base64);
           const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
           if (hiddenInput) hiddenInput.value = base64;
@@ -238,9 +247,6 @@ function RegisterFormContent() {
       setCropperInstance(null);
     }
     setCropSrc("");
-    // Note: Do NOT clear imagePreview here!
-    // If the user picked a photo and canceled the cropper dialog, 
-    // the selected photo (optimized fallback) remains saved as their profile picture.
   };
 
   const submitRegistrationAsync = async (faceDescStr: string) => {
@@ -265,9 +271,25 @@ function RegisterFormContent() {
         body: formData,
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
       if (!res.ok || data.error) {
-        throw new Error(data.error || "Gagal memproses inisiasi registrasi.");
+        let errMessage = "Gagal memproses inisiasi registrasi.";
+        if (res.status === 413) {
+          errMessage = "Ukuran file foto terlalu besar untuk jaringan. Silakan gunakan foto yang lebih kecil.";
+        } else if (typeof data.error === "string") {
+          errMessage = data.error;
+        } else if (data.error && typeof data.error.message === "string") {
+          errMessage = data.error.message;
+        } else if (typeof data.message === "string") {
+          errMessage = data.message;
+        }
+        throw new Error(errMessage);
       }
 
       setRegisteredEmail(data.email || "");
@@ -276,7 +298,7 @@ function RegisterFormContent() {
       setOtpStep("choose_channel");
     } catch (err: any) {
       console.error("Registration error:", err);
-      showToastAlert(err.message || "Pendaftaran gagal. Silakan coba lagi.");
+      showToastAlert(err?.message || "Pendaftaran gagal. Silakan coba lagi.");
     } finally {
       setIsSubmittingForm(false);
     }
@@ -298,9 +320,19 @@ function RegisterFormContent() {
         body: JSON.stringify({ email: registeredEmail, channel }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
       if (!res.ok || data.error) {
-        throw new Error(data.error || "Gagal mengirimkan kode OTP.");
+        let errMessage = "Gagal mengirimkan kode OTP.";
+        if (typeof data.error === "string") errMessage = data.error;
+        else if (data.error && typeof data.error.message === "string") errMessage = data.error.message;
+        else if (typeof data.message === "string") errMessage = data.message;
+        throw new Error(errMessage);
       }
 
       setSelectedChannel(channel);
@@ -316,7 +348,7 @@ function RegisterFormContent() {
       }, 150);
     } catch (err: any) {
       console.error("Send OTP error:", err);
-      setOtpError(err.message || "Gagal mengirimkan kode OTP.");
+      setOtpError(err?.message || "Gagal mengirimkan kode OTP.");
     } finally {
       setIsSendingOtp(false);
     }
@@ -339,9 +371,19 @@ function RegisterFormContent() {
         body: JSON.stringify({ email: registeredEmail, otp: fullOtp }),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+
       if (!res.ok || data.error) {
-        throw new Error(data.error || "Verifikasi OTP gagal.");
+        let errMessage = "Verifikasi OTP gagal.";
+        if (typeof data.error === "string") errMessage = data.error;
+        else if (data.error && typeof data.error.message === "string") errMessage = data.error.message;
+        else if (typeof data.message === "string") errMessage = data.message;
+        throw new Error(errMessage);
       }
 
       setOtpStep("success");
