@@ -358,41 +358,107 @@ export default function PhotoboothClient() {
     return canvas.toDataURL("image/jpeg", 0.95);
   };
 
-  // Start Live Motion Clip Recording (MediaRecorder)
+  // Start Live Motion Clip Recording with Exact Aspect Ratio Crop & Mirroring
   const recordLiveClip = (): Promise<string | null> => {
     return new Promise((resolve) => {
-      if (!stream || typeof MediaRecorder === "undefined") {
+      if (!videoRef.current || !stream || typeof MediaRecorder === "undefined") {
+        resolve(null);
+        return;
+      }
+
+      const video = videoRef.current;
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (!vw || !vh) {
         resolve(null);
         return;
       }
 
       try {
-        let mimeType = "video/webm";
-        if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
-          mimeType = "video/webm;codecs=vp8";
-        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
-          mimeType = "video/mp4";
+        const targetAspect = getCurrentSlotAspectRatio();
+        const videoAspect = vw / vh;
+
+        let sx = 0;
+        let sy = 0;
+        let sWidth = vw;
+        let sHeight = vh;
+
+        if (videoAspect > targetAspect) {
+          sWidth = vh * targetAspect;
+          sx = (vw - sWidth) / 2;
+        } else {
+          sHeight = vw / targetAspect;
+          sy = (vh - sHeight) / 2;
         }
 
-        const recorder = new MediaRecorder(stream, { mimeType });
+        // Set high quality resolution matching aspect ratio
+        const recWidth = Math.min(960, Math.round(sWidth));
+        const recHeight = Math.round(recWidth / targetAspect);
+
+        const recCanvas = document.createElement("canvas");
+        recCanvas.width = recWidth;
+        recCanvas.height = recHeight;
+        const recCtx = recCanvas.getContext("2d", { alpha: false });
+        if (!recCtx) {
+          resolve(null);
+          return;
+        }
+
+        const canvasStream = recCanvas.captureStream ? recCanvas.captureStream(30) : stream;
+
+        let mimeType = "video/webm";
+        if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
+          mimeType = "video/mp4;codecs=avc1";
+        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+          mimeType = "video/mp4";
+        } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+          mimeType = "video/webm;codecs=vp9";
+        } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+          mimeType = "video/webm;codecs=vp8";
+        }
+
+        const recorder = new MediaRecorder(canvasStream, {
+          mimeType,
+          videoBitsPerSecond: 3000000,
+        });
         const chunks: Blob[] = [];
 
         recorder.ondataavailable = (e) => {
           if (e.data && e.data.size > 0) chunks.push(e.data);
         };
 
+        let isRecording = true;
+        let animId = 0;
+
+        const renderFrame = () => {
+          if (!isRecording) return;
+          recCtx.save();
+          if (cameraFacing === "user") {
+            recCtx.translate(recWidth, 0);
+            recCtx.scale(-1, 1);
+          }
+          recCtx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, recWidth, recHeight);
+          recCtx.restore();
+          animId = requestAnimationFrame(renderFrame);
+        };
+
         recorder.onstop = () => {
+          isRecording = false;
+          cancelAnimationFrame(animId);
           const blob = new Blob(chunks, { type: mimeType });
           const videoUrl = URL.createObjectURL(blob);
           resolve(videoUrl);
         };
 
         recorder.start();
+        renderFrame();
+
         setTimeout(() => {
+          isRecording = false;
           if (recorder.state === "recording") {
             recorder.stop();
           }
-        }, 1800); // Record 1.8 seconds live snippet
+        }, 1800); // 1.8 seconds live snippet
       } catch (err) {
         console.warn("Live recording error:", err);
         resolve(null);
@@ -640,12 +706,26 @@ export default function PhotoboothClient() {
   // Pre-normalize photo cells in cloned DOM so html2canvas NEVER squashes or stretches photos
   const sanitizeClonedCellsForExport = (clonedDoc: Document) => {
     const cells = clonedDoc.querySelectorAll<HTMLElement>(".photo-cell");
-    cells.forEach((cell) => {
-      const img = cell.querySelector("img");
+    cells.forEach((cell, idx) => {
+      // 1. If cell has a video element (Live Photo), replace it with an img of photos[idx].image
+      const video = cell.querySelector("video");
+      let img = cell.querySelector("img");
+      if (video) {
+        const photoObj = photos[idx];
+        const newImg = clonedDoc.createElement("img");
+        newImg.src = photoObj?.image || "";
+        newImg.style.width = "100%";
+        newImg.style.height = "100%";
+        newImg.style.objectFit = "cover";
+        newImg.style.display = "block";
+        video.replaceWith(newImg);
+        img = newImg;
+      }
+
       if (!img || !img.src) return;
 
-      const cellW = cell.offsetWidth || cell.clientWidth || 300;
-      const cellH = cell.offsetHeight || cell.clientHeight || 225;
+      const cellW = cell.clientWidth || cell.offsetWidth || 300;
+      const cellH = cell.clientHeight || cell.offsetHeight || 225;
       if (cellW <= 0 || cellH <= 0) return;
 
       const targetAspect = cellW / cellH;
@@ -654,8 +734,8 @@ export default function PhotoboothClient() {
       if (!nw || !nh) return;
 
       const imgAspect = nw / nh;
-      // If aspect ratios match closely (within 2%), no adjustment needed
-      if (Math.abs(imgAspect - targetAspect) < 0.02) return;
+      // If aspect ratios match closely (within 1%), no adjustment needed
+      if (Math.abs(imgAspect - targetAspect) < 0.01) return;
 
       let sx = 0, sy = 0, sw = nw, sh = nh;
       if (imgAspect > targetAspect) {
@@ -764,59 +844,176 @@ export default function PhotoboothClient() {
     }
   };
 
-  // Export Live Video Strip (WebM / Video Loop)
+  // Export Live Video Strip (WebM / Video Loop with Real Multi-Slot Synchronized Animation & Exact Aspect Ratio)
   const handleExportLiveVideo = async () => {
     if (!stripRef.current) return;
     setIsExporting(true);
     triggerHaptic(40);
 
     try {
-      const canvas = await html2canvas(stripRef.current, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        onclone: (clonedDoc) => {
-          sanitizeClonedCellsForExport(clonedDoc);
-        },
-      });
+      const stripEl = stripRef.current;
+      const stripRect = stripEl.getBoundingClientRect();
+      if (!stripRect.width || !stripRect.height) {
+        throw new Error("Strip element has invalid dimensions.");
+      }
 
-      // Check if captureStream is available
-      if (!(canvas as any).captureStream) {
-        alert("Browser Anda belum mendukung ekspor video canvas. Mengunduh format PNG HD sebagai gantinya.");
+      // High-res export canvas (HD 720px width)
+      const exportWidth = 720;
+      const exportScale = exportWidth / stripRect.width;
+      const exportHeight = Math.round(stripRect.height * exportScale);
+
+      const exportCanvas = document.createElement("canvas");
+      exportCanvas.width = exportWidth;
+      exportCanvas.height = exportHeight;
+      const ctx = exportCanvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not create canvas context.");
+      }
+
+      // Check captureStream support
+      if (!(exportCanvas as any).captureStream) {
+        alert("Browser Anda belum mendukung ekspor video animasi. Mengunduh format PNG sebagai gantinya.");
         handleDownloadStrip("strip");
         return;
       }
 
-      const stream = (canvas as any).captureStream(30);
+      // Capture decorative frame (borders, stickers, headers, footers, background)
+      // by hiding photo cells so they become transparent windows
+      const frameCanvas = await html2canvas(stripEl, {
+        scale: exportScale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        onclone: (clonedDoc) => {
+          clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => {
+            c.style.visibility = "hidden";
+          });
+        },
+      });
+
+      // Get slots positions and their media elements
+      const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
+      const slots = Array.from(cellElements).map((cell, idx) => {
+        const cRect = cell.getBoundingClientRect();
+        const style = window.getComputedStyle(cell);
+        const radius = (parseFloat(style.borderRadius) || 6) * exportScale;
+        return {
+          x: (cRect.left - stripRect.left) * exportScale,
+          y: (cRect.top - stripRect.top) * exportScale,
+          w: cRect.width * exportScale,
+          h: cRect.height * exportScale,
+          radius,
+          videoEl: cell.querySelector("video") as HTMLVideoElement | null,
+          imgEl: cell.querySelector("img") as HTMLImageElement | null,
+          photo: photos[idx],
+        };
+      });
+
+      // Synchronize video playback from beginning
+      slots.forEach((s) => {
+        if (s.videoEl) {
+          s.videoEl.currentTime = 0;
+          s.videoEl.play().catch(() => {});
+        }
+      });
+
+      const stream = (exportCanvas as any).captureStream(30);
+
       let mimeType = "video/webm";
-      if (MediaRecorder.isTypeSupported("video/mp4")) {
+      if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
+        mimeType = "video/mp4;codecs=avc1";
+      } else if (MediaRecorder.isTypeSupported("video/mp4")) {
         mimeType = "video/mp4";
+      } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
+        mimeType = "video/webm;codecs=vp9";
+      } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+        mimeType = "video/webm;codecs=vp8";
       }
 
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const recorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: 4500000,
+      });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) chunks.push(e.data);
       };
 
+      let isRecording = true;
+      let animId = 0;
+
+      const renderMasterFrame = () => {
+        if (!isRecording) return;
+
+        ctx.clearRect(0, 0, exportWidth, exportHeight);
+
+        // 1. Draw individual photo/video slot contents with rounded rect clipping & cover math
+        slots.forEach((slot) => {
+          ctx.save();
+          ctx.beginPath();
+          if ((ctx as any).roundRect) {
+            (ctx as any).roundRect(slot.x, slot.y, slot.w, slot.h, slot.radius);
+          } else {
+            ctx.rect(slot.x, slot.y, slot.w, slot.h);
+          }
+          ctx.clip();
+
+          const media = slot.videoEl && slot.videoEl.readyState >= 2 ? slot.videoEl : slot.imgEl;
+          if (media) {
+            const mw = (media as HTMLVideoElement).videoWidth || (media as HTMLImageElement).naturalWidth || slot.w;
+            const mh = (media as HTMLVideoElement).videoHeight || (media as HTMLImageElement).naturalHeight || slot.h;
+            const mAspect = mw / mh;
+            const slotAspect = slot.w / slot.h;
+
+            let sx = 0, sy = 0, sw = mw, sh = mh;
+            if (mAspect > slotAspect) {
+              sw = mh * slotAspect;
+              sx = (mw - sw) / 2;
+            } else {
+              sh = mw / slotAspect;
+              sy = (mh - sh) / 2;
+            }
+
+            ctx.drawImage(media, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
+          } else {
+            ctx.fillStyle = "#18181c";
+            ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+          }
+          ctx.restore();
+        });
+
+        // 2. Draw static frame layer (borders, headers, footers, ribbons, stickers) on top!
+        ctx.drawImage(frameCanvas, 0, 0, exportWidth, exportHeight);
+
+        animId = requestAnimationFrame(renderMasterFrame);
+      };
+
       recorder.onstop = () => {
+        isRecording = false;
+        cancelAnimationFrame(animId);
         const blob = new Blob(chunks, { type: mimeType });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `Expedient_Live_Photostrip_${Date.now()}.${mimeType.includes("mp4") ? "mp4" : "webm"}`;
+        const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+        a.download = `Expedient_Live_Photostrip_${Date.now()}.${ext}`;
         a.click();
         triggerHaptic(50);
         setIsExporting(false);
       };
 
       recorder.start();
+      renderMasterFrame();
+
       setTimeout(() => {
-        if (recorder.state === "recording") recorder.stop();
-      }, 2500);
+        isRecording = false;
+        if (recorder.state === "recording") {
+          recorder.stop();
+        }
+      }, 3000); // 3 seconds animated video loop
     } catch (err) {
       console.error("Live video export error:", err);
+      alert("Terjadi kendala saat merender video bergerak. Mengunduh format PNG sebagai gantinya.");
       handleDownloadStrip("strip");
     }
   };
