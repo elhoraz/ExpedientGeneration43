@@ -864,25 +864,40 @@ export default function PhotoboothClient() {
       }
 
       // ── Capture background frame via html2canvas (WITHOUT TAINT) ──
-      // CRITICAL SECURITY RULE: NEVER set allowTaint: true!
-      // When a canvas is tainted, W3C specification dictates that captureStream tracks are permanently MUTED.
-      // In onclone, completely wipe .photo-cell innerHTML so NO static images can ever be baked into the background!
-      const bgCanvas = await html2canvas(stripEl, {
-        scale: exportScale,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-        onclone: (doc) => {
-          doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
-            // Completely empty the cell DOM so NO image or video element can exist in bgCanvas!
-            cell.innerHTML = "";
-            cell.style.setProperty("background", "#0d0d11", "important");
-            cell.style.setProperty("background-color", "#0d0d11", "important");
-            cell.style.setProperty("background-image", "none", "important");
-          });
-          doc.querySelectorAll<HTMLElement>(".strip-sticker, .sticker-mini-toolbar").forEach((s) => s.remove());
-        },
+      // CRITICAL SECURITY & RENDERING RULE:
+      // In the REAL DOM, temporarily hide the photo-cell contents and stickers before html2canvas runs!
+      // This 100% guarantees that html2canvas NEVER encounters or bakes any still image into bgCanvas!
+      const cells = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
+      const savedCellOpacities: string[] = [];
+      cells.forEach((cell, idx) => {
+        savedCellOpacities[idx] = cell.style.opacity;
+        cell.style.setProperty("opacity", "0", "important");
       });
+
+      const stickerElements = stripEl.querySelectorAll<HTMLElement>(".strip-sticker, .sticker-mini-toolbar");
+      const savedStickerDisplays: string[] = [];
+      stickerElements.forEach((stk, idx) => {
+        savedStickerDisplays[idx] = stk.style.display;
+        stk.style.display = "none";
+      });
+
+      let bgCanvas: HTMLCanvasElement;
+      try {
+        bgCanvas = await html2canvas(stripEl, {
+          scale: exportScale,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: null,
+        });
+      } finally {
+        // Immediately restore real DOM styles so preview is unaffected
+        cells.forEach((cell, idx) => {
+          cell.style.opacity = savedCellOpacities[idx];
+        });
+        stickerElements.forEach((stk, idx) => {
+          stk.style.display = savedStickerDisplays[idx];
+        });
+      }
 
       // Security verification: ensure bgCanvas did not get tainted
       let bgClean = true;
@@ -906,52 +921,42 @@ export default function PhotoboothClient() {
           let videoEl: HTMLVideoElement | null = null;
 
           if (photoObj?.video) {
-            // First check if the cell in the live DOM already contains a decoded, playing video element!
-            const existingVideo = cell.querySelector("video");
-            if (existingVideo && existingVideo.src && existingVideo.readyState >= 2) {
-              videoEl = existingVideo;
-              if (videoEl.paused) {
-                videoEl.play().catch(() => {});
-              }
-            } else {
-              // Create dedicated video element attached to DOM
-              videoEl = document.createElement("video");
-              videoEl.src = photoObj.video;
-              videoEl.muted = true;
-              videoEl.defaultMuted = true;
-              videoEl.volume = 0;
-              videoEl.loop = true;
-              videoEl.playsInline = true;
-              videoEl.autoplay = true;
-              videoEl.style.cssText =
-                "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:-9999;opacity:0.01;";
-              document.body.appendChild(videoEl);
-              cleanupElements.push(videoEl);
+            videoEl = document.createElement("video");
+            videoEl.src = photoObj.video;
+            videoEl.muted = true;
+            videoEl.defaultMuted = true;
+            videoEl.volume = 0;
+            videoEl.loop = true;
+            videoEl.playsInline = true;
+            videoEl.autoplay = true;
+            videoEl.style.cssText =
+              "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:-9999;opacity:0.01;";
+            document.body.appendChild(videoEl);
+            cleanupElements.push(videoEl);
 
-              const v = videoEl;
-              await new Promise<void>((resolve) => {
-                let resolved = false;
-                const finish = () => {
-                  if (!resolved) {
-                    resolved = true;
-                    resolve();
-                  }
-                };
-
-                const tryPlay = () => {
-                  v.play().then(finish).catch(finish);
-                };
-
-                if (v.readyState >= 2) {
-                  tryPlay();
-                } else {
-                  v.addEventListener("canplay", tryPlay, { once: true });
-                  v.addEventListener("loadeddata", tryPlay, { once: true });
-                  v.addEventListener("error", finish, { once: true });
-                  setTimeout(finish, 1500);
+            const v = videoEl;
+            await new Promise<void>((resolve) => {
+              let resolved = false;
+              const finish = () => {
+                if (!resolved) {
+                  resolved = true;
+                  resolve();
                 }
-              });
-            }
+              };
+
+              const tryPlay = () => {
+                v.play().then(finish).catch(finish);
+              };
+
+              if (v.readyState >= 2 && v.videoWidth > 0) {
+                tryPlay();
+              } else {
+                v.addEventListener("canplay", tryPlay, { once: true });
+                v.addEventListener("loadeddata", tryPlay, { once: true });
+                v.addEventListener("error", finish, { once: true });
+                setTimeout(finish, 1500);
+              }
+            });
           }
 
           let fallbackImg: HTMLImageElement | null = null;
@@ -1017,7 +1022,7 @@ export default function PhotoboothClient() {
           ctx.fillRect(0, 0, exportWidth, exportHeight);
         }
 
-        // Layer 2: Videos/Photos directly into slots (100% UNOBSTRUCTED!)
+        // Layer 2: Videos/Photos directly into slots (100% UNOBSTRUCTED & PROPORTIONAL!)
         slots.forEach((slot) => {
           ctx.save();
 
@@ -1035,7 +1040,12 @@ export default function PhotoboothClient() {
           }
           ctx.clip();
 
-          // Pick the best media source: ALWAYS prefer the active playing video
+          // CRITICAL FIX: Solidly fill slot with dark background first!
+          // This guarantees that ANY residue, bleed, or still image from bgCanvas is 100% OBLITERATED before the video is drawn!
+          ctx.fillStyle = "#0d0d11";
+          ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
+
+          // Pick active playing video (or fallback still image only if no video exists)
           let source: CanvasImageSource | null = null;
           let isVideo = false;
           if (slot.videoEl) {
@@ -1050,8 +1060,14 @@ export default function PhotoboothClient() {
           }
 
           if (source) {
-            const mw = (source as HTMLVideoElement).videoWidth || (source as HTMLImageElement).naturalWidth || slot.w;
-            const mh = (source as HTMLVideoElement).videoHeight || (source as HTMLImageElement).naturalHeight || slot.h;
+            let mw = (source as HTMLVideoElement).videoWidth || (source as HTMLImageElement).naturalWidth;
+            let mh = (source as HTMLVideoElement).videoHeight || (source as HTMLImageElement).naturalHeight;
+            // Robust aspect-ratio fallback to live camera stream dimensions so faces NEVER shrink or distort!
+            if (!mw || !mh || mw <= 0 || mh <= 0) {
+              mw = videoRef.current?.videoWidth || 1280;
+              mh = videoRef.current?.videoHeight || 720;
+            }
+
             const mAspect = mw / mh;
             const slotAspect = slot.w / slot.h;
             let sx = 0, sy = 0, sw = mw, sh = mh;
@@ -1077,9 +1093,6 @@ export default function PhotoboothClient() {
               ctx.drawImage(source, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
             }
             ctx.filter = "none";
-          } else {
-            ctx.fillStyle = "#18181c";
-            ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
           }
 
           ctx.restore();
