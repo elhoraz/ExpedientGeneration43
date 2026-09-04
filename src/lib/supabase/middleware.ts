@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { verifySignedAdminSession } from '@/lib/admin-auth'
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -38,6 +39,8 @@ export async function updateSession(request: NextRequest) {
 
   const isPublicRoute = 
     request.nextUrl.pathname === '/' ||
+    request.nextUrl.pathname === '/robots.txt' ||
+    request.nextUrl.pathname === '/sitemap.xml' ||
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
@@ -50,9 +53,6 @@ export async function updateSession(request: NextRequest) {
     // If not logged in and not accessing public routes
     if (request.nextUrl.pathname.startsWith('/api/')) {
        // Do not redirect API requests, let them handle it or return 401
-       // Some API routes like /api/auth are public, but we handled it in isPublicRoute?
-       // Actually /api/auth is covered by startWith('/auth')? No, it's /api/auth.
-       // Let's just allow all /api/ to pass through middleware and handle auth internally.
     } else {
        const url = request.nextUrl.clone()
        url.pathname = '/login'
@@ -67,13 +67,14 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin Panel Protection (Master Password concept)
+  // Admin Panel Protection (Cryptographic Signed Session verification)
   const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
   const isUnlockRoute = request.nextUrl.pathname === '/admin/unlock'
   
   if (isAdminRoute && !isUnlockRoute) {
     const adminSession = request.cookies.get('expedient_admin_session')
-    if (adminSession?.value !== 'unlocked') {
+    const isValidAdmin = await verifySignedAdminSession(adminSession?.value)
+    if (!isValidAdmin) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/unlock'
       return NextResponse.redirect(url)

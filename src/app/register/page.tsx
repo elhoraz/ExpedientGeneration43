@@ -105,6 +105,18 @@ function RegisterFormContent() {
     }
   }, [errorMsg, verifyParam, emailParam]);
 
+  // Global ESC Key Handler to close open modals gracefully
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isCropping) cancelCrop();
+        if (isFaceModalOpen) closeFaceScanner();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isCropping, isFaceModalOpen]);
+
   const triggerLogoExplosion = () => {
     setLogoState("exploding");
     setTimeout(() => {
@@ -860,7 +872,7 @@ function RegisterFormContent() {
       </div>
 
       {/* Cropper Modal */}
-      <div className={`crop-modal ${isCropping ? "active" : ""}`}>
+      <div className={`crop-modal ${isCropping ? "active" : ""}`} role="dialog" aria-modal="true" aria-label="Pemotongan Foto Profil">
         <div className="crop-content">
           <h3 style={{ color: "var(--text-primary)", textAlign: "center", marginBottom: "20px", fontWeight: 700 }}>Sesuaikan Presisi Foto</h3>
           <div className="crop-img-wrap"><img ref={cropTargetRef} src={cropSrc || undefined} alt="target" /></div>
@@ -872,7 +884,7 @@ function RegisterFormContent() {
       </div>
 
       {/* Face Scanner Modal */}
-      <div className={`auth-vault ${isFaceModalOpen ? "active" : ""}`}>
+      <div className={`auth-vault ${isFaceModalOpen ? "active" : ""}`} role="dialog" aria-modal="true" aria-label="Pemindai Biometrik Wajah">
         <div className={`retina-container ${isScanning ? "scanning" : ""}`}>
           <div className="focus-ring"></div>
           <div className="bracket bracket-tl"></div>
@@ -918,7 +930,7 @@ function RegisterFormContent() {
       {/* OTP Verification Modal */}
       {isOtpModalOpen && (
         <div className="otp-modal-backdrop">
-          <div className="otp-modal-vault">
+          <div className="otp-modal-vault" role="dialog" aria-modal="true" aria-label="Verifikasi Kode Keamanan OTP">
             <div className="otp-ambient-glow"></div>
 
             {/* STEP 1: PILIH METODE VERIFIKASI (GMAIL vs WHATSAPP) */}

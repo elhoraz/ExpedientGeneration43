@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 const jsonResponse = (
   status: "success" | "error",
@@ -23,6 +24,15 @@ export async function POST(req: Request) {
 
     if (!user) {
       return jsonResponse("error", "Unauthorized - Anda harus login terlebih dahulu", null, { status: 401 });
+    }
+
+    // Rate Limit: Maksimal 20 update GPS per menit per pengguna
+    const rl = rateLimit(`radar-loc:${user.id}`, 20, 60 * 1000);
+    if (!rl.success) {
+      return jsonResponse("error", "Terlalu banyak update lokasi. Harap tunggu sebentar.", null, {
+        status: 429,
+        headers: { "Retry-After": "60" },
+      });
     }
 
     const body = await req.json();

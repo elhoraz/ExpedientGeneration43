@@ -38,7 +38,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     template: "%s - Expedient Generation",
     default: "Expedient Generation",
@@ -64,10 +67,26 @@ export const metadata: Metadata = {
     title: "Expedient",
   },
   openGraph: {
-    title: "Expedient Generation",
-    description: "Akses portal eksklusif peninggalan dan jejak langkah Expedient.",
-    images: ["/images/logo-utuh.webp"],
+    title: "Expedient Generation - Portal VVIP Alumni",
+    description: "Akses portal eksklusif peninggalan dan jejak langkah Expedient Generation.",
+    url: siteUrl,
+    siteName: "Expedient Generation",
+    images: [
+      {
+        url: "/images/logo-utuh.webp",
+        width: 1200,
+        height: 630,
+        alt: "Expedient Generation Logo",
+      },
+    ],
+    locale: "id_ID",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Expedient Generation",
+    description: "Portal eksklusif peninggalan dan jejak langkah Expedient Generation.",
+    images: ["/images/logo-utuh.webp"],
   },
 };
 

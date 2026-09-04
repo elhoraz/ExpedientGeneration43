@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createSignedAdminSession } from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
   try {
@@ -17,14 +18,15 @@ export async function POST(request: Request) {
     }
 
     if (password && password === adminPassword) {
-      // Set cookie untuk menandai bahwa admin sudah unlock
+      // Set cryptographic HMAC-signed session token
+      const signedToken = await createSignedAdminSession();
       const cookieStore = await cookies();
-      cookieStore.set("expedient_admin_session", "unlocked", {
+      cookieStore.set("expedient_admin_session", signedToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: 60 * 15, // 15 menit
+        maxAge: 60 * 30, // 30 menit
       });
 
       return NextResponse.json({ status: "success", message: "Akses Admin diberikan." });

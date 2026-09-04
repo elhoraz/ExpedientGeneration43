@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { rateLimit } from "@/lib/rate-limit";
 import webpush from "web-push";
 
 // Configure Web Push with VAPID keys
@@ -21,6 +22,15 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate Limit: Maksimal 30 notifikasi per menit per pengirim
+    const rl = rateLimit(`chat-notify:${user.id}`, 30, 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Terlalu banyak notifikasi dikirim. Harap tunggu beberapa saat." },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
     }
 
     const { receiverId, message } = await req.json();
