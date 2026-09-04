@@ -86,6 +86,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       (window as any).gsap = gsap;
       (window as any).dbFaceDataRaw = user.face_data || null;
       (window as any).isAdmin = user.role === 'admin';
+      (window as any).userFotoProfil = user.foto_profil ? getAvatarUrl(user.foto_profil) : null;
     }
     fetchBiometrics();
   }, [user]);
@@ -621,10 +622,53 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                 <div className="premium-panel stagger-item parallax-card">
                     <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> Akses &amp; Keamanan</h2>
                     
-                    <div className="bio-status-box cursor-bind">
-                        <i className="fa-solid fa-shield-halved"></i>
-                        <div className="bio-status-title">Keamanan Visual Aktif</div>
-                        <div className="bio-status-desc">Wajah Anda menjadi kunci tunggal untuk membedah data Sovereign ini. Tingkat akurasi pemindaian telah dimaksimalkan.</div>
+                    <div className="bio-status-box cursor-bind" style={{
+                      borderColor: user.face_data ? "rgba(0, 255, 170, 0.3)" : "rgba(212, 175, 55, 0.3)",
+                      background: user.face_data ? "rgba(0, 255, 170, 0.04)" : "rgba(212, 175, 55, 0.04)"
+                    }}>
+                        <i className={`fa-solid ${user.face_data ? "fa-shield-halved" : "fa-shield-virus"}`} style={{
+                          color: user.face_data ? "#00ffaa" : "var(--gold-premium, #d4af37)"
+                        }}></i>
+                        <div className="bio-status-title" style={{ color: user.face_data ? "#00ffaa" : "var(--gold-premium, #d4af37)" }}>
+                          {user.face_data ? "Keamanan Visual Face ID Aktif" : "Face ID Belum Lengkap"}
+                        </div>
+                        <div className="bio-status-desc">
+                          {user.face_data 
+                            ? "Wajah Anda terdaftar sebagai kunci tunggal untuk membedah data profil ini. Pemindaian kamera wajib di setiap sesi." 
+                            : "Data biometrik wajah Anda belum tersimpan. Klik tombol di bawah untuk memindai wajah langsung lewat kamera."}
+                        </div>
+                        
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            if (typeof window !== "undefined" && (window as any).reScanFaceBiometric) {
+                              (window as any).reScanFaceBiometric();
+                            } else {
+                              showToast("Modul pemindai wajah sedang diinisialisasi...", "error");
+                            }
+                          }}
+                          style={{
+                            width: "100%",
+                            marginTop: "16px",
+                            background: "rgba(212, 175, 55, 0.08)",
+                            border: "1px solid var(--gold-premium, #d4af37)",
+                            color: "var(--gold-premium, #d4af37)",
+                            padding: "12px 18px",
+                            borderRadius: "12px",
+                            cursor: "pointer",
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                            letterSpacing: "1px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "10px",
+                            transition: "all 0.3s ease"
+                          }}
+                          className="cursor-bind"
+                        >
+                          <i className="fa-solid fa-camera-rotate"></i> {user.face_data ? "Pindai Ulang / Perbarui Face ID" : "Pindai & Daftarkan Wajah Sekarang"}
+                        </button>
                     </div>
 
                     <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", margin: "40px 0 20px 0" }}>Kredensial Fisik (Passkey)</div>

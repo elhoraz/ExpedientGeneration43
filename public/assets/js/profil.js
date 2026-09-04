@@ -114,6 +114,23 @@ const initProfil = () => {
         });
     };
 
+    const saveBiometricToBackend = async (descriptorArray) => {
+        try {
+            const res = await fetch('/api/profile/face-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ face_data: descriptorArray })
+            });
+            const data = await res.json();
+            if (data && data.status === 'success') {
+                window.dbFaceDataRaw = JSON.stringify(descriptorArray);
+                console.log("Biometrik wajah berhasil diperbarui di database.");
+            }
+        } catch (e) {
+            console.error("Gagal sinkronisasi biometrik ke backend:", e);
+        }
+    };
+
     const startFaceVerification = async () => {
         if (window.isAdmin) {
             updateHUD("Bypass Eksekutif Aktif", "var(--gold-premium)", false, 'done');
@@ -121,27 +138,11 @@ const initProfil = () => {
             return;
         }
 
-        if (dbFaceDataRaw === null) {
-            updateHUD("Data Biometrik Kosong. Menggunakan Akses Standar...", "var(--text-secondary)", false, 'done');
-            setTimeout(unlockControlPanel, 1000);
-            return;
-        }
-
-        let parsedData = dbFaceDataRaw;
-        if (typeof dbFaceDataRaw === 'string') {
-            try {
-                parsedData = JSON.parse(dbFaceDataRaw);
-            } catch (e) {
-                console.error("Parse error face_data", e);
-            }
-        }
-        targetDescriptor = new Float32Array(parsedData);
-        updateHUD("Menyiapkan Sistem Cerdas...", "var(--gold-premium)", false, 0);
+        updateHUD("Menyiapkan Sistem Keamanan Cerdas...", "var(--gold-premium)", false, 0);
 
         try {
-            // Model dimuat dari CDN karena shared hosting (InfinityFree) memblokir fetch ke file binary lokal
-        const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-
+            // Model dimuat dari CDN
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
             await Promise.all([
                 faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
                 faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -149,27 +150,66 @@ const initProfil = () => {
                 faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
             ]);
         } catch (err) {
-            updateHUD("Gagal Memuat Modul Biometrik. Menggunakan Akses Standar...", "var(--text-secondary)", false, 'done');
-            setTimeout(unlockControlPanel, 1500);
+            updateHUD("Gagal Memuat Modul AI.", "var(--danger-elegant)", false, 0);
+            triggerFatalError("Gagal memuat modul keamanan biometrik AI. Harap periksa koneksi internet Anda.");
             return;
         }
 
-        updateHUD("Sinkronisasi Lensa...", "var(--gold-premium)", false, 0);
+        let isEnrolling = false;
+        let matchedFromPhoto = false;
+
+        if (dbFaceDataRaw) {
+            let parsedData = dbFaceDataRaw;
+            if (typeof dbFaceDataRaw === 'string') {
+                try {
+                    parsedData = JSON.parse(dbFaceDataRaw);
+                } catch (e) {
+                    console.error("Parse error face_data", e);
+                }
+            }
+            targetDescriptor = new Float32Array(parsedData);
+        } else {
+            // Biometrik belum ada di database. Coba ekstrak dari foto profil
+            const photoUrl = window.userFotoProfil;
+            if (photoUrl && !photoUrl.includes('default-avatar')) {
+                updateHUD("Mengekstrak Fitur Wajah dari Foto Profil...", "var(--gold-premium)", true, 1);
+                try {
+                    const img = await faceapi.fetchImage(photoUrl);
+                    const photoDet = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.15 }))
+                                                  .withFaceLandmarks().withFaceDescriptor();
+                    if (photoDet && photoDet.descriptor) {
+                        targetDescriptor = photoDet.descriptor;
+                        matchedFromPhoto = true;
+                        updateHUD("Pola Wajah Terdeteksi! Menghubungkan Kamera...", "var(--gold-premium)", false, 1);
+                    }
+                } catch (err) {
+                    console.warn("Gagal mengekstrak wajah dari foto profil:", err);
+                }
+            }
+
+            if (!targetDescriptor) {
+                // Tidak ada biometrik & tidak ada wajah di foto -> Wajib registrasi langsung
+                isEnrolling = true;
+                updateHUD("Face ID Belum Terdaftar. Memulai Pendaftaran Wajah...", "var(--gold-premium)", false, 1);
+            }
+        }
+
+        updateHUD("Sinkronisasi Lensa Kamera...", "var(--gold-premium)", false, 0);
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
             videoElement.srcObject = stream;
             streamRef = stream;
         } catch (err) {
-            updateHUD("Kamera Diblokir. Menggunakan Akses Standar...", "var(--text-secondary)", false, 'done');
-            setTimeout(unlockControlPanel, 1500);
+            updateHUD("Kamera Diblokir. Verifikasi Wajib.", "var(--danger-elegant)", false, 0);
+            triggerFatalError("Akses kamera ditolak atau tidak tersedia. Verifikasi wajah wajib untuk membuka profil eksklusif.");
             return;
         }
 
         videoElement.onplay = () => {
-            updateHUD("Menganalisis profil kedalaman...", "var(--gold-premium)", true, 1);
+            updateHUD("Menganalisis profil kedalaman optik...", "var(--gold-premium)", true, 1);
             
-            const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.5 });
+            const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.25 });
             
             const runDetection = async () => {
                 if (authCompleted) return;
@@ -183,47 +223,72 @@ const initProfil = () => {
                                                    .withFaceLandmarks().withFaceDescriptor().withFaceExpressions();
                     
                     if (!detection) {
-                        updateHUD("Mohon tatap tepat ke tengah lensa", "var(--gold-premium)", true, currentStep === 'matching'? 1 : (currentStep==='smiling'? 2:3));
+                        if (isEnrolling) {
+                            updateHUD("Posisikan wajah Anda tepat di tengah lingkaran", "var(--gold-premium)", true, 1);
+                        } else {
+                            updateHUD("Mohon tatap tepat ke tengah lensa", "var(--gold-premium)", true, currentStep === 'matching'? 1 : (currentStep==='smiling'? 2:3));
+                        }
                     } else {
-                        if (currentStep === 'matching') {
-                            const distance = faceapi.euclideanDistance(targetDescriptor, detection.descriptor);
-                            if (distance < 0.5) {
-                                currentStep = 'smiling';
+                        // === MODE 1: PENDAFTARAN MANDIRI (ENROLLMENT) ===
+                        if (isEnrolling) {
+                            if (detection.expressions.happy > 0.75) {
                                 isAuthenticating = true;
-                                updateHUD("Identitas dikonfirmasi. Tunjukkan senyum Anda...", "var(--text-primary)", true, 2);
-                                setTimeout(() => { isAuthenticating = false; }, 1200); 
+                                authCompleted = true;
+                                updateHUD("Senyuman Terverifikasi! Menyimpan Face ID...", "var(--gold-premium)", false, 'done');
+                                await saveBiometricToBackend(Array.from(detection.descriptor));
+                                updateHUD("Face ID Berhasil Didaftarkan! Akses Diberikan.", "var(--success-elegant)", false, 'done');
+                                setTimeout(unlockControlPanel, 1200);
+                                return;
                             } else {
-                                updateHUD("Akses Ditolak: Wajah Tidak Dikenali", "var(--danger-elegant)", true, 1);
+                                updateHUD("Wajah Terdeteksi! Silakan Tersenyum untuk Menyimpan :)", "var(--text-primary)", true, 2);
                             }
                         } 
-                        else if (currentStep === 'smiling') {
-                            if (detection.expressions.happy > 0.85) {
-                                currentStep = 'turning';
-                                isAuthenticating = true;
-                                updateHUD("Sempurna. Tolehkan kepala Anda sedikit...", "var(--text-primary)", true, 3);
-                                setTimeout(() => { isAuthenticating = false; }, 1500); 
-                            } else {
-                                updateHUD("Menunggu verifikasi ekspresi...", "var(--text-primary)", true, 2);
-                            }
-                        } 
-                        else if (currentStep === 'turning') {
-                            const landmarks = detection.landmarks;
-                            const nose = landmarks.getNose()[0];
-                            const leftEye = landmarks.getLeftEye()[0];
-                            const rightEye = landmarks.getRightEye()[0];
-                            
-                            const distLeft = Math.abs(nose.x - leftEye.x);
-                            const distRight = Math.abs(nose.x - rightEye.x);
-                            
-                            if (distRight !== 0) {
-                                const ratio = distLeft / distRight;
-                                if (ratio < 0.35 || ratio > 2.5) {
-                                    authCompleted = true;
-                                    updateHUD("Akses VVIP Diberikan", "var(--success-elegant)", false, 'done');
-                                    setTimeout(unlockControlPanel, 1200);
-                                    return; 
+                        // === MODE 2: PENCOCOKAN WAJAH DENGAN DESKRIPTOR ===
+                        else {
+                            if (currentStep === 'matching') {
+                                const distance = faceapi.euclideanDistance(targetDescriptor, detection.descriptor);
+                                if (distance < 0.52) {
+                                    currentStep = 'smiling';
+                                    isAuthenticating = true;
+                                    updateHUD("Identitas dikonfirmasi. Tunjukkan senyum Anda...", "var(--text-primary)", true, 2);
+                                    setTimeout(() => { isAuthenticating = false; }, 1000); 
                                 } else {
-                                    updateHUD("Terus tolehkan perlahan...", "var(--text-primary)", true, 3);
+                                    updateHUD("Akses Ditolak: Wajah Tidak Dikenali", "var(--danger-elegant)", true, 1);
+                                }
+                            } 
+                            else if (currentStep === 'smiling') {
+                                if (detection.expressions.happy > 0.75) {
+                                    currentStep = 'turning';
+                                    isAuthenticating = true;
+                                    updateHUD("Sempurna. Tolehkan kepala Anda sedikit...", "var(--text-primary)", true, 3);
+                                    setTimeout(() => { isAuthenticating = false; }, 1200); 
+                                } else {
+                                    updateHUD("Menunggu verifikasi senyuman...", "var(--text-primary)", true, 2);
+                                }
+                            } 
+                            else if (currentStep === 'turning') {
+                                const landmarks = detection.landmarks;
+                                const nose = landmarks.getNose()[0];
+                                const leftEye = landmarks.getLeftEye()[0];
+                                const rightEye = landmarks.getRightEye()[0];
+                                
+                                const distLeft = Math.abs(nose.x - leftEye.x);
+                                const distRight = Math.abs(nose.x - rightEye.x);
+                                
+                                if (distRight !== 0) {
+                                    const ratio = distLeft / distRight;
+                                    if (ratio < 0.35 || ratio > 2.5) {
+                                        authCompleted = true;
+                                        // Jika dicocokkan dari foto profil, simpan deskriptor kamera langsung ke database
+                                        if (matchedFromPhoto) {
+                                            saveBiometricToBackend(Array.from(detection.descriptor));
+                                        }
+                                        updateHUD("Akses VVIP Diberikan", "var(--success-elegant)", false, 'done');
+                                        setTimeout(unlockControlPanel, 1200);
+                                        return; 
+                                    } else {
+                                        updateHUD("Terus tolehkan perlahan...", "var(--text-primary)", true, 3);
+                                    }
                                 }
                             }
                         }
@@ -237,6 +302,21 @@ const initProfil = () => {
 
             runDetection();
         };
+    };
+
+    // Fungsi untuk membuka kembali scanner dari panel kontrol profil
+    window.reScanFaceBiometric = () => {
+        if (!authVault || !controlPanel) return;
+        controlPanel.style.display = "none";
+        authVault.style.display = "flex";
+        authVault.style.opacity = "1";
+        authVault.style.filter = "none";
+        authVault.style.transform = "translate(-50%, -50%) scale(1)";
+        authCompleted = false;
+        isAuthenticating = false;
+        currentStep = 'matching';
+        dbFaceDataRaw = null; // paksa pendaftaran ulang
+        startFaceVerification();
     };
 
     // === MAGNETIC HOVER ENGINE (INTERAKTIVITAS) ===
