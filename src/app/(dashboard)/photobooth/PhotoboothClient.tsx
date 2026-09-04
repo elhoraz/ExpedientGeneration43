@@ -358,58 +358,22 @@ export default function PhotoboothClient() {
     return canvas.toDataURL("image/jpeg", 0.95);
   };
 
-  // Start Live Motion Clip Recording with Exact Aspect Ratio Crop & Mirroring
+  // Start Live Motion Clip Recording directly from camera stream (Guaranteed hardware motion, no canvas throttling)
   const recordLiveClip = (): Promise<string | null> => {
     return new Promise((resolve) => {
-      if (!videoRef.current || !stream || typeof MediaRecorder === "undefined") {
+      if (!stream || typeof MediaRecorder === "undefined") {
         resolve(null);
         return;
       }
 
-      const video = videoRef.current;
-      const vw = video.videoWidth;
-      const vh = video.videoHeight;
-      if (!vw || !vh) {
+      const videoTracks = stream.getVideoTracks();
+      if (!videoTracks || videoTracks.length === 0) {
         resolve(null);
         return;
       }
 
       try {
-        const targetAspect = getCurrentSlotAspectRatio();
-        const videoAspect = vw / vh;
-
-        let sx = 0;
-        let sy = 0;
-        let sWidth = vw;
-        let sHeight = vh;
-
-        if (videoAspect > targetAspect) {
-          sWidth = vh * targetAspect;
-          sx = (vw - sWidth) / 2;
-        } else {
-          sHeight = vw / targetAspect;
-          sy = (vh - sHeight) / 2;
-        }
-
-        // Set high quality resolution matching aspect ratio
-        const recWidth = Math.min(960, Math.round(sWidth));
-        const recHeight = Math.round(recWidth / targetAspect);
-
-        const recCanvas = document.createElement("canvas");
-        recCanvas.width = recWidth;
-        recCanvas.height = recHeight;
-        recCanvas.style.cssText = "position:fixed;top:0;left:-9999px;width:320px;height:240px;pointer-events:none;z-index:-999;";
-        document.body.appendChild(recCanvas);
-
-        const recCtx = recCanvas.getContext("2d", { alpha: false });
-        if (!recCtx) {
-          if (recCanvas.parentNode) recCanvas.parentNode.removeChild(recCanvas);
-          resolve(null);
-          return;
-        }
-
-        const canvasStream = recCanvas.captureStream ? recCanvas.captureStream(30) : stream;
-        const recTrack = canvasStream.getVideoTracks ? canvasStream.getVideoTracks()[0] : null;
+        const videoStream = new MediaStream([videoTracks[0]]);
 
         let mimeType = "video/mp4;codecs=avc1";
         if (!MediaRecorder.isTypeSupported(mimeType)) {
@@ -425,9 +389,9 @@ export default function PhotoboothClient() {
           mimeType = "video/webm";
         }
 
-        const recorder = new MediaRecorder(canvasStream, {
+        const recorder = new MediaRecorder(videoStream, {
           mimeType,
-          videoBitsPerSecond: 3000000,
+          videoBitsPerSecond: 4000000,
         });
         const chunks: Blob[] = [];
 
@@ -435,45 +399,28 @@ export default function PhotoboothClient() {
           if (e.data && e.data.size > 0) chunks.push(e.data);
         };
 
-        let isRecording = true;
-        let animId = 0;
-
-        const renderFrame = () => {
-          if (!isRecording) return;
-          recCtx.save();
-          if (cameraFacing === "user") {
-            recCtx.translate(recWidth, 0);
-            recCtx.scale(-1, 1);
+        recorder.onstop = () => {
+          try {
+            const blob = new Blob(chunks, { type: mimeType });
+            const videoUrl = URL.createObjectURL(blob);
+            resolve(videoUrl);
+          } catch (e) {
+            console.warn("Live video blob error:", e);
+            resolve(null);
           }
-          recCtx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, recWidth, recHeight);
-          recCtx.restore();
-
-          // Force hardware capture track to process the new frame
-          if (recTrack && typeof (recTrack as any).requestFrame === "function") {
-            (recTrack as any).requestFrame();
-          }
-
-          animId = requestAnimationFrame(renderFrame);
         };
 
-        recorder.onstop = () => {
-          isRecording = false;
-          cancelAnimationFrame(animId);
-          if (recCanvas.parentNode) recCanvas.parentNode.removeChild(recCanvas);
-          const blob = new Blob(chunks, { type: mimeType });
-          const videoUrl = URL.createObjectURL(blob);
-          resolve(videoUrl);
+        recorder.onerror = () => {
+          resolve(null);
         };
 
         recorder.start(100);
-        renderFrame();
 
         setTimeout(() => {
-          isRecording = false;
           if (recorder.state === "recording") {
             recorder.stop();
           }
-        }, 1800); // 1.8 seconds live snippet
+        }, 2000); // 2.0s live snippet
       } catch (err) {
         console.warn("Live recording error:", err);
         resolve(null);
@@ -895,11 +842,11 @@ export default function PhotoboothClient() {
       const exportScale = exportWidth / stripRect.width;
       const exportHeight = Math.round(stripRect.height * exportScale);
 
-      // Create export canvas with REAL dimensions in DOM (prevents Chromium compositor from freezing 1px / invisible canvas)
+      // Create export canvas with REAL dimensions in DOM inside the viewport (prevents Chromium compositor from freezing/culling offscreen canvas)
       const exportCanvas = document.createElement("canvas");
       exportCanvas.width = exportWidth;
       exportCanvas.height = exportHeight;
-      exportCanvas.style.cssText = `position:fixed;top:0;left:-9999px;width:${exportWidth}px;height:${exportHeight}px;pointer-events:none;z-index:-999;`;
+      exportCanvas.style.cssText = `position:fixed;top:0;left:0;width:${exportWidth}px;height:${exportHeight}px;pointer-events:none;z-index:-9999;opacity:0.01;`;
       document.body.appendChild(exportCanvas);
       cleanupElements.push(exportCanvas);
 
@@ -1003,9 +950,9 @@ export default function PhotoboothClient() {
             videoEl.loop = true;
             videoEl.playsInline = true;
             videoEl.autoplay = true;
-            // Real CSS dimensions in DOM to prevent Chromium hardware decode suspension
+            // Real CSS dimensions in DOM inside viewport to prevent Chromium hardware decode suspension
             videoEl.style.cssText =
-              "position:fixed;top:0;left:-9999px;width:320px;height:240px;pointer-events:none;z-index:-999;";
+              "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:-9999;opacity:0.01;";
             document.body.appendChild(videoEl);
             cleanupElements.push(videoEl);
 
@@ -1143,7 +1090,15 @@ export default function PhotoboothClient() {
             if (filterStr && filterStr !== "none" && "filter" in ctx) {
               ctx.filter = filterStr;
             }
-            ctx.drawImage(source, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
+            if (cameraFacing === "user") {
+              ctx.save();
+              ctx.translate(slot.x + slot.w, slot.y);
+              ctx.scale(-1, 1);
+              ctx.drawImage(source, sx, sy, sw, sh, 0, 0, slot.w, slot.h);
+              ctx.restore();
+            } else {
+              ctx.drawImage(source, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
+            }
             ctx.filter = "none";
           } else {
             ctx.fillStyle = "#18181c";
@@ -2053,7 +2008,13 @@ export default function PhotoboothClient() {
                             loop
                             muted
                             playsInline
-                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                              display: "block",
+                              transform: cameraFacing === "user" ? "scaleX(-1)" : "none",
+                            }}
                           />
                         ) : (
                           <img src={photoObj.image} alt={`Pose ${idx + 1}`} />
@@ -2379,6 +2340,40 @@ export default function PhotoboothClient() {
           </div>
         </div>
       </div>
+
+      {/* Live Video Exporting Fullscreen Modal Overlay */}
+      {isExporting && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(5, 5, 8, 0.88)",
+          backdropFilter: "blur(12px)",
+          zIndex: 99999,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#fff",
+          padding: "24px",
+          textAlign: "center",
+        }}>
+          <div style={{
+            width: "56px",
+            height: "56px",
+            border: "4px solid rgba(212, 175, 55, 0.2)",
+            borderTopColor: "#d4af37",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            marginBottom: "18px",
+          }} />
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#d4af37", marginBottom: "8px" }}>
+            Mengekspor Foto Live Bergerak...
+          </h2>
+          <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.75)", maxWidth: "340px", lineHeight: 1.5 }}>
+            Sedang merekam dan menyinkronkan seluruh animasi frame foto live ke format video berkualitas tinggi. Mohon tunggu beberapa detik...
+          </p>
+        </div>
+      )}
     </div>
   );
 }
