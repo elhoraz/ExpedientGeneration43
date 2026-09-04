@@ -863,19 +863,19 @@ export default function PhotoboothClient() {
         return;
       }
 
-      // ── Capture static layers via html2canvas (WITHOUT TAINT) ──
+      // ── Capture background frame via html2canvas (WITHOUT TAINT) ──
       // CRITICAL SECURITY RULE: NEVER set allowTaint: true!
       // When a canvas is tainted, W3C specification dictates that captureStream tracks are permanently MUTED.
-      // Muted tracks deliver 0 frames to MediaRecorder, resulting in a frozen/static video file.
-      const bgCanvasPromise = html2canvas(stripEl, {
+      // In onclone, completely wipe .photo-cell innerHTML so NO static images can ever be baked into the background!
+      const bgCanvas = await html2canvas(stripEl, {
         scale: exportScale,
         useCORS: true,
         allowTaint: false,
         backgroundColor: null,
         onclone: (doc) => {
           doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
-            // Physically remove all photos and videos so background canvas leaves empty transparent/dark frames
-            cell.querySelectorAll("video, img, .photo-cell-placeholder, .cell-retake-btn, .live-badge-indicator").forEach((el) => el.remove());
+            // Completely empty the cell DOM so NO image or video element can exist in bgCanvas!
+            cell.innerHTML = "";
             cell.style.setProperty("background", "#0d0d11", "important");
             cell.style.setProperty("background-color", "#0d0d11", "important");
             cell.style.setProperty("background-image", "none", "important");
@@ -884,58 +884,16 @@ export default function PhotoboothClient() {
         },
       });
 
-      const overlayCanvasPromise = html2canvas(stripEl, {
-        scale: exportScale,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: null,
-        onclone: (doc) => {
-          const card = doc.querySelector<HTMLElement>(".photostrip-card");
-          if (card) {
-            card.style.setProperty("background", "transparent", "important");
-            card.style.setProperty("background-image", "none", "important");
-            card.style.setProperty("background-color", "transparent", "important");
-            card.style.setProperty("box-shadow", "none", "important");
-            card.style.setProperty("border", "none", "important");
-          }
-          doc.querySelectorAll<HTMLElement>(".strip-header,.strip-footer,.strip-divider").forEach((el) => el.remove());
-          doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
-            // CRITICAL FIX: Physically remove all img and video elements so NO static photo is EVER drawn on top of the live video!
-            cell.querySelectorAll("video, img, .photo-cell-placeholder, .cell-retake-btn, .live-badge-indicator").forEach((m) => m.remove());
-            cell.style.setProperty("background", "transparent", "important");
-            cell.style.setProperty("background-color", "transparent", "important");
-            cell.style.setProperty("background-image", "none", "important");
-            cell.style.setProperty("box-shadow", "none", "important");
-            cell.style.setProperty("border", "none", "important");
-          });
-          doc.querySelectorAll<HTMLElement>(".sticker-mini-toolbar").forEach((tb) => tb.remove());
-          doc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((stk) => {
-            stk.classList.remove("is-selected", "is-dragging");
-            stk.style.outline = "none";
-            stk.style.background = "transparent";
-          });
-        },
-      });
-
-      const [bgCanvas, overlayCanvas] = await Promise.all([bgCanvasPromise, overlayCanvasPromise]);
-
-      // Security verification: ensure canvases did not get tainted
+      // Security verification: ensure bgCanvas did not get tainted
       let bgClean = true;
-      let overlayClean = true;
       try {
         bgCanvas.getContext("2d")?.getImageData(0, 0, 1, 1);
       } catch (err) {
         bgClean = false;
         console.warn("bgCanvas tainted by browser security policy:", err);
       }
-      try {
-        overlayCanvas.getContext("2d")?.getImageData(0, 0, 1, 1);
-      } catch (err) {
-        overlayClean = false;
-        console.warn("overlayCanvas tainted by browser security policy:", err);
-      }
 
-      // ── Build slot info & create fresh active playing video elements ──
+      // ── Build slot info & acquire active playing video elements ──
       const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
 
       const slots = await Promise.all(
@@ -948,43 +906,52 @@ export default function PhotoboothClient() {
           let videoEl: HTMLVideoElement | null = null;
 
           if (photoObj?.video) {
-            videoEl = document.createElement("video");
-            videoEl.src = photoObj.video;
-            videoEl.muted = true;
-            videoEl.defaultMuted = true;
-            videoEl.volume = 0;
-            videoEl.loop = true;
-            videoEl.playsInline = true;
-            videoEl.autoplay = true;
-            // Real CSS dimensions in DOM inside viewport to prevent Chromium hardware decode suspension
-            videoEl.style.cssText =
-              "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:-9999;opacity:0.01;";
-            document.body.appendChild(videoEl);
-            cleanupElements.push(videoEl);
-
-            const v = videoEl;
-            await new Promise<void>((resolve) => {
-              let resolved = false;
-              const finish = () => {
-                if (!resolved) {
-                  resolved = true;
-                  resolve();
-                }
-              };
-
-              const tryPlay = () => {
-                v.play().then(finish).catch(finish);
-              };
-
-              if (v.readyState >= 2) {
-                tryPlay();
-              } else {
-                v.addEventListener("canplay", tryPlay, { once: true });
-                v.addEventListener("loadeddata", tryPlay, { once: true });
-                v.addEventListener("error", finish, { once: true });
-                setTimeout(finish, 1500);
+            // First check if the cell in the live DOM already contains a decoded, playing video element!
+            const existingVideo = cell.querySelector("video");
+            if (existingVideo && existingVideo.src && existingVideo.readyState >= 2) {
+              videoEl = existingVideo;
+              if (videoEl.paused) {
+                videoEl.play().catch(() => {});
               }
-            });
+            } else {
+              // Create dedicated video element attached to DOM
+              videoEl = document.createElement("video");
+              videoEl.src = photoObj.video;
+              videoEl.muted = true;
+              videoEl.defaultMuted = true;
+              videoEl.volume = 0;
+              videoEl.loop = true;
+              videoEl.playsInline = true;
+              videoEl.autoplay = true;
+              videoEl.style.cssText =
+                "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:-9999;opacity:0.01;";
+              document.body.appendChild(videoEl);
+              cleanupElements.push(videoEl);
+
+              const v = videoEl;
+              await new Promise<void>((resolve) => {
+                let resolved = false;
+                const finish = () => {
+                  if (!resolved) {
+                    resolved = true;
+                    resolve();
+                  }
+                };
+
+                const tryPlay = () => {
+                  v.play().then(finish).catch(finish);
+                };
+
+                if (v.readyState >= 2) {
+                  tryPlay();
+                } else {
+                  v.addEventListener("canplay", tryPlay, { once: true });
+                  v.addEventListener("loadeddata", tryPlay, { once: true });
+                  v.addEventListener("error", finish, { once: true });
+                  setTimeout(finish, 1500);
+                }
+              });
+            }
           }
 
           let fallbackImg: HTMLImageElement | null = null;
@@ -1042,7 +1009,7 @@ export default function PhotoboothClient() {
       const drawOneFrame = () => {
         ctx.clearRect(0, 0, exportWidth, exportHeight);
 
-        // Layer 1: Background
+        // Layer 1: Background & Photostrip Frame
         if (bgClean) {
           ctx.drawImage(bgCanvas, 0, 0, exportWidth, exportHeight);
         } else {
@@ -1050,7 +1017,7 @@ export default function PhotoboothClient() {
           ctx.fillRect(0, 0, exportWidth, exportHeight);
         }
 
-        // Layer 2: Videos/Photos in slots
+        // Layer 2: Videos/Photos directly into slots (100% UNOBSTRUCTED!)
         slots.forEach((slot) => {
           ctx.save();
 
@@ -1070,13 +1037,16 @@ export default function PhotoboothClient() {
 
           // Pick the best media source: ALWAYS prefer the active playing video
           let source: CanvasImageSource | null = null;
+          let isVideo = false;
           if (slot.videoEl) {
             source = slot.videoEl;
+            isVideo = true;
             if (slot.videoEl.paused) {
               slot.videoEl.play().catch(() => {});
             }
           } else if (slot.fallbackImg && slot.fallbackImg.complete) {
             source = slot.fallbackImg;
+            isVideo = false;
           }
 
           if (source) {
@@ -1096,7 +1066,8 @@ export default function PhotoboothClient() {
             if (filterStr && filterStr !== "none" && "filter" in ctx) {
               ctx.filter = filterStr;
             }
-            if (cameraFacing === "user") {
+            // Front camera video is recorded unmirrored from hardware track; mirror horizontally to match viewfinder preview
+            if (isVideo && cameraFacing === "user") {
               ctx.save();
               ctx.translate(slot.x + slot.w, slot.y);
               ctx.scale(-1, 1);
@@ -1114,9 +1085,20 @@ export default function PhotoboothClient() {
           ctx.restore();
         });
 
-        // Layer 3: Overlay
-        if (overlayClean) {
-          ctx.drawImage(overlayCanvas, 0, 0, exportWidth, exportHeight);
+        // Layer 3: Render any interactive emoji stickers cleanly on top (NO HTML2CANVAS, NO STATIC PHOTOS!)
+        if (stickers.length > 0) {
+          stickers.forEach((stk) => {
+            const x = (stk.left / 100) * exportWidth;
+            const y = (stk.top / 100) * exportHeight;
+            const scale = stk.scale || 1;
+            const fontSize = Math.round(28 * exportScale * scale);
+            ctx.save();
+            ctx.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(stk.emoji, x, y);
+            ctx.restore();
+          });
         }
 
         // Push frame update to hardware capture track
