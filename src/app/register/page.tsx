@@ -121,10 +121,14 @@ function RegisterFormContent() {
         if (event.target?.result) {
           const resultStr = event.target.result as string;
 
-          // 1. Immediately create an optimized fallback so photo is never lost even if crop is canceled or fails
+          // 1. Immediately set base64 synchronously so hidden input is NEVER empty
+          setImagePreview(resultStr);
+          const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
+          if (hiddenInput) hiddenInput.value = resultStr;
+
+          // 2. Then optimize in background
           optimizeImage(resultStr, (optimized) => {
             setImagePreview(optimized);
-            const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
             if (hiddenInput) hiddenInput.value = optimized;
           });
 

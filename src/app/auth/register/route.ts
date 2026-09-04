@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { getRequestOrigin } from "@/lib/url";
@@ -62,16 +61,15 @@ export async function POST(request: Request) {
     });
   }
 
-  // Use Service Role to bypass RLS and update the profile created by trigger
+  // Use Service Role to bypass RLS completely (without cookie interference)
   if (data.user) {
-    const cookieStore = await cookies();
-    const adminSupabase = createServerClient(
+    const adminSupabase = createAdminClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll() {},
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
         },
       }
     );
@@ -146,9 +144,11 @@ export async function POST(request: Request) {
       }
     }
 
-    const { error: updateError } = await adminSupabase
+    const { error: upsertError } = await adminSupabase
       .from("profiles")
-      .update({
+      .upsert({
+        id: data.user.id,
+        nama_lengkap,
         nama_panggilan,
         jenis_kelamin,
         tempat_lahir,
@@ -162,11 +162,10 @@ export async function POST(request: Request) {
         is_active: false,
         face_data: face_data ? face_data : null,
         ...(foto_profil ? { foto_profil } : {})
-      })
-      .eq("id", data.user.id);
+      }, { onConflict: "id" });
 
-    if (updateError) {
-      console.error("Error updating profile after registration:", updateError);
+    if (upsertError) {
+      console.error("Error upserting profile after registration:", upsertError);
     }
   }
 
