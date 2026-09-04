@@ -20,6 +20,7 @@ function RegisterFormContent() {
   const searchParams = useSearchParams();
   const errorMsg = searchParams.get("error");
   const [showToast, setShowToast] = useState(!!errorMsg);
+  const [toastMessage, setToastMessage] = useState(errorMsg || "");
   
   // Forms & Cropper
   const [imagePreview, setImagePreview] = useState("");
@@ -40,6 +41,33 @@ function RegisterFormContent() {
   const streamRef = useRef<MediaStream | null>(null);
   const faceIntervalRef = useRef<any>(null);
 
+  // OTP Verification States
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [otpStep, setOtpStep] = useState<"choose_channel" | "input_otp" | "success">("choose_channel");
+  const [selectedChannel, setSelectedChannel] = useState<"gmail" | "whatsapp" | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState("");
+  const [registeredWa, setRegisteredWa] = useState("");
+  const [maskedTarget, setMaskedTarget] = useState("");
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [isSubmittingForm, setIsSubmittingForm] = useState(false);
+
+  useEffect(() => {
+    if (otpCooldown > 0) {
+      const timer = setTimeout(() => setOtpCooldown((c) => c - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpCooldown]);
+
+  const showToastAlert = (msg: string) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 5000);
+  };
+
   useEffect(() => {
     // Load external libs
     import("cropperjs").then(mod => Cropper = mod.default);
@@ -49,6 +77,7 @@ function RegisterFormContent() {
     triggerLogoExplosion();
 
     if (errorMsg) {
+      setToastMessage(errorMsg);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 5000);
     }
@@ -205,6 +234,166 @@ function RegisterFormContent() {
     // the selected photo (optimized fallback) remains saved as their profile picture.
   };
 
+  const submitRegistrationAsync = async (faceDescStr: string) => {
+    const form = document.getElementById("registerForm") as HTMLFormElement;
+    if (!form) return;
+
+    try {
+      setIsSubmittingForm(true);
+      const formData = new FormData(form);
+      if (faceDescStr) {
+        formData.set("face_data", faceDescStr);
+      }
+      if (imagePreview) {
+        formData.set("foto_profil_base64", imagePreview);
+      }
+
+      const res = await fetch("/auth/register?json=true", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Gagal memproses inisiasi registrasi.");
+      }
+
+      setRegisteredEmail(data.email || "");
+      setRegisteredWa(data.no_whatsapp || "");
+      setIsOtpModalOpen(true);
+      setOtpStep("choose_channel");
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      showToastAlert(err.message || "Pendaftaran gagal. Silakan coba lagi.");
+    } finally {
+      setIsSubmittingForm(false);
+    }
+  };
+
+  const handleSendOtp = async (channel: "gmail" | "whatsapp") => {
+    if (!registeredEmail) {
+      showToastAlert("Email pendaftaran tidak ditemukan. Silakan isi form kembali.");
+      return;
+    }
+
+    try {
+      setIsSendingOtp(true);
+      setOtpError(null);
+
+      const res = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: registeredEmail, channel }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Gagal mengirimkan kode OTP.");
+      }
+
+      setSelectedChannel(channel);
+      setMaskedTarget(data.target || (channel === "whatsapp" ? registeredWa : registeredEmail));
+      setOtpDigits(["", "", "", "", "", ""]);
+      setOtpCooldown(60);
+      setOtpStep("input_otp");
+
+      // Auto-focus first digit box
+      setTimeout(() => {
+        const firstBox = document.getElementById("otp-box-0") as HTMLInputElement;
+        firstBox?.focus();
+      }, 150);
+    } catch (err: any) {
+      console.error("Send OTP error:", err);
+      setOtpError(err.message || "Gagal mengirimkan kode OTP.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleDigitChange = (index: number, value: string) => {
+    const cleanVal = value.replace(/\D/g, "");
+    if (!cleanVal) {
+      const newDigits = [...otpDigits];
+      newDigits[index] = "";
+      setOtpDigits(newDigits);
+      return;
+    }
+
+    const digit = cleanVal[cleanVal.length - 1];
+    const newDigits = [...otpDigits];
+    newDigits[index] = digit;
+    setOtpDigits(newDigits);
+
+    if (index < 5) {
+      const nextBox = document.getElementById(`otp-box-${index + 1}`) as HTMLInputElement;
+      nextBox?.focus();
+    }
+  };
+
+  const handleDigitKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+      const prevBox = document.getElementById(`otp-box-${index - 1}`) as HTMLInputElement;
+      prevBox?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+
+    const newDigits = [...otpDigits];
+    for (let i = 0; i < 6; i++) {
+      newDigits[i] = pasted[i] || "";
+    }
+    setOtpDigits(newDigits);
+
+    const nextIndex = Math.min(pasted.length, 5);
+    const targetBox = document.getElementById(`otp-box-${nextIndex}`) as HTMLInputElement;
+    targetBox?.focus();
+  };
+
+  const handleVerifyOtp = async () => {
+    const fullOtp = otpDigits.join("").trim();
+    if (fullOtp.length !== 6) {
+      setOtpError("Masukkan 6 digit kode OTP secara lengkap.");
+      return;
+    }
+
+    try {
+      setIsVerifyingOtp(true);
+      setOtpError(null);
+
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: registeredEmail, otp: fullOtp }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Verifikasi OTP gagal.");
+      }
+
+      setOtpStep("success");
+      if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+
+      // Redirect ke login dalam 2.5 detik
+      setTimeout(() => {
+        window.location.href = data.redirect_url || "/login?success=Akun+Anda+telah+aktif";
+      }, 2500);
+    } catch (err: any) {
+      console.error("Verify OTP error:", err);
+      setOtpError(err.message || "Kode OTP tidak valid.");
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     const form = e.currentTarget;
     if (!form.checkValidity()) {
@@ -250,9 +439,11 @@ function RegisterFormContent() {
       }
 
     } else {
+      e.preventDefault();
       if (!faceData) {
-        e.preventDefault();
         startFaceScanner();
+      } else {
+        submitRegistrationAsync(faceData);
       }
     }
   };
@@ -376,9 +567,8 @@ function RegisterFormContent() {
 
             setTimeout(() => {
               setIsFaceModalOpen(false);
-              const form = document.getElementById("registerForm") as HTMLFormElement;
-              if (form) form.submit();
-            }, 1500);
+              submitRegistrationAsync(descriptorStr);
+            }, 1200);
           } else {
             setFaceStep(3);
             setFaceStatus("EKSTRAKSI BIOMETRIK... SILAKAN TERSENYUM");
@@ -413,8 +603,8 @@ function RegisterFormContent() {
         <div id="dynamicToast" className={`quantum-toast toast-error ${showToast ? 'show' : ''}`}>
           <div className="toast-icon"><i className="fa-solid fa-shield-virus"></i></div>
           <div style={{ transform: "translateZ(15px)" }}>
-            <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", letterSpacing: "1px" }}>Akses Ditolak</strong><br/>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>{errorMsg}</span>
+            <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", letterSpacing: "1px" }}>Pemberitahuan</strong><br/>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>{toastMessage || errorMsg}</span>
           </div>
         </div>
       )}
@@ -506,9 +696,9 @@ function RegisterFormContent() {
               
               <div className="input-group">
                 <input type="text" name="no_whatsapp" className="input-control" required minLength={10} pattern="[0-9]+" placeholder=" " />
-                <label className="input-label">Nomor WhatsApp (Contoh: 628123456789)</label>
+                <label className="input-label">Nomor WhatsApp (Aktif, Contoh: 081234567890)</label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint">Wajib menggunakan format 62 (Kode Negara).</div>
+                <div className="error-hint">Masukkan nomor WhatsApp aktif (awalan 08 atau 62).</div>
               </div>
 
               <div className="input-group span-full">
@@ -580,7 +770,17 @@ function RegisterFormContent() {
               </div>
 
               <div className="span-full btn-magnetic-wrapper">
-                <button type="submit" className="btn-prime magnetic-btn">Selesaikan Inisiasi <i className="fa-solid fa-check"></i></button>
+                <button type="submit" className="btn-prime magnetic-btn" disabled={isSubmittingForm}>
+                  {isSubmittingForm ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin"></i> Menyimpan Inisiasi...
+                    </>
+                  ) : (
+                    <>
+                      Selesaikan Inisiasi <i className="fa-solid fa-check"></i>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </form>
@@ -628,6 +828,185 @@ function RegisterFormContent() {
 
         <button type="button" className="crop-btn-cancel" style={{ marginTop: "40px", fontSize: "0.75rem" }} onClick={closeFaceScanner}>BATALKAN INISIASI</button>
       </div>
+
+      {/* OTP Verification Modal */}
+      {isOtpModalOpen && (
+        <div className="otp-modal-backdrop">
+          <div className="otp-modal-vault">
+            <div className="otp-ambient-glow"></div>
+
+            {/* STEP 1: PILIH METODE VERIFIKASI (GMAIL vs WHATSAPP) */}
+            {otpStep === "choose_channel" && (
+              <div className="otp-step-content">
+                <div className="otp-badge-icon">
+                  <i className="fa-solid fa-shield-halved"></i>
+                </div>
+                <h3 className="otp-title">Pilih Metode Verifikasi</h3>
+                <p className="otp-subtitle">
+                  Pilih jalur pengiriman kode verifikasi OTP (6 digit) untuk mengesahkan identitas akun Anda:
+                </p>
+
+                <div className="otp-channel-grid">
+                  {/* Opsi 1: Gmail */}
+                  <button
+                    type="button"
+                    className="otp-channel-card"
+                    onClick={() => handleSendOtp("gmail")}
+                    disabled={isSendingOtp}
+                  >
+                    <div className="channel-icon-wrap icon-gmail">
+                      <i className="fa-solid fa-envelope"></i>
+                    </div>
+                    <div className="channel-info">
+                      <div className="channel-name">Kirim via Gmail</div>
+                      <div className="channel-target">{registeredEmail || "Email Anda"}</div>
+                    </div>
+                    <div className="channel-arrow">
+                      <i className="fa-solid fa-chevron-right"></i>
+                    </div>
+                  </button>
+
+                  {/* Opsi 2: WhatsApp */}
+                  <button
+                    type="button"
+                    className="otp-channel-card"
+                    onClick={() => handleSendOtp("whatsapp")}
+                    disabled={isSendingOtp}
+                  >
+                    <div className="channel-icon-wrap icon-whatsapp">
+                      <i className="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div className="channel-info">
+                      <div className="channel-name">Kirim via WhatsApp</div>
+                      <div className="channel-target">{registeredWa || "Nomor WhatsApp Anda"}</div>
+                    </div>
+                    <div className="channel-arrow">
+                      <i className="fa-solid fa-chevron-right"></i>
+                    </div>
+                  </button>
+                </div>
+
+                {isSendingOtp && (
+                  <div className="otp-loading-status">
+                    <i className="fa-solid fa-circle-notch fa-spin"></i>
+                    <span>Sedang mengirimkan kode OTP...</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 2: INPUT 6 DIGIT KODE OTP */}
+            {otpStep === "input_otp" && (
+              <div className="otp-step-content">
+                <div className="otp-badge-icon">
+                  <i className="fa-solid fa-key"></i>
+                </div>
+                <h3 className="otp-title">Masukkan Kode OTP</h3>
+                <p className="otp-subtitle">
+                  Kode 6 digit telah dikirimkan ke{" "}
+                  <strong style={{ color: "#ffd700" }}>
+                    {selectedChannel === "whatsapp" ? `WhatsApp (${maskedTarget})` : `Gmail (${maskedTarget})`}
+                  </strong>
+                  . Silakan masukkan 6 angka di bawah:
+                </p>
+
+                <div className="otp-boxes-wrap" onPaste={handleOtpPaste}>
+                  {otpDigits.map((digit, idx) => (
+                    <input
+                      key={idx}
+                      id={`otp-box-${idx}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      pattern="[0-9]*"
+                      className="otp-digit-box"
+                      value={digit}
+                      onChange={(e) => handleDigitChange(idx, e.target.value)}
+                      onKeyDown={(e) => handleDigitKeyDown(idx, e)}
+                      autoComplete="one-time-code"
+                      autoFocus={idx === 0}
+                    />
+                  ))}
+                </div>
+
+                {otpError && (
+                  <div className="otp-error-text">
+                    <i className="fa-solid fa-triangle-exclamation"></i> {otpError}
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="btn-prime otp-submit-btn"
+                  onClick={handleVerifyOtp}
+                  disabled={isVerifyingOtp || otpDigits.join("").length < 6}
+                >
+                  {isVerifyingOtp ? (
+                    <>
+                      <i className="fa-solid fa-circle-notch fa-spin"></i> Mengesahkan Akun...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-check-double"></i> Sahkan & Aktifkan Akun
+                    </>
+                  )}
+                </button>
+
+                <div className="otp-resend-row">
+                  {otpCooldown > 0 ? (
+                    <span className="otp-cooldown-text">
+                      Kirim ulang kode dalam <strong>{otpCooldown}s</strong>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="otp-resend-btn"
+                      onClick={() => handleSendOtp(selectedChannel || "gmail")}
+                      disabled={isSendingOtp}
+                    >
+                      <i className="fa-solid fa-rotate-right"></i> Kirim Ulang Kode OTP
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ marginTop: "14px", textAlign: "center" }}>
+                  <button
+                    type="button"
+                    className="otp-switch-channel-btn"
+                    onClick={() => {
+                      setOtpStep("choose_channel");
+                      setOtpError(null);
+                    }}
+                  >
+                    <i className="fa-solid fa-arrow-left"></i> Ganti Saluran (Pilih WhatsApp / Gmail)
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: SUKSES VERIFIKASI */}
+            {otpStep === "success" && (
+              <div className="otp-step-content" style={{ textAlign: "center" }}>
+                <div className="otp-success-icon">
+                  <i className="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 className="otp-title" style={{ color: "#ffd700" }}>
+                  Verifikasi Berhasil!
+                </h3>
+                <p className="otp-subtitle" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
+                  Akun Anda telah <strong>resmi aktif 100%</strong>.<br />
+                  Surat & ucapan selamat bergabung resmi telah dikirimkan ke <strong>WhatsApp</strong> dan <strong>Email</strong> Anda.
+                </p>
+                <div style={{ marginTop: "25px" }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                    <i className="fa-solid fa-spinner fa-spin"></i> Mengalihkan ke Gerbang Masuk...
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <Script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js" strategy="afterInteractive" />
     </div>
   );

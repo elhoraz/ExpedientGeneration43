@@ -49,13 +49,23 @@ export async function POST(request: Request) {
     },
   });
 
+  const isJsonRequest = 
+    request.headers.get("accept")?.includes("application/json") ||
+    request.headers.get("content-type")?.includes("application/json") ||
+    new URL(request.url).searchParams.get("json") === "true";
+
   if (error) {
     let errorMessage = "Pendaftaran gagal.";
-    if (error.message.includes("already registered")) {
-      errorMessage = "Email ini sudah terdaftar. Silakan login.";
+    if (error.message.includes("already registered") || error.message.includes("User already registered")) {
+      errorMessage = "Email ini sudah terdaftar. Silakan langsung login.";
     } else {
       errorMessage = error.message;
     }
+
+    if (isJsonRequest) {
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
+    }
+
     return NextResponse.redirect(`${origin}/register?error=${encodeURIComponent(errorMessage)}`, {
       status: 303,
     });
@@ -169,35 +179,21 @@ export async function POST(request: Request) {
     }
   }
 
-  // SVC-01: WhatsApp notification trigger
-  const message = `✨ *BISMILLAHIRRAHMANIRRAHIM* ✨
+  // Jika dipanggil via AJAX / Fetch dari frontend (alur modal OTP 2-step)
+  if (isJsonRequest) {
+    return NextResponse.json({
+      success: true,
+      email,
+      no_whatsapp,
+      nama_lengkap,
+      nama_panggilan,
+      userId: data.user?.id,
+      message: "Pendaftaran awal berhasil. Silakan pilih saluran verifikasi OTP Anda.",
+    });
+  }
 
-*Assalamu'alaikum Warahmatullahi Wabarakatuh*
-
-Ahlan wa sahlan! Segala puji bagi Allah SWT, selamat bergabung dalam portal eksklusif *Expedient Generation — 43rd Arrisalah*, Sahabat *${nama_lengkap}* (${nama_panggilan}).
-
-Sungguh kebersamaan kita di dalam barisan ini adalah rahmat yang besar. Mari kita jaga ukhuwah ini berlandaskan petunjuk-Nya:
-
-📖 *Dalil Al-Qur'an (QS. Al-Hujurat: 10)*
-_"Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat."_
-
-💬 *Sabda Rasulullah SAW (HR. Bukhari & Muslim)*
-_"Barangsiapa yang ingin diluaskan rezekinya dan dipanjangkan umurnya (dikenang jasa-jasanya), maka hendaklah ia menyambung hubungan silaturahmi."_
-
----
-
-⚠️ *LANGKAH VERIFIKASI PENTING*
-Untuk mengaktifkan akun dan mengakses seluruh fitur VVIP pameran, silakan periksa kotak masuk (atau folder spam) email Anda di:
-📧 *${email}*
-
-Silakan klik tombol/tautan verifikasi yang telah dikirimkan ke email tersebut untuk menyelesaikan inisiasi portal.
-
-Semoga Allah SWT senantiasa memberkahi ikatan perjuangan alumni kita.
-
-*Wassalamu'alaikum Warahmatullahi Wabarakatuh*`;
-  await sendWhatsAppMessage(no_whatsapp, message);
-
-  return NextResponse.redirect(`${origin}/login?verify=true&email=${encodeURIComponent(email)}`, {
+  // Fallback untuk browser form submit standar
+  return NextResponse.redirect(`${origin}/register?registered=true&email=${encodeURIComponent(email)}`, {
     status: 303,
   });
 }

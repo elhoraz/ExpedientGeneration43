@@ -195,3 +195,300 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
     .theme-widget { top: 25px; right: 20px; padding: 6px; } .widget-text { display: none; }
     .quantum-toast.show { right: 20px; left: 20px; min-width: calc(100% - 40px); }
 }
+
+/* ================= 11. OTP VERIFICATION MODAL ================= */
+.otp-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(2, 4, 6, 0.88);
+    backdrop-filter: blur(25px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.otp-modal-vault {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: rgba(10, 16, 22, 0.94);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 28px;
+    padding: 38px 28px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), inset 0 0 30px rgba(212, 175, 55, 0.05);
+    animation: vaultEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+
+.otp-ambient-glow {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 250px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.25), transparent 70%);
+    pointer-events: none;
+}
+
+.otp-step-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.otp-badge-icon {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffd700;
+    font-size: 1.6rem;
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.2);
+}
+
+.otp-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.otp-subtitle {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.otp-channel-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.otp-channel-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+}
+
+.otp-channel-card:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.otp-channel-card:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.channel-icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.icon-gmail {
+    background: rgba(234, 67, 53, 0.15);
+    border: 1px solid rgba(234, 67, 53, 0.4);
+    color: #ff6b6b;
+}
+
+.icon-whatsapp {
+    background: rgba(37, 211, 102, 0.15);
+    border: 1px solid rgba(37, 211, 102, 0.4);
+    color: #25d366;
+}
+
+.channel-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.channel-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 3px;
+}
+
+.channel-target {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.channel-arrow {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.otp-channel-card:hover:not(:disabled) .channel-arrow {
+    transform: translateX(3px);
+    color: #ffd700;
+}
+
+.otp-loading-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #ffd700;
+    margin-top: 10px;
+}
+
+/* --- Segmented OTP Boxes --- */
+.otp-boxes-wrap {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.otp-digit-box {
+    width: 46px;
+    height: 54px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    color: #ffd700;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6);
+}
+
+.otp-digit-box:focus {
+    border-color: #ffd700;
+    background: rgba(212, 175, 55, 0.08);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.35);
+    transform: translateY(-2px);
+}
+
+.otp-error-text {
+    font-size: 0.8rem;
+    color: #ff4d6d;
+    background: rgba(255, 77, 109, 0.1);
+    border: 1px solid rgba(255, 77, 109, 0.3);
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.otp-submit-btn {
+    width: 100%;
+    padding: 13px 20px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+}
+
+.otp-resend-row {
+    margin-bottom: 8px;
+}
+
+.otp-cooldown-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+.otp-cooldown-text strong {
+    color: #ffd700;
+}
+
+.otp-resend-btn {
+    background: none;
+    border: none;
+    color: #ffd700;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px;
+}
+
+.otp-resend-btn:hover:not(:disabled) {
+    color: #fff;
+}
+
+.otp-switch-channel-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    transition: color 0.2s ease;
+}
+
+.otp-switch-channel-btn:hover {
+    color: #ffd700;
+}
+
+.otp-success-icon {
+    font-size: 3.5rem;
+    color: #25d366;
+    margin-bottom: 15px;
+    animation: scaleCheck 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scaleCheck {
+    0% { transform: scale(0); opacity: 0; }
+    80% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 480px) {
+    .otp-digit-box {
+        width: 38px;
+        height: 48px;
+        font-size: 1.25rem;
+        gap: 5px;
+    }
+}
+

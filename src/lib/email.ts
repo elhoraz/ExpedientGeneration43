@@ -29,7 +29,10 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
   }
 
   // Production: send via Resend API
-  const fromAddress = process.env.EMAIL_FROM || "Expedient Generation <onboarding@resend.dev>";
+  let fromAddress = process.env.EMAIL_FROM || "Expedient Generation <onboarding@resend.dev>";
+  if (fromAddress.includes("@gmail.com") || fromAddress.includes("@yahoo.com")) {
+    fromAddress = "Expedient Generation <onboarding@resend.dev>";
+  }
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -47,6 +50,7 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
+    console.error("Resend API error:", response.status, errorData);
     throw new Error(`Resend API error: ${response.status} - ${JSON.stringify(errorData)}`);
   }
 
