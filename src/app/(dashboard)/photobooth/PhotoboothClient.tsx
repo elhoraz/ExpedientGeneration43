@@ -758,6 +758,16 @@ export default function PhotoboothClient() {
         img.style.objectFit = "cover";
       }
     });
+
+    // Clean up selected/dragging state on stickers in cloned doc
+    clonedDoc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((stk) => {
+      stk.classList.remove("is-selected", "is-dragging");
+      stk.style.outline = "none";
+      stk.style.background = "transparent";
+    });
+    clonedDoc.querySelectorAll<HTMLElement>(".sticker-mini-toolbar").forEach((tb) => {
+      tb.style.display = "none";
+    });
   };
 
   // Export Photostrip to PNG or Story
@@ -844,7 +854,7 @@ export default function PhotoboothClient() {
     }
   };
 
-  // Export Live Video Strip (WebM / Video Loop with Real Multi-Slot Synchronized Animation & Exact Aspect Ratio)
+  // Export Live Video Strip (WebM / MP4 Video Loop with Synchronized Animation, Filters & Exact Aspect Ratio)
   const handleExportLiveVideo = async () => {
     if (!stripRef.current) return;
     setIsExporting(true);
@@ -857,7 +867,7 @@ export default function PhotoboothClient() {
         throw new Error("Strip element has invalid dimensions.");
       }
 
-      // High-res export canvas (HD 720px width)
+      // High-res export canvas (HD 720px width for optimal quality & smooth encoding)
       const exportWidth = 720;
       const exportScale = exportWidth / stripRect.width;
       const exportHeight = Math.round(stripRect.height * exportScale);
@@ -870,16 +880,20 @@ export default function PhotoboothClient() {
         throw new Error("Could not create canvas context.");
       }
 
-      // Check captureStream support
-      if (!(exportCanvas as any).captureStream) {
-        alert("Browser Anda belum mendukung ekspor video animasi. Mengunduh format PNG sebagai gantinya.");
+      // Check captureStream support (with webkit / moz fallbacks)
+      const captureStreamFn =
+        (exportCanvas as any).captureStream || (exportCanvas as any).mozCaptureStream;
+      if (!captureStreamFn || typeof MediaRecorder === "undefined") {
+        alert(
+          "Browser Anda belum mendukung ekspor video animasi. Mengunduh format PNG sebagai gantinya."
+        );
         handleDownloadStrip("strip");
         return;
       }
 
-      // Capture decorative frame (borders, stickers, headers, footers, background)
-      // by hiding photo cells so they become transparent windows
-      const frameCanvas = await html2canvas(stripEl, {
+      // 1. Capture Base Layer (Card background, headers, footers)
+      // Hide photo cells and draggable stickers so background pattern seamlessly flows behind slots
+      const bgCanvasPromise = html2canvas(stripEl, {
         scale: exportScale,
         useCORS: true,
         allowTaint: true,
@@ -888,36 +902,147 @@ export default function PhotoboothClient() {
           clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => {
             c.style.visibility = "hidden";
           });
+          clonedDoc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((s) => {
+            s.style.visibility = "hidden";
+          });
+          clonedDoc
+            .querySelectorAll<HTMLElement>(".cell-retake-btn, .sticker-mini-toolbar")
+            .forEach((b) => {
+              b.style.display = "none";
+            });
         },
       });
 
-      // Get slots positions and their media elements
+      // 2. Capture Overlay Layer (Slot borders, washi tape, kraft stickers, user-placed stickers)
+      // Card background is made 100% transparent so media underneath shows through
+      const overlayCanvasPromise = html2canvas(stripEl, {
+        scale: exportScale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        onclone: (clonedDoc) => {
+          // Remove card background, borders, and outer shadows
+          const clonedCard = clonedDoc.querySelector<HTMLElement>(".photostrip-card");
+          if (clonedCard) {
+            clonedCard.style.setProperty("background", "transparent", "important");
+            clonedCard.style.setProperty("background-image", "none", "important");
+            clonedCard.style.setProperty("background-color", "transparent", "important");
+            clonedCard.style.setProperty("box-shadow", "none", "important");
+            clonedCard.style.setProperty("border", "none", "important");
+          }
+
+          // Hide headers and footers (already rendered on bgCanvas)
+          clonedDoc
+            .querySelectorAll<HTMLElement>(".strip-header, .strip-footer")
+            .forEach((el) => {
+              el.style.visibility = "hidden";
+            });
+
+          // In photo cells: make cell transparent, hide media, keep slot borders & decorative washi/kraft stickers
+          clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
+            cell.style.setProperty("background", "transparent", "important");
+            cell.style.setProperty("background-color", "transparent", "important");
+            cell.style.setProperty("background-image", "none", "important");
+            cell.style.setProperty("box-shadow", "none", "important");
+
+            cell.querySelectorAll<HTMLElement>("video, img").forEach((mediaEl) => {
+              mediaEl.style.visibility = "hidden";
+            });
+
+            cell
+              .querySelectorAll<HTMLElement>(
+                ".cell-retake-btn, .photo-cell-placeholder, .live-badge-indicator"
+              )
+              .forEach((b) => {
+                b.style.display = "none";
+              });
+          });
+
+          // Clean up draggable stickers
+          clonedDoc.querySelectorAll<HTMLElement>(".sticker-mini-toolbar").forEach((tb) => {
+            tb.style.display = "none";
+          });
+          clonedDoc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((stk) => {
+            stk.classList.remove("is-selected", "is-dragging");
+            stk.style.outline = "none";
+            stk.style.background = "transparent";
+          });
+        },
+      });
+
+      // Execute html2canvas captures in parallel
+      const [bgCanvas, overlayCanvas] = await Promise.all([
+        bgCanvasPromise,
+        overlayCanvasPromise,
+      ]);
+
+      // 3. Prepare slot dimensions, coordinates, and media elements
       const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
       const slots = Array.from(cellElements).map((cell, idx) => {
         const cRect = cell.getBoundingClientRect();
         const style = window.getComputedStyle(cell);
         const radius = (parseFloat(style.borderRadius) || 6) * exportScale;
+        const photoObj = photos[idx];
+
+        let videoEl = cell.querySelector("video") as HTMLVideoElement | null;
+        if (!videoEl && photoObj?.video) {
+          videoEl = document.createElement("video");
+          videoEl.src = photoObj.video;
+          videoEl.muted = true;
+          videoEl.loop = true;
+          videoEl.playsInline = true;
+          videoEl.autoplay = true;
+        }
+
         return {
           x: (cRect.left - stripRect.left) * exportScale,
           y: (cRect.top - stripRect.top) * exportScale,
           w: cRect.width * exportScale,
           h: cRect.height * exportScale,
           radius,
-          videoEl: cell.querySelector("video") as HTMLVideoElement | null,
+          videoEl,
           imgEl: cell.querySelector("img") as HTMLImageElement | null,
-          photo: photos[idx],
+          photo: photoObj,
+          fallbackImg: null as HTMLImageElement | null,
         };
       });
 
-      // Synchronize video playback from beginning
+      // Preload high-res fallback still images so a slot is NEVER blank/black
+      await Promise.all(
+        slots.map(
+          (slot) =>
+            new Promise<void>((resolve) => {
+              if (!slot.photo?.image) {
+                resolve();
+                return;
+              }
+              const img = new Image();
+              img.crossOrigin = "anonymous";
+              img.onload = () => {
+                slot.fallbackImg = img;
+                resolve();
+              };
+              img.onerror = () => resolve();
+              img.src = slot.photo.image;
+            })
+        )
+      );
+
+      // Synchronize video playback from start
       slots.forEach((s) => {
         if (s.videoEl) {
           s.videoEl.currentTime = 0;
-          s.videoEl.play().catch(() => {});
+          const playP = s.videoEl.play();
+          if (playP !== undefined) {
+            playP.catch(() => {});
+          }
         }
       });
 
-      const stream = (exportCanvas as any).captureStream(30);
+      // Brief delay to allow video hardware decoder to seek to frame 0
+      await new Promise((r) => setTimeout(r, 80));
+
+      const stream = captureStreamFn.call(exportCanvas, 30);
 
       let mimeType = "video/webm";
       if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
@@ -942,31 +1067,61 @@ export default function PhotoboothClient() {
 
       let isRecording = true;
       let animId = 0;
+      const filterStr = getFilterStyle();
 
       const renderMasterFrame = () => {
         if (!isRecording) return;
 
         ctx.clearRect(0, 0, exportWidth, exportHeight);
 
-        // 1. Draw individual photo/video slot contents with rounded rect clipping & cover math
+        // Layer 1: Background, Headers, Footers
+        ctx.drawImage(bgCanvas, 0, 0, exportWidth, exportHeight);
+
+        // Layer 2: Animated videos / Photos in each slot (with rounded rect clipping & center cover math)
         slots.forEach((slot) => {
           ctx.save();
           ctx.beginPath();
-          if ((ctx as any).roundRect) {
+          if (typeof (ctx as any).roundRect === "function") {
             (ctx as any).roundRect(slot.x, slot.y, slot.w, slot.h, slot.radius);
           } else {
-            ctx.rect(slot.x, slot.y, slot.w, slot.h);
+            // Polyfill for smooth rounded corners
+            const r = Math.min(slot.radius, slot.w / 2, slot.h / 2);
+            ctx.moveTo(slot.x + r, slot.y);
+            ctx.lineTo(slot.x + slot.w - r, slot.y);
+            ctx.quadraticCurveTo(slot.x + slot.w, slot.y, slot.x + slot.w, slot.y + r);
+            ctx.lineTo(slot.x + slot.w, slot.y + slot.h - r);
+            ctx.quadraticCurveTo(slot.x + slot.w, slot.y + slot.h, slot.x + slot.w - r, slot.y + slot.h);
+            ctx.lineTo(slot.x + r, slot.y + slot.h);
+            ctx.quadraticCurveTo(slot.x, slot.y + slot.h, slot.x, slot.y + slot.h - r);
+            ctx.lineTo(slot.x, slot.y + r);
+            ctx.quadraticCurveTo(slot.x, slot.y, slot.x + r, slot.y);
           }
           ctx.clip();
 
-          const media = slot.videoEl && slot.videoEl.readyState >= 2 ? slot.videoEl : slot.imgEl;
+          // Prefer playing video with active frame data; fallback to crisp still photo
+          const isVideoReady =
+            slot.videoEl &&
+            slot.videoEl.readyState >= 2 &&
+            !slot.videoEl.paused &&
+            slot.videoEl.videoWidth > 0;
+          const media = isVideoReady ? slot.videoEl : slot.fallbackImg || slot.imgEl;
+
           if (media) {
-            const mw = (media as HTMLVideoElement).videoWidth || (media as HTMLImageElement).naturalWidth || slot.w;
-            const mh = (media as HTMLVideoElement).videoHeight || (media as HTMLImageElement).naturalHeight || slot.h;
+            const mw =
+              (media as HTMLVideoElement).videoWidth ||
+              (media as HTMLImageElement).naturalWidth ||
+              slot.w;
+            const mh =
+              (media as HTMLVideoElement).videoHeight ||
+              (media as HTMLImageElement).naturalHeight ||
+              slot.h;
             const mAspect = mw / mh;
             const slotAspect = slot.w / slot.h;
 
-            let sx = 0, sy = 0, sw = mw, sh = mh;
+            let sx = 0,
+              sy = 0,
+              sw = mw,
+              sh = mh;
             if (mAspect > slotAspect) {
               sw = mh * slotAspect;
               sx = (mw - sw) / 2;
@@ -975,7 +1130,13 @@ export default function PhotoboothClient() {
               sy = (mh - sh) / 2;
             }
 
+            // Apply tone filter if active
+            if (filterStr && filterStr !== "none" && "filter" in ctx) {
+              ctx.filter = filterStr;
+            }
+
             ctx.drawImage(media, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
+            ctx.filter = "none";
           } else {
             ctx.fillStyle = "#18181c";
             ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
@@ -983,8 +1144,8 @@ export default function PhotoboothClient() {
           ctx.restore();
         });
 
-        // 2. Draw static frame layer (borders, headers, footers, ribbons, stickers) on top!
-        ctx.drawImage(frameCanvas, 0, 0, exportWidth, exportHeight);
+        // Layer 3: Overlay (borders, washi tape, kraft stickers, user stickers) on top!
+        ctx.drawImage(overlayCanvas, 0, 0, exportWidth, exportHeight);
 
         animId = requestAnimationFrame(renderMasterFrame);
       };
@@ -1010,10 +1171,12 @@ export default function PhotoboothClient() {
         if (recorder.state === "recording") {
           recorder.stop();
         }
-      }, 3000); // 3 seconds animated video loop
+      }, 3200); // 3.2 seconds animated video loop
     } catch (err) {
       console.error("Live video export error:", err);
-      alert("Terjadi kendala saat merender video bergerak. Mengunduh format PNG sebagai gantinya.");
+      alert(
+        "Terjadi kendala saat merender video bergerak. Mengunduh format PNG sebagai gantinya."
+      );
       handleDownloadStrip("strip");
     }
   };
