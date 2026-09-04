@@ -8,12 +8,13 @@ import { EffectCoverflow, Navigation, Keyboard } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
-import { getAvatarUrl } from "@/lib/avatar";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import "./direktori.css";
 
 export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[], isLoggedIn: boolean }) {
   const [search, setSearch] = useState("");
   const [qrModalUser, setQrModalUser] = useState<any | null>(null);
+  const [failedPhotos, setFailedPhotos] = useState<{ [id: string]: boolean }>({});
   const swiperRef = useRef<any>(null);
 
   const triggerQuest = () => {
@@ -149,14 +150,15 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                                     <div className="agent-serial">{serial}</div>
                                     <div className="photo-ring">
                                         <Image 
-                                            src={foto} 
+                                            src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto} 
                                             width={150} 
                                             height={150} 
                                             className="card-photo" 
                                             alt={user.nama_panggilan || user.nama_lengkap || "Foto Alumni"} 
                                             loading="lazy"
                                             sizes="(max-width: 768px) 130px, 150px"
-                                            unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
+                                            onError={() => setFailedPhotos(prev => ({ ...prev, [user.id]: true }))}
+                                            unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com") || foto.includes("supabase.co")}
                                         />
                                     </div>
                                     <h3 className="card-name">{user.nama_panggilan}</h3>

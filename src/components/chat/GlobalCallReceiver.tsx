@@ -127,9 +127,7 @@ export default function GlobalCallReceiver({ userId }: GlobalCallReceiverProps) 
 
   if (!incomingCall) return null;
 
-  const avatarSrc = incomingCall.callerAvatar
-    ? `/uploads/profiles/${incomingCall.callerAvatar}`
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(incomingCall.callerName)}&background=d4af37&color=000`;
+  const avatarSrc = getAvatarUrl(incomingCall.callerAvatar, incomingCall.callerName);
 
   return (
     <div

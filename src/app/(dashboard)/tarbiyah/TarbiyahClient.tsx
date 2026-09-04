@@ -433,7 +433,7 @@ export default function TarbiyahClient({
                         width={84}
                         height={84}
                         className="item-img"
-                        unoptimized={avatar.startsWith("data:") || avatar.includes("ui-avatars.com")}
+                        unoptimized={avatar.startsWith("data:") || avatar.includes("ui-avatars.com") || avatar.includes("supabase.co")}
                       />
                       <h3 className="item-name">{displayName}</h3>
                       <div className="item-subtitle">{m.pekerjaan || "Mentor Profesional"}</div>
@@ -559,7 +559,7 @@ export default function TarbiyahClient({
                         width={84}
                         height={84}
                         className="item-img logo-img"
-                        unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com")}
+                        unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com") || logo.includes("supabase.co")}
                       />
                       <h3 className="item-name">{t.nama_bisnis}</h3>
                       <div className="item-subtitle">Sovereign Syndicate</div>
@@ -760,7 +760,7 @@ export default function TarbiyahClient({
                           width={46}
                           height={46}
                           className="requester-avatar"
-                          unoptimized={avatar.startsWith("data:") || avatar.includes("ui-avatars.com")}
+                          unoptimized={avatar.startsWith("data:") || avatar.includes("ui-avatars.com") || avatar.includes("supabase.co")}
                         />
                         <div>
                           <h4 className="requester-name">{r.requester_name}</h4>

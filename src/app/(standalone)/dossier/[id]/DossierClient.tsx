@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { getAvatarUrl } from "@/lib/avatar";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 
 export default function DossierClient({ targetUser, age }: { targetUser: any, age: string | number }) {
   const [loading, setLoading] = useState(true);
@@ -102,7 +102,9 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
       }
   }, [loading]);
 
-  const fotoUrl = getAvatarUrl(targetUser.foto_profil, targetUser.nama_panggilan || targetUser.nama_lengkap || 'U');
+  const [avatarSrc, setAvatarSrc] = useState(() => 
+    getAvatarUrl(targetUser.foto_profil, targetUser.nama_panggilan || targetUser.nama_lengkap || 'U')
+  );
 
   return (
     <>
@@ -374,13 +376,14 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
           <div className="dossier-card" id="tilt-card">
               <div className="avatar-container">
                   <Image 
-                    src={fotoUrl} 
+                    src={avatarSrc} 
                     width={140} 
                     height={140} 
                     priority 
                     className="avatar" 
                     alt={targetUser.nama_panggilan || targetUser.nama_lengkap || "Avatar"} 
-                    unoptimized={fotoUrl.startsWith("data:") || fotoUrl.includes("ui-avatars.com")}
+                    onError={() => setAvatarSrc(getAvatarFallback(targetUser.nama_panggilan || targetUser.nama_lengkap))}
+                    unoptimized={avatarSrc.startsWith("data:") || avatarSrc.includes("ui-avatars.com") || avatarSrc.includes("supabase.co")}
                   />
               </div>
 

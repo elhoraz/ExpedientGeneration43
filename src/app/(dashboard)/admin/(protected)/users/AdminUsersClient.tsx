@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import "../admin.css";
 import AdminLockBtn from "../../AdminLockBtn";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 
 export default function AdminUsersClient({ initialUsers }: { initialUsers: any[] }) {
   useEffect(() => {
@@ -104,9 +105,13 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
                     <td>
                       <div className="ann-title" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                         <img 
-                          src={u.foto_profil ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${u.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nama_panggilan || u.nama_lengkap || 'U')}&background=d4af37&color=000`} 
+                          src={getAvatarUrl(u.foto_profil, u.nama_panggilan || u.nama_lengkap || 'U')} 
                           alt="Avatar" 
                           style={{ width: "35px", height: "35px", borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(212,175,55,0.3)" }} 
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = getAvatarFallback(u.nama_panggilan || u.nama_lengkap || 'U');
+                          }}
                         />
                         <div>
                           <div>{u.nama_panggilan || u.nama_lengkap || 'Unknown'}</div>
@@ -159,9 +164,13 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
             <div key={u.id} className="user-mobile-card" style={{ opacity: u.is_active === false ? 0.6 : 1 }}>
               <div className="user-mobile-card-header">
                 <img 
-                  src={u.foto_profil ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${u.foto_profil}` : `https://ui-avatars.com/api/?name=${encodeURIComponent(u.nama_panggilan || u.nama_lengkap || 'U')}&background=d4af37&color=000`} 
+                  src={getAvatarUrl(u.foto_profil, u.nama_panggilan || u.nama_lengkap || 'U')} 
                   alt="Avatar" 
                   style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(212,175,55,0.3)" }} 
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = getAvatarFallback(u.nama_panggilan || u.nama_lengkap || 'U');
+                  }}
                 />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>

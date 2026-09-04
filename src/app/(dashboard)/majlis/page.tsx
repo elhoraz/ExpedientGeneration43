@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import MajlisClient from "./MajlisClient";
+import { getAvatarUrl } from "@/lib/avatar";
 import MajlisLoader from "./MajlisLoader";
 
 export const metadata = {
@@ -20,11 +22,7 @@ export default async function MajlisPage() {
     .eq("id", user.id)
     .single();
 
-  const avatarUrl = profile?.foto_profil
-    ? (profile.foto_profil.startsWith("http")
-        ? profile.foto_profil
-        : `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profiles/${profile.foto_profil}`)
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(profile?.nama_panggilan || 'A')}&background=d4af37&color=000`;
+  const avatarUrl = getAvatarUrl(profile?.foto_profil, profile?.nama_panggilan || 'A');
 
   const currentUser = {
     id: user.id,

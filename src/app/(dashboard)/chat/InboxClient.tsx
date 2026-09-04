@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 
 export default function InboxClient({ 
   initialInbox, 
@@ -119,13 +120,19 @@ export default function InboxClient({
     <div className="inbox-list">
       {inboxList.length > 0 ? (
         inboxList.map((item) => {
-          const avatarUrl = item.contact.foto_profil 
-            ? `/uploads/profiles/${item.contact.foto_profil}` 
-            : `https://ui-avatars.com/api/?name=${encodeURIComponent(item.contact.nama_panggilan)}&background=d4af37&color=000`;
+          const avatarUrl = getAvatarUrl(item.contact.foto_profil, item.contact.nama_panggilan || "Alumni");
           
           return (
             <Link href={`/chat/personal/${item.contact.id}`} key={item.contact.id} className="inbox-item">
-              <img src={avatarUrl} alt="Avatar" className="inbox-avatar" />
+              <img 
+                src={avatarUrl} 
+                alt="Avatar" 
+                className="inbox-avatar" 
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = getAvatarFallback(item.contact.nama_panggilan || "A");
+                }}
+              />
               <div className="inbox-content">
                 <div className="inbox-top">
                   <h4>{item.contact.nama_panggilan}</h4>

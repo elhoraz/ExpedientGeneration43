@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 
 const palettes = [
     ['#ff6b6b','#feca57','#ff9ff3','#ffffff','#ffffffcc'],
@@ -117,9 +118,9 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
     setParticles(newParticles);
   }, [deco, p]);
 
-  const avatarUrl = userProfile.foto_profil 
-    ? `/uploads/profiles/${userProfile.foto_profil}` 
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile.nama_panggilan)}&background=0D0D0D&color=D4AF37&bold=true`;
+  const [avatarSrc, setAvatarSrc] = useState(() => 
+    getAvatarUrl(userProfile.foto_profil, userProfile.nama_panggilan || userProfile.nama_lengkap)
+  );
 
   const shareUrl = `https://wa.me/?text=🎂 Selamat Ulang Tahun ${encodeURIComponent(userProfile.nama_panggilan)}! Lihat ucapannya di: ${encodeURIComponent(typeof window !== "undefined" ? window.location.href : '')}`;
 
@@ -163,12 +164,13 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
           <div className="bday-anim-el">
               <div className="bday-photo-wrap">
                   <Image 
-                    src={avatarUrl} 
+                    src={avatarSrc} 
                     width={160} 
                     height={160} 
                     alt={userProfile.nama_panggilan || "Foto"} 
                     priority
-                    unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")} 
+                    onError={() => setAvatarSrc(getAvatarFallback(userProfile.nama_panggilan))}
+                    unoptimized={avatarSrc.startsWith("data:") || avatarSrc.includes("ui-avatars.com")} 
                   />
               </div>
           </div>

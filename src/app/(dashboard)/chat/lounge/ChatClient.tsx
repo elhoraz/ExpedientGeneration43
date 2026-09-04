@@ -9,6 +9,7 @@ import VoiceNotePlayer from "@/components/chat/VoiceNotePlayer";
 import VideoNotePlayer from "@/components/chat/VideoNotePlayer";
 import VoiceRecorder from "@/components/chat/VoiceRecorder";
 import VideoNoteRecorder from "@/components/chat/VideoNoteRecorder";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import "../chat.css";
 
 const EMOJI_DATA = {
@@ -296,15 +297,21 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
             if (msg.is_deleted) return null;
             const isMine = msg.sender_id === userId;
             const senderName = msg.profiles?.nama_panggilan || msg.profiles?.nama_lengkap || "Unknown";
-            const avatarUrl = msg.profiles?.foto_profil 
-              ? `/uploads/profiles/${msg.profiles.foto_profil}` 
-              : `https://ui-avatars.com/api/?name=${encodeURIComponent(senderName)}&background=d4af37&color=000`;
+            const avatarUrl = getAvatarUrl(msg.profiles?.foto_profil, senderName);
             const timeString = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             return (
               <div key={msg.id} className={`msg-bubble-wrapper ${isMine ? 'mine' : 'other'}`}>
                 {!isMine && (
-                  <img src={avatarUrl} alt="Avatar" className="msg-avatar" />
+                  <img 
+                    src={avatarUrl} 
+                    alt="Avatar" 
+                    className="msg-avatar" 
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = getAvatarFallback(senderName);
+                    }}
+                  />
                 )}
                 <div className="msg-bubble-content">
                   {!isMine && (

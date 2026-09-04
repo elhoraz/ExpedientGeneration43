@@ -5,6 +5,7 @@ import Script from "next/script";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useCms } from "@/components/layout/CmsProvider";
 import LorongKenangan from "./LorongKenangan";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import "./beranda.css";
 
 export default function BerandaClient({
@@ -221,7 +222,16 @@ export default function BerandaClient({
               <div className="curator-grid">
                   {kurator.map((k, idx) => (
                       <div className="curator-card glass-panel reveal-up" key={idx}>
-                          <div className="curator-img-wrap"><img src={k.foto_profil ? (k.foto_profil.startsWith('http') ? k.foto_profil : `/uploads/profiles/${k.foto_profil}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(k.nama_panggilan || k.nama_lengkap)}&background=d4af37&color=000`} alt={k.nama_lengkap} /></div>
+                          <div className="curator-img-wrap">
+                            <img 
+                              src={getAvatarUrl(k.foto_profil, k.nama_panggilan || k.nama_lengkap)} 
+                              alt={k.nama_lengkap || "Kurator"} 
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = getAvatarFallback(k.nama_panggilan || k.nama_lengkap);
+                              }}
+                            />
+                          </div>
                           <div className="curator-info">
                               <h4>{k.nama_lengkap}</h4>
                               <p>{k.jabatan || 'Admin'}</p>
@@ -242,7 +252,15 @@ export default function BerandaClient({
                               <div className="glass-panel reveal-up leaderboard-item" style={{ borderLeft: `4px solid ${borderColor}` }} key={idx}>
                                   <div className="leaderboard-info">
                                       <div className="leaderboard-rank">#{rank}</div>
-                                      <img src={l.foto_profil ? (l.foto_profil.startsWith('http') ? l.foto_profil : `/uploads/profiles/${l.foto_profil}`) : `https://ui-avatars.com/api/?name=${encodeURIComponent(l.nama_panggilan || l.nama_lengkap)}&background=d4af37&color=000`} className="leaderboard-avatar" alt="Avatar" />
+                                      <img 
+                                        src={getAvatarUrl(l.foto_profil, l.nama_panggilan || l.nama_lengkap)} 
+                                        className="leaderboard-avatar" 
+                                        alt="Avatar" 
+                                        onError={(e) => {
+                                          e.currentTarget.onerror = null;
+                                          e.currentTarget.src = getAvatarFallback(l.nama_panggilan || l.nama_lengkap);
+                                        }}
+                                      />
                                       <div>
                                           <div className="leaderboard-name">{l.nama_panggilan || l.nama_lengkap}</div>
                                           <div className="leaderboard-label">POIN TERAKUMULASI</div>

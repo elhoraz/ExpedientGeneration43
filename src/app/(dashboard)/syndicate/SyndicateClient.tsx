@@ -121,7 +121,7 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
                     width={400} 
                     height={180} 
                     style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }} 
-                    unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com")}
+                    unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com") || logo.includes("supabase.co")}
                   />
                 </div>
 
@@ -132,7 +132,7 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
                     width={60} 
                     height={60} 
                     style={{ width: "60px", height: "60px", borderRadius: "50%", objectFit: "cover", border: "3px solid var(--bg-card)", boxShadow: "0 5px 15px rgba(0,0,0,0.3)" }} 
-                    unoptimized={ownerAvatar.startsWith("data:") || ownerAvatar.includes("ui-avatars.com")}
+                    unoptimized={ownerAvatar.startsWith("data:") || ownerAvatar.includes("ui-avatars.com") || ownerAvatar.includes("supabase.co")}
                   />
                   <div style={{ display: "flex", flexDirection: "column", marginTop: "25px" }}>
                     <h4 className="biz-owner-name">{ownerName}</h4>

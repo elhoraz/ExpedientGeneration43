@@ -62,7 +62,7 @@ export default async function BirthdayListPage() {
                             height={90} 
                             className="bday-avatar" 
                             alt={u.nama_panggilan || u.nama_lengkap || "Foto"} 
-                            unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")}
+                            unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com") || avatarUrl.includes("supabase.co")}
                           />
                           <div className="bday-name">{u.nama_panggilan || u.nama_lengkap}</div>
                           <div className="bday-fullname">{u.nama_lengkap}</div>

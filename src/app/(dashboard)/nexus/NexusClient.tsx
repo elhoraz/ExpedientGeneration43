@@ -180,7 +180,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
                                     className="match-avatar" 
                                     alt={m.nama_panggilan || m.nama_lengkap || "Avatar"} 
                                     loading="lazy"
-                                    unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")}
+                                    unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com") || avatarUrl.includes("supabase.co")}
                                 />
                                 <div className="match-name">{m.nama_panggilan || m.nama_lengkap}</div>
                                 <div className="match-category">

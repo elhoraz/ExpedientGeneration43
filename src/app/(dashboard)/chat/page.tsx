@@ -100,7 +100,7 @@ export default async function ChatInboxPage() {
                   width={54}
                   height={54}
                   className="inbox-avatar"
-                  unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com")}
+                  unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com") || avatarUrl.includes("supabase.co")}
                 />
                 <div className="inbox-content">
                   <div className="inbox-top">

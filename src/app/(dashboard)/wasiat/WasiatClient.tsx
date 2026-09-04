@@ -258,7 +258,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
                       width={50}
                       height={50}
                       className="author-avatar"
-                      unoptimized={w.author_avatar?.startsWith("data:") || w.author_avatar?.includes("ui-avatars.com")}
+                      unoptimized={w.author_avatar?.startsWith("data:") || w.author_avatar?.includes("ui-avatars.com") || w.author_avatar?.includes("supabase.co")}
                     />
                     <div className="author-meta">
                       <div className="box-id">Diarsipkan pada: {new Date(w.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</div>

@@ -10,6 +10,7 @@ import VideoNotePlayer from "@/components/chat/VideoNotePlayer";
 import VoiceRecorder from "@/components/chat/VoiceRecorder";
 import VideoNoteRecorder from "@/components/chat/VideoNoteRecorder";
 import ChatCallModal from "@/components/chat/ChatCallModal";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import "../../chat.css";
 
 type Contact = {
@@ -415,9 +416,7 @@ export default function PersonalChatClient({
     setInputMessage(prev => prev + emoji);
   };
 
-  const contactAvatar = contact.foto_profil 
-    ? `/uploads/profiles/${contact.foto_profil}` 
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.nama_panggilan)}&background=d4af37&color=000`;
+  const contactAvatar = getAvatarUrl(contact.foto_profil, contact.nama_panggilan || contact.nama_lengkap);
 
   return (
     <div className="chat-room-container">
@@ -428,7 +427,14 @@ export default function PersonalChatClient({
             <i className="fa-solid fa-arrow-left"></i>
           </Link>
           <div className="contact-info">
-            <img src={contactAvatar} alt={contact.nama_panggilan} />
+            <img 
+              src={contactAvatar} 
+              alt={contact.nama_panggilan} 
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = getAvatarFallback(contact.nama_panggilan);
+              }}
+            />
             <div>
               <h3>{contact.nama_panggilan}</h3>
               <div className="contact-fullname">{contact.nama_lengkap}</div>
