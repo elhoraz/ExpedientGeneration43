@@ -136,36 +136,99 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
       sendWhatsAppMessage(noWa, waWelcome).catch((e) => console.error("Error sending WA welcome:", e));
     }
 
-    // B. Email Ucapan Selamat Bergabung (Resend)
+    // B. Email Ucapan Selamat Bergabung (Template VVIP Royal Gold)
     const emailWelcomeHtml = `
-      <div style="background-color: #050b08; color: #e2e8f0; font-family: 'Segoe UI', Arial, sans-serif; padding: 40px 20px; text-align: center;">
-        <div style="max-width: 550px; margin: 0 auto; background: rgba(14, 22, 17, 0.98); border: 1px solid rgba(212, 175, 55, 0.45); border-radius: 18px; padding: 40px 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.7);">
-          <div style="font-size: 36px; margin-bottom: 8px;">👑</div>
-          <h1 style="color: #ffd700; font-family: Georgia, serif; margin: 0 0 6px; font-size: 26px; letter-spacing: 1px;">Selamat Bergabung</h1>
-          <p style="color: #94a3b8; font-size: 12px; margin: 0 0 22px; text-transform: uppercase; letter-spacing: 2px;">Expedient Generation — 43rd Arrisalah</p>
-          <hr style="border: 0; border-top: 1px solid rgba(212, 175, 55, 0.25); margin: 20px 0;" />
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selamat Bergabung - Expedient Generation</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #040806; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #040806; padding: 45px 15px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 580px; background: #0c1510; border: 1px solid rgba(212, 175, 55, 0.45); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);">
           
-          <div style="text-align: left; font-size: 14px; color: #f1f5f9; line-height: 1.7; margin-bottom: 25px;">
-            <p><strong>Assalamu'alaikum Warahmatullahi Wabarakatuh,</strong></p>
-            <p>Ahlan wa sahlan, Sahabat <strong>${namaLengkap}</strong>${namaPanggilan ? ` (${namaPanggilan})` : ""}! Akun Anda telah <strong>berhasil diverifikasi dan resmi aktif</strong> di portal utama Expedient Generation.</p>
-            <p style="font-style: italic; color: #cbd5e1; background: rgba(212,175,55,0.08); padding: 12px 16px; border-left: 3px solid #ffd700; border-radius: 4px;">
-              "Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat." (QS. Al-Hujurat: 10)
-            </p>
-          </div>
+          <!-- Top Golden Accent Bar -->
+          <tr>
+            <td height="5" style="background: linear-gradient(90deg, #aa771c 0%, #ffd700 50%, #aa771c 100%);"></td>
+          </tr>
 
-          <div style="margin: 30px 0;">
-            <a href="https://expedientgeneration.vercel.app/login" style="display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%); color: #0b1410; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 8px; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(212,175,55,0.4);">
-              Masuk ke Portal Utama &rarr;
-            </a>
-          </div>
+          <!-- Header Branding -->
+          <tr>
+            <td style="padding: 40px 35px 25px; text-align: center;">
+              <div style="font-size: 40px; line-height: 1; margin-bottom: 12px;">👑</div>
+              <h1 style="margin: 0 0 6px; font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; letter-spacing: 2px; color: #ffd700; text-transform: uppercase;">
+                Ahlan Wa Sahlan!
+              </h1>
+              <div style="font-size: 11px; font-weight: 600; letter-spacing: 4px; color: #8fa397; text-transform: uppercase; margin-bottom: 18px;">
+                Expedient Generation &bull; 43rd Arrisalah
+              </div>
+              <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.35), transparent); width: 80%; margin: 0 auto;"></div>
+            </td>
+          </tr>
 
-          <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 25px 0 15px;" />
-          <p style="font-size: 11px; color: #64748b; margin: 0;">
-            Wassalamu'alaikum Warahmatullahi Wabarakatuh<br />
-            Keluarga Besar Expedient Generation — 43rd Arrisalah
-          </p>
-        </div>
-      </div>
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 10px 40px 35px; color: #e2e8f0;">
+              <div style="font-family: Georgia, serif; font-size: 14px; font-style: italic; color: #d4af37; text-align: center; margin-bottom: 24px; letter-spacing: 0.5px;">
+                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+              </div>
+
+              <p style="font-size: 15px; line-height: 1.7; color: #f1f5f9; margin: 0 0 16px;">
+                <strong>Assalamu'alaikum Warahmatullahi Wabarakatuh,</strong>
+              </p>
+              
+              <p style="font-size: 14px; line-height: 1.7; color: #cbd5e1; margin: 0 0 20px;">
+                Segala puji bagi Allah SWT yang senantiasa menautkan hati kita dalam ukhuwah. Selamat bergabung Sahabat <strong style="color: #ffffff;">${namaLengkap}</strong>${namaPanggilan ? ` (${namaPanggilan})` : ""}, akun Anda telah <strong>resmi disahkan & aktif 100%</strong> di portal utama!
+              </p>
+
+              <!-- Quran Quote Card -->
+              <div style="border-left: 3px solid #d4af37; background: rgba(212, 175, 55, 0.06); padding: 16px 20px; border-radius: 0 10px 10px 0; margin-bottom: 25px;">
+                <p style="margin: 0 0 8px; font-size: 13px; font-style: italic; color: #f1f5f9; line-height: 1.7;">
+                  "Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat."
+                </p>
+                <div style="font-size: 11px; color: #d4af37; font-weight: 700; letter-spacing: 1px;">
+                  — QS. AL-HUJURAT: 10
+                </div>
+              </div>
+
+              <!-- Button CTA -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 30px 0 35px;">
+                <tr>
+                  <td align="center">
+                    <a href="https://expedientgeneration.vercel.app/login" style="display: inline-block; padding: 15px 36px; background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%); color: #0b1410; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);">
+                      Buka Portal Utama &rarr;
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="font-size: 13px; line-height: 1.6; color: #94a3b8; margin: 0;">
+                Wassalamu'alaikum Warahmatullahi Wabarakatuh,<br />
+                <strong style="color: #cbd5e1;">Keluarga Besar Expedient Generation — 43rd Arrisalah</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background: rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 22px 30px; text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #475569;">
+                &copy; 2026 Expedient Generation &bull; 43rd Arrisalah. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
     `;
 
     sendEmail({

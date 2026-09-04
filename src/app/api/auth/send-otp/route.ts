@@ -138,30 +138,115 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
       });
     }
 
-    // Saluran Gmail
+    // Saluran Gmail (Template VVIP Royal Dark & Gold)
     const emailHtml = `
-      <div style="background-color: #050b08; color: #e2e8f0; font-family: 'Segoe UI', Arial, sans-serif; padding: 40px 20px; text-align: center;">
-        <div style="max-width: 520px; margin: 0 auto; background: rgba(14, 22, 17, 0.95); border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 16px; padding: 35px 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
-          <div style="font-size: 28px; margin-bottom: 10px;">👑</div>
-          <h1 style="color: #ffd700; font-family: Georgia, serif; margin: 0 0 6px; font-size: 24px; letter-spacing: 1px;">Expedient Generation</h1>
-          <p style="color: #94a3b8; font-size: 12px; margin: 0 0 20px; text-transform: uppercase; letter-spacing: 2px;">43rd Arrisalah Portal</p>
-          <hr style="border: 0; border-top: 1px solid rgba(212, 175, 55, 0.2); margin: 20px 0;" />
-          <p style="font-size: 15px; color: #f1f5f9; line-height: 1.6; margin-bottom: 20px;">
-            Assalamu'alaikum Warahmatullahi Wabarakatuh,<br />
-            Halo <strong>${namaPengguna}</strong>. Berikut adalah <strong>Kode OTP</strong> untuk verifikasi dan aktivasi akun portal Anda:
-          </p>
-          <div style="display: inline-block; padding: 14px 28px; background: rgba(212,175,55,0.12); border: 2px solid #ffd700; border-radius: 12px; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #ffd700; margin: 15px 0 25px;">
-            ${otp}
-          </div>
-          <p style="font-size: 13px; color: #94a3b8; line-height: 1.5; margin: 0 0 15px;">
-            Kode ini bersifat rahasia dan berlaku selama <strong>10 menit</strong>. Jangan berikan kode ini kepada siapa pun demi keamanan akun Anda.
-          </p>
-          <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.08); margin: 20px 0;" />
-          <p style="font-size: 11px; color: #64748b; margin: 0;">
-            Pesan otomatis dari Sistem Keamanan Expedient Generation.
-          </p>
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kode OTP Verifikasi - Expedient Generation</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #040806; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+  <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #040806; padding: 45px 15px;">
+    <tr>
+      <td align="center">
+        <!-- Main Card Container -->
+        <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background: #0c1510; border: 1px solid rgba(212, 175, 55, 0.4); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);">
+          
+          <!-- Top Golden Accent Bar -->
+          <tr>
+            <td height="4" style="background: linear-gradient(90deg, #aa771c 0%, #ffd700 50%, #aa771c 100%);"></td>
+          </tr>
+
+          <!-- Header Branding -->
+          <tr>
+            <td style="padding: 40px 35px 25px; text-align: center;">
+              <div style="font-size: 34px; line-height: 1; margin-bottom: 12px;">👑</div>
+              <h1 style="margin: 0 0 6px; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #ffd700; text-transform: uppercase;">
+                Expedient Generation
+              </h1>
+              <div style="font-size: 11px; font-weight: 600; letter-spacing: 4px; color: #8fa397; text-transform: uppercase; margin-bottom: 18px;">
+                43rd Arrisalah Alumni Portal
+              </div>
+              <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.35), transparent); width: 80%; margin: 0 auto;"></div>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 10px 40px 35px; color: #e2e8f0;">
+              <div style="font-family: Georgia, serif; font-size: 14px; font-style: italic; color: #d4af37; text-align: center; margin-bottom: 24px; letter-spacing: 0.5px;">
+                بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+              </div>
+
+              <p style="font-size: 15px; line-height: 1.7; color: #f1f5f9; margin: 0 0 16px;">
+                <strong>Assalamu'alaikum Warahmatullahi Wabarakatuh,</strong>
+              </p>
+              
+              <p style="font-size: 14px; line-height: 1.7; color: #cbd5e1; margin: 0 0 25px;">
+                Ahlan wa sahlan, Sahabat <strong style="color: #ffffff;">${namaPengguna}</strong>. Pendaftaran akun Anda hampir selesai. Gunakan kode verifikasi rahasia berikut untuk mengesahkan dan mengaktifkan akses Anda ke portal utama:
+              </p>
+
+              <!-- OTP Golden Box -->
+              <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 25px 0 30px;">
+                <tr>
+                  <td align="center">
+                    <div style="display: inline-block; padding: 18px 36px; background: rgba(212, 175, 55, 0.08); border: 2px solid #ffd700; border-radius: 14px; box-shadow: 0 0 30px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05); text-align: center;">
+                      <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #ffd700; font-weight: 700; margin-bottom: 6px;">
+                        KODE VERIFIKASI KEHORMATAN
+                      </div>
+                      <div style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 900; letter-spacing: 12px; color: #ffffff; text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); padding-left: 12px;">
+                        ${otp}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Notice Badge -->
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 18px; margin-bottom: 25px; text-align: center;">
+                <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.6;">
+                  ⏱️ Kode OTP ini berlaku selama <strong style="color: #ffd700;">10 menit</strong>.<br />
+                  Jangan berikan kode ini kepada siapa pun demi keamanan akun Anda.
+                </p>
+              </div>
+
+              <!-- Quote Card -->
+              <div style="border-left: 3px solid #d4af37; background: rgba(212, 175, 55, 0.05); padding: 14px 18px; border-radius: 0 8px 8px 0; margin-bottom: 25px;">
+                <p style="margin: 0 0 6px; font-size: 13px; font-style: italic; color: #cbd5e1; line-height: 1.6;">
+                  "Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat."
+                </p>
+                <div style="font-size: 11px; color: #d4af37; font-weight: 600;">
+                  — QS. Al-Hujurat: 10
+                </div>
+              </div>
+
+              <p style="font-size: 13px; line-height: 1.6; color: #94a3b8; margin: 0;">
+                Wassalamu'alaikum Warahmatullahi Wabarakatuh,<br />
+                <strong style="color: #cbd5e1;">Keluarga Besar Expedient Generation</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background: rgba(0, 0, 0, 0.4); border-top: 1px solid rgba(255, 255, 255, 0.06); padding: 22px 30px; text-align: center;">
+              <p style="margin: 0 0 6px; font-size: 11px; color: #64748b; letter-spacing: 0.5px;">
+                Email ini dikirim secara otomatis oleh Sistem Keamanan Portal Resmi Expedient Generation.
+              </p>
+              <p style="margin: 0; font-size: 11px; color: #475569;">
+                &copy; 2026 Expedient Generation &bull; 43rd Arrisalah. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
     `;
 
     // Saluran Gmail: Panggil Supabase Auth Resend (yang menggunakan custom SMTP Gmail Anda)
