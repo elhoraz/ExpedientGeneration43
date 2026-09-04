@@ -77,29 +77,92 @@ function RegisterFormContent() {
     localStorage.setItem("expedient_theme", nextTheme);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Helper to optimize image into base64 JPEG max 800x800
+  const optimizeImage = (dataUri: string, callback: (optimizedUri: string) => void) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const maxDim = 800;
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          const result = canvas.toDataURL("image/jpeg", 0.88);
+          callback(result);
+          return;
+        }
+      } catch (err) {
+        console.error("Error optimizing image:", err);
+      }
+      callback(dataUri);
+    };
+    img.onerror = () => callback(dataUri);
+    img.src = dataUri;
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         if (event.target?.result) {
           const resultStr = event.target.result as string;
+
+          // 1. Immediately create an optimized fallback so photo is never lost even if crop is canceled or fails
+          optimizeImage(resultStr, (optimized) => {
+            setImagePreview(optimized);
+            const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
+            if (hiddenInput) hiddenInput.value = optimized;
+          });
+
           setCropSrc(resultStr);
           setIsCropping(true);
-          // Wait for display
-          setTimeout(() => {
-            if (cropTargetRef.current && Cropper) {
+
+          // Load Cropper dynamically if not loaded yet
+          let CropperClass = Cropper;
+          if (!CropperClass) {
+            try {
+              const mod = await import("cropperjs");
+              Cropper = mod.default;
+              CropperClass = Cropper;
+            } catch (err) {
+              console.error("Failed to load cropperjs:", err);
+            }
+          }
+
+          if (CropperClass && cropTargetRef.current) {
+            const initCropper = () => {
               if (cropperInstance) cropperInstance.destroy();
-              const cropper = new Cropper(cropTargetRef.current, {
+              const cropper = new CropperClass(cropTargetRef.current, {
                 aspectRatio: 1,
                 viewMode: 1,
                 dragMode: "move",
-                autoCropArea: 0.8,
+                autoCropArea: 0.85,
                 background: false
               });
               setCropperInstance(cropper);
+            };
+
+            const targetImg = cropTargetRef.current;
+            if (targetImg.complete && targetImg.naturalWidth > 0) {
+              initCropper();
+            } else {
+              targetImg.onload = initCropper;
             }
-          }, 100);
+          }
         }
       };
       reader.readAsDataURL(file);
@@ -108,14 +171,22 @@ function RegisterFormContent() {
 
   const applyCrop = () => {
     if (cropperInstance) {
-      const canvas = cropperInstance.getCroppedCanvas({ width: 500, height: 500 });
-      const base64 = canvas.toDataURL("image/jpeg", 0.9);
-      setImagePreview(base64);
-      setIsCropping(false);
+      try {
+        const canvas = cropperInstance.getCroppedCanvas({ width: 500, height: 500 });
+        if (canvas) {
+          const base64 = canvas.toDataURL("image/jpeg", 0.9);
+          setImagePreview(base64);
+          const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
+          if (hiddenInput) hiddenInput.value = base64;
+        }
+      } catch (err) {
+        console.error("Apply crop error:", err);
+      }
       cropperInstance.destroy();
       setCropperInstance(null);
-      setCropSrc("");
     }
+    setIsCropping(false);
+    setCropSrc("");
   };
 
   const cancelCrop = () => {
@@ -125,6 +196,9 @@ function RegisterFormContent() {
       setCropperInstance(null);
     }
     setCropSrc("");
+    // Note: Do NOT clear imagePreview here!
+    // If the user picked a photo and canceled the cropper dialog, 
+    // the selected photo (optimized fallback) remains saved as their profile picture.
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -287,7 +361,10 @@ function RegisterFormContent() {
             setIsScanning(false);
 
             const descriptorArray = Array.from(detection.descriptor);
-            setFaceData(JSON.stringify(descriptorArray));
+            const descriptorStr = JSON.stringify(descriptorArray);
+            setFaceData(descriptorStr);
+            const faceInput = document.getElementById("faceDataInput") as HTMLInputElement;
+            if (faceInput) faceInput.value = descriptorStr;
 
             if (streamRef.current) {
               streamRef.current.getTracks().forEach(t => t.stop());
@@ -365,9 +442,9 @@ function RegisterFormContent() {
             <p className="subtitle-spec">{t('register_subtitle', 'Pahat identitas Anda dalam sejarah 43rd Arrisalah Expedient Generation.')}</p>
           </div>
 
-          <form action="/auth/register" method="POST" id="registerForm" noValidate onSubmit={handleSubmit}>
+          <form action="/auth/register" method="POST" encType="multipart/form-data" id="registerForm" noValidate onSubmit={handleSubmit}>
             <input type="hidden" name="face_data" id="faceDataInput" value={faceData} />
-            <input type="hidden" name="foto_profil_base64" value={imagePreview} />
+            <input type="hidden" name="foto_profil_base64" id="fotoProfilBase64Input" value={imagePreview} />
             
             <div className="form-grid">
               <div className="input-group">
@@ -471,12 +548,24 @@ function RegisterFormContent() {
                   <i className="fa-solid fa-cloud-arrow-up"></i>
                   <span style={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: "5px" }}>Unggah Pasfoto Terbaik</span>
                   <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>Tap/Klik di area ini untuk menelusuri galeri</span>
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" style={{ display: "none" }} />
+                  <input type="file" ref={fileInputRef} name="foto_profil_file" onChange={handleFileChange} accept="image/*" style={{ display: "none" }} />
                 </label>
                 <div className={`preview-area ${imagePreview ? "show" : ""}`}>
                   {imagePreview && <img src={imagePreview} alt="Pratinjau Foto" />}
                   <br />
-                  <button type="button" className="btn-change-photo" onClick={() => { setImagePreview(""); fileInputRef.current?.click(); }}>Ubah Pilihan Foto</button>
+                  <button 
+                    type="button" 
+                    className="btn-change-photo" 
+                    onClick={() => { 
+                      setImagePreview(""); 
+                      const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
+                      if (hiddenInput) hiddenInput.value = "";
+                      if (fileInputRef.current) fileInputRef.current.value = ""; 
+                      fileInputRef.current?.click(); 
+                    }}
+                  >
+                    Ubah Pilihan Foto
+                  </button>
                 </div>
               </div>
 

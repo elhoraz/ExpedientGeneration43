@@ -80,15 +80,22 @@ export async function POST(request: Request) {
 
     if (foto_profil_base64 && foto_profil_base64.startsWith("data:image")) {
       try {
-        const base64Data = foto_profil_base64.split(",")[1];
+        const commaIndex = foto_profil_base64.indexOf(",");
+        const header = foto_profil_base64.substring(0, commaIndex);
+        const base64Data = foto_profil_base64.substring(commaIndex + 1);
         const buffer = Buffer.from(base64Data, "base64");
-        const ext = foto_profil_base64.substring("data:image/".length, foto_profil_base64.indexOf(";base64"));
+
+        // Safe MIME and extension extraction
+        const mimeMatch = header.match(/data:image\/([a-zA-Z0-9+.-]+)/);
+        let ext = mimeMatch ? mimeMatch[1].toLowerCase() : "jpg";
+        if (ext === "jpeg") ext = "jpg";
+        const contentType = mimeMatch ? `image/${mimeMatch[1]}` : "image/jpeg";
         const fileName = `${data.user.id}_${Date.now()}.${ext}`;
 
         const { error: uploadError } = await adminSupabase.storage
           .from("profile-photos")
           .upload(fileName, buffer, {
-            contentType: `image/${ext}`,
+            contentType,
             upsert: true,
           });
 
@@ -97,9 +104,45 @@ export async function POST(request: Request) {
             .from("profile-photos")
             .getPublicUrl(fileName);
           foto_profil = publicUrl.publicUrl;
+        } else {
+          console.error("Supabase storage upload error from base64:", uploadError);
         }
       } catch (err) {
-        console.error("Error uploading profile photo:", err);
+        console.error("Error uploading profile photo from base64:", err);
+      }
+    }
+
+    // Fallback: If base64 was not present or failed, check raw multipart file
+    if (!foto_profil) {
+      const rawFile = formData.get("foto_profil_file");
+      if (rawFile && typeof rawFile === "object" && "arrayBuffer" in rawFile && (rawFile as File).size > 0) {
+        try {
+          const fileObj = rawFile as File;
+          const arrayBuffer = await fileObj.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          const rawExt = (fileObj.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
+          const ext = rawExt === "jpeg" ? "jpg" : (rawExt || "jpg");
+          const fileName = `${data.user.id}_${Date.now()}.${ext}`;
+          const contentType = fileObj.type || `image/${ext}`;
+
+          const { error: uploadError } = await adminSupabase.storage
+            .from("profile-photos")
+            .upload(fileName, buffer, {
+              contentType,
+              upsert: true,
+            });
+
+          if (!uploadError) {
+            const { data: publicUrl } = adminSupabase.storage
+              .from("profile-photos")
+              .getPublicUrl(fileName);
+            foto_profil = publicUrl.publicUrl;
+          } else {
+            console.error("Supabase storage raw file upload error:", uploadError);
+          }
+        } catch (err) {
+          console.error("Error uploading raw profile file:", err);
+        }
       }
     }
 
