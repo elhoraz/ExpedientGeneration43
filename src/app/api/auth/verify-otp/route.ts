@@ -45,23 +45,37 @@ export async function POST(request: Request) {
     const savedOtp = String(user.user_metadata?.otp_code || "").trim();
     const expiresAt = Number(user.user_metadata?.otp_expires_at || 0);
 
-    if (!savedOtp) {
-      return NextResponse.json(
-        { error: "Kode OTP belum dikirimkan atau sudah digunakan. Silakan minta kode baru." },
-        { status: 400 }
-      );
+    let isOtpValid = false;
+
+    // A. Cek kecocokan dengan metadata (WhatsApp / Custom OTP)
+    if (savedOtp && savedOtp === otp && Date.now() <= expiresAt) {
+      isOtpValid = true;
     }
 
-    if (Date.now() > expiresAt) {
-      return NextResponse.json(
-        { error: "Kode OTP telah kedaluwarsa. Silakan klik 'Kirim Ulang Kode'." },
-        { status: 400 }
-      );
+    // B. Jika belum cocok, cek dengan Supabase Auth verifyOtp (jika dikirim via Supabase Gmail SMTP)
+    if (!isOtpValid) {
+      try {
+        const anonSupabase = createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        );
+        const { data: verifyData, error: verifyError } = await anonSupabase.auth.verifyOtp({
+          email,
+          token: otp,
+          type: "signup",
+        });
+
+        if (!verifyError && (verifyData.session || verifyData.user)) {
+          isOtpValid = true;
+        }
+      } catch (e) {
+        console.warn("Supabase verifyOtp check error:", e);
+      }
     }
 
-    if (savedOtp !== otp) {
+    if (!isOtpValid) {
       return NextResponse.json(
-        { error: "Kode OTP yang Anda masukkan salah. Periksa kembali 6 digit angka yang diterima." },
+        { error: "Kode OTP yang Anda masukkan salah atau telah kedaluwarsa. Periksa kembali 6 digit angka yang Anda terima." },
         { status: 400 }
       );
     }

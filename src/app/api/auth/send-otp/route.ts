@@ -164,6 +164,17 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
       </div>
     `;
 
+    // Saluran Gmail: Panggil Supabase Auth Resend (yang menggunakan custom SMTP Gmail Anda)
+    try {
+      await adminSupabase.auth.resend({
+        type: "signup",
+        email,
+      });
+    } catch (sbErr: any) {
+      console.warn("Supabase Auth resend via Gmail SMTP note:", sbErr?.message || sbErr);
+    }
+
+    // Juga kirim email format HTML dengan template mewah
     try {
       await sendEmail({
         to: email,
@@ -171,42 +182,22 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
         body: `Kode OTP verifikasi akun Anda adalah: ${otp}. Berlaku selama 10 menit.`,
         html: emailHtml,
       });
-
-      // Mask email for response (e.g. da***@gmail.com)
-      const [userPart, domainPart] = email.split("@");
-      const maskedEmail = userPart.length > 2 
-        ? userPart.substring(0, 2) + "***@" + domainPart 
-        : email;
-
-      return NextResponse.json({
-        success: true,
-        channel: "gmail",
-        target: maskedEmail,
-        message: `Kode OTP 6 digit berhasil dikirim ke Gmail Anda (${maskedEmail})!`,
-      });
     } catch (mailErr: any) {
-      console.warn("Resend email delivery note:", mailErr.message, "- Fallback to Supabase Auth delivery");
-      try {
-        await adminSupabase.auth.resend({
-          type: "signup",
-          email,
-        });
-      } catch (fallbackErr) {
-        console.error("Supabase fallback resend also failed:", fallbackErr);
-      }
-
-      const [userPart, domainPart] = email.split("@");
-      const maskedEmail = userPart.length > 2 
-        ? userPart.substring(0, 2) + "***@" + domainPart 
-        : email;
-
-      return NextResponse.json({
-        success: true,
-        channel: "gmail",
-        target: maskedEmail,
-        message: `Kode verifikasi berhasil dikirimkan ke email Anda (${maskedEmail})!`,
-      });
+      console.warn("Secondary Resend email note:", mailErr?.message || mailErr);
     }
+
+    // Mask email for response (e.g. da***@gmail.com)
+    const [userPart, domainPart] = email.split("@");
+    const maskedEmail = userPart.length > 2 
+      ? userPart.substring(0, 2) + "***@" + domainPart 
+      : email;
+
+    return NextResponse.json({
+      success: true,
+      channel: "gmail",
+      target: maskedEmail,
+      message: `Kode verifikasi 6 digit berhasil dikirim ke Gmail Anda (${maskedEmail})!`,
+    });
   } catch (err: any) {
     console.error("send-otp error:", err);
     return NextResponse.json({ error: err.message || "Terjadi kendala server." }, { status: 500 });
