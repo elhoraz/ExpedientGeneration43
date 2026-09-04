@@ -879,6 +879,14 @@ export default function PhotoboothClient() {
     setIsExporting(true);
     triggerHaptic(40);
 
+    // Collect DOM elements we create so we can clean them up
+    const cleanupElements: HTMLElement[] = [];
+    const cleanup = () => {
+      cleanupElements.forEach((el) => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      });
+    };
+
     try {
       const stripEl = stripRef.current;
       const stripRect = stripEl.getBoundingClientRect();
@@ -886,114 +894,74 @@ export default function PhotoboothClient() {
         throw new Error("Strip element has invalid dimensions.");
       }
 
-      // High-res export canvas (HD 720px width for optimal quality & smooth encoding)
+      // High-res export canvas (HD 720px width)
       const exportWidth = 720;
       const exportScale = exportWidth / stripRect.width;
       const exportHeight = Math.round(stripRect.height * exportScale);
 
+      // Create export canvas and attach to DOM (required for captureStream in Chromium)
       const exportCanvas = document.createElement("canvas");
       exportCanvas.width = exportWidth;
       exportCanvas.height = exportHeight;
-      exportCanvas.style.position = "fixed";
-      exportCanvas.style.top = "-9999px";
-      exportCanvas.style.left = "-9999px";
-      exportCanvas.style.width = "1px";
-      exportCanvas.style.height = "1px";
-      exportCanvas.style.opacity = "0";
-      exportCanvas.style.pointerEvents = "none";
-      exportCanvas.style.zIndex = "-999";
+      exportCanvas.style.cssText =
+        "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-999";
       document.body.appendChild(exportCanvas);
+      cleanupElements.push(exportCanvas);
 
       const ctx = exportCanvas.getContext("2d");
-      if (!ctx) {
-        if (exportCanvas.parentNode) exportCanvas.parentNode.removeChild(exportCanvas);
-        throw new Error("Could not create canvas context.");
-      }
+      if (!ctx) throw new Error("Could not create canvas context.");
 
-      // Check captureStream support (with webkit / moz fallbacks)
+      // captureStream support check
       const captureStreamFn =
         (exportCanvas as any).captureStream || (exportCanvas as any).mozCaptureStream;
       if (!captureStreamFn || typeof MediaRecorder === "undefined") {
-        if (exportCanvas.parentNode) exportCanvas.parentNode.removeChild(exportCanvas);
-        alert(
-          "Browser Anda belum mendukung ekspor video animasi. Mengunduh format PNG sebagai gantinya."
-        );
+        cleanup();
+        alert("Browser Anda belum mendukung ekspor video. Mengunduh PNG sebagai gantinya.");
         handleDownloadStrip("strip");
         return;
       }
 
-      // 1. Capture Base Layer (Card background, headers, footers)
-      // Hide photo cells and draggable stickers so background pattern seamlessly flows behind slots
+      // ── Capture static layers via html2canvas ──
+
+      // Background layer: card background + headers + footers (photo cells hidden)
       const bgCanvasPromise = html2canvas(stripEl, {
         scale: exportScale,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
-        onclone: (clonedDoc) => {
-          clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => {
-            c.style.visibility = "hidden";
-          });
-          clonedDoc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((s) => {
-            s.style.visibility = "hidden";
-          });
-          clonedDoc
-            .querySelectorAll<HTMLElement>(".cell-retake-btn, .sticker-mini-toolbar")
-            .forEach((b) => {
-              b.style.display = "none";
-            });
+        onclone: (doc) => {
+          doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => (c.style.visibility = "hidden"));
+          doc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((s) => (s.style.visibility = "hidden"));
+          doc.querySelectorAll<HTMLElement>(".cell-retake-btn,.sticker-mini-toolbar").forEach((b) => (b.style.display = "none"));
         },
       });
 
-      // 2. Capture Overlay Layer (Slot borders, washi tape, kraft stickers, user-placed stickers)
-      // Card background is made 100% transparent so media underneath shows through
+      // Overlay layer: cell borders, washi tape, stickers (background fully transparent)
       const overlayCanvasPromise = html2canvas(stripEl, {
         scale: exportScale,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
-        onclone: (clonedDoc) => {
-          // Remove card background, borders, and outer shadows
-          const clonedCard = clonedDoc.querySelector<HTMLElement>(".photostrip-card");
-          if (clonedCard) {
-            clonedCard.style.setProperty("background", "transparent", "important");
-            clonedCard.style.setProperty("background-image", "none", "important");
-            clonedCard.style.setProperty("background-color", "transparent", "important");
-            clonedCard.style.setProperty("box-shadow", "none", "important");
-            clonedCard.style.setProperty("border", "none", "important");
+        onclone: (doc) => {
+          const card = doc.querySelector<HTMLElement>(".photostrip-card");
+          if (card) {
+            card.style.setProperty("background", "transparent", "important");
+            card.style.setProperty("background-image", "none", "important");
+            card.style.setProperty("background-color", "transparent", "important");
+            card.style.setProperty("box-shadow", "none", "important");
+            card.style.setProperty("border", "none", "important");
           }
-
-          // Hide headers and footers (already rendered on bgCanvas)
-          clonedDoc
-            .querySelectorAll<HTMLElement>(".strip-header, .strip-footer")
-            .forEach((el) => {
-              el.style.visibility = "hidden";
-            });
-
-          // In photo cells: make cell transparent, hide media, keep slot borders & decorative washi/kraft stickers
-          clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
+          doc.querySelectorAll<HTMLElement>(".strip-header,.strip-footer").forEach((el) => (el.style.visibility = "hidden"));
+          doc.querySelectorAll<HTMLElement>(".photo-cell").forEach((cell) => {
             cell.style.setProperty("background", "transparent", "important");
             cell.style.setProperty("background-color", "transparent", "important");
             cell.style.setProperty("background-image", "none", "important");
             cell.style.setProperty("box-shadow", "none", "important");
-
-            cell.querySelectorAll<HTMLElement>("video, img").forEach((mediaEl) => {
-              mediaEl.style.visibility = "hidden";
-            });
-
-            cell
-              .querySelectorAll<HTMLElement>(
-                ".cell-retake-btn, .photo-cell-placeholder, .live-badge-indicator"
-              )
-              .forEach((b) => {
-                b.style.display = "none";
-              });
+            cell.querySelectorAll<HTMLElement>("video,img").forEach((m) => (m.style.visibility = "hidden"));
+            cell.querySelectorAll<HTMLElement>(".cell-retake-btn,.photo-cell-placeholder,.live-badge-indicator").forEach((b) => (b.style.display = "none"));
           });
-
-          // Clean up draggable stickers
-          clonedDoc.querySelectorAll<HTMLElement>(".sticker-mini-toolbar").forEach((tb) => {
-            tb.style.display = "none";
-          });
-          clonedDoc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((stk) => {
+          doc.querySelectorAll<HTMLElement>(".sticker-mini-toolbar").forEach((tb) => (tb.style.display = "none"));
+          doc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((stk) => {
             stk.classList.remove("is-selected", "is-dragging");
             stk.style.outline = "none";
             stk.style.background = "transparent";
@@ -1001,15 +969,11 @@ export default function PhotoboothClient() {
         },
       });
 
-      // Execute html2canvas captures in parallel
-      const [bgCanvas, overlayCanvas] = await Promise.all([
-        bgCanvasPromise,
-        overlayCanvasPromise,
-      ]);
+      const [bgCanvas, overlayCanvas] = await Promise.all([bgCanvasPromise, overlayCanvasPromise]);
 
-      // 3. Prepare slot dimensions, coordinates, and media elements
+      // ── Build slot info & collect video sources ──
+
       const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
-      const createdVideoElements: HTMLVideoElement[] = [];
 
       const slots = Array.from(cellElements).map((cell, idx) => {
         const cRect = cell.getBoundingClientRect();
@@ -1017,29 +981,30 @@ export default function PhotoboothClient() {
         const radius = (parseFloat(style.borderRadius) || 6) * exportScale;
         const photoObj = photos[idx];
 
+        // Use the EXISTING DOM <video> element (already playing in preview)
         let videoEl = cell.querySelector("video") as HTMLVideoElement | null;
+
+        // If no DOM video (e.g. live mode paused), create one from blob URL
         if (!videoEl && photoObj?.video) {
           videoEl = document.createElement("video");
           videoEl.src = photoObj.video;
-          createdVideoElements.push(videoEl);
-        }
-
-        if (videoEl) {
           videoEl.muted = true;
           videoEl.defaultMuted = true;
           videoEl.volume = 0;
           videoEl.loop = true;
           videoEl.playsInline = true;
-          if (!videoEl.parentNode) {
-            videoEl.style.position = "fixed";
-            videoEl.style.top = "-9999px";
-            videoEl.style.left = "-9999px";
-            videoEl.style.width = "1px";
-            videoEl.style.height = "1px";
-            videoEl.style.opacity = "0";
-            videoEl.style.pointerEvents = "none";
-            document.body.appendChild(videoEl);
-          }
+          videoEl.style.cssText =
+            "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none";
+          document.body.appendChild(videoEl);
+          cleanupElements.push(videoEl);
+        }
+
+        // Preload the still image as a guaranteed fallback
+        let fallbackImg: HTMLImageElement | null = null;
+        if (photoObj?.image) {
+          const img = new Image();
+          img.src = photoObj.image;
+          fallbackImg = img;
         }
 
         return {
@@ -1049,85 +1014,67 @@ export default function PhotoboothClient() {
           h: cRect.height * exportScale,
           radius,
           videoEl,
-          imgEl: cell.querySelector("img") as HTMLImageElement | null,
-          photo: photoObj,
-          fallbackImg: null as HTMLImageElement | null,
+          fallbackImg,
         };
       });
 
-      // Preload high-res fallback still images so a slot is NEVER blank/black
+      // Ensure all videos are playing before we start recording
       await Promise.all(
-        slots.map(
-          (slot) =>
-            new Promise<void>((resolve) => {
-              if (!slot.photo?.image) {
-                resolve();
-                return;
-              }
-              const img = new Image();
-              img.crossOrigin = "anonymous";
-              img.onload = () => {
-                slot.fallbackImg = img;
-                resolve();
-              };
-              img.onerror = () => resolve();
-              img.src = slot.photo.image;
-            })
-        )
-      );
-
-      // Synchronize video playback from start and ensure decoder begins decoding frames
-      await Promise.all(
-        slots.map((s) => {
-          if (!s.videoEl) return Promise.resolve();
-          const v = s.videoEl;
+        slots.map((slot) => {
+          if (!slot.videoEl) return Promise.resolve();
+          const v = slot.videoEl;
           v.muted = true;
           v.defaultMuted = true;
           v.volume = 0;
-          v.loop = true;
-          v.playsInline = true;
           v.currentTime = 0;
 
-          return new Promise<void>((res) => {
-            const tryPlay = () => {
-              v.play()
-                .then(() => res())
-                .catch(() => res());
+          return new Promise<void>((resolve) => {
+            const onReady = () => {
+              v.play().then(() => resolve()).catch(() => resolve());
             };
             if (v.readyState >= 2) {
-              tryPlay();
+              onReady();
             } else {
-              v.addEventListener("canplay", tryPlay, { once: true });
-              v.addEventListener("error", () => res(), { once: true });
-              setTimeout(res, 400);
+              v.addEventListener("canplay", onReady, { once: true });
+              v.addEventListener("error", () => resolve(), { once: true });
+              // Safety timeout — don't block forever
+              setTimeout(resolve, 800);
             }
           });
         })
       );
 
-      // Brief delay to allow video hardware decoder to seek and begin continuous playback
-      await new Promise((r) => setTimeout(r, 120));
+      // Allow one more tick so video decoders have definitely decoded at least one frame
+      await new Promise((r) => setTimeout(r, 200));
 
-      const stream = captureStreamFn.call(exportCanvas, 30);
-      const exportTrack = stream.getVideoTracks ? stream.getVideoTracks()[0] : null;
+      // ── Set up MediaRecorder with manual frame control ──
 
-      let mimeType = "video/webm";
-      if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
-        mimeType = "video/mp4;codecs=avc1";
-      } else if (MediaRecorder.isTypeSupported("video/mp4")) {
-        mimeType = "video/mp4";
-      } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp9")) {
-        mimeType = "video/webm;codecs=vp9";
-      } else if (MediaRecorder.isTypeSupported("video/webm;codecs=vp8")) {
+      // captureStream(0) = manual mode: frames only emitted when we call track.requestFrame()
+      const canvasStream = captureStreamFn.call(exportCanvas, 0);
+      const videoTrack = canvasStream.getVideoTracks()[0];
+
+      // Prefer WebM (far more reliable with MediaRecorder on desktop)
+      let mimeType = "video/webm;codecs=vp9";
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = "video/webm;codecs=vp8";
       }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = "video/webm";
+      }
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        // Last resort: try MP4
+        if (MediaRecorder.isTypeSupported("video/mp4;codecs=avc1")) {
+          mimeType = "video/mp4;codecs=avc1";
+        } else if (MediaRecorder.isTypeSupported("video/mp4")) {
+          mimeType = "video/mp4";
+        }
+      }
 
-      const recorder = new MediaRecorder(stream, {
+      const recorder = new MediaRecorder(canvasStream, {
         mimeType,
-        videoBitsPerSecond: 4500000,
+        videoBitsPerSecond: 4000000,
       });
       const chunks: Blob[] = [];
-
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) chunks.push(e.data);
       };
@@ -1136,108 +1083,104 @@ export default function PhotoboothClient() {
       let animId = 0;
       const filterStr = getFilterStyle();
 
-      const renderMasterFrame = () => {
-        if (!isRecording) return;
+      // ── The per-frame render function ──
 
+      const drawOneFrame = () => {
         ctx.clearRect(0, 0, exportWidth, exportHeight);
 
-        // Layer 1: Background, Headers, Footers
+        // Layer 1: Background
         ctx.drawImage(bgCanvas, 0, 0, exportWidth, exportHeight);
 
-        // Layer 2: Animated videos / Photos in each slot (with rounded rect clipping & center cover math)
+        // Layer 2: Videos/Photos in slots
         slots.forEach((slot) => {
           ctx.save();
+
+          // Clip to rounded slot bounds
           ctx.beginPath();
           if (typeof (ctx as any).roundRect === "function") {
             (ctx as any).roundRect(slot.x, slot.y, slot.w, slot.h, slot.radius);
           } else {
-            // Polyfill for smooth rounded corners
             const r = Math.min(slot.radius, slot.w / 2, slot.h / 2);
             ctx.moveTo(slot.x + r, slot.y);
-            ctx.lineTo(slot.x + slot.w - r, slot.y);
-            ctx.quadraticCurveTo(slot.x + slot.w, slot.y, slot.x + slot.w, slot.y + r);
-            ctx.lineTo(slot.x + slot.w, slot.y + slot.h - r);
-            ctx.quadraticCurveTo(slot.x + slot.w, slot.y + slot.h, slot.x + slot.w - r, slot.y + slot.h);
-            ctx.lineTo(slot.x + r, slot.y + slot.h);
-            ctx.quadraticCurveTo(slot.x, slot.y + slot.h, slot.x, slot.y + slot.h - r);
-            ctx.lineTo(slot.x, slot.y + r);
-            ctx.quadraticCurveTo(slot.x, slot.y, slot.x + r, slot.y);
+            ctx.arcTo(slot.x + slot.w, slot.y, slot.x + slot.w, slot.y + slot.h, r);
+            ctx.arcTo(slot.x + slot.w, slot.y + slot.h, slot.x, slot.y + slot.h, r);
+            ctx.arcTo(slot.x, slot.y + slot.h, slot.x, slot.y, r);
+            ctx.arcTo(slot.x, slot.y, slot.x + slot.w, slot.y, r);
           }
           ctx.clip();
 
-          // Prefer playing video with active frame data; fallback to crisp still photo
-          let media: CanvasImageSource | null = null;
+          // Pick the best available media source
+          let source: CanvasImageSource | null = null;
           if (slot.videoEl && slot.videoEl.readyState >= 2 && slot.videoEl.videoWidth > 0) {
-            media = slot.videoEl;
-            if (slot.videoEl.paused) {
-              slot.videoEl.play().catch(() => {});
-            }
-          } else {
-            media = slot.fallbackImg || slot.imgEl;
+            source = slot.videoEl;
+            // Re-trigger play if it got paused
+            if (slot.videoEl.paused) slot.videoEl.play().catch(() => {});
+          } else if (slot.fallbackImg && slot.fallbackImg.complete && slot.fallbackImg.naturalWidth > 0) {
+            source = slot.fallbackImg;
           }
 
-          if (media) {
-            const mw =
-              (media as HTMLVideoElement).videoWidth ||
-              (media as HTMLImageElement).naturalWidth ||
-              slot.w;
-            const mh =
-              (media as HTMLVideoElement).videoHeight ||
-              (media as HTMLImageElement).naturalHeight ||
-              slot.h;
+          if (source) {
+            const mw = (source as HTMLVideoElement).videoWidth || (source as HTMLImageElement).naturalWidth || slot.w;
+            const mh = (source as HTMLVideoElement).videoHeight || (source as HTMLImageElement).naturalHeight || slot.h;
             const mAspect = mw / mh;
             const slotAspect = slot.w / slot.h;
+            let sx = 0, sy = 0, sw = mw, sh = mh;
+            if (mAspect > slotAspect) { sw = mh * slotAspect; sx = (mw - sw) / 2; }
+            else { sh = mw / slotAspect; sy = (mh - sh) / 2; }
 
-            let sx = 0,
-              sy = 0,
-              sw = mw,
-              sh = mh;
-            if (mAspect > slotAspect) {
-              sw = mh * slotAspect;
-              sx = (mw - sw) / 2;
-            } else {
-              sh = mw / slotAspect;
-              sy = (mh - sh) / 2;
-            }
-
-            // Apply tone filter if active
-            if (filterStr && filterStr !== "none" && "filter" in ctx) {
-              ctx.filter = filterStr;
-            }
-
-            ctx.drawImage(media, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
+            if (filterStr && filterStr !== "none" && "filter" in ctx) ctx.filter = filterStr;
+            ctx.drawImage(source, sx, sy, sw, sh, slot.x, slot.y, slot.w, slot.h);
             ctx.filter = "none";
           } else {
             ctx.fillStyle = "#18181c";
             ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
           }
+
           ctx.restore();
         });
 
-        // Layer 3: Overlay (borders, washi tape, kraft stickers, user stickers) on top!
+        // Layer 3: Overlay
         ctx.drawImage(overlayCanvas, 0, 0, exportWidth, exportHeight);
-
-        // Force hardware capture track to process the new frame
-        if (exportTrack && typeof (exportTrack as any).requestFrame === "function") {
-          (exportTrack as any).requestFrame();
-        }
-
-        animId = requestAnimationFrame(renderMasterFrame);
       };
 
-      const cleanupExport = () => {
-        createdVideoElements.forEach((el) => {
-          if (el.parentNode) el.parentNode.removeChild(el);
-        });
-        if (exportCanvas.parentNode) {
-          exportCanvas.parentNode.removeChild(exportCanvas);
+      // Draw a few warm-up frames BEFORE starting the recorder
+      // (primes the canvas pipeline and video decoders)
+      for (let i = 0; i < 5; i++) {
+        drawOneFrame();
+        if (videoTrack && typeof videoTrack.requestFrame === "function") {
+          videoTrack.requestFrame();
         }
+        await new Promise((r) => setTimeout(r, 33)); // ~30fps
+      }
+
+      // ── Start recording ──
+      recorder.start();
+
+      const renderLoop = () => {
+        if (!isRecording) return;
+        drawOneFrame();
+
+        // Manually push this frame into the MediaRecorder stream
+        if (videoTrack && typeof videoTrack.requestFrame === "function") {
+          videoTrack.requestFrame();
+        }
+
+        animId = requestAnimationFrame(renderLoop);
       };
 
-      recorder.onstop = () => {
+      renderLoop();
+
+      // Stop after ~3 seconds
+      setTimeout(() => {
         isRecording = false;
         cancelAnimationFrame(animId);
-        cleanupExport();
+        if (recorder.state === "recording") {
+          recorder.stop();
+        }
+      }, 3000);
+
+      recorder.onstop = () => {
+        cleanup();
         const blob = new Blob(chunks, { type: mimeType });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
@@ -1247,21 +1190,11 @@ export default function PhotoboothClient() {
         triggerHaptic(50);
         setIsExporting(false);
       };
-
-      recorder.start(100);
-      renderMasterFrame();
-
-      setTimeout(() => {
-        isRecording = false;
-        if (recorder.state === "recording") {
-          recorder.stop();
-        }
-      }, 3200); // 3.2 seconds animated video loop
     } catch (err) {
       console.error("Live video export error:", err);
-      alert(
-        "Terjadi kendala saat merender video bergerak. Mengunduh format PNG sebagai gantinya."
-      );
+      cleanup();
+      setIsExporting(false);
+      alert("Terjadi kendala saat merender video bergerak. Mengunduh format PNG sebagai gantinya.");
       handleDownloadStrip("strip");
     }
   };
