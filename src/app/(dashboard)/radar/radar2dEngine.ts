@@ -223,7 +223,7 @@ export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOp
   const agentNodes = alumniData.filter(n => n.type !== 'center');
   let filteredAgents = [...agentNodes];
 
-  // 1. Initialize Leaflet Map with dragging & touch gestures guaranteed
+  // 1. Initialize Leaflet Map with dragging & touch gestures guaranteed + high performance
   const map = (L.map as any)(elem, {
     zoomControl: false,
     dragging: true,
@@ -233,7 +233,19 @@ export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOp
     doubleClickZoom: true,
     boxZoom: true,
     keyboard: true,
-    bounceAtZoomLimits: true
+    bounceAtZoomLimits: true,
+    // Performa tinggi: render marker ke canvas HTML5 (bukan ratusan elemen DOM SVG yang berat)
+    preferCanvas: true,
+    wheelDebounceTime: 40,
+    wheelPxPerZoomLevel: 60,
+    inertia: true,
+    inertiaDeceleration: 3400,
+    inertiaMaxSpeed: 1600,
+    easeLinearity: 0.2,
+    zoomAnimation: true,
+    fadeAnimation: true,
+    markerZoomAnimation: true,
+    transform3DLimit: 2 ** 23,
   }).setView([CENTER.lat, CENTER.lng], initialZoom) as LType.Map;
 
   if (map.dragging) {
@@ -251,14 +263,18 @@ export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOp
   setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 100);
   setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 400);
 
-  // 2. Attach Tile Layer
+  // 2. Attach Tile Layer dengan caching & buffering tinggi
   const { tileUrl, tileAttribution, layerMaxZoom, nativeZoom } = getTileConfig(style);
   map.options.maxZoom = layerMaxZoom;
 
   const tileLayer = L.tileLayer(tileUrl, {
     attribution: tileAttribution,
     maxZoom: layerMaxZoom,
-    maxNativeZoom: nativeZoom
+    maxNativeZoom: nativeZoom,
+    keepBuffer: 3, // Cache 3 baris tile di sekitar viewport agar tidak re-fetch/stutter saat digeser
+    updateWhenIdle: false, // Update tile secara mulus saat panning
+    updateWhenZooming: false, // Hindari beban berat saat animasi zoom sedang berjalan
+    updateInterval: 100, // Debounce pemuatan tile saat drag
   }).addTo(map);
 
   // Hide loading spinner as soon as tiles load or after short safety timeout
@@ -270,7 +286,7 @@ export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOp
     }
   };
 
-  tileLayer.on('load', hideLoader);
+  tileLayer.once('load', hideLoader);
   setTimeout(hideLoader, 400);
 
   // 3. Render Markers & Layer Group

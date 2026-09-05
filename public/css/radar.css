@@ -1,4 +1,13 @@
 /* ===== GLOBE & MAP ===== */
+/* Matikan efek background berat (film grain, aurora blur, partikel canvas, custom cursor) untuk rendering 60fps tanpa lag */
+body.page-radar .film-grain,
+body.page-radar .aurora-container,
+body.page-radar #particles-js,
+body.page-radar .cursor-dot,
+body.page-radar .cursor-ring {
+    display: none !important;
+}
+
 #globeViz { position:fixed; inset:0; width:100vw; height:100vh; z-index:2; cursor:grab; }
 #globeViz:active { cursor:grabbing; }
 #mapViz { 
@@ -14,6 +23,10 @@
     user-select: none;
     -webkit-user-select: none;
     pointer-events: auto !important;
+    contain: layout paint size;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
 }
 #mapViz:active,
 #mapViz.leaflet-drag-target { 
@@ -32,6 +45,26 @@
 }
 #mapViz .leaflet-grabbing { 
     cursor: grabbing; 
+}
+.leaflet-map-pane {
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+.leaflet-tile-pane {
+    will-change: transform;
+}
+.leaflet-tile {
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+}
+.leaflet-overlay-pane canvas {
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 #mapViz .leaflet-overlay-pane svg {
     pointer-events: none !important;

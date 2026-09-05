@@ -95,11 +95,25 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const cursorRing = document.getElementById("cursorRing");
     if (!cursorDot || !cursorRing) return;
 
+    let rafId: number | null = null;
+    let mouseX = 0;
+    let mouseY = 0;
+
     const moveCursor = (e: MouseEvent) => {
-      cursorDot.style.left = e.clientX + "px";
-      cursorDot.style.top = e.clientY + "px";
-      cursorRing.style.left = e.clientX + "px";
-      cursorRing.style.top = e.clientY + "px";
+      // Lewati update DOM jika di halaman radar atau sovereign agar drag 100% responsif tanpa layout thrashing
+      if (document.body.classList.contains("page-radar") || document.body.classList.contains("page-sovereign")) return;
+
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          cursorDot.style.left = mouseX + "px";
+          cursorDot.style.top = mouseY + "px";
+          cursorRing.style.left = mouseX + "px";
+          cursorRing.style.top = mouseY + "px";
+          rafId = null;
+        });
+      }
     };
     document.addEventListener("mousemove", moveCursor);
 
@@ -119,6 +133,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     });
 
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       document.removeEventListener("mousemove", moveCursor);
       interactiveEls.forEach((el) => {
         el.removeEventListener("mouseenter", handleMouseEnter);
@@ -168,6 +183,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     let animId: number;
     const animate = () => {
+      // Lewati render jika di halaman radar atau sovereign agar GPU fokus pada peta/globe
+      if (document.body.classList.contains("page-radar") || document.body.classList.contains("page-sovereign")) {
+        animId = requestAnimationFrame(animate);
+        return;
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach((p) => {
         p.y += p.speedY;

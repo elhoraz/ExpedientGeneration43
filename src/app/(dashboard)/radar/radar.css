@@ -1,4 +1,13 @@
 /* ===== GLOBE & MAP - SCOPED ===== */
+/* Matikan efek background berat (film grain, aurora blur, partikel canvas, custom cursor) untuk rendering 60fps tanpa lag */
+body.page-radar .film-grain,
+body.page-radar .aurora-container,
+body.page-radar #particles-js,
+body.page-radar .cursor-dot,
+body.page-radar .cursor-ring {
+    display: none !important;
+}
+
 body.page-radar #globeViz { position:fixed; inset:0; width:100vw; height:100vh; z-index:2; cursor:grab; }
 body.page-radar #globeViz:active { cursor:grabbing; }
 body.page-radar #mapViz { 
@@ -14,6 +23,10 @@ body.page-radar #mapViz {
     user-select: none;
     -webkit-user-select: none;
     pointer-events: auto !important;
+    contain: layout paint size;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
 }
 body.page-radar #mapViz:active,
 body.page-radar #mapViz.leaflet-drag-target { 
@@ -32,6 +45,26 @@ body.page-radar #mapViz .leaflet-grab {
 }
 body.page-radar #mapViz .leaflet-grabbing { 
     cursor: grabbing; 
+}
+body.page-radar .leaflet-map-pane {
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+}
+body.page-radar .leaflet-tile-pane {
+    will-change: transform;
+}
+body.page-radar .leaflet-tile {
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+    -webkit-transform: translate3d(0, 0, 0);
+}
+body.page-radar .leaflet-overlay-pane canvas {
+    will-change: transform;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
 }
 body.page-radar #mapViz .leaflet-overlay-pane svg {
     pointer-events: none !important;

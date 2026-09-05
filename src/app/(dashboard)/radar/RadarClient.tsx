@@ -21,6 +21,10 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
 
   useEffect(() => {
     setIsClient(true);
+    document.body.classList.add('page-radar');
+    return () => {
+      document.body.classList.remove('page-radar');
+    };
   }, []);
 
   useEffect(() => {
