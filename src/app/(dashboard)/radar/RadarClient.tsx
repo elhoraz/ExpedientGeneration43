@@ -106,7 +106,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             </>
         ) : (
             <>
-                <div id="mapViz" style={{ position: 'fixed', inset: 0, zIndex: 2, background: '#080b10', cursor: 'grab' }}></div>
+                <div id="mapViz" style={{ position: 'fixed', inset: 0, zIndex: 2, background: '#080b10', cursor: 'grab', touchAction: 'none' }}></div>
             </>
         )}
 
@@ -221,7 +221,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                     strategy="afterInteractive" 
                 />
                 <Script 
-                    src="/assets/js/radar-2d.js?v=2.3" 
+                    src="/assets/js/radar-2d.js?v=2.4" 
                     strategy="afterInteractive" 
                     onLoad={() => {
                         if (typeof (window as any).initRadar2D === 'function') {

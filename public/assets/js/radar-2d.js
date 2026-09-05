@@ -44,6 +44,148 @@ function initRadar2D() {
     
     const style = window.__mapStyle || 'classic';
 
+    // ===== UTILS & HELPERS =====
+    const haversine = (a, b) => {
+        if (!a || !b || !a.lat || !b.lat) return 0;
+        const R = 6371, toR = Math.PI / 180;
+        const dLat = (b.lat - a.lat) * toR, dLng = (b.lng - a.lng) * toR;
+        const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * toR) * Math.cos(b.lat * toR) * Math.sin(dLng / 2) ** 2;
+        return Math.round(R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)));
+    };
+
+    const animateNum = (el, target, suffix = '') => {
+        if (!el) return;
+        if (target === 0) { el.innerText = '0' + suffix; return; }
+        let cur = 0; const step = Math.max(1, Math.ceil(target / 40));
+        const iv = setInterval(() => { cur += step; if (cur >= target) { cur = target; clearInterval(iv); } el.innerText = cur + suffix; }, 30);
+    };
+
+    const updateStats = (agents) => {
+        const uniqueCities = new Set(agents.map(n => n.city)).size;
+        let maxDist = 0;
+        agents.forEach(a => { const d = haversine(CENTER, a); if (d > maxDist) maxDist = d; });
+        animateNum(document.getElementById('sTotal'), agents.length);
+        animateNum(document.getElementById('sArea'), uniqueCities);
+        animateNum(document.getElementById('sFar'), maxDist);
+    };
+
+    const buildLeaderboard = (agents) => {
+        const counts = {};
+        agents.forEach(a => { const c = a.city || 'Unknown'; counts[c] = (counts[c] || 0) + 1; });
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        const max = sorted[0]?.[1] || 1;
+        const lbEl = document.getElementById('lbContent');
+        if (lbEl) {
+            lbEl.innerHTML = sorted.map(([city, count], i) =>
+                `<div class="lb-row">
+                    <span class="lb-rank">${i + 1}</span>
+                    <span class="lb-city">${city.length > 18 ? city.substring(0, 18) + '…' : city}</span>
+                    <div class="lb-bar-wrap"><div class="lb-bar" style="width:${(count / max) * 100}%"></div></div>
+                    <span class="lb-count">${count}</span>
+                </div>`
+            ).join('');
+        }
+    };
+
+    let allMarkers = {};
+
+    const openDrawer = (d) => {
+        const idAvatar = document.getElementById('idAvatar');
+        const idName = document.getElementById('idName');
+        const idNick = document.getElementById('idNick');
+        const idCity = document.getElementById('idCity');
+        const idGender = document.getElementById('idGender');
+        const idDist = document.getElementById('idDist');
+        const idWa = document.getElementById('idWa');
+        const idProfile = document.getElementById('idProfile');
+
+        if (idAvatar) idAvatar.src = d.foto ? '/uploads/profiles/' + d.foto : '/images/default-avatar.webp';
+        if (idName) idName.textContent = d.name;
+        if (idNick) idNick.textContent = d.nick ? '"' + d.nick + '"' : '';
+        if (idCity) idCity.textContent = d.city;
+        if (idGender) idGender.textContent = d.gender || '-';
+        if (idDist) idDist.textContent = haversine(CENTER, d) + ' km';
+        if (idWa) {
+            if (d.wa) { idWa.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); idWa.style.display = 'flex'; }
+            else { idWa.style.display = 'none'; }
+        }
+        if (idProfile) idProfile.href = '/syndicate';
+        
+        const drawer = document.getElementById('infoDrawer');
+        const overlay = document.getElementById('idOverlay');
+        if (drawer) drawer.classList.add('open');
+        if (overlay) overlay.classList.add('open');
+        
+        const activeMap = window.__leafletMap;
+        if (activeMap) {
+            activeMap.flyTo([d.lat, d.lng], 12, { animate: true, duration: 1.5 });
+        }
+    };
+
+    const closeDrawer = () => { 
+        const drawer = document.getElementById('infoDrawer');
+        const overlay = document.getElementById('idOverlay');
+        if (drawer) drawer.classList.remove('open'); 
+        if (overlay) overlay.classList.remove('open'); 
+    };
+
+    const renderMarkers = (agents) => {
+        const activeMap = window.__leafletMap;
+        if (!activeMap) return;
+        if (!window.__leafletMarkerGroup) {
+            window.__leafletMarkerGroup = L.layerGroup().addTo(activeMap);
+        }
+        const markerLayerGroup = window.__leafletMarkerGroup;
+        markerLayerGroup.clearLayers();
+        allMarkers = {};
+
+        // Render Center Node First
+        const centerMarker = L.circleMarker([centerNode.lat, centerNode.lng], {
+            radius: 8,
+            fillColor: '#d4af37',
+            color: '#ffffff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(markerLayerGroup);
+        
+        centerMarker.bindPopup(`<b>${centerNode.name}</b><br/>${centerNode.city}`);
+
+        // Render Agents
+        agents.forEach(a => {
+            if (!a.lat || !a.lng) return;
+            
+            let fillColor = '#ffffff';
+            let strokeColor = '#d4af37';
+            
+            if (style === 'minimalist' || style === 'classic') {
+                fillColor = '#d4af37';
+                strokeColor = '#ffffff';
+            }
+
+            const marker = L.circleMarker([a.lat, a.lng], {
+                radius: 5,
+                fillColor: fillColor,
+                color: strokeColor,
+                weight: 1.5,
+                opacity: 0.8,
+                fillOpacity: 0.8
+            }).addTo(markerLayerGroup);
+
+            marker.bindTooltip(`<b>${a.name}</b><br/><i class="fa-solid fa-location-dot" style="color:#d4af37;"></i> ${a.city}`, {
+                className: 'globe-tooltip', 
+                direction: 'top',
+                offset: [0, -10]
+            });
+
+            marker.on('click', () => {
+                openDrawer(a);
+            });
+
+            allMarkers[a.id] = marker;
+        });
+    };
+
     // ===== GUARD: IF MAP ALREADY RUNNING WITH SAME STYLE, AVOID DUPLICATION =====
     if (window.__leafletMap && window.__currentMapStyle === style) {
         try {
@@ -54,7 +196,9 @@ function initRadar2D() {
                 window.__leafletMap.dragging.enable();
             }
             window.__leafletMap.invalidateSize();
-        } catch(e) {}
+        } catch(e) {
+            console.warn("Notice updating map:", e);
+        }
         const rl = document.getElementById('radarLoading');
         if (rl) { rl.style.opacity = '0'; setTimeout(() => { if (rl) rl.style.display = 'none'; }, 300); }
         return;
@@ -259,113 +403,19 @@ function initRadar2D() {
     // Force map component to limit zooming strictly
     map.options.maxZoom = layerMaxZoom;
 
-    L.tileLayer(tileUrl, {
+    const tileLayer = L.tileLayer(tileUrl, {
         attribution: tileAttribution,
         maxZoom: layerMaxZoom,
         maxNativeZoom: nativeZoom
     }).addTo(map);
 
-    // ===== UTILS =====
-    const haversine = (a, b) => {
-        if (!a || !b || !a.lat || !b.lat) return 0;
-        const R = 6371, toR = Math.PI / 180;
-        const dLat = (b.lat - a.lat) * toR, dLng = (b.lng - a.lng) * toR;
-        const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * toR) * Math.cos(b.lat * toR) * Math.sin(dLng / 2) ** 2;
-        return Math.round(R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)));
-    };
+    // Dismiss loading screen as soon as tiles start arriving
+    tileLayer.on('load', () => {
+        const rl = document.getElementById('radarLoading');
+        if (rl) { rl.style.opacity = '0'; setTimeout(() => { if (rl) rl.style.display = 'none'; }, 300); }
+    });
 
-    // ===== 4. ANIMATED STATS =====
-    const animateNum = (el, target, suffix = '') => {
-        if (!el) return;
-        if (target === 0) { el.innerText = '0' + suffix; return; }
-        let cur = 0; const step = Math.max(1, Math.ceil(target / 40));
-        const iv = setInterval(() => { cur += step; if (cur >= target) { cur = target; clearInterval(iv); } el.innerText = cur + suffix; }, 30);
-    };
-    const updateStats = (agents) => {
-        const uniqueCities = new Set(agents.map(n => n.city)).size;
-        let maxDist = 0;
-        agents.forEach(a => { const d = haversine(CENTER, a); if (d > maxDist) maxDist = d; });
-        animateNum(document.getElementById('sTotal'), agents.length);
-        animateNum(document.getElementById('sArea'), uniqueCities);
-        animateNum(document.getElementById('sFar'), maxDist);
-    };
-
-    // ===== 12. LEADERBOARD =====
-    const buildLeaderboard = (agents) => {
-        const counts = {};
-        agents.forEach(a => { const c = a.city || 'Unknown'; counts[c] = (counts[c] || 0) + 1; });
-        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-        const max = sorted[0]?.[1] || 1;
-        const lbEl = document.getElementById('lbContent');
-        lbEl.innerHTML = sorted.map(([city, count], i) =>
-            `<div class="lb-row">
-                <span class="lb-rank">${i + 1}</span>
-                <span class="lb-city">${city.length > 18 ? city.substring(0, 18) + '…' : city}</span>
-                <div class="lb-bar-wrap"><div class="lb-bar" style="width:${(count / max) * 100}%"></div></div>
-                <span class="lb-count">${count}</span>
-            </div>`
-        ).join('');
-    };
-
-    // ===== RENDERING MARKERS =====
-    let markerLayerGroup = L.layerGroup().addTo(map);
-    let allMarkers = {}; // Store reference to markers by ID
-
-    const renderMarkers = (agents) => {
-        markerLayerGroup.clearLayers();
-        allMarkers = {};
-
-        // Render Center Node First
-        const centerMarker = L.circleMarker([centerNode.lat, centerNode.lng], {
-            radius: 8,
-            fillColor: '#d4af37',
-            color: '#ffffff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.9
-        }).addTo(markerLayerGroup);
-        
-        centerMarker.bindPopup(`<b>${centerNode.name}</b><br/>${centerNode.city}`);
-
-        // Render Agents
-        agents.forEach(a => {
-            if (!a.lat || !a.lng) return;
-            
-            // Adjust marker color based on map style for better visibility
-            let fillColor = '#ffffff';
-            let strokeColor = '#d4af37';
-            
-            if (style === 'minimalist' || style === 'classic') {
-                fillColor = '#d4af37';
-                strokeColor = '#ffffff';
-            }
-
-            const marker = L.circleMarker([a.lat, a.lng], {
-                radius: 5,
-                fillColor: fillColor,
-                color: strokeColor,
-                weight: 1.5,
-                opacity: 0.8,
-                fillOpacity: 0.8
-            }).addTo(markerLayerGroup);
-
-            // Bind tooltip (hover)
-            marker.bindTooltip(`<b>${a.name}</b><br/><i class="fa-solid fa-location-dot" style="color:#d4af37;"></i> ${a.city}`, {
-                className: 'globe-tooltip', 
-                direction: 'top',
-                offset: [0, -10]
-            });
-
-            // On click
-            marker.on('click', () => {
-                openDrawer(a);
-            });
-
-            allMarkers[a.id] = marker;
-        });
-    };
-
-    // ===== 1. CINEMATIC LOADING =====
+    // ===== 1. CINEMATIC LOADING & INITIAL RENDER =====
     setTimeout(() => {
         try {
             renderMarkers(filteredAgents);
@@ -380,45 +430,11 @@ function initRadar2D() {
                 setTimeout(() => { if(rl) rl.style.display = 'none'; }, 400);
             }
         }
-    }, 350);
+    }, 250);
 
-    // ===== 2. INFO DRAWER =====
-    const drawer = document.getElementById('infoDrawer');
-    const overlay = document.getElementById('idOverlay');
-    const openDrawer = (d) => {
-        const idAvatar = document.getElementById('idAvatar');
-        const idName = document.getElementById('idName');
-        const idNick = document.getElementById('idNick');
-        const idCity = document.getElementById('idCity');
-        const idGender = document.getElementById('idGender');
-        const idDist = document.getElementById('idDist');
-        const idWa = document.getElementById('idWa');
-        const idProfile = document.getElementById('idProfile');
-
-        if (idAvatar) idAvatar.src = d.foto ? '/uploads/profiles/' + d.foto : '/images/default-avatar.webp';
-        if (idName) idName.textContent = d.name;
-        if (idNick) idNick.textContent = d.nick ? '"' + d.nick + '"' : '';
-        if (idCity) idCity.textContent = d.city;
-        if (idGender) idGender.textContent = d.gender || '-';
-        if (idDist) idDist.textContent = haversine(CENTER, d) + ' km';
-        if (idWa) {
-            if (d.wa) { idWa.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); idWa.style.display = 'flex'; }
-            else { idWa.style.display = 'none'; }
-        }
-        if (idProfile) idProfile.href = '/syndicate';
-        
-        if (drawer) drawer.classList.add('open');
-        if (overlay) overlay.classList.add('open');
-        
-        // 9. FLY TO MARKER
-        map.flyTo([d.lat, d.lng], 12, { animate: true, duration: 1.5 });
-    };
-    const closeDrawer = () => { 
-        if (drawer) drawer.classList.remove('open'); 
-        if (overlay) overlay.classList.remove('open'); 
-    };
     const idCloseBtn = document.getElementById('idClose');
     if (idCloseBtn) idCloseBtn.addEventListener('click', closeDrawer);
+    const overlay = document.getElementById('idOverlay');
     if (overlay) overlay.addEventListener('click', closeDrawer);
 
     // ===== 3. SEARCH =====

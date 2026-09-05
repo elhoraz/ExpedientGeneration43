@@ -19,6 +19,7 @@
 #mapViz.leaflet-drag-target { 
     cursor: grabbing; 
 }
+#mapViz.leaflet-container,
 #mapViz .leaflet-container { 
     cursor: grab; 
     touch-action: none !important;

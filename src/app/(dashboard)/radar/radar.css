@@ -19,6 +19,7 @@ body.page-radar #mapViz:active,
 body.page-radar #mapViz.leaflet-drag-target { 
     cursor: grabbing; 
 }
+body.page-radar #mapViz.leaflet-container,
 body.page-radar #mapViz .leaflet-container { 
     cursor: grab; 
     touch-action: none !important;
