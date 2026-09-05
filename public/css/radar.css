@@ -24,8 +24,8 @@
     cursor: grab; 
     touch-action: none !important;
     -ms-touch-action: none !important;
-    width: 100% !important;
-    height: 100% !important;
+    width: 100vw !important;
+    height: 100vh !important;
 }
 #mapViz .leaflet-grab { 
     cursor: grab; 

@@ -5,6 +5,7 @@ import Script from "next/script";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { mountRadar2D, destroyRadar2D } from "./radar2dEngine";
 import "leaflet/dist/leaflet.css";
 import "./radar.css";
 
@@ -19,6 +20,10 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
   const supabase = createClient();
 
   useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
         if (!(e.target as Element).closest('.map-dropdown-wrap')) {
             setIsMapMenuOpen(false);
@@ -29,7 +34,8 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
   }, []);
 
   useEffect(() => {
-    setIsClient(true);
+    if (!isClient) return;
+
     (window as any).__radarData = nodes;
     (window as any).__mapStyle = mapStyle;
 
@@ -40,6 +46,15 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
     if (sessionStorage.getItem('aegis_transit')) {
         const loader = document.getElementById('radarLoading');
         if (loader) loader.style.display = 'none';
+    }
+
+    // Mount 2D Leaflet map natively if in 2D mode
+    if (!is3DMode) {
+        mountRadar2D({
+            containerId: 'mapViz',
+            nodes,
+            style: mapStyle,
+        });
     }
 
     // Supabase Realtime for location updates
@@ -69,25 +84,15 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         }
     }, 2500);
 
-    // Trigger 2D radar init if already loaded on client
-    if (!is3DMode && typeof (window as any).initRadar2D === 'function') {
-        (window as any).initRadar2D();
-    }
-
     return () => {
       clearTimeout(failsafeTimer);
       supabase.removeChannel(channel);
-      // Hapus class saat keluar halaman radar
       document.body.classList.remove('page-radar');
-      if (typeof window !== 'undefined' && (window as any).__leafletMap) {
-        try {
-          (window as any).__leafletMap.off();
-          (window as any).__leafletMap.remove();
-        } catch(e) {}
-        (window as any).__leafletMap = null;
+      if (!is3DMode) {
+        destroyRadar2D();
       }
     };
-  }, [nodes, mapStyle, is3DMode]);
+  }, [isClient, nodes, mapStyle, is3DMode]);
 
   if (!isClient) return null;
 
@@ -209,26 +214,10 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             </div>
         </div>
 
-        {is3DMode ? (
+        {is3DMode && (
             <>
                 <Script src="/vendor/globe/globe.gl.min.js" strategy="afterInteractive" />
                 <Script src="/assets/js/radar-globe.js?v=2.0" strategy="afterInteractive" />
-            </>
-        ) : (
-            <>
-                <Script 
-                    src="/vendor/leaflet/leaflet.js" 
-                    strategy="afterInteractive" 
-                />
-                <Script 
-                    src="/assets/js/radar-2d.js?v=2.5" 
-                    strategy="afterInteractive" 
-                    onLoad={() => {
-                        if (typeof (window as any).initRadar2D === 'function') {
-                            (window as any).initRadar2D();
-                        }
-                    }}
-                />
             </>
         )}
     </>
