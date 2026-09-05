@@ -141,13 +141,10 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
                     
                     {filteredAlumni.map((user) => {
                         const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
-                        // Simple hash simulation for serial (CI4 used md5, we will just use padded id)
-                        const serial = `ID-42.${String(user.id).padStart(4, "0")}`;
 
                         return (
                             <div key={user.id} className="swiper-slide alumni-slide">
                                 <div className="luminary-card">
-                                    <div className="agent-serial">{serial}</div>
                                     <div className="photo-ring">
                                         <Image 
                                             src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto} 

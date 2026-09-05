@@ -98,9 +98,8 @@ body.page-direktori .direktori-container,
 [data-theme="light"] .direktori-container .card-quote { color: #2d3e36; }
 [data-theme="light"] .direktori-container .agent-serial { color: #7a8b84; }
 
-/* Serial Number */
-.direktori-container .agent-serial { position: absolute; top: 18px; right: 20px; font-family: 'Courier New', monospace; font-size: 0.68rem; color: #a8b8c5; letter-spacing: 2px; opacity: 0; font-weight: 600; transition: opacity 0.5s ease; }
-.direktori-container .swiper-slide-active .agent-serial { opacity: 0.95; color: #f3e5ab; }
+/* Serial Number (Hidden) */
+.direktori-container .agent-serial { display: none !important; }
 
 /* Foto Profil */
 .direktori-container .photo-ring { width: 130px; height: 130px; margin: 0 auto 20px auto; border-radius: 50%; padding: 4px; background: linear-gradient(135deg, #d4af37, transparent, #d4af37); position: relative; transition: all 0.5s ease; filter: grayscale(80%) opacity(0.8); }
