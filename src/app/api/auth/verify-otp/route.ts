@@ -28,7 +28,9 @@ export async function POST(request: Request) {
     );
 
     // 1. Cari user di Supabase Auth
-    const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers();
+    const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers({
+      perPage: 1000,
+    });
     if (listError) {
       return NextResponse.json({ error: listError.message }, { status: 500 });
     }

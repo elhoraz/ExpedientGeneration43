@@ -29,7 +29,9 @@ export async function POST(request: Request) {
     );
 
     // 1. Cari user di Supabase Auth
-    const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers();
+    const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers({
+      perPage: 1000,
+    });
     if (listError) {
       return NextResponse.json({ error: listError.message }, { status: 500 });
     }
@@ -250,26 +252,72 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
 </html>
     `;
 
-    // Saluran Gmail: Panggil Supabase Auth Resend (yang menggunakan custom SMTP Gmail Anda)
+    // Kirim email HTML via Direct Gmail SMTP (dengan fallback Resend jika dikonfigurasi)
+    let emailSent = false;
     try {
-      await adminSupabase.auth.resend({
-        type: "signup",
-        email,
-      });
-    } catch (sbErr: any) {
-      console.warn("Supabase Auth resend via Gmail SMTP note:", sbErr?.message || sbErr);
-    }
-
-    // Juga kirim email format HTML dengan template mewah
-    try {
-      await sendEmail({
+      emailSent = await sendEmail({
         to: email,
         subject: `[${otp}] Kode Verifikasi Akun Expedient Generation`,
         body: `Kode OTP verifikasi akun Anda adalah: ${otp}. Berlaku selama 10 menit.`,
         html: emailHtml,
       });
     } catch (mailErr: any) {
-      console.warn("Secondary Resend email note:", mailErr?.message || mailErr);
+      console.error("[SEND-OTP] Email sending error:", mailErr);
+      emailSent = false;
+    }
+
+    // Jika pengiriman email gagal, lakukan fallback otomatis ke WhatsApp jika nomor tersedia
+    if (!emailSent) {
+      console.warn(`[SEND-OTP] Gagal mengirim email ke ${email}. Menjalankan fallback otomatis ke WhatsApp...`);
+      if (noWa) {
+        const waMessage = `✨ *KODE VERIFIKASI EXPEDIENT GENERATION* ✨
+
+*Assalamu'alaikum Warahmatullahi Wabarakatuh*
+
+Halo *${namaPengguna}*, pengiriman kode verifikasi ke Gmail (${email}) mengalami kendala jaringan. Demi kenyamanan Anda, kami alihkan kode OTP langsung ke WhatsApp ini:
+
+🔑 *KODE OTP ANDA:*
+*${otp}*
+
+_Kode ini bersifat rahasia dan berlaku selama 10 menit._
+
+Silakan masukkan 6 digit angka di atas pada formulir portal untuk menyelesaikan pendaftaran.
+
+*Wassalamu'alaikum Warahmatullahi Wabarakatuh*
+*Expedient Generation — 43rd Arrisalah*`;
+
+        const waSent = await sendWhatsAppMessage(noWa, waMessage);
+        if (waSent) {
+          // Perbarui metadata kanal OTP menjadi whatsapp
+          await adminSupabase.auth.admin.updateUserById(user.id, {
+            user_metadata: {
+              ...user.user_metadata,
+              otp_code: otp,
+              otp_expires_at: expiresAt,
+              otp_channel: "whatsapp",
+              otp_sent_at: Date.now(),
+              otp_attempts: 0,
+            },
+          });
+
+          const cleanNum = noWa.replace(/\D/g, "");
+          const masked = cleanNum.length > 6 
+            ? cleanNum.substring(0, 4) + "****" + cleanNum.substring(cleanNum.length - 3)
+            : cleanNum;
+
+          return NextResponse.json({
+            success: true,
+            channel: "whatsapp",
+            target: masked,
+            message: `Pengiriman ke Gmail mengalami kendala. Kode OTP berhasil dialihkan dan dikirimkan ke WhatsApp Anda (${masked})!`,
+          });
+        }
+      }
+
+      return NextResponse.json(
+        { error: "Gagal mengirimkan email verifikasi ke Gmail Anda. Mohon gunakan saluran pengiriman 'Kirim via WhatsApp' atau coba lagi beberapa saat lagi." },
+        { status: 500 }
+      );
     }
 
     // Mask email for response (e.g. da***@gmail.com)

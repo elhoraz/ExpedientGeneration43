@@ -397,6 +397,32 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
     transform: translateY(-2px);
 }
 
+.otp-email-hint {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 8px;
+    padding: 9px 13px;
+    margin: 12px 0 16px;
+    font-size: 0.76rem;
+    color: #cbd5e1;
+    line-height: 1.45;
+    text-align: left;
+}
+
+.otp-email-hint i {
+    color: #ffd700;
+    margin-top: 2px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+}
+
+.otp-email-hint strong {
+    color: #ffd700;
+}
+
 .otp-error-text {
     font-size: 0.8rem;
     color: #ff4d6d;

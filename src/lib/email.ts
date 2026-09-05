@@ -19,22 +19,24 @@ interface EmailPayload {
  */
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
   const smtpUser = process.env.SMTP_USER || "expedientgeneration43@gmail.com";
-  const smtpPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "").replace(/\s/g, "");
+  // Fallback ke app password Gmail jika env var belum terpasang di Vercel
+  const smtpPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "wxgyxvfurathwfez").replace(/\s/g, "");
 
-  // 1. PRIMARY: Send directly via Gmail SMTP
+  // 1. PRIMARY: Kirim langsung via Gmail SMTP menggunakan Nodemailer
   if (smtpPass) {
     try {
       const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: Number(process.env.SMTP_PORT || 465),
-        secure: true,
+        service: "gmail",
         auth: {
           user: smtpUser,
           pass: smtpPass,
         },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
       });
 
-      await transporter.sendMail({
+      const info = await transporter.sendMail({
         from: `Expedient Generation <${smtpUser}>`,
         to: payload.to,
         subject: payload.subject,
@@ -42,9 +44,10 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
         html: payload.html || payload.body.replace(/\n/g, "<br/>"),
       });
 
+      console.log(`[SMTP-SUCCESS] Email berhasil dikirim ke: ${payload.to} | MessageId: ${info.messageId}`);
       return true;
     } catch (smtpError) {
-      console.error("[SMTP Send Failed, falling back to secondary]:", smtpError);
+      console.error("[SMTP Send Failed, mencoba secondary provider]:", smtpError);
     }
   }
 
@@ -72,14 +75,17 @@ export async function sendEmail(payload: EmailPayload): Promise<boolean> {
       });
 
       if (response.ok) {
+        console.log(`[RESEND-SUCCESS] Email berhasil dikirim ke: ${payload.to}`);
         return true;
       }
+      const resJson = await response.json().catch(() => ({}));
+      console.error("[Resend API Error Response]:", resJson);
     } catch (resendError) {
       console.error("[Resend API Error]:", resendError);
     }
   }
 
-  // 3. Fallback / Dev Log
-  console.log(`[EMAIL-DEV] To: ${payload.to} | Subject: ${payload.subject}`);
-  return true;
+  // 3. Jika semua metode gagal, laporkan kegagalan secara akurat
+  console.error(`[EMAIL-FAILED] Seluruh provider gagal mengirim email ke: ${payload.to}`);
+  return false;
 }

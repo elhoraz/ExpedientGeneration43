@@ -348,11 +348,16 @@ function RegisterFormContent() {
         throw new Error(errMessage);
       }
 
-      setSelectedChannel(channel);
-      setMaskedTarget(data.target || (channel === "whatsapp" ? registeredWa : registeredEmail));
+      const finalChannel = (data.channel as "gmail" | "whatsapp") || channel;
+      setSelectedChannel(finalChannel);
+      setMaskedTarget(data.target || (finalChannel === "whatsapp" ? registeredWa : registeredEmail));
       setOtpDigits(["", "", "", "", "", ""]);
       setOtpCooldown(60);
       setOtpStep("input_otp");
+
+      if (data.channel && data.channel !== channel) {
+        showToastAlert(data.message || "Pengiriman ke Gmail dialihkan ke WhatsApp!");
+      }
 
       // Auto-focus first digit box
       setTimeout(() => {
@@ -1146,6 +1151,15 @@ function RegisterFormContent() {
                   </strong>
                   . Silakan masukkan 6 angka di bawah:
                 </p>
+
+                {selectedChannel === "gmail" && (
+                  <div className="otp-email-hint">
+                    <i className="fa-solid fa-circle-info"></i>
+                    <span>
+                      Belum menerima email di Kotak Masuk? Pastikan cek folder <strong>Spam</strong>, <strong>Junk</strong>, atau <strong>Promosi</strong> di Gmail Anda.
+                    </span>
+                  </div>
+                )}
 
                 <div className="otp-boxes-wrap" onPaste={handleOtpPaste}>
                   {otpDigits.map((digit, idx) => (
