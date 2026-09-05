@@ -419,35 +419,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
           </div>
         )}
 
-        {/* FASE 1: BIOMETRIC CONCIERGE */}
-        <div className="auth-vault" id="authVault">
-            <div className="retina-container" id="retinaContainer">
-                <div className="focus-ring" id="focusRing"></div>
-                <div className="bracket bracket-tl"></div>
-                <div className="bracket bracket-tr"></div>
-                <div className="bracket bracket-bl"></div>
-                <div className="bracket bracket-br"></div>
-                
-                <div className="camera-frame">
-                    <video id="cameraFeed" className="camera-feed" autoPlay playsInline muted></video>
-                    <div className="lens-dust"></div>
-                    <div className="scan-line" id="scanLine"></div>
-                </div>
-            </div>
-
-            <div className="liveness-indicator">
-                <div className="live-node" id="step1"></div>
-                <div className="live-node" id="step2"></div>
-                <div className="live-node" id="step3"></div>
-            </div>
-
-            <div className="status-display" id="statusBadge">
-                <div className="status-title">Verifikasi Keamanan</div>
-                <div className="status-value" id="statusText">Mengkalibrasi optik...</div>
-            </div>
-        </div>
-
-        {/* FASE 2: PROFIL EKSKLUSIF */}
+        {/* PROFIL EKSKLUSIF */}
         <div className="control-panel" id="controlPanel">
             
             <div className="nav-actions stagger-item">
@@ -620,58 +592,26 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
 
                 {/* KOLOM KANAN: PROTOKOL KEAMANAN */}
                 <div className="premium-panel stagger-item parallax-card">
-                    <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> Akses &amp; Keamanan</h2>
+                    <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> Akses &amp; Keamanan Biometrik</h2>
                     
-                    <div className="bio-status-box cursor-bind" style={{
-                      borderColor: user.face_data ? "rgba(0, 255, 170, 0.3)" : "rgba(212, 175, 55, 0.3)",
-                      background: user.face_data ? "rgba(0, 255, 170, 0.04)" : "rgba(212, 175, 55, 0.04)"
+                    <div className="bio-status-box" style={{
+                      borderColor: biometricsList.length > 0 ? "rgba(0, 255, 170, 0.3)" : "rgba(212, 175, 55, 0.3)",
+                      background: biometricsList.length > 0 ? "rgba(0, 255, 170, 0.04)" : "rgba(212, 175, 55, 0.04)"
                     }}>
-                        <i className={`fa-solid ${user.face_data ? "fa-shield-halved" : "fa-shield-virus"}`} style={{
-                          color: user.face_data ? "#00ffaa" : "var(--gold-premium, #d4af37)"
+                        <i className={`fa-solid ${biometricsList.length > 0 ? "fa-shield-halved" : "fa-fingerprint"}`} style={{
+                          color: biometricsList.length > 0 ? "#00ffaa" : "var(--gold-premium, #d4af37)"
                         }}></i>
-                        <div className="bio-status-title" style={{ color: user.face_data ? "#00ffaa" : "var(--gold-premium, #d4af37)" }}>
-                          {user.face_data ? "Keamanan Visual Face ID Aktif" : "Face ID Belum Lengkap"}
+                        <div className="bio-status-title" style={{ color: biometricsList.length > 0 ? "#00ffaa" : "var(--gold-premium, #d4af37)" }}>
+                          {biometricsList.length > 0 ? "Biometrik Perangkat Aktif" : "Biometrik Belum Terdaftar"}
                         </div>
                         <div className="bio-status-desc">
-                          {user.face_data 
-                            ? "Wajah Anda terdaftar sebagai kunci tunggal untuk membedah data profil ini. Pemindaian kamera wajib di setiap sesi." 
-                            : "Data biometrik wajah Anda belum tersimpan. Klik tombol di bawah untuk memindai wajah langsung lewat kamera."}
+                          {biometricsList.length > 0 
+                            ? `${biometricsList.length} perangkat terdaftar (Apple Face ID / Touch ID / Fingerprint). Anda dapat masuk ke portal secara instan tanpa mengetik sandi.` 
+                            : "Daftarkan sensor biometrik (Face ID, Touch ID, atau Sidik Jari) perangkat ini untuk login instan dalam 1 detik tanpa sandi."}
                         </div>
-                        
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            if (typeof window !== "undefined" && (window as any).reScanFaceBiometric) {
-                              (window as any).reScanFaceBiometric();
-                            } else {
-                              showToast("Modul pemindai wajah sedang diinisialisasi...", "error");
-                            }
-                          }}
-                          style={{
-                            width: "100%",
-                            marginTop: "16px",
-                            background: "rgba(212, 175, 55, 0.08)",
-                            border: "1px solid var(--gold-premium, #d4af37)",
-                            color: "var(--gold-premium, #d4af37)",
-                            padding: "12px 18px",
-                            borderRadius: "12px",
-                            cursor: "pointer",
-                            fontSize: "0.78rem",
-                            fontWeight: 600,
-                            letterSpacing: "1px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: "10px",
-                            transition: "all 0.3s ease"
-                          }}
-                          className="cursor-bind"
-                        >
-                          <i className="fa-solid fa-camera-rotate"></i> {user.face_data ? "Pindai Ulang / Perbarui Face ID" : "Pindai & Daftarkan Wajah Sekarang"}
-                        </button>
                     </div>
 
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", margin: "40px 0 20px 0" }}>Kredensial Fisik (Passkey)</div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", margin: "35px 0 18px 0" }}>Perangkat Terautentikasi (Passkey)</div>
                     
                     {biometricsList.length > 0 ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
@@ -887,8 +827,6 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         />
 
         <Script src="/vendor/gsap/gsap.min.js" strategy="beforeInteractive" />
-        <Script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js" strategy="afterInteractive" />
-        <Script src="/assets/js/profil.js" strategy="afterInteractive" />
     </main>
   );
 }
