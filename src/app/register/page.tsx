@@ -15,7 +15,26 @@ function RegisterFormContent() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [logoState, setLogoState] = useState<"exploding" | "united">("united");
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordValue, setPasswordValue] = useState("");
   const { t } = useCms();
+
+  const getPasswordStrength = (pwd: string) => {
+    if (!pwd) return { level: 0, label: "", percent: 0 };
+    if (pwd.length < 8) return { level: 1, label: "Kurang dari 8 karakter", percent: 25 };
+    const hasLetter = /[a-zA-Z]/.test(pwd);
+    const hasNumber = /[0-9]/.test(pwd);
+    const hasSpecial = /[^a-zA-Z0-9]/.test(pwd);
+
+    if (pwd.length >= 10 && hasLetter && hasNumber && hasSpecial) {
+      return { level: 4, label: "Sangat Kuat", percent: 100 };
+    }
+    if (hasLetter && hasNumber) {
+      return { level: 3, label: "Kuat", percent: 75 };
+    }
+    return { level: 2, label: "Cukup", percent: 50 };
+  };
+
+  const pwdStrength = getPasswordStrength(passwordValue);
   
   const searchParams = useSearchParams();
   const errorMsg = searchParams.get("error");
@@ -182,6 +201,19 @@ function RegisterFormContent() {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
+
+      if (file.size > 15 * 1024 * 1024) {
+        showToastAlert("Ukuran file foto melebihi batas 15MB. Silakan pilih foto lain yang lebih ringan.");
+        e.target.value = "";
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        showToastAlert("Format file harus berupa gambar (JPG, PNG, atau WEBP).");
+        e.target.value = "";
+        return;
+      }
+
       try {
         // Automatically compress before setting state so huge camera photos never bloat payload
         const compressedBase64 = await compressFileToDataUrl(file, 600, 0.82);
@@ -268,6 +300,8 @@ function RegisterFormContent() {
     try {
       setIsSubmittingForm(true);
       const formData = new FormData(form);
+      // Hapus file mentah agar tidak melebihi kuota 4.5MB Serverless Payload Vercel
+      formData.delete("foto_profil_file");
       if (faceDescStr) {
         formData.set("face_data", faceDescStr);
       }
@@ -496,7 +530,7 @@ function RegisterFormContent() {
             if (hint) {
               if (input.validity.valueMissing) { hint.innerText = "Kolom ini wajib diisi."; }
               else if (input.validity.typeMismatch && input.type === "email") { hint.innerText = "Gunakan format email yang sah (misal: nama@gmail.com)."; }
-              else if (input.validity.tooShort) { hint.innerText = `Minimal harus ${input.getAttribute("minLength")} karakter.`; }
+              else if (input.validity.tooShort || (input.name === "password" && input.value.length < 8)) { hint.innerText = "Kata sandi minimal harus 8 karakter."; }
               else if (input.validity.patternMismatch) { hint.innerText = "Hanya boleh berisi angka."; }
               else { hint.innerText = "Format tidak sesuai."; }
             }
@@ -785,11 +819,60 @@ function RegisterFormContent() {
                 <div className="error-hint">Masukkan nomor WhatsApp aktif (awalan 08 atau 62).</div>
               </div>
 
-              <div className="input-group span-full">
-                <input type={showPassword ? "text" : "password"} name="password" className="input-control" required minLength={8} placeholder=" " />
+              <div className="input-group span-full has-requirements">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password" 
+                  id="passwordInput"
+                  className="input-control" 
+                  required 
+                  minLength={8} 
+                  placeholder=" " 
+                  value={passwordValue}
+                  onChange={(e) => {
+                    setPasswordValue(e.target.value);
+                    if (e.target.value.length >= 8) {
+                      e.target.classList.remove("is-invalid");
+                    }
+                  }}
+                />
                 <label className="input-label">Kata Sandi Akses</label>
                 <div className="input-neon-line"></div>
                 <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`} onClick={() => setShowPassword(!showPassword)}></i>
+                <div className="error-hint">Kata sandi minimal harus 8 karakter.</div>
+
+                <div className="password-requirements-box">
+                  <div className="pwd-req-header">
+                    <span className="pwd-req-title">
+                      <i className="fa-solid fa-shield-halved"></i> Ketentuan Kata Sandi
+                    </span>
+                    {passwordValue.length > 0 && (
+                      <span className={`pwd-strength-badge strength-${pwdStrength.level}`}>
+                        {pwdStrength.label}
+                      </span>
+                    )}
+                  </div>
+
+                  {passwordValue.length > 0 && (
+                    <div className="pwd-strength-bar-wrap">
+                      <div 
+                        className={`pwd-strength-bar strength-${pwdStrength.level}`} 
+                        style={{ width: `${pwdStrength.percent}%` }}
+                      ></div>
+                    </div>
+                  )}
+
+                  <div className="pwd-req-items">
+                    <div className={`pwd-req-item ${passwordValue.length >= 8 ? "valid" : "pending"}`}>
+                      <i className={`fa-solid ${passwordValue.length >= 8 ? "fa-circle-check" : "fa-circle"}`}></i>
+                      <span>Minimal 8 karakter ({passwordValue.length}/8)</span>
+                    </div>
+                    <div className={`pwd-req-item ${/[a-zA-Z]/.test(passwordValue) && /[0-9]/.test(passwordValue) ? "valid" : "info"}`}>
+                      <i className={`fa-solid ${/[a-zA-Z]/.test(passwordValue) && /[0-9]/.test(passwordValue) ? "fa-circle-check" : "fa-circle-info"}`}></i>
+                      <span>Disarankan perpaduan huruf & angka</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="input-group">
@@ -825,7 +908,8 @@ function RegisterFormContent() {
                 <label className="upload-zone" onClick={() => fileInputRef.current?.click()} style={{ display: imagePreview ? "none" : "flex" }}>
                   <i className="fa-solid fa-cloud-arrow-up"></i>
                   <span style={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: "5px" }}>Unggah Pasfoto Terbaik</span>
-                  <span style={{ color: "var(--text-secondary)", fontSize: "0.8rem" }}>Tap/Klik di area ini untuk menelusuri galeri</span>
+                  <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>Tap/Klik di area ini untuk menelusuri galeri (Maksimal 15MB)</span>
+                  <span style={{ color: "#d4af37", fontSize: "0.75rem", marginTop: "4px" }}><i className="fa-solid fa-crop-simple"></i> Pemotong otomatis rasio 1:1 akan muncul</span>
                   <input type="file" ref={fileInputRef} name="foto_profil_file" onChange={handleFileChange} accept="image/*" style={{ display: "none" }} />
                 </label>
                 <div className={`preview-area ${imagePreview ? "show" : ""}`}>
@@ -844,6 +928,36 @@ function RegisterFormContent() {
                   >
                     Ubah Pilihan Foto
                   </button>
+                </div>
+
+                <div className="photo-guidelines-box">
+                  <div className="photo-guide-header">
+                    <i className="fa-solid fa-circle-info"></i>
+                    <span>Ketentuan & Petunjuk Unggah Pasfoto</span>
+                  </div>
+                  <div className="photo-guide-grid">
+                    <div className="photo-guide-item">
+                      <i className="fa-solid fa-file-image"></i>
+                      <div>
+                        <strong>Format & Ukuran File</strong>
+                        <p>Mendukung JPG, JPEG, PNG, WEBP (Maksimal 15MB). Sistem otomatis mengompresi gambar tanpa mengurangi kualitas.</p>
+                      </div>
+                    </div>
+                    <div className="photo-guide-item">
+                      <i className="fa-solid fa-user-check"></i>
+                      <div>
+                        <strong>Kerapihan & Komposisi Pasfoto</strong>
+                        <p>Gunakan pasfoto sopan/formal, wajah menghadap depan, pencahayaan jelas tanpa kacamata hitam atau masker.</p>
+                      </div>
+                    </div>
+                    <div className="photo-guide-item">
+                      <i className="fa-solid fa-crop-simple"></i>
+                      <div>
+                        <strong>Pemotong Foto Otomatis (Rasio 1:1)</strong>
+                        <p>Setelah memilih foto, jendela pemotong foto akan muncul otomatis agar posisi wajah pas dan simetris.</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
