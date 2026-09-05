@@ -221,7 +221,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                     strategy="afterInteractive" 
                 />
                 <Script 
-                    src="/assets/js/radar-2d.js?v=2.4" 
+                    src="/assets/js/radar-2d.js?v=2.5" 
                     strategy="afterInteractive" 
                     onLoad={() => {
                         if (typeof (window as any).initRadar2D === 'function') {

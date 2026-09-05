@@ -132,7 +132,7 @@ function initRadar2D() {
     const renderMarkers = (agents) => {
         const activeMap = window.__leafletMap;
         if (!activeMap) return;
-        if (!window.__leafletMarkerGroup) {
+        if (!window.__leafletMarkerGroup || !activeMap.hasLayer(window.__leafletMarkerGroup)) {
             window.__leafletMarkerGroup = L.layerGroup().addTo(activeMap);
         }
         const markerLayerGroup = window.__leafletMarkerGroup;
@@ -222,6 +222,7 @@ function initRadar2D() {
                 console.warn("Leaflet cleanup notice:", e);
             }
             window.__leafletMap = null;
+            window.__leafletMarkerGroup = null;
         }
 
         // Clean container state
@@ -268,13 +269,11 @@ function initRadar2D() {
         isInitializingRadar2D = false;
     }
 
-    // ===== MEMILIH TILE LAYER (6 VARIAN) =====
+    // Choose tile layer (variants)
     let tileUrl = '';
     let tileAttribution = '';
     let layerMaxZoom = 19;
     let nativeZoom = 19;
-    
-    const style = window.__mapStyle || 'classic';
     
     switch(style) {
         case 'natgeo':
