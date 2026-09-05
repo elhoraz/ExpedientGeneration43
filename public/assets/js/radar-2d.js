@@ -1,13 +1,9 @@
 /**
  * radar-2d.js — Engine untuk Varian Peta Datar (Flat Maps) menggunakan Leaflet.js
  */
-let radar2DAttempts = 0;
 let isInitializingRadar2D = false;
-let radar2DInitialized = false;
-
+let radar2DAttempts = 0;
 function initRadar2D() {
-    if (isInitializingRadar2D) return;
-
     radar2DAttempts++;
     if (typeof window.L === 'undefined') {
         if (radar2DAttempts < 50) {
@@ -41,12 +37,20 @@ function initRadar2D() {
         return;
     }
 
+    const CENTER = { lat: -8.0358875, lng: 111.414528 };
+    let centerNode = alumniData.find(n => n.type === 'center') || { ...CENTER, type: 'center', name: 'Pondok Modern Arrisalah', city: 'Ponorogo', nick: 'Arrisalah' };
+    let agentNodes = alumniData.filter(n => n.type !== 'center');
+    let filteredAgents = [...agentNodes];
+    
     const style = window.__mapStyle || 'classic';
 
-    // Fast-path: if map is already initialized with this exact style, do not tear down and rebuild
-    if (window.__leafletMap && window.__currentMapStyle === style && radar2DInitialized) {
+    // ===== GUARD: IF MAP ALREADY RUNNING WITH SAME STYLE, AVOID DUPLICATION =====
+    if (window.__leafletMap && window.__currentMapStyle === style) {
         try {
-            if (window.__leafletMap.dragging && !window.__leafletMap.dragging.enabled()) {
+            renderMarkers(filteredAgents);
+            updateStats(agentNodes);
+            buildLeaderboard(agentNodes);
+            if (window.__leafletMap.dragging) {
                 window.__leafletMap.dragging.enable();
             }
             window.__leafletMap.invalidateSize();
@@ -56,13 +60,9 @@ function initRadar2D() {
         return;
     }
 
+    if (isInitializingRadar2D) return;
     isInitializingRadar2D = true;
 
-    const CENTER = { lat: -8.0358875, lng: 111.414528 };
-    let centerNode = alumniData.find(n => n.type === 'center') || { ...CENTER, type: 'center', name: 'Pondok Modern Arrisalah', city: 'Ponorogo', nick: 'Arrisalah' };
-    let agentNodes = alumniData.filter(n => n.type !== 'center');
-    let filteredAgents = [...agentNodes];
-    
     // ===== INIT LEAFLET MAP WITH PROPER TEARDOWN & REUSE GUARDS =====
     const isMobile = window.innerWidth <= 768;
     const initialZoom = isMobile ? 4 : 5;
@@ -103,19 +103,15 @@ function initRadar2D() {
         if (map.dragging) {
             map.dragging.enable();
         }
-        if (map.tap) {
-            map.tap.disable();
-        }
 
         window.__leafletMap = map;
         window.__currentMapStyle = style;
-        radar2DInitialized = true;
         
         // Force invalidate size once DOM layout is stable so tiles fill viewport
         setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 150);
         setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 500);
         
-        // Opsi untuk menyalakan kembali zoom control di pojok kanan atas
+        // Zoom control di pojok kanan atas
         L.control.zoom({ position: 'topright' }).addTo(map);
     } catch(e) {
         console.error("Leaflet init error:", e);
@@ -144,8 +140,10 @@ function initRadar2D() {
             nativeZoom = 16;
             break;
         case 'voyager':
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-            tileAttribution = '&copy; CARTO';
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+            tileAttribution = 'Tiles &copy; Esri';
+            layerMaxZoom = 19;
+            nativeZoom = 19;
             break;
         case 'hybrid': 
             tileUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}';
@@ -220,9 +218,11 @@ function initRadar2D() {
             tileUrl = 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png';
             tileAttribution = '&copy; Stadia Maps, &copy; Stamen Design';
             break;
-        case 'minimalist': // Menggantikan flat
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-            tileAttribution = '&copy; <a href="https://carto.com/attributions">CARTO</a>';
+        case 'minimalist': // Menggantikan flat - Esri Light Canvas (bersih tanpa watermark)
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+            tileAttribution = 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ';
+            layerMaxZoom = 16;
+            nativeZoom = 16;
             break;
         case 'satellite':
             tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -237,8 +237,10 @@ function initRadar2D() {
             nativeZoom = 17;
             break;
         case 'dark':
-            tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-            tileAttribution = '&copy; CARTO';
+            tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+            tileAttribution = 'Tiles &copy; Esri';
+            layerMaxZoom = 16;
+            nativeZoom = 16;
             break;
         case 'google': // Google Streets
             tileUrl = 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}';

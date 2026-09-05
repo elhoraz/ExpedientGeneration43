@@ -9,7 +9,10 @@
     z-index: 2; 
     background: #080b10; 
     cursor: grab;
-    touch-action: none;
+    touch-action: none !important;
+    -ms-touch-action: none !important;
+    user-select: none;
+    -webkit-user-select: none;
     pointer-events: auto !important;
 }
 #mapViz:active,
@@ -18,13 +21,22 @@
 }
 #mapViz .leaflet-container { 
     cursor: grab; 
-    touch-action: none;
+    touch-action: none !important;
+    -ms-touch-action: none !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 #mapViz .leaflet-grab { 
     cursor: grab; 
 }
 #mapViz .leaflet-grabbing { 
     cursor: grabbing; 
+}
+#mapViz .leaflet-overlay-pane svg {
+    pointer-events: none !important;
+}
+#mapViz .leaflet-overlay-pane svg path {
+    pointer-events: auto !important;
 }
 /* Hanya hide overflow di halaman radar — jangan pakai .main-wrapper global! */
 body.page-radar .main-wrapper { overflow:hidden !important; }
