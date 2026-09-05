@@ -43,11 +43,19 @@
   animation: slideDown 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 768px) and (orientation: portrait) {
   .notif-dropdown {
     top: 70px !important;
     left: 20px !important;
     right: auto !important;
+  }
+}
+@media (orientation: landscape) {
+  .notif-dropdown {
+    top: 52px !important;
+    right: max(12px, env(safe-area-inset-right, 12px)) !important;
+    left: auto !important;
+    max-height: calc(100vh - 60px) !important;
   }
 }
 

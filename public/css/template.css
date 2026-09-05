@@ -259,23 +259,71 @@ body.sidebar-closed .notif-dropdown {
     }
 
     .theme-widget { top: 20px; right: 20px; padding: 6px; min-width: 44px; min-height: 44px; } .widget-text { display: none; }
-    .notif-widget { top: 20px; right: auto; left: 20px; min-width: 44px; min-height: 44px; }
-    .notif-dropdown { top: 70px; right: auto; left: 20px; }
-    .chat-dropdown { top: 70px; right: auto; left: 75px; }
-    .chat-widget { top: 20px; right: auto; left: 75px; min-width: 44px; min-height: 44px; }
 
-    @supports (padding: max(0px)) {
+    @media (orientation: portrait) {
+        .notif-widget { top: 20px; right: auto; left: 20px; min-width: 44px; min-height: 44px; }
+        .notif-dropdown { top: 70px; right: auto; left: 20px; }
+        .chat-dropdown { top: 70px; right: auto; left: 75px; }
+        .chat-widget { top: 20px; right: auto; left: 75px; min-width: 44px; min-height: 44px; }
+
+        @supports (padding: max(0px)) {
+            .theme-widget {
+                top: max(20px, env(safe-area-inset-top, 20px));
+            }
+            .notif-widget, .chat-widget {
+                top: max(20px, env(safe-area-inset-top, 20px));
+            }
+            .notif-dropdown, .chat-dropdown {
+                top: max(70px, calc(env(safe-area-inset-top, 20px) + 50px));
+            }
+            .aegis-toast.show {
+                top: max(25px, calc(env(safe-area-inset-top, 25px) + 10px));
+            }
+        }
+    }
+
+    @media (orientation: landscape) {
         .theme-widget {
-            top: max(20px, env(safe-area-inset-top, 20px));
+            top: 10px !important;
+            right: max(12px, env(safe-area-inset-right, 12px)) !important;
+            left: auto !important;
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            min-height: 38px !important;
+            padding: 4px !important;
         }
-        .notif-widget, .chat-widget {
-            top: max(20px, env(safe-area-inset-top, 20px));
+        .notif-widget {
+            top: 10px !important;
+            right: max(56px, calc(env(safe-area-inset-right, 12px) + 44px)) !important;
+            left: auto !important;
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            min-height: 38px !important;
+            padding: 4px !important;
         }
-        .notif-dropdown, .chat-dropdown {
-            top: max(70px, calc(env(safe-area-inset-top, 20px) + 50px));
+        .chat-widget {
+            top: 10px !important;
+            right: max(100px, calc(env(safe-area-inset-right, 12px) + 88px)) !important;
+            left: auto !important;
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            min-height: 38px !important;
+            padding: 4px !important;
         }
-        .aegis-toast.show {
-            top: max(25px, calc(env(safe-area-inset-top, 25px) + 10px));
+        .notif-dropdown {
+            top: 52px !important;
+            right: max(12px, env(safe-area-inset-right, 12px)) !important;
+            left: auto !important;
+            max-height: calc(100vh - 60px) !important;
+        }
+        .chat-dropdown {
+            top: 52px !important;
+            right: max(12px, env(safe-area-inset-right, 12px)) !important;
+            left: auto !important;
+            max-height: calc(100vh - 60px) !important;
         }
     }
 }
@@ -547,10 +595,10 @@ body.sidebar-closed .notif-dropdown {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .profil-grid { grid-template-columns: 1fr; }
     
-    /* Widgets: slightly smaller spacing */
-    .theme-widget { top: 15px; right: 15px; }
-    .notif-widget { top: 15px; right: 120px; }
-    .chat-widget { top: 15px; right: 65px; }
+    /* Widgets: slightly smaller spacing & clear left anchor */
+    .theme-widget { top: 15px; right: 15px; left: auto !important; }
+    .notif-widget { top: 15px; right: 120px; left: auto !important; }
+    .chat-widget { top: 15px; right: 65px; left: auto !important; }
     
     /* Reduce heavy effects for tablet GPU */
     :root { --glass-blur: blur(15px); }
