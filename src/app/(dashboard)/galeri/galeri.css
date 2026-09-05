@@ -402,9 +402,14 @@ body.page-galeri.bypass-portrait .gallery-stage { display: flex !important; }
 
 /* Mobile landscape scaling optimization */
 @media (orientation: landscape) and (max-height: 550px) {
-    body.page-galeri .dimension-core {
-        transform: scale(0.68) !important;
-        transform-origin: center center !important;
+    body.page-galeri .book-scene {
+        width: min(calc(100vw - 110px), calc(65dvh * 3), calc(65vh * 3)) !important;
+    }
+    body.page-galeri #bookPutra {
+        transform: translateZ(50px) rotateX(8deg) !important;
+    }
+    body.page-galeri #bookPutri {
+        transform: rotateY(180deg) translateZ(50px) rotateX(-8deg) !important;
     }
     body.page-galeri .dimension-shift-btn {
         top: max(10px, env(safe-area-inset-top, 10px)) !important;
