@@ -41,37 +41,40 @@ export default function FiturClient() {
       }
     });
 
-    // JS Tilt Effect
+    // JS Tilt Effect (Hanya untuk Desktop / Mouse Pointer)
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
     const tiltCards = cardsRef.current;
-    tiltCards.forEach(card => {
-      if (!card) return;
+    if (!isTouch && window.innerWidth > 768) {
+      tiltCards.forEach(card => {
+        if (!card) return;
 
-      const mouseMoveHandler = (e: MouseEvent) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const mouseMoveHandler = (e: MouseEvent) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
 
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
 
-        const rotateX = ((y - centerY) / centerY) * -12;
-        const rotateY = ((x - centerX) / centerX) * 12;
+          const rotateX = ((y - centerY) / centerY) * -12;
+          const rotateY = ((x - centerX) / centerX) * 12;
 
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-        card.style.transition = "none";
-      };
+          card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+          card.style.transition = "none";
+        };
 
-      const mouseLeaveHandler = () => {
-        card.style.transition = "transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)";
-        card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
-      };
+        const mouseLeaveHandler = () => {
+          card.style.transition = "transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)";
+          card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
+        };
 
-      card.addEventListener('mousemove', mouseMoveHandler);
-      card.addEventListener('mouseleave', mouseLeaveHandler);
-      
-      (card as any)._mouseMoveHandler = mouseMoveHandler;
-      (card as any)._mouseLeaveHandler = mouseLeaveHandler;
-    });
+        card.addEventListener('mousemove', mouseMoveHandler);
+        card.addEventListener('mouseleave', mouseLeaveHandler);
+        
+        (card as any)._mouseMoveHandler = mouseMoveHandler;
+        (card as any)._mouseLeaveHandler = mouseLeaveHandler;
+      });
+    }
 
     return () => {
       document.body.classList.remove("page-fitur");

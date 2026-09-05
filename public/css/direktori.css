@@ -158,6 +158,8 @@
         border-radius: 20px;
         background: var(--bg-secondary, rgba(12, 18, 15, 0.94));
         box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
     [data-theme="light"] .luminary-card {
         background: #ffffff;
@@ -172,7 +174,12 @@
     }
 
     .ethereal-glow { display: none; }
-    .search-input { font-size: 0.85rem; padding: 13px 18px 13px 46px; }
+    .search-input { 
+        font-size: 0.85rem; 
+        padding: 13px 18px 13px 46px; 
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
     .search-icon { left: 16px; font-size: 0.95rem; }
 
     .nav-arrow { display: none; }

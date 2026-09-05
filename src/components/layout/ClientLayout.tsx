@@ -86,7 +86,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   // 2. Custom Cursor (Hanya Desktop / Non-touch)
   useEffect(() => {
-    if (typeof window === "undefined" || window.innerWidth <= 768) return;
+    if (typeof window === "undefined") return;
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    if (window.innerWidth <= 1024 || isTouch) return;
     
     const isLite = document.documentElement.getAttribute("data-perf") === "lite";
     if (isLite) return;
@@ -147,7 +149,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     if (typeof window === "undefined") return;
 
     const perfMode = document.documentElement.getAttribute("data-perf");
-    const isLite = perfMode === "lite" || window.innerWidth <= 768;
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    const isLite = perfMode === "lite" || window.innerWidth <= 1024 || isTouch;
 
     const canvas = document.getElementById("particles-js") as HTMLCanvasElement;
     if (!canvas) return;

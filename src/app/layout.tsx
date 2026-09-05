@@ -112,17 +112,22 @@ export default async function RootLayout({
                   var t = localStorage.getItem('expedient_theme') || 'dark';
                   document.documentElement.setAttribute('data-theme', t);
 
-                  // Deteksi hardware, RAM, dan perangkat mobile
-                  var isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-                  var ram = navigator.deviceMemory || 8; // GB RAM jika browser mendukung
-                  var cpu = navigator.hardwareConcurrency || 8; // Jumlah core CPU
-                  var isSaveData = navigator.connection && navigator.connection.saveData;
+                  // Deteksi hardware, RAM, dan perangkat mobile secara presisi
+                  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+                  var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                  var isSmallScreen = window.innerWidth <= 1024 || (window.screen && window.screen.width <= 1024);
+                  var isMobile = isTouch || isMobileUA || isSmallScreen;
+
+                  var ram = navigator.deviceMemory || (isMobile ? 3 : 8);
+                  var cpu = navigator.hardwareConcurrency || (isMobile ? 4 : 8);
+                  var isSaveData = Boolean(navigator.connection && navigator.connection.saveData);
                   var isLowEnd = isMobile || ram <= 4 || cpu <= 4 || isSaveData;
 
                   document.documentElement.setAttribute('data-perf', isLowEnd ? 'lite' : 'high');
                   document.documentElement.setAttribute('data-device', isMobile ? 'mobile' : 'desktop');
                 } catch(e) {
                   document.documentElement.setAttribute('data-perf', 'lite');
+                  document.documentElement.setAttribute('data-device', 'mobile');
                 }
               })();
             `,

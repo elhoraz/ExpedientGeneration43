@@ -68,32 +68,30 @@ body.sidebar-closed .notif-dropdown {
 [data-perf="lite"] .film-grain,
 [data-perf="lite"] #particles-js,
 [data-perf="lite"] .cursor-dot,
-[data-perf="lite"] .cursor-ring {
+[data-perf="lite"] .cursor-ring,
+[data-perf="lite"] .aurora-container,
+[data-perf="lite"] .aurora-blob,
+[data-device="mobile"] .film-grain,
+[data-device="mobile"] #particles-js,
+[data-device="mobile"] .cursor-dot,
+[data-device="mobile"] .cursor-ring,
+[data-device="mobile"] .aurora-container,
+[data-device="mobile"] .aurora-blob {
   display: none !important;
-}
-
-[data-perf="lite"] .aurora-container {
-  filter: none !important;
-  opacity: 0.5 !important;
-}
-
-[data-perf="lite"] .aurora-blob {
   animation: none !important;
-  mix-blend-mode: normal !important;
-  opacity: 0.12 !important;
-  filter: none !important;
-  transform: none !important;
 }
 
-[data-perf="lite"] .ambient-field {
+[data-perf="lite"] .ambient-field,
+[data-device="mobile"] .ambient-field {
+  display: none !important;
   filter: none !important;
 }
 
-[data-perf="lite"] .core-orb {
+[data-perf="lite"] .core-orb,
+[data-device="mobile"] .core-orb {
   animation: none !important;
-  mix-blend-mode: normal !important;
-  opacity: 0.12 !important;
   transform: none !important;
+  display: none !important;
 }
 
 /* Kurangi beban GPU dan matikan elemen desktop di HP / Layar Sentuh */
@@ -101,15 +99,13 @@ body.sidebar-closed .notif-dropdown {
   .film-grain,
   #particles-js,
   .cursor-dot,
-  .cursor-ring {
-    display: none !important;
-  }
-
+  .cursor-ring,
+  .aurora-container,
   .aurora-blob,
-  .core-orb {
+  .core-orb,
+  .ambient-field {
+    display: none !important;
     animation: none !important;
-    transform: none !important;
-    mix-blend-mode: normal !important;
   }
 }
 
