@@ -94,54 +94,7 @@ export async function POST(request: Request) {
     const namaPengguna = profile?.nama_lengkap || user.user_metadata?.nama_lengkap || "Sahabat";
     const noWa = profile?.no_whatsapp || user.user_metadata?.no_whatsapp || "";
 
-    // 6. Kirim OTP sesuai saluran
-    if (channel === "whatsapp") {
-      if (!noWa) {
-        return NextResponse.json(
-          { error: "Nomor WhatsApp belum terdaftar pada akun ini. Silakan pilih opsi Gmail." },
-          { status: 400 }
-        );
-      }
-
-      const waMessage = `✨ *KODE VERIFIKASI EXPEDIENT GENERATION* ✨
-
-*Assalamu'alaikum Warahmatullahi Wabarakatuh*
-
-Halo *${namaPengguna}*, berikut adalah kode OTP verifikasi untuk mengesahkan dan mengaktifkan akun portal Anda:
-
-🔑 *KODE OTP ANDA:*
-*${otp}*
-
-_Kode ini bersifat rahasia dan berlaku selama 10 menit. Jangan bagikan kepada siapa pun._
-
-Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyelesaikan pendaftaran.
-
-*Wassalamu'alaikum Warahmatullahi Wabarakatuh*
-*Expedient Generation — 43rd Arrisalah*`;
-
-      const sent = await sendWhatsAppMessage(noWa, waMessage);
-      if (!sent) {
-        return NextResponse.json(
-          { error: "Gagal mengirim WhatsApp. Pastikan nomor WhatsApp aktif atau coba pilih opsi Gmail." },
-          { status: 500 }
-        );
-      }
-
-      // Mask phone number for security in response (e.g. 0812****789)
-      const cleanNum = noWa.replace(/\D/g, "");
-      const masked = cleanNum.length > 6 
-        ? cleanNum.substring(0, 4) + "****" + cleanNum.substring(cleanNum.length - 3)
-        : cleanNum;
-
-      return NextResponse.json({
-        success: true,
-        channel: "whatsapp",
-        target: masked,
-        message: `Kode OTP 6 digit berhasil dikirim ke WhatsApp Anda (${masked})!`,
-      });
-    }
-
-    // Saluran Gmail (Template VVIP Royal Dark & Gold)
+    // Template Email Mewah (VVIP Royal Dark & Gold)
     const emailHtml = `
 <!DOCTYPE html>
 <html lang="id">
@@ -252,7 +205,95 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
 </html>
     `;
 
-    // Kirim email HTML via Direct Gmail SMTP (dengan fallback Resend jika dikonfigurasi)
+    // 6. Kirim OTP sesuai saluran
+    if (channel === "whatsapp") {
+      if (!noWa) {
+        return NextResponse.json(
+          { error: "Nomor WhatsApp belum terdaftar pada akun ini. Silakan pilih opsi Gmail." },
+          { status: 400 }
+        );
+      }
+
+      const waMessage = `✨ *KODE VERIFIKASI EXPEDIENT GENERATION* ✨
+
+*Assalamu'alaikum Warahmatullahi Wabarakatuh*
+
+Halo *${namaPengguna}*, berikut adalah kode OTP verifikasi untuk mengesahkan dan mengaktifkan akun portal Anda:
+
+🔑 *KODE OTP ANDA:*
+*${otp}*
+
+_Kode ini bersifat rahasia dan berlaku selama 10 menit. Jangan bagikan kepada siapa pun._
+
+Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyelesaikan pendaftaran.
+
+*Wassalamu'alaikum Warahmatullahi Wabarakatuh*
+*Expedient Generation — 43rd Arrisalah*`;
+
+      const sent = await sendWhatsAppMessage(noWa, waMessage);
+      
+      // Jika WhatsApp gagal (misal Fonnte limit/banned), lakukan auto-fallback langsung ke Gmail!
+      if (!sent) {
+        console.warn(`[SEND-OTP] WhatsApp Fonnte gagal/banned. Mengalihkan otomatis pengiriman ke Gmail (${email})...`);
+        let emailSent = false;
+        try {
+          emailSent = await sendEmail({
+            to: email,
+            subject: `[${otp}] Kode Verifikasi Akun Expedient Generation`,
+            body: `Halo ${namaPengguna}, saluran WhatsApp sedang dalam pemeliharaan berkala. Berikut kode OTP verifikasi akun Anda: ${otp}. Berlaku selama 10 menit.`,
+            html: emailHtml,
+          });
+        } catch (mErr) {
+          console.error("[SEND-OTP] WhatsApp-to-Gmail fallback error:", mErr);
+        }
+
+        if (emailSent) {
+          // Perbarui metadata kanal OTP menjadi gmail
+          await adminSupabase.auth.admin.updateUserById(user.id, {
+            user_metadata: {
+              ...user.user_metadata,
+              otp_code: otp,
+              otp_expires_at: expiresAt,
+              otp_channel: "gmail",
+              otp_sent_at: Date.now(),
+              otp_attempts: 0,
+            },
+          });
+
+          const [userPart, domainPart] = email.split("@");
+          const maskedEmail = userPart.length > 2 
+            ? userPart.substring(0, 2) + "***@" + domainPart 
+            : email;
+
+          return NextResponse.json({
+            success: true,
+            channel: "gmail",
+            target: maskedEmail,
+            message: `Layanan WhatsApp gateway sedang dalam antrean/pemeliharaan. Kode OTP otomatis dialihkan dan berhasil dikirim ke Gmail Anda (${maskedEmail})!`,
+          });
+        }
+
+        return NextResponse.json(
+          { error: "Gagal mengirimkan kode OTP via WhatsApp. Silakan pilih opsi 'Kirim via Gmail' untuk menerima kode langsung." },
+          { status: 500 }
+        );
+      }
+
+      // Mask phone number for security in response (e.g. 0812****789)
+      const cleanNum = noWa.replace(/\D/g, "");
+      const masked = cleanNum.length > 6 
+        ? cleanNum.substring(0, 4) + "****" + cleanNum.substring(cleanNum.length - 3)
+        : cleanNum;
+
+      return NextResponse.json({
+        success: true,
+        channel: "whatsapp",
+        target: masked,
+        message: `Kode OTP 6 digit berhasil dikirim ke WhatsApp Anda (${masked})!`,
+      });
+    }
+
+    // Saluran Gmail: Kirim email HTML via Direct Gmail SMTP (dengan fallback Resend jika dikonfigurasi)
     let emailSent = false;
     try {
       emailSent = await sendEmail({

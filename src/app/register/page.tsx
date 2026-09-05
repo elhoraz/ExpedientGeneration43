@@ -1100,7 +1100,12 @@ function RegisterFormContent() {
                       <i className="fa-solid fa-envelope"></i>
                     </div>
                     <div className="channel-info">
-                      <div className="channel-name">Kirim via Gmail</div>
+                      <div className="channel-name" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span>Kirim via Gmail</span>
+                        <span style={{ fontSize: "0.65rem", padding: "2px 7px", borderRadius: "10px", background: "rgba(212, 175, 55, 0.2)", border: "1px solid rgba(212, 175, 55, 0.45)", color: "#ffd700", fontWeight: 700, letterSpacing: "0.5px" }}>
+                          Rekomendasi
+                        </span>
+                      </div>
                       <div className="channel-target">{registeredEmail || "Email Anda"}</div>
                     </div>
                     <div className="channel-arrow">
