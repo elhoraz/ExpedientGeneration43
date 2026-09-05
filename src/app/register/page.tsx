@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useCms } from "@/components/layout/CmsProvider";
+import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import "./register.css";
 
-// Dynamic import for face-api.js and cropperjs to avoid SSR issues
+// Dynamic import for face-api.js to avoid SSR issues
 let faceapi: any;
-let Cropper: any;
 
 function RegisterFormContent() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -43,12 +43,10 @@ function RegisterFormContent() {
   const [showToast, setShowToast] = useState(!!errorMsg);
   const [toastMessage, setToastMessage] = useState(errorMsg || "");
   
-  // Forms & Cropper
+  // Forms & Photo Cropper
   const [imagePreview, setImagePreview] = useState("");
-  const [isCropping, setIsCropping] = useState(false);
-  const [cropSrc, setCropSrc] = useState("");
-  const [cropperInstance, setCropperInstance] = useState<any>(null);
-  const cropTargetRef = useRef<HTMLImageElement>(null);
+  const [rawCropImage, setRawCropImage] = useState<string | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Face API
@@ -101,9 +99,6 @@ function RegisterFormContent() {
   };
 
   useEffect(() => {
-    // Load external libs
-    import("cropperjs").then(mod => Cropper = mod.default);
-
     const savedTheme = (localStorage.getItem("expedient_theme") as "dark" | "light") || "dark";
     setTheme(savedTheme);
     triggerLogoExplosion();
@@ -128,13 +123,13 @@ function RegisterFormContent() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isCropping) cancelCrop();
+        if (isCropperOpen) setIsCropperOpen(false);
         if (isFaceModalOpen) closeFaceScanner();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isCropping, isFaceModalOpen]);
+  }, [isCropperOpen, isFaceModalOpen]);
 
   const triggerLogoExplosion = () => {
     setLogoState("exploding");
@@ -150,14 +145,11 @@ function RegisterFormContent() {
     localStorage.setItem("expedient_theme", nextTheme);
   };
 
-  // Helper to compress any image file directly to a lightweight Base64 JPEG (max 600px, ~50-90KB)
-  // This guarantees payload will NEVER exceed Vercel's 4.5MB serverless limit
-  const compressFileToDataUrl = (file: File, maxDim = 600, quality = 0.82): Promise<string> => {
+  // Helper to compress any image data URL directly to a lightweight Base64 JPEG (max 800px, ~50-90KB)
+  const compressImageDataUrl = (dataUrl: string, maxDim = 800, quality = 0.85): Promise<string> => {
     return new Promise((resolve) => {
-      const url = URL.createObjectURL(file);
       const img = new Image();
       img.onload = () => {
-        URL.revokeObjectURL(url);
         try {
           let w = img.naturalWidth || img.width;
           let h = img.naturalHeight || img.height;
@@ -176,25 +168,17 @@ function RegisterFormContent() {
           const ctx = canvas.getContext("2d");
           if (ctx) {
             ctx.drawImage(img, 0, 0, w, h);
-            const dataUrl = canvas.toDataURL("image/jpeg", quality);
-            resolve(dataUrl);
+            const compressed = canvas.toDataURL("image/jpeg", quality);
+            resolve(compressed);
             return;
           }
         } catch (err) {
           console.error("Canvas compression error:", err);
         }
-        // Fallback to FileReader if canvas fails
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string) || "");
-        reader.readAsDataURL(file);
+        resolve(dataUrl);
       };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        const reader = new FileReader();
-        reader.onload = () => resolve((reader.result as string) || "");
-        reader.readAsDataURL(file);
-      };
-      img.src = url;
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
     });
   };
 
@@ -204,93 +188,76 @@ function RegisterFormContent() {
 
       if (file.size > 15 * 1024 * 1024) {
         showToastAlert("Ukuran file foto melebihi batas 15MB. Silakan pilih foto lain yang lebih ringan.");
-        e.target.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
 
-      if (!file.type.startsWith("image/")) {
+      const isImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|bmp|gif|heic|heif)$/i.test(file.name);
+      if (!isImage && file.type) {
         showToastAlert("Format file harus berupa gambar (JPG, PNG, atau WEBP).");
-        e.target.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
 
       try {
-        // Automatically compress before setting state so huge camera photos never bloat payload
-        const compressedBase64 = await compressFileToDataUrl(file, 600, 0.82);
-        if (!compressedBase64) return;
-
-        setImagePreview(compressedBase64);
-        const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
-        if (hiddenInput) hiddenInput.value = compressedBase64;
-
-        setCropSrc(compressedBase64);
-        setIsCropping(true);
-
-        // Load Cropper dynamically if not loaded yet
-        let CropperClass = Cropper;
-        if (!CropperClass) {
-          try {
-            const mod = await import("cropperjs");
-            Cropper = mod.default;
-            CropperClass = Cropper;
-          } catch (err) {
-            console.error("Failed to load cropperjs:", err);
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const resultUrl = reader.result as string;
+          if (!resultUrl) {
+            showToastAlert("Gagal membaca file foto. Silakan coba file lain.");
+            return;
           }
-        }
 
-        if (CropperClass && cropTargetRef.current) {
-          const initCropper = () => {
-            if (cropperInstance) cropperInstance.destroy();
-            const cropper = new CropperClass(cropTargetRef.current, {
-              aspectRatio: 1,
-              viewMode: 1,
-              dragMode: "move",
-              autoCropArea: 0.85,
-              background: false
-            });
-            setCropperInstance(cropper);
-          };
+          // Segera kompresi dan set preview agar foto LANGSUNG terlihat di form
+          const compressed = await compressImageDataUrl(resultUrl, 800, 0.85);
+          setImagePreview(compressed);
+          setRawCropImage(resultUrl);
+          setIsCropperOpen(true);
+        };
 
-          const targetImg = cropTargetRef.current;
-          if (targetImg.complete && targetImg.naturalWidth > 0) {
-            initCropper();
-          } else {
-            targetImg.onload = initCropper;
-          }
-        }
+        reader.onerror = () => {
+          showToastAlert("Gagal membaca file foto. Silakan coba file lain.");
+        };
+
+        reader.readAsDataURL(file);
       } catch (err) {
         console.error("Error reading profile photo file:", err);
+        showToastAlert("Terjadi kendala saat membaca foto.");
       }
     }
   };
 
-  const applyCrop = () => {
-    if (cropperInstance) {
-      try {
-        const canvas = cropperInstance.getCroppedCanvas({ width: 500, height: 500 });
-        if (canvas) {
-          const base64 = canvas.toDataURL("image/jpeg", 0.85);
-          setImagePreview(base64);
-          const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
-          if (hiddenInput) hiddenInput.value = base64;
-        }
-      } catch (err) {
-        console.error("Apply crop error:", err);
-      }
-      cropperInstance.destroy();
-      setCropperInstance(null);
+  const handleCropApply = async (_croppedBlob: Blob, croppedDataUrl: string) => {
+    try {
+      const compressed = await compressImageDataUrl(croppedDataUrl, 600, 0.85);
+      setImagePreview(compressed);
+    } catch {
+      setImagePreview(croppedDataUrl);
     }
-    setIsCropping(false);
-    setCropSrc("");
+    setIsCropperOpen(false);
   };
 
-  const cancelCrop = () => {
-    setIsCropping(false);
-    if (cropperInstance) {
-      cropperInstance.destroy();
-      setCropperInstance(null);
+  const handleCropCancel = () => {
+    setIsCropperOpen(false);
+  };
+
+  const handleResetPhoto = () => {
+    setImagePreview("");
+    setRawCropImage(null);
+    setIsCropperOpen(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
     }
-    setCropSrc("");
+  };
+
+  const handleRemovePhoto = () => {
+    setImagePreview("");
+    setRawCropImage(null);
+    setIsCropperOpen(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const submitRegistrationAsync = async (faceDescStr: string) => {
@@ -905,30 +872,86 @@ function RegisterFormContent() {
 
               <div className="input-group span-full">
                 <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>Foto Profil Eksklusif</label>
-                <label className="upload-zone" onClick={() => fileInputRef.current?.click()} style={{ display: imagePreview ? "none" : "flex" }}>
-                  <i className="fa-solid fa-cloud-arrow-up"></i>
-                  <span style={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: "5px" }}>Unggah Pasfoto Terbaik</span>
-                  <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>Tap/Klik di area ini untuk menelusuri galeri (Maksimal 15MB)</span>
-                  <span style={{ color: "#d4af37", fontSize: "0.75rem", marginTop: "4px" }}><i className="fa-solid fa-crop-simple"></i> Pemotong otomatis rasio 1:1 akan muncul</span>
-                  <input type="file" ref={fileInputRef} name="foto_profil_file" onChange={handleFileChange} accept="image/*" style={{ display: "none" }} />
-                </label>
-                <div className={`preview-area ${imagePreview ? "show" : ""}`}>
-                  {imagePreview && <img src={imagePreview} alt="Pratinjau Foto" />}
-                  <br />
-                  <button 
-                    type="button" 
-                    className="btn-change-photo" 
-                    onClick={() => { 
-                      setImagePreview(""); 
-                      const hiddenInput = document.getElementById("fotoProfilBase64Input") as HTMLInputElement;
-                      if (hiddenInput) hiddenInput.value = "";
-                      if (fileInputRef.current) fileInputRef.current.value = ""; 
-                      fileInputRef.current?.click(); 
-                    }}
-                  >
-                    Ubah Pilihan Foto
-                  </button>
-                </div>
+                
+                {/* Upload Zone (Tampil saat belum ada foto terpilih) */}
+                {!imagePreview && (
+                  <label className="upload-zone" onClick={() => fileInputRef.current?.click()}>
+                    <i className="fa-solid fa-cloud-arrow-up"></i>
+                    <span style={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: "5px" }}>Unggah Pasfoto Terbaik</span>
+                    <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>Tap/Klik di area ini untuk menelusuri galeri (Maksimal 15MB)</span>
+                    <span style={{ color: "#d4af37", fontSize: "0.75rem", marginTop: "4px" }}>
+                      <i className="fa-solid fa-crop-simple"></i> Pemotong otomatis rasio 1:1 akan muncul
+                    </span>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      name="foto_profil_file" 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      style={{ display: "none" }} 
+                    />
+                  </label>
+                )}
+
+                {/* Preview Area (Tampil saat foto telah dipilih) */}
+                {imagePreview && (
+                  <div className="photo-preview-card">
+                    <div className="preview-avatar-wrap">
+                      <img src={imagePreview} alt="Pratinjau Pasfoto" className="preview-avatar-img" />
+                      <div className="preview-status-badge">
+                        <i className="fa-solid fa-circle-check"></i> Siap Disimpan
+                      </div>
+                    </div>
+                    
+                    <div className="preview-details">
+                      <h4 className="preview-details-title">Pasfoto Terpilih</h4>
+                      <p className="preview-details-sub">Rasio 1:1 pasfoto siap digunakan untuk direktori resmi & buku tahunan angkatan.</p>
+                      
+                      <div className="preview-actions">
+                        <button 
+                          type="button" 
+                          className="btn-preview-action btn-recrop" 
+                          onClick={() => {
+                            if (rawCropImage) {
+                              setIsCropperOpen(true);
+                            } else {
+                              fileInputRef.current?.click();
+                            }
+                          }}
+                        >
+                          <i className="fa-solid fa-crop-simple"></i> Atur Ulang Posisi (Crop)
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn-preview-action btn-change" 
+                          onClick={handleResetPhoto}
+                        >
+                          <i className="fa-solid fa-arrows-rotate"></i> Ganti Foto Lain
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn-preview-action btn-remove" 
+                          onClick={handleRemovePhoto}
+                          title="Hapus foto"
+                        >
+                          <i className="fa-solid fa-trash-can"></i> Hapus
+                        </button>
+                      </div>
+                    </div>
+
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      name="foto_profil_file" 
+                      onChange={handleFileChange} 
+                      accept="image/*" 
+                      style={{ display: "none" }} 
+                    />
+                  </div>
+                )}
+
+                {/* Hidden input agar data foto_profil_base64 selalu terikutsertakan */}
+                <input type="hidden" name="foto_profil_base64" id="fotoProfilBase64Input" value={imagePreview} />
 
                 <div className="photo-guidelines-box">
                   <div className="photo-guide-header">
@@ -985,17 +1008,19 @@ function RegisterFormContent() {
         </div>
       </div>
 
-      {/* Cropper Modal */}
-      <div className={`crop-modal ${isCropping ? "active" : ""}`} role="dialog" aria-modal="true" aria-label="Pemotongan Foto Profil">
-        <div className="crop-content">
-          <h3 style={{ color: "var(--text-primary)", textAlign: "center", marginBottom: "20px", fontWeight: 700 }}>Sesuaikan Presisi Foto</h3>
-          <div className="crop-img-wrap"><img ref={cropTargetRef} src={cropSrc || undefined} alt="target" /></div>
-          <div className="crop-actions">
-            <button type="button" className="crop-btn-cancel" onClick={cancelCrop}>Batalkan</button>
-            <button type="button" className="crop-btn-apply" onClick={applyCrop}>Terapkan Pemotongan</button>
-          </div>
-        </div>
-      </div>
+      {/* Image Cropper Modal */}
+      {isCropperOpen && rawCropImage && (
+        <ImageCropperModal
+          isOpen={isCropperOpen}
+          imageSrc={rawCropImage}
+          title="Sesuaikan Posisi Pasfoto (Rasio 1:1)"
+          aspectRatio={1}
+          outputWidth={600}
+          outputHeight={600}
+          onApply={handleCropApply}
+          onCancel={handleCropCancel}
+        />
+      )}
 
       {/* Face Scanner Modal */}
       <div className={`auth-vault ${isFaceModalOpen ? "active" : ""}`} role="dialog" aria-modal="true" aria-label="Pemindai Biometrik Wajah">

@@ -807,4 +807,155 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
     }
 }
 
+/* ================= 14. PHOTO PREVIEW CARD ================= */
+.photo-preview-card {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 20px 24px;
+    background: rgba(15, 23, 30, 0.75);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(212, 175, 55, 0.05);
+    animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    margin-bottom: 8px;
+}
+
+[data-theme="light"] .photo-preview-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.preview-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.preview-avatar-img {
+    width: 115px;
+    height: 115px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #d4af37;
+    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35), 0 0 0 4px rgba(212, 175, 55, 0.15);
+    display: block;
+    background: #050505;
+}
+
+.preview-status-badge {
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(16, 185, 129, 0.95);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 12px;
+    white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.preview-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.preview-details-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    letter-spacing: 0.5px;
+}
+
+.preview-details-sub {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin: 0 0 14px 0;
+    line-height: 1.4;
+}
+
+.preview-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-preview-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid transparent;
+}
+
+.btn-preview-action.btn-recrop {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: rgba(212, 175, 55, 0.4);
+    color: #d4af37;
+}
+
+.btn-preview-action.btn-recrop:hover {
+    background: rgba(212, 175, 55, 0.25);
+    border-color: #d4af37;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+.btn-preview-action.btn-change {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .btn-preview-action.btn-change {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+.btn-preview-action.btn-change:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-preview-action.btn-remove {
+    background: rgba(255, 51, 102, 0.1);
+    border-color: rgba(255, 51, 102, 0.3);
+    color: #ff3366;
+    padding: 8px 12px;
+}
+
+.btn-preview-action.btn-remove:hover {
+    background: rgba(255, 51, 102, 0.2);
+    border-color: #ff3366;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+    .photo-preview-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px 16px;
+    }
+    .preview-actions {
+        justify-content: center;
+    }
+}
+
+
 
