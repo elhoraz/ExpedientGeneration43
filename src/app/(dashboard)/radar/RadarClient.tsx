@@ -79,6 +79,13 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
       supabase.removeChannel(channel);
       // Hapus class saat keluar halaman radar
       document.body.classList.remove('page-radar');
+      if (typeof window !== 'undefined' && (window as any).__leafletMap) {
+        try {
+          (window as any).__leafletMap.off();
+          (window as any).__leafletMap.remove();
+        } catch(e) {}
+        (window as any).__leafletMap = null;
+      }
     };
   }, [nodes, mapStyle, is3DMode]);
 
@@ -99,7 +106,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             </>
         ) : (
             <>
-                <div id="mapViz" style={{ position: 'fixed', inset: 0, zIndex: 2, background: '#000' }}></div>
+                <div id="mapViz" style={{ position: 'fixed', inset: 0, zIndex: 2, background: '#000', cursor: 'grab' }}></div>
             </>
         )}
 
@@ -212,14 +219,9 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                 <Script 
                     src="/vendor/leaflet/leaflet.js" 
                     strategy="afterInteractive" 
-                    onLoad={() => {
-                        if (typeof (window as any).initRadar2D === 'function') {
-                            (window as any).initRadar2D();
-                        }
-                    }}
                 />
                 <Script 
-                    src="/assets/js/radar-2d.js?v=2.0" 
+                    src="/assets/js/radar-2d.js?v=2.2" 
                     strategy="afterInteractive" 
                     onLoad={() => {
                         if (typeof (window as any).initRadar2D === 'function') {

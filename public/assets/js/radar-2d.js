@@ -2,7 +2,12 @@
  * radar-2d.js — Engine untuk Varian Peta Datar (Flat Maps) menggunakan Leaflet.js
  */
 let radar2DAttempts = 0;
+let isInitializingRadar2D = false;
+let radar2DInitialized = false;
+
 function initRadar2D() {
+    if (isInitializingRadar2D) return;
+
     radar2DAttempts++;
     if (typeof window.L === 'undefined') {
         if (radar2DAttempts < 50) {
@@ -36,39 +41,91 @@ function initRadar2D() {
         return;
     }
 
+    const style = window.__mapStyle || 'classic';
+
+    // Fast-path: if map is already initialized with this exact style, do not tear down and rebuild
+    if (window.__leafletMap && window.__currentMapStyle === style && radar2DInitialized) {
+        try {
+            if (window.__leafletMap.dragging && !window.__leafletMap.dragging.enabled()) {
+                window.__leafletMap.dragging.enable();
+            }
+            window.__leafletMap.invalidateSize();
+        } catch(e) {}
+        const rl = document.getElementById('radarLoading');
+        if (rl) { rl.style.opacity = '0'; setTimeout(() => { if (rl) rl.style.display = 'none'; }, 300); }
+        return;
+    }
+
+    isInitializingRadar2D = true;
+
     const CENTER = { lat: -8.0358875, lng: 111.414528 };
     let centerNode = alumniData.find(n => n.type === 'center') || { ...CENTER, type: 'center', name: 'Pondok Modern Arrisalah', city: 'Ponorogo', nick: 'Arrisalah' };
     let agentNodes = alumniData.filter(n => n.type !== 'center');
     let filteredAgents = [...agentNodes];
     
-    // ===== INIT LEAFLET MAP =====
+    // ===== INIT LEAFLET MAP WITH PROPER TEARDOWN & REUSE GUARDS =====
     const isMobile = window.innerWidth <= 768;
     const initialZoom = isMobile ? 4 : 5;
     
     let map;
     try {
-        if (elem._leaflet_id) {
-            elem._leaflet_id = null;
-        }
+        // Clean up previous map cleanly BEFORE touching container properties
         if (window.__leafletMap) {
-            try { window.__leafletMap.remove(); } catch(e) {}
+            try {
+                window.__leafletMap.off();
+                window.__leafletMap.remove();
+            } catch(e) {
+                console.warn("Leaflet cleanup notice:", e);
+            }
+            window.__leafletMap = null;
         }
-        // Matikan zoom control bawaan agar UI lebih bersih seperti globe
-        map = L.map('mapViz', { zoomControl: false }).setView([CENTER.lat, CENTER.lng], initialZoom);
+
+        // Clean container state
+        if (elem._leaflet_id) {
+            delete elem._leaflet_id;
+        }
+        elem.innerHTML = '';
+
+        // Initialize Leaflet map with explicit dragging & tap disabled
+        map = L.map('mapViz', { 
+            zoomControl: false,
+            dragging: true,
+            tap: false, // CRITICAL: disables Leaflet Tap handler that breaks drag/touch on modern devices
+            touchZoom: true,
+            scrollWheelZoom: true,
+            doubleClickZoom: true,
+            boxZoom: true,
+            keyboard: true,
+            bounceAtZoomLimits: true
+        }).setView([CENTER.lat, CENTER.lng], initialZoom);
+
+        // Explicitly guarantee dragging handler is active
+        if (map.dragging) {
+            map.dragging.enable();
+        }
+        if (map.tap) {
+            map.tap.disable();
+        }
+
         window.__leafletMap = map;
+        window.__currentMapStyle = style;
+        radar2DInitialized = true;
         
         // Force invalidate size once DOM layout is stable so tiles fill viewport
         setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 150);
-        setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 600);
+        setTimeout(() => { try { map.invalidateSize(); } catch(e) {} }, 500);
         
-        // Opsi untuk menyalakan kembali zoom control tapi di pojok kanan atas
+        // Opsi untuk menyalakan kembali zoom control di pojok kanan atas
         L.control.zoom({ position: 'topright' }).addTo(map);
     } catch(e) {
         console.error("Leaflet init error:", e);
+        isInitializingRadar2D = false;
         // Force remove loading screen if leaflet fails
         const rl = document.getElementById('radarLoading');
         if (rl) { rl.style.opacity = '0'; setTimeout(() => { rl.style.display = 'none'; }, 300); }
         return;
+    } finally {
+        isInitializingRadar2D = false;
     }
 
     // ===== MEMILIH TILE LAYER (6 VARIAN) =====

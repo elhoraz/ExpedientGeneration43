@@ -1,9 +1,31 @@
 /* ===== GLOBE & MAP ===== */
 #globeViz { position:fixed; inset:0; width:100vw; height:100vh; z-index:2; cursor:grab; }
 #globeViz:active { cursor:grabbing; }
-#mapViz { position:fixed; inset:0; width:100vw; height:100vh; z-index:2; background:#080b10; }
-#mapViz .leaflet-pane { z-index: 10; }
-#mapViz .leaflet-top, #mapViz .leaflet-bottom { z-index: 20; }
+#mapViz { 
+    position: fixed; 
+    inset: 0; 
+    width: 100vw; 
+    height: 100vh; 
+    z-index: 2; 
+    background: #080b10; 
+    cursor: grab;
+    touch-action: none;
+    pointer-events: auto !important;
+}
+#mapViz:active,
+#mapViz.leaflet-drag-target { 
+    cursor: grabbing; 
+}
+#mapViz .leaflet-container { 
+    cursor: grab; 
+    touch-action: none;
+}
+#mapViz .leaflet-grab { 
+    cursor: grab; 
+}
+#mapViz .leaflet-grabbing { 
+    cursor: grabbing; 
+}
 /* Hanya hide overflow di halaman radar — jangan pakai .main-wrapper global! */
 body.page-radar .main-wrapper { overflow:hidden !important; }
 
