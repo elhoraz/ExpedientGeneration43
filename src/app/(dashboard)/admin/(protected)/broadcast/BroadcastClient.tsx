@@ -142,7 +142,6 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/users">Users</Link>
           <Link href="/admin/broadcast" className="active">Broadcast</Link>
-          <Link href="/admin/inbox">WhatsApp Inbox</Link>
         </nav>
       </div>
 
@@ -162,9 +161,6 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
                   </div>
               </div>
           </div>
-          <Link href="/admin/inbox" style={{ background: "rgba(0,255,136,0.15)", border: "1px solid rgba(0,255,136,0.4)", color: "#00ff88", padding: "8px 16px", borderRadius: "8px", fontSize: "0.76rem", textDecoration: "none", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}>
-              <i className="fa-solid fa-comments"></i> Buka WhatsApp Inbox
-          </Link>
       </div>
 
       {/* Secondary Provider Fallback Panel */}

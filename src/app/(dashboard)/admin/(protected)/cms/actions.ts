@@ -3,15 +3,56 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
+
+/**
+ * Memverifikasi hak akses admin melalui signed session HMAC atau role Supabase
+ */
+async function verifyAdminAccess(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get("expedient_admin_session")?.value;
+
+  // 1. Cek token sesi HMAC bertanda tangan atau legacy
+  if (adminToken === "unlocked") return true;
+  if (await verifySignedAdminSession(adminToken)) return true;
+
+  // 2. Cek apakah user Supabase yang sedang login memiliki role admin/superadmin
+  try {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll(); },
+          setAll() {},
+        },
+      }
+    );
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+      if (profile?.role === "admin" || profile?.role === "superadmin") {
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn("[CMS-AUTH-CHECK-WARN]:", err);
+  }
+
+  return false;
+}
 
 // --- SITE CONTENT ACTIONS ---
 export async function saveCmsChanges(contents: any[]) {
-  const cookieStore = await cookies();
-  
-  if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
-    throw new Error("Unauthorized");
+  if (!(await verifyAdminAccess())) {
+    throw new Error("Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa.");
   }
 
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -23,15 +64,12 @@ export async function saveCmsChanges(contents: any[]) {
     }
   );
 
-  const dataToUpsert = contents.map(c => {
-    const isNew = c.id.startsWith("new_");
-    return {
-      ...(isNew ? {} : { id: c.id }),
-      content_key: c.content_key,
-      content_value: c.content_value,
-      content_type: c.content_type
-    };
-  });
+  const dataToUpsert = contents.map(c => ({
+    content_key: c.content_key,
+    content_value: c.content_value ?? "",
+    content_type: c.content_type || "text",
+    updated_at: new Date().toISOString(),
+  }));
 
   const { data: existing } = await supabase.from("site_content").select("content_key");
   const existingKeys = existing?.map(e => e.content_key) || [];
@@ -44,8 +82,13 @@ export async function saveCmsChanges(contents: any[]) {
   }
 
   if (dataToUpsert.length > 0) {
-    const { error } = await supabase.from("site_content").upsert(dataToUpsert, { onConflict: 'content_key' });
-    if (error) throw error;
+    const { error } = await supabase
+      .from("site_content")
+      .upsert(dataToUpsert, { onConflict: "content_key" });
+    if (error) {
+      console.error("[CMS-UPSERT-ERROR]:", error);
+      throw new Error("Gagal menyimpan ke site_content: " + error.message);
+    }
   }
 
   revalidatePath("/admin/cms");
@@ -60,14 +103,14 @@ export async function uploadImageToStorage(
   bucket: string,
   folder: string
 ): Promise<string> {
-  const cookieStore = await cookies();
-  if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
-    throw new Error("Unauthorized");
+  if (!(await verifyAdminAccess())) {
+    throw new Error("Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa.");
   }
 
   const file = formData.get("file") as File;
   if (!file || file.size === 0) throw new Error("No file provided");
 
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -95,11 +138,11 @@ export async function uploadImageToStorage(
 
 // --- GALERI ACTIONS ---
 export async function saveGalleryItem(id: string | null, imageUrl: string, caption: string) {
-  const cookieStore = await cookies();
-  if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
-    throw new Error("Unauthorized");
+  if (!(await verifyAdminAccess())) {
+    throw new Error("Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa.");
   }
 
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -122,11 +165,11 @@ export async function saveGalleryItem(id: string | null, imageUrl: string, capti
 }
 
 export async function deleteGalleryItem(id: string) {
-  const cookieStore = await cookies();
-  if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
-    throw new Error("Unauthorized");
+  if (!(await verifyAdminAccess())) {
+    throw new Error("Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa.");
   }
 
+  const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -139,5 +182,3 @@ export async function deleteGalleryItem(id: string) {
   revalidatePath("/admin/cms");
   revalidatePath("/beranda");
 }
-
-

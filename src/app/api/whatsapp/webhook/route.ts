@@ -91,98 +91,9 @@ export async function POST(request: Request) {
           },
         ]);
 
-        console.log(`[META-WA-INBOX] Pesan dari ${numNorm} (${senderTag}): "${messageText}" disimpan.`);
+        console.log(`[META-WA-INCOMING] Pesan dari ${numNorm} (${senderTag}): "${messageText}" diterima.`);
 
-        // 2. Kirim balasan otomatis dari Chat Bot (Asisten Resmi & Pengiriman OTP Otomatis)
-        try {
-          let otpReply = "";
-          if (matchedUser?.id) {
-            try {
-              const { data: authData } = await adminSupabase.auth.admin.getUserById(matchedUser.id);
-              const authUser = authData?.user;
-              if (authUser && !authUser.email_confirmed_at) {
-                // Pengguna ini belum terverifikasi! Berikan OTP langsung
-                let activeOtp = authUser.user_metadata?.otp_code;
-                if (!activeOtp) {
-                  activeOtp = Math.floor(100000 + Math.random() * 900000).toString();
-                  await adminSupabase.auth.admin.updateUserById(matchedUser.id, {
-                    user_metadata: {
-                      ...authUser.user_metadata,
-                      otp_code: activeOtp,
-                      otp_expires_at: Date.now() + 24 * 60 * 60 * 1000,
-                    },
-                  });
-                }
-
-                otpReply = `✨ *KODE VERIFIKASI EXPEDIENT GENERATION* ✨
-
-*Assalamu'alaikum Warahmatullahi Wabarakatuh*
-
-Halo *${userDisplayName}*, berikut adalah kode OTP verifikasi resmi untuk mengesahkan akun portal Anda:
-
-🔑 *KODE OTP ANDA:*
-*${activeOtp}*
-
-_Kode ini bersifat rahasia dan berlaku selama 24 jam._
-Silakan ketikkan 6 digit angka di atas pada halaman verifikasi portal untuk menyelesaikan pendaftaran.
-
-🌐 *Buka Layar Verifikasi:*
-https://expedientgeneration.vercel.app/register?verify=true&email=${encodeURIComponent(authUser.email || "")}
-
-*Wassalamu'alaikum Warahmatullahi Wabarakatuh*
-*Expedient Generation — 43rd Arrisalah*`;
-              }
-            } catch (authErr) {
-              console.warn("[META-WA-BOT-AUTH-ERR]:", authErr);
-            }
-          }
-
-          // Cek jeda 10 menit agar tidak spam beruntun untuk pesan greeting biasa
-          const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-          const { count: recentReplies } = await adminSupabase
-            .from("whatsapp_queue")
-            .select("*", { count: "exact", head: true })
-            .eq("no_whatsapp", numNorm)
-            .eq("status", "sent")
-            .like("error_message", "Bot Auto-Reply%")
-            .gte("created_at", tenMinsAgo);
-
-          // Jika ada pesan OTP khusus atau belum ada balasan salam dalam 10 menit
-          if (otpReply || !recentReplies || recentReplies === 0) {
-            const messageToSend = otpReply || `✨ *ASISTEN WHATSAPP EXPEDIENT GENERATION* ✨
-
-*Assalamu'alaikum Warahmatullahi Wabarakatuh*
-
-Halo *${userDisplayName}*! Terima kasih telah menghubungi layanan WhatsApp resmi *Expedient Generation 43*.
-
-Pesan Anda telah kami terima dan masuk ke sistem *Command Center Admin* kami. Tim admin kami akan segera membaca dan merespons pesan Anda secara langsung di sini.
-
-🌐 *Portal Alumni:* https://expedientgeneration.vercel.app
-🔐 *Bantuan:* Hubungi admin jika memerlukan panduan login, registrasi, atau reset password.
-
-*Wassalamu'alaikum Warahmatullahi Wabarakatuh*
-*Expedient Generation — 43rd Arrisalah*`;
-
-            const replySent = await sendWhatsAppMessage(numNorm, messageToSend);
-            if (replySent) {
-              await adminSupabase.from("whatsapp_queue").insert([
-                {
-                  no_whatsapp: numNorm,
-                  message: messageToSend,
-                  status: "sent",
-                  error_message: otpReply ? "Bot Auto-Reply (OTP Delivery)" : "Bot Auto-Reply (Asisten Resmi)",
-                  created_at: new Date().toISOString(),
-                  updated_at: new Date().toISOString(),
-                },
-              ]);
-              console.log(`[META-WA-BOT] Balasan (${otpReply ? "OTP" : "Greeting"}) berhasil terkirim ke ${numNorm}`);
-            }
-          }
-        } catch (botErr) {
-          console.warn("[META-WA-BOT-ERROR]: Gagal mengirim auto-reply bot:", botErr);
-        }
-
-        // 3. Notifikasi Lonceng Admin
+        // Notifikasi Lonceng Admin
         try {
           const { data: adminProfiles } = await adminSupabase
             .from("profiles")
@@ -194,7 +105,7 @@ Pesan Anda telah kami terima dan masuk ke sistem *Command Center Admin* kami. Ti
               user_id: adm.id,
               title: `💬 WA Masuk: ${userDisplayName}`,
               message: messageText.length > 80 ? messageText.substring(0, 77) + "..." : messageText,
-              link: "/admin/inbox",
+              link: "/admin/broadcast",
               is_read: false,
               created_at: new Date().toISOString(),
             }));

@@ -18,40 +18,85 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
 
   const [users, setUsers] = useState(initialUsers);
   const [loadingId, setLoadingId] = useState<string | null>(null);
-  const supabase = createClient();
-  const { showAlert } = useConfirm();
+  const { showAlert, showConfirm } = useConfirm();
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     setLoadingId(userId);
-    
-    const { error } = await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', userId);
-      
-    if (!error) {
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal mengubah role pengguna");
+      }
+
       setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    } else {
-      await showAlert("Gagal", "Gagal mengupdate role");
+    } catch (err: any) {
+      console.error(err);
+      await showAlert("Gagal", err.message || "Gagal mengupdate role.");
+    } finally {
+      setLoadingId(null);
     }
-    setLoadingId(null);
   };
 
   const toggleStatus = async (userId: string, currentStatus: boolean) => {
     setLoadingId(userId);
     const newStatus = !currentStatus;
-    
-    const { error } = await supabase
-      .from('profiles')
-      .update({ is_active: newStatus })
-      .eq('id', userId);
-      
-    if (!error) {
+
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, is_active: newStatus }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal mengubah status pengguna");
+      }
+
       setUsers(users.map(u => u.id === userId ? { ...u, is_active: newStatus } : u));
-    } else {
-      await showAlert("Gagal", "Gagal mengupdate status");
+    } catch (err: any) {
+      console.error(err);
+      await showAlert("Gagal", err.message || "Gagal mengupdate status.");
+    } finally {
+      setLoadingId(null);
     }
-    setLoadingId(null);
+  };
+
+  const handleDeleteUser = async (user: any) => {
+    const userName = user.nama_panggilan || user.nama_lengkap || user.email;
+    const confirmed = await showConfirm(
+      "Konfirmasi Hapus Akun",
+      `Apakah Anda yakin ingin menghapus akun "${userName}" (${user.email}) secara permanen dari database? Tindakan ini akan menghapus akun dari sistem autentikasi dan profil secara permanen.`
+    );
+    if (!confirmed) return;
+
+    setLoadingId(user.id);
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal menghapus pengguna");
+      }
+
+      setUsers(users.filter(u => u.id !== user.id));
+      await showAlert("Berhasil", "Akun pengguna telah dihapus secara permanen dari database.");
+    } catch (err: any) {
+      console.error(err);
+      await showAlert("Gagal", err.message || "Terjadi kesalahan saat menghapus pengguna.");
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   // Generate badge style based on role
@@ -142,14 +187,25 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
                         {u.is_active !== false ? 'Aktif' : 'Nonaktif'}
                       </span>
                     </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <button 
-                        className={`btn-action ${u.is_active !== false ? 'btn-delete-action' : 'btn-edit-action'} hover-trigger`}
-                        onClick={() => toggleStatus(u.id, u.is_active !== false)}
-                        disabled={loadingId === u.id}
-                      >
-                        <i className={`fa-solid ${u.is_active !== false ? 'fa-ban' : 'fa-check'}`}></i> {u.is_active !== false ? 'Suspend' : 'Aktifkan'}
-                      </button>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
+                        <button 
+                          className={`btn-action ${u.is_active !== false ? 'btn-delete-action' : 'btn-edit-action'} hover-trigger`}
+                          onClick={() => toggleStatus(u.id, u.is_active !== false)}
+                          disabled={loadingId === u.id}
+                        >
+                          <i className={`fa-solid ${u.is_active !== false ? 'fa-ban' : 'fa-check'}`}></i> {u.is_active !== false ? 'Suspend' : 'Aktifkan'}
+                        </button>
+                        <button 
+                          className="btn-action hover-trigger"
+                          onClick={() => handleDeleteUser(u)}
+                          disabled={loadingId === u.id}
+                          style={{ background: "rgba(255, 51, 102, 0.15)", borderColor: "rgba(255, 51, 102, 0.4)", color: "#ff3366" }}
+                          title="Hapus Pengguna Permanen Dari Database"
+                        >
+                          <i className="fa-solid fa-trash"></i> Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -204,14 +260,25 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
                   <option value="admin">Role: Admin</option>
                 </select>
 
-                <button 
-                  className={`btn-action ${u.is_active !== false ? 'btn-delete-action' : 'btn-edit-action'} hover-trigger`}
-                  onClick={() => toggleStatus(u.id, u.is_active !== false)}
-                  disabled={loadingId === u.id}
-                  style={{ width: "100%", padding: "8px 10px", textAlign: "center", justifyContent: "center", display: "flex", alignItems: "center", gap: "6px" }}
-                >
-                  <i className={`fa-solid ${u.is_active !== false ? 'fa-ban' : 'fa-check'}`}></i> {u.is_active !== false ? 'Suspend' : 'Aktifkan'}
-                </button>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", width: "100%" }}>
+                  <button 
+                    className={`btn-action ${u.is_active !== false ? 'btn-delete-action' : 'btn-edit-action'} hover-trigger`}
+                    onClick={() => toggleStatus(u.id, u.is_active !== false)}
+                    disabled={loadingId === u.id}
+                    style={{ width: "100%", padding: "8px 10px", textAlign: "center", justifyContent: "center", display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <i className={`fa-solid ${u.is_active !== false ? 'fa-ban' : 'fa-check'}`}></i> {u.is_active !== false ? 'Suspend' : 'Aktifkan'}
+                  </button>
+
+                  <button 
+                    className="btn-action hover-trigger"
+                    onClick={() => handleDeleteUser(u)}
+                    disabled={loadingId === u.id}
+                    style={{ width: "100%", padding: "8px 10px", textAlign: "center", justifyContent: "center", display: "flex", alignItems: "center", gap: "6px", background: "rgba(255, 51, 102, 0.15)", borderColor: "rgba(255, 51, 102, 0.4)", color: "#ff3366" }}
+                  >
+                    <i className="fa-solid fa-trash"></i> Hapus
+                  </button>
+                </div>
               </div>
             </div>
           ))}
