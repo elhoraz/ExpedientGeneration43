@@ -47,6 +47,16 @@ a {
   }
 }
 
+html[data-theme="light"] {
+  color-scheme: light !important;
+  background-color: #f0f5f3;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark !important;
+  background-color: #010302;
+}
+
 /* Sembunyikan widget navbar saat panel disembunyikan (Desktop & Mobile) */
 body.sidebar-closed .theme-widget,
 body.sidebar-closed .notif-widget,

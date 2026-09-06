@@ -3,6 +3,7 @@
     /* THE VOID (DARK) */
     --bg-base: #010302;
     --bg-radial: #030d08;
+    --bg-main: #010302;
     
     --glow-1: rgba(0, 255, 136, 0.15);
     --glow-2: rgba(0, 162, 255, 0.12);
@@ -13,6 +14,7 @@
     --glass-shadow: 0 40px 80px rgba(0,0,0,0.9);
     
     --text-main: #f0f5f2;
+    --text-secondary: #8da496;
     --text-muted: #5e7a6b;
     
     --gold-liquid: linear-gradient(135deg, #d4af37 0%, #fff2cd 40%, #aa771c 60%, #d4af37 100%);
@@ -20,28 +22,44 @@
     
     --input-bg: rgba(0, 0, 0, 0.5);
     --input-focus: rgba(0, 255, 136, 0.1);
+    --input-border-bottom: rgba(255, 255, 255, 0.05);
+
+    --prism-mobile-bg: rgba(4, 10, 7, 0.92);
+    --prism-lite-bg: rgba(4, 10, 7, 0.95);
+    --prism-mobile-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+    --prism-lite-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    --border-divider: rgba(255, 255, 255, 0.05);
 }
 
 [data-theme="light"] .login-page {
     /* THE PEARL (LIGHT) */
     --bg-base: #f0f5f3;
     --bg-radial: #ffffff;
+    --bg-main: #f0f5f3;
     
     --glow-1: rgba(0, 255, 136, 0.15);
     --glow-2: rgba(0, 162, 255, 0.1);
     --glow-3: rgba(255, 215, 0, 0.15);
     
-    --glass-surface: rgba(255, 255, 255, 0.7);
+    --glass-surface: rgba(255, 255, 255, 0.78);
     --glass-border: rgba(255, 255, 255, 1);
     --glass-shadow: 0 30px 60px rgba(0, 20, 10, 0.08);
     
     --text-main: #041008;
+    --text-secondary: #4a6355;
     --text-muted: #6a8275;
     
     --gold-liquid: linear-gradient(135deg, #aa771c 0%, #d4af37 40%, #e6c27a 60%, #aa771c 100%);
     
-    --input-bg: rgba(255, 255, 255, 0.8);
-    --input-focus: rgba(0, 255, 136, 0.05);
+    --input-bg: rgba(255, 255, 255, 0.85);
+    --input-focus: rgba(0, 255, 136, 0.08);
+    --input-border-bottom: rgba(0, 0, 0, 0.12);
+
+    --prism-mobile-bg: rgba(255, 255, 255, 0.94);
+    --prism-lite-bg: rgba(255, 255, 255, 0.98);
+    --prism-mobile-shadow: 0 15px 35px rgba(0, 20, 10, 0.08);
+    --prism-lite-shadow: 0 10px 25px rgba(0, 20, 10, 0.06);
+    --border-divider: rgba(0, 0, 0, 0.08);
 }
 
 .login-page {
@@ -112,7 +130,18 @@
     
     opacity: 0; transform: translateY(5vh) rotateX(5deg);
     animation: prismEnter 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
-    transition: transform 0.15s ease-out;
+    transition: transform 0.15s ease-out, background 0.4s ease, border-color 0.4s ease;
+}
+
+[data-theme="light"] .auth-prism {
+    border-top: 1px solid rgba(255, 255, 255, 1);
+    border-left: 1px solid rgba(255, 255, 255, 1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .logo-utuh {
+    filter: drop-shadow(0 10px 20px rgba(0, 20, 10, 0.15));
 }
 
 @keyframes prismEnter { to { opacity: 1; transform: translateY(0) rotateX(0deg); } }
@@ -169,7 +198,7 @@
 
 .input-control {
     width: 100%; padding: clamp(10px, 2vh, 12px) 0; background: var(--input-bg);
-    border: none; border-bottom: 1px solid rgba(255,255,255,0.05);
+    border: none; border-bottom: 1px solid var(--input-border-bottom);
     color: var(--text-main); font-size: clamp(0.9rem, 2vh, 1.05rem); outline: none; transition: 0.4s;
     border-radius: 6px 6px 0 0; padding-left: 12px;
 }
@@ -192,6 +221,9 @@
 .input-control:focus ~ .input-neon-line { width: 100%; box-shadow: 0 -2px 10px rgba(0, 255, 136, 0.4); }
 .input-control:focus ~ .input-label { color: #00ff88; }
 
+[data-theme="light"] .input-control:focus ~ .input-label { color: #008844; }
+[data-theme="light"] .input-control:focus ~ .input-neon-line { box-shadow: 0 -2px 10px rgba(0, 136, 68, 0.3); }
+
 .icon-eye { position: absolute; right: 10px; top: clamp(10px, 2vh, 12px); color: var(--text-muted); cursor: pointer; transition: 0.3s; font-size: 1.1rem; }
 .icon-eye:hover { color: var(--text-main); }
 
@@ -208,9 +240,10 @@
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.27); will-change: transform;
 }
 .btn-prime:hover { animation: shimmerHolo 3s linear infinite; box-shadow: 0 15px 30px rgba(212, 175, 55, 0.3); }
+[data-theme="light"] .btn-prime { box-shadow: 0 8px 20px rgba(170, 119, 28, 0.25), inset 0 1px 0 rgba(255,255,255,0.8); }
 
 .divider { display: flex; align-items: center; color: var(--text-muted); font-size: 0.6rem; letter-spacing: 2px; margin: 5px 0; }
-.divider hr { flex: 1; border: none; border-top: 1px solid rgba(255,255,255,0.05); }
+.divider hr { flex: 1; border: none; border-top: 1px solid var(--border-divider); }
 .divider span { padding: 0 15px; }
 
 .btn-bio {
@@ -222,9 +255,22 @@
 }
 .btn-bio:hover { background: rgba(0, 255, 136, 0.15); border-color: #00ff88; transform: translateY(-2px); }
 
+[data-theme="light"] .btn-bio {
+    background: rgba(0, 136, 68, 0.06);
+    border: 1px solid rgba(0, 136, 68, 0.25);
+    color: #008844;
+}
+[data-theme="light"] .btn-bio:hover {
+    background: rgba(0, 136, 68, 0.12);
+    border-color: #008844;
+    color: #006633;
+}
+
 .register-link { text-align: center; margin-top: clamp(15px, 3vh, 25px); color: var(--text-muted); font-size: clamp(0.75rem, 1.5vh, 0.85rem); transform: translateZ(20px); }
 .register-link a { color: var(--text-main); text-decoration: none; font-weight: 600; border-bottom: 1px solid transparent; transition: 0.3s; }
 .register-link a:hover { border-color: #d4af37; color: #d4af37; }
+[data-theme="light"] .register-link a:hover { border-color: #aa771c; color: #aa771c; }
+.register-link.return-link { border-top: 1px solid var(--border-divider) !important; }
 
 /* ================= 7. FUTURISTIC THEME TOGGLE ================= */
 .toggle-widget {
@@ -236,11 +282,26 @@
 }
 .toggle-widget:hover { transform: translateY(-2px) scale(1.05); border-color: #d4af37; }
 
+[data-theme="light"] .toggle-widget {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 20, 10, 0.08);
+}
+[data-theme="light"] .toggle-widget:hover {
+    border-color: #aa771c;
+}
+
 .icon-orb {
     width: clamp(25px, 4vh, 32px); height: clamp(25px, 4vh, 32px); border-radius: 50%; background: var(--bg-main);
     display: flex; justify-content: center; align-items: center; color: var(--text-main);
     box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); transition: 0.4s; font-size: clamp(0.8rem, 1.5vh, 1rem);
 }
+[data-theme="light"] .icon-orb {
+    background: #ffffff;
+    color: #d4af37;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .widget-text { font-size: clamp(0.6rem, 1.2vh, 0.7rem); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary); }
 
 /* ================= 8. VOLUMETRIC ALERTS ================= */
@@ -258,14 +319,25 @@
 .toast-success { border-bottom: 3px solid #00ff88; } .toast-success i { color: #00ff88; }
 .toast-error { border-bottom: 3px solid #ff3366; } .toast-error i { color: #ff3366; }
 
+[data-theme="light"] .quantum-toast {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 20px 40px rgba(0, 20, 10, 0.12);
+}
+
 /* ================= 9. PWA INSTALL MODAL ================= */
 .install-app-btn { right: auto; left: 4vw; border-color: rgba(212,175,55,0.3); }
 .install-app-btn:hover { border-color: #d4af37; }
 
 .install-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 99999; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-[data-theme="light"] .install-modal { background: rgba(255,255,255,0.7); }
+[data-theme="light"] .install-modal { background: rgba(0,0,0,0.4); }
 .install-modal.active { opacity: 1; pointer-events: auto; }
 .install-content { background: var(--glass-surface); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 30px; border-radius: 20px; max-width: 400px; width: 90%; transform: translateY(50px); transition: 0.5s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: var(--glass-shadow); }
+[data-theme="light"] .install-content {
+    background: #ffffff;
+    border-color: rgba(212, 175, 55, 0.3);
+    box-shadow: 0 25px 50px rgba(0, 20, 10, 0.15);
+}
 .install-modal.active .install-content { transform: translateY(0); }
 .install-title { color: #d4af37; font-family: 'Playfair Display', serif; font-size: 1.5rem; margin-bottom: 25px; text-transform: uppercase; text-align: center; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 15px; }
 .install-step { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; text-align: left; }
@@ -289,8 +361,8 @@
     .auth-prism {
         backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
-        background: rgba(4, 10, 7, 0.92) !important;
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7) !important;
+        background: var(--prism-mobile-bg) !important;
+        box-shadow: var(--prism-mobile-shadow) !important;
         transform: none !important;
     }
     .toggle-widget {
@@ -310,8 +382,31 @@
 [data-perf="lite"] .auth-prism {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    background: rgba(4, 10, 7, 0.95) !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+    background: var(--prism-lite-bg) !important;
+    box-shadow: var(--prism-lite-shadow) !important;
     transform: none !important;
+}
+
+/* Explicit Light Theme Overrides for Mobile & Lite Devices */
+@media (max-width: 768px), (pointer: coarse) {
+    [data-theme="light"] .auth-prism,
+    [data-theme="light"] .login-page .auth-prism {
+        background: rgba(255, 255, 255, 0.94) !important;
+        box-shadow: 0 15px 35px rgba(0, 20, 10, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    }
+    [data-theme="light"] .toggle-widget {
+        background: rgba(255, 255, 255, 0.92) !important;
+        border-color: rgba(0, 0, 0, 0.1) !important;
+    }
+}
+
+[data-theme="light"][data-perf="lite"] .auth-prism,
+[data-theme="light"] [data-perf="lite"] .auth-prism,
+[data-perf="lite"] [data-theme="light"] .auth-prism,
+[data-perf="lite"] .login-page[data-theme="light"] .auth-prism {
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: 0 10px 25px rgba(0, 20, 10, 0.06) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 

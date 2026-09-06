@@ -53,6 +53,7 @@ function LoginContent() {
   useEffect(() => {
     const savedTheme = (localStorage.getItem("expedient_theme") as "dark" | "light") || "dark";
     setTheme(savedTheme);
+    document.documentElement.setAttribute("data-theme", savedTheme);
     triggerLogoExplosion();
   }, []);
 
@@ -289,7 +290,7 @@ function LoginContent() {
             {t('login_text_register', 'Identitas belum terdaftar?')} <Link href="/register">{t('login_link_register', 'Ajukan Registrasi')}</Link>
           </div>
 
-          <div className="register-link" style={{ marginTop: "10px", paddingTop: "15px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <div className="register-link return-link" style={{ marginTop: "10px", paddingTop: "15px" }}>
             <Link href="/"><i className="fa-solid fa-arrow-left"></i> Kembali ke Gerbang Utama</Link>
           </div>
         </div>
@@ -321,7 +322,7 @@ function LoginContent() {
 
 export default function LoginClient() {
   return (
-    <Suspense fallback={<div style={{ width: "100%", minHeight: "100vh", background: "#010302" }}></div>}>
+    <Suspense fallback={<div className="login-page" style={{ width: "100%", minHeight: "100vh" }}></div>}>
       <LoginContent />
     </Suspense>
   );

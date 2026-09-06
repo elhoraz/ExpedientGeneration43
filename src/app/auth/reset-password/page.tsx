@@ -23,6 +23,7 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const savedTheme = (localStorage.getItem("expedient_theme") as "dark" | "light") || "dark";
     setTheme(savedTheme);
+    document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
   const toggleTheme = () => {
