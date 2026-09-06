@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 export const dynamic = 'force-dynamic';
 
@@ -46,26 +47,13 @@ export async function GET(request: Request) {
 
     for (const msg of (waQueue || [])) {
       try {
-        const response = await fetch("https://api.fonnte.com/send", {
-          method: "POST",
-          headers: {
-            "Authorization": process.env.FONNTE_TOKEN || "",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            target: msg.no_whatsapp,
-            message: msg.message,
-            countryCode: "62"
-          })
-        });
-
-        const result = await response.json();
+        const success = await sendWhatsAppMessage(msg.no_whatsapp, msg.message);
         
-        if (result.status) {
+        if (success) {
           await supabase.from('whatsapp_queue').update({ status: 'sent', updated_at: new Date().toISOString() }).eq('id', msg.id);
           waSent++;
         } else {
-          throw new Error(result.reason || "Unknown Fonnte Error");
+          throw new Error("Gagal terkirim via Meta Cloud API / fallback");
         }
       } catch (err: any) {
         await supabase.from('whatsapp_queue').update({ status: 'failed', error_message: err.message, updated_at: new Date().toISOString() }).eq('id', msg.id);

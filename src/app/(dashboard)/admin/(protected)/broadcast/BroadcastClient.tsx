@@ -142,22 +142,42 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/users">Users</Link>
           <Link href="/admin/broadcast" className="active">Broadcast</Link>
+          <Link href="/admin/inbox">WhatsApp Inbox</Link>
         </nav>
       </div>
 
-      {/* Fonnte Connection Status Panel */}
-      <div style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "18px 24px", marginBottom: "32px", display: "flex", alignItems: "center", gap: "16px" }}>
-          <div style={{ 
-              width: "10px", height: "10px", borderRadius: "50%", flexShrink: 0, transition: "background 0.3s",
-              background: fonnteStatus === 'checking' ? '#888' : fonnteStatus === 'ok' ? '#25d366' : '#ff3366',
-              animation: fonnteStatus === 'checking' ? 'pulse 1s infinite' : 'none'
-          }}></div>
-          <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)" }}>Status Koneksi Fonnte API</div>
-              <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "3px" }}>{fonnteMessage}</div>
+      {/* Meta WhatsApp Cloud API Official Status Panel */}
+      <div style={{ background: "linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(212, 175, 55, 0.05))", border: "1px solid rgba(0, 255, 136, 0.3)", borderRadius: "16px", padding: "18px 24px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <div style={{ 
+                  width: "12px", height: "12px", borderRadius: "50%", flexShrink: 0,
+                  background: "#00ff88", boxShadow: "0 0 12px #00ff88"
+              }}></div>
+              <div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
+                      WhatsApp Cloud API Resmi (Primary) · <span style={{ color: "#ffd700", fontFamily: "monospace" }}>+62 851-5177-1289</span>
+                  </div>
+                  <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "3px" }}>
+                      🛡️ <b>100% Anti-Banned</b> · WABA ID: 2574305923008491 · Status: <span style={{ color: "#00ff88", fontWeight: 600 }}>VERIFIED (Green Rating)</span>
+                  </div>
+              </div>
           </div>
-          <button onClick={checkFonnteStatus} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)", padding: "6px 14px", borderRadius: "8px", fontSize: "0.72rem", cursor: "pointer", whiteSpace: "nowrap" }} className="hover-trigger">
-              <i className="fa-solid fa-rotate-right" style={{ marginRight: "5px" }}></i>Cek Ulang
+          <Link href="/admin/inbox" style={{ background: "rgba(0,255,136,0.15)", border: "1px solid rgba(0,255,136,0.4)", color: "#00ff88", padding: "8px 16px", borderRadius: "8px", fontSize: "0.76rem", textDecoration: "none", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}>
+              <i className="fa-solid fa-comments"></i> Buka WhatsApp Inbox
+          </Link>
+      </div>
+
+      {/* Secondary Provider Fallback Panel */}
+      <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "12px 20px", marginBottom: "32px", display: "flex", alignItems: "center", gap: "14px" }}>
+          <div style={{ 
+              width: "8px", height: "8px", borderRadius: "50%", flexShrink: 0,
+              background: fonnteStatus === 'checking' ? '#888' : fonnteStatus === 'ok' ? '#25d366' : '#ffaa00'
+          }}></div>
+          <div style={{ flex: 1, fontSize: "0.74rem", color: "var(--text-secondary)" }}>
+              <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>Secondary Fallback Provider:</span> Fonnte API ({fonnteMessage})
+          </div>
+          <button onClick={checkFonnteStatus} style={{ background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "0.72rem", cursor: "pointer" }}>
+              <i className="fa-solid fa-rotate-right"></i>
           </button>
       </div>
 

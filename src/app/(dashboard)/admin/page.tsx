@@ -84,6 +84,13 @@ export default async function AdminPage() {
             <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kirim instruksi massal (Broadcast)</div>
           </div>
         </Link>
+        <Link href="/admin/inbox" style={{ textDecoration: "none" }}>
+          <div className="metric-card hover-glow-emerald" style={{ transitionDelay: "0.35s", borderColor: "rgba(37, 211, 102, 0.4)", background: "linear-gradient(135deg, rgba(37, 211, 102, 0.08), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#25d366" }}><i className="fa-solid fa-comments"></i></div>
+            <div className="metric-label" style={{ color: "#25d366", fontWeight: "bold" }}>WhatsApp Inbox</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kotak masuk & balas chat Meta API</div>
+          </div>
+        </Link>
         <Link href="/admin/wallet-generator" style={{ textDecoration: "none" }}>
           <div className="metric-card hover-glow-cyan" style={{ transitionDelay: "0.4s", borderColor: "rgba(0, 191, 255, 0.4)", background: "linear-gradient(135deg, rgba(0, 191, 255, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
             <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00bfff" }}><i className="fa-solid fa-wallet"></i></div>
