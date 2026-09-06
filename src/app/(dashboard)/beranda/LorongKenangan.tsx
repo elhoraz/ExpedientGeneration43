@@ -114,9 +114,13 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
         if (isCenter) {
           frame.style.borderColor = "#ffd700";
           frame.style.boxShadow = "0 25px 60px rgba(0,0,0,0.9), 0 0 50px rgba(212,175,55,0.45)";
+          frame.style.filter = "grayscale(0%)";
         } else {
           frame.style.borderColor = "rgba(255,255,255,0.15)";
           frame.style.boxShadow = "0 15px 35px rgba(0,0,0,0.6)";
+          if (mobile) {
+            frame.style.filter = "grayscale(0%)";
+          }
         }
       }
     });
@@ -416,7 +420,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                       <img
                         src={imageUrl}
                         alt={g.caption || "Kenangan Museum"}
-                        loading="lazy"
+                        decoding="async"
                         draggable={false}
                         style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none" }}
                         onError={(e) => {
@@ -455,7 +459,8 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                     <div className="echo-caption" style={{
                       color: "#111",
                       fontSize: isMobile ? "0.78rem" : undefined,
-                      padding: isMobile ? "10px 8px 4px" : undefined
+                      padding: isMobile ? "10px 8px 4px" : undefined,
+                      transform: "translateY(0)"
                     }}>
                       {g.caption || "Memori Angkatan Expedient"}
                     </div>
@@ -587,7 +592,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                     <img
                       src={imageUrl}
                       alt={g.caption || "Foto Museum"}
-                      loading="lazy"
+                      decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />
                     <div style={{

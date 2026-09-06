@@ -184,7 +184,7 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
                 <div className="swiper mySwiper">
                     <div className="swiper-wrapper" id="swiperWrapper">
                     
-                    {filteredAlumni.map((user) => {
+                    {filteredAlumni.map((user, idx) => {
                         const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
 
                         return (
@@ -197,7 +197,7 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
                                             height={150} 
                                             className="card-photo" 
                                             alt={user.nama_panggilan || user.nama_lengkap || "Foto Alumni"} 
-                                            loading="lazy"
+                                            priority={idx < 8}
                                             sizes="(max-width: 768px) 130px, 150px"
                                             onError={() => setFailedPhotos(prev => ({ ...prev, [user.id]: true }))}
                                             unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com") || foto.includes("supabase.co")}

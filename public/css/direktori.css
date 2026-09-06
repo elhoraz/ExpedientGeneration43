@@ -183,8 +183,23 @@
     .search-icon { left: 16px; font-size: 0.95rem; }
 
     .nav-arrow { display: none; }
-    .photo-ring { width: 110px; height: 110px; margin-bottom: 16px; }
-    .swiper-slide-active .photo-ring { width: 130px; height: 130px; margin-bottom: 18px; }
+    .photo-ring { 
+        width: 110px; 
+        height: 110px; 
+        margin-bottom: 16px; 
+        filter: grayscale(0%) opacity(1) !important;
+    }
+    .swiper-slide-active .photo-ring { 
+        width: 130px; 
+        height: 130px; 
+        margin-bottom: 18px; 
+        filter: grayscale(0%) opacity(1) !important;
+        box-shadow: 0 12px 28px rgba(212,175,55,0.35);
+    }
+    .swiper-slide {
+        transform: translateZ(0);
+        will-change: transform;
+    }
     .card-name { font-size: 1.5rem; }
     .swiper-slide-active .card-name { font-size: 1.75rem; }
     .card-quote { font-size: 0.98rem; margin: 18px 0 14px; }

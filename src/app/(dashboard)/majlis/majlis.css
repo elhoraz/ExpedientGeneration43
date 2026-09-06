@@ -70,6 +70,9 @@ body.page-majlis .main-wrapper {
 .majlis-page-wrapper .listener-node:hover { transform: translateY(-5px); }
 .majlis-page-wrapper .listener-avatar { width: 60px; height: 60px; border-radius: 50%; background-color: var(--glass-bg); background-size: cover; background-position: center; border: 1px solid var(--glass-border); filter: grayscale(80%); transition: all 0.3s; }
 .majlis-page-wrapper .listener-node:hover .listener-avatar { filter: grayscale(0%); border-color: var(--gold-main); }
+@media (hover: none), (max-width: 768px) {
+  .majlis-page-wrapper .listener-avatar { filter: grayscale(0%) !important; }
+}
 .majlis-page-wrapper .listener-name { font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 1px; }
 
 /* Audio rings */

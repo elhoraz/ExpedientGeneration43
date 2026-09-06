@@ -176,8 +176,23 @@ body.page-direktori .direktori-container,
     .direktori-container .search-icon { left: 16px; font-size: 0.95rem; }
 
     .direktori-container .nav-arrow { display: none; }
-    .direktori-container .photo-ring { width: 110px; height: 110px; margin-bottom: 16px; }
-    .direktori-container .swiper-slide-active .photo-ring { width: 130px; height: 130px; margin-bottom: 18px; }
+    .direktori-container .photo-ring { 
+        width: 110px; 
+        height: 110px; 
+        margin-bottom: 16px; 
+        filter: grayscale(0%) opacity(1) !important;
+    }
+    .direktori-container .swiper-slide-active .photo-ring { 
+        width: 130px; 
+        height: 130px; 
+        margin-bottom: 18px; 
+        filter: grayscale(0%) opacity(1) !important;
+        box-shadow: 0 12px 28px rgba(212,175,55,0.35);
+    }
+    .direktori-container .swiper-slide {
+        transform: translateZ(0);
+        will-change: transform;
+    }
     .direktori-container .card-name { font-size: 1.5rem; }
     .direktori-container .swiper-slide-active .card-name { font-size: 1.75rem; }
     .direktori-container .card-quote { font-size: 0.98rem; margin: 18px 0 14px; }

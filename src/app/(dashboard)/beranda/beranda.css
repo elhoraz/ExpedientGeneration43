@@ -217,11 +217,57 @@
 
     .horizontal-scroll-snap { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 30px; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; }
     .horizontal-scroll-snap::-webkit-scrollbar { display: none; }
-    .echo-frame { flex: 0 0 clamp(280px, 70vw, 400px); scroll-snap-align: center; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border); aspect-ratio: 4/5; filter: grayscale(100%); transition: 0.5s cubic-bezier(0.25, 1, 0.5, 1); cursor: pointer; }
-    .echo-frame:hover, .echo-frame:active { filter: grayscale(0%); transform: scale(1.02); box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2); }
+    .echo-frame { 
+        flex: 0 0 clamp(280px, 70vw, 400px); 
+        scroll-snap-align: center; 
+        position: relative; 
+        border-radius: 12px; 
+        overflow: hidden; 
+        border: 1px solid var(--glass-border); 
+        aspect-ratio: 4/5; 
+        filter: grayscale(100%); 
+        transition: 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
+        cursor: pointer; 
+        will-change: transform, filter;
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+    .echo-frame:hover, .echo-frame:active { 
+        filter: grayscale(0%); 
+        transform: scale(1.02) translateZ(0); 
+        box-shadow: 0 20px 40px rgba(212, 175, 55, 0.2); 
+    }
     .echo-frame img { width: 100%; height: 100%; object-fit: cover; }
-    .echo-caption { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; font-family: 'Playfair Display', serif; font-size: 1.2rem; transform: translateY(100%); transition: 0.4s; }
+    .echo-caption { 
+        position: absolute; 
+        bottom: 0; 
+        left: 0; 
+        width: 100%; 
+        padding: 20px; 
+        background: linear-gradient(transparent, rgba(0,0,0,0.9)); 
+        color: #fff; 
+        font-family: 'Playfair Display', serif; 
+        font-size: 1.2rem; 
+        transform: translateY(100%); 
+        transition: 0.4s; 
+    }
     .echo-frame:hover .echo-caption, .echo-frame:active .echo-caption { transform: translateY(0); }
+
+    /* Touch screen & Mobile: ALWAYS full color, never stuck in grayscale, captions always visible */
+    @media (hover: none), (max-width: 768px) {
+        .echo-frame {
+            filter: grayscale(0%) !important;
+        }
+        .echo-caption {
+            transform: translateY(0) !important;
+            background: linear-gradient(transparent, rgba(0,0,0,0.88) 50%) !important;
+        }
+        .echo-frame:active {
+            transform: scale(0.98) translateZ(0) !important;
+            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.35) !important;
+        }
+    }
 
     .news-list { display: flex; flex-direction: column; gap: 20px; max-width: 800px; margin: 0 auto; }
     .news-item { padding: 25px 0; border-bottom: 1px solid rgba(212, 175, 55, 0.2); display: flex; flex-direction: column; gap: 10px; transition: 0.3s; }
@@ -485,6 +531,9 @@
         transform-style: preserve-3d;
         transition: border-color 0.3s, box-shadow 0.3s;
         position: relative;
+        filter: grayscale(0%) !important;
+        will-change: transform;
+        transform: translateZ(0);
     }
     :root[data-theme="light"] .echo-frame.polaroid {
         background: #fff;
@@ -515,8 +564,8 @@
         width: 100%;
         height: 60px;
         padding: 15px 10px;
-        background: transparent;
-        color: #222;
+        background: transparent !important;
+        color: #222 !important;
         font-family: 'Courier New', monospace;
         font-size: 0.95rem;
         font-weight: bold;
@@ -525,6 +574,7 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+        transform: translateY(0) !important;
     }
 
     /* ================= 7. FULLSCREEN LAYOUT FIX FOR MONUMENTAL TEXT ================= */

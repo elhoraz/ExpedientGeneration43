@@ -145,3 +145,32 @@ body.sidebar-closed .notif-dropdown {
   --app-height: 100dvh;
 }
 
+/* ========================================================
+   MOBILE & TOUCH EXPERIENCE: ALWAYS ALIVE & ACCELERATED
+   ======================================================== */
+@media (hover: none), (pointer: coarse) {
+  /* Hilangkan grayscale bawaan hover di HP agar semua visual langsung menyala full color */
+  .echo-frame,
+  .premium-card .card-bg,
+  .photo-ring,
+  .listener-avatar {
+    filter: grayscale(0%) !important;
+  }
+
+  /* Momentum smooth scrolling di iOS & Android */
+  html, body, .main-wrapper, .dashboard-container {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Berikan respons sentuhan instan pada tombol & kartu interaktif */
+  button:active,
+  a:active,
+  .premium-card:active,
+  .curator-card:active,
+  .luminary-card:active,
+  .stat-card:active {
+    transition: transform 0.1s ease !important;
+    transform: scale(0.98) !important;
+  }
+}
+

@@ -155,8 +155,28 @@
     
     .cinematic-grid { gap: 25px; padding: 0 10px; grid-template-columns: 1fr; perspective: none; }
     
-    .premium-card { height: auto; min-height: 320px; transform-style: flat; }
-    .premium-card .card-bg { filter: grayscale(30%) brightness(0.5) !important; transform: none !important; }
+    .premium-card { 
+        height: auto; 
+        min-height: 320px; 
+        transform-style: flat; 
+        border-color: rgba(212, 175, 55, 0.35) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.1) !important;
+        transform: translateZ(0);
+        will-change: transform;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .premium-card:active {
+        transform: scale(0.98) translateZ(0) !important;
+        border-color: #ffd700 !important;
+        box-shadow: 0 15px 35px rgba(212, 175, 55, 0.35) !important;
+    }
+    .premium-card .card-bg { 
+        filter: grayscale(0%) brightness(0.68) !important; 
+        transform: none !important; 
+    }
+    :root[data-theme="light"] .premium-card .card-bg {
+        filter: grayscale(0%) brightness(0.85) !important;
+    }
     
     .card-content { position: relative; padding: 30px 20px; transform: none; pointer-events: auto; }
     
