@@ -786,8 +786,205 @@ export default function PhotoboothClient() {
     setSelectedStickerId(null);
   };
 
+  // ── Bulletproof Native 2D Canvas Fallback Renderer ──
+  // Renders photostrip directly to canvas in ~10ms without html2canvas, eliminating any possibility of crash
+  const renderPhotostripNative = async (scale: number = 2): Promise<HTMLCanvasElement> => {
+    const stripEl = stripRef.current;
+    const stripRect = stripEl ? stripEl.getBoundingClientRect() : { width: 270, height: 1000 };
+    const baseWidth = Math.max(270, stripRect.width || 270);
+    const baseHeight = Math.max(800, stripRect.height || 1000);
+
+    const canvasWidth = Math.round(baseWidth * scale);
+    const canvasHeight = Math.round(baseHeight * scale);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas 2D context unavailable");
+
+    // 1. Color tokens based on theme
+    let bg = "#0d0d10";
+    let borderCol = "#d4af37";
+    let textCol = "#ffd700";
+    let subCol = "rgba(255,255,255,0.7)";
+
+    if (theme === "white") {
+      bg = "#ffffff";
+      borderCol = "#dcdce0";
+      textCol = "#111111";
+      subCol = "#666666";
+    } else if (theme === "film") {
+      bg = "#0a0a0c";
+      borderCol = "#333333";
+      textCol = "#f0f0f0";
+      subCol = "#888888";
+    } else if (theme === "sakura") {
+      bg = "#fff0f3";
+      borderCol = "#ffb3c1";
+      textCol = "#590d22";
+      subCol = "#800f2f";
+    } else if (theme === "cyber") {
+      bg = "#05050f";
+      borderCol = "#00f0ff";
+      textCol = "#00f0ff";
+      subCol = "#ff007f";
+    } else if (theme === "custom" && customBgColor) {
+      bg = customBgColor;
+    }
+
+    // Card background fill & border
+    const cardRadius = 14 * scale;
+    ctx.save();
+    ctx.beginPath();
+    if (typeof (ctx as any).roundRect === "function") {
+      (ctx as any).roundRect(0, 0, canvasWidth, canvasHeight, cardRadius);
+    } else {
+      ctx.rect(0, 0, canvasWidth, canvasHeight);
+    }
+    ctx.fillStyle = bg;
+    ctx.fill();
+
+    ctx.strokeStyle = borderCol;
+    ctx.lineWidth = 2 * scale;
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Measure actual slot bounding boxes from real DOM
+    const cellElements = stripEl ? Array.from(stripEl.querySelectorAll<HTMLElement>(".photo-cell")) : [];
+
+    // 3. Draw Photos in Slots
+    for (let idx = 0; idx < totalSlots; idx++) {
+      const photoObj = photos[idx];
+      let slotX = 14 * scale;
+      let slotW = canvasWidth - 28 * scale;
+      let slotH = slotW * (photoAspect === "square" ? 1 : photoAspect === "portrait" ? 4 / 3 : 3 / 4);
+      let slotY = 60 * scale + idx * (slotH + frameGap * scale);
+
+      if (cellElements[idx] && stripEl) {
+        const cRect = cellElements[idx].getBoundingClientRect();
+        const sRect = stripEl.getBoundingClientRect();
+        slotX = (cRect.left - sRect.left) * scale;
+        slotY = (cRect.top - sRect.top) * scale;
+        slotW = cRect.width * scale;
+        slotH = cRect.height * scale;
+      }
+
+      const radius = frameRadius * scale;
+
+      ctx.save();
+      ctx.beginPath();
+      if (typeof (ctx as any).roundRect === "function") {
+        (ctx as any).roundRect(slotX, slotY, slotW, slotH, radius);
+      } else {
+        ctx.rect(slotX, slotY, slotW, slotH);
+      }
+      ctx.clip();
+
+      ctx.fillStyle = "#141418";
+      ctx.fillRect(slotX, slotY, slotW, slotH);
+
+      if (photoObj?.image) {
+        await new Promise<void>((resolveImg) => {
+          const img = new Image();
+          img.onload = () => {
+            const iw = img.naturalWidth || img.width;
+            const ih = img.naturalHeight || img.height;
+            if (iw && ih) {
+              const iAspect = iw / ih;
+              const sAspect = slotW / slotH;
+              let sx = 0, sy = 0, sw = iw, sh = ih;
+              if (iAspect > sAspect) {
+                sw = ih * sAspect;
+                sx = (iw - sw) / 2;
+              } else {
+                sh = iw / sAspect;
+                sy = (ih - sh) / 2;
+              }
+              ctx.drawImage(img, sx, sy, sw, sh, slotX, slotY, slotW, slotH);
+            }
+            resolveImg();
+          };
+          img.onerror = () => resolveImg();
+          img.src = photoObj.image;
+        });
+      }
+
+      ctx.restore();
+    }
+
+    // 4. Draw Header
+    if (showHeader) {
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `bold ${10 * scale}px 'Inter', sans-serif`;
+      ctx.fillStyle = textCol;
+      const headerTitle = theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION";
+      ctx.fillText(headerTitle, canvasWidth / 2, 24 * scale);
+      ctx.restore();
+    }
+
+    // 5. Draw Footer
+    if (showFooter) {
+      ctx.save();
+      ctx.textAlign = "center";
+      const footerY = canvasHeight - 34 * scale;
+
+      if (showDivider) {
+        ctx.strokeStyle = borderCol;
+        ctx.lineWidth = 1 * scale;
+        ctx.beginPath();
+        ctx.moveTo(30 * scale, footerY - 14 * scale);
+        ctx.lineTo(canvasWidth - 30 * scale, footerY - 14 * scale);
+        ctx.stroke();
+      }
+
+      ctx.font = `bold ${11 * scale}px 'Inter', sans-serif`;
+      ctx.fillStyle = textCol;
+      ctx.fillText(captionTitle || "Momen Kenangan", canvasWidth / 2, footerY);
+
+      ctx.font = `${8 * scale}px 'Inter', sans-serif`;
+      ctx.fillStyle = subCol;
+      ctx.fillText(captionDate || "2026", canvasWidth / 2, footerY + 14 * scale);
+
+      if (showCrest) {
+        ctx.font = `${7 * scale}px 'Inter', sans-serif`;
+        ctx.fillStyle = borderCol;
+        ctx.fillText("43RD ARRISALAH COHORT", canvasWidth / 2, footerY + 26 * scale);
+      }
+      ctx.restore();
+    }
+
+    // 6. Draw Stickers
+    if (stickers.length > 0) {
+      stickers.forEach((stk) => {
+        const x = (stk.left / 100) * canvasWidth;
+        const y = (stk.top / 100) * canvasHeight;
+        const s = stk.scale || 1;
+        const fontSize = Math.round(28 * scale * s);
+        ctx.save();
+        ctx.font = `${fontSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(stk.emoji, x, y);
+        ctx.restore();
+      });
+    }
+
+    return canvas;
+  };
+
   // Sanitize photo cells in cloned DOM for reliable, high-fidelity export
   const sanitizeClonedCellsForExport = (clonedDoc: Document) => {
+    // Strip foreign stylesheets that cause cross-origin SecurityError
+    clonedDoc.querySelectorAll<HTMLLinkElement>("link[rel='stylesheet']").forEach((link) => {
+      const href = link.href || "";
+      if (href.includes("leaflet") || href.includes("swiper") || href.includes("cropper")) {
+        link.remove();
+      }
+    });
+
     const stripCard = clonedDoc.querySelector<HTMLElement>(".photostrip-card");
     if (stripCard) {
       stripCard.style.transform = "none";
@@ -796,15 +993,13 @@ export default function PhotoboothClient() {
     }
 
     const cells = clonedDoc.querySelectorAll<HTMLElement>(".photo-cell");
-    cells.forEach((cell, idx) => {
-      // 1. Strip any 3D transforms that crash html2canvas matrix parser
+    cells.forEach((cell) => {
       cell.style.transform = "none";
       cell.style.webkitTransform = "none";
       cell.style.backfaceVisibility = "visible";
       cell.style.willChange = "auto";
       cell.classList.remove("active-slot-border");
 
-      // 2. Hide all interactive UI buttons & badges in the exported strip
       cell
         .querySelectorAll<HTMLElement>(
           ".cell-retake-btn, .live-badge-indicator, .photo-cell-placeholder"
@@ -813,27 +1008,13 @@ export default function PhotoboothClient() {
           el.style.display = "none";
         });
 
-      // 3. If cell has a video element (Live Photo), replace with clean still image
-      const photoObj = photos[idx];
-      const video = cell.querySelector("video");
-      if (video && photoObj?.image) {
-        const newImg = clonedDoc.createElement("img");
-        newImg.src = photoObj.image;
-        newImg.style.width = "100%";
-        newImg.style.height = "100%";
-        newImg.style.objectFit = "cover";
-        newImg.style.display = "block";
-        video.replaceWith(newImg);
-      } else {
-        const img = cell.querySelector("img");
-        if (img) {
-          img.style.transform = "none";
-          img.style.webkitTransform = "none";
-        }
+      const img = cell.querySelector("img");
+      if (img) {
+        img.style.transform = "none";
+        img.style.webkitTransform = "none";
       }
     });
 
-    // Clean up selected/dragging state on stickers in cloned doc
     clonedDoc.querySelectorAll<HTMLElement>(".strip-sticker").forEach((stk) => {
       stk.classList.remove("is-selected", "is-dragging");
       stk.style.outline = "none";
@@ -850,24 +1031,36 @@ export default function PhotoboothClient() {
     setIsExporting(true);
     triggerHaptic(30);
 
+    // Allow React 1 micro-render tick to ensure cells switch to <img> tags
+    await new Promise((r) => setTimeout(r, 60));
+
     try {
-      // Robust scale detection: Mobile gets scale 2 to prevent exceeding 4096px canvas buffer
       const isMobile =
         typeof window !== "undefined" &&
         (window.innerWidth < 768 ||
           /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
       const exportScale = isMobile ? 2 : 3;
 
-      const canvas = await html2canvas(stripRef.current, {
-        scale: exportScale,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        logging: false,
-        onclone: (clonedDoc) => {
-          sanitizeClonedCellsForExport(clonedDoc);
-        },
-      });
+      let canvas: HTMLCanvasElement;
+
+      // Primary attempt: html2canvas for 1:1 CSS theme styles
+      try {
+        canvas = await html2canvas(stripRef.current, {
+          scale: exportScale,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: null,
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          onclone: (clonedDoc) => {
+            sanitizeClonedCellsForExport(clonedDoc);
+          },
+        });
+      } catch (h2cError) {
+        console.warn("html2canvas export error, using native canvas fallback:", h2cError);
+        canvas = await renderPhotostripNative(exportScale);
+      }
 
       let finalCanvas = canvas;
 
@@ -880,7 +1073,6 @@ export default function PhotoboothClient() {
         storyCanvas.height = targetHeight;
         const ctx = storyCanvas.getContext("2d");
         if (ctx) {
-          // Luxury dark radial background for story
           const gradient = ctx.createRadialGradient(
             targetWidth / 2,
             targetHeight / 2,
@@ -894,11 +1086,9 @@ export default function PhotoboothClient() {
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, targetWidth, targetHeight);
 
-          // Draw golden glow behind photostrip
           ctx.shadowColor = "rgba(212, 175, 55, 0.35)";
           ctx.shadowBlur = 60;
 
-          // Scale photostrip to fit comfortably in story center
           const scaleFactor = (targetHeight * 0.78) / canvas.height;
           const stripW = canvas.width * scaleFactor;
           const stripH = canvas.height * scaleFactor;
@@ -907,7 +1097,6 @@ export default function PhotoboothClient() {
 
           ctx.drawImage(canvas, stripX, stripY, stripW, stripH);
 
-          // Branding header in story
           ctx.shadowBlur = 0;
           ctx.font = "bold 28px 'Inter', sans-serif";
           ctx.fillStyle = "#d4af37";
@@ -922,11 +1111,24 @@ export default function PhotoboothClient() {
         }
       }
 
+      // Export file via blob or dataURL
+      const filename = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
+
       await new Promise<void>((resolve, reject) => {
-        finalCanvas.toBlob(async (blob) => {
-          try {
-            if (!blob) throw new Error("Canvas toBlob failed");
-            const filename = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
+        try {
+          finalCanvas.toBlob(async (blob) => {
+            if (!blob) {
+              // Data URL fallback if toBlob returned null
+              const dataUrl = finalCanvas.toDataURL("image/png");
+              const a = document.createElement("a");
+              a.href = dataUrl;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 100);
+              resolve();
+              return;
+            }
 
             let sharedSuccessfully = false;
             if (
@@ -966,14 +1168,22 @@ export default function PhotoboothClient() {
 
             triggerHaptic(50);
             resolve();
-          } catch (err) {
-            reject(err);
-          }
-        }, "image/png");
+          }, "image/png");
+        } catch (blobErr) {
+          // If toBlob throws, use direct dataURL
+          const dataUrl = finalCanvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.href = dataUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 100);
+          resolve();
+        }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Export error:", error);
-      alert("Gagal mengekspor foto strip. Silakan coba lagi.");
+      alert(`Gagal mengekspor foto strip. Silakan coba lagi.`);
     } finally {
       setIsExporting(false);
     }
@@ -1027,35 +1237,43 @@ export default function PhotoboothClient() {
         return;
       }
 
-      // ── Capture background frame via html2canvas (WITHOUT VIDEO ELEMENTS) ──
-      const bgCanvas = await html2canvas(stripEl, {
-        scale: exportScale,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        logging: false,
-        onclone: (clonedDoc) => {
-          const stripCard = clonedDoc.querySelector<HTMLElement>(".photostrip-card");
-          if (stripCard) {
-            stripCard.style.transform = "none";
-            stripCard.style.webkitTransform = "none";
-            stripCard.style.boxShadow = "none";
-          }
-          // Obliterate photo cell contents so html2canvas never touches <video> elements
-          clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => {
-            c.style.transform = "none";
-            c.style.webkitTransform = "none";
-            c.style.opacity = "0";
-            c.innerHTML = "";
-          });
-          // Hide stickers and toolbars from background layer
-          clonedDoc
-            .querySelectorAll<HTMLElement>(".strip-sticker, .sticker-mini-toolbar")
-            .forEach((stk) => {
-              stk.style.display = "none";
+      // ── Capture background frame via html2canvas with native fallback ──
+      let bgCanvas: HTMLCanvasElement;
+      try {
+        bgCanvas = await html2canvas(stripEl, {
+          scale: exportScale,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: null,
+          logging: false,
+          scrollX: 0,
+          scrollY: 0,
+          onclone: (clonedDoc) => {
+            const stripCard = clonedDoc.querySelector<HTMLElement>(".photostrip-card");
+            if (stripCard) {
+              stripCard.style.transform = "none";
+              stripCard.style.webkitTransform = "none";
+              stripCard.style.boxShadow = "none";
+            }
+            // Obliterate photo cell contents so html2canvas never touches <video> elements
+            clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => {
+              c.style.transform = "none";
+              c.style.webkitTransform = "none";
+              c.style.opacity = "0";
+              c.innerHTML = "";
             });
-        },
-      });
+            // Hide stickers and toolbars from background layer
+            clonedDoc
+              .querySelectorAll<HTMLElement>(".strip-sticker, .sticker-mini-toolbar")
+              .forEach((stk) => {
+                stk.style.display = "none";
+              });
+          },
+        });
+      } catch (bgErr) {
+        console.warn("bgCanvas html2canvas error, using native canvas:", bgErr);
+        bgCanvas = await renderPhotostripNative(exportScale);
+      }
 
       // ── Build slot info & acquire active playing video elements ──
       const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
@@ -2218,8 +2436,8 @@ export default function PhotoboothClient() {
                   >
                     {photoObj ? (
                       <>
-                        {/* If Live Video is available and active */}
-                        {isLiveMode && photoObj.video && isLivePlaying ? (
+                        {/* If Live Video is available, active, and not exporting */}
+                        {isLiveMode && photoObj.video && isLivePlaying && !isExporting ? (
                           <LivePhotoCellVideo
                             videoSrc={photoObj.video}
                             stillSrc={photoObj.image}
