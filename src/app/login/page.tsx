@@ -290,8 +290,9 @@ function LoginContent() {
             {t('login_text_register', 'Identitas belum terdaftar?')} <Link href="/register">{t('login_link_register', 'Ajukan Registrasi')}</Link>
           </div>
 
-          <div className="register-link return-link" style={{ marginTop: "10px", paddingTop: "15px" }}>
-            <Link href="/"><i className="fa-solid fa-arrow-left"></i> Kembali ke Gerbang Utama</Link>
+          <div className="register-link return-link" style={{ marginTop: "10px", paddingTop: "15px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+            <Link href="/"><i className="fa-solid fa-arrow-left"></i> Gerbang Utama</Link>
+            <Link href="/download" style={{ color: "#f3ba2f", fontWeight: 600 }}><i className="fa-brands fa-android"></i> Unduh APK</Link>
           </div>
         </div>
       </div>

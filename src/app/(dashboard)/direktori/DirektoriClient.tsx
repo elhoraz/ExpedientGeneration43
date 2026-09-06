@@ -37,7 +37,7 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
           const { data } = await supabase
             .from("profiles")
             .select("id, nama_lengkap, nama_panggilan, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active")
-            .eq("is_active", true)
+            .or("is_active.eq.true,is_active.is.null")
             .order("id", { ascending: true });
           if (data && data.length > 0) {
             setAlumni(data);

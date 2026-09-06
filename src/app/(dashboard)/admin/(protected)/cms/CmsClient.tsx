@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { saveCmsChanges, saveGalleryItem, deleteGalleryItem, uploadImageToStorage } from "./actions";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import Link from "next/link";
 import AdminLockBtn from "../../AdminLockBtn";
@@ -218,8 +217,23 @@ export default function CmsClient({
         });
       });
 
-      await saveCmsChanges(finalContents);
-      await showAlert("Berhasil", "Semua perubahan CMS per-halaman berhasil disimpan permanen ke database.");
+      const res = await fetch("/api/admin/cms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: finalContents,
+          updates: draftUpdates,
+          deletions: draftDeletions,
+          newKeys: newKeys,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Gagal menyimpan perubahan CMS");
+      }
+
+      await showAlert("Berhasil", data.message || "Semua perubahan CMS per-halaman berhasil disimpan permanen ke database.");
       
       setDraftUpdates({});
       setDraftDeletions([]);
@@ -227,7 +241,7 @@ export default function CmsClient({
       router.refresh();
       
     } catch (e: any) {
-      await showAlert("Gagal", "Terjadi kesalahan saat menyimpan CMS: " + (e?.message || "Error"));
+      await showAlert("Gagal", e?.message || "Terjadi kesalahan saat menyimpan CMS.");
     } finally {
       setLoading(false);
     }
@@ -268,11 +282,36 @@ export default function CmsClient({
       if (galeriFile) {
         const fd = new FormData();
         fd.append('file', galeriFile);
-        finalUrl = await uploadImageToStorage(fd, 'cms-assets', 'gallery');
+        fd.append('bucket', 'cms-assets');
+        fd.append('folder', 'gallery');
+        const uploadRes = await fetch('/api/admin/cms/upload', {
+          method: 'POST',
+          body: fd,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.message || 'Gagal mengunggah foto galeri');
+        }
+        finalUrl = uploadData.url;
       }
       if (!finalUrl) throw new Error('URL gambar tidak boleh kosong');
-      await saveGalleryItem(galeriId, finalUrl, galeriCaption);
-      await showAlert("Berhasil", "Gambar galeri berhasil disimpan.");
+
+      const res = await fetch('/api/admin/cms', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: galeriId,
+          imageUrl: finalUrl,
+          caption: galeriCaption,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Gagal menyimpan gambar galeri');
+      }
+
+      await showAlert("Berhasil", data.message || "Gambar galeri berhasil disimpan.");
       setIsEditingGaleri(false);
       router.refresh();
     } catch (err: any) {
@@ -298,7 +337,17 @@ export default function CmsClient({
       if (cmsEditFile) {
         const fd = new FormData();
         fd.append('file', cmsEditFile);
-        finalUrl = await uploadImageToStorage(fd, 'cms-assets', 'cms');
+        fd.append('bucket', 'cms-assets');
+        fd.append('folder', 'cms');
+        const uploadRes = await fetch('/api/admin/cms/upload', {
+          method: 'POST',
+          body: fd,
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) {
+          throw new Error(uploadData.message || 'Gagal mengunggah gambar.');
+        }
+        finalUrl = uploadData.url;
         setEditValue(finalUrl);
       }
       if (editingId) {
@@ -318,11 +367,19 @@ export default function CmsClient({
     if (!confirm("Hapus gambar ini dari galeri museum?")) return;
     setLoading(true);
     try {
-      await deleteGalleryItem(id);
-      await showAlert("Berhasil", "Gambar galeri berhasil dihapus.");
+      const res = await fetch('/api/admin/cms', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Gagal menghapus gambar');
+      }
+      await showAlert("Berhasil", data.message || "Gambar galeri berhasil dihapus.");
       router.refresh();
-    } catch {
-      await showAlert("Gagal", "Gagal menghapus gambar.");
+    } catch (err: any) {
+      await showAlert("Gagal", err?.message || "Gagal menghapus gambar.");
     } finally {
       setLoading(false);
     }

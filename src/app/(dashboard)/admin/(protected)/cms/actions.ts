@@ -91,9 +91,12 @@ export async function saveCmsChanges(contents: any[]) {
     }
   }
 
-  revalidatePath("/admin/cms");
-  revalidatePath("/", "layout");
-}
+    try {
+      revalidatePath("/admin/cms");
+      revalidatePath("/beranda");
+      revalidatePath("/direktori");
+    } catch {}
+  }
 
 // --- FILE UPLOAD ACTIONS ---
 

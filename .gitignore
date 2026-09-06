@@ -40,9 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# android release keystore & credentials
+# android release keystore & credentials & binaries
 *.jks
 *.keystore
+*.apk
+*.aab
 key.properties
 android/key.properties
 android/release-key.jks
@@ -51,6 +53,7 @@ android/app/release-key.jks
 android/.gradle/
 android/build/
 android/app/build/
+android/app/release/
 android/local.properties
 .idea/
 android/.idea/

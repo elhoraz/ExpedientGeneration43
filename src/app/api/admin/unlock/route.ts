@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
-        maxAge: 60 * 30, // 30 menit
+        maxAge: 60 * 60 * 4, // 4 jam
       });
 
       return NextResponse.json({ status: "success", message: "Akses Admin diberikan." });

@@ -54,6 +54,9 @@ export default async function LandingPage() {
             <Link href="/login" className="btn-primary" id="ctaLogin">
               <i className="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
             </Link>
+            <Link href="/download" className="btn-secondary" id="ctaDownload" style={{ borderColor: 'rgba(212, 175, 55, 0.45)', color: '#f3ba2f' }}>
+              <i className="fa-brands fa-android"></i> Download App
+            </Link>
             <Link href="/beranda" className="btn-secondary" id="ctaExplore">
               <i className="fa-solid fa-compass"></i> Jelajahi Museum
             </Link>
@@ -133,8 +136,19 @@ export default async function LandingPage() {
         </section>
 
         {/* ====== FOOTER ====== */}
-        <footer className="landing-footer">
-          &copy; {currentYear} {getCms(cms, 'landing_footer_text', 'Expedient Generation — 43rd Pondok Modern Arrisalah')}
+        <footer className="landing-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+          <div>
+            &copy; {currentYear} {getCms(cms, 'landing_footer_text', 'Expedient Generation — 43rd Pondok Modern Arrisalah')}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#64748b', display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link href="/download" style={{ color: '#f3ba2f', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+              <i className="fa-brands fa-android"></i> Unduh APK Android
+            </Link>
+            <span>&bull;</span>
+            <Link href="/delete-account" style={{ color: '#94a3b8', textDecoration: 'none' }}>
+              Kebijakan Privasi &amp; Hapus Akun
+            </Link>
+          </div>
         </footer>
       </main>
     </>

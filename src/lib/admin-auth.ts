@@ -45,8 +45,8 @@ export async function verifySignedAdminSession(token: string | undefined): Promi
   const timestamp = parseInt(timestampStr, 10);
   if (isNaN(timestamp)) return false;
 
-  // Max age: 30 minutes
-  const maxAgeMs = 30 * 60 * 1000;
+  // Max age: 4 hours (240 minutes)
+  const maxAgeMs = 4 * 60 * 60 * 1000;
   if (Date.now() - timestamp > maxAgeMs) return false;
 
   try {
