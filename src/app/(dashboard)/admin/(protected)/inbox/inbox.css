@@ -428,14 +428,64 @@
   margin-bottom: 16px;
 }
 
+.inbox-mobile-back-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffd700;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 4px;
+}
+
 @media (max-width: 900px) {
   .inbox-container {
     grid-template-columns: 1fr;
-    height: auto;
+    height: 75vh;
+    min-height: 550px;
   }
-  .inbox-sidebar {
-    height: 380px;
-    border-right: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  .inbox-mobile-back-btn {
+    display: flex;
+  }
+
+  /* When no chat is active, show only the contact list */
+  .inbox-container:not(.has-active-chat) .inbox-sidebar {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .inbox-container:not(.has-active-chat) .inbox-chat-area {
+    display: none;
+  }
+
+  /* When a chat is active, show only the chat window full-screen */
+  .inbox-container.has-active-chat .inbox-sidebar {
+    display: none;
+  }
+
+  .inbox-container.has-active-chat .inbox-chat-area {
+    display: flex;
+    width: 100%;
+    height: 100%;
+  }
+
+  .inbox-header-contact {
+    gap: 8px;
+  }
+
+  .inbox-header-name {
+    font-size: 0.95rem;
+  }
+
+  .inbox-action-btn {
+    padding: 6px 10px;
+    font-size: 0.72rem;
   }
 }
+

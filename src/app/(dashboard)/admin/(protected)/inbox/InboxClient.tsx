@@ -5,46 +5,38 @@ import Link from "next/link";
 import AdminLockBtn from "../../AdminLockBtn";
 import "../admin.css";
 import "./inbox.css";
+import { Conversation } from "@/lib/whatsapp-inbox";
 
-type MessageItem = {
-  id: number;
-  direction: "incoming" | "outgoing";
-  message: string;
-  status: string;
-  timestamp: string;
-  senderNote?: string;
-};
-
-type Conversation = {
-  phoneNumber: string;
-  displayName: string;
-  userRole: string;
-  avatarUrl?: string;
-  lastMessage: string;
-  lastTimestamp: string;
-  unreadCount: number;
-  messages: MessageItem[];
-};
-
-export default function InboxClient() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activePhone, setActivePhone] = useState<string | null>(null);
+export default function InboxClient({
+  initialConversations = [],
+}: {
+  initialConversations?: Conversation[];
+}) {
+  const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
+  const [activePhone, setActivePhone] = useState<string | null>(
+    initialConversations.length > 0 ? initialConversations[0].phoneNumber : null
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [replyText, setReplyText] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Modal Kirim Pesan Baru
+  const [isNewChatModalOpen, setIsNewChatModalOpen] = useState(false);
+  const [newChatPhone, setNewChatPhone] = useState("");
+  const [newChatMessage, setNewChatMessage] = useState("");
+  const [sendingNewChat, setSendingNewChat] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     document.body.classList.add("page-admin");
-    fetchMessages();
 
-    // Auto-poll every 12 seconds for incoming messages
+    // Auto-poll setiap 10 detik untuk sinkronisasi pesan baru secara berkala
     const interval = setInterval(() => {
       fetchMessages(false);
-    }, 12000);
+    }, 10000);
 
     return () => {
       document.body.classList.remove("page-admin");
@@ -72,13 +64,12 @@ export default function InboxClient() {
         const convs: Conversation[] = data.conversations || [];
         setConversations(convs);
 
-        // Auto select first conversation if none selected
         if (!activePhone && convs.length > 0) {
           setActivePhone(convs[0].phoneNumber);
         }
       }
     } catch (err) {
-      console.error("Gagal memuat pesan:", err);
+      console.error("Gagal menyinkronkan pesan:", err);
     } finally {
       if (showLoadingSpinner) setLoading(false);
     }
@@ -107,7 +98,7 @@ export default function InboxClient() {
         setReplyText("");
         showToast("success", "Pesan balasan berhasil terkirim via Meta Cloud API!");
 
-        // Optimistic update
+        // Optimistic UI Update
         setConversations((prev) =>
           prev.map((c) => {
             if (c.phoneNumber === activePhone) {
@@ -137,6 +128,44 @@ export default function InboxClient() {
       showToast("error", err.message || "Koneksi terputus.");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleStartNewChat = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newChatPhone.trim() || !newChatMessage.trim() || sendingNewChat) return;
+
+    setSendingNewChat(true);
+    const cleanNum = newChatPhone.replace(/\D/g, "");
+    let target = cleanNum;
+    if (target.startsWith("0")) target = "62" + target.substring(1);
+    else if (!target.startsWith("62")) target = "62" + target;
+
+    try {
+      const res = await fetch("/api/admin/whatsapp/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: target,
+          message: newChatMessage.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        showToast("success", `Pesan berhasil dikirim ke +${target}!`);
+        setIsNewChatModalOpen(false);
+        setNewChatPhone("");
+        setNewChatMessage("");
+        await fetchMessages(false);
+        setActivePhone(target);
+      } else {
+        showToast("error", data.error || "Gagal mengirim pesan.");
+      }
+    } catch (err: any) {
+      showToast("error", err.message || "Gagal menghubungi server.");
+    } finally {
+      setSendingNewChat(false);
     }
   };
 
@@ -185,6 +214,106 @@ export default function InboxClient() {
         </div>
       )}
 
+      {/* Modal Mulai Obrolan / Kirim Pesan Baru */}
+      {isNewChatModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.75)",
+            backdropFilter: "blur(10px)",
+            zIndex: 9998,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              background: "#0a130e",
+              border: "1px solid rgba(212,175,55,0.4)",
+              borderRadius: "18px",
+              padding: "30px",
+              maxWidth: "480px",
+              width: "100%",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+              <h3 style={{ color: "#ffd700", margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-brands fa-whatsapp"></i> Mulai Obrolan Baru
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsNewChatModalOpen(false)}
+                style={{ background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "1.2rem", cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <form onSubmit={handleStartNewChat}>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", color: "#d4af37", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "8px" }}>
+                  Nomor WhatsApp Tujuan:
+                </label>
+                <input
+                  type="text"
+                  placeholder="Contoh: 08123456789 atau 628123456789"
+                  value={newChatPhone}
+                  onChange={(e) => setNewChatPhone(e.target.value)}
+                  style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", padding: "12px 16px", color: "#fff", outline: "none", boxSizing: "border-box" }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: "24px" }}>
+                <label style={{ display: "block", color: "#d4af37", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "8px" }}>
+                  Isi Pesan WhatsApp:
+                </label>
+                <textarea
+                  rows={4}
+                  placeholder="Ketikkan pesan resmi yang ingin dikirimkan..."
+                  value={newChatMessage}
+                  onChange={(e) => setNewChatMessage(e.target.value)}
+                  style={{ width: "100%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", padding: "12px 16px", color: "#fff", outline: "none", resize: "none", boxSizing: "border-box", fontFamily: "sans-serif" }}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setIsNewChatModalOpen(false)}
+                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-secondary)", padding: "10px 18px", borderRadius: "10px", cursor: "pointer", fontSize: "0.85rem" }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={sendingNewChat}
+                  style={{ background: "linear-gradient(135deg, #00ff88, #059669)", border: "none", color: "#030504", fontWeight: 700, padding: "10px 22px", borderRadius: "10px", cursor: "pointer", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  {sendingNewChat ? (
+                    <>
+                      <i className="fa-solid fa-spinner fa-spin"></i> Mengirim...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-paper-plane"></i> Kirim via Meta API
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="admin-header">
         <div style={{ position: "absolute", top: 0, right: 0, zIndex: 10 }}>
@@ -209,10 +338,10 @@ export default function InboxClient() {
           </div>
           <div>
             <h1 className="admin-title" style={{ marginBottom: "0", fontSize: "1.6rem" }}>
-              WhatsApp Inbox
+              WhatsApp Inbox & Chat Bot
             </h1>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", margin: "4px 0 0 0", letterSpacing: "1px", textTransform: "uppercase" }}>
-              Kotak Masuk & Manajemen Chat Langsung Resmi (Meta Cloud API)
+              Kotak Masuk & Manajemen Chat Asisten Resmi (Meta Cloud API)
             </p>
           </div>
         </div>
@@ -233,12 +362,12 @@ export default function InboxClient() {
           background: "linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(212, 175, 55, 0.05))",
           border: "1px solid rgba(0, 255, 136, 0.25)",
           borderRadius: "14px",
-          padding: "12px 20px",
+          padding: "14px 20px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
-          gap: "12px",
+          gap: "14px",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -256,18 +385,34 @@ export default function InboxClient() {
             <span style={{ fontFamily: "monospace", color: "#ffd700" }}>+62 851-5177-1289</span> · Expedient Generation 43
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", fontSize: "0.78rem", color: "var(--text-secondary)" }}>
-          <span>
-            🛡️ <b style={{ color: "#00ff88" }}>100% Anti-Banned</b> (Meta Cloud API)
-          </span>
-          <span>
-            Total Percakapan: <b style={{ color: "#ffd700" }}>{conversations.length}</b>
-          </span>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            onClick={() => setIsNewChatModalOpen(true)}
+            style={{
+              background: "rgba(212,175,55,0.15)",
+              border: "1px solid rgba(212,175,55,0.4)",
+              color: "#ffd700",
+              padding: "7px 14px",
+              borderRadius: "8px",
+              fontSize: "0.78rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <i className="fa-solid fa-paper-plane"></i> Kirim Pesan Baru
+          </button>
+          <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginLeft: "8px" }}>
+            Total Kontak: <b style={{ color: "#ffd700" }}>{conversations.length}</b>
+          </div>
         </div>
       </div>
 
       {/* Main Inbox Container */}
-      <div className="inbox-container">
+      <div className={`inbox-container ${activePhone ? "has-active-chat" : ""}`}>
         {/* Left Sidebar */}
         <div className="inbox-sidebar">
           <div className="inbox-search-bar">
@@ -291,7 +436,7 @@ export default function InboxClient() {
             ) : filteredConversations.length === 0 ? (
               <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-secondary)", fontSize: "0.82rem" }}>
                 <i className="fa-solid fa-comments" style={{ fontSize: "2rem", color: "rgba(255,255,255,0.1)", marginBottom: "10px", display: "block" }}></i>
-                Belum ada pesan masuk. Kirim chat ke nomor <b>085151771289</b> untuk melihat pesan tampil di sini!
+                Belum ada percakapan. Kirim pesan ke nomor <b>085151771289</b> atau klik <b>"Kirim Pesan Baru"</b> di atas.
               </div>
             ) : (
               filteredConversations.map((conv) => {
@@ -335,9 +480,17 @@ export default function InboxClient() {
         <div className="inbox-chat-area">
           {activeConversation ? (
             <>
-              {/* Chat Header */}
+              {/* Chat Header with Mobile Back Button */}
               <div className="inbox-chat-header">
                 <div className="inbox-header-contact">
+                  <button
+                    type="button"
+                    onClick={() => setActivePhone(null)}
+                    className="inbox-mobile-back-btn"
+                    title="Kembali ke Daftar Kontak"
+                  >
+                    <i className="fa-solid fa-arrow-left"></i>
+                  </button>
                   <div className="inbox-avatar">
                     {activeConversation.avatarUrl ? (
                       <img src={activeConversation.avatarUrl} alt={activeConversation.displayName} />
@@ -360,7 +513,7 @@ export default function InboxClient() {
                     target="_blank"
                     rel="noreferrer"
                     className="inbox-action-btn"
-                    title="Buka WhatsApp Web Langsung"
+                    title="Buka Obrolan WhatsApp Langsung"
                   >
                     <i className="fa-brands fa-whatsapp"></i> WhatsApp Web
                   </a>
@@ -445,7 +598,7 @@ export default function InboxClient() {
               <i className="fa-solid fa-comments inbox-empty-icon"></i>
               <h3 style={{ color: "#fff", marginBottom: "8px" }}>Pilih Percakapan</h3>
               <p style={{ maxWidth: "380px", fontSize: "0.85rem", lineHeight: 1.6 }}>
-                Pilih kontak di sebelah kiri untuk melihat riwayat pesan WhatsApp masuk dan mengetik balasan langsung dari Command Center.
+                Pilih kontak di sebelah kiri untuk melihat riwayat pesan WhatsApp atau klik <b>"Kirim Pesan Baru"</b> di atas untuk memulai obrolan resmi via Meta API.
               </p>
             </div>
           )}

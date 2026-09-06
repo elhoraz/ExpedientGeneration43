@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "expedient_meta_token_2026";
 
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST Handler: Menerima status pesan atau pesan masuk dari pengguna WhatsApp
+ * POST Handler: Menerima pesan masuk dari pengguna WhatsApp & Menjalankan Bot Penjawab Otomatis
  */
 export async function POST(request: Request) {
   try {
@@ -30,7 +31,6 @@ export async function POST(request: Request) {
 
     const adminSupabase = createAdminClient();
 
-    // Pastikan payload berasal dari WhatsApp Business Account
     const entry = body.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
@@ -61,12 +61,12 @@ export async function POST(request: Request) {
 
         if (!fromRaw || !messageText) continue;
 
-        // Normalisasi nomor untuk pencarian profil (format 628... dan 08...)
+        // Normalisasi nomor telepon
         let numNorm = fromRaw.replace(/\D/g, "");
         if (numNorm.startsWith("0")) numNorm = "62" + numNorm.substring(1);
         const altLocalNum = numNorm.startsWith("62") ? "0" + numNorm.substring(2) : numNorm;
 
-        // Cari profil alumni yang terdaftar
+        // Cari profil alumni
         const { data: matchedProfiles } = await adminSupabase
           .from("profiles")
           .select("id, nama_lengkap, nama_panggilan, role")
@@ -74,25 +74,72 @@ export async function POST(request: Request) {
           .limit(1);
 
         const matchedUser = matchedProfiles?.[0];
-        const displayName = matchedUser
-          ? `${matchedUser.nama_panggilan || matchedUser.nama_lengkap} (${matchedUser.role || "Alumni"})`
+        const userDisplayName = matchedUser?.nama_panggilan || matchedUser?.nama_lengkap || metaSenderName || "Sahabat";
+        const senderTag = matchedUser
+          ? `${userDisplayName} (${matchedUser.role || "Alumni"})`
           : metaSenderName || `Pengguna WhatsApp`;
 
-        // 1. Simpan pesan masuk ke tabel antrean WhatsApp
+        // 1. Simpan pesan masuk ke antrean
         await adminSupabase.from("whatsapp_queue").insert([
           {
             no_whatsapp: numNorm,
             message: messageText,
             status: "received",
-            error_message: displayName ? `Nama: ${displayName}` : null,
+            error_message: `Nama: ${senderTag}`,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
         ]);
 
-        console.log(`[META-WA-INBOX] Pesan dari ${numNorm} (${displayName}): "${messageText}" disimpan.`);
+        console.log(`[META-WA-INBOX] Pesan dari ${numNorm} (${senderTag}): "${messageText}" disimpan.`);
 
-        // 2. Beri notifikasi ke Admin
+        // 2. Kirim balasan otomatis dari Chat Bot (Asisten Resmi)
+        try {
+          // Cek jeda 10 menit agar tidak spam beruntun
+          const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+          const { count: recentReplies } = await adminSupabase
+            .from("whatsapp_queue")
+            .select("*", { count: "exact", head: true })
+            .eq("no_whatsapp", numNorm)
+            .eq("status", "sent")
+            .like("error_message", "Bot Auto-Reply%")
+            .gte("created_at", tenMinsAgo);
+
+          if (!recentReplies || recentReplies === 0) {
+            const botGreeting = `✨ *ASISTEN WHATSAPP EXPEDIENT GENERATION* ✨
+
+*Assalamu'alaikum Warahmatullahi Wabarakatuh*
+
+Halo *${userDisplayName}*! Terima kasih telah menghubungi layanan WhatsApp resmi *Expedient Generation 43*.
+
+Pesan Anda telah kami terima dan masuk ke sistem *Command Center Admin* kami. Tim admin kami akan segera membaca dan merespons pesan Anda secara langsung di sini.
+
+🌐 *Portal Alumni:* https://expedientgeneration.vercel.app
+🔐 *Bantuan:* Hubungi admin jika memerlukan panduan login, registrasi, atau reset password.
+
+*Wassalamu'alaikum Warahmatullahi Wabarakatuh*
+*Expedient Generation — 43rd Arrisalah*`;
+
+            const replySent = await sendWhatsAppMessage(numNorm, botGreeting);
+            if (replySent) {
+              await adminSupabase.from("whatsapp_queue").insert([
+                {
+                  no_whatsapp: numNorm,
+                  message: botGreeting,
+                  status: "sent",
+                  error_message: "Bot Auto-Reply (Asisten Resmi)",
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                },
+              ]);
+              console.log(`[META-WA-BOT] Auto-reply berhasil terkirim ke ${numNorm}`);
+            }
+          }
+        } catch (botErr) {
+          console.warn("[META-WA-BOT-ERROR]: Gagal mengirim auto-reply bot:", botErr);
+        }
+
+        // 3. Notifikasi Lonceng Admin
         try {
           const { data: adminProfiles } = await adminSupabase
             .from("profiles")
@@ -102,7 +149,7 @@ export async function POST(request: Request) {
           if (adminProfiles && adminProfiles.length > 0) {
             const notifRecords = adminProfiles.map((adm) => ({
               user_id: adm.id,
-              title: `💬 WA Masuk: ${displayName}`,
+              title: `💬 WA Masuk: ${userDisplayName}`,
               message: messageText.length > 80 ? messageText.substring(0, 77) + "..." : messageText,
               link: "/admin/inbox",
               is_read: false,
