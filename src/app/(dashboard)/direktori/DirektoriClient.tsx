@@ -9,13 +9,48 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
+import { createClient } from "@/lib/supabase/client";
 import "./direktori.css";
 
-export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[], isLoggedIn: boolean }) {
+export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: { alumni: any[], isLoggedIn: boolean }) {
+  const [alumni, setAlumni] = useState<any[]>(initialAlumni || []);
+  const [isSelfHealing, setIsSelfHealing] = useState(false);
   const [search, setSearch] = useState("");
   const [qrModalUser, setQrModalUser] = useState<any | null>(null);
   const [failedPhotos, setFailedPhotos] = useState<{ [id: string]: boolean }>({});
   const swiperRef = useRef<any>(null);
+
+  // Sync state if initialAlumni changes
+  useEffect(() => {
+    if (initialAlumni && initialAlumni.length > 0) {
+      setAlumni(initialAlumni);
+    }
+  }, [initialAlumni]);
+
+  // Self-healing fallback: If initial server prop was empty (due to stale CDN/PWA cache), fetch directly from Supabase
+  useEffect(() => {
+    if (!initialAlumni || initialAlumni.length === 0) {
+      setIsSelfHealing(true);
+      const supabase = createClient();
+      const fetchAlumni = async () => {
+        try {
+          const { data } = await supabase
+            .from("profiles")
+            .select("id, nama_lengkap, nama_panggilan, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active")
+            .eq("is_active", true)
+            .order("id", { ascending: true });
+          if (data && data.length > 0) {
+            setAlumni(data);
+          }
+        } catch {
+          // ignore error
+        } finally {
+          setIsSelfHealing(false);
+        }
+      };
+      fetchAlumni();
+    }
+  }, [initialAlumni]);
 
   const triggerQuest = () => {
     if (typeof window !== "undefined") {
@@ -86,7 +121,7 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
         } catch {}
       }
     };
-  }, [search]);
+  }, [search, alumni]);
 
   const filteredAlumni = alumni.filter(user => {
     const searchString = `${user.nama_lengkap || ''} ${user.nama_panggilan || ''} ${user.alamat_lengkap || ''} ${user.tempat_lahir || ''} ${user.motivasi_hidup || ''}`.toLowerCase();
@@ -129,7 +164,17 @@ export default function DirektoriClient({ alumni, isLoggedIn }: { alumni: any[],
 
         {filteredAlumni.length === 0 ? (
             <div className="text-center text-themeSec font-tech w-full py-12" style={{ textAlign: "center", marginTop: "50px", color: "var(--text-secondary)" }}>
-                <i className="fa-solid fa-book-open" style={{ fontSize: "2rem", opacity: 0.5, marginBottom: "15px" }}></i><br/>Arsip belum mencatat histori apapun.
+                {isSelfHealing ? (
+                    <div>
+                      <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "#d4af37", marginBottom: "15px" }}></i>
+                      <br />Memuat direktori alumni...
+                    </div>
+                ) : (
+                    <>
+                      <i className="fa-solid fa-book-open" style={{ fontSize: "2rem", opacity: 0.5, marginBottom: "15px" }}></i>
+                      <br />Arsip belum mencatat histori apapun.
+                    </>
+                )}
             </div>
         ) : (
             <>
