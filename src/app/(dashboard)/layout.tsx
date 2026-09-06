@@ -5,6 +5,7 @@ import ScrollTopButton from "@/components/ui/ScrollTopButton";
 import GlobalCallListener from "@/components/chat/GlobalCallListener";
 import OnboardingProvider from "@/components/onboarding/OnboardingProvider";
 import CommandPalette from "@/components/layout/CommandPalette";
+import HelpButtonTrigger from "@/components/guide/HelpButtonTrigger";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -18,6 +19,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Global Dashboard UI Elements */}
       
+      {/* Contextual page guide & floating help button */}
+      <HelpButtonTrigger />
+
       {/* Scroll to top button */}
       <ScrollTopButton />
 

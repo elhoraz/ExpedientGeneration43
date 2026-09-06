@@ -285,6 +285,17 @@ export default function FiturClient() {
               <div className="launch-btn">Lihat Kilas Balik <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
+
+          {/* 17. Pusat Panduan & Bantuan Alumni */}
+          <Link href="/panduan" className="premium-card js-tilt-card" ref={el => { cardsRef.current[17] = el; }}>
+            <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=2573&auto=format&fit=crop')" }}></div>
+            <i className="fa-solid fa-book-bookmark card-icon"></i>
+            <div className="card-content">
+              <h3 className="card-title">Pusat Panduan &amp; Bantuan</h3>
+              <p className="card-desc">Panduan komprehensif seluruh fitur, fungsi tombol, tutorial penggunaan portal, dan tanya jawab alumni.</p>
+              <div className="launch-btn">Buka Panduan <i className="fa-solid fa-arrow-right-long"></i></div>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

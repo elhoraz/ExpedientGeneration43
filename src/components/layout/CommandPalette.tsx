@@ -25,6 +25,7 @@ const COMMANDS = [
   { id: "celestial", title: "Mutiara Hikmah & Nasihat", url: "/celestial", icon: "fa-star" },
   { id: "genesis", title: "Sejarah & Filosofi Angkatan", url: "/genesis", icon: "fa-monument" },
   { id: "nexus", title: "Pencocok Minat & Domisili", url: "/nexus", icon: "fa-network-wired" },
+  { id: "panduan", title: "Pusat Panduan & Bantuan Alumni", url: "/panduan", icon: "fa-book-bookmark" },
   { id: "profile", title: "Profil Saya", url: "/profil", icon: "fa-circle-user" },
   { id: "admin", title: "Panel Admin Angkatan", url: "/admin", icon: "fa-shield-halved" },
 ];

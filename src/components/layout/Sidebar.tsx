@@ -71,6 +71,7 @@ export default function Sidebar() {
     { href: "/radar", icon: "fa-map-location-dot", label: "Peta", tooltip: "Peta Persebaran Alumni" },
     { href: "/syndicate", icon: "fa-briefcase", label: "Bisnis", tooltip: "Katalog Usaha Alumni" },
     { href: "/fitur", icon: "fa-cubes", label: "Fitur", tooltip: "Menu & Layanan Alumni" },
+    { href: "/panduan", icon: "fa-book-bookmark", label: "Panduan", tooltip: "Pusat Panduan & Bantuan", extraClass: "nav-item-panduan" },
   ];
 
   // Fitur sub-pages for active state detection
@@ -106,7 +107,7 @@ export default function Sidebar() {
 
         {/* Auth-only navigation items */}
         {isLoggedIn && authNavItems.map((item) => (
-          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
             <i className={`fa-solid ${item.icon}`}></i>
             <span className="nav-label">{item.label}</span>
           </Link>
