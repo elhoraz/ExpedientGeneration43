@@ -3,43 +3,47 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 async function getAdminContext() {
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
-
+  // 1. Verifikasi via Token Sesi Admin HMAC
   const isSignedAdmin = await verifySignedAdminSession(adminToken);
   const isLegacyUnlocked = adminToken === "unlocked";
 
   if (isSignedAdmin || isLegacyUnlocked) {
-    return { ok: true, supabase };
+    return { ok: true, adminSupabase: createAdminClient() };
   }
 
+  // 2. Verifikasi via Sesi Login Supabase (role: admin / superadmin)
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const userSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll() {},
+        },
+      }
+    );
+
+    const { data: { user } } = await userSupabase.auth.getUser();
     if (user) {
-      const { data: profile } = await supabase
+      const adminClient = createAdminClient();
+      const { data: profile } = await adminClient
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .single();
 
       if (profile?.role === "admin" || profile?.role === "superadmin") {
-        return { ok: true, supabase };
+        return { ok: true, adminSupabase: adminClient };
       }
     }
   } catch (err) {
@@ -56,13 +60,13 @@ async function getAdminContext() {
 export async function POST(request: Request) {
   try {
     const auth = await getAdminContext();
-    if (!auth.ok || !auth.supabase) {
+    if (!auth.ok || !auth.adminSupabase) {
       return NextResponse.json({ message: auth.error }, { status: auth.status || 401 });
     }
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    const bucket = (formData.get("bucket") as string) || "cms-assets";
+    let bucket = (formData.get("bucket") as string) || "cms-assets";
     const folder = (formData.get("folder") as string) || "cms";
 
     if (!file || typeof file.arrayBuffer !== "function" || file.size === 0) {
@@ -75,12 +79,37 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const { error: uploadError } = await auth.supabase.storage
+    // Pastikan bucket target ada, jika belum coba buat bucket publik
+    try {
+      const { data: buckets } = await auth.adminSupabase.storage.listBuckets();
+      const bucketExists = buckets?.some((b: any) => b.name === bucket || b.id === bucket);
+      if (!bucketExists) {
+        await auth.adminSupabase.storage.createBucket(bucket, { public: true });
+      }
+    } catch (bErr) {
+      console.warn("[ADMIN-BUCKET-CHECK-WARN]:", bErr);
+    }
+
+    // Upload menggunakan Service Role client (Bypass RLS)
+    let { error: uploadError } = await auth.adminSupabase.storage
       .from(bucket)
       .upload(fileName, buffer, {
         contentType: file.type || "image/jpeg",
         upsert: true,
       });
+
+    // Fallback: Jika bucket spesifik gagal, coba bucket profile-photos yang sudah pasti ada
+    if (uploadError && bucket !== "profile-photos") {
+      console.warn(`[STORAGE-FALLBACK]: Bucket ${bucket} gagal (${uploadError.message}), mencoba fallback ke profile-photos`);
+      bucket = "profile-photos";
+      const fallbackResult = await auth.adminSupabase.storage
+        .from(bucket)
+        .upload(fileName, buffer, {
+          contentType: file.type || "image/jpeg",
+          upsert: true,
+        });
+      uploadError = fallbackResult.error;
+    }
 
     if (uploadError) {
       console.error("[ADMIN-STORAGE-UPLOAD-ERR]:", uploadError);
@@ -90,7 +119,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: { publicUrl } } = auth.supabase.storage.from(bucket).getPublicUrl(fileName);
+    const { data: { publicUrl } } = auth.adminSupabase.storage.from(bucket).getPublicUrl(fileName);
 
     return NextResponse.json({
       success: true,

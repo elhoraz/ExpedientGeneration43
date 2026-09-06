@@ -4,45 +4,48 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 async function getAdminContext() {
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
-
   // 1. Validasi via Token Sesi Admin HMAC
   const isSignedAdmin = await verifySignedAdminSession(adminToken);
   const isLegacyUnlocked = adminToken === "unlocked";
 
   if (isSignedAdmin || isLegacyUnlocked) {
-    return { ok: true, supabase };
+    const adminClient = createAdminClient();
+    return { ok: true, supabase: adminClient, adminSupabase: adminClient };
   }
 
   // 2. Validasi via Supabase Auth Role
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const userSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll() {},
+        },
+      }
+    );
+
+    const { data: { user } } = await userSupabase.auth.getUser();
     if (user) {
-      const { data: profile } = await supabase
+      const adminClient = createAdminClient();
+      const { data: profile } = await adminClient
         .from("profiles")
         .select("role")
         .eq("id", user.id)
         .single();
 
       if (profile?.role === "admin" || profile?.role === "superadmin") {
-        return { ok: true, supabase };
+        return { ok: true, supabase: adminClient, adminSupabase: adminClient };
       }
     }
   } catch (err) {

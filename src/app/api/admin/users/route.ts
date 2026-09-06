@@ -3,46 +3,51 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 async function getAdminContext() {
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
+  const adminClient = createAdminClient();
 
   // 1. Validasi via Token Sesi Admin HMAC
   const isSignedAdmin = await verifySignedAdminSession(adminToken);
   const isLegacyUnlocked = adminToken === "unlocked";
 
   if (isSignedAdmin || isLegacyUnlocked) {
-    const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
-    return { ok: true, supabase, currentAdmin: user };
+    return { ok: true, supabase: adminClient, currentAdmin: null };
   }
 
   // 2. Validasi via Supabase Auth Role
-  const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+  try {
+    const userSupabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll() {},
+        },
+      }
+    );
+    const { data: { user } } = await userSupabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
-    if (profile?.role === "admin" || profile?.role === "superadmin") {
-      return { ok: true, supabase, currentAdmin: user };
+      if (profile?.role === "admin" || profile?.role === "superadmin") {
+        return { ok: true, supabase: adminClient, currentAdmin: user };
+      }
     }
+  } catch (err) {
+    console.warn("[ADMIN-USERS-AUTH-WARN]:", err);
   }
 
   return { ok: false, error: "Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa", status: 401 };

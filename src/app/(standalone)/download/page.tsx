@@ -120,7 +120,7 @@ export default function DownloadPage() {
               </p>
               <ul style={{ fontSize: "0.8rem", color: "#cbd5e1", paddingLeft: "1.2rem", margin: "0 0 1.25rem 0", lineHeight: 1.6 }}>
                 <li>Nama File: <code>Expedient43-v1.0.apk</code></li>
-                <li>Ukuran: <strong>~92.6 MB</strong></li>
+                <li>Ukuran: <strong>~98.7 MB</strong></li>
                 <li>Mendukung: Android 7.0 hingga Android 15 (SDK 35)</li>
               </ul>
             </div>

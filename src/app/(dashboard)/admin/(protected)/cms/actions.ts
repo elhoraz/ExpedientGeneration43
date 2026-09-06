@@ -3,6 +3,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 /**
@@ -18,9 +19,9 @@ async function verifyAdminAccess(): Promise<boolean> {
 
   // 2. Cek apakah user Supabase yang sedang login memiliki role admin/superadmin
   try {
-    const supabase = createServerClient(
+    const userSupabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() { return cookieStore.getAll(); },
@@ -28,9 +29,10 @@ async function verifyAdminAccess(): Promise<boolean> {
         },
       }
     );
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await userSupabase.auth.getUser();
     if (user) {
-      const { data: profile } = await supabase
+      const adminClient = createAdminClient();
+      const { data: profile } = await adminClient
         .from("profiles")
         .select("role")
         .eq("id", user.id)
@@ -52,17 +54,7 @@ export async function saveCmsChanges(contents: any[]) {
     throw new Error("Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa.");
   }
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll() {},
-      },
-    }
-  );
+  const supabase = createAdminClient();
 
   const dataToUpsert = contents.map(c => ({
     content_key: c.content_key,
@@ -91,12 +83,12 @@ export async function saveCmsChanges(contents: any[]) {
     }
   }
 
-    try {
-      revalidatePath("/admin/cms");
-      revalidatePath("/beranda");
-      revalidatePath("/direktori");
-    } catch {}
-  }
+  try {
+    revalidatePath("/admin/cms");
+    revalidatePath("/beranda");
+    revalidatePath("/direktori");
+  } catch {}
+}
 
 // --- FILE UPLOAD ACTIONS ---
 
@@ -113,25 +105,40 @@ export async function uploadImageToStorage(
   const file = formData.get("file") as File;
   if (!file || file.size === 0) throw new Error("No file provided");
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return cookieStore.getAll(); }, setAll() {} } }
-  );
+  const supabase = createAdminClient();
 
   const ext = file.name.split(".").pop() || "jpg";
   const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
   const arrayBuffer = await file.arrayBuffer();
-  const buffer = new Uint8Array(arrayBuffer);
+  const buffer = Buffer.from(arrayBuffer);
 
-  const { error } = await supabase.storage
+  // Pastikan bucket target ada
+  try {
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const bucketExists = buckets?.some((b: any) => b.name === bucket || b.id === bucket);
+    if (!bucketExists) {
+      await supabase.storage.createBucket(bucket, { public: true });
+    }
+  } catch {}
+
+  let { error } = await supabase.storage
     .from(bucket)
     .upload(fileName, buffer, {
-      contentType: file.type,
-      upsert: false,
+      contentType: file.type || "image/jpeg",
+      upsert: true,
     });
+
+  if (error && bucket !== "profile-photos") {
+    bucket = "profile-photos";
+    const fb = await supabase.storage
+      .from(bucket)
+      .upload(fileName, buffer, {
+        contentType: file.type || "image/jpeg",
+        upsert: true,
+      });
+    error = fb.error;
+  }
 
   if (error) throw error;
 
@@ -145,12 +152,7 @@ export async function saveGalleryItem(id: string | null, imageUrl: string, capti
     throw new Error("Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa.");
   }
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return cookieStore.getAll(); }, setAll() {} } }
-  );
+  const supabase = createAdminClient();
 
   const data = { image_url: imageUrl, caption };
   let result;
@@ -163,8 +165,10 @@ export async function saveGalleryItem(id: string | null, imageUrl: string, capti
 
   if (result.error) throw result.error;
 
-  revalidatePath("/admin/cms");
-  revalidatePath("/beranda");
+  try {
+    revalidatePath("/admin/cms");
+    revalidatePath("/beranda");
+  } catch {}
 }
 
 export async function deleteGalleryItem(id: string) {
@@ -172,16 +176,13 @@ export async function deleteGalleryItem(id: string) {
     throw new Error("Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa.");
   }
 
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return cookieStore.getAll(); }, setAll() {} } }
-  );
+  const supabase = createAdminClient();
 
   const { error } = await supabase.from("galeri").delete().eq("id", id);
   if (error) throw error;
 
-  revalidatePath("/admin/cms");
-  revalidatePath("/beranda");
+  try {
+    revalidatePath("/admin/cms");
+    revalidatePath("/beranda");
+  } catch {}
 }
