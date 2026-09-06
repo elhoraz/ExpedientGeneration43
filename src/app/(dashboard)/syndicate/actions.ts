@@ -3,8 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { addPrestise } from "@/lib/gamification";
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 
 export async function submitSyndicate(formData: FormData) {
   const supabase = await createClient();
@@ -23,46 +21,68 @@ export async function submitSyndicate(formData: FormData) {
   const deskripsi = formData.get("deskripsi")?.toString();
   const link_url = formData.get("link_url")?.toString() || "";
   const no_whatsapp = formData.get("no_whatsapp")?.toString();
-  const file: File | null = formData.get("logo_bisnis") as unknown as File;
+  const logo_bisnis = formData.get("logo_bisnis")?.toString() || null;
+  const banner_url = formData.get("banner_url")?.toString() || null;
+  const tagline = formData.get("tagline")?.toString() || null;
+  const kota = formData.get("kota")?.toString() || null;
+  const alamat = formData.get("alamat")?.toString() || null;
+  const promo_alumni = formData.get("promo_alumni")?.toString() || null;
+  const jam_operasional = formData.get("jam_operasional")?.toString() || null;
+  const maps_url = formData.get("maps_url")?.toString() || null;
+  const theme = formData.get("theme")?.toString() || "gold";
+
+  // Parse JSON fields
+  let marketplace_links = {};
+  let produk_layanan: any[] = [];
+  let galeri_foto: any[] = [];
+
+  try {
+    const rawMarketplace = formData.get("marketplace_links")?.toString();
+    if (rawMarketplace) marketplace_links = JSON.parse(rawMarketplace);
+  } catch (e) {
+    console.warn("Failed parsing marketplace_links:", e);
+  }
+
+  try {
+    const rawProduk = formData.get("produk_layanan")?.toString();
+    if (rawProduk) produk_layanan = JSON.parse(rawProduk);
+  } catch (e) {
+    console.warn("Failed parsing produk_layanan:", e);
+  }
+
+  try {
+    const rawGaleri = formData.get("galeri_foto")?.toString();
+    if (rawGaleri) galeri_foto = JSON.parse(rawGaleri);
+  } catch (e) {
+    console.warn("Failed parsing galeri_foto:", e);
+  }
 
   if (!nama_bisnis || !kategori || !deskripsi) {
     return { success: false, error: "Data bisnis tidak lengkap" };
   }
 
-  let logoName = formData.get("existing_logo")?.toString() || null;
-
-  // Handle local file upload
-  if (file && file.size > 0) {
-    if (file.size > 2 * 1024 * 1024) {
-      return { success: false, error: "Ukuran logo maksimal 2MB." };
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    const uniqueSuffix = Date.now() + '_' + Math.round(Math.random() * 1E9);
-    const filename = uniqueSuffix + '_' + file.name.replace(/[^a-zA-Z0-9.\-]/g, '_');
-    
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'bisnis');
-    await mkdir(uploadDir, { recursive: true });
-    const path = join(uploadDir, filename);
-    await writeFile(path, buffer);
-
-    logoName = filename;
-  }
-
-  const payload = {
+  const payload: any = {
     user_id: user.id,
     nama_bisnis,
     kategori,
     deskripsi,
     link_url,
-    ...(logoName ? { logo_bisnis: logoName } : {})
+    tagline,
+    kota,
+    alamat,
+    promo_alumni,
+    jam_operasional,
+    maps_url,
+    theme,
+    marketplace_links,
+    produk_layanan,
+    galeri_foto,
+    ...(logo_bisnis ? { logo_bisnis } : {}),
+    ...(banner_url ? { banner_url } : {})
   };
 
   if (id) {
     // Update
-    // Check ownership
     const { data: existing } = await supabase.from("syndicate").select("user_id").eq("id", id).single();
     if (!existing || existing.user_id !== user.id) {
       return { success: false, error: "Otorisasi gagal" };
@@ -80,11 +100,12 @@ export async function submitSyndicate(formData: FormData) {
     }
   }
 
-  // Update WhatsApp
+  // Update WhatsApp in profile if provided
   if (no_whatsapp) {
     await supabase.from("profiles").update({ no_whatsapp }).eq("id", user.id);
   }
 
   revalidatePath("/syndicate");
+  if (id) revalidatePath(`/syndicate/${id}`);
   return { success: true };
 }
