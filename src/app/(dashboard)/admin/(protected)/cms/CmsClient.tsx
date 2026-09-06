@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import Link from "next/link";
 import AdminLockBtn from "../../AdminLockBtn";
+import { compressImageFile } from "@/lib/image-compression";
 
 type SiteContent = {
   id: string;
@@ -228,11 +229,19 @@ export default function CmsClient({
         }),
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || "Gagal menyimpan perubahan CMS");
+        let errMsg = "Gagal menyimpan perubahan CMS";
+        try {
+          const errData = await res.json();
+          errMsg = errData.message || errMsg;
+        } catch {
+          const text = await res.text().catch(() => "");
+          errMsg = text || errMsg;
+        }
+        throw new Error(errMsg);
       }
 
+      const data = await res.json();
       await showAlert("Berhasil", data.message || "Semua perubahan CMS per-halaman berhasil disimpan permanen ke database.");
       
       setDraftUpdates({});
@@ -280,18 +289,35 @@ export default function CmsClient({
     try {
       let finalUrl = galeriUrl;
       if (galeriFile) {
+        // Kompresi otomatis di sisi browser sebelum upload
+        const compressedFile = await compressImageFile(galeriFile);
         const fd = new FormData();
-        fd.append('file', galeriFile);
+        fd.append('file', compressedFile);
         fd.append('bucket', 'cms-assets');
         fd.append('folder', 'gallery');
+
         const uploadRes = await fetch('/api/admin/cms/upload', {
           method: 'POST',
           body: fd,
         });
-        const uploadData = await uploadRes.json();
+
         if (!uploadRes.ok) {
-          throw new Error(uploadData.message || 'Gagal mengunggah foto galeri');
+          let errMsg = 'Gagal mengunggah foto galeri';
+          if (uploadRes.status === 413) {
+            errMsg = 'Ukuran file terlalu besar untuk server (maksimal 4.5 MB). Silakan gunakan gambar yang lebih kecil.';
+          } else {
+            try {
+              const errJson = await uploadRes.json();
+              errMsg = errJson.message || errMsg;
+            } catch {
+              const text = await uploadRes.text().catch(() => '');
+              errMsg = text || errMsg;
+            }
+          }
+          throw new Error(errMsg);
         }
+
+        const uploadData = await uploadRes.json();
         finalUrl = uploadData.url;
       }
       if (!finalUrl) throw new Error('URL gambar tidak boleh kosong');
@@ -306,11 +332,19 @@ export default function CmsClient({
         }),
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Gagal menyimpan gambar galeri');
+        let errMsg = 'Gagal menyimpan gambar galeri';
+        try {
+          const errData = await res.json();
+          errMsg = errData.message || errMsg;
+        } catch {
+          const text = await res.text().catch(() => '');
+          errMsg = text || errMsg;
+        }
+        throw new Error(errMsg);
       }
 
+      const data = await res.json();
       await showAlert("Berhasil", data.message || "Gambar galeri berhasil disimpan.");
       setIsEditingGaleri(false);
       router.refresh();
@@ -335,18 +369,35 @@ export default function CmsClient({
     try {
       let finalUrl = editValue;
       if (cmsEditFile) {
+        // Kompresi otomatis di sisi browser sebelum upload
+        const compressedFile = await compressImageFile(cmsEditFile);
         const fd = new FormData();
-        fd.append('file', cmsEditFile);
+        fd.append('file', compressedFile);
         fd.append('bucket', 'cms-assets');
         fd.append('folder', 'cms');
+
         const uploadRes = await fetch('/api/admin/cms/upload', {
           method: 'POST',
           body: fd,
         });
-        const uploadData = await uploadRes.json();
+
         if (!uploadRes.ok) {
-          throw new Error(uploadData.message || 'Gagal mengunggah gambar.');
+          let errMsg = 'Gagal mengunggah gambar.';
+          if (uploadRes.status === 413) {
+            errMsg = 'Ukuran file terlalu besar untuk server (maksimal 4.5 MB). Silakan gunakan gambar yang lebih kecil.';
+          } else {
+            try {
+              const errJson = await uploadRes.json();
+              errMsg = errJson.message || errMsg;
+            } catch {
+              const text = await uploadRes.text().catch(() => '');
+              errMsg = text || errMsg;
+            }
+          }
+          throw new Error(errMsg);
         }
+
+        const uploadData = await uploadRes.json();
         finalUrl = uploadData.url;
         setEditValue(finalUrl);
       }
@@ -372,10 +423,18 @@ export default function CmsClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id }),
       });
-      const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.message || 'Gagal menghapus gambar');
+        let errMsg = 'Gagal menghapus gambar';
+        try {
+          const errData = await res.json();
+          errMsg = errData.message || errMsg;
+        } catch {
+          const text = await res.text().catch(() => '');
+          errMsg = text || errMsg;
+        }
+        throw new Error(errMsg);
       }
+      const data = await res.json();
       await showAlert("Berhasil", data.message || "Gambar galeri berhasil dihapus.");
       router.refresh();
     } catch (err: any) {
