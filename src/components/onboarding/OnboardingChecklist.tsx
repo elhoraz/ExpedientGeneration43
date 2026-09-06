@@ -84,7 +84,7 @@ export default function OnboardingChecklist() {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("foto_profil, no_whatsapp, no_hp, lat, lng, motivasi_hidup")
+          .select("foto_profil, no_whatsapp, lat, lng, motivasi_hidup")
           .eq("id", user.id)
           .maybeSingle();
 
@@ -95,7 +95,7 @@ export default function OnboardingChecklist() {
             localStorage.setItem("expedient_quest_radar", "true");
           }
           const hasCustomPhoto = profile.foto_profil && !profile.foto_profil.includes("ui-avatars.com");
-          const hasPhone = profile.no_whatsapp || profile.no_hp;
+          const hasPhone = profile.no_whatsapp;
           if (hasCustomPhoto || (hasPhone && profile.motivasi_hidup)) {
             done.add("profile");
             localStorage.setItem("expedient_quest_profile", "true");

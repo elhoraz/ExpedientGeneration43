@@ -17,7 +17,7 @@ export default async function TarbiyahNexusPage() {
   // 1. Fetch current user profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, nama_panggilan, nama_lengkap, role, foto_profil, motivasi_hidup, pekerjaan")
+    .select("id, nama_panggilan, nama_lengkap, role, foto_profil, motivasi_hidup, cita_cita")
     .eq("id", user.id)
     .single();
 
@@ -29,11 +29,17 @@ export default async function TarbiyahNexusPage() {
   };
 
   // 2. Fetch mentors (other profiles)
-  const { data: mentorsRaw } = await supabase
+  const { data: mentorsDb } = await supabase
     .from("profiles")
-    .select("id, nama_panggilan, nama_lengkap, foto_profil, motivasi_hidup, role, pekerjaan, alamat_sekarang")
+    .select("id, nama_panggilan, nama_lengkap, foto_profil, motivasi_hidup, role, cita_cita, alamat_lengkap")
     .neq("id", user.id)
     .limit(20);
+
+  const mentorsRaw = (mentorsDb || []).map((m: any) => ({
+    ...m,
+    pekerjaan: m.cita_cita || "Alumni Expedient",
+    alamat_sekarang: m.alamat_lengkap || "",
+  }));
 
   // 3. Fetch tenders (syndicate businesses)
   const { data: tendersRaw } = await supabase
@@ -82,9 +88,12 @@ export default async function TarbiyahNexusPage() {
   if (allUserIdsToFetch.size > 0) {
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, nama_panggilan, nama_lengkap, foto_profil, role, pekerjaan")
+      .select("id, nama_panggilan, nama_lengkap, foto_profil, role, cita_cita")
       .in("id", Array.from(allUserIdsToFetch));
-    profiles?.forEach(p => profileMap.set(p.id, p));
+    profiles?.forEach((p: any) => profileMap.set(p.id, {
+      ...p,
+      pekerjaan: p.cita_cita || "Alumni Expedient",
+    }));
   }
 
   const syndicateMap = new Map<string, any>();

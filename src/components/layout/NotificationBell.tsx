@@ -95,7 +95,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("foto_profil, no_whatsapp, no_hp, lat, lng, motivasi_hidup")
+        .select("foto_profil, no_whatsapp, lat, lng, motivasi_hidup")
         .eq("id", userId)
         .maybeSingle();
 
@@ -110,7 +110,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
         }
         // Profile quest is complete if user has a custom uploaded photo or updated WhatsApp/bio
         const hasCustomPhoto = profile.foto_profil && !profile.foto_profil.includes("ui-avatars.com");
-        const hasPhone = profile.no_whatsapp || profile.no_hp;
+        const hasPhone = profile.no_whatsapp;
         if (hasCustomPhoto || (hasPhone && profile.motivasi_hidup)) {
           done.add("profile");
           if (typeof window !== "undefined") {

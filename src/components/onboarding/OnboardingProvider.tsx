@@ -36,16 +36,34 @@ export default function OnboardingProvider() {
 
       if (!user) return; // Guest — don't show onboarding
 
-      // Fetch user name for welcome modal
+      // Fetch user profile
       const { data: profile } = await supabase
         .from("profiles")
-        .select("nama_panggilan, nama_lengkap")
+        .select("nama_panggilan, nama_lengkap, created_at, role, prestise_points, foto_profil")
         .eq("id", user.id)
         .single();
 
-      if (profile) {
-        setUserName(profile.nama_panggilan || profile.nama_lengkap || "");
+      if (!profile) return;
+
+      // If user is an admin or an existing account (>1 hour old or has prestige points),
+      // do not interrupt them with the new user onboarding tour.
+      const isExistingAccount = (() => {
+        if (profile.role === "admin" || profile.role === "superadmin") return true;
+        if ((profile.prestise_points || 0) > 0) return true;
+        if (profile.created_at) {
+          const createdAgeMs = Date.now() - new Date(profile.created_at).getTime();
+          if (createdAgeMs > 60 * 60 * 1000) return true;
+        }
+        return false;
+      })();
+
+      if (isExistingAccount) {
+        localStorage.setItem(WELCOME_KEY, "true");
+        localStorage.setItem(TOUR_KEY, "true");
+        return;
       }
+
+      setUserName(profile.nama_panggilan || profile.nama_lengkap || "");
 
       if (!welcomeDone) {
         setPhase("welcome");

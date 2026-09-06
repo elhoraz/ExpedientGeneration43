@@ -26,7 +26,7 @@ export default async function DirektoriPage() {
   // Optimized query projecting only needed columns
   const { data: alumni } = await supabase
     .from("profiles")
-    .select("id, nama_lengkap, nama_panggilan, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, kota_asal, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active")
+    .select("id, nama_lengkap, nama_panggilan, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active")
     .eq("is_active", true)
     .order("id", { ascending: true });
 
