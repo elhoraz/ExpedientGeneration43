@@ -65,12 +65,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       const isMobile = window.innerWidth < 768;
       const camera = new THREE.PerspectiveCamera(
-        isMobile ? 55 : 45,
+        isMobile ? 50 : 45,
         window.innerWidth / window.innerHeight,
         0.1,
         200
       );
-      camera.position.set(0, 0, isMobile ? 26 : 28);
+      camera.position.set(0, 0, isMobile ? 24 : 28);
 
       const renderer = new THREE.WebGLRenderer({
         antialias: true,
@@ -79,7 +79,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       });
       renderer.setClearColor(0x000000, 0);
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -534,13 +534,16 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         texture.flipY = false;
         texture.wrapS = THREE.RepeatWrapping;
         texture.repeat.x = -1;
+        texture.generateMipmaps = true;
+        texture.minFilter = THREE.LinearMipmapLinearFilter;
+        texture.magFilter = THREE.LinearFilter;
         if (!isBump) {
           texture.colorSpace = THREE.SRGBColorSpace;
         } else {
           // Bump map WAJIB menggunakan Linear atau NoColorSpace agar data height tidak terdistorsi
           texture.colorSpace = THREE.NoColorSpace || THREE.LinearSRGBColorSpace;
         }
-        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
         return texture;
       }
 
@@ -553,9 +556,16 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       const kBackTex = createKTABackTexture(false);
       const kBackBump = createKTABackTexture(true);
 
-      const cardMaterialProps = isMobile
-        ? { roughness: 0.3, metalness: 0.5, bumpScale: 0.04 }
-        : { roughness: 0.15, metalness: 0.6, clearcoat: 1.0, clearcoatRoughness: 0.1, iridescence: 0.8, iridescenceIOR: 1.5, iridescenceThicknessRange: [100, 400] as [number, number], bumpScale: 0.04 };
+      const cardMaterialProps = {
+        roughness: 0.15,
+        metalness: 0.6,
+        clearcoat: 0.85,
+        clearcoatRoughness: 0.1,
+        iridescence: isMobile ? 0.35 : 0.8,
+        iridescenceIOR: 1.5,
+        iridescenceThicknessRange: [100, 400] as [number, number],
+        bumpScale: 0.035,
+      };
 
       const goldEdgeMaterial = new THREE.MeshStandardMaterial({ color: PURE_GOLD, metalness: 1.0, roughness: 0.15 });
 
@@ -1075,10 +1085,11 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       const onResize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
-        camera.fov = window.innerWidth < 768 ? 65 : 45;
+        camera.fov = window.innerWidth < 768 ? 50 : 45;
         if (window.innerWidth < 768) { ktaRestPos.set(-4, -5, -4); } else { ktaRestPos.set(-8, 0, -2); }
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       };
       window.addEventListener("resize", onResize);
 
