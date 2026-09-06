@@ -93,9 +93,51 @@ export async function POST(request: Request) {
 
         console.log(`[META-WA-INBOX] Pesan dari ${numNorm} (${senderTag}): "${messageText}" disimpan.`);
 
-        // 2. Kirim balasan otomatis dari Chat Bot (Asisten Resmi)
+        // 2. Kirim balasan otomatis dari Chat Bot (Asisten Resmi & Pengiriman OTP Otomatis)
         try {
-          // Cek jeda 10 menit agar tidak spam beruntun
+          let otpReply = "";
+          if (matchedUser?.id) {
+            try {
+              const { data: authData } = await adminSupabase.auth.admin.getUserById(matchedUser.id);
+              const authUser = authData?.user;
+              if (authUser && !authUser.email_confirmed_at) {
+                // Pengguna ini belum terverifikasi! Berikan OTP langsung
+                let activeOtp = authUser.user_metadata?.otp_code;
+                if (!activeOtp) {
+                  activeOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                  await adminSupabase.auth.admin.updateUserById(matchedUser.id, {
+                    user_metadata: {
+                      ...authUser.user_metadata,
+                      otp_code: activeOtp,
+                      otp_expires_at: Date.now() + 24 * 60 * 60 * 1000,
+                    },
+                  });
+                }
+
+                otpReply = `✨ *KODE VERIFIKASI EXPEDIENT GENERATION* ✨
+
+*Assalamu'alaikum Warahmatullahi Wabarakatuh*
+
+Halo *${userDisplayName}*, berikut adalah kode OTP verifikasi resmi untuk mengesahkan akun portal Anda:
+
+🔑 *KODE OTP ANDA:*
+*${activeOtp}*
+
+_Kode ini bersifat rahasia dan berlaku selama 24 jam._
+Silakan ketikkan 6 digit angka di atas pada halaman verifikasi portal untuk menyelesaikan pendaftaran.
+
+🌐 *Buka Layar Verifikasi:*
+https://expedientgeneration.vercel.app/register?verify=true&email=${encodeURIComponent(authUser.email || "")}
+
+*Wassalamu'alaikum Warahmatullahi Wabarakatuh*
+*Expedient Generation — 43rd Arrisalah*`;
+              }
+            } catch (authErr) {
+              console.warn("[META-WA-BOT-AUTH-ERR]:", authErr);
+            }
+          }
+
+          // Cek jeda 10 menit agar tidak spam beruntun untuk pesan greeting biasa
           const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
           const { count: recentReplies } = await adminSupabase
             .from("whatsapp_queue")
@@ -105,8 +147,9 @@ export async function POST(request: Request) {
             .like("error_message", "Bot Auto-Reply%")
             .gte("created_at", tenMinsAgo);
 
-          if (!recentReplies || recentReplies === 0) {
-            const botGreeting = `✨ *ASISTEN WHATSAPP EXPEDIENT GENERATION* ✨
+          // Jika ada pesan OTP khusus atau belum ada balasan salam dalam 10 menit
+          if (otpReply || !recentReplies || recentReplies === 0) {
+            const messageToSend = otpReply || `✨ *ASISTEN WHATSAPP EXPEDIENT GENERATION* ✨
 
 *Assalamu'alaikum Warahmatullahi Wabarakatuh*
 
@@ -120,19 +163,19 @@ Pesan Anda telah kami terima dan masuk ke sistem *Command Center Admin* kami. Ti
 *Wassalamu'alaikum Warahmatullahi Wabarakatuh*
 *Expedient Generation — 43rd Arrisalah*`;
 
-            const replySent = await sendWhatsAppMessage(numNorm, botGreeting);
+            const replySent = await sendWhatsAppMessage(numNorm, messageToSend);
             if (replySent) {
               await adminSupabase.from("whatsapp_queue").insert([
                 {
                   no_whatsapp: numNorm,
-                  message: botGreeting,
+                  message: messageToSend,
                   status: "sent",
-                  error_message: "Bot Auto-Reply (Asisten Resmi)",
+                  error_message: otpReply ? "Bot Auto-Reply (OTP Delivery)" : "Bot Auto-Reply (Asisten Resmi)",
                   created_at: new Date().toISOString(),
                   updated_at: new Date().toISOString(),
                 },
               ]);
-              console.log(`[META-WA-BOT] Auto-reply berhasil terkirim ke ${numNorm}`);
+              console.log(`[META-WA-BOT] Balasan (${otpReply ? "OTP" : "Greeting"}) berhasil terkirim ke ${numNorm}`);
             }
           }
         } catch (botErr) {

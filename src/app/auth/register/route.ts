@@ -86,6 +86,14 @@ export async function POST(request: Request) {
             // Update nomor whatsapp jika pengguna memasukkan nomor baru saat retry
             if (no_whatsapp) {
               await adminSupabase.from("profiles").update({ no_whatsapp }).eq("id", existingUser.id);
+              await adminSupabase.auth.admin.updateUserById(existingUser.id, {
+                user_metadata: {
+                  ...existingUser.user_metadata,
+                  no_whatsapp,
+                  nama_lengkap: nama_lengkap || existingUser.user_metadata?.nama_lengkap,
+                  nama_panggilan: nama_panggilan || existingUser.user_metadata?.nama_panggilan,
+                },
+              });
             }
 
             if (isJsonRequest) {
