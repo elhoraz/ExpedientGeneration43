@@ -143,7 +143,7 @@ function urlBase64ToUint8Array(base64String: string) {
           href="#"
           className="chat-widget hover-trigger" 
           id="btnChatWidget"
-          title="Executive Chat (Lounge)" 
+          title="Obrolan Angkatan" 
           onClick={(e) => { 
             e.preventDefault(); 
             setChatOpen(!chatOpen); 
@@ -176,7 +176,7 @@ function urlBase64ToUint8Array(base64String: string) {
         <div className="chat-dropdown">
           <div className="chat-dropdown-header">
             <div className="chat-dropdown-title">
-              The Lounge
+              Obrolan Angkatan
             </div>
             <div className="chat-dropdown-actions">
               <Link
@@ -215,7 +215,7 @@ function urlBase64ToUint8Array(base64String: string) {
                 type="text"
                 value={inputChat}
                 onChange={(e) => setInputChat(e.target.value)}
-                placeholder="Kirim ke Lounge..."
+                placeholder="Kirim pesan ke obrolan angkatan..."
                 className="chat-dropdown-input"
                 required
               />

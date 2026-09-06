@@ -158,7 +158,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
         
         <div style={{ marginBottom: "30px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h2 style={{ fontFamily: "var(--font-playfair, 'Playfair Display', serif)", color: "var(--gold-main, #d4af37)", margin: 0, fontSize: "2rem" }}>
-            {initialData ? "Edit Arsip Bisnis" : "Registrasi Bisnis"}
+            {initialData ? "Edit Data Usaha" : "Daftarkan Usaha / Bisnis"}
           </h2>
           <Link href="/syndicate" style={{ color: "var(--text-secondary)", textDecoration: "none" }}>
             <i className="fa-solid fa-times" style={{ fontSize: "1.5rem" }}></i>
@@ -213,7 +213,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
           </div>
 
           <button type="submit" disabled={isSubmitting} style={{ background: "linear-gradient(135deg, #d4af37, #aa8529)", color: "#000", border: "none", padding: "15px", borderRadius: "12px", fontSize: "1rem", fontWeight: 700, cursor: isSubmitting ? "wait" : "pointer", marginTop: "10px", opacity: isSubmitting ? 0.7 : 1, boxShadow: "0 10px 25px rgba(212,175,55,0.25)" }}>
-            {isSubmitting ? "Menyimpan..." : "Simpan Arsip"}
+            {isSubmitting ? "Menyimpan..." : "Simpan Data Usaha"}
           </button>
         </form>
 

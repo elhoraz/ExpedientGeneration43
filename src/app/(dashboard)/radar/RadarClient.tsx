@@ -153,8 +153,14 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         </div>
 
         <div className="radar-controls" style={{ zIndex: 50 }}>
-            <button className="btn-radar btn-radar-gold" id="btnSyncLocation"><i className="fa-solid fa-location-crosshairs"></i> <span className="hide-mobile">Perbarui </span>Domisili</button>
-            <button className="btn-radar btn-radar-glass" id="btnAutoTour"><i className="fa-solid fa-plane-departure"></i> <span className="hide-mobile">Jelajahi </span>Jaringan</button>
+            <button className="btn-radar btn-radar-gold" id="btnSyncLocation" title="Bagikan lokasi Anda saat ini ke peta alumni">
+              <i className="fa-solid fa-location-crosshairs"></i>
+              <span className="btn-radar-text">Update Lokasi</span>
+            </button>
+            <button className="btn-radar btn-radar-glass" id="btnAutoTour" title="Jelajahi titik alumni di peta">
+              <i className="fa-solid fa-plane-departure"></i>
+              <span className="btn-radar-text">Jelajah Peta</span>
+            </button>
             <div className="sync-status" id="syncStatus"></div>
             <div className="map-dropdown-wrap">
                 <button 
@@ -164,8 +170,10 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                     e.stopPropagation();
                     setIsMapMenuOpen(!isMapMenuOpen);
                   }}
+                  title="Ganti jenis peta"
                 >
-                  <i className="fa-solid fa-layer-group"></i> <span className="hide-mobile">Pilih </span>Peta
+                  <i className="fa-solid fa-layer-group"></i>
+                  <span className="btn-radar-text">Ganti Peta</span>
                 </button>
                 <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown">
                     <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=globe'; }}><i className="fa-solid fa-earth-asia"></i> Globe 3D</button>

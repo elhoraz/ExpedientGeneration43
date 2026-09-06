@@ -115,10 +115,10 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
           <AdminLockBtn />
         </div>
         <div>
-          <h1 className="admin-title">Manajemen Entitas</h1>
+          <h1 className="admin-title">Manajemen Alumni</h1>
           <nav className="admin-nav" style={{ marginTop: "10px" }}>
             <Link href="/admin">Dashboard</Link>
-            <Link href="/admin/users" className="active">Users</Link>
+            <Link href="/admin/users" className="active">Alumni</Link>
             <Link href="/admin/moderation">Moderasi</Link>
             <Link href="/admin/cms">CMS Strings</Link>
           </nav>
@@ -131,7 +131,7 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
           <table className="cms-table">
             <thead>
               <tr>
-                <th>Entitas</th>
+                <th>Alumni</th>
                 <th>Email</th>
                 <th>Role Saat Ini</th>
                 <th>Ubah Role</th>
@@ -288,7 +288,7 @@ export default function AdminUsersClient({ initialUsers }: { initialUsers: any[]
         </div>
 
         <div style={{ textAlign: "center", padding: "16px", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-          Total: {users.length} entitas terdaftar
+          Total: {users.length} alumni terdaftar
         </div>
       </div>
     </div>

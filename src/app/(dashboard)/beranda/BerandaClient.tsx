@@ -167,7 +167,7 @@ export default function BerandaClient({
               <div className="stats-grid">
                   <div className="stat-card glass-panel reveal-up">
                       <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_1_num', '124')}>0</span>+</h3>
-                      <p className="stat-label">{t('beranda_stat_1_label', 'Entitas Expedient')}</p>
+                      <p className="stat-label">{t('beranda_stat_1_label', 'Alumni Expedient')}</p>
                   </div>
                   <div className="stat-card glass-panel reveal-up">
                       <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_2_num', '34')}>0</span></h3>
@@ -372,7 +372,7 @@ export default function BerandaClient({
                       <div style={{ fontFamily: "'Playfair Display',serif", color: '#d4af37', fontWeight: 700, fontSize: '1.1rem', marginBottom: '5px' }}>Notifikasi Ulang Tahun</div>
                       <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.4 }}>
                           Hari ini adalah ulang tahun <strong>{birthdayUsers[0].nama_panggilan || birthdayUsers[0].nama_lengkap}</strong>
-                          {birthdayUsers.length > 1 ? ` dan ${birthdayUsers.length - 1} entitas lainnya` : ''}. <br/>
+                          {birthdayUsers.length > 1 ? ` dan ${birthdayUsers.length - 1} alumni lainnya` : ''}. <br/>
                           <a href="/birthday" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>Kirim Ucapan <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></a>
                       </div>
                   </div>

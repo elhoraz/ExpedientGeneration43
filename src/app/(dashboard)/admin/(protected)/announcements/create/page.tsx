@@ -50,7 +50,7 @@ export default function CreateAnnouncement() {
         </div>
         <div style={{ textAlign: "center", width: "100%" }}>
           <h1 className="admin-title">Buat Pengumuman</h1>
-          <p className="admin-subtitle">Publikasikan informasi untuk seluruh entitas Expedient</p>
+          <p className="admin-subtitle">Publikasikan informasi untuk seluruh alumni Expedient 43</p>
         </div>
       </div>
 

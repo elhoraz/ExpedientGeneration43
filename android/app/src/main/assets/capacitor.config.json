@@ -5,7 +5,14 @@
 	"server": {
 		"androidScheme": "https",
 		"url": "https://expedientgeneration.vercel.app",
-		"cleartext": false
+		"cleartext": false,
+		"allowNavigation": [
+			"expedientgeneration.vercel.app",
+			"*.supabase.co",
+			"*.agora.io",
+			"*.sd-rtn.com",
+			"*.tile.openstreetmap.org"
+		]
 	},
 	"plugins": {
 		"PushNotifications": {

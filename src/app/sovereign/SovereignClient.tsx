@@ -668,7 +668,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           ctx.fillStyle = "rgba(212,175,55,0.05)";
           ctx.font = '900 150px "Playfair Display", serif';
           ctx.textAlign = "center";
-          ctx.fillText("SOVEREIGN DIRECTIVE", 1200, 300);
+          ctx.fillText("KARTU TANDA ALUMNI", 1200, 300);
 
           function drawCard(img: HTMLCanvasElement, dx: number, dy: number, dw: number, dh: number, isKTA = false) {
             ctx.save();
@@ -715,7 +715,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
           const dataURL = compCanvas.toDataURL("image/png", 1.0);
           const link = document.createElement("a");
-          link.download = `Sovereign_ID_${expedientData.nama.replace(/\s+/g, "_")}.png`;
+          link.download = `KTA_Alumni_${expedientData.nama.replace(/\\s+/g, "_")}.png`;
           link.href = dataURL;
           document.body.appendChild(link);
           link.click();
@@ -1258,9 +1258,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           pointerEvents: "none",
         }}
       >
-        SYS_VER: 4.0.4_SOVEREIGN<br />
-        ENVIRONMENT: <span id="envStatus">NOIR_VAULT_ACTIVE</span><br />
-        ACCESS: GRANTED [{(user.nama_panggilan || user.nama_lengkap).toUpperCase()}]
+        EXPEDIENT 43 • KTA DIGITAL<br />
+        STATUS: <span id="envStatus">TERVERIFIKASI AKTIF</span><br />
+        ANGGOTA: [{(user.nama_panggilan || user.nama_lengkap).toUpperCase()}]
       </div>
 
       {/* UX Overlay */}

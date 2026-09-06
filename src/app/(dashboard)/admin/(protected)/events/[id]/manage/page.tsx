@@ -118,7 +118,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
           <div style={{ flex: "2 1 240px" }}>
             <label style={{ display: "block", marginBottom: "6px", color: "var(--text-secondary)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "1px" }}>Peserta (User)</label>
             <select name="user_id" required style={{ width: "100%", padding: "10px 14px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }}>
-              <option value="" disabled selected>-- Pilih Entitas Peserta --</option>
+              <option value="" disabled selected>-- Pilih Alumni Peserta --</option>
               {users?.map(u => (
                 <option key={u.id} value={u.id}>{u.nama_panggilan} ({u.role})</option>
               ))}

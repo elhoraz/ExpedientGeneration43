@@ -49,9 +49,9 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
   return (
     <div className="syndicate-page">
       <div style={{ textAlign: "center", marginBottom: "50px" }}>
-        <h1 className="syndicate-title">The Syndicate</h1>
+        <h1 className="syndicate-title">Katalog Bisnis Alumni</h1>
         <div className="syndicate-subtitle">
-          Alumni Business & Professional Network
+          Jaringan Usaha & Profesional Sahabat Alumni Expedient 43
         </div>
       </div>
 
@@ -78,7 +78,7 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
           display: "flex", alignItems: "center", gap: "10px",
           boxShadow: "0 10px 20px rgba(212, 175, 55, 0.3)", textDecoration: "none"
         }}>
-          <i className="fa-solid fa-plus"></i> Registrasi Bisnis Anda
+          <i className="fa-solid fa-plus"></i> Tambah Usaha Anda
         </Link>
       </div>
 
@@ -93,9 +93,9 @@ export default function SyndicateClient({ initialPortofolio, userId }: { initial
             gridColumn: "1 / -1", textAlign: "center", padding: "80px 20px",
             background: "var(--glass-bg)", border: "1px dashed var(--glass-border)", borderRadius: "18px"
           }}>
-            <i className="fa-solid fa-vault" style={{ fontSize: "4rem", color: "var(--gold-main)", opacity: 0.4, marginBottom: "20px" }}></i>
-            <h3 style={{ color: "var(--text-primary)", fontFamily: "var(--font-playfair, 'Playfair Display', serif)", fontSize: "1.6rem", marginBottom: "10px" }}>Brankas Masih Kosong</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>Jadilah agen pertama yang memamerkan kerajaan bisnis Anda di sini.</p>
+            <i className="fa-solid fa-store" style={{ fontSize: "4rem", color: "var(--gold-main)", opacity: 0.4, marginBottom: "20px" }}></i>
+            <h3 style={{ color: "var(--text-primary)", fontFamily: "var(--font-playfair, 'Playfair Display', serif)", fontSize: "1.6rem", marginBottom: "10px" }}>Belum Ada Usaha Terdaftar</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>Jadilah yang pertama mendaftarkan usaha atau jasa Anda untuk rekan-rekan alumni.</p>
           </div>
         ) : (
           filteredBiz.map(biz => {

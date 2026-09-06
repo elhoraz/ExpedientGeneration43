@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import ChatClient from "./ChatClient";
 
 export const metadata = {
-  title: "The Lounge - Expedient",
+  title: "Obrolan Angkatan - Expedient",
 };
 
 export default async function ChatPage() {

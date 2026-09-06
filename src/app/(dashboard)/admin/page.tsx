@@ -5,7 +5,7 @@ import "./admin.css";
 import AdminLockBtn from "./AdminLockBtn";
 
 export const metadata = {
-  title: "Command Center - Expedient",
+  title: "Panel Admin - Expedient",
 };
 
 export default async function AdminPage() {
@@ -35,60 +35,60 @@ export default async function AdminPage() {
         <div style={{ position: "absolute", top: 0, right: 0, zIndex: 10 }}>
           <AdminLockBtn />
         </div>
-        <h1 className="admin-title">Command Center</h1>
-        <p className="admin-subtitle">Otoritas Analitik & Pantauan Sentral</p>
+        <h1 className="admin-title">Panel Admin Angkatan</h1>
+        <p className="admin-subtitle">Pusat Pengelolaan Data, Konten & Aktivitas Alumni</p>
       </div>
 
       <div className="metrics-grid">
         <div className="metric-card">
           <div className="metric-value">{userCount || 0}</div>
-          <div className="metric-label">Total Entitas Terdaftar</div>
+          <div className="metric-label">Total Alumni Terdaftar</div>
         </div>
         <div className="metric-card" style={{ transitionDelay: "0.1s" }}>
           <div className="metric-value">{activeCount || 0}</div>
-          <div className="metric-label">Entitas Aktif Berprestise</div>
+          <div className="metric-label">Alumni Aktif</div>
         </div>
         <div className="metric-card" style={{ transitionDelay: "0.2s" }}>
           <div className="metric-value">{wasiatCount || 0}</div>
-          <div className="metric-label">Wasiat Terarsip</div>
+          <div className="metric-label">Pesan Wasiat Terarsip</div>
         </div>
       </div>
 
-      <h2 className="panel-title" style={{ marginTop: "50px" }}>Akses Kontrol Sistem</h2>
+      <h2 className="panel-title" style={{ marginTop: "50px" }}>Menu Pengelolaan Admin</h2>
       <div className="metrics-grid" style={{ marginBottom: "50px" }}>
         <Link href="/admin/cms" style={{ textDecoration: "none" }}>
           <div className="metric-card hover-glow-gold" style={{ transitionDelay: "0.15s", borderColor: "rgba(212,175,55,0.4)", background: "linear-gradient(135deg, rgba(212,175,55,0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
             <div className="metric-value" style={{ fontSize: "2.5rem", color: "#d4af37" }}><i className="fa-solid fa-wand-magic-sparkles"></i></div>
             <div className="metric-label" style={{ color: "#d4af37", fontWeight: "bold" }}>Web Content Editor</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Ubah gambar, teks & desain web (CMS)</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Ubah gambar, teks & konten web (CMS)</div>
           </div>
         </Link>
         <Link href="/admin/announcements" style={{ textDecoration: "none" }}>
           <div className="metric-card hover-glow-emerald" style={{ transitionDelay: "0.1s", borderColor: "rgba(0, 255, 136, 0.4)", background: "linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
             <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00ff88" }}><i className="fa-solid fa-bullhorn"></i></div>
-            <div className="metric-label" style={{ color: "#00ff88", fontWeight: "bold" }}>Pengumuman Global</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Atur mosi & informasi sentral</div>
+            <div className="metric-label" style={{ color: "#00ff88", fontWeight: "bold" }}>Pengumuman Angkatan</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Publikasikan informasi penting ke semua alumni</div>
           </div>
         </Link>
         <Link href="/admin/users" style={{ textDecoration: "none" }}>
           <div className="metric-card hover-glow-gold" style={{ transitionDelay: "0.2s", borderColor: "rgba(212,175,55,0.4)", background: "linear-gradient(135deg, rgba(212,175,55,0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
             <div className="metric-value" style={{ fontSize: "2.5rem" }}><i className="fa-solid fa-users-gear"></i></div>
-            <div className="metric-label" style={{ color: "#d4af37", fontWeight: "bold" }}>Manajemen Entitas</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kelola peran & status akun pengguna</div>
+            <div className="metric-label" style={{ color: "#d4af37", fontWeight: "bold" }}>Manajemen Alumni</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kelola data, peran & status akun alumni</div>
           </div>
         </Link>
         <Link href="/admin/broadcast" style={{ textDecoration: "none" }}>
           <div className="metric-card hover-glow-emerald" style={{ transitionDelay: "0.3s", borderColor: "rgba(0, 255, 136, 0.4)", background: "linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
             <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00ff88" }}><i className="fa-brands fa-whatsapp"></i></div>
             <div className="metric-label" style={{ color: "#00ff88", fontWeight: "bold" }}>Siaran WhatsApp</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kirim instruksi massal (Broadcast)</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kirim pesan siaran massal ke WhatsApp alumni</div>
           </div>
         </Link>
         <Link href="/admin/wallet-generator" style={{ textDecoration: "none" }}>
           <div className="metric-card hover-glow-cyan" style={{ transitionDelay: "0.4s", borderColor: "rgba(0, 191, 255, 0.4)", background: "linear-gradient(135deg, rgba(0, 191, 255, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
             <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00bfff" }}><i className="fa-solid fa-wallet"></i></div>
-            <div className="metric-label" style={{ color: "#00bfff", fontWeight: "bold" }}>Sovereign Wallet</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Cetak dan terbitkan aset digital</div>
+            <div className="metric-label" style={{ color: "#00bfff", fontWeight: "bold" }}>Cetak Kartu & Tiket</div>
+            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Cetak Kartu Alumni & Tiket Acara</div>
           </div>
         </Link>
         <Link href="/admin/events" style={{ textDecoration: "none" }}>
@@ -130,7 +130,7 @@ export default async function AdminPage() {
             <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.6" }}>
               Panel eksklusif ini diproteksi oleh lapisan *Server-Side Rendering* (SSR) dengan kebijakan *Role-Based Access Control* tingkat 'admin'. 
               <br/><br/>
-              Semua transaksi dan perubahan data di dalam panel ini secara otomatis dicatat dalam buku besar *Activity Logs* yang tidak dapat dihapus, menjamin akuntabilitas penuh bagi anggota *High Council*.
+              Semua transaksi dan perubahan data di dalam panel ini secara otomatis dicatat dalam buku besar *Activity Logs* yang tidak dapat dihapus, menjamin akuntabilitas penuh bagi para admin pengurus angkatan.
             </p>
             <div style={{ marginTop: "30px", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
               <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#00ff88", boxShadow: "0 0 10px #00ff88" }}></div>

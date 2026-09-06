@@ -90,7 +90,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
 
       {/* Slide 0: Intro */}
       <div ref={el => { slideRefs.current[0] = el; }} className={`slide slide-0 ${currentSlide === 0 ? 'active' : ''}`}>
-          <h1 className="title-huge anim-text">Halo,<br/>{profile?.nama_panggilan || 'Sovereign'}.</h1>
+          <h1 className="title-huge anim-text">Halo,<br/>{profile?.nama_panggilan || 'Sahabat Alumni'}.</h1>
           <p className="subtitle anim-text">Tahun ini adalah tahun yang luar biasa bagi Anda.</p>
           <div className="anim-text" style={{ marginTop: '50px', fontSize: '0.8rem', color: '#888', letterSpacing: '3px' }}>KETUK UNTUK MELANJUTKAN</div>
       </div>

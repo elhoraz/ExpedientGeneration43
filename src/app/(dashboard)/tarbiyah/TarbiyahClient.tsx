@@ -325,13 +325,13 @@ export default function TarbiyahClient({
     <div className="tarbiyah-page-wrapper">
       <div className="tarbiyah-wrapper">
         <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-arrow-left"></i> Kembali ke Vault
+          <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
         </Link>
 
         {/* HEADER */}
         <div className="header-titles">
-          <h1 className="tarbiyah-title">Tarbiyah Nexus</h1>
-          <p className="tarbiyah-subtitle">Pusat Mentorship, Sinergi B2B & Pengembangan Spiritual</p>
+          <h1 className="tarbiyah-title">Jejaring Karir & Mentoring</h1>
+          <p className="tarbiyah-subtitle">Pusat Mentorship, Sinergi Usaha & Pengembangan Diri Alumni</p>
         </div>
 
         {/* 5 MAIN NAVIGATION TABS */}
@@ -562,7 +562,7 @@ export default function TarbiyahClient({
                         unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com") || logo.includes("supabase.co")}
                       />
                       <h3 className="item-name">{t.nama_bisnis}</h3>
-                      <div className="item-subtitle">Sovereign Syndicate</div>
+                      <div className="item-subtitle">Katalog Bisnis Alumni</div>
                       <p className="item-desc">
                         {t.deskripsi && t.deskripsi.length > 90
                           ? t.deskripsi.substring(0, 90) + "..."
@@ -571,7 +571,7 @@ export default function TarbiyahClient({
 
                       <div className="card-actions">
                         <div className="card-btn-row">
-                          <Link href="/syndicate" className="btn-action-view" title="Kunjungi Pasar Syndicate">
+                          <Link href="/syndicate" className="btn-action-view" title="Lihat Detail Katalog Usaha">
                             <i className="fa-solid fa-store"></i> Katalog
                           </Link>
                           {status && (

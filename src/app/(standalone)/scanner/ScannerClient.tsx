@@ -74,7 +74,7 @@ export default function ScannerClient() {
 
       <div className="scanner-ui">
         <Link href="/fitur" className="btn-close">
-          <i className="fa-solid fa-xmark"></i> Tutup Scanner
+          <i className="fa-solid fa-xmark"></i> Tutup Pemindai
         </Link>
 
         <div className="scanner-frame" onClick={simulateScan}>
@@ -82,9 +82,9 @@ export default function ScannerClient() {
         </div>
 
         <div className="scan-text">
-            {scanning ? "MENGIDENTIFIKASI ARTEFAK..." : "MEMBUKA KAMERA..."}
+            {scanning ? "MEMINDAI KODE QR..." : "MEMBUKA KAMERA..."}
             <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '10px', fontFamily: 'Inter', letterSpacing: '1px' }}>
-                Arahkan kamera ke Sovereign ID atau QR Code
+                Arahkan kamera ke Kartu Alumni atau Kode QR
             </div>
             <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '10px' }}>(Klik kotak untuk simulasi scan sukses)</div>
         </div>

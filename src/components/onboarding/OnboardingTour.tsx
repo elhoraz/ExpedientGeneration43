@@ -49,7 +49,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     selector: '#sidebarNav a[href="/radar"]',
     icon: "fa-solid fa-earth-asia",
-    title: "Radar — Peta Persebaran Alumni",
+    title: "Peta — Persebaran Lokasi Alumni",
     description:
       "Peta interaktif yang menunjukkan di kota mana saja kawan-kawan seangkatan kita tinggal. Perbarui lokasimu agar teman-teman tahu!",
     position: "right",
@@ -57,19 +57,19 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     selector: '#sidebarNav a[href="/syndicate"]',
-    icon: "fa-solid fa-chess-knight",
-    title: "Council — Forum Musyawarah",
+    icon: "fa-solid fa-briefcase",
+    title: "Bisnis — Katalog Usaha Alumni",
     description:
-      "Ruang diskusi dan musyawarah angkatan. Tempat urun rembug, ngobrol santai, dan merencanakan kegiatan bersama sesama alumni.",
+      "Katalog usaha, produk, dan jasa yang dimiliki oleh rekan-rekan alumni. Dukung dan belanja di bisnis sahabat seangkatan!",
     position: "right",
     requireSidebar: true,
   },
   {
     selector: '#sidebarNav a[href="/fitur"]',
     icon: "fa-solid fa-gem",
-    title: "Fitur — Semua Fitur Eksklusif",
+    title: "Fitur — Semua Layanan Alumni",
     description:
-      "Kumpulan fitur lengkap: KTA digital, jejaring bisnis & karir alumni, kas angkatan, jadwal reuni, dan masih banyak lagi.",
+      "Kumpulan fitur lengkap: KTA digital 3D, jejaring bisnis & karir alumni, kas donasi, jadwal reuni, dan masih banyak lagi.",
     position: "right",
     requireSidebar: true,
   },
@@ -78,7 +78,7 @@ const TOUR_STEPS: TourStep[] = [
     icon: "fa-solid fa-comment-dots",
     title: "Obrolan Alumni",
     description:
-      "Ngobrol langsung dengan sesama alumni secara real-time. Ada ruang obrolan bersama (Lounge) dan juga chat pribadi antar kawan.",
+      "Ngobrol langsung dengan sesama alumni secara real-time. Ada ruang obrolan angkatan bersama dan juga chat pribadi antar kawan.",
     position: "left",
   },
   {
@@ -99,7 +99,7 @@ const TOUR_STEPS: TourStep[] = [
   },
   {
     selector: '#sidebarNav a[href="/profil"]',
-    icon: "fa-solid fa-user-astronaut",
+    icon: "fa-solid fa-circle-user",
     title: "Profil — Data Pribadimu",
     description:
       "Kelola data alumni: foto, bio, nomor kontak, media sosial, dan KTA digitalmu. Pastikan datamu selalu terbaru supaya teman-teman mudah menghubungimu!",

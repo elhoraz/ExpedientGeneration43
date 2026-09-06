@@ -79,7 +79,7 @@ export default async function ChatInboxPage() {
         <div className="inbox-header-row">
           <div>
             <h1>Kotak Pesan</h1>
-            <p>Obrolan privat terenkripsi antar entitas.</p>
+            <p>Obrolan privat langsung antar sesama rekan alumni.</p>
           </div>
           <Link href="/direktori" className="inbox-btn-new">
             <i className="fa-solid fa-address-book"></i> Kontak Baru

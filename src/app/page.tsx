@@ -67,15 +67,15 @@ export default async function LandingPage() {
               <div className="stat-number" id="counterAlumni">
                 {totalAlumni}
               </div>
-              <div className="stat-label">Entitas</div>
+              <div className="stat-label">Alumni Terdata</div>
             </div>
             <div className="stat-item">
               <div className="stat-number">2025</div>
               <div className="stat-label">Tahun Kebangkitan</div>
             </div>
             <div className="stat-item">
-              <div className="stat-number">12</div>
-              <div className="stat-label">Modul VVIP</div>
+              <div className="stat-number">12+</div>
+              <div className="stat-label">Fitur Komunitas</div>
             </div>
           </div>
 
@@ -109,27 +109,27 @@ export default async function LandingPage() {
               <div className="feature-icon">
                 <i className="fa-solid fa-earth-americas"></i>
               </div>
-              <div className="feature-title">Global Radar</div>
+              <div className="feature-title">Peta Persebaran Alumni</div>
               <div className="feature-desc">
-                Peta 3D persebaran alumni di seluruh Indonesia dan dunia.
+                Peta interaktif persebaran tempat tinggal alumni di seluruh Indonesia dan dunia.
               </div>
             </TiltCard>
             <TiltCard className="feature-card">
               <div className="feature-icon">
                 <i className="fa-solid fa-id-card"></i>
               </div>
-              <div className="feature-title">Sovereign ID</div>
+              <div className="feature-title">Kartu Alumni (KTA 3D)</div>
               <div className="feature-desc">
-                Kartu identitas VVIP 3D dengan teknologi Three.js dan WebAuthn.
+                Kartu Tanda Alumni 3D digital interaktif berstandar modern.
               </div>
             </TiltCard>
             <TiltCard className="feature-card">
               <div className="feature-icon">
                 <i className="fa-solid fa-gem"></i>
               </div>
-              <div className="feature-title">12 Modul VVIP</div>
+              <div className="feature-title">Layanan Komunitas Lengkap</div>
               <div className="feature-desc">
-                Oracle Vision, Enigma Vault, Celestial Codex, dan banyak lagi.
+                Katalog Bisnis Alumni, Baitul Maal, Dinding Doa, dan berbagai layanan silaturahmi.
               </div>
             </TiltCard>
           </div>

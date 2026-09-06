@@ -366,10 +366,10 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
       <div className="mobile-container" id="main-content" ref={contentRef} style={{ display: loading ? 'none' : 'block' }}>
           <div className="header">
               <button onClick={() => window.history.length > 1 ? router.back() : router.push('/beranda')} className="btn-exit">
-                  <i className="fa-solid fa-arrow-left"></i> RETURN
+                  <i className="fa-solid fa-arrow-left"></i> KEMBALI
               </button>
               <div style={{ fontFamily: "'Space Mono'", fontSize: "10px", color: "var(--dark-gold)", letterSpacing: "2px" }}>
-                  SECURE VERIFIED <i className="fa-solid fa-check"></i>
+                  ALUMNI TERVERIFIKASI <i className="fa-solid fa-check"></i>
               </div>
           </div>
           
@@ -387,7 +387,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
                   />
               </div>
 
-              <div className="title-badge">SOVEREIGN ENTITY</div>
+              <div className="title-badge">ALUMNI EXPEDIENT 43</div>
               
               <div className="name" id="hacker-name" ref={nameRef} data-value={targetUser.nama_lengkap || targetUser.nama_panggilan}>
                   {targetUser.nama_lengkap || targetUser.nama_panggilan}
@@ -396,18 +396,18 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
               <div className="user-id">EXP-{String(targetUser.id).padStart(3, '0').split('-')[0]}</div>
               
               <p className="motivation">
-                  {targetUser.motivasi_hidup || 'Merangkai baris kode, membangun fondasi masa depan.'}
+                  {targetUser.motivasi_hidup || 'Merangkai baris kebaikan, membangun masa depan bersama.'}
               </p>
 
               <div className="actions">
                   <Link href={`/chat/personal/${targetUser.id}`} className="btn-action btn-primary">
-                      <i className="fa-solid fa-comment-dots"></i> SECURE COMMS
+                      <i className="fa-solid fa-comment-dots"></i> KIRIM PESAN
                   </Link>
                   <a href={targetUser.akun_ig ? `https://instagram.com/${targetUser.akun_ig}` : '#'} target="_blank" className="btn-action btn-secondary" style={!targetUser.akun_ig ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
                       <i className="fa-brands fa-instagram"></i> INSTAGRAM
                   </a>
                   <a href={`/api/vcard/${targetUser.public_token || targetUser.id}`} className="btn-action btn-secondary">
-                      <i className="fa-solid fa-address-card"></i> SAVE DOSSIER
+                      <i className="fa-solid fa-address-card"></i> SIMPAN KONTAK
                   </a>
               </div>
           </div>

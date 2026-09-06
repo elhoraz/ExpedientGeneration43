@@ -49,8 +49,8 @@ export default function BukuTamuClient({ initialMessages, userId }: { initialMes
         <i className="fa-solid fa-arrow-left"></i> Kembali
       </Link>
 
-      <h1 className="bt-title">Arsip Kehadiran</h1>
-      <p className="bt-subtitle">Jejak Sejarah Yang Ditinggalkan Oleh Entitas Expedient</p>
+      <h1 className="bt-title">Buku Tamu Alumni</h1>
+      <p className="bt-subtitle">Untaian Pesan & Jejak Silaturahmi Sahabat Alumni Expedient 43</p>
 
       <form className="bt-form" onSubmit={handleSubmit}>
           <textarea 

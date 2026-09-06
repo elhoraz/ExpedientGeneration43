@@ -262,10 +262,10 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
     <div className="chat-room-container" style={{ padding: "clamp(70px, 10vh, 95px) 12px 18px", maxWidth: "900px" }}>
       <div className="lounge-header-container">
         <h2 className="lounge-title">
-          The Lounge
+          Obrolan Angkatan
         </h2>
         <div className="lounge-subtitle">
-          RUANG DISKUSI ANGKATAN
+          RUANG OBROLAN & DISKUSI ANGKATAN 43
         </div>
         <Link href="/direktori" style={{ position: "absolute", right: "5px", top: "5px", color: "var(--text-secondary)", textDecoration: "none", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} title="Tutup">
           <i className="fa-solid fa-times"></i>

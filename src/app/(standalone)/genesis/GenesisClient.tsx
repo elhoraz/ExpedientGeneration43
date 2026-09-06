@@ -263,8 +263,8 @@ export default function GenesisClient({ userId }: { userId: string }) {
 
         <div className={`revelation-box ${showRevelation ? 'show' : ''}`}>
             <h1 className="rev-title">WE ARE ONE</h1>
-            <div className="rev-subtitle">Ribuan entitas, satu kekuatan tak tertembus.</div>
-            <Link href="/fitur" className="btn-return">Kembali ke Vault</Link>
+            <div className="rev-subtitle">Ratusan sahabat alumni, satu ikatan persaudaraan sejati.</div>
+            <Link href="/fitur" className="btn-return">Kembali ke Menu Fitur</Link>
         </div>
       </div>
     </>

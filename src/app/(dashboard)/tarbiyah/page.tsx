@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import TarbiyahClient from "./TarbiyahClient";
 
 export const metadata = {
-  title: "Tarbiyah Nexus - Expedient",
+  title: "Jejaring Karir & Mentoring - Expedient",
 };
 
 export default async function TarbiyahNexusPage() {

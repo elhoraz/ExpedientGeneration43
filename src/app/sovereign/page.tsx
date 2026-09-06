@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import SovereignClient from "./SovereignClient";
 
 export const metadata = {
-  title: "Sovereign Vault - Expedient",
+  title: "Kartu Alumni 3D - Expedient",
 };
 
 export default async function SovereignPage() {

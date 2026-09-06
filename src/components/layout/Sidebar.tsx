@@ -61,16 +61,16 @@ export default function Sidebar() {
 
   // Public pages: accessible without login
   const publicNavItems = [
-    { href: "/beranda", icon: "fa-landmark", label: "Beranda", tooltip: "Grand Exhibition" },
-    { href: "/direktori", icon: "fa-address-book", label: "Direktori", tooltip: "The Registry" },
-    { href: "/galeri", icon: "fa-film", label: "Galeri", tooltip: "The Vault" },
+    { href: "/beranda", icon: "fa-landmark", label: "Beranda", tooltip: "Beranda Kenangan" },
+    { href: "/direktori", icon: "fa-address-book", label: "Direktori", tooltip: "Buku Kontak Alumni" },
+    { href: "/galeri", icon: "fa-film", label: "Galeri", tooltip: "Arsip Foto & Video" },
   ];
 
   // Auth-only pages
   const authNavItems = [
-    { href: "/radar", icon: "fa-earth-asia", label: "Radar", tooltip: "Peta Persebaran" },
-    { href: "/syndicate", icon: "fa-chess-knight", label: "Council", tooltip: "The Council" },
-    { href: "/fitur", icon: "fa-gem", label: "Fitur", tooltip: "Fitur Eksekutif" },
+    { href: "/radar", icon: "fa-map-location-dot", label: "Peta", tooltip: "Peta Persebaran Alumni" },
+    { href: "/syndicate", icon: "fa-briefcase", label: "Bisnis", tooltip: "Katalog Usaha Alumni" },
+    { href: "/fitur", icon: "fa-cubes", label: "Fitur", tooltip: "Menu & Layanan Alumni" },
   ];
 
   // Fitur sub-pages for active state detection
@@ -117,7 +117,7 @@ export default function Sidebar() {
         {/* Bottom: Profil (logged in) or Masuk (guest) */}
         {isLoggedIn ? (
           <Link href="/profil" className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`} data-tooltip="Profil Saya" onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className="fa-solid fa-user-astronaut"></i>
+            <i className="fa-solid fa-circle-user"></i>
             <span className="nav-label">Profil</span>
           </Link>
         ) : isLoggedIn === false ? (

@@ -98,10 +98,10 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
     if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
 
     const messages = [
-      "MENGKALKULASI LANDMARK WAJAH...",
-      "MENGANALISIS NAFSHIYAH (STATE OF SOUL)...",
-      "MENGUKUR SYMMETRY INDEX...",
-      "MENYINKRONISASI IDENTITAS SOVEREIGN..."
+      "MENGANALISIS EKSPRESI WAJAH...",
+      "MEMBACA REFLEKSI SUASANA HATI...",
+      "MENGHITUNG TINGKAT KETENANGAN...",
+      "MENYIAPKAN HASIL REFLEKSI POSITIF..."
     ];
     let msgIndex = 0;
     setStatusText(messages[0]);

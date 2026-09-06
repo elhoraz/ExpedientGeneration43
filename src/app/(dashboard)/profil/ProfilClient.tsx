@@ -851,8 +851,8 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     </div>
                     
                     <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid var(--glass-border)", textAlign: "center" }}>
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px" }}>Identitas Eksekutif</div>
-                        <Link href="/sovereign" className="cursor-bind" style={{ color: "var(--gold-premium)", textDecoration: "none", fontSize: "0.85rem", display: "inline-block", marginTop: "15px", fontWeight: 600, letterSpacing: "2px" }}><i className="fa-solid fa-cube" style={{ marginRight: "8px" }}></i> BUKA SOVEREIGN ID 5D</Link>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px" }}>Kartu Tanda Alumni Digital</div>
+                        <Link href="/sovereign" className="cursor-bind" style={{ color: "var(--gold-premium)", textDecoration: "none", fontSize: "0.85rem", display: "inline-block", marginTop: "15px", fontWeight: 600, letterSpacing: "2px" }}><i className="fa-solid fa-id-card" style={{ marginRight: "8px" }}></i> BUKA KARTU ALUMNI 3D (KTA)</Link>
                     </div>
 
                     {/* ========= CHANGE PASSWORD SECTION ========= */}

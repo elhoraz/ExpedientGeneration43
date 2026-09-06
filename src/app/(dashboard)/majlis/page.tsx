@@ -26,7 +26,7 @@ export default async function MajlisPage() {
 
   const currentUser = {
     id: user.id,
-    name: profile?.nama_panggilan || "Entitas Anonim",
+    name: profile?.nama_panggilan || "Alumni",
     role: profile?.role || "member",
     avatar: avatarUrl,
   };

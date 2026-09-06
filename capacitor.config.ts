@@ -6,6 +6,7 @@ export interface CapacitorConfig {
     androidScheme?: string;
     url?: string;
     cleartext?: boolean;
+    allowNavigation?: string[];
   };
   plugins?: Record<string, any>;
 }
@@ -19,6 +20,13 @@ const config: CapacitorConfig = {
     // Live reload / Server wrap URL when deployed to production
     url: process.env.CAPACITOR_SERVER_URL || 'https://expedientgeneration.vercel.app',
     cleartext: false,
+    allowNavigation: [
+      'expedientgeneration.vercel.app',
+      '*.supabase.co',
+      '*.agora.io',
+      '*.sd-rtn.com',
+      '*.tile.openstreetmap.org',
+    ],
   },
   plugins: {
     PushNotifications: {

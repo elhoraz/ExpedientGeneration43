@@ -68,14 +68,14 @@ export default function WalletClient({ users }: { users: any[] }) {
                 <i className="fa-brands fa-apple"></i>
             </div>
             <div>
-                <h1 className="admin-title" style={{ marginBottom: "0", fontSize: "1.4rem" }}>Wallet Generator</h1>
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.78rem", margin: "4px 0 0 0", letterSpacing: "1px", textTransform: "uppercase" }}>Terbitkan tiket VVIP digital & ID Card</p>
+                <h1 className="admin-title" style={{ marginBottom: "0", fontSize: "1.4rem" }}>Cetak Kartu & Tiket Alumni</h1>
+                <p style={{ color: "var(--text-secondary)", fontSize: "0.78rem", margin: "4px 0 0 0", letterSpacing: "1px", textTransform: "uppercase" }}>Terbitkan tiket acara & kartu tanda alumni digital</p>
             </div>
         </div>
         <nav className="admin-nav" style={{ marginTop: "15px" }}>
           <Link href="/admin">Dashboard</Link>
-          <Link href="/admin/users">Users</Link>
-          <Link href="/admin/wallet-generator" className="active">Wallet</Link>
+          <Link href="/admin/users">Alumni</Link>
+          <Link href="/admin/wallet-generator" className="active">Kartu & Tiket</Link>
         </nav>
       </div>
 
@@ -87,14 +87,14 @@ export default function WalletClient({ users }: { users: any[] }) {
               </h2>
               <form onSubmit={handleGenerate}>
                   <div style={{ marginBottom: "20px" }}>
-                      <label style={{ display: "block", marginBottom: "8px", color: "var(--text-secondary)", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "1px" }}>Identitas Penerima</label>
+                      <label style={{ display: "block", marginBottom: "8px", color: "var(--text-secondary)", fontSize: "0.8rem", textTransform: "uppercase", letterSpacing: "1px" }}>Pilih Alumni Penerima</label>
                       <select 
                           value={selectedUserId} 
                           onChange={e => setSelectedUserId(e.target.value)} 
                           required
                           style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-primary)", padding: "12px 16px", borderRadius: "10px", fontSize: "0.9rem", outline: "none", cursor: "pointer", transition: "all 0.3s" }}
                       >
-                          <option value="" disabled>-- Pilih Identitas Anggota --</option>
+                          <option value="" disabled>-- Pilih Sahabat Alumni --</option>
                           {users.map(u => (
                               <option key={u.id} value={u.id}>{u.nama_panggilan || u.nama_lengkap} ({u.no_whatsapp || 'Tanpa WA'})</option>
                           ))}

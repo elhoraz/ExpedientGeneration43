@@ -26,7 +26,7 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
     return (
       <div style={{ textAlign: "center", padding: "100px", color: "red", fontFamily: "monospace" }}>
         <h1>[ ERROR 404 ]</h1>
-        <p>ENTITAS TIDAK DITEMUKAN ATAU AKSES DITOLAK.</p>
+        <p>DATA ALUMNI TIDAK DITEMUKAN ATAU AKSES DIBATASI.</p>
       </div>
     );
   }
