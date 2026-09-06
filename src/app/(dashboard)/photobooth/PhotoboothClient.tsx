@@ -47,7 +47,7 @@ interface PlacedSticker {
   scale?: number;
 }
 
-// Dedicated hardware-accelerated video player for Photostrip cells (Prevents iOS re-render play() loops and multi-video stutter)
+// Dedicated hardware-accelerated video player for Photostrip cells
 function LivePhotoCellVideo({
   videoSrc,
   stillSrc,
@@ -90,16 +90,15 @@ function LivePhotoCellVideo({
       playsInline
       // @ts-ignore
       webkit-playsinline="true"
-      preload="metadata"
+      preload="auto"
       disablePictureInPicture
       style={{
         width: "100%",
         height: "100%",
         objectFit: "cover",
         display: "block",
-        transform: isMirrored ? "scaleX(-1) translateZ(0)" : "translateZ(0)",
-        WebkitTransform: isMirrored ? "scaleX(-1) translateZ(0)" : "translateZ(0)",
-        willChange: "transform",
+        transform: isMirrored ? "scaleX(-1)" : "none",
+        WebkitTransform: isMirrored ? "scaleX(-1)" : "none",
       }}
     />
   );
@@ -440,29 +439,42 @@ export default function PhotoboothClient() {
       }
 
       try {
-        const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isIOS =
+          typeof navigator !== "undefined" &&
+          (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
         let mimeType = "";
 
         // Choose optimal hardware-accelerated codec for the OS
         const preferredTypes = isIOS
-          ? ["video/mp4", "video/mp4;codecs=avc1", "video/webm"]
+          ? ["video/mp4;codecs=avc1", "video/mp4", "video/webm"]
           : ["video/webm;codecs=vp8", "video/webm", "video/mp4"];
 
         for (const candidate of preferredTypes) {
-          if (MediaRecorder.isTypeSupported(candidate)) {
-            mimeType = candidate;
-            break;
+          try {
+            if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(candidate)) {
+              mimeType = candidate;
+              break;
+            }
+          } catch {}
+        }
+
+        let recorder: MediaRecorder;
+        try {
+          recorder = new MediaRecorder(stream, {
+            mimeType: mimeType || undefined,
+            videoBitsPerSecond: isIOS ? 1500000 : 1200000,
+          });
+        } catch {
+          try {
+            recorder = new MediaRecorder(stream, {
+              mimeType: mimeType || undefined,
+            });
+          } catch {
+            recorder = new MediaRecorder(stream);
           }
         }
 
-        const options: MediaRecorderOptions = {
-          videoBitsPerSecond: isIOS ? 1500000 : 1200000, // 1.2-1.5 Mbps: silky 30fps without heating mobile GPU
-        };
-        if (mimeType) {
-          options.mimeType = mimeType;
-        }
-
-        const recorder = new MediaRecorder(stream, options);
         const chunks: Blob[] = [];
 
         recorder.ondataavailable = (e) => {
@@ -471,7 +483,7 @@ export default function PhotoboothClient() {
 
         recorder.onstop = () => {
           try {
-            const finalMime = mimeType || chunks[0]?.type || "video/mp4";
+            const finalMime = recorder.mimeType || mimeType || chunks[0]?.type || "video/mp4";
             const blob = new Blob(chunks, { type: finalMime });
             const videoUrl = URL.createObjectURL(blob);
             createdBlobUrlsRef.current.add(videoUrl);
@@ -504,7 +516,6 @@ export default function PhotoboothClient() {
   // Helper to commit photo and optional live video to current active slot
   const savePhotoSlot = (stillFrame: string, liveVideoUrl?: string) => {
     const slotToFill = activeSlot >= 0 ? activeSlot : 0;
-    let isAllComplete = false;
 
     setPhotos((prev) => {
       const next = [...prev];
@@ -518,32 +529,30 @@ export default function PhotoboothClient() {
         image: stillFrame,
         video: liveVideoUrl,
       };
-      isAllComplete = next.slice(0, totalSlots).every((p) => p !== null && p !== undefined);
-      return next;
-    });
 
-    if (isAllComplete) {
-      // All slots filled: STOP and direct to preview (do not wrap around!)
-      setActiveSlot(-1);
-      triggerHaptic(60);
-      setTimeout(() => {
-        if (previewPaneRef.current) {
-          previewPaneRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 350);
-    } else {
-      // Find next empty slot
-      setPhotos((latestPhotos) => {
+      const isAllComplete = next.slice(0, totalSlots).every((p) => p !== null && p !== undefined);
+      if (isAllComplete) {
+        // All slots filled: STOP and direct to preview (do not wrap around!)
+        setActiveSlot(-1);
+        triggerHaptic(60);
+        setTimeout(() => {
+          if (previewPaneRef.current) {
+            previewPaneRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }, 350);
+      } else {
+        // Advance to next empty slot
         for (let i = 0; i < totalSlots; i++) {
           const nextIdx = (slotToFill + 1 + i) % totalSlots;
-          if (!latestPhotos[nextIdx]) {
+          if (!next[nextIdx]) {
             setActiveSlot(nextIdx);
             break;
           }
         }
-        return latestPhotos;
-      });
-    }
+      }
+
+      return next;
+    });
   };
 
   // Trigger Countdown & Shutter
@@ -777,59 +786,50 @@ export default function PhotoboothClient() {
     setSelectedStickerId(null);
   };
 
-  // Pre-normalize photo cells in cloned DOM so html2canvas NEVER squashes or stretches photos
+  // Sanitize photo cells in cloned DOM for reliable, high-fidelity export
   const sanitizeClonedCellsForExport = (clonedDoc: Document) => {
+    const stripCard = clonedDoc.querySelector<HTMLElement>(".photostrip-card");
+    if (stripCard) {
+      stripCard.style.transform = "none";
+      stripCard.style.webkitTransform = "none";
+      stripCard.style.boxShadow = "none";
+    }
+
     const cells = clonedDoc.querySelectorAll<HTMLElement>(".photo-cell");
     cells.forEach((cell, idx) => {
-      // 1. If cell has a video element (Live Photo), replace it with an img of photos[idx].image
+      // 1. Strip any 3D transforms that crash html2canvas matrix parser
+      cell.style.transform = "none";
+      cell.style.webkitTransform = "none";
+      cell.style.backfaceVisibility = "visible";
+      cell.style.willChange = "auto";
+      cell.classList.remove("active-slot-border");
+
+      // 2. Hide all interactive UI buttons & badges in the exported strip
+      cell
+        .querySelectorAll<HTMLElement>(
+          ".cell-retake-btn, .live-badge-indicator, .photo-cell-placeholder"
+        )
+        .forEach((el) => {
+          el.style.display = "none";
+        });
+
+      // 3. If cell has a video element (Live Photo), replace with clean still image
+      const photoObj = photos[idx];
       const video = cell.querySelector("video");
-      let img = cell.querySelector("img");
-      if (video) {
-        const photoObj = photos[idx];
+      if (video && photoObj?.image) {
         const newImg = clonedDoc.createElement("img");
-        newImg.src = photoObj?.image || "";
+        newImg.src = photoObj.image;
         newImg.style.width = "100%";
         newImg.style.height = "100%";
         newImg.style.objectFit = "cover";
         newImg.style.display = "block";
         video.replaceWith(newImg);
-        img = newImg;
-      }
-
-      if (!img || !img.src) return;
-
-      const cellW = cell.clientWidth || cell.offsetWidth || 300;
-      const cellH = cell.clientHeight || cell.offsetHeight || 225;
-      if (cellW <= 0 || cellH <= 0) return;
-
-      const targetAspect = cellW / cellH;
-      const nw = img.naturalWidth || img.width;
-      const nh = img.naturalHeight || img.height;
-      if (!nw || !nh) return;
-
-      const imgAspect = nw / nh;
-      // If aspect ratios match closely (within 1%), no adjustment needed
-      if (Math.abs(imgAspect - targetAspect) < 0.01) return;
-
-      let sx = 0, sy = 0, sw = nw, sh = nh;
-      if (imgAspect > targetAspect) {
-        sw = nh * targetAspect;
-        sx = (nw - sw) / 2;
       } else {
-        sh = nw / targetAspect;
-        sy = (nh - sh) / 2;
-      }
-
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = Math.round(cellW * 3);
-      tempCanvas.height = Math.round(cellH * 3);
-      const tCtx = tempCanvas.getContext("2d");
-      if (tCtx) {
-        tCtx.drawImage(img, sx, sy, sw, sh, 0, 0, tempCanvas.width, tempCanvas.height);
-        img.src = tempCanvas.toDataURL("image/jpeg", 0.95);
-        img.style.width = "100%";
-        img.style.height = "100%";
-        img.style.objectFit = "cover";
+        const img = cell.querySelector("img");
+        if (img) {
+          img.style.transform = "none";
+          img.style.webkitTransform = "none";
+        }
       }
     });
 
@@ -851,11 +851,19 @@ export default function PhotoboothClient() {
     triggerHaptic(30);
 
     try {
+      // Robust scale detection: Mobile gets scale 2 to prevent exceeding 4096px canvas buffer
+      const isMobile =
+        typeof window !== "undefined" &&
+        (window.innerWidth < 768 ||
+          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+      const exportScale = isMobile ? 2 : 3;
+
       const canvas = await html2canvas(stripRef.current, {
-        scale: 3, // High-res 300dpi equivalent
+        scale: exportScale,
         useCORS: true,
         allowTaint: true,
         backgroundColor: null,
+        logging: false,
         onclone: (clonedDoc) => {
           sanitizeClonedCellsForExport(clonedDoc);
         },
@@ -914,12 +922,55 @@ export default function PhotoboothClient() {
         }
       }
 
-      const dataUrl = finalCanvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
-      a.click();
-      triggerHaptic(50);
+      await new Promise<void>((resolve, reject) => {
+        finalCanvas.toBlob(async (blob) => {
+          try {
+            if (!blob) throw new Error("Canvas toBlob failed");
+            const filename = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
+
+            let sharedSuccessfully = false;
+            if (
+              typeof navigator !== "undefined" &&
+              typeof File !== "undefined" &&
+              navigator.canShare
+            ) {
+              try {
+                const file = new File([blob], filename, { type: "image/png" });
+                if (navigator.canShare({ files: [file] })) {
+                  await navigator.share({
+                    files: [file],
+                    title: "Expedient Photostrip HD",
+                    text: "Photostrip Kenangan Alumni Expedient 43!",
+                  });
+                  sharedSuccessfully = true;
+                }
+              } catch (shareErr: any) {
+                if (shareErr?.name === "AbortError") {
+                  sharedSuccessfully = true;
+                }
+              }
+            }
+
+            if (!sharedSuccessfully) {
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              setTimeout(() => {
+                if (document.body.contains(a)) document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }, 100);
+            }
+
+            triggerHaptic(50);
+            resolve();
+          } catch (err) {
+            reject(err);
+          }
+        }, "image/png");
+      });
     } catch (error) {
       console.error("Export error:", error);
       alert("Gagal mengekspor foto strip. Silakan coba lagi.");
@@ -976,50 +1027,35 @@ export default function PhotoboothClient() {
         return;
       }
 
-      // ── Capture background frame via html2canvas (WITHOUT TAINT) ──
-      // CRITICAL SECURITY & RENDERING RULE:
-      // In the REAL DOM, temporarily hide the photo-cell contents and stickers before html2canvas runs!
-      // This 100% guarantees that html2canvas NEVER encounters or bakes any still image into bgCanvas!
-      const cells = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
-      const savedCellOpacities: string[] = [];
-      cells.forEach((cell, idx) => {
-        savedCellOpacities[idx] = cell.style.opacity;
-        cell.style.setProperty("opacity", "0", "important");
+      // ── Capture background frame via html2canvas (WITHOUT VIDEO ELEMENTS) ──
+      const bgCanvas = await html2canvas(stripEl, {
+        scale: exportScale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const stripCard = clonedDoc.querySelector<HTMLElement>(".photostrip-card");
+          if (stripCard) {
+            stripCard.style.transform = "none";
+            stripCard.style.webkitTransform = "none";
+            stripCard.style.boxShadow = "none";
+          }
+          // Obliterate photo cell contents so html2canvas never touches <video> elements
+          clonedDoc.querySelectorAll<HTMLElement>(".photo-cell").forEach((c) => {
+            c.style.transform = "none";
+            c.style.webkitTransform = "none";
+            c.style.opacity = "0";
+            c.innerHTML = "";
+          });
+          // Hide stickers and toolbars from background layer
+          clonedDoc
+            .querySelectorAll<HTMLElement>(".strip-sticker, .sticker-mini-toolbar")
+            .forEach((stk) => {
+              stk.style.display = "none";
+            });
+        },
       });
-
-      const stickerElements = stripEl.querySelectorAll<HTMLElement>(".strip-sticker, .sticker-mini-toolbar");
-      const savedStickerDisplays: string[] = [];
-      stickerElements.forEach((stk, idx) => {
-        savedStickerDisplays[idx] = stk.style.display;
-        stk.style.display = "none";
-      });
-
-      let bgCanvas: HTMLCanvasElement;
-      try {
-        bgCanvas = await html2canvas(stripEl, {
-          scale: exportScale,
-          useCORS: true,
-          allowTaint: false,
-          backgroundColor: null,
-        });
-      } finally {
-        // Immediately restore real DOM styles so preview is unaffected
-        cells.forEach((cell, idx) => {
-          cell.style.opacity = savedCellOpacities[idx];
-        });
-        stickerElements.forEach((stk, idx) => {
-          stk.style.display = savedStickerDisplays[idx];
-        });
-      }
-
-      // Security verification: ensure bgCanvas did not get tainted
-      let bgClean = true;
-      try {
-        bgCanvas.getContext("2d")?.getImageData(0, 0, 1, 1);
-      } catch (err) {
-        bgClean = false;
-        console.warn("bgCanvas tainted by browser security policy:", err);
-      }
 
       // ── Build slot info & acquire active playing video elements ──
       const cellElements = stripEl.querySelectorAll<HTMLElement>(".photo-cell");
@@ -1047,9 +1083,10 @@ export default function PhotoboothClient() {
               videoEl.loop = true;
               videoEl.playsInline = true;
               (videoEl as any)["webkit-playsinline"] = "true";
+              videoEl.preload = "auto";
               videoEl.autoplay = true;
               videoEl.style.cssText =
-                "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;transform:translate3d(200vw,200vh,0);opacity:1;visibility:visible;";
+                "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:-9999;opacity:0.01;";
               document.body.appendChild(videoEl);
               cleanupElements.push(videoEl);
 
@@ -1073,7 +1110,7 @@ export default function PhotoboothClient() {
                   v.addEventListener("canplay", tryPlay, { once: true });
                   v.addEventListener("loadeddata", tryPlay, { once: true });
                   v.addEventListener("error", finish, { once: true });
-                  setTimeout(finish, 1500);
+                  setTimeout(finish, 1200);
                 }
               });
             }
@@ -1100,27 +1137,43 @@ export default function PhotoboothClient() {
 
       // ── Set up captureStream at 30 fps & MediaRecorder ──
       const canvasStream: MediaStream = captureStreamFn.call(exportCanvas, 30);
-      const videoTrack = canvasStream.getVideoTracks ? canvasStream.getVideoTracks()[0] : null;
 
       // Select optimal codec for platform (MP4 for iOS, VP8 WebM for Android/Chromium)
-      const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isIOS =
+        typeof navigator !== "undefined" &&
+        (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
       let mimeType = "";
       const preferredTypes = isIOS
-        ? ["video/mp4", "video/mp4;codecs=avc1", "video/webm"]
+        ? ["video/mp4;codecs=avc1", "video/mp4", "video/webm"]
         : ["video/webm;codecs=vp8", "video/webm", "video/mp4"];
 
       for (const candidate of preferredTypes) {
-        if (MediaRecorder.isTypeSupported(candidate)) {
-          mimeType = candidate;
-          break;
+        try {
+          if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(candidate)) {
+            mimeType = candidate;
+            break;
+          }
+        } catch {}
+      }
+
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(canvasStream, {
+          mimeType: mimeType || undefined,
+          videoBitsPerSecond: isIOS ? 2500000 : 2000000,
+        });
+      } catch {
+        try {
+          recorder = new MediaRecorder(canvasStream, {
+            mimeType: mimeType || undefined,
+          });
+        } catch {
+          recorder = new MediaRecorder(canvasStream);
         }
       }
-      if (!mimeType) mimeType = "video/mp4";
 
-      const recorder = new MediaRecorder(canvasStream, {
-        mimeType,
-        videoBitsPerSecond: isIOS ? 2500000 : 2000000,
-      });
       const chunks: Blob[] = [];
       recorder.ondataavailable = (e) => {
         if (e.data && e.data.size > 0) chunks.push(e.data);
@@ -1135,14 +1188,14 @@ export default function PhotoboothClient() {
         ctx.clearRect(0, 0, exportWidth, exportHeight);
 
         // Layer 1: Background & Photostrip Frame
-        if (bgClean) {
+        try {
           ctx.drawImage(bgCanvas, 0, 0, exportWidth, exportHeight);
-        } else {
+        } catch {
           ctx.fillStyle = "#111115";
           ctx.fillRect(0, 0, exportWidth, exportHeight);
         }
 
-        // Layer 2: Videos/Photos directly into slots (100% UNOBSTRUCTED & PROPORTIONAL!)
+        // Layer 2: Videos/Photos directly into slots
         slots.forEach((slot) => {
           ctx.save();
 
@@ -1160,15 +1213,15 @@ export default function PhotoboothClient() {
           }
           ctx.clip();
 
-          // CRITICAL FIX: Solidly fill slot with dark background first!
-          // This guarantees that ANY residue, bleed, or still image from bgCanvas is 100% OBLITERATED before the video is drawn!
+          // Fill slot with solid background first
           ctx.fillStyle = "#0d0d11";
           ctx.fillRect(slot.x, slot.y, slot.w, slot.h);
 
-          // Pick active playing video (or fallback still image only if no video exists)
+          // Pick active playing video (or fallback still image)
           let source: CanvasImageSource | null = null;
           let isVideo = false;
-          if (slot.videoEl) {
+
+          if (slot.videoEl && slot.videoEl.videoWidth > 0) {
             source = slot.videoEl;
             isVideo = true;
             if (slot.videoEl.paused) {
@@ -1180,17 +1233,24 @@ export default function PhotoboothClient() {
           }
 
           if (source) {
-            let mw = (source as HTMLVideoElement).videoWidth || (source as HTMLImageElement).naturalWidth;
-            let mh = (source as HTMLVideoElement).videoHeight || (source as HTMLImageElement).naturalHeight;
-            // Robust aspect-ratio fallback to live camera stream dimensions so faces NEVER shrink or distort!
+            let mw =
+              (source as HTMLVideoElement).videoWidth ||
+              (source as HTMLImageElement).naturalWidth;
+            let mh =
+              (source as HTMLVideoElement).videoHeight ||
+              (source as HTMLImageElement).naturalHeight;
+
             if (!mw || !mh || mw <= 0 || mh <= 0) {
-              mw = videoRef.current?.videoWidth || 1280;
-              mh = videoRef.current?.videoHeight || 720;
+              mw = 1280;
+              mh = 720;
             }
 
             const mAspect = mw / mh;
             const slotAspect = slot.w / slot.h;
-            let sx = 0, sy = 0, sw = mw, sh = mh;
+            let sx = 0,
+              sy = 0,
+              sw = mw,
+              sh = mh;
             if (mAspect > slotAspect) {
               sw = mh * slotAspect;
               sx = (mw - sw) / 2;
@@ -1202,7 +1262,8 @@ export default function PhotoboothClient() {
             if (filterStr && filterStr !== "none" && "filter" in ctx) {
               ctx.filter = filterStr;
             }
-            // Front camera video is recorded unmirrored from hardware track; mirror horizontally to match viewfinder preview
+
+            // Front camera video is recorded unmirrored; mirror horizontally to match viewfinder
             if (isVideo && cameraFacing === "user") {
               ctx.save();
               ctx.translate(slot.x + slot.w, slot.y);
@@ -1218,7 +1279,7 @@ export default function PhotoboothClient() {
           ctx.restore();
         });
 
-        // Layer 3: Render any interactive emoji stickers cleanly on top (NO HTML2CANVAS, NO STATIC PHOTOS!)
+        // Layer 3: Render any interactive emoji stickers cleanly on top
         if (stickers.length > 0) {
           stickers.forEach((stk) => {
             const x = (stk.left / 100) * exportWidth;
@@ -1241,11 +1302,11 @@ export default function PhotoboothClient() {
         await new Promise((r) => setTimeout(r, 33));
       }
 
-      // Start recording cleanly without timeslice interruption (eliminates export stutter)
+      // Start recording cleanly
       recorder.start();
 
       let lastDrawTime = performance.now();
-      const targetFrameDelta = 1000 / 30; // 33.33ms per frame (exact 30fps export)
+      const targetFrameDelta = 1000 / 30; // 33.33ms per frame (30fps export)
 
       const renderLoop = (time: number) => {
         if (!isRecording) return;
@@ -1268,16 +1329,17 @@ export default function PhotoboothClient() {
       await new Promise<void>((resolveStop) => {
         recorder.onstop = async () => {
           cleanup();
-          const blob = new Blob(chunks, { type: mimeType });
-          const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+          const finalMime = recorder.mimeType || mimeType || "video/mp4";
+          const blob = new Blob(chunks, { type: finalMime });
+          const ext = finalMime.includes("mp4") ? "mp4" : "webm";
           const filename = `Expedient_Live_Photostrip_${Date.now()}.${ext}`;
 
           // Mobile Web Share API support (iOS Safari & Android Chrome native share / Save Video)
           let sharedSuccessfully = false;
-          if (typeof navigator !== "undefined" && typeof File !== "undefined") {
+          if (typeof navigator !== "undefined" && typeof File !== "undefined" && navigator.canShare) {
             try {
-              const file = new File([blob], filename, { type: mimeType });
-              if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              const file = new File([blob], filename, { type: finalMime });
+              if (navigator.canShare({ files: [file] })) {
                 await navigator.share({
                   files: [file],
                   title: "Expedient Live Photostrip",
@@ -1319,7 +1381,7 @@ export default function PhotoboothClient() {
       console.error("Live video export error:", err);
       cleanup();
       setIsExporting(false);
-      alert("Terjadi kendala saat merender video bergerak. Mengunduh format PNG sebagai gantinya.");
+      alert("Perangkat Anda tidak dapat merender format video bergerak ini. Mengunduh format Photostrip HD (PNG) sebagai gantinya.");
       handleDownloadStrip("strip");
     }
   };
@@ -2156,15 +2218,12 @@ export default function PhotoboothClient() {
                   >
                     {photoObj ? (
                       <>
-                        {/* If Live Video is available and active.
-                            CRITICAL PERFORMANCE: When still shooting (activeSlot >= 0 && !isAllFilled),
-                            render the still image to save mobile GPU from running 5 concurrent video pipelines!
-                            Only activate live video loop when reviewing results or when shooting is completed. */}
-                        {isLiveMode && photoObj.video && isLivePlaying && (isAllFilled || activeSlot === -1) ? (
+                        {/* If Live Video is available and active */}
+                        {isLiveMode && photoObj.video && isLivePlaying ? (
                           <LivePhotoCellVideo
                             videoSrc={photoObj.video}
                             stillSrc={photoObj.image}
-                            isPlaying={isLivePlaying}
+                            isPlaying={isLivePlaying && !isCountingDown && !isLiveRecording}
                             isMirrored={cameraFacing === "user"}
                           />
                         ) : (
