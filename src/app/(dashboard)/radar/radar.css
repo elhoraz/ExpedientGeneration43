@@ -202,12 +202,30 @@ body.page-radar.sidebar-closed .leaderboard { left: 40px; }
 
 /* ===== MOBILE APP-LIKE EXPERIENCE ===== */
 @media(max-width:768px) {
-    /* Search Bar ke atas penuh */
-    body.page-radar .search-pill { top:20px; width:calc(100vw - 40px); }
-    body.page-radar .search-results { top:70px; width:calc(100vw - 40px); }
+    /* Search Bar ke atas penuh - Hindari Dynamic Island & Notch iPhone */
+    body.page-radar .search-pill { 
+        top: max(16px, calc(env(safe-area-inset-top, 16px) + 8px)); 
+        width: calc(100vw - 32px); 
+    }
+    body.page-radar .search-results { 
+        top: max(68px, calc(env(safe-area-inset-top, 16px) + 60px)); 
+        width: calc(100vw - 32px); 
+    }
 
     /* HUD jadi pill horizontal kecil di bawah search */
-    body.page-radar .radar-hud { top:75px; left:20px; right:20px; display:flex; justify-content:space-between; align-items:center; background:var(--glass-bg); backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border); padding:10px 15px; border-radius:15px; }
+    body.page-radar .radar-hud { 
+        top: max(74px, calc(env(safe-area-inset-top, 16px) + 66px)); 
+        left: 16px; 
+        right: 16px; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        background: var(--glass-bg); 
+        backdrop-filter: var(--glass-blur); 
+        border: 1px solid var(--glass-border); 
+        padding: 10px 15px; 
+        border-radius: 15px; 
+    }
     body.page-radar .hud-title { font-size:1.1rem; margin:0; }
     body.page-radar .hud-subtitle { display:none; }
     body.page-radar .stats-panel { margin-top:0; gap:10px; display:flex; align-items:center; }
@@ -216,8 +234,21 @@ body.page-radar.sidebar-closed .leaderboard { left: 40px; }
     body.page-radar .stat-num { font-size:1.1rem; line-height:1; }
     body.page-radar .stat-label { font-size:.55rem; margin-top:2px; }
 
-    /* Drawer Info dari bawah (Bottom Sheet) */
-    body.page-radar .info-drawer { top:auto; bottom:-100vh; right:0; width:100vw; max-width:100vw; height:auto; max-height:85vh; border-left:none; border-top:1px solid var(--glass-border); border-radius:25px 25px 0 0; transition:bottom .5s cubic-bezier(.16,1,.3,1); }
+    /* Drawer Info dari bawah (Bottom Sheet) dengan Safe Area Home Indicator */
+    body.page-radar .info-drawer { 
+        top: auto; 
+        bottom: -100vh; 
+        right: 0; 
+        width: 100vw; 
+        max-width: 100vw; 
+        height: auto; 
+        max-height: 85vh; 
+        border-left: none; 
+        border-top: 1px solid var(--glass-border); 
+        border-radius: 25px 25px 0 0; 
+        transition: bottom .5s cubic-bezier(.16,1,.3,1); 
+        padding-bottom: max(20px, env(safe-area-inset-bottom, 20px));
+    }
     body.page-radar .info-drawer.open { right:0; bottom:0; z-index: 10000; }
     body.page-radar .id-close { top:15px; background:rgba(255,255,255,0.1); border-radius:50%; width:30px; height:30px; display:flex; align-items:center; justify-content:center; }
     body.page-radar .id-header { padding:30px 20px 15px; }
@@ -225,7 +256,19 @@ body.page-radar.sidebar-closed .leaderboard { left: 40px; }
     body.page-radar .id-name { font-size:1.3rem; }
     
     /* Control Bar bawah seperti Native App */
-    body.page-radar .radar-controls { right:12px; left:12px; flex-direction:row; justify-content:space-between; gap:6px; background:var(--glass-bg); backdrop-filter:var(--glass-blur); padding:8px; border-radius:15px; border:1px solid var(--glass-border); transition: bottom 0.8s var(--awwwards-ease); }
+    body.page-radar .radar-controls { 
+        right: 12px; 
+        left: 12px; 
+        flex-direction: row; 
+        justify-content: space-between; 
+        gap: 6px; 
+        background: var(--glass-bg); 
+        backdrop-filter: var(--glass-blur); 
+        padding: 8px; 
+        border-radius: 15px; 
+        border: 1px solid var(--glass-border); 
+        transition: bottom 0.8s var(--awwwards-ease); 
+    }
     body.page-radar .btn-radar { font-size:.7rem; padding:8px 6px; border:none; box-shadow:none; flex:1; justify-content:center; align-items:center; display:flex; gap:5px; white-space:nowrap; }
     body.page-radar .map-dropdown-wrap { flex:1; display:flex; }
     body.page-radar .map-dropdown-wrap .btn-radar { width:100%; flex:1; }
@@ -248,21 +291,21 @@ body.page-radar.sidebar-closed .leaderboard { left: 40px; }
     body.page-radar .tour-overlay { width:90%; transition: bottom 0.8s var(--awwwards-ease); }
     body.page-radar .tour-name { font-size:1.4rem; }
 
-    /* --- PENGHINDARAN TABRAKAN DENGAN SIDEBAR MOBILE --- */
+    /* --- PENGHINDARAN TABRAKAN DENGAN SIDEBAR MOBILE & SAFE AREA INSETS --- */
     
     /* 1. Jika Sidebar DIBUKA (Default Mobile) */
-    body.page-radar:not(.sidebar-closed) .radar-controls { bottom: 110px; }
-    body.page-radar:not(.sidebar-closed) .filter-panel { bottom: 165px; }
+    body.page-radar:not(.sidebar-closed) .radar-controls { bottom: calc(95px + max(16px, env(safe-area-inset-bottom, 16px))); }
+    body.page-radar:not(.sidebar-closed) .filter-panel { bottom: calc(150px + max(16px, env(safe-area-inset-bottom, 16px))); }
     body.page-radar:not(.sidebar-closed) .leaderboard { top: 40%; }
-    body.page-radar:not(.sidebar-closed) .tour-overlay { bottom: 210px; }
-    body.page-radar:not(.sidebar-closed) .aegis-toast { bottom: 110px !important; }
+    body.page-radar:not(.sidebar-closed) .tour-overlay { bottom: calc(195px + max(16px, env(safe-area-inset-bottom, 16px))); }
+    body.page-radar:not(.sidebar-closed) .aegis-toast { bottom: calc(95px + max(16px, env(safe-area-inset-bottom, 16px))) !important; }
 
     /* 2. Jika Sidebar DITUTUP (Oleh User) */
-    body.page-radar.sidebar-closed .radar-controls { bottom: 45px; }
-    body.page-radar.sidebar-closed .filter-panel { bottom: 100px; }
+    body.page-radar.sidebar-closed .radar-controls { bottom: max(32px, calc(env(safe-area-inset-bottom, 16px) + 16px)); }
+    body.page-radar.sidebar-closed .filter-panel { bottom: max(88px, calc(env(safe-area-inset-bottom, 16px) + 72px)); }
     body.page-radar.sidebar-closed .leaderboard { top: 50%; }
-    body.page-radar.sidebar-closed .tour-overlay { bottom: 145px; }
-    body.page-radar.sidebar-closed .aegis-toast { bottom: 45px !important; }
+    body.page-radar.sidebar-closed .tour-overlay { bottom: max(145px, calc(env(safe-area-inset-bottom, 16px) + 125px)); }
+    body.page-radar.sidebar-closed .aegis-toast { bottom: max(32px, calc(env(safe-area-inset-bottom, 16px) + 16px)) !important; }
     
     body.page-radar.sidebar-closed .filter-panel, 
     body.page-radar.sidebar-closed .leaderboard { left: 50%; }

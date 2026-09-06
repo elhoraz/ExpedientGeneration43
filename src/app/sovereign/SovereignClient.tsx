@@ -1185,7 +1185,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         }}
         id="btnBackToFitur"
       >
-        <i className="fa-solid fa-chevron-left" /> Exit Vault
+        <i className="fa-solid fa-chevron-left" /> Kembali
       </Link>
 
       {/* Theme Toggle */}
@@ -1362,9 +1362,33 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         #btnExportId:hover { transform: scale(1.1) translateY(5px); box-shadow: 0 0 20px rgba(212,175,55,0.5); }
         #btnBackToFitur:hover { transform: translateX(-5px); box-shadow: 0 0 20px rgba(212,175,55,0.5); border-color: #ffd700; color: #fff; }
         @media (max-width: 768px) {
-          #btnBackToFitur { top: 20px; left: 20px; padding: 8px 15px; font-size: 10px; }
-          #btnThemeToggle { top: 20px; right: 20px; width: 35px; height: 35px; font-size: 14px; }
-          #btnExportId { top: 65px; right: 20px; width: 35px; height: 35px; font-size: 14px; }
+          #btnBackToFitur { 
+            top: max(16px, calc(env(safe-area-inset-top, 16px) + 8px)) !important; 
+            left: max(16px, env(safe-area-inset-left, 16px)) !important; 
+            padding: 8px 15px; 
+            font-size: 10px; 
+          }
+          #btnThemeToggle { 
+            top: max(16px, calc(env(safe-area-inset-top, 16px) + 8px)) !important; 
+            right: max(16px, env(safe-area-inset-right, 16px)) !important; 
+            width: 38px; 
+            height: 38px; 
+            font-size: 14px; 
+          }
+          #btnExportId { 
+            top: max(64px, calc(env(safe-area-inset-top, 16px) + 54px)) !important; 
+            right: max(16px, env(safe-area-inset-right, 16px)) !important; 
+            width: 38px; 
+            height: 38px; 
+            font-size: 14px; 
+          }
+          .tactical-hud {
+            bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;
+            left: max(20px, env(safe-area-inset-left, 20px)) !important;
+          }
+          #uxOverlay {
+            bottom: max(35px, calc(env(safe-area-inset-bottom, 20px) + 15px)) !important;
+          }
         }
       `}</style>
     </div>

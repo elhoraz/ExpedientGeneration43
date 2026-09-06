@@ -38,10 +38,10 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
 
       const options: MediaRecorderOptions = {};
       if (typeof MediaRecorder.isTypeSupported === "function") {
-        if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-          options.mimeType = "audio/webm;codecs=opus";
-        } else if (MediaRecorder.isTypeSupported("audio/mp4")) {
+        if (MediaRecorder.isTypeSupported("audio/mp4")) {
           options.mimeType = "audio/mp4";
+        } else if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
+          options.mimeType = "audio/webm;codecs=opus";
         } else if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
           options.mimeType = "audio/ogg;codecs=opus";
         }
@@ -90,7 +90,7 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
     const currentDuration = recordingTime;
 
     mediaRecorderRef.current.onstop = () => {
-      const mimeType = mediaRecorderRef.current?.mimeType || "audio/webm";
+      const mimeType = mediaRecorderRef.current?.mimeType || "audio/mp4";
       const audioBlob = new Blob(chunksRef.current, { type: mimeType });
       console.log("[VoiceRecorder] Final blob size:", audioBlob.size, "type:", audioBlob.type, "duration:", currentDuration);
       stopTracks();

@@ -212,10 +212,12 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
   const handleSendVideoNote = async (videoBlob: Blob, duration: number) => {
     setShowVideoNoteRecorder(false);
     try {
-      const fileName = `lounge_video/${userId}_${Date.now()}.webm`;
+      const mimeType = videoBlob.type || "video/mp4";
+      const ext = mimeType.includes("webm") ? "webm" : "mp4";
+      const fileName = `lounge_video/${userId}_${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("chat-attachments")
-        .upload(fileName, videoBlob, { contentType: "video/webm" });
+        .upload(fileName, videoBlob, { contentType: mimeType });
 
       if (uploadError) throw uploadError;
 

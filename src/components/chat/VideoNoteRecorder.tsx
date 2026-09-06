@@ -61,11 +61,27 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
     if (!streamRef.current) return;
     try {
       chunksRef.current = [];
-      const mediaRecorder = new MediaRecorder(streamRef.current, {
-        mimeType: MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-          ? "video/webm;codecs=vp9"
-          : "video/webm",
-      });
+
+      // Deteksi format video yang didukung browser (iOS Safari WebKit vs Chrome/Firefox/Android)
+      const candidateTypes = [
+        "video/mp4;codecs=avc1",
+        "video/mp4",
+        "video/webm;codecs=vp9",
+        "video/webm;codecs=vp8",
+        "video/webm",
+      ];
+      let selectedMime = "";
+      if (typeof MediaRecorder !== "undefined" && typeof MediaRecorder.isTypeSupported === "function") {
+        for (const type of candidateTypes) {
+          if (MediaRecorder.isTypeSupported(type)) {
+            selectedMime = type;
+            break;
+          }
+        }
+      }
+
+      const recorderOptions: MediaRecorderOptions = selectedMime ? { mimeType: selectedMime } : {};
+      const mediaRecorder = new MediaRecorder(streamRef.current, recorderOptions);
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (e) => {
@@ -100,7 +116,7 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
 
     const duration = recordingTime;
     mediaRecorderRef.current.onstop = () => {
-      const mimeType = mediaRecorderRef.current?.mimeType || "video/webm";
+      const mimeType = mediaRecorderRef.current?.mimeType || "video/mp4";
       const videoBlob = new Blob(chunksRef.current, { type: mimeType });
       stopTracks();
       onSend(videoBlob, duration);

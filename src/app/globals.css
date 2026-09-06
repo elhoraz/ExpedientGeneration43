@@ -119,3 +119,29 @@ body.sidebar-closed .notif-dropdown {
   }
 }
 
+/* ========================================================
+   IOS SAFARI & MOBILE BROWSER COMPATIBILITY
+   ======================================================== */
+/* Mencegah auto-zoom paksa di iOS Safari pada semua input teks saat diklik (ambang batas iOS < 16px) */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .input-control,
+  .chat-text-input,
+  .syndicate-input,
+  .search-pill input {
+    font-size: 16px !important;
+  }
+}
+
+/* Hilangkan highlight abu-abu default saat tap di WebKit iOS & Android */
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Dynamic Viewport Height untuk browser modern */
+:root {
+  --app-height: 100dvh;
+}
+

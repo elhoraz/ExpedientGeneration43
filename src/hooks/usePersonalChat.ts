@@ -284,10 +284,12 @@ export function usePersonalChat({
   // Video Note send helper
   const sendVideoNote = async (videoBlob: Blob) => {
     try {
-      const fileName = `video_notes/${userId}_${Date.now()}.webm`;
+      const mimeType = videoBlob.type || "video/mp4";
+      const ext = mimeType.includes("webm") ? "webm" : "mp4";
+      const fileName = `video_notes/${userId}_${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from("chat-attachments")
-        .upload(fileName, videoBlob, { contentType: "video/webm" });
+        .upload(fileName, videoBlob, { contentType: mimeType });
 
       if (uploadError) throw uploadError;
 
