@@ -425,7 +425,7 @@ export default function PhotoboothClient() {
   };
 
   // Start Live Motion Clip Recording directly from camera stream (Hardware accelerated, mobile optimized)
-  const recordLiveClip = (durationMs: number = 1800): Promise<string | null> => {
+  const recordLiveClip = (durationMs: number = 3000): Promise<string | null> => {
     return new Promise((resolve) => {
       if (!stream || typeof MediaRecorder === "undefined") {
         resolve(null);
@@ -481,10 +481,25 @@ export default function PhotoboothClient() {
           if (e.data && e.data.size > 0) chunks.push(e.data);
         };
 
-        recorder.onstop = () => {
+        recorder.onstop = async () => {
           try {
             const finalMime = recorder.mimeType || mimeType || chunks[0]?.type || "video/mp4";
-            const blob = new Blob(chunks, { type: finalMime });
+            let blob = new Blob(chunks, { type: finalMime });
+
+            // Fix duration metadata for WebM (which Chromium leaves undefined)
+            if (finalMime.includes("webm")) {
+              try {
+                const fixMod = await import("fix-webm-duration");
+                const fixFn = (fixMod as any).default || fixMod;
+                if (typeof fixFn === "function") {
+                  const fixedBlob = await fixFn(blob, durationMs);
+                  if (fixedBlob && fixedBlob.size > 0) {
+                    blob = fixedBlob;
+                  }
+                }
+              } catch {}
+            }
+
             const videoUrl = URL.createObjectURL(blob);
             createdBlobUrlsRef.current.add(videoUrl);
             resolve(videoUrl);
@@ -499,7 +514,7 @@ export default function PhotoboothClient() {
           resolve(null);
         };
 
-        recorder.start();
+        recorder.start(100);
 
         setTimeout(() => {
           if (recorder.state === "recording") {
@@ -582,10 +597,10 @@ export default function PhotoboothClient() {
           triggerHaptic(50);
           playBeep(600, 0.15);
 
-          // 2. Start smooth hardware live recording (1.8s)
-          const recordPromise = recordLiveClip(1800);
+          // 2. Start smooth hardware live recording (3.0s)
+          const recordPromise = recordLiveClip(3000);
 
-          // 3. Right when 1.8s finishes, flash & shutter beep and capture crisp peak still frame
+          // 3. Right when 3.0s finishes, flash & shutter beep and capture crisp peak still frame
           setTimeout(async () => {
             playBeep(880, 0.25);
             triggerHaptic(80);
@@ -599,7 +614,7 @@ export default function PhotoboothClient() {
             if (stillFrame) {
               savePhotoSlot(stillFrame, recorded || undefined);
             }
-          }, 1850);
+          }, 3050);
         } else {
           // STANDARD STILL MODE:
           playBeep(880, 0.25);
@@ -1514,14 +1529,25 @@ export default function PhotoboothClient() {
         }
       };
 
+      // Reset all slot videos to start synchronously from 0s
+      slots.forEach((slot) => {
+        if (slot.videoEl) {
+          try {
+            slot.videoEl.currentTime = 0;
+            slot.videoEl.play().catch(() => {});
+          } catch {}
+        }
+      });
+
       // Warm-up frames
       for (let i = 0; i < 3; i++) {
         drawOneFrame();
         await new Promise((r) => setTimeout(r, 33));
       }
 
-      // Start recording cleanly
-      recorder.start();
+      // Start recording with 100ms timeslice for steady container timestamps
+      const recordStartTime = Date.now();
+      recorder.start(100);
 
       let lastDrawTime = performance.now();
       const targetFrameDelta = 1000 / 30; // 33.33ms per frame (30fps export)
@@ -1538,17 +1564,36 @@ export default function PhotoboothClient() {
 
       animId = requestAnimationFrame(renderLoop);
 
-      // Record for 3.5 seconds
-      await new Promise((r) => setTimeout(r, 3500));
+      // Record for full 6.0 seconds (6000ms = 2 complete smooth loops of 3s clips)
+      const exportDurationMs = 6000;
+      await new Promise((r) => setTimeout(r, exportDurationMs));
 
       isRecording = false;
       cancelAnimationFrame(animId);
 
       await new Promise<void>((resolveStop) => {
         recorder.onstop = async () => {
+          const actualDuration = Math.max(exportDurationMs, Date.now() - recordStartTime);
           cleanup();
           const finalMime = recorder.mimeType || mimeType || "video/mp4";
-          const blob = new Blob(chunks, { type: finalMime });
+          let blob = new Blob(chunks, { type: finalMime });
+
+          // Inject EBML duration metadata into WebM so Android Gallery & WhatsApp report full 6 seconds (not 1 second)
+          if (finalMime.includes("webm")) {
+            try {
+              const fixMod = await import("fix-webm-duration");
+              const fixFn = (fixMod as any).default || fixMod;
+              if (typeof fixFn === "function") {
+                const fixedBlob = await fixFn(blob, actualDuration);
+                if (fixedBlob && fixedBlob.size > 0) {
+                  blob = fixedBlob;
+                }
+              }
+            } catch (fixErr) {
+              console.warn("Failed to inject WebM duration metadata:", fixErr);
+            }
+          }
+
           const ext = finalMime.includes("mp4") ? "mp4" : "webm";
           const filename = `Expedient_Live_Photostrip_${Date.now()}.${ext}`;
 
@@ -1705,7 +1750,7 @@ export default function PhotoboothClient() {
               <div className="live-recording-overlay">
                 <div className="live-rec-pill">
                   <span className="live-rec-dot-pulsing" />
-                  <span>MEREKAM GERAK LIVE (2 DETIK)... TETAP BERPOSE!</span>
+                  <span>MEREKAM GERAK LIVE (3 DETIK)... TETAP BERPOSE!</span>
                 </div>
               </div>
             )}
@@ -2744,7 +2789,7 @@ export default function PhotoboothClient() {
                 style={{ background: "linear-gradient(135deg, #00c9ff, #92fe9d)", color: "#05131a" }}
               >
                 <i className="fa-solid fa-video"></i>
-                <span>{isExporting ? "Mengekspor Live..." : "Unduh Foto Live Bergerak (Video)"}</span>
+                <span>{isExporting ? "Mengekspor Live (6s)..." : "Unduh Foto Live Bergerak (Video 6s)"}</span>
               </button>
             )}
 
@@ -2798,7 +2843,7 @@ export default function PhotoboothClient() {
             Mengekspor Foto Live Bergerak...
           </h2>
           <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.75)", maxWidth: "340px", lineHeight: 1.5 }}>
-            Sedang merekam dan menyinkronkan seluruh animasi frame foto live ke format video berkualitas tinggi. Mohon tunggu beberapa detik...
+            Sedang merekam dan menyinkronkan seluruh animasi frame foto live ke format video loop berdurasi 6 detik (kualitas HD). Mohon tunggu sebentar...
           </p>
         </div>
       )}
