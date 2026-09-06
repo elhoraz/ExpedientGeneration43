@@ -420,6 +420,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                       <img
                         src={imageUrl}
                         alt={g.caption || "Kenangan Museum"}
+                        loading={idx < 3 ? "eager" : "lazy"}
                         decoding="async"
                         draggable={false}
                         style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", pointerEvents: "none" }}
@@ -592,6 +593,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                     <img
                       src={imageUrl}
                       alt={g.caption || "Foto Museum"}
+                      loading={idx < 4 ? "eager" : "lazy"}
                       decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                     />

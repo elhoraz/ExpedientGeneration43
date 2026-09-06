@@ -168,7 +168,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
                 </div>
             ) : (
                 <div className="match-grid">
-                    {matches.map(m => {
+                    {matches.map((m, idx) => {
                         const avatarUrl = getAvatarUrl(m.foto_profil, m.nama_panggilan || m.nama_lengkap || 'A');
                         return (
                             <div key={m.id} className="match-card">
@@ -179,7 +179,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
                                     height={100} 
                                     className="match-avatar" 
                                     alt={m.nama_panggilan || m.nama_lengkap || "Avatar"} 
-                                    priority
+                                    priority={idx < 4}
                                     unoptimized={avatarUrl.startsWith("data:") || avatarUrl.includes("ui-avatars.com") || avatarUrl.includes("supabase.co")}
                                 />
                                 <div className="match-name">{m.nama_panggilan || m.nama_lengkap}</div>
