@@ -47,7 +47,20 @@ body.page-direktori .direktori-container,
 /* SWIPER CONTAINER */
 .direktori-container .swiper { width: 100%; padding-top: 15px; padding-bottom: 60px; z-index: 10; overflow: hidden; }
 .direktori-container .swiper-wrapper { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; box-sizing: content-box !important; }
-.direktori-container .swiper-slide { width: 340px; height: auto; flex-shrink: 0 !important; display: flex; flex-direction: column; opacity: 0.4; transition: opacity 0.6s ease; cursor: grab; }
+.direktori-container .swiper-slide { 
+    width: 340px; 
+    height: auto; 
+    flex-shrink: 0 !important; 
+    display: flex; 
+    flex-direction: column; 
+    opacity: 0.4; 
+    transition: opacity 0.6s ease; 
+    cursor: grab;
+    content-visibility: auto;
+    contain-intrinsic-size: 340px 520px;
+    transform: translateZ(0);
+    will-change: transform;
+}
 .direktori-container .swiper-slide-active { opacity: 1; } 
 
 /* LUXURY DOSSIER CARD */

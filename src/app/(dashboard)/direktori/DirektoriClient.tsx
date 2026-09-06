@@ -16,9 +16,17 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
   const [alumni, setAlumni] = useState<any[]>(initialAlumni || []);
   const [isSelfHealing, setIsSelfHealing] = useState(false);
   const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] = useState(25);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [qrModalUser, setQrModalUser] = useState<any | null>(null);
   const [failedPhotos, setFailedPhotos] = useState<{ [id: string]: boolean }>({});
   const swiperRef = useRef<any>(null);
+  const visibleCountRef = useRef(visibleCount);
+  const filteredAlumniRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    visibleCountRef.current = visibleCount;
+  }, [visibleCount]);
 
   // Sync state if initialAlumni changes
   useEffect(() => {
@@ -100,6 +108,13 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
           navigation: { nextEl: "#btnNext", prevEl: "#btnPrev" },
           keyboard: { enabled: true },
           on: { 
+            slideChange: (swiper: any) => {
+              const current = swiper.activeIndex;
+              setActiveIndex(current);
+              if (current >= visibleCountRef.current - 6 && visibleCountRef.current < filteredAlumniRef.current.length) {
+                setVisibleCount(prev => Math.min(prev + 25, filteredAlumniRef.current.length));
+              }
+            },
             slideChangeTransitionStart: () => { 
               if (navigator.vibrate) navigator.vibrate(10); 
               triggerQuest();
@@ -127,6 +142,20 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
     const searchString = `${user.nama_lengkap || ''} ${user.nama_panggilan || ''} ${user.alamat_lengkap || ''} ${user.tempat_lahir || ''} ${user.motivasi_hidup || ''}`.toLowerCase();
     return searchString.includes(search.toLowerCase());
   });
+
+  useEffect(() => {
+    filteredAlumniRef.current = filteredAlumni;
+    setVisibleCount(25);
+    setActiveIndex(0);
+  }, [search, alumni]);
+
+  useEffect(() => {
+    if (swiperRef.current) {
+      swiperRef.current.update();
+    }
+  }, [visibleCount]);
+
+  const displayedAlumni = filteredAlumni.slice(0, visibleCount);
 
   return (
     <div className="direktori-container">
@@ -179,12 +208,12 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
         ) : (
             <>
                 <div className="mobile-swipe-hint">
-                    <i className="fa-solid fa-arrows-left-right" style={{ marginRight: "6px" }}></i> Geser kartu untuk melihat alumni
+                    <i className="fa-solid fa-arrows-left-right" style={{ marginRight: "6px" }}></i> Geser kartu ({activeIndex + 1} dari {filteredAlumni.length} alumni)
                 </div>
                 <div className="swiper mySwiper">
                     <div className="swiper-wrapper" id="swiperWrapper">
                     
-                    {filteredAlumni.map((user, idx) => {
+                    {displayedAlumni.map((user, idx) => {
                         const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
 
                         return (
