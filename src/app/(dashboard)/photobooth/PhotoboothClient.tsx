@@ -47,6 +47,64 @@ interface PlacedSticker {
   scale?: number;
 }
 
+// Dedicated hardware-accelerated video player for Photostrip cells (Prevents iOS re-render play() loops and multi-video stutter)
+function LivePhotoCellVideo({
+  videoSrc,
+  stillSrc,
+  isPlaying,
+  isMirrored,
+}: {
+  videoSrc: string;
+  stillSrc: string;
+  isPlaying: boolean;
+  isMirrored: boolean;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isPlaying) {
+      video.muted = true;
+      video.defaultMuted = true;
+      const p = video.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          // Autoplay policy handled gracefully
+        });
+      }
+    } else {
+      video.pause();
+    }
+  }, [isPlaying, videoSrc]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={videoSrc}
+      poster={stillSrc}
+      autoPlay={isPlaying}
+      loop
+      muted
+      playsInline
+      // @ts-ignore
+      webkit-playsinline="true"
+      preload="metadata"
+      disablePictureInPicture
+      style={{
+        width: "100%",
+        height: "100%",
+        objectFit: "cover",
+        display: "block",
+        transform: isMirrored ? "scaleX(-1) translateZ(0)" : "translateZ(0)",
+        WebkitTransform: isMirrored ? "scaleX(-1) translateZ(0)" : "translateZ(0)",
+        willChange: "transform",
+      }}
+    />
+  );
+}
+
 export default function PhotoboothClient() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
@@ -55,6 +113,7 @@ export default function PhotoboothClient() {
   const recordedChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const previewPaneRef = useRef<HTMLDivElement | null>(null);
+  const createdBlobUrlsRef = useRef<Set<string>>(new Set());
 
   // Smooth scroll to results
   const scrollToPreview = () => {
@@ -182,12 +241,13 @@ export default function PhotoboothClient() {
         throw new Error("Browser ini tidak mendukung akses kamera langsung.");
       }
 
+      const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: facing,
-          width: { ideal: 1280 },
-          height: { ideal: 960 },
-          frameRate: { ideal: 30, min: 24 },
+          width: { ideal: isMobile ? 1280 : 1920, max: 1920 },
+          height: { ideal: isMobile ? 720 : 1080, max: 1080 },
+          frameRate: { ideal: 30, max: 30 },
         },
         audio: false,
       });
@@ -221,6 +281,11 @@ export default function PhotoboothClient() {
       stopCamera();
       window.removeEventListener("beforeunload", handleUnload);
       window.removeEventListener("pagehide", handleUnload);
+      // Clean up any generated video blob URLs to prevent mobile memory leaks
+      createdBlobUrlsRef.current.forEach((url) => {
+        try { URL.revokeObjectURL(url); } catch {}
+      });
+      createdBlobUrlsRef.current.clear();
     };
   }, [stopCamera]);
 
@@ -360,8 +425,8 @@ export default function PhotoboothClient() {
     return canvas.toDataURL("image/jpeg", 0.95);
   };
 
-  // Start Live Motion Clip Recording directly from camera stream (Guaranteed hardware motion, no timeslice lag)
-  const recordLiveClip = (): Promise<string | null> => {
+  // Start Live Motion Clip Recording directly from camera stream (Hardware accelerated, mobile optimized)
+  const recordLiveClip = (durationMs: number = 1800): Promise<string | null> => {
     return new Promise((resolve) => {
       if (!stream || typeof MediaRecorder === "undefined") {
         resolve(null);
@@ -375,26 +440,29 @@ export default function PhotoboothClient() {
       }
 
       try {
-        const videoStream = new MediaStream([videoTracks[0]]);
+        const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+        let mimeType = "";
 
-        let mimeType = "video/mp4;codecs=avc1";
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = "video/mp4";
-        }
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = "video/webm;codecs=vp9";
-        }
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = "video/webm;codecs=vp8";
-        }
-        if (!MediaRecorder.isTypeSupported(mimeType)) {
-          mimeType = "video/webm";
+        // Choose optimal hardware-accelerated codec for the OS
+        const preferredTypes = isIOS
+          ? ["video/mp4", "video/mp4;codecs=avc1", "video/webm"]
+          : ["video/webm;codecs=vp8", "video/webm", "video/mp4"];
+
+        for (const candidate of preferredTypes) {
+          if (MediaRecorder.isTypeSupported(candidate)) {
+            mimeType = candidate;
+            break;
+          }
         }
 
-        const recorder = new MediaRecorder(videoStream, {
-          mimeType,
-          videoBitsPerSecond: 2500000,
-        });
+        const options: MediaRecorderOptions = {
+          videoBitsPerSecond: isIOS ? 1500000 : 1200000, // 1.2-1.5 Mbps: silky 30fps without heating mobile GPU
+        };
+        if (mimeType) {
+          options.mimeType = mimeType;
+        }
+
+        const recorder = new MediaRecorder(stream, options);
         const chunks: Blob[] = [];
 
         recorder.ondataavailable = (e) => {
@@ -403,8 +471,10 @@ export default function PhotoboothClient() {
 
         recorder.onstop = () => {
           try {
-            const blob = new Blob(chunks, { type: mimeType });
+            const finalMime = mimeType || chunks[0]?.type || "video/mp4";
+            const blob = new Blob(chunks, { type: finalMime });
             const videoUrl = URL.createObjectURL(blob);
+            createdBlobUrlsRef.current.add(videoUrl);
             resolve(videoUrl);
           } catch (e) {
             console.warn("Live video blob error:", e);
@@ -412,19 +482,18 @@ export default function PhotoboothClient() {
           }
         };
 
-        recorder.onerror = () => {
+        recorder.onerror = (err) => {
+          console.warn("Live recorder error:", err);
           resolve(null);
         };
 
-        // CRITICAL FIX: Calling recorder.start() WITHOUT timeslice allows the hardware encoder
-        // to buffer at native 30fps without forced slice drops, eliminating stutter/patah-patah!
         recorder.start();
 
         setTimeout(() => {
           if (recorder.state === "recording") {
             recorder.stop();
           }
-        }, 2000); // 2.0s live snippet
+        }, durationMs);
       } catch (err) {
         console.warn("Live recording error:", err);
         resolve(null);
@@ -439,6 +508,12 @@ export default function PhotoboothClient() {
 
     setPhotos((prev) => {
       const next = [...prev];
+      // Revoke previous video blob if replacing
+      if (next[slotToFill]?.video && next[slotToFill].video.startsWith("blob:")) {
+        try { URL.revokeObjectURL(next[slotToFill].video); } catch {}
+        createdBlobUrlsRef.current.delete(next[slotToFill].video);
+      }
+
       next[slotToFill] = {
         image: stillFrame,
         video: liveVideoUrl,
@@ -498,15 +573,15 @@ export default function PhotoboothClient() {
           triggerHaptic(50);
           playBeep(600, 0.15);
 
-          // 2. Start smooth hardware live recording (2.0s)
-          const recordPromise = recordLiveClip();
+          // 2. Start smooth hardware live recording (1.8s)
+          const recordPromise = recordLiveClip(1800);
 
-          // 3. At 1.8s (just before recording finishes), fire flash & shutter beep and capture still photo
+          // 3. Right when 1.8s finishes, flash & shutter beep and capture crisp peak still frame
           setTimeout(async () => {
             playBeep(880, 0.25);
             triggerHaptic(80);
             setIsFlashing(true);
-            setTimeout(() => setIsFlashing(false), 200);
+            setTimeout(() => setIsFlashing(false), 150);
 
             const stillFrame = captureFrame();
             const recorded = await recordPromise;
@@ -515,13 +590,13 @@ export default function PhotoboothClient() {
             if (stillFrame) {
               savePhotoSlot(stillFrame, recorded || undefined);
             }
-          }, 1800);
+          }, 1850);
         } else {
           // STANDARD STILL MODE:
           playBeep(880, 0.25);
           triggerHaptic(80);
           setIsFlashing(true);
-          setTimeout(() => setIsFlashing(false), 200);
+          setTimeout(() => setIsFlashing(false), 150);
 
           const stillFrame = captureFrame();
           if (stillFrame) {
@@ -585,6 +660,10 @@ export default function PhotoboothClient() {
     triggerHaptic(20);
     setPhotos((prev) => {
       const next = [...prev];
+      if (next[index]?.video && next[index].video.startsWith("blob:")) {
+        try { URL.revokeObjectURL(next[index].video); } catch {}
+        createdBlobUrlsRef.current.delete(next[index].video);
+      }
       next[index] = null;
       return next;
     });
@@ -599,6 +678,12 @@ export default function PhotoboothClient() {
   // Reset All Slots
   const handleResetAll = () => {
     triggerHaptic(30);
+    photos.forEach((p) => {
+      if (p?.video && p.video.startsWith("blob:")) {
+        try { URL.revokeObjectURL(p.video); } catch {}
+      }
+    });
+    createdBlobUrlsRef.current.clear();
     setPhotos([null, null, null, null]);
     setActiveSlot(0);
     setStickers([]);
@@ -869,12 +954,12 @@ export default function PhotoboothClient() {
       const exportScale = exportWidth / stripRect.width;
       const exportHeight = Math.round(stripRect.height * exportScale);
 
-      // Create export canvas attached to DOM with opacity 1 outside viewport
-      // Prevents Chromium & WebKit GPU compositor from throttling occluded/transparent canvas to 1-5 FPS
+      // Create export canvas attached to DOM with opacity 0.01 inside viewport but under all UI
+      // Prevents Chromium & WebKit GPU compositor from throttling offscreen canvas to 1-5 FPS
       const exportCanvas = document.createElement("canvas");
       exportCanvas.width = exportWidth;
       exportCanvas.height = exportHeight;
-      exportCanvas.style.cssText = `position:fixed;top:0;left:0;width:${exportWidth}px;height:${exportHeight}px;pointer-events:none;transform:translate3d(200vw,200vh,0);opacity:1;visibility:visible;`;
+      exportCanvas.style.cssText = `position:fixed;top:0;left:0;width:${exportWidth}px;height:${exportHeight}px;pointer-events:none;z-index:-9999;opacity:0.01;`;
       document.body.appendChild(exportCanvas);
       cleanupElements.push(exportCanvas);
 
@@ -1017,24 +1102,24 @@ export default function PhotoboothClient() {
       const canvasStream: MediaStream = captureStreamFn.call(exportCanvas, 30);
       const videoTrack = canvasStream.getVideoTracks ? canvasStream.getVideoTracks()[0] : null;
 
-      // Select MP4 first for universal playback across Windows, iOS, Android, and social media
-      let mimeType = "video/mp4;codecs=avc1";
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/mp4";
+      // Select optimal codec for platform (MP4 for iOS, VP8 WebM for Android/Chromium)
+      const isIOS = typeof navigator !== "undefined" && /iPad|iPhone|iPod/.test(navigator.userAgent);
+      let mimeType = "";
+      const preferredTypes = isIOS
+        ? ["video/mp4", "video/mp4;codecs=avc1", "video/webm"]
+        : ["video/webm;codecs=vp8", "video/webm", "video/mp4"];
+
+      for (const candidate of preferredTypes) {
+        if (MediaRecorder.isTypeSupported(candidate)) {
+          mimeType = candidate;
+          break;
+        }
       }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/webm;codecs=vp9";
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/webm;codecs=vp8";
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = "video/webm";
-      }
+      if (!mimeType) mimeType = "video/mp4";
 
       const recorder = new MediaRecorder(canvasStream, {
         mimeType,
-        videoBitsPerSecond: 3500000,
+        videoBitsPerSecond: isIOS ? 2500000 : 2000000,
       });
       const chunks: Blob[] = [];
       recorder.ondataavailable = (e) => {
@@ -2071,34 +2156,16 @@ export default function PhotoboothClient() {
                   >
                     {photoObj ? (
                       <>
-                        {/* If Live Video is available and active */}
-                        {isLiveMode && photoObj.video && isLivePlaying ? (
-                          <video
-                            ref={(el) => {
-                              if (el) {
-                                el.muted = true;
-                                el.defaultMuted = true;
-                                if (el.paused && isLivePlaying) {
-                                  el.play().catch(() => {});
-                                }
-                              }
-                            }}
-                            src={photoObj.video}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            // @ts-ignore
-                            webkit-playsinline="true"
-                            preload="auto"
-                            disablePictureInPicture
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              display: "block",
-                              transform: cameraFacing === "user" ? "scaleX(-1)" : "none",
-                            }}
+                        {/* If Live Video is available and active.
+                            CRITICAL PERFORMANCE: When still shooting (activeSlot >= 0 && !isAllFilled),
+                            render the still image to save mobile GPU from running 5 concurrent video pipelines!
+                            Only activate live video loop when reviewing results or when shooting is completed. */}
+                        {isLiveMode && photoObj.video && isLivePlaying && (isAllFilled || activeSlot === -1) ? (
+                          <LivePhotoCellVideo
+                            videoSrc={photoObj.video}
+                            stillSrc={photoObj.image}
+                            isPlaying={isLivePlaying}
+                            isMirrored={cameraFacing === "user"}
                           />
                         ) : (
                           <img src={photoObj.image} alt={`Pose ${idx + 1}`} />
