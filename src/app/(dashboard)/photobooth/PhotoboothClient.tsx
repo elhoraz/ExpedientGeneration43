@@ -255,8 +255,11 @@ export default function PhotoboothClient() {
       setStream(newStream);
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
+        videoRef.current.muted = true;
+        videoRef.current.defaultMuted = true;
         videoRef.current.onloadedmetadata = () => {
           setIsCameraReady(true);
+          videoRef.current?.play().catch(() => {});
         };
       }
     } catch (err: any) {
@@ -1729,6 +1732,8 @@ export default function PhotoboothClient() {
                 ref={videoRef}
                 autoPlay
                 playsInline
+                // @ts-ignore
+                webkit-playsinline="true"
                 muted
                 className={`viewfinder-video ${cameraFacing === "environment" ? "unmirrored" : ""}`}
                 style={{ filter: getFilterStyle() }}
