@@ -241,15 +241,30 @@ export default function PhotoboothClient() {
       }
 
       const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: facing,
-          width: { ideal: isMobile ? 1280 : 1920, max: 1920 },
-          height: { ideal: isMobile ? 720 : 1080, max: 1080 },
-          frameRate: { ideal: 30, max: 30 },
-        },
-        audio: false,
-      });
+      let newStream: MediaStream;
+      try {
+        // High-definition camera constraints matching mobile portrait orientation (Full HD 1080p)
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: facing,
+            width: { ideal: 1920, min: 720 },
+            height: { ideal: 1920, min: 720 },
+            frameRate: { ideal: 30 },
+          },
+          audio: false,
+        });
+      } catch {
+        // Fallback for older camera drivers
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: facing,
+            width: { ideal: 1280 },
+            height: { ideal: 1280 },
+            frameRate: { ideal: 30 },
+          },
+          audio: false,
+        });
+      }
 
       streamRef.current = newStream;
       setStream(newStream);
@@ -396,7 +411,7 @@ export default function PhotoboothClient() {
       sy = (vh - sHeight) / 2;
     }
 
-    const outputWidth = Math.min(1280, Math.round(sWidth));
+    const outputWidth = Math.min(1920, Math.round(sWidth));
     const outputHeight = Math.round(outputWidth / targetAspect);
 
     const canvas = document.createElement("canvas");
@@ -404,6 +419,8 @@ export default function PhotoboothClient() {
     canvas.height = outputHeight;
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
 
     // If front camera, mirror image horizontally to match viewfinder preview
     if (cameraFacing === "user") {
@@ -424,7 +441,7 @@ export default function PhotoboothClient() {
       canvas.height
     );
 
-    return canvas.toDataURL("image/jpeg", 0.95);
+    return canvas.toDataURL("image/jpeg", 0.98);
   };
 
   // Start Live Motion Clip Recording directly from camera stream (Hardware accelerated, mobile optimized)
@@ -466,7 +483,7 @@ export default function PhotoboothClient() {
         try {
           recorder = new MediaRecorder(stream, {
             mimeType: mimeType || undefined,
-            videoBitsPerSecond: isIOS ? 1500000 : 1200000,
+            videoBitsPerSecond: isIOS ? 6000000 : 5000000,
           });
         } catch {
           try {
@@ -1228,22 +1245,24 @@ export default function PhotoboothClient() {
         throw new Error("Strip element has invalid dimensions.");
       }
 
-      // High-res export canvas (HD 720px width)
-      const exportWidth = 720;
+      // High-res export canvas (Full HD 1080px width)
+      const exportWidth = 1080;
       const exportScale = exportWidth / stripRect.width;
       const exportHeight = Math.round(stripRect.height * exportScale);
 
-      // Create export canvas attached to DOM with opacity 0.01 inside viewport but under all UI
-      // Prevents Chromium & WebKit GPU compositor from throttling offscreen canvas to 1-5 FPS
+      // Create export canvas attached to DOM with opacity: 1 inside viewport but behind the export modal (z-index: 99998)
+      // Having opacity: 1 ensures mobile GPU compositors decode frames continuously at full 30 FPS without throttling!
       const exportCanvas = document.createElement("canvas");
       exportCanvas.width = exportWidth;
       exportCanvas.height = exportHeight;
-      exportCanvas.style.cssText = `position:fixed;top:0;left:0;width:${exportWidth}px;height:${exportHeight}px;pointer-events:none;z-index:-9999;opacity:0.01;`;
+      exportCanvas.style.cssText = `position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:99998;opacity:1;visibility:visible;`;
       document.body.appendChild(exportCanvas);
       cleanupElements.push(exportCanvas);
 
       const ctx = exportCanvas.getContext("2d", { alpha: false });
       if (!ctx) throw new Error("Could not create canvas context.");
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
 
       // captureStream support check
       const captureStreamFn =
@@ -1311,22 +1330,40 @@ export default function PhotoboothClient() {
             if (existingVideo && existingVideo.readyState >= 2 && !existingVideo.paused) {
               videoEl = existingVideo;
             } else {
-              videoEl = document.createElement("video");
-              videoEl.src = photoObj.video;
-              videoEl.muted = true;
-              videoEl.defaultMuted = true;
-              videoEl.volume = 0;
-              videoEl.loop = true;
-              videoEl.playsInline = true;
-              (videoEl as any)["webkit-playsinline"] = "true";
-              videoEl.preload = "auto";
-              videoEl.autoplay = true;
-              videoEl.style.cssText =
-                "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:-9999;opacity:0.01;";
-              document.body.appendChild(videoEl);
-              cleanupElements.push(videoEl);
+              const v = document.createElement("video");
+              videoEl = v;
+              v.src = photoObj.video;
+              v.muted = true;
+              v.defaultMuted = true;
+              v.volume = 0;
+              v.loop = true;
+              v.playsInline = true;
+              (v as any)["webkit-playsinline"] = "true";
+              v.preload = "auto";
+              v.autoplay = true;
+              // Keep opacity: 1 and inside viewport under modal so browser compositor keeps decoding every single frame
+              v.style.cssText =
+                "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:99998;opacity:1;visibility:visible;";
+              
+              // Continuous looping guarantee: automatically rewind and restart immediately when ending
+              v.onended = () => {
+                try {
+                  v.currentTime = 0;
+                  v.play().catch(() => {});
+                } catch {}
+              };
+              v.ontimeupdate = () => {
+                try {
+                  if (v.duration && v.currentTime >= v.duration - 0.08) {
+                    v.currentTime = 0;
+                    v.play().catch(() => {});
+                  }
+                } catch {}
+              };
 
-              const v = videoEl;
+              document.body.appendChild(v);
+              cleanupElements.push(v);
+
               await new Promise<void>((resolve) => {
                 let resolved = false;
                 const finish = () => {
@@ -1398,12 +1435,13 @@ export default function PhotoboothClient() {
       try {
         recorder = new MediaRecorder(canvasStream, {
           mimeType: mimeType || undefined,
-          videoBitsPerSecond: isIOS ? 2500000 : 2000000,
+          videoBitsPerSecond: isIOS ? 8000000 : 7000000,
         });
       } catch {
         try {
           recorder = new MediaRecorder(canvasStream, {
             mimeType: mimeType || undefined,
+            videoBitsPerSecond: 5000000,
           });
         } catch {
           recorder = new MediaRecorder(canvasStream);
@@ -1460,8 +1498,12 @@ export default function PhotoboothClient() {
           if (slot.videoEl && slot.videoEl.videoWidth > 0) {
             source = slot.videoEl;
             isVideo = true;
-            if (slot.videoEl.paused) {
-              slot.videoEl.play().catch(() => {});
+            // If video paused or reached end, restart immediately to guarantee seamless 6-second continuous looping
+            if (slot.videoEl.paused || slot.videoEl.ended) {
+              try {
+                slot.videoEl.currentTime = 0;
+                slot.videoEl.play().catch(() => {});
+              } catch {}
             }
           } else if (slot.fallbackImg && slot.fallbackImg.complete) {
             source = slot.fallbackImg;
