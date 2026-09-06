@@ -37,9 +37,7 @@ export async function createSignedAdminSession(): Promise<string> {
 export async function verifySignedAdminSession(token: string | undefined): Promise<boolean> {
   if (!token) return false;
 
-  // Backward compatibility during active session migration
-  if (token === "unlocked") return true;
-
+  // Token must be in format <timestamp>.<hmacSignature>
   const parts = token.split(".");
   if (parts.length !== 2) return false;
 

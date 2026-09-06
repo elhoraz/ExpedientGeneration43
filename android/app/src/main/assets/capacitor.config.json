@@ -1,0 +1,36 @@
+{
+	"appId": "com.expedient43.app",
+	"appName": "Expedient 43",
+	"webDir": "public",
+	"server": {
+		"androidScheme": "https",
+		"url": "https://expedientgeneration.vercel.app",
+		"cleartext": false
+	},
+	"plugins": {
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		},
+		"Keyboard": {
+			"resize": "body",
+			"style": "DARK",
+			"resizeOnFullScreen": true
+		},
+		"StatusBar": {
+			"style": "DARK",
+			"backgroundColor": "#030504"
+		},
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"launchAutoHide": true,
+			"backgroundColor": "#030504",
+			"androidSplashResourceName": "splash",
+			"androidScaleType": "CENTER_CROP",
+			"showSpinner": false
+		}
+	}
+}

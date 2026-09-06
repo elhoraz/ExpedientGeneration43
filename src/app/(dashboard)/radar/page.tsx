@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import RadarClient from "./RadarClient";
+import RadarDynamic from "./RadarDynamic";
 import { getAvatarUrl } from "@/lib/avatar";
 import "./radar.css";
 
@@ -59,5 +59,5 @@ export default async function RadarPage() {
     });
   }
 
-  return <RadarClient nodes={nodes} />;
+  return <RadarDynamic nodes={nodes} />;
 }

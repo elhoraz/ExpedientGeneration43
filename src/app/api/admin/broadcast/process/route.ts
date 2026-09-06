@@ -1,7 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 type WhatsappQueueItem = {
   id: number;
@@ -29,13 +31,32 @@ export async function POST(req: Request) {
   try {
     const authHeader = req.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
+    const isCronRequest = Boolean(cronSecret && authHeader === `Bearer ${cronSecret}`);
 
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const isCronRequest = Boolean(cronSecret && authHeader === `Bearer ${cronSecret}`);
-    if (!user && !isCronRequest) {
-      return jsonResponse("error", "Unauthorized", null, { status: 401 });
+    if (!isCronRequest) {
+      if (!user) {
+        return jsonResponse("error", "Unauthorized", null, { status: 401 });
+      }
+
+      const cookieStore = await cookies();
+      const adminToken = cookieStore.get("expedient_admin_session")?.value;
+      const isValidSession = await verifySignedAdminSession(adminToken);
+      if (!isValidSession) {
+        return jsonResponse("error", "Forbidden: Sesi admin diperlukan", null, { status: 403 });
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile || (profile.role !== "admin" && profile.role !== "superadmin")) {
+        return jsonResponse("error", "Forbidden: Hanya Admin yang berhak memproses antrian", null, { status: 403 });
+      }
     }
 
     const { data: pendingQueue, error: fetchError } = await supabase

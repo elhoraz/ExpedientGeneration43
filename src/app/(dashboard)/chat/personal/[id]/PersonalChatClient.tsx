@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, FormEvent, useCallback } from "react";
+import { useEffect, useRef, useState, FormEvent } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
@@ -11,6 +11,8 @@ import VoiceRecorder from "@/components/chat/VoiceRecorder";
 import VideoNoteRecorder from "@/components/chat/VideoNoteRecorder";
 import ChatCallModal from "@/components/chat/ChatCallModal";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
+import { usePersonalChat } from "@/hooks/usePersonalChat";
+import { useAgoraVideoCall } from "@/hooks/useAgoraVideoCall";
 import "../../chat.css";
 
 type Contact = {
@@ -36,380 +38,198 @@ export default function PersonalChatClient({
   userId: string; 
   contact: Contact;
 }) {
-  const [messages, setMessages] = useState<any[]>(initialMessages);
+  const { showAlert, showConfirm } = useConfirm();
+  const supabase = createClient();
+
+  // Custom hook for messaging, pagination, storage uploads, and realtime
+  const {
+    messages,
+    hasMore,
+    isLoadingMore,
+    uploadingImage,
+    channel,
+    handleLoadMore,
+    sendMessage,
+    deleteMessage,
+    uploadImage,
+    sendVoiceNote,
+    sendVideoNote,
+  } = usePersonalChat({
+    userId,
+    contactId: contact.id,
+    initialMessages,
+    showAlert,
+  });
+
+  // Custom hook for video & audio calling lifecycle and signaling
+  const {
+    callModal,
+    startCall,
+    endCall,
+  } = useAgoraVideoCall({
+    userId,
+    contactId: contact.id,
+    channel,
+  });
+
   const [inputMessage, setInputMessage] = useState("");
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(initialMessages.length === 50);
-  const [offset, setOffset] = useState(initialMessages.length);
   const [activeImage, setActiveImage] = useState<{ url: string; sender: string; time: string } | null>(null);
   
   // WhatsApp-like Call & Recording states
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [showVideoNoteRecorder, setShowVideoNoteRecorder] = useState(false);
-  const [callModal, setCallModal] = useState<{
-    isOpen: boolean;
-    type: "voice" | "video";
-    isIncoming?: boolean;
-    autoAccept?: boolean;
-    pendingOffer?: RTCSessionDescriptionInit | null;
-  } | null>(null);
+
+  // UGC Moderation States (Google Play Store compliance)
+  const [showOptionsDropdown, setShowOptionsDropdown] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportReason, setReportReason] = useState("Spam atau Pelecehan");
+  const [reportDetails, setReportDetails] = useState("");
+  const [submittingReport, setSubmittingReport] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
-  const channelRef = useRef<any>(null);
-  const supabase = createClient();
-  const { showAlert, showConfirm } = useConfirm();
+  const optionsRef = useRef<HTMLDivElement>(null);
 
-  // Mark all unread messages from this contact as read
-  const markAsRead = useCallback(async () => {
-    try {
-      await supabase
-        .from("chat_messages")
-        .update({ is_read: true })
-        .eq("receiver_id", userId)
-        .eq("sender_id", contact.id)
-        .eq("is_read", false);
-    } catch (err) {
-      console.warn("Gagal update is_read:", err);
-    }
+  // Check if contact is blocked on mount
+  useEffect(() => {
+    const checkBlock = async () => {
+      const { data } = await supabase
+        .from("user_blocks")
+        .select("id")
+        .eq("blocker_id", userId)
+        .eq("blocked_user_id", contact.id)
+        .maybeSingle();
+      if (data) setIsBlocked(true);
+    };
+    checkBlock();
   }, [supabase, userId, contact.id]);
 
+  // Handle page layout and auto-scroll
   useEffect(() => {
     document.body.classList.add("page-chat");
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get("callAction") === "accept" || urlParams.get("autoCall") === "true") {
-        const type = (urlParams.get("type") as any) || "voice";
-        setCallModal({
-          isOpen: true,
-          type,
-          isIncoming: true,
-          autoAccept: true,
-        });
-
-        // Clean URL params to prevent re-triggering on refresh
-        urlParams.delete("callAction");
-        urlParams.delete("autoCall");
-        urlParams.delete("type");
-        const cleanUrl = urlParams.toString()
-          ? `${window.location.pathname}?${urlParams.toString()}`
-          : window.location.pathname;
-        window.history.replaceState({}, "", cleanUrl);
-      }
-    }
+    return () => {
+      document.body.classList.remove("page-chat");
+    };
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-    markAsRead();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
 
-    // Setup deterministic realtime channel for chat and WebRTC signaling
-    const channelRoomName = [userId, contact.id].sort().join("_");
-    const channel = supabase
-      .channel(`personal_chat_${channelRoomName}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chat_messages",
-          filter: "is_lounge=eq.false",
-        },
-        (payload) => {
-          const newMsg = payload.new;
-          const isRelevant = 
-            (newMsg.sender_id === userId && newMsg.receiver_id === contact.id) ||
-            (newMsg.sender_id === contact.id && newMsg.receiver_id === userId);
-
-          if (isRelevant) {
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === newMsg.id)) return prev;
-              return [...prev, newMsg];
-            });
-            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-            
-            // If message from contact, mark as read & vibrate
-            if (newMsg.sender_id === contact.id) {
-              markAsRead();
-              if (navigator.vibrate) {
-                navigator.vibrate([40, 40, 40]);
-              }
-            }
-          }
-        }
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "chat_messages",
-          filter: "is_lounge=eq.false",
-        },
-        (payload) => {
-          const updated = payload.new;
-          setMessages((prev) =>
-            prev.map((m) => (m.id === updated.id ? { ...m, ...updated } : m))
-          );
-        }
-      )
-      // Real WebRTC Call signaling listener — buffer offer SDP for callee
-      .on("broadcast", { event: "call_signal" }, (payload) => {
-        const data = payload?.payload;
-        if (!data || data.senderId === userId) return;
-        // IMPORTANT: Only respond to signals from the current chat contact
-        if (data.senderId !== contact.id) return;
-
-        if (data.type === "offer") {
-          // Caller sent an offer — open ringing modal with the offer buffered
-          setCallModal((prev) => {
-            if (prev?.isOpen) {
-              // Modal already open, just update the pending offer
-              return { ...prev, pendingOffer: data.sdp };
-            }
-            return {
-              isOpen: true,
-              type: data.callType || "voice",
-              isIncoming: true,
-              autoAccept: false,
-              pendingOffer: data.sdp,
-            };
-          });
-        } else if (data.type === "hangup") {
-          // Remote ended call before we accepted
-          setCallModal(null);
-        }
-      })
-      .subscribe();
-
-    channelRef.current = channel;
-
+  // Click outside to close options dropdown and emoji drawer
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      if (optionsRef.current && !optionsRef.current.contains(event.target as Node)) {
+        setShowOptionsDropdown(false);
+      }
       if (emojiRef.current && !emojiRef.current.contains(event.target as Node)) {
         setShowEmoji(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-    return () => {
-      document.body.classList.remove("page-chat");
-      supabase.removeChannel(channel);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [supabase, userId, contact.id, markAsRead]);
+  const handleToggleBlock = async () => {
+    setShowOptionsDropdown(false);
+    const action = isBlocked ? "unblock" : "block";
+    const promptMsg = isBlocked 
+      ? `Buka blokir kontak ${contact.nama_panggilan}? Anda akan kembali menerima pesan dari mereka.`
+      : `Blokir kontak ${contact.nama_panggilan}? Pengguna ini tidak akan dapat mengirim pesan atau melakukan panggilan kepada Anda.`;
 
-  const handleLoadMore = async () => {
-    setIsLoadingMore(true);
-    const { data: olderMessages, error } = await supabase
-      .from("chat_messages")
-      .select("*")
-      .eq("is_lounge", false)
-      .eq("is_deleted", false)
-      .or(`and(sender_id.eq.${userId},receiver_id.eq.${contact.id}),and(sender_id.eq.${contact.id},receiver_id.eq.${userId})`)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + 49);
+    const confirmed = await showConfirm(isBlocked ? "Buka Blokir" : "Blokir Kontak", promptMsg);
+    if (!confirmed) return;
 
-    if (!error && olderMessages) {
-      const reversed = [...olderMessages].reverse();
-      setMessages(prev => [...reversed, ...prev]);
-      setOffset(prev => prev + olderMessages.length);
-      if (olderMessages.length < 50) setHasMore(false);
+    try {
+      const res = await fetch("/api/moderation/block", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_user_id: contact.id, action }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        showAlert("Gagal", data.error || "Gagal mengubah status blokir.");
+        return;
+      }
+      setIsBlocked(!isBlocked);
+      showAlert("Status Diperbarui", data.message);
+    } catch {
+      showAlert("Error", "Gagal menghubungi server.");
     }
-    setIsLoadingMore(false);
   };
 
-  const handleSendMessage = async (
-    e?: FormEvent, 
-    media?: { imageUrl?: string; audioUrl?: string; videoUrl?: string; messageType?: string }
-  ) => {
-    if (e) e.preventDefault();
-    if (!inputMessage.trim() && !media?.imageUrl && !media?.audioUrl && !media?.videoUrl) return;
-
-    const messageText = inputMessage;
-    setInputMessage(""); // Optimistic clear
-    setShowEmoji(false);
-
-    // Optimistic message
-    const tempId = `temp_${Date.now()}`;
-    const optimisticMsg: any = {
-      id: tempId,
-      sender_id: userId,
-      receiver_id: contact.id,
-      message: messageText || null,
-      image_url: media?.imageUrl || null,
-      audio_url: media?.audioUrl || null,
-      video_url: media?.videoUrl || null,
-      message_type: media?.messageType || "text",
-      is_lounge: false,
-      is_deleted: false,
-      is_read: false,
-      isSending: true,
-      created_at: new Date().toISOString(),
-    };
-
-    setMessages((prev) => [...prev, optimisticMsg]);
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-
-    const { data, error } = await supabase.from("chat_messages").insert([
-      {
-        sender_id: userId,
-        receiver_id: contact.id,
-        message: messageText || null,
-        image_url: media?.imageUrl || null,
-        audio_url: media?.audioUrl || null,
-        video_url: media?.videoUrl || null,
-        message_type: media?.messageType || "text",
-        is_lounge: false,
-      },
-    ]).select().single();
-
-    if (error) {
-      console.error("Gagal mengirim pesan:", error);
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      showAlert("Gagal", "Pesan gagal terkirim. Silakan coba lagi.");
-    } else if (data) {
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)));
-      // Send real-time in-app & push notification to recipient
-      fetch("/api/chat/notify", {
+  const handleSubmitReport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingReport(true);
+    try {
+      const res = await fetch("/api/moderation/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          receiverId: contact.id,
-          message: messageText || (media?.imageUrl ? "📷 Mengirim gambar" : media?.audioUrl ? "🎤 Mengirim pesan suara" : "🎥 Mengirim video"),
+          reported_user_id: contact.id,
+          reason: reportReason,
+          details: reportDetails,
         }),
-      }).catch((err) => console.warn("Failed to send chat notification:", err));
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        showAlert("Gagal", data.error || "Gagal mengirim laporan.");
+        return;
+      }
+      setShowReportModal(false);
+      setReportDetails("");
+      showAlert("Laporan Terkirim", data.message);
+    } catch {
+      showAlert("Error", "Gagal mengirim laporan ke server.");
+    } finally {
+      setSubmittingReport(false);
     }
+  };
+
+  const handleSendMessage = async (e?: FormEvent) => {
+    if (e) e.preventDefault();
+    if (!inputMessage.trim()) return;
+
+    const messageText = inputMessage;
+    setInputMessage("");
+    setShowEmoji(false);
+    await sendMessage({ content: messageText, messageType: "text" });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      await showAlert("Peringatan", "Ukuran gambar maksimal 5MB.");
-      return;
+    if (file) {
+      await uploadImage(file);
     }
-
-    setUploadingImage(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}_${Date.now()}.${fileExt}`;
-      const filePath = `images/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("chat-attachments")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("chat-attachments")
-        .getPublicUrl(filePath);
-
-      await handleSendMessage(undefined, { imageUrl: publicUrl, messageType: "image" });
-    } catch (error) {
-      await showAlert("Gagal", "Gagal mengunggah gambar.");
-      console.error(error);
-    } finally {
-      setUploadingImage(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Voice Note Send Handler
   const handleSendVoiceNote = async (audioBlob: Blob, duration: number) => {
     setIsRecordingVoice(false);
-    try {
-      const mimeType = audioBlob.type || "audio/webm";
-      const ext = mimeType.includes("mp4") ? "mp4" : mimeType.includes("ogg") ? "ogg" : "webm";
-      const fileName = `voice_notes/${userId}_${Date.now()}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("chat-attachments")
-        .upload(fileName, audioBlob, { contentType: mimeType });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("chat-attachments")
-        .getPublicUrl(fileName);
-
-      // Attach ?d=duration for immediate & accurate duration display
-      const urlWithDuration = `${publicUrl}?d=${duration}`;
-      await handleSendMessage(undefined, { audioUrl: urlWithDuration, messageType: "voice" });
-    } catch (err) {
-      console.error("Gagal mengirim Voice Note:", err);
-      showAlert("Gagal", "Gagal mengirim pesan suara.");
-    }
+    await sendVoiceNote(audioBlob, duration);
   };
 
-  // Video Note Send Handler
-  const handleSendVideoNote = async (videoBlob: Blob, duration: number) => {
+  const handleSendVideoNote = async (videoBlob: Blob, _duration: number) => {
     setShowVideoNoteRecorder(false);
-    try {
-      const fileName = `video_notes/${userId}_${Date.now()}.webm`;
-      const { error: uploadError } = await supabase.storage
-        .from("chat-attachments")
-        .upload(fileName, videoBlob, { contentType: "video/webm" });
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("chat-attachments")
-        .getPublicUrl(fileName);
-
-      await handleSendMessage(undefined, { videoUrl: publicUrl, messageType: "video_note" });
-    } catch (err) {
-      console.error("Gagal mengirim Video Note:", err);
-      showAlert("Gagal", "Gagal mengirim video pesan.");
-    }
+    await sendVideoNote(videoBlob);
   };
 
-  // Call Initiation — uses the existing shared channel (no separate unsubscribed channel)
   const handleStartCall = (type: "voice" | "video") => {
-    // Open call modal locally — the ChatCallModal will handle sending the offer
-    // via the shared channel (channelRef.current)
-    setCallModal({
-      isOpen: true,
-      type,
-      isIncoming: false,
-      pendingOffer: null,
-    });
+    startCall(type);
   };
 
   const handleEndCall = async (duration = 0) => {
-    setCallModal(null);
-
-    if (duration > 0) {
-      const m = Math.floor(duration / 60);
-      const s = duration % 60;
-      const timeStr = `${m > 0 ? `${m}m ` : ""}${s}d`;
-      const callLog = `📞 Panggilan selesai (${timeStr})`;
-
-      // Auto-send call log message directly
-      const { error } = await supabase.from("chat_messages").insert([{
-        sender_id: userId,
-        receiver_id: contact.id,
-        message: callLog,
-        message_type: "call",
-        is_lounge: false,
-      }]);
-      if (error) console.error("Gagal mengirim log panggilan:", error);
-    }
+    await endCall(duration);
   };
 
   const handleDeleteMessage = async (msgId: string) => {
     const confirmed = await showConfirm("Hapus Pesan", "Hapus pesan ini?");
-    if (!confirmed) return;
-
-    await supabase
-      .from("chat_messages")
-      .update({ is_deleted: true })
-      .eq("id", msgId)
-      .eq("sender_id", userId);
+    if (confirmed) {
+      await deleteMessage(msgId);
+    }
   };
 
   const addEmoji = (emoji: string) => {
@@ -487,6 +307,92 @@ export default function PersonalChatClient({
           >
             <i className="fa-solid fa-video"></i>
           </button>
+
+          {/* UGC Moderation Options (Report & Block) */}
+          <div style={{ position: "relative" }} ref={optionsRef}>
+            <button
+              type="button"
+              onClick={() => setShowOptionsDropdown(!showOptionsDropdown)}
+              style={{
+                width: "38px",
+                height: "38px",
+                borderRadius: "50%",
+                background: "rgba(255, 255, 255, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
+                color: "#e2e8f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontSize: "0.95rem",
+                transition: "0.2s",
+              }}
+              title="Opsi Kontak"
+            >
+              <i className="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+
+            {showOptionsDropdown && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  marginTop: "8px",
+                  background: "rgba(18, 24, 20, 0.98)",
+                  backdropFilter: "blur(16px)",
+                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  borderRadius: "10px",
+                  padding: "6px",
+                  minWidth: "180px",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
+                  zIndex: 100,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => { setShowOptionsDropdown(false); setShowReportModal(true); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "100%",
+                    padding: "8px 12px",
+                    background: "none",
+                    border: "none",
+                    color: "#f59e0b",
+                    fontSize: "0.85rem",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <i className="fa-solid fa-flag" /> Laporkan Pengguna
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleBlock}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    width: "100%",
+                    padding: "8px 12px",
+                    background: "none",
+                    border: "none",
+                    color: isBlocked ? "#10b981" : "#ef4444",
+                    fontSize: "0.85rem",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <i className={isBlocked ? "fa-solid fa-user-check" : "fa-solid fa-user-slash"} />
+                  {isBlocked ? "Buka Blokir Kontak" : "Blokir Kontak"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -701,36 +607,59 @@ export default function PersonalChatClient({
               </button>
             </div>
 
-            {/* Input Teks */}
-            <form onSubmit={(e) => handleSendMessage(e)} className="chat-form">
-              <input 
-                type="text" 
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Tulis pesan..." 
-                className="chat-text-input"
-              />
-
-              {inputMessage.trim() ? (
-                <button 
-                  type="submit" 
-                  className="btn-chat-send"
-                  title="Kirim Pesan"
-                >
-                  <i className="fa-solid fa-paper-plane"></i>
-                </button>
-              ) : (
-                /* Voice Note Trigger when input text is empty */
-                <button 
+            {/* Input Teks or Blocked Notice */}
+            {isBlocked ? (
+              <div style={{ flex: 1, padding: "12px", textAlign: "center", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "12px" }}>
+                <span style={{ color: "#ef4444", fontSize: "0.85rem", fontWeight: 500, marginRight: "12px" }}>
+                  <i className="fa-solid fa-ban" style={{ marginRight: "6px" }} /> Anda memblokir kontak ini.
+                </span>
+                <button
                   type="button"
-                  onClick={() => setIsRecordingVoice(true)}
-                  className="btn-chat-send"
-                  title="Tekan untuk Rekam Voice Note"
+                  onClick={handleToggleBlock}
+                  style={{
+                    background: "rgba(239, 68, 68, 0.2)",
+                    color: "#fca5a5",
+                    border: "1px solid rgba(239, 68, 68, 0.4)",
+                    borderRadius: "6px",
+                    padding: "4px 10px",
+                    fontSize: "0.75rem",
+                    cursor: "pointer",
+                  }}
                 >
-                  <i className="fa-solid fa-microphone"></i>
+                  Buka Blokir
                 </button>
-              )}
-            </form>
+              </div>
+            ) : (
+              <form onSubmit={(e) => handleSendMessage(e)} className="chat-form">
+                <input 
+                  type="text" 
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Tulis pesan..." 
+                  className="chat-text-input"
+                />
+
+                {inputMessage.trim() ? (
+                  <button 
+                    type="submit" 
+                    className="btn-chat-send"
+                    title="Kirim Pesan"
+                  >
+                    <i className="fa-solid fa-paper-plane"></i>
+                  </button>
+                ) : (
+                  /* Voice Note Trigger when input text is empty */
+                  <button 
+                    type="button"
+                    onClick={() => setIsRecordingVoice(true)}
+                    className="btn-chat-send"
+                    title="Tekan untuk Rekam Voice Note"
+                  >
+                    <i className="fa-solid fa-microphone"></i>
+                  </button>
+                )}
+              </form>
+            )}
           </>
         )}
       </div>
@@ -753,7 +682,7 @@ export default function PersonalChatClient({
           isIncoming={callModal.isIncoming}
           autoAccept={callModal.autoAccept}
           pendingOffer={callModal.pendingOffer || null}
-          channel={channelRef.current}
+          channel={channel}
           onEndCall={handleEndCall}
         />
       )}
@@ -765,6 +694,139 @@ export default function PersonalChatClient({
         timestamp={activeImage?.time}
         onClose={() => setActiveImage(null)}
       />
+
+      {/* UGC User Report Modal Dialog */}
+      {showReportModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.75)",
+            backdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "1rem",
+          }}
+          onClick={() => setShowReportModal(false)}
+        >
+          <div
+            style={{
+              maxWidth: "480px",
+              width: "100%",
+              background: "#121814",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              borderRadius: "16px",
+              padding: "1.75rem",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+              <h3 style={{ margin: 0, color: "#f3ba2f", fontSize: "1.15rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-flag" style={{ color: "#f59e0b" }} /> Laporkan {contact.nama_panggilan}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "1.2rem" }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "1.25rem", lineHeight: 1.5 }}>
+              Laporan Anda akan ditinjau secara rahasia oleh tim moderator sesuai Pedoman Komunitas Expedient 43.
+            </p>
+
+            <form onSubmit={handleSubmitReport}>
+              <div style={{ marginBottom: "1rem" }}>
+                <label style={{ display: "block", color: "#e2e8f0", fontSize: "0.85rem", marginBottom: "0.5rem", fontWeight: 500 }}>
+                  Alasan Pelaporan:
+                </label>
+                <select
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    fontSize: "0.9rem",
+                    outline: "none",
+                  }}
+                >
+                  <option value="Spam atau Penipuan" style={{ background: "#121814" }}>Spam atau Penipuan</option>
+                  <option value="Pelecehan atau Ujaran Kebencian" style={{ background: "#121814" }}>Pelecehan atau Ujaran Kebencian</option>
+                  <option value="Konten Tidak Pantas / Asusila" style={{ background: "#121814" }}>Konten Tidak Pantas / Asusila</option>
+                  <option value="Peniruan Identitas (Impersonation)" style={{ background: "#121814" }}>Peniruan Identitas (Impersonation)</option>
+                  <option value="Lainnya" style={{ background: "#121814" }}>Lainnya</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: "1.5rem" }}>
+                <label style={{ display: "block", color: "#e2e8f0", fontSize: "0.85rem", marginBottom: "0.5rem", fontWeight: 500 }}>
+                  Keterangan Tambahan (Opsional):
+                </label>
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Jelaskan detail pelanggaran yang terjadi..."
+                  rows={3}
+                  style={{
+                    width: "100%",
+                    padding: "0.75rem",
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "8px",
+                    color: "#fff",
+                    fontSize: "0.85rem",
+                    resize: "none",
+                    outline: "none",
+                  }}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowReportModal(false)}
+                  style={{
+                    padding: "0.6rem 1.2rem",
+                    background: "rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(255,255,255,0.15)",
+                    borderRadius: "8px",
+                    color: "#e2e8f0",
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingReport}
+                  style={{
+                    padding: "0.6rem 1.2rem",
+                    background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#030504",
+                    fontWeight: 600,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                  }}
+                >
+                  {submittingReport ? "Mengirim..." : "Kirim Laporan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

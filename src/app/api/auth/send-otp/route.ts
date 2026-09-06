@@ -3,6 +3,33 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendEmail } from "@/lib/email";
 
+async function logOtpDelivery(
+  supabase: any,
+  data: {
+    userId?: string;
+    email: string;
+    phone?: string;
+    channel: string;
+    status: "sent" | "failed" | "fallback_triggered";
+    errorMessage?: string;
+  }
+) {
+  try {
+    await supabase.from("otp_logs").insert([
+      {
+        user_id: data.userId || null,
+        email: data.email,
+        phone: data.phone || null,
+        channel: data.channel,
+        status: data.status,
+        error_message: data.errorMessage || null,
+      },
+    ]);
+  } catch (err) {
+    console.warn("[logOtpDelivery] Gagal mencatat otp_logs:", err);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -235,7 +262,17 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
       // Jika WhatsApp gagal (misal Fonnte limit/banned), lakukan auto-fallback langsung ke Gmail!
       if (!sent) {
         console.warn(`[SEND-OTP] WhatsApp Fonnte gagal/banned. Mengalihkan otomatis pengiriman ke Gmail (${email})...`);
+        await logOtpDelivery(adminSupabase, {
+          userId: user.id,
+          email,
+          phone: noWa,
+          channel: "whatsapp",
+          status: "fallback_triggered",
+          errorMessage: "WhatsApp gateway delivery failed or unreachable, triggering failover to Gmail",
+        });
+
         let emailSent = false;
+        let mailErrorMsg: string | undefined;
         try {
           emailSent = await sendEmail({
             to: email,
@@ -243,11 +280,20 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
             body: `Halo ${namaPengguna}, saluran WhatsApp sedang dalam pemeliharaan berkala. Berikut kode OTP verifikasi akun Anda: ${otp}. Berlaku selama 10 menit.`,
             html: emailHtml,
           });
-        } catch (mErr) {
+        } catch (mErr: any) {
           console.error("[SEND-OTP] WhatsApp-to-Gmail fallback error:", mErr);
+          mailErrorMsg = mErr?.message;
         }
 
         if (emailSent) {
+          await logOtpDelivery(adminSupabase, {
+            userId: user.id,
+            email,
+            phone: noWa,
+            channel: "gmail",
+            status: "sent",
+          });
+
           // Perbarui metadata kanal OTP menjadi gmail
           await adminSupabase.auth.admin.updateUserById(user.id, {
             user_metadata: {
@@ -268,16 +314,34 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
           return NextResponse.json({
             success: true,
             channel: "gmail",
+            fallback: true,
             target: maskedEmail,
             message: `Layanan WhatsApp gateway sedang dalam antrean/pemeliharaan. Kode OTP otomatis dialihkan dan berhasil dikirim ke Gmail Anda (${maskedEmail})!`,
           });
         }
+
+        await logOtpDelivery(adminSupabase, {
+          userId: user.id,
+          email,
+          phone: noWa,
+          channel: "gmail",
+          status: "failed",
+          errorMessage: mailErrorMsg || "Fallback email sending failed",
+        });
 
         return NextResponse.json(
           { error: "Gagal mengirimkan kode OTP via WhatsApp. Silakan pilih opsi 'Kirim via Gmail' untuk menerima kode langsung." },
           { status: 500 }
         );
       }
+
+      await logOtpDelivery(adminSupabase, {
+        userId: user.id,
+        email,
+        phone: noWa,
+        channel: "whatsapp",
+        status: "sent",
+      });
 
       // Selalu kirim salinan otomatis ke Gmail secara paralel agar pengguna PASTI menerima kode tanpa terhambat aturan 24-jam Meta WhatsApp!
       try {
@@ -314,6 +378,7 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
 
     // Saluran Gmail: Kirim email HTML via Direct Gmail SMTP (dengan fallback Resend jika dikonfigurasi)
     let emailSent = false;
+    let gmailErrorMsg: string | undefined;
     try {
       emailSent = await sendEmail({
         to: email,
@@ -323,12 +388,22 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
       });
     } catch (mailErr: any) {
       console.error("[SEND-OTP] Email sending error:", mailErr);
+      gmailErrorMsg = mailErr?.message;
       emailSent = false;
     }
 
     // Jika pengiriman email gagal, lakukan fallback otomatis ke WhatsApp jika nomor tersedia
     if (!emailSent) {
       console.warn(`[SEND-OTP] Gagal mengirim email ke ${email}. Menjalankan fallback otomatis ke WhatsApp...`);
+      await logOtpDelivery(adminSupabase, {
+        userId: user.id,
+        email,
+        phone: noWa,
+        channel: "gmail",
+        status: "fallback_triggered",
+        errorMessage: gmailErrorMsg || "Primary Gmail sending failed",
+      });
+
       if (noWa) {
         const waMessage = `✨ *KODE VERIFIKASI EXPEDIENT GENERATION* ✨
 
@@ -348,6 +423,14 @@ Silakan masukkan 6 digit angka di atas pada formulir portal untuk menyelesaikan 
 
         const waSent = await sendWhatsAppMessage(noWa, waMessage);
         if (waSent) {
+          await logOtpDelivery(adminSupabase, {
+            userId: user.id,
+            email,
+            phone: noWa,
+            channel: "whatsapp",
+            status: "sent",
+          });
+
           // Perbarui metadata kanal OTP menjadi whatsapp
           await adminSupabase.auth.admin.updateUserById(user.id, {
             user_metadata: {
@@ -368,17 +451,35 @@ Silakan masukkan 6 digit angka di atas pada formulir portal untuk menyelesaikan 
           return NextResponse.json({
             success: true,
             channel: "whatsapp",
+            fallback: true,
             target: masked,
             message: `Pengiriman ke Gmail mengalami kendala. Kode OTP berhasil dialihkan dan dikirimkan ke WhatsApp Anda (${masked})!`,
           });
         }
       }
 
+      await logOtpDelivery(adminSupabase, {
+        userId: user.id,
+        email,
+        phone: noWa,
+        channel: "gmail",
+        status: "failed",
+        errorMessage: gmailErrorMsg || "Email delivery failed with no WhatsApp fallback",
+      });
+
       return NextResponse.json(
         { error: "Gagal mengirimkan email verifikasi ke Gmail Anda. Mohon gunakan saluran pengiriman 'Kirim via WhatsApp' atau coba lagi beberapa saat lagi." },
         { status: 500 }
       );
     }
+
+    await logOtpDelivery(adminSupabase, {
+      userId: user.id,
+      email,
+      phone: noWa,
+      channel: "gmail",
+      status: "sent",
+    });
 
     // Mask email for response (e.g. da***@gmail.com)
     const [userPart, domainPart] = email.split("@");

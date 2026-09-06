@@ -1141,6 +1141,28 @@ function RegisterFormContent() {
                   )}
                 </div>
 
+                {selectedChannel === "whatsapp" && (
+                  <div style={{ marginTop: "10px", textAlign: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSendOtp("gmail")}
+                      disabled={isSendingOtp}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--gold-main, #d4af37)",
+                        fontSize: "0.82rem",
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                        opacity: 0.9,
+                      }}
+                    >
+                      <i className="fa-solid fa-envelope" style={{ marginRight: "5px" }}></i>
+                      Tidak menerima WhatsApp? Kirim via Email
+                    </button>
+                  </div>
+                )}
+
                 <div style={{ marginTop: "14px", textAlign: "center" }}>
                   <button
                     type="button"

@@ -556,6 +556,142 @@
 
     textarea.form-input { resize: none; overflow: hidden; min-height: 40px; }
 
+    /* ========================================================
+       PROGRESSIVE DISCLOSURE 3-STEP WIZARD (UX-02)
+       ======================================================== */
+    .wizard-stepper-container {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        backdrop-filter: blur(10px);
+    }
+
+    .wizard-progress-track {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 12px;
+    }
+
+    .wizard-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #d4af37, #ffd700);
+        border-radius: 6px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+    }
+
+    .wizard-progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        font-size: 0.78rem;
+    }
+
+    .wizard-progress-label {
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+    }
+
+    .wizard-progress-badge {
+        color: var(--gold-premium, #d4af37);
+        font-family: monospace;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .wizard-tabs {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .wizard-tab-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-height: 44px;
+    }
+
+    .wizard-tab-btn .step-num {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+        transition: all 0.3s ease;
+    }
+
+    .wizard-tab-btn.active {
+        background: rgba(212, 175, 55, 0.15);
+        border-color: var(--gold-premium, #d4af37);
+        color: var(--gold-premium, #d4af37);
+        box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+    }
+
+    .wizard-tab-btn.active .step-num {
+        background: var(--gold-premium, #d4af37);
+        color: #000;
+    }
+
+    .wizard-tab-btn.completed {
+        border-color: rgba(0, 255, 170, 0.3);
+    }
+
+    .wizard-tab-btn.completed .step-num {
+        background: rgba(0, 255, 170, 0.2);
+        color: #00ffaa;
+    }
+
+    .wizard-tab-line {
+        width: 16px;
+        height: 1px;
+        background: var(--glass-border);
+        flex-shrink: 0;
+    }
+
+    .wizard-step-section {
+        animation: fadeInStep 0.3s ease-out;
+    }
+
+    @keyframes fadeInStep {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .wizard-nav-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid var(--glass-border);
+    }
+
     /* MOBILE RESPONSIVENESS */
     @media (max-width: 768px) {
         .profil-wrapper { padding: 80px 14px 120px; }
@@ -569,4 +705,7 @@
         .retina-container { width: 250px; height: 250px; }
         .camera-frame { width: 200px; height: 200px; }
         .form-row { grid-template-columns: 1fr; }
+        .wizard-tab-btn .step-title { display: none; }
+        .wizard-tab-btn { padding: 8px; }
+        .wizard-tab-line { width: 8px; }
     }

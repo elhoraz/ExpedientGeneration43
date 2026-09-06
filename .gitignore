@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# android release keystore & credentials
+*.jks
+*.keystore
+key.properties
+android/key.properties
+android/release-key.jks
+android/app/release-key.jks
+.gradle/
+android/.gradle/
+android/build/
+android/app/build/

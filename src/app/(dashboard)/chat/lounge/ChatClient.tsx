@@ -234,13 +234,24 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
     const confirmed = await showConfirm("Hapus Pesan", "Hapus pesan ini?");
     if (!confirmed) return;
 
+    // UX-03: Optimistic local UI update immediately
+    const prevMessages = [...messages];
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, is_deleted: true } : m))
+    );
+
     const { error } = await supabase
       .from("chat_messages")
       .update({ is_deleted: true })
       .eq("id", msgId)
       .eq("sender_id", userId);
 
-    if (error) console.error("Failed to delete message:", error);
+    if (error) {
+      console.error("Failed to delete message:", error);
+      // Gracefully rollback on failure
+      setMessages(prevMessages);
+      showAlert("Gagal", "Gagal menghapus pesan. Silakan coba lagi.");
+    }
   };
 
   const addEmoji = (emoji: string) => {

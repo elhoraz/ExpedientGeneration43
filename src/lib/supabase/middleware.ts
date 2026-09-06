@@ -67,11 +67,31 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin Panel Protection (Cryptographic Signed Session verification)
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isUnlockRoute = request.nextUrl.pathname === '/admin/unlock'
+  // 1. Admin API Route Protection
+  const isAdminApiRoute = request.nextUrl.pathname.startsWith('/api/admin')
+  const isUnlockApi = request.nextUrl.pathname === '/api/admin/unlock'
   
-  if (isAdminRoute && !isUnlockRoute) {
+  if (isAdminApiRoute && !isUnlockApi) {
+    const cronHeader = request.headers.get('authorization')
+    const isCron = Boolean(process.env.CRON_SECRET && cronHeader === `Bearer ${process.env.CRON_SECRET}`)
+    
+    if (!isCron) {
+      const adminSession = request.cookies.get('expedient_admin_session')
+      const isValidAdmin = await verifySignedAdminSession(adminSession?.value)
+      if (!isValidAdmin) {
+        return NextResponse.json(
+          { error: 'Unauthorized: Sesi admin diperlukan atau telah kedaluwarsa' },
+          { status: 401 }
+        )
+      }
+    }
+  }
+
+  // 2. Admin UI Page Protection (Cryptographic Signed Session verification)
+  const isAdminPageRoute = request.nextUrl.pathname.startsWith('/admin')
+  const isUnlockPage = request.nextUrl.pathname === '/admin/unlock'
+  
+  if (isAdminPageRoute && !isUnlockPage) {
     const adminSession = request.cookies.get('expedient_admin_session')
     const isValidAdmin = await verifySignedAdminSession(adminSession?.value)
     if (!isValidAdmin) {

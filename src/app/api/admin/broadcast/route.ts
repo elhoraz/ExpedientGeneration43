@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 type BroadcastTarget = {
   id: string;
@@ -41,8 +42,10 @@ export async function POST(req: Request) {
     }
 
     const cookieStore = await cookies();
-    if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
-      return jsonResponse("error", "Forbidden: Admin panel is locked", null, { status: 403 });
+    const adminToken = cookieStore.get("expedient_admin_session")?.value;
+    const isValidAdmin = await verifySignedAdminSession(adminToken);
+    if (!isValidAdmin) {
+      return jsonResponse("error", "Forbidden: Sesi admin tidak valid atau telah kedaluwarsa", null, { status: 403 });
     }
 
     const { targetRole, message } = await req.json();

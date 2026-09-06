@@ -1,12 +1,22 @@
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { getWhatsAppConversations } from "@/lib/whatsapp-inbox";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 async function verifyAdminAuth() {
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get("expedient_admin_session")?.value;
+  const isValidSession = await verifySignedAdminSession(adminToken);
+
+  if (!isValidSession) {
+    return { ok: false, status: 401, error: "Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa" };
+  }
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -14,6 +24,16 @@ async function verifyAdminAuth() {
 
   if (!user) {
     return { ok: false, status: 401, error: "Unauthorized: Harap login terlebih dahulu" };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || (profile.role !== "admin" && profile.role !== "superadmin")) {
+    return { ok: false, status: 403, error: "Forbidden: Akses ditolak. Hanya Admin yang berhak mengakses pesan WhatsApp." };
   }
 
   return { ok: true, user };

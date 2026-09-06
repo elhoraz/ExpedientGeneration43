@@ -51,10 +51,27 @@ body.page-admin .admin-wrapper,
 .admin-wrapper .badge.member { background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid #555; }
 .admin-wrapper .badge.active { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid #00ff88; }
 .admin-wrapper .badge.inactive { background: rgba(255,51,102,0.1); color: #ff3366; border: 1px solid #ff3366; }
-.admin-wrapper .btn-action { background: transparent; border: 1px solid #555; color: #fff; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; margin-right: 5px; }
-.admin-wrapper .btn-action:hover { border-color: #d4af37; color: #d4af37; }
+.admin-wrapper .btn-action { 
+    background: transparent; 
+    border: 1px solid #555; 
+    color: #fff; 
+    padding: 8px 14px; 
+    min-height: 44px; 
+    min-width: 44px; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    font-size: 0.85rem; 
+    transition: 0.2s ease; 
+    margin-right: 6px; 
+    margin-bottom: 4px;
+}
+.admin-wrapper .btn-action:hover { border-color: #d4af37; color: #d4af37; background: rgba(212, 175, 55, 0.08); }
+.admin-wrapper .btn-action:active { transform: scale(0.96); }
 .admin-wrapper .btn-action:disabled { opacity: 0.5; pointer-events: none; }
-.admin-wrapper .btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); text-decoration: none; margin-bottom: 20px; font-size: 0.9rem; transition: 0.3s; }
+.admin-wrapper .btn-back { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--text-muted); text-decoration: none; margin-bottom: 20px; font-size: 0.9rem; transition: 0.3s; }
 .admin-wrapper .btn-back:hover { color: #d4af37; }
 
 @media (max-width: 768px) {

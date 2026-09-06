@@ -1,7 +1,7 @@
-export const dynamic = "force-dynamic";
-
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 type QueueRow = {
   status: string | null;
@@ -23,10 +23,27 @@ const getErrorMessage = (err: unknown) =>
 
 export async function GET() {
   try {
+    const cookieStore = await cookies();
+    const adminToken = cookieStore.get("expedient_admin_session")?.value;
+    const isValidSession = await verifySignedAdminSession(adminToken);
+    if (!isValidSession) {
+      return jsonResponse("error", "Forbidden: Sesi admin diperlukan", null, { status: 403 });
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return jsonResponse("error", "Unauthorized", null, { status: 401 });
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || (profile.role !== "admin" && profile.role !== "superadmin")) {
+      return jsonResponse("error", "Forbidden: Akses ditolak. Hanya Admin yang diizinkan.", null, { status: 403 });
     }
 
     const { data: queue, error } = await supabase

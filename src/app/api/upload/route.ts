@@ -119,22 +119,29 @@ export async function POST(req: Request) {
       console.warn('Supabase storage execution error:', storageErr);
     }
 
-    // 7. Secondary Fallback: Local filesystem (for local dev environments)
-    try {
-      const uploadDir = join(process.cwd(), 'public', 'uploads', folderInput);
-      await mkdir(uploadDir, { recursive: true });
-      const filePath = join(uploadDir, sanitizedFilename);
-      await writeFile(filePath, buffer);
+    // 7. Secondary Fallback: Local filesystem (ONLY allowed in local dev environments)
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        const uploadDir = join(process.cwd(), 'public', 'uploads', folderInput);
+        await mkdir(uploadDir, { recursive: true });
+        const filePath = join(uploadDir, sanitizedFilename);
+        await writeFile(filePath, buffer);
 
-      return NextResponse.json({
-        success: true,
-        url: `/uploads/${folderInput}/${sanitizedFilename}`,
-        filename: sanitizedFilename,
-      });
-    } catch (fsErr) {
-      console.error('Local filesystem upload failed:', fsErr);
-      return NextResponse.json({ error: 'Gagal mengunggah file ke penyimpanan server' }, { status: 500 });
+        return NextResponse.json({
+          success: true,
+          url: `/uploads/${folderInput}/${sanitizedFilename}`,
+          filename: sanitizedFilename,
+        });
+      } catch (fsErr) {
+        console.error('Local filesystem upload failed:', fsErr);
+        return NextResponse.json({ error: 'Gagal mengunggah file ke penyimpanan lokal server' }, { status: 500 });
+      }
     }
+
+    return NextResponse.json(
+      { error: 'Gagal mengunggah file ke Supabase Cloud Storage. Silakan coba beberapa saat lagi.' },
+      { status: 502 }
+    );
 
   } catch (e: any) {
     console.error('Upload error:', e);

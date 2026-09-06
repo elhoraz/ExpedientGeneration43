@@ -1,0 +1,96 @@
+apply plugin: 'com.android.application'
+
+import java.util.Properties
+import java.io.FileInputStream
+
+// Load keystore release properties if present
+def keyPropertiesFile = rootProject.file("key.properties")
+def keyProperties = new Properties()
+def hasReleaseKey = false
+
+if (keyPropertiesFile.exists()) {
+    try {
+        keyProperties.load(new FileInputStream(keyPropertiesFile))
+        hasReleaseKey = keyProperties.containsKey('storePassword') && 
+                        keyProperties.containsKey('keyPassword') && 
+                        keyProperties.containsKey('keyAlias') && 
+                        keyProperties.containsKey('storeFile')
+    } catch (Exception e) {
+        logger.warn("Unable to load key.properties: " + e.message)
+    }
+}
+
+android {
+    namespace "com.expedient43.app"
+    compileSdkVersion rootProject.ext.compileSdkVersion ?: 35
+    
+    defaultConfig {
+        applicationId "com.expedient43.app"
+        minSdkVersion rootProject.ext.minSdkVersion ?: 24
+        targetSdkVersion rootProject.ext.targetSdkVersion ?: 35
+        versionCode 1
+        versionName "1.0.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets inside the APK
+             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (hasReleaseKey) {
+                storeFile file(keyProperties['storeFile'])
+                storePassword keyProperties['storePassword']
+                keyAlias keyProperties['keyAlias']
+                keyPassword keyProperties['keyPassword']
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseKey) {
+                signingConfig signingConfigs.release
+            } else {
+                logger.warn("WARNING: Building unsigned/debug release. Provide android/key.properties for signed Google Play AAB.")
+            }
+        }
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable true
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception ignored) {
+    logger.info("google-services.json not found, google-services plugin not applied.")
+}

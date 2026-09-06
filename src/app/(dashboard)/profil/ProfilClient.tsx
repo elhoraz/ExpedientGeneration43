@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import Link from "next/link";
@@ -41,6 +41,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   };
 
   const [waOptIn, setWaOptIn] = useState(user.wa_notif_opt_in === 1 || user.wa_notif_opt_in === true);
+  const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [changingPw, setChangingPw] = useState(false);
@@ -60,6 +61,26 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const router = useRouter();
   const supabase = createClient();
   const { t } = useCms();
+
+  // UX-02: Progressive disclosure completeness percentage calculation
+  const profileCompleteness = useMemo(() => {
+    const checks = [
+      Boolean(user.foto_profil || croppedAvatarFile),
+      Boolean(user.nama_lengkap && String(user.nama_lengkap).trim().length > 0),
+      Boolean(user.nama_panggilan && String(user.nama_panggilan).trim().length > 0),
+      Boolean(user.email && String(user.email).trim().length > 0),
+      Boolean(user.no_whatsapp && String(user.no_whatsapp).trim().length > 0),
+      Boolean(user.alamat_lengkap && String(user.alamat_lengkap).trim().length > 0),
+      Boolean(user.motivasi_hidup && String(user.motivasi_hidup).trim().length > 0),
+      Boolean(user.cita_cita && String(user.cita_cita).trim().length > 0),
+      Boolean(
+        (user.akun_ig && String(user.akun_ig).trim().length > 0) ||
+        (user.akun_tiktok && String(user.akun_tiktok).trim().length > 0)
+      ),
+    ];
+    const filled = checks.filter(Boolean).length;
+    return Math.round((filled / checks.length) * 100);
+  }, [user, croppedAvatarFile]);
 
   useEffect(() => {
     setIsClient(true);
@@ -108,6 +129,8 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       nama_panggilan: formData.get("nama_panggilan") as string,
       nama_lengkap: formData.get("nama_lengkap") as string,
       no_whatsapp: formData.get("no_whatsapp") as string,
+      alamat_lengkap: (formData.get("alamat_lengkap") as string) || null,
+      wa_notif_opt_in: waOptIn ? 1 : 0,
       motivasi_hidup: formData.get("motivasi_hidup") as string,
       cita_cita: formData.get("cita_cita") as string,
       akun_ig: formData.get("akun_ig") as string,
@@ -317,6 +340,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   };
 
   // ========== DELETE ACCOUNT ==========
+  // ========== DELETE ACCOUNT (PERMANENT & GOOGLE PLAY COMPLIANT) ==========
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deletePassword) {
@@ -326,33 +350,43 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     
     setDeletingAccount(true);
 
-    // Verify password first using Supabase signInWithPassword
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: deletePassword,
-    });
+    try {
+      // 1. Verify password first using Supabase signInWithPassword
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: deletePassword,
+      });
 
-    if (signInError) {
-      showToast("Kata sandi tidak valid. Gagal menonaktifkan akun.", "error");
+      if (signInError) {
+        showToast("Kata sandi tidak valid. Gagal memverifikasi identitas Anda.", "error");
+        setDeletingAccount(false);
+        return;
+      }
+
+      // 2. Call secure server-side deletion API
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation: "HAPUS" }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Gagal memproses penghapusan akun di server.");
+      }
+
+      showToast("Akun Anda telah berhasil dihapus secara permanen.", "success");
+      await supabase.auth.signOut();
+      setTimeout(() => {
+        router.push("/login?deleted=true");
+        router.refresh();
+      }, 1200);
+
+    } catch (err: any) {
+      showToast("Gagal menghapus akun: " + (err?.message || "Terjadi kesalahan."), "error");
       setDeletingAccount(false);
-      return;
     }
-
-    // Soft delete: deactivate profile
-    const { error } = await supabase
-      .from("profiles")
-      .update({ is_active: false })
-      .eq("id", user.id);
-
-    if (error) {
-      showToast("Gagal menonaktifkan akun: " + error.message, "error");
-      setDeletingAccount(false);
-      return;
-    }
-
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
   };
 
   // ========== FILE SELECTION & CROPPING ==========
@@ -500,93 +534,181 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     
                     <form onSubmit={handleProfileSubmit} id="formUpdateProfile">
 
-                        <div className="photo-upload-wrapper">
-                            <div className="magnetic-avatar cursor-bind" id="magAvatar">
-                                <img src={avatarPreviewSrc} className="avatar-preview" id="avatarPreview" alt="Profil" />
+                        {/* WIZARD PROGRESS & STEPPERS (UX-02) */}
+                        <div className="wizard-stepper-container">
+                            <div className="wizard-progress-track">
+                                <div 
+                                    className="wizard-progress-fill" 
+                                    style={{ width: `${profileCompleteness}%` }}
+                                ></div>
                             </div>
-                            <div>
-                                <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "15px" }}>Potret Resmi</div>
-                                <div className="magnetic-btn-wrap" id="magBtnWrap">
-                                    <label className="upload-btn-ui cursor-bind" id="magBtn" htmlFor="inputFileImg">
-                                        Pilih Potret
-                                    </label>
-                                </div>
-                                <input type="file" id="inputFileImg" ref={fileInputRef} accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
-                                <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginTop: "5px" }}>Maksimum resolusi HD disarankan.</div>
+                            <div className="wizard-progress-header">
+                                <span className="wizard-progress-label">
+                                    <i className="fa-solid fa-chart-pie" style={{ marginRight: "6px", color: "var(--gold-premium, #d4af37)" }}></i>
+                                    Kelengkapan Profil
+                                </span>
+                                <span className="wizard-progress-badge">
+                                    {profileCompleteness}% • {profileCompleteness === 100 ? "Sempurna" : profileCompleteness >= 75 ? "Sangat Baik" : profileCompleteness >= 50 ? "Cukup Lengkap" : "Perlu Dilengkapi"}
+                                </span>
+                            </div>
+
+                            <div className="wizard-tabs">
+                                <button
+                                    type="button"
+                                    className={`wizard-tab-btn cursor-bind ${wizardStep === 1 ? "active" : ""} ${profileCompleteness >= 33 ? "completed" : ""}`}
+                                    onClick={() => setWizardStep(1)}
+                                >
+                                    <span className="step-num">1</span>
+                                    <span className="step-title">Identitas</span>
+                                </button>
+                                <div className="wizard-tab-line"></div>
+                                <button
+                                    type="button"
+                                    className={`wizard-tab-btn cursor-bind ${wizardStep === 2 ? "active" : ""} ${profileCompleteness >= 66 ? "completed" : ""}`}
+                                    onClick={() => setWizardStep(2)}
+                                >
+                                    <span className="step-num">2</span>
+                                    <span className="step-title">Kontak & Domisili</span>
+                                </button>
+                                <div className="wizard-tab-line"></div>
+                                <button
+                                    type="button"
+                                    className={`wizard-tab-btn cursor-bind ${wizardStep === 3 ? "active" : ""} ${profileCompleteness === 100 ? "completed" : ""}`}
+                                    onClick={() => setWizardStep(3)}
+                                >
+                                    <span className="step-num">3</span>
+                                    <span className="step-title">Visi & Sosial</span>
+                                </button>
                             </div>
                         </div>
 
-                        <div className="form-row">
+                        {/* STEP 1: IDENTITAS PERSONAL */}
+                        <div className="wizard-step-section" style={{ display: wizardStep === 1 ? "block" : "none" }}>
+                            <div className="photo-upload-wrapper">
+                                <div className="magnetic-avatar cursor-bind" id="magAvatar">
+                                    <img src={avatarPreviewSrc} className="avatar-preview" id="avatarPreview" alt="Profil" />
+                                </div>
+                                <div>
+                                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "15px" }}>Potret Resmi</div>
+                                    <div className="magnetic-btn-wrap" id="magBtnWrap">
+                                        <label className="upload-btn-ui cursor-bind" id="magBtn" htmlFor="inputFileImg">
+                                            Pilih Potret
+                                        </label>
+                                    </div>
+                                    <input type="file" id="inputFileImg" ref={fileInputRef} accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+                                    <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginTop: "5px" }}>Maksimum resolusi HD disarankan.</div>
+                                </div>
+                            </div>
+
                             <div className="form-group">
                                 <input type="text" name="nama_panggilan" className="form-input" id="inp_panggilan" placeholder=" " defaultValue={user.nama_panggilan} required />
                                 <label className="form-label" htmlFor="inp_panggilan">Nama Sandi / Panggilan</label>
                                 <div className="liquid-line"></div>
                             </div>
+
+                            <div className="form-group">
+                                <input type="text" name="nama_lengkap" className="form-input" id="inp_lengkap" placeholder=" " defaultValue={user.nama_lengkap} required />
+                                <label className="form-label" htmlFor="inp_lengkap">Nama Lengkap Resmi</label>
+                                <div className="liquid-line"></div>
+                            </div>
+
+                            <div className="form-group">
+                                <input type="email" name="email" className="form-input" id="inp_email" placeholder=" " defaultValue={user.email} required />
+                                <label className="form-label" htmlFor="inp_email">Alamat Surel Utama</label>
+                                <div className="liquid-line"></div>
+                            </div>
+                        </div>
+
+                        {/* STEP 2: KONTAK & DOMISILI */}
+                        <div className="wizard-step-section" style={{ display: wizardStep === 2 ? "block" : "none" }}>
                             <div className="form-group">
                                 <input type="number" name="no_whatsapp" className="form-input" id="inp_wa" placeholder=" " defaultValue={user.no_whatsapp} required />
                                 <label className="form-label" htmlFor="inp_wa">Nomor Kontak (WhatsApp)</label>
                                 <div className="liquid-line"></div>
                             </div>
-                        </div>
 
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.2)", borderRadius: "16px", padding: "16px 20px", marginBottom: "24px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
-                                <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(37,211,102,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#25d366", fontSize: "1rem", flexShrink: 0 }}>
-                                    <i className="fa-brands fa-whatsapp"></i>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.2)", borderRadius: "16px", padding: "16px 20px", marginBottom: "24px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+                                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(37,211,102,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#25d366", fontSize: "1rem", flexShrink: 0 }}>
+                                        <i className="fa-brands fa-whatsapp"></i>
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "0.5px" }}>Notifikasi WhatsApp</div>
+                                        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "2px" }}>Event baru, pengumuman, &amp; alumni bergabung</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "0.5px" }}>Notifikasi WhatsApp</div>
-                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "2px" }}>Event baru, pengumuman, &amp; alumni bergabung</div>
-                                </div>
+                                <label className="wa-toggle-switch" style={{ position: "relative", display: "inline-block", width: "48px", height: "26px", flexShrink: 0, cursor: "pointer" }}>
+                                    <input type="checkbox" name="wa_notif_opt_in" id="waToggle" value="1" style={{ opacity: 0, width: 0, height: 0 }} checked={waOptIn} onChange={(e) => setWaOptIn(e.target.checked)} />
+                                    <span style={{ position: "absolute", inset: 0, background: waOptIn ? "#25d366" : "var(--glass-border)", borderRadius: "26px", transition: "0.3s", border: "1px solid var(--glass-border)" }} id="waToggleTrack">
+                                        <span style={{ position: "absolute", height: "20px", width: "20px", left: "3px", bottom: "2px", background: "var(--bg-main)", borderRadius: "50%", transition: "0.3s", transform: waOptIn ? "translateX(22px)" : "translateX(0)", boxShadow: "0 2px 5px rgba(0,0,0,0.2)" }} id="waToggleThumb"></span>
+                                    </span>
+                                </label>
                             </div>
-                            <label className="wa-toggle-switch" style={{ position: "relative", display: "inline-block", width: "48px", height: "26px", flexShrink: 0, cursor: "pointer" }}>
-                                <input type="checkbox" name="wa_notif_opt_in" id="waToggle" value="1" style={{ opacity: 0, width: 0, height: 0 }} checked={waOptIn} onChange={(e) => setWaOptIn(e.target.checked)} />
-                                <span style={{ position: "absolute", inset: 0, background: waOptIn ? "#25d366" : "var(--glass-border)", borderRadius: "26px", transition: "0.3s", border: "1px solid var(--glass-border)" }} id="waToggleTrack">
-                                    <span style={{ position: "absolute", height: "20px", width: "20px", left: "3px", bottom: "2px", background: "var(--bg-main)", borderRadius: "50%", transition: "0.3s", transform: waOptIn ? "translateX(22px)" : "translateX(0)", boxShadow: "0 2px 5px rgba(0,0,0,0.2)" }} id="waToggleThumb"></span>
-                                </span>
-                            </label>
-                        </div>
 
-                        <div className="form-group">
-                            <input type="text" name="nama_lengkap" className="form-input" id="inp_lengkap" placeholder=" " defaultValue={user.nama_lengkap} required />
-                            <label className="form-label" htmlFor="inp_lengkap">Nama Lengkap Resmi</label>
-                            <div className="liquid-line"></div>
-                        </div>
-
-                        <div className="form-group">
-                            <input type="email" name="email" className="form-input" id="inp_email" placeholder=" " defaultValue={user.email} required />
-                            <label className="form-label" htmlFor="inp_email">Alamat Surel Utama</label>
-                            <div className="liquid-line"></div>
-                        </div>
-
-                        <div className="form-row">
                             <div className="form-group">
-                                <input type="text" name="akun_ig" className="form-input" id="inp_ig" placeholder=" " defaultValue={user.akun_ig} />
-                                <label className="form-label" htmlFor="inp_ig">Instagram (Opsional)</label>
-                                <div className="liquid-line"></div>
-                            </div>
-                            <div className="form-group">
-                                <input type="text" name="akun_tiktok" className="form-input" id="inp_tt" placeholder=" " defaultValue={user.akun_tiktok} />
-                                <label className="form-label" htmlFor="inp_tt">TikTok (Opsional)</label>
+                                <textarea name="alamat_lengkap" className="form-input" id="inp_alamat" placeholder=" " defaultValue={user.alamat_lengkap || ""}></textarea>
+                                <label className="form-label" htmlFor="inp_alamat">Alamat Domisili Lengkap</label>
                                 <div className="liquid-line"></div>
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <textarea name="motivasi_hidup" className="form-input" id="inp_motivasi" placeholder=" " defaultValue={user.motivasi_hidup}></textarea>
-                            <label className="form-label" htmlFor="inp_motivasi">Visi &amp; Motivasi</label>
-                            <div className="liquid-line"></div>
-                        </div>
-                        
-                        <div className="form-group">
-                            <input type="text" name="cita_cita" className="form-input" id="inp_cita" placeholder=" " defaultValue={user.cita_cita} />
-                            <label className="form-label" htmlFor="inp_cita">Target Pencapaian</label>
-                            <div className="liquid-line"></div>
+                        {/* STEP 3: VISI & SOSIAL */}
+                        <div className="wizard-step-section" style={{ display: wizardStep === 3 ? "block" : "none" }}>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <input type="text" name="akun_ig" className="form-input" id="inp_ig" placeholder=" " defaultValue={user.akun_ig} />
+                                    <label className="form-label" htmlFor="inp_ig">Instagram (Opsional)</label>
+                                    <div className="liquid-line"></div>
+                                </div>
+                                <div className="form-group">
+                                    <input type="text" name="akun_tiktok" className="form-input" id="inp_tt" placeholder=" " defaultValue={user.akun_tiktok} />
+                                    <label className="form-label" htmlFor="inp_tt">TikTok (Opsional)</label>
+                                    <div className="liquid-line"></div>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <textarea name="motivasi_hidup" className="form-input" id="inp_motivasi" placeholder=" " defaultValue={user.motivasi_hidup}></textarea>
+                                <label className="form-label" htmlFor="inp_motivasi">Visi &amp; Motivasi</label>
+                                <div className="liquid-line"></div>
+                            </div>
+                            
+                            <div className="form-group">
+                                <input type="text" name="cita_cita" className="form-input" id="inp_cita" placeholder=" " defaultValue={user.cita_cita} />
+                                <label className="form-label" htmlFor="inp_cita">Target Pencapaian</label>
+                                <div className="liquid-line"></div>
+                            </div>
                         </div>
 
-                        <button type="submit" className="btn-submit cursor-bind" disabled={saving}>
-                          {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Menyimpan...</> : "Simpan Perubahan"}
-                        </button>
+                        {/* WIZARD NAVIGATION FOOTER */}
+                        <div className="wizard-nav-footer">
+                            {wizardStep > 1 ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setWizardStep((prev) => (prev - 1) as any)}
+                                    className="action-btn cursor-bind"
+                                    style={{ gap: "8px" }}
+                                >
+                                    <i className="fa-solid fa-arrow-left"></i> Sebelumnya
+                                </button>
+                            ) : <div></div>}
+
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                {wizardStep < 3 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setWizardStep((prev) => (prev + 1) as any)}
+                                        className="action-btn cursor-bind"
+                                        style={{ background: "rgba(212,175,55,0.15)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)", gap: "8px" }}
+                                    >
+                                        Lanjut <i className="fa-solid fa-arrow-right"></i>
+                                    </button>
+                                )}
+                                <button type="submit" className="btn-submit cursor-bind" disabled={saving}>
+                                    {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Menyimpan...</> : "Simpan Perubahan"}
+                                </button>
+                            </div>
+                        </div>
                     </form>
                 </div>
 
@@ -757,32 +879,37 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     </div>
 
                     {/* ========= DELETE ACCOUNT SECTION ========= */}
-                    <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid rgba(139,0,0,0.3)" }}>
-                        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "#8b0000", marginBottom: "10px" }}>
-                            <i className="fa-solid fa-skull-crossbones" style={{ marginRight: "8px" }}></i>
-                            Zona Berbahaya
+                    <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid rgba(239,68,68,0.3)" }}>
+                        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "#ef4444", marginBottom: "10px" }}>
+                            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "8px" }}></i>
+                            Zona Bahaya: Hapus Akun & Data Pribadi
                         </h3>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "20px", lineHeight: 1.6 }}>
-                            Tindakan ini akan menonaktifkan akun Anda secara permanen dari sistem. Data tidak dapat dipulihkan.
+                        <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
+                            Sesuai standar privasi data dan regulasi Google Play Store, tindakan ini akan memusnahkan seluruh profil, data biometrik, kredensial login, dan informasi pribadi Anda secara permanen. Data yang telah dihapus tidak dapat dipulihkan.
+                        </p>
+                        <p style={{ fontSize: "0.75rem", marginBottom: "20px" }}>
+                          <Link href="/delete-account" target="_blank" style={{ color: "#f3ba2f", textDecoration: "underline" }}>
+                            Pelajari Kebijakan Penghapusan Data Lengkap &rarr;
+                          </Link>
                         </p>
                         {!showDeleteConfirm ? (
                           <button 
                             className="cursor-bind"
                             onClick={() => setShowDeleteConfirm(true)}
-                            style={{ background: "rgba(139,0,0,0.1)", border: "1px solid rgba(139,0,0,0.5)", color: "#8b0000", padding: "12px 25px", borderRadius: "10px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, letterSpacing: "1px", width: "100%", transition: "0.3s" }}
+                            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.5)", color: "#ef4444", padding: "12px 25px", borderRadius: "10px", cursor: "pointer", fontSize: "0.85rem", fontWeight: 600, letterSpacing: "0.5px", width: "100%", transition: "0.3s" }}
                           >
-                            <i className="fa-solid fa-trash" style={{ marginRight: "8px" }}></i> Nonaktifkan Akun
+                            <i className="fa-solid fa-trash-can" style={{ marginRight: "8px" }}></i> Hapus Akun & Data Pribadi Saya
                           </button>
                         ) : (
-                          <form onSubmit={handleDeleteAccount} style={{ background: "rgba(139,0,0,0.1)", border: "1px solid rgba(139,0,0,0.3)", borderRadius: "16px", padding: "20px", textAlign: "center" }}>
-                            <p style={{ color: "#ff5555", fontSize: "0.85rem", fontWeight: 600, marginBottom: "15px" }}>
-                              <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "5px" }}></i>
-                              Apakah Anda benar-benar yakin?
+                          <form onSubmit={handleDeleteAccount} style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "16px", padding: "20px", textAlign: "center" }}>
+                            <p style={{ color: "#ef4444", fontSize: "0.9rem", fontWeight: 600, marginBottom: "15px" }}>
+                              <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "6px" }}></i>
+                              Konfirmasi Penghapusan Permanen
                             </p>
                             <div className="form-group" style={{ marginBottom: "15px", textAlign: "left" }}>
-                              <input type="password" name="password_delete" className="form-input" id="inp_delpass" placeholder=" " required style={{ borderColor: "rgba(255, 51, 102, 0.3)" }} value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
-                              <label className="form-label" htmlFor="inp_delpass" style={{ color: "#ff3366" }}>Konfirmasi Sandi untuk Hapus</label>
-                              <div className="liquid-line" style={{ background: "linear-gradient(90deg, transparent, #ff3366, transparent)" }}></div>
+                              <input type="password" name="password_delete" className="form-input" id="inp_delpass" placeholder=" " required style={{ borderColor: "rgba(239, 68, 68, 0.4)" }} value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
+                              <label className="form-label" htmlFor="inp_delpass" style={{ color: "#ef4444" }}>Masukkan Kata Sandi untuk Konfirmasi</label>
+                              <div className="liquid-line" style={{ background: "linear-gradient(90deg, transparent, #ef4444, transparent)" }}></div>
                             </div>
                             <div style={{ display: "flex", gap: "10px" }}>
                               <button
@@ -795,9 +922,9 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                               <button
                                 type="submit"
                                 disabled={deletingAccount}
-                                style={{ flex: 1, background: "rgba(139,0,0,0.8)", border: "none", color: "#fff", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}
+                                style={{ flex: 1, background: "#ef4444", border: "none", color: "#fff", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}
                               >
-                                {deletingAccount ? <i className="fa-solid fa-circle-notch fa-spin"></i> : "Ya, Nonaktifkan"}
+                                {deletingAccount ? <i className="fa-solid fa-circle-notch fa-spin"></i> : "Hapus Akun Permanen"}
                               </button>
                             </div>
                           </form>

@@ -1,0 +1,70 @@
+{
+  "name": "Expedient Generation",
+  "short_name": "Expedient",
+  "description": "Platform Silaturahmi dan Jaringan Profesional Angkatan",
+  "lang": "id",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#030504",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "/images/icon-192.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-192.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Beranda Expedient Generation"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Lounge Chat",
+      "short_name": "Chat",
+      "description": "Buka obrolan angkatan",
+      "url": "/chat",
+      "icons": [{ "src": "/images/icon-192.webp", "sizes": "192x192", "type": "image/webp" }]
+    },
+    {
+      "name": "Direktori Alumni",
+      "short_name": "Direktori",
+      "description": "Cari profil alumni",
+      "url": "/direktori",
+      "icons": [{ "src": "/images/icon-192.webp", "sizes": "192x192", "type": "image/webp" }]
+    },
+    {
+      "name": "The Vault",
+      "short_name": "Wasiat",
+      "description": "Akses dokumen rahasia",
+      "url": "/fitur/wasiat_vault",
+      "icons": [{ "src": "/images/icon-192.webp", "sizes": "192x192", "type": "image/webp" }]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import OracleClient from "./OracleClient";
+import OracleDynamic from "./OracleDynamic";
 
 export const metadata = {
   title: "The Oracle's Vision",
@@ -31,6 +31,6 @@ export default async function OraclePage() {
   const safeVisions = visionError ? [] : visions;
 
   return (
-    <OracleClient userId={user.id} initialVisions={safeVisions} userProfile={profile} />
+    <OracleDynamic userId={user.id} initialVisions={safeVisions} userProfile={profile} />
   );
 }

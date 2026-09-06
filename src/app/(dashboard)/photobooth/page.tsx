@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import PhotoboothClient from "./PhotoboothClient";
+import PhotoboothDynamic from "./PhotoboothDynamic";
 
 export const metadata = {
   title: "Studio Photobooth | Expedient Generation",
@@ -15,5 +15,5 @@ export default async function PhotoboothPage() {
     redirect("/login");
   }
 
-  return <PhotoboothClient />;
+  return <PhotoboothDynamic />;
 }

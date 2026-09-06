@@ -2,12 +2,15 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { broadcastWhatsAppMessage } from "@/lib/whatsapp";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
-    if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    const adminToken = cookieStore.get("expedient_admin_session")?.value;
+    const isValidAdmin = await verifySignedAdminSession(adminToken);
+    if (!isValidAdmin) {
+      return NextResponse.json({ message: "Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa" }, { status: 401 });
     }
 
     const { title, content, category, isPinned } = await request.json();
