@@ -8,8 +8,7 @@ import { useCms } from "@/components/layout/CmsProvider";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import "./register.css";
 
-// Dynamic import for face-api.js to avoid SSR issues
-let faceapi: any;
+
 
 function RegisterFormContent() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -49,16 +48,7 @@ function RegisterFormContent() {
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Face API
-  const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
-  const [faceStatus, setFaceStatus] = useState("Memuat Kalibrasi...");
-  const [isScanning, setIsScanning] = useState(false);
-  const [faceStep, setFaceStep] = useState(0);
-  const [faceData, setFaceData] = useState("");
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const scanLineRef = useRef<HTMLDivElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const faceIntervalRef = useRef<any>(null);
+
 
   // OTP Verification States
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
@@ -124,12 +114,11 @@ function RegisterFormContent() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (isCropperOpen) setIsCropperOpen(false);
-        if (isFaceModalOpen) closeFaceScanner();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isCropperOpen, isFaceModalOpen]);
+  }, [isCropperOpen]);
 
   const triggerLogoExplosion = () => {
     setLogoState("exploding");
@@ -260,7 +249,7 @@ function RegisterFormContent() {
     }
   };
 
-  const submitRegistrationAsync = async (faceDescStr: string) => {
+  const submitRegistrationAsync = async () => {
     const form = document.getElementById("registerForm") as HTMLFormElement;
     if (!form) return;
 
@@ -269,9 +258,6 @@ function RegisterFormContent() {
       const formData = new FormData(form);
       // Hapus file mentah agar tidak melebihi kuota 4.5MB Serverless Payload Vercel
       formData.delete("foto_profil_file");
-      if (faceDescStr) {
-        formData.set("face_data", faceDescStr);
-      }
       if (imagePreview) {
         formData.set("foto_profil_base64", imagePreview);
       }
@@ -524,11 +510,7 @@ function RegisterFormContent() {
 
     } else {
       e.preventDefault();
-      if (!faceData) {
-        startFaceScanner();
-      } else {
-        submitRegistrationAsync(faceData);
-      }
+      submitRegistrationAsync();
     }
   };
 
@@ -545,141 +527,6 @@ function RegisterFormContent() {
     });
   }, []);
 
-  const startFaceScanner = async () => {
-    setIsFaceModalOpen(true);
-    setFaceStatus("MEMUAT PROTOKOL KEAMANAN...");
-    setFaceStep(0);
-    setIsScanning(false);
-
-    try {
-      let faceapi = (window as any).faceapi;
-      if (!faceapi) {
-        setFaceStatus("MENGUNDUH MODUL BIOMETRIK AI...");
-        await new Promise<void>((resolve, reject) => {
-          if ((window as any).faceapi) return resolve();
-          const script = document.createElement("script");
-          script.src = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js";
-          script.async = true;
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error("Gagal mengunduh modul AI dari CDN"));
-          document.head.appendChild(script);
-        });
-        faceapi = (window as any).faceapi;
-      }
-
-      if (!faceapi) {
-        setFaceStatus("ERROR: MODEL AI TIDAK DAPAT DIMUAT");
-        return;
-      }
-
-      setFaceStatus("MEMUAT DATA DETEKTOR WAJAH...");
-      const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
-      try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-          faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
-        ]);
-      } catch (err) {
-        console.error("Error loading face-api models:", err);
-        setFaceStatus("ERROR: GAGAL MEMUAT MODEL AI DARI CDN");
-        return;
-      }
-
-      setFaceStatus("MENGAKSES OPTIK KAMERA...");
-      setFaceStep(1);
-      
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().catch(e => console.error("Video play error:", e));
-          };
-        }
-      } catch (e) {
-        setFaceStatus("ERROR: AKSES KAMERA DITOLAK");
-        return;
-      }
-
-      setFaceStatus("MENUNGGU DETEKSI WAJAH...");
-      setIsScanning(true);
-      setFaceStep(1);
-
-      let isVerifying = false;
-      let detectedFrames = 0;
-      faceIntervalRef.current = setInterval(async () => {
-        if (!videoRef.current || isVerifying) return;
-
-        // Wait until video is playing and has data
-        if (videoRef.current.paused || videoRef.current.ended || videoRef.current.readyState < 2 || videoRef.current.videoWidth === 0) {
-          return;
-        }
-
-        try {
-          const detection = await faceapi.detectSingleFace(
-            videoRef.current, 
-            new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.15 })
-          )
-          .withFaceLandmarks()
-          .withFaceExpressions()
-          .withFaceDescriptor();
-
-          if (!detection) {
-            setFaceStatus("WAJAH TIDAK TERDETEKSI / KAMERA TERTUTUP");
-            setFaceStep(1);
-            return;
-          }
-
-          detectedFrames++;
-          setFaceStep(2);
-          setFaceStatus("WAJAH TERDETEKSI! SILAKAN TERSENYUM :)");
-
-          // Check for happy expression (smile verification) atau stabil terdeteksi
-          if (detection.expressions.happy > 0.65 || (detectedFrames >= 6 && detection.detection.score > 0.6)) {
-            isVerifying = true;
-            clearInterval(faceIntervalRef.current);
-            setFaceStep(4);
-            setFaceStatus("VERIFIKASI SUKSES! MENGUNCI DATA...");
-            setIsScanning(false);
-
-            const descriptorArray = Array.from(detection.descriptor);
-            const descriptorStr = JSON.stringify(descriptorArray);
-            setFaceData(descriptorStr);
-            const faceInput = document.getElementById("faceDataInput") as HTMLInputElement;
-            if (faceInput) faceInput.value = descriptorStr;
-
-            if (streamRef.current) {
-              streamRef.current.getTracks().forEach(t => t.stop());
-            }
-
-            setTimeout(() => {
-              setIsFaceModalOpen(false);
-              submitRegistrationAsync(descriptorStr);
-            }, 1200);
-          } else {
-            setFaceStep(3);
-            setFaceStatus("EKSTRAKSI BIOMETRIK... SILAKAN TERSENYUM");
-          }
-        } catch (err) {
-          console.error("Error during face detection:", err);
-        }
-      }, 500);
-
-    } catch (error) {
-      setFaceStatus("ERROR: GAGAL MEMULAI PEMINDAIAN");
-    }
-  };
-
-  const closeFaceScanner = () => {
-    setIsFaceModalOpen(false);
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
-    }
-    if (faceIntervalRef.current) clearInterval(faceIntervalRef.current);
-  };
 
   return (
     <div className="register-page">
@@ -727,7 +574,6 @@ function RegisterFormContent() {
           </div>
 
           <form action="/auth/register" method="POST" encType="multipart/form-data" id="registerForm" noValidate onSubmit={handleSubmit}>
-            <input type="hidden" name="face_data" id="faceDataInput" value={faceData} />
             <input type="hidden" name="foto_profil_base64" id="fotoProfilBase64Input" value={imagePreview} />
             
             <div className="form-grid">
@@ -1027,49 +873,7 @@ function RegisterFormContent() {
         />
       )}
 
-      {/* Face Scanner Modal */}
-      <div className={`auth-vault ${isFaceModalOpen ? "active" : ""}`} role="dialog" aria-modal="true" aria-label="Pemindai Biometrik Wajah">
-        <div className={`retina-container ${isScanning ? "scanning" : ""}`}>
-          <div className="focus-ring"></div>
-          <div className="bracket bracket-tl"></div>
-          <div className="bracket bracket-tr"></div>
-          <div className="bracket bracket-bl"></div>
-          <div className="bracket bracket-br"></div>
-          
-          <div className="camera-frame">
-            <video ref={videoRef} className="camera-feed" autoPlay playsInline muted></video>
-            <div className="lens-dust"></div>
-            <div className="scan-line" ref={scanLineRef} style={{ opacity: isScanning ? 1 : 0 }}></div>
-          </div>
-        </div>
 
-        <div className="liveness-indicator">
-          <div className={`live-node ${faceStep >= 1 ? "active" : ""} ${faceStep >= 2 ? "done" : ""}`}></div>
-          <div className={`live-node ${faceStep >= 2 ? "active" : ""} ${faceStep >= 3 ? "done" : ""}`}></div>
-          <div className={`live-node ${faceStep >= 3 ? "active" : ""} ${faceStep >= 4 ? "done" : ""}`}></div>
-        </div>
-
-        <div className="status-display">
-          <div className="status-title">Protokol Keamanan VVIP</div>
-          <div className="status-value">{faceStatus}</div>
-        </div>
-
-        {faceStatus.includes("ERROR") && (
-          <button
-            type="button"
-            className="btn-prime"
-            style={{ marginTop: "20px", fontSize: "0.75rem", padding: "8px 16px", borderRadius: "8px" }}
-            onClick={() => {
-              closeFaceScanner();
-              submitRegistrationAsync("");
-            }}
-          >
-            <i className="fa-solid fa-forward"></i> Lanjutkan Tanpa Face ID (Daftarkan Nanti di Profil)
-          </button>
-        )}
-
-        <button type="button" className="crop-btn-cancel" style={{ marginTop: "25px", fontSize: "0.75rem" }} onClick={closeFaceScanner}>BATALKAN INISIASI</button>
-      </div>
 
       {/* OTP Verification Modal */}
       {isOtpModalOpen && (
