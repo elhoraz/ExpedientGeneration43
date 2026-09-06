@@ -50,8 +50,8 @@ interface BusinessData {
     nama_panggilan?: string | null;
     foto_profil?: string | null;
     no_whatsapp?: string | null;
-    pekerjaan?: string | null;
-    domisili?: string | null;
+    alamat_lengkap?: string | null;
+    akun_ig?: string | null;
   } | null;
 }
 
@@ -448,9 +448,10 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 <div style={{ fontSize: "0.8rem", color: "#00ff88", fontFamily: "monospace", marginTop: "2px" }}>
                   Expedient 43 Alumni
                 </div>
-                {business.profiles?.pekerjaan && (
+                {business.profiles?.akun_ig && (
                   <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "2px" }}>
-                    {business.profiles.pekerjaan}
+                    <i className="fa-brands fa-instagram" style={{ color: "#E1306C", marginRight: "4px" }}></i>
+                    {business.profiles.akun_ig}
                   </div>
                 )}
               </div>

@@ -36,23 +36,27 @@ export default async function Page({ params }: PageProps) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Fetch business with owner profile
+  // Fetch business with valid owner profile columns
   const { data: business, error } = await supabase
     .from("syndicate")
     .select(`
       *,
-      profiles:user_id (
+      profiles!user_id (
         id,
         nama_lengkap,
         nama_panggilan,
         foto_profil,
         no_whatsapp,
-        pekerjaan,
-        domisili
+        alamat_lengkap,
+        akun_ig
       )
     `)
     .eq("id", id)
     .single();
+
+  if (error) {
+    console.error("Syndicate detail fetch error:", error);
+  }
 
   if (error || !business) {
     return notFound();
