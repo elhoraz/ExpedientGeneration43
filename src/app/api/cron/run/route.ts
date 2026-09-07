@@ -169,6 +169,23 @@ export async function GET(request: Request) {
 
       if (optInError) throw optInError;
 
+      // Fetch dynamic official bank accounts
+      const { data: scData } = await supabase
+        .from('site_content')
+        .select('content_value')
+        .eq('content_key', 'baitul_maal_bank_accounts')
+        .maybeSingle();
+
+      let accountsText = "";
+      if (scData?.content_value) {
+        try {
+          const accounts = JSON.parse(scData.content_value);
+          if (Array.isArray(accounts) && accounts.length > 0) {
+            accountsText = "Rekening Resmi Kas:\n" + accounts.map((a: any) => `🏛️ ${a.bank}: ${a.account_number} (a.n. ${a.account_name})`).join("\n") + "\n";
+          }
+        } catch {}
+      }
+
       let infaqSent = 0;
       for (const u of (optInUsers || [])) {
         const name = u.nama_panggilan || u.nama_lengkap || "Sahabat Expedient";
@@ -178,10 +195,7 @@ export async function GET(request: Request) {
 Mengingatkan kembali ladang amal jariyah kita di awal bulan ${currentMonthName}:
 *Kas Rutin & Dana Ta'awun Angkatan 43 (Baitul Maal Expedient)*
 
-Rekening Resmi:
-🏛️ BSI: 7234 8901 2345 (a.n. Baitul Maal Expedient)
-🏛️ BCA: 8091 2345 67 (a.n. Bendahara Kas Angkatan)
-📱 Salurkan & Cek Mutasi: ${siteUrl}/baitul-maal
+${accountsText ? `${accountsText}\n` : ""}📱 Salurkan & Cek Mutasi Kas Terbuka: ${siteUrl}/baitul-maal
 
 "Perumpamaan orang yang menafkahkan hartanya di jalan Allah adalah serupa dengan sebutir benih yang menumbuhkan tujuh bulir..." (QS. Al-Baqarah: 261)
 

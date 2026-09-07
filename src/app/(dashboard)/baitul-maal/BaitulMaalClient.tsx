@@ -5,7 +5,19 @@ import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import "./baitul-maal.css";
 
-interface Transaction {
+export interface BankAccount {
+  bank: string;
+  account_number: string;
+  account_name: string;
+}
+
+export interface BendaharaContact {
+  name: string;
+  phone: string;
+  note?: string;
+}
+
+export interface Transaction {
   id: string;
   user_id?: string | null;
   amount: number | string;
@@ -13,6 +25,8 @@ interface Transaction {
   description: string;
   created_at: string;
   donor_name?: string;
+  status?: "pending" | "completed" | "rejected";
+  proof_url?: string | null;
 }
 
 interface CurrentUser {
@@ -25,24 +39,42 @@ export default function BaitulMaalClient({
   initialTransactions,
   isAdmin,
   currentUser,
+  initialBankAccounts = [],
+  bendaharaContact = null,
 }: {
   initialTransactions: Transaction[];
   isAdmin?: boolean;
   currentUser: CurrentUser;
+  initialBankAccounts?: BankAccount[];
+  bendaharaContact?: BendaharaContact | null;
 }) {
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(initialBankAccounts);
+  const [contactInfo, setContactInfo] = useState<BendaharaContact | null>(bendaharaContact);
 
   // CSS Scoping: body class untuk isolasi CSS halaman ini
   useEffect(() => {
-    document.body.classList.add('page-baitul-maal');
-    return () => { document.body.classList.remove('page-baitul-maal'); };
+    document.body.classList.add("page-baitul-maal");
+    return () => {
+      document.body.classList.remove("page-baitul-maal");
+    };
   }, []);
-  
+
   // Modals & Panels
   const [isDonateOpen, setIsDonateOpen] = useState(false);
   const [isZakatOpen, setIsZakatOpen] = useState(false);
   const [isRecordPanelOpen, setIsRecordPanelOpen] = useState(false);
-  
+  const [isManageBankOpen, setIsManageBankOpen] = useState(false);
+
+  // Bank Management Form States (Bendahara/Admin)
+  const [editAccounts, setEditAccounts] = useState<BankAccount[]>(initialBankAccounts);
+  const [newBank, setNewBank] = useState("");
+  const [newNumber, setNewNumber] = useState("");
+  const [newName, setNewName] = useState("");
+  const [contactName, setContactName] = useState(bendaharaContact?.name || "");
+  const [contactPhone, setContactPhone] = useState(bendaharaContact?.phone || "");
+  const [isSavingBank, setIsSavingBank] = useState(false);
+
   // Ledger Filters
   const [filterType, setFilterType] = useState<"ALL" | "IN" | "OUT">("ALL");
   const [isFilterLoading, setIsFilterLoading] = useState(false);
@@ -54,11 +86,13 @@ export default function BaitulMaalClient({
     setFilterType(type);
     setTimeout(() => setIsFilterLoading(false), 220);
   };
-  
+
   // Donation Form States
   const [donateAmount, setDonateAmount] = useState("");
   const [donateProgram, setDonateProgram] = useState("Kas Rutin Angkatan");
-  const [donateBank, setDonateBank] = useState("BSI");
+  const [donateBank, setDonateBank] = useState(
+    initialBankAccounts.length > 0 ? initialBankAccounts[0].bank : "BSI"
+  );
   const [donatePrayer, setDonatePrayer] = useState("");
   const [donateAnonim, setDonateAnonim] = useState(false);
   const [isDonating, setIsDonating] = useState(false);
@@ -89,20 +123,34 @@ export default function BaitulMaalClient({
     }).format(num).replace(",00", "");
   };
 
-  // Calculations
+  // Completed Transactions (for verified financial calculation)
+  const completedTransactions = useMemo(
+    () => transactions.filter((t) => t.status === "completed" || !t.status),
+    [transactions]
+  );
+
+  // Verified Financial Balance Calculations
   const totalIn = useMemo(
-    () => transactions.filter(t => t.transaction_type === "IN").reduce((acc, t) => acc + Number(t.amount || 0), 0),
-    [transactions]
+    () =>
+      completedTransactions
+        .filter((t) => t.transaction_type === "IN")
+        .reduce((acc, t) => acc + Number(t.amount || 0), 0),
+    [completedTransactions]
   );
+
   const totalOut = useMemo(
-    () => transactions.filter(t => t.transaction_type === "OUT").reduce((acc, t) => acc + Number(t.amount || 0), 0),
-    [transactions]
+    () =>
+      completedTransactions
+        .filter((t) => t.transaction_type === "OUT")
+        .reduce((acc, t) => acc + Number(t.amount || 0), 0),
+    [completedTransactions]
   );
+
   const balance = totalIn - totalOut;
 
-  // Filtered Ledger
+  // Filtered Ledger (includes pending for current user / admin)
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
+    return transactions.filter((t) => {
       const matchType = filterType === "ALL" || t.transaction_type === filterType;
       const q = searchQuery.toLowerCase();
       const matchQuery =
@@ -113,32 +161,56 @@ export default function BaitulMaalClient({
     });
   }, [transactions, filterType, searchQuery]);
 
-  // Campaign Calculations (Derived from transactions)
+  // Campaign Allocations (Derived from genuine completed transactions)
   const kasRutinIn = useMemo(() => {
-    return transactions
-      .filter(t => t.transaction_type === "IN" && (t.description.toLowerCase().includes("kas rutin") || t.description.toLowerCase().includes("kas angkatan")))
+    return completedTransactions
+      .filter(
+        (t) =>
+          t.transaction_type === "IN" &&
+          (t.description.toLowerCase().includes("kas rutin") ||
+            t.description.toLowerCase().includes("kas angkatan") ||
+            (!t.description.toLowerCase().includes("ta'awun") &&
+              !t.description.toLowerCase().includes("santunan") &&
+              !t.description.toLowerCase().includes("safari") &&
+              !t.description.toLowerCase().includes("dakwah")))
+      )
       .reduce((acc, t) => acc + Number(t.amount || 0), 0);
-  }, [transactions]);
+  }, [completedTransactions]);
 
   const taawunIn = useMemo(() => {
-    return transactions
-      .filter(t => t.transaction_type === "IN" && (t.description.toLowerCase().includes("ta'awun") || t.description.toLowerCase().includes("taawun") || t.description.toLowerCase().includes("sosial") || t.description.toLowerCase().includes("duka")))
+    return completedTransactions
+      .filter(
+        (t) =>
+          t.transaction_type === "IN" &&
+          (t.description.toLowerCase().includes("ta'awun") ||
+            t.description.toLowerCase().includes("taawun") ||
+            t.description.toLowerCase().includes("santunan") ||
+            t.description.toLowerCase().includes("sosial") ||
+            t.description.toLowerCase().includes("duka"))
+      )
       .reduce((acc, t) => acc + Number(t.amount || 0), 0);
-  }, [transactions]);
+  }, [completedTransactions]);
 
   const safariIn = useMemo(() => {
-    return transactions
-      .filter(t => t.transaction_type === "IN" && (t.description.toLowerCase().includes("safari") || t.description.toLowerCase().includes("dakwah") || t.description.toLowerCase().includes("reuni")))
+    return completedTransactions
+      .filter(
+        (t) =>
+          t.transaction_type === "IN" &&
+          (t.description.toLowerCase().includes("safari") ||
+            t.description.toLowerCase().includes("dakwah") ||
+            t.description.toLowerCase().includes("reuni") ||
+            t.description.toLowerCase().includes("khusus"))
+      )
       .reduce((acc, t) => acc + Number(t.amount || 0), 0);
-  }, [transactions]);
+  }, [completedTransactions]);
 
-  // Copy Bank Account
+  // Copy Bank Account Number
   const handleCopy = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text);
       await showAlert("Tersalin!", `${label} (${text}) telah disalin ke clipboard.`);
     } catch {
-      await showAlert("Info", `Nomor rekening: ${text}`);
+      await showAlert("Nomor Rekening", text);
     }
   };
 
@@ -168,11 +240,34 @@ export default function BaitulMaalClient({
 
       const json = await res.json();
       if (json.status === "success") {
-        await showAlert("Alhamdulillah", "Jazakumullah Khairan! Konfirmasi infaq Anda berhasil dicatat ke Buku Besar.");
-        setTransactions(prev => [json.data, ...prev]);
+        setTransactions((prev) => [json.data, ...prev]);
         setIsDonateOpen(false);
         setDonateAmount("");
         setDonatePrayer("");
+
+        // Offer WhatsApp Confirmation to Bendahara
+        const waNumber = contactInfo?.phone
+          ? contactInfo.phone.replace(/^0/, "62").replace(/[^0-9]/g, "")
+          : null;
+
+        if (waNumber) {
+          const waText = encodeURIComponent(
+            `Assalamu'alaikum ${contactInfo?.name || "Bendahara Kas Baitul Maal"},\n\nSaya telah menyalurkan konfirmasi infaq melalui portal website:\n- Program: ${donateProgram}\n- Nominal: ${formatRupiah(val)}\n- Bank: ${donateBank}\n${donateAnonim ? "- Donatur: Hamba Allah (Anonim)" : `- Donatur: ${currentUser.name}`}\n\nMohon diverifikasi ke dalam Buku Besar Kas. Jazakallahu khairan.`
+          );
+          const confirmWA = await showConfirm(
+            "Alhamdulillah, Infaq Tercatat!",
+            "Konfirmasi infaq Anda berhasil disimpan (menunggu verifikasi Bendahara).\n\nApakah Anda ingin membuka WhatsApp untuk mengirim bukti transfer langsung ke Bendahara?"
+          );
+          if (confirmWA) {
+            window.open(`https://wa.me/${waNumber}?text=${waText}`, "_blank");
+          }
+        } else {
+          await showAlert(
+            "Alhamdulillah",
+            json.message ||
+              "Jazakumullah Khairan! Konfirmasi infaq Anda telah tersimpan dan sedang diverifikasi oleh Bendahara."
+          );
+        }
       } else {
         await showAlert("Gagal", json.message || "Gagal mengirim donasi.");
       }
@@ -208,8 +303,8 @@ export default function BaitulMaalClient({
 
       const json = await res.json();
       if (json.status === "success") {
-        await showAlert("Berhasil", "Entri transaksi kas berhasil disimpan.");
-        setTransactions(prev => [json.data, ...prev]);
+        await showAlert("Berhasil", "Entri transaksi kas berhasil disimpan ke Buku Besar.");
+        setTransactions((prev) => [json.data, ...prev]);
         setIsRecordPanelOpen(false);
         setAdminAmount("");
         setAdminDesc("");
@@ -223,24 +318,134 @@ export default function BaitulMaalClient({
     }
   };
 
+  // Verify Donation (Admin/Bendahara)
+  const handleVerifyTx = async (id: string, approved: boolean) => {
+    const actionText = approved ? "menyetujui & memvalidasi" : "menolak";
+    const confirmed = await showConfirm(
+      "Konfirmasi Verifikasi Donasi",
+      `Apakah Anda yakin ingin ${actionText} transaksi infaq ini?`
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch("/api/baitul-maal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "verify_donation",
+          transaction_id: id,
+          approved,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.status === "success") {
+        await showAlert("Berhasil", json.message);
+        setTransactions((prev) =>
+          prev.map((t) =>
+            t.id === id
+              ? {
+                  ...t,
+                  status: approved ? "completed" : "rejected",
+                  description: approved
+                    ? t.description.replace(/^\[PENDING VERIFIKASI\]\s*/i, "")
+                    : `[DITOLAK] ${t.description.replace(/^\[PENDING VERIFIKASI\]\s*/i, "")}`,
+                }
+              : t
+          )
+        );
+      } else {
+        await showAlert("Gagal", json.message || "Gagal memproses verifikasi.");
+      }
+    } catch (err: any) {
+      await showAlert("Error", "Terjadi kesalahan: " + err.message);
+    }
+  };
+
+  // Save Official Bank Accounts (Admin/Bendahara)
+  const handleSaveBankConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingBank(true);
+
+    const contactPayload =
+      contactPhone.trim() || contactName.trim()
+        ? {
+            name: contactName.trim() || "Bendahara",
+            phone: contactPhone.trim(),
+          }
+        : null;
+
+    try {
+      const res = await fetch("/api/baitul-maal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_bank_accounts",
+          accounts: editAccounts,
+          contact: contactPayload,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.status === "success") {
+        await showAlert("Berhasil", "Pengaturan rekening resmi kas Baitul Maal berhasil disimpan!");
+        setBankAccounts(editAccounts);
+        if (contactPayload) setContactInfo(contactPayload);
+        setIsManageBankOpen(false);
+      } else {
+        await showAlert("Gagal", json.message || "Gagal menyimpan rekening.");
+      }
+    } catch (err: any) {
+      await showAlert("Error", "Terjadi kesalahan: " + err.message);
+    } finally {
+      setIsSavingBank(false);
+    }
+  };
+
+  // Add Account to Edit List
+  const handleAddAccountToEdit = () => {
+    if (!newBank.trim() || !newNumber.trim() || !newName.trim()) {
+      showAlert("Peringatan", "Harap lengkapi nama bank, nomor rekening, dan atas nama.");
+      return;
+    }
+    setEditAccounts((prev) => [
+      ...prev,
+      {
+        bank: newBank.trim().toUpperCase(),
+        account_number: newNumber.trim(),
+        account_name: newName.trim(),
+      },
+    ]);
+    setNewBank("");
+    setNewNumber("");
+    setNewName("");
+  };
+
+  // Remove Account from Edit List
+  const handleRemoveAccountFromEdit = (index: number) => {
+    setEditAccounts((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
   // Export CSV
   const handleExportCSV = () => {
-    if (transactions.length === 0) {
-      showAlert("Info", "Belum ada data transaksi untuk diekspor.");
+    if (completedTransactions.length === 0) {
+      showAlert("Info", "Belum ada data transaksi kas yang terverifikasi untuk diekspor.");
       return;
     }
 
-    const headers = ["ID", "Tanggal", "Tipe", "Nominal (Rp)", "Keterangan", "Penyalur/Donatur"];
-    const rows = transactions.map(t => [
+    const headers = ["ID", "Tanggal", "Tipe", "Nominal (Rp)", "Keterangan", "Penyalur/Donatur", "Status"];
+    const rows = completedTransactions.map((t) => [
       t.id,
       new Date(t.created_at).toLocaleString("id-ID"),
       t.transaction_type === "IN" ? "Pemasukan" : "Pengeluaran",
       t.amount,
       `"${(t.description || "").replace(/"/g, '""')}"`,
       `"${(t.donor_name || "Hamba Allah").replace(/"/g, '""')}"`,
+      t.status || "completed",
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -250,7 +455,7 @@ export default function BaitulMaalClient({
     document.body.removeChild(link);
   };
 
-  // Export & Print Official Receipt (Task 11)
+  // Export & Print Official Receipt
   const handlePrintReceipt = (tx: Transaction) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
@@ -307,7 +512,7 @@ export default function BaitulMaalClient({
     printWindow.document.close();
   };
 
-  // Formal Certificate of Appreciation / Piagam Penghargaan Donatur (Task B-2)
+  // Formal Certificate of Appreciation / Piagam Penghargaan Donatur
   const handlePrintCertificate = (tx: Transaction) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
@@ -492,7 +697,7 @@ export default function BaitulMaalClient({
     printWindow.document.close();
   };
 
-  // Trigger monthly infaq reminder via WhatsApp Queue (Task B-1)
+  // Trigger monthly infaq reminder via WhatsApp Queue
   const handleTriggerInfaqReminder = async () => {
     const isConfirmed = await showConfirm(
       "Kirim Pengingat Infaq Bulanan",
@@ -516,7 +721,8 @@ export default function BaitulMaalClient({
   const nisabTahunan = 85 * goldPrice; // Nisab 85g emas
   const nisabBulanan = nisabTahunan / 12;
 
-  const totalPenghasilanBulanan = (Number(monthlyIncome) || 0) + (Number(otherIncome) || 0) - (Number(monthlyExpense) || 0);
+  const totalPenghasilanBulanan =
+    (Number(monthlyIncome) || 0) + (Number(otherIncome) || 0) - (Number(monthlyExpense) || 0);
   const isWajibZakat = totalPenghasilanBulanan >= nisabBulanan;
   const nilaiZakatBulanan = isWajibZakat ? Math.round(totalPenghasilanBulanan * 0.025) : 0;
 
@@ -556,19 +762,19 @@ export default function BaitulMaalClient({
 
           <div className="stat-card">
             <i className="fa-solid fa-arrow-turn-down stat-icon" style={{ color: "#00ff88" }}></i>
-            <div className="stat-label">Total Pemasukan</div>
+            <div className="stat-label">Total Pemasukan Kas</div>
             <h2 className="stat-value text-in">{formatRupiah(totalIn)}</h2>
             <div className="stat-sub">
-              {transactions.filter(t => t.transaction_type === "IN").length} Transaksi Masuk
+              {completedTransactions.filter((t) => t.transaction_type === "IN").length} Transaksi Terverifikasi
             </div>
           </div>
 
           <div className="stat-card">
             <i className="fa-solid fa-arrow-turn-up stat-icon" style={{ color: "#ff5555" }}></i>
-            <div className="stat-label">Total Pengeluaran</div>
+            <div className="stat-label">Total Penyaluran Kas</div>
             <h2 className="stat-value text-out">{formatRupiah(totalOut)}</h2>
             <div className="stat-sub">
-              {transactions.filter(t => t.transaction_type === "OUT").length} Penyaluran Operasional
+              {completedTransactions.filter((t) => t.transaction_type === "OUT").length} Penyaluran Operasional
             </div>
           </div>
         </div>
@@ -608,24 +814,42 @@ export default function BaitulMaalClient({
               <button
                 type="button"
                 className="btn-action-admin"
+                style={{
+                  background: "rgba(212, 175, 55, 0.15)",
+                  borderColor: "var(--gold-main, #d4af37)",
+                  color: "var(--gold-main, #d4af37)",
+                }}
+                onClick={() => {
+                  setEditAccounts(bankAccounts);
+                  setContactName(contactInfo?.name || "");
+                  setContactPhone(contactInfo?.phone || "");
+                  setIsManageBankOpen(true);
+                }}
+              >
+                <i className="fa-solid fa-building-columns"></i> Kelola Rekening Kas
+              </button>
+              <button
+                type="button"
+                className="btn-action-admin"
                 style={{ background: "rgba(37,211,102,0.15)", borderColor: "#25d366", color: "#25d366" }}
                 disabled={isSendingReminder}
                 onClick={handleTriggerInfaqReminder}
                 title="Pemicu broadcast pengingat infaq bulanan via WA"
               >
-                <i className="fa-brands fa-whatsapp"></i> {isSendingReminder ? "Memproses..." : "Pengingat Kas (WA)"}
+                <i className="fa-brands fa-whatsapp"></i>{" "}
+                {isSendingReminder ? "Memproses..." : "Pengingat Kas (WA)"}
               </button>
             </>
           )}
         </div>
 
-        {/* CAMPAIGN & TA'AWUN GOALS */}
+        {/* CAMPAIGN & TA'AWUN ALLOCATIONS (100% REAL DATA) */}
         <div className="campaign-section">
           <div className="section-heading">
             <h2 className="section-title">
-              <i className="fa-solid fa-bullseye-arrow"></i> Program & Alokasi Ta'awun
+              <i className="fa-solid fa-bullseye-arrow"></i> Program & Alokasi Penyaluran
             </h2>
-            <span className="section-desc">Penyaluran terarah untuk kemaslahatan bersama</span>
+            <span className="section-desc">Distribusi dana umat terhimpun untuk kemaslahatan bersama</span>
           </div>
 
           <div className="campaign-grid">
@@ -637,18 +861,22 @@ export default function BaitulMaalClient({
                 </div>
                 <div>
                   <h3 className="campaign-name">Kas Rutin & Operasional</h3>
-                  <p className="campaign-target">Target: Rp 10.000.000</p>
+                  <p className="campaign-target">Dana Khidmah & Operasional Angkatan</p>
                 </div>
               </div>
               <div className="progress-bar-bg">
                 <div
                   className="progress-bar-fill fill-gold"
-                  style={{ width: `${Math.min(100, Math.round((kasRutinIn / 10000000) * 100))}%` }}
+                  style={{
+                    width: `${totalIn > 0 ? Math.min(100, Math.round((kasRutinIn / totalIn) * 100)) : 0}%`,
+                  }}
                 ></div>
               </div>
               <div className="campaign-meta">
-                <span>Terkumpul: <strong>{formatRupiah(kasRutinIn)}</strong></span>
-                <span>{Math.min(100, Math.round((kasRutinIn / 10000000) * 100))}%</span>
+                <span>
+                  Terkumpul: <strong>{formatRupiah(kasRutinIn)}</strong>
+                </span>
+                <span>{totalIn > 0 ? Math.round((kasRutinIn / totalIn) * 100) : 0}% Alokasi</span>
               </div>
             </div>
 
@@ -660,18 +888,22 @@ export default function BaitulMaalClient({
                 </div>
                 <div>
                   <h3 className="campaign-name">Dana Ta'awun & Santunan</h3>
-                  <p className="campaign-target">Target: Rp 15.000.000</p>
+                  <p className="campaign-target">Bantuan Solidaritas & Kemanusiaan</p>
                 </div>
               </div>
               <div className="progress-bar-bg">
                 <div
                   className="progress-bar-fill fill-green"
-                  style={{ width: `${Math.min(100, Math.round((taawunIn / 15000000) * 100))}%` }}
+                  style={{
+                    width: `${totalIn > 0 ? Math.min(100, Math.round((taawunIn / totalIn) * 100)) : 0}%`,
+                  }}
                 ></div>
               </div>
               <div className="campaign-meta">
-                <span>Terkumpul: <strong>{formatRupiah(taawunIn)}</strong></span>
-                <span>{Math.min(100, Math.round((taawunIn / 15000000) * 100))}%</span>
+                <span>
+                  Terkumpul: <strong>{formatRupiah(taawunIn)}</strong>
+                </span>
+                <span>{totalIn > 0 ? Math.round((taawunIn / totalIn) * 100) : 0}% Alokasi</span>
               </div>
             </div>
 
@@ -682,19 +914,23 @@ export default function BaitulMaalClient({
                   <i className="fa-solid fa-mosque"></i>
                 </div>
                 <div>
-                  <h3 className="campaign-name">Safari Dakwah & Reuni</h3>
-                  <p className="campaign-target">Target: Rp 20.000.000</p>
+                  <h3 className="campaign-name">Safari Dakwah & Silaturahmi</h3>
+                  <p className="campaign-target">Program Ukhuwah & Agenda Angkatan</p>
                 </div>
               </div>
               <div className="progress-bar-bg">
                 <div
                   className="progress-bar-fill fill-blue"
-                  style={{ width: `${Math.min(100, Math.round((safariIn / 20000000) * 100))}%` }}
+                  style={{
+                    width: `${totalIn > 0 ? Math.min(100, Math.round((safariIn / totalIn) * 100)) : 0}%`,
+                  }}
                 ></div>
               </div>
               <div className="campaign-meta">
-                <span>Terkumpul: <strong>{formatRupiah(safariIn)}</strong></span>
-                <span>{Math.min(100, Math.round((safariIn / 20000000) * 100))}%</span>
+                <span>
+                  Terkumpul: <strong>{formatRupiah(safariIn)}</strong>
+                </span>
+                <span>{totalIn > 0 ? Math.round((safariIn / totalIn) * 100) : 0}% Alokasi</span>
               </div>
             </div>
           </div>
@@ -708,7 +944,10 @@ export default function BaitulMaalClient({
               <div className="ledger-subtitle">Laporan Transparansi Arus Keuangan Terbuka</div>
             </div>
             <div>
-              <i className="fa-solid fa-book-open" style={{ color: "var(--gold-main, #d4af37)", fontSize: "2rem", opacity: 0.5 }}></i>
+              <i
+                className="fa-solid fa-book-open"
+                style={{ color: "var(--gold-main, #d4af37)", fontSize: "2rem", opacity: 0.5 }}
+              ></i>
             </div>
           </div>
 
@@ -744,7 +983,7 @@ export default function BaitulMaalClient({
                 type="text"
                 placeholder="Cari transaksi atau donatur..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery && (
                 <button type="button" className="btn-clear-search" onClick={() => setSearchQuery("")}>
@@ -779,17 +1018,56 @@ export default function BaitulMaalClient({
               <div style={{ textAlign: "center", padding: "50px 20px", color: "var(--text-secondary, #8b9ba8)" }}>
                 <i className="fa-solid fa-folder-open" style={{ fontSize: "3rem", marginBottom: "15px", opacity: 0.3 }}></i>
                 <br />
-                {searchQuery ? "Tidak ada transaksi yang cocok dengan pencarian." : "Belum ada catatan transaksi di dalam buku besar ini."}
+                {searchQuery
+                  ? "Tidak ada transaksi yang cocok dengan pencarian."
+                  : "Belum ada catatan transaksi di dalam buku besar ini."}
               </div>
             ) : (
-              filteredTransactions.map(tx => (
+              filteredTransactions.map((tx) => (
                 <div className="tx-item" key={tx.id}>
                   <div className="tx-left">
                     <div className={`tx-type-icon ${tx.transaction_type === "IN" ? "tx-in-bg" : "tx-out-bg"}`}>
                       <i className={`fa-solid ${tx.transaction_type === "IN" ? "fa-arrow-down" : "fa-arrow-up"}`}></i>
                     </div>
                     <div className="tx-details">
-                      <div className="tx-title">{tx.description}</div>
+                      <div className="tx-title">
+                        {tx.description}
+                        {tx.status === "pending" && (
+                          <span
+                            style={{
+                              marginLeft: "8px",
+                              background: "rgba(255, 170, 0, 0.15)",
+                              border: "1px solid rgba(255, 170, 0, 0.4)",
+                              color: "#ffaa00",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              fontSize: "0.72rem",
+                              fontWeight: 600,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            <i className="fa-solid fa-clock"></i> Verifikasi
+                          </span>
+                        )}
+                        {tx.status === "rejected" && (
+                          <span
+                            style={{
+                              marginLeft: "8px",
+                              background: "rgba(255, 85, 85, 0.15)",
+                              border: "1px solid rgba(255, 85, 85, 0.4)",
+                              color: "#ff5555",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              fontSize: "0.72rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Ditolak
+                          </span>
+                        )}
+                      </div>
                       <div className="tx-meta">
                         <div>
                           <i className="fa-regular fa-user"></i>{" "}
@@ -808,11 +1086,56 @@ export default function BaitulMaalClient({
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", justifyContent: "flex-end" }}>
                     <div className={`tx-amount ${tx.transaction_type === "IN" ? "in" : "out"}`}>
                       {tx.transaction_type === "IN" ? "+" : "-"} {formatRupiah(Number(tx.amount))}
                     </div>
-                    {tx.transaction_type === "IN" && (
+
+                    {/* Admin Verification Actions */}
+                    {isAdmin && tx.status === "pending" && (
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleVerifyTx(tx.id, true)}
+                          style={{
+                            background: "rgba(0, 255, 136, 0.15)",
+                            border: "1px solid #00ff88",
+                            color: "#00ff88",
+                            padding: "4px 10px",
+                            borderRadius: "6px",
+                            fontSize: "0.75rem",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                          }}
+                          title="Validasi & Masukkan ke Buku Kas"
+                        >
+                          <i className="fa-solid fa-check"></i> Setujui
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleVerifyTx(tx.id, false)}
+                          style={{
+                            background: "rgba(255, 85, 85, 0.15)",
+                            border: "1px solid #ff5555",
+                            color: "#ff5555",
+                            padding: "4px 8px",
+                            borderRadius: "6px",
+                            fontSize: "0.75rem",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                          }}
+                          title="Tolak entri donasi ini"
+                        >
+                          <i className="fa-solid fa-xmark"></i> Tolak
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Receipt & Certificate Buttons (Completed IN Only) */}
+                    {tx.transaction_type === "IN" && (!tx.status || tx.status === "completed") && (
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <button
                           type="button"
@@ -827,7 +1150,7 @@ export default function BaitulMaalClient({
                             fontSize: "0.75rem",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: "5px"
+                            gap: "5px",
                           }}
                           title="Cetak Bukti Tanda Terima Donasi Resmi"
                         >
@@ -846,7 +1169,7 @@ export default function BaitulMaalClient({
                             fontSize: "0.75rem",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: "5px"
+                            gap: "5px",
                           }}
                           title="Cetak Piagam Penghargaan Apresiasi Donatur (Landscape)"
                         >
@@ -867,7 +1190,7 @@ export default function BaitulMaalClient({
       {/* ========================================================================= */}
       {isDonateOpen && (
         <div className="maal-modal-backdrop" onClick={() => setIsDonateOpen(false)}>
-          <div className="maal-modal-card" onClick={e => e.stopPropagation()}>
+          <div className="maal-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
                 <h2 className="modal-title">Salurkan Infaq & Ta'awun</h2>
@@ -878,53 +1201,106 @@ export default function BaitulMaalClient({
               </button>
             </div>
 
-            {/* REKENING RESMI CARDS */}
-            <div className="bank-accounts-section">
-              <div className="bank-card">
-                <div className="bank-info">
-                  <span className="bank-badge bsi">BSI (Bank Syariah Indonesia)</span>
-                  <div className="bank-number">7234 8901 2345</div>
-                  <div className="bank-holder">a.n. Baitul Maal Expedient</div>
-                </div>
-                <button
-                  type="button"
-                  className="btn-copy-acc"
-                  onClick={() => handleCopy("723489012345", "Rekening BSI")}
-                >
-                  <i className="fa-regular fa-copy"></i> Salin
-                </button>
+            {/* DYNAMIC REKENING RESMI CARDS */}
+            {bankAccounts.length > 0 ? (
+              <div className="bank-accounts-section">
+                {bankAccounts.map((acc, idx) => (
+                  <div className="bank-card" key={idx}>
+                    <div className="bank-info">
+                      <span className={`bank-badge ${acc.bank.toLowerCase().replace(/[^a-z0-9]/g, "")}`}>
+                        {acc.bank}
+                      </span>
+                      <div className="bank-number">{acc.account_number}</div>
+                      <div className="bank-holder">a.n. {acc.account_name}</div>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-copy-acc"
+                      onClick={() => handleCopy(acc.account_number.replace(/\s/g, ""), `Rekening ${acc.bank}`)}
+                    >
+                      <i className="fa-regular fa-copy"></i> Salin
+                    </button>
+                  </div>
+                ))}
               </div>
-
-              <div className="bank-card">
-                <div className="bank-info">
-                  <span className="bank-badge bca">BCA</span>
-                  <div className="bank-number">8091 2345 67</div>
-                  <div className="bank-holder">a.n. Bendahara Kas Angkatan</div>
-                </div>
-                <button
-                  type="button"
-                  className="btn-copy-acc"
-                  onClick={() => handleCopy("8091234567", "Rekening BCA")}
+            ) : (
+              <div
+                style={{
+                  padding: "20px",
+                  background: "rgba(212, 175, 55, 0.08)",
+                  border: "1px dashed rgba(212, 175, 55, 0.35)",
+                  borderRadius: "12px",
+                  marginBottom: "15px",
+                  textAlign: "center",
+                }}
+              >
+                <i
+                  className="fa-solid fa-building-columns"
+                  style={{ fontSize: "2rem", color: "var(--gold-main, #d4af37)", marginBottom: "10px" }}
+                ></i>
+                <h4 style={{ margin: "0 0 6px", color: "var(--gold-main, #d4af37)", fontSize: "1rem" }}>
+                  Rekening Kas Resmi Sedang Disiapkan
+                </h4>
+                <p
+                  style={{
+                    margin: "0 0 12px",
+                    fontSize: "0.85rem",
+                    color: "var(--text-secondary, #8b9ba8)",
+                    lineHeight: 1.5,
+                  }}
                 >
-                  <i className="fa-regular fa-copy"></i> Salin
-                </button>
+                  Untuk mendapatkan nomor rekening resmi tujuan transfer atau konfirmasi infaq, silakan hubungi
+                  Bendahara Angkatan secara langsung.
+                </p>
+                {contactInfo?.phone ? (
+                  <a
+                    href={`https://wa.me/${contactInfo.phone.replace(/^0/, "62").replace(/[^0-9]/g, "")}?text=${encodeURIComponent("Assalamu'alaikum Bendahara Baitul Maal Expedient, saya ingin menanyakan nomor rekening resmi untuk penyaluran infaq/donasi.")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      background: "#25d366",
+                      color: "#fff",
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      fontWeight: 600,
+                      fontSize: "0.85rem",
+                      textDecoration: "none",
+                    }}
+                  >
+                    <i className="fa-brands fa-whatsapp"></i> Hubungi Bendahara ({contactInfo.name || "Bendahara"})
+                  </a>
+                ) : null}
+                {isAdmin && (
+                  <div style={{ marginTop: "12px" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDonateOpen(false);
+                        setEditAccounts(bankAccounts);
+                        setContactName(contactInfo?.name || "");
+                        setContactPhone(contactInfo?.phone || "");
+                        setIsManageBankOpen(true);
+                      }}
+                      style={{
+                        background: "rgba(212, 175, 55, 0.2)",
+                        border: "1px solid var(--gold-main, #d4af37)",
+                        color: "var(--gold-main, #d4af37)",
+                        padding: "6px 14px",
+                        borderRadius: "6px",
+                        cursor: "pointer",
+                        fontSize: "0.8rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <i className="fa-solid fa-gear"></i> Kelola Rekening Kas Sekarang (Bendahara)
+                    </button>
+                  </div>
+                )}
               </div>
-
-              <div className="bank-card">
-                <div className="bank-info">
-                  <span className="bank-badge mandiri">Mandiri</span>
-                  <div className="bank-number">137-00-1234567-8</div>
-                  <div className="bank-holder">a.n. Kas Expedient Generation</div>
-                </div>
-                <button
-                  type="button"
-                  className="btn-copy-acc"
-                  onClick={() => handleCopy("1370012345678", "Rekening Mandiri")}
-                >
-                  <i className="fa-regular fa-copy"></i> Salin
-                </button>
-              </div>
-            </div>
+            )}
 
             {/* FORM KONFIRMASI INFAQ */}
             <form onSubmit={handleDonateSubmit} className="maal-modal-form">
@@ -932,11 +1308,7 @@ export default function BaitulMaalClient({
 
               <div className="form-group">
                 <label>PILIHAN PROGRAM</label>
-                <select
-                  value={donateProgram}
-                  onChange={e => setDonateProgram(e.target.value)}
-                  required
-                >
+                <select value={donateProgram} onChange={(e) => setDonateProgram(e.target.value)} required>
                   <option value="Kas Rutin Angkatan">Kas Rutin Angkatan</option>
                   <option value="Dana Ta'awun Sahabat">Dana Ta'awun & Santunan Sahabat</option>
                   <option value="Infaq & Sedekah Bebas">Infaq & Sedekah Bebas</option>
@@ -947,22 +1319,24 @@ export default function BaitulMaalClient({
 
               <div className="form-group">
                 <label>BANK TUJUAN PENYALURAN</label>
-                <select
-                  value={donateBank}
-                  onChange={e => setDonateBank(e.target.value)}
-                  required
-                >
-                  <option value="BSI">BSI (Bank Syariah Indonesia)</option>
-                  <option value="BCA">BCA</option>
-                  <option value="Mandiri">Bank Mandiri</option>
-                  <option value="QRIS">QRIS / E-Wallet</option>
+                <select value={donateBank} onChange={(e) => setDonateBank(e.target.value)} required>
+                  {bankAccounts.length > 0 ? (
+                    bankAccounts.map((acc, idx) => (
+                      <option key={idx} value={acc.bank}>
+                        {acc.bank} ({acc.account_number})
+                      </option>
+                    ))
+                  ) : (
+                    <option value="Rekening Bendahara">Rekening Resmi Bendahara Kas</option>
+                  )}
+                  <option value="QRIS / E-Wallet">QRIS / E-Wallet Lainnya</option>
                 </select>
               </div>
 
               <div className="form-group">
                 <label>NOMINAL INFAQ (RUPIAH)</label>
                 <div className="preset-amounts">
-                  {[25000, 50000, 100000, 250000, 500000, 1000000].map(amt => (
+                  {[25000, 50000, 100000, 250000, 500000, 1000000].map((amt) => (
                     <button
                       key={amt}
                       type="button"
@@ -988,7 +1362,7 @@ export default function BaitulMaalClient({
                   type="number"
                   placeholder="Contoh: 150000"
                   value={donateAmount}
-                  onChange={e => setDonateAmount(e.target.value)}
+                  onChange={(e) => setDonateAmount(e.target.value)}
                   required
                   min="1000"
                 />
@@ -1000,7 +1374,7 @@ export default function BaitulMaalClient({
                   rows={2}
                   placeholder="Tuliskan doa atau harapan untuk angkatan kita..."
                   value={donatePrayer}
-                  onChange={e => setDonatePrayer(e.target.value)}
+                  onChange={(e) => setDonatePrayer(e.target.value)}
                 ></textarea>
               </div>
 
@@ -1008,18 +1382,16 @@ export default function BaitulMaalClient({
                 <input
                   type="checkbox"
                   checked={donateAnonim}
-                  onChange={e => setDonateAnonim(e.target.checked)}
+                  onChange={(e) => setDonateAnonim(e.target.checked)}
                 />
-                <span>Salurkan Sebagai <strong>Hamba Allah (Anonim)</strong></span>
+                <span>
+                  Salurkan Sebagai <strong>Hamba Allah (Anonim)</strong>
+                </span>
               </label>
 
-              <button
-                type="submit"
-                className="btn-submit-donate"
-                disabled={isDonating}
-              >
+              <button type="submit" className="btn-submit-donate" disabled={isDonating}>
                 <i className="fa-solid fa-heart"></i>{" "}
-                {isDonating ? "Memproses..." : "Konfirmasi Penyaluran Infaq (+25 Prestise)"}
+                {isDonating ? "Memproses..." : "Konfirmasi Penyaluran Infaq"}
               </button>
             </form>
           </div>
@@ -1031,7 +1403,7 @@ export default function BaitulMaalClient({
       {/* ========================================================================= */}
       {isZakatOpen && (
         <div className="maal-modal-backdrop" onClick={() => setIsZakatOpen(false)}>
-          <div className="maal-modal-card" onClick={e => e.stopPropagation()}>
+          <div className="maal-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
                 <h2 className="modal-title">Kalkulator Zakat & Nisab</h2>
@@ -1062,13 +1434,15 @@ export default function BaitulMaalClient({
             <div className="zakat-form">
               <div className="form-group">
                 <label>
-                  {zakatType === "profesi" ? "PENGHASILAN UTAMA PER BULAN (RP)" : "TOTAL TABUNGAN / DEPOSITO / EMAS (RP)"}
+                  {zakatType === "profesi"
+                    ? "PENGHASILAN UTAMA PER BULAN (RP)"
+                    : "TOTAL TABUNGAN / DEPOSITO / EMAS (RP)"}
                 </label>
                 <input
                   type="number"
                   placeholder="Contoh: 10000000"
                   value={monthlyIncome}
-                  onChange={e => setMonthlyIncome(e.target.value)}
+                  onChange={(e) => setMonthlyIncome(e.target.value)}
                 />
               </div>
 
@@ -1080,7 +1454,7 @@ export default function BaitulMaalClient({
                       type="number"
                       placeholder="Contoh: 2000000"
                       value={otherIncome}
-                      onChange={e => setOtherIncome(e.target.value)}
+                      onChange={(e) => setOtherIncome(e.target.value)}
                     />
                   </div>
 
@@ -1090,7 +1464,7 @@ export default function BaitulMaalClient({
                       type="number"
                       placeholder="Contoh: 3000000"
                       value={monthlyExpense}
-                      onChange={e => setMonthlyExpense(e.target.value)}
+                      onChange={(e) => setMonthlyExpense(e.target.value)}
                     />
                   </div>
                 </>
@@ -1099,7 +1473,9 @@ export default function BaitulMaalClient({
               <div className="nisab-info-box">
                 <div className="nisab-row">
                   <span>Standar Nisab (85g Emas):</span>
-                  <strong>{formatRupiah(nisabBulanan)} / bulan ({formatRupiah(nisabTahunan)} / tahun)</strong>
+                  <strong>
+                    {formatRupiah(nisabBulanan)} / bulan ({formatRupiah(nisabTahunan)} / tahun)
+                  </strong>
                 </div>
                 <div className="nisab-row">
                   <span>Total Bersih Dihitung:</span>
@@ -1138,6 +1514,197 @@ export default function BaitulMaalClient({
       )}
 
       {/* ========================================================================= */}
+      {/* MODAL 3: KELOLA REKENING KAS RESMI (ADMIN / BENDAHARA ONLY) */}
+      {/* ========================================================================= */}
+      {isAdmin && isManageBankOpen && (
+        <div className="maal-modal-backdrop" onClick={() => setIsManageBankOpen(false)}>
+          <div
+            className="maal-modal-card"
+            style={{ maxWidth: "560px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <h2 className="modal-title">Kelola Rekening Kas Resmi</h2>
+                <p className="modal-subtitle">Pengaturan rekening perbankan & kontak bendahara resmi</p>
+              </div>
+              <button
+                type="button"
+                className="btn-close-modal"
+                onClick={() => setIsManageBankOpen(false)}
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveBankConfig} className="maal-modal-form">
+              {/* DAFTAR REKENING AKTIF */}
+              <div>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--gold-main, #d4af37)", letterSpacing: "1px" }}>
+                  DAFTAR REKENING AKTIF ({editAccounts.length})
+                </label>
+                {editAccounts.length === 0 ? (
+                  <div
+                    style={{
+                      padding: "12px",
+                      background: "rgba(255,255,255,0.03)",
+                      borderRadius: "8px",
+                      fontSize: "0.85rem",
+                      color: "var(--text-secondary, #8b9ba8)",
+                      margin: "8px 0",
+                      textAlign: "center",
+                    }}
+                  >
+                    Belum ada rekening yang ditambahkan.
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", margin: "10px 0" }}>
+                    {editAccounts.map((acc, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "10px 14px",
+                          background: "rgba(255,255,255,0.05)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: "bold", fontSize: "0.9rem", color: "var(--text-primary, #fff)" }}>
+                            {acc.bank} — <span style={{ fontFamily: "monospace" }}>{acc.account_number}</span>
+                          </div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--text-secondary, #8b9ba8)" }}>
+                            a.n. {acc.account_name}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAccountFromEdit(idx)}
+                          style={{
+                            background: "rgba(255,85,85,0.15)",
+                            border: "1px solid #ff5555",
+                            color: "#ff5555",
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                          }}
+                          title="Hapus Rekening"
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* FORM TAMBAH REKENING */}
+              <div
+                style={{
+                  background: "rgba(212, 175, 55, 0.05)",
+                  border: "1px solid rgba(212, 175, 55, 0.2)",
+                  padding: "14px",
+                  borderRadius: "10px",
+                  marginTop: "6px",
+                }}
+              >
+                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--gold-main, #d4af37)", marginBottom: "10px" }}>
+                  + Tambah Rekening Baru
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+                  <div>
+                    <label style={{ fontSize: "0.75rem" }}>NAMA BANK</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: BSI / BCA / Mandiri"
+                      value={newBank}
+                      onChange={(e) => setNewBank(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem" }}>NOMOR REKENING</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: 7234890123"
+                      value={newNumber}
+                      onChange={(e) => setNewNumber(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div style={{ marginBottom: "10px" }}>
+                  <label style={{ fontSize: "0.75rem" }}>ATAS NAMA PEMILIK</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Baitul Maal Expedient"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddAccountToEdit}
+                  style={{
+                    background: "rgba(212, 175, 55, 0.15)",
+                    border: "1px solid var(--gold-main, #d4af37)",
+                    color: "var(--gold-main, #d4af37)",
+                    padding: "8px 14px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                    fontSize: "0.8rem",
+                    width: "100%",
+                  }}
+                >
+                  <i className="fa-solid fa-plus"></i> Tambahkan ke Daftar
+                </button>
+              </div>
+
+              {/* KONTAK BENDAHARA */}
+              <div style={{ marginTop: "10px" }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--gold-main, #d4af37)", letterSpacing: "1px" }}>
+                  KONTAK WHATSAPP BENDAHARA (UNTUK KONFIRMASI ANGGOTA)
+                </label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "6px" }}>
+                  <div>
+                    <label style={{ fontSize: "0.75rem" }}>NAMA BENDAHARA</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Akhina Bendahara"
+                      value={contactName}
+                      onChange={(e) => setContactName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem" }}>NO. WHATSAPP</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: 081234567890"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn-submit-donate"
+                style={{ marginTop: "15px" }}
+                disabled={isSavingBank}
+              >
+                <i className="fa-solid fa-check"></i>{" "}
+                {isSavingBank ? "Menyimpan Konfigurasi..." : "Simpan Perubahan Rekening & Kontak"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
       {/* SLIDE PANEL: PENCATATAN TRANSAKSI OLEH ADMIN / BENDAHARA */}
       {/* ========================================================================= */}
       {isAdmin && (
@@ -1151,15 +1718,23 @@ export default function BaitulMaalClient({
           </button>
           <div className="panel-title">Otorisasi Entri Kas</div>
 
-          <div style={{ fontSize: "0.85rem", color: "var(--text-secondary, #8b9ba8)", marginBottom: "20px", lineHeight: 1.5 }}>
-            Anda login sebagai <strong>{currentUser.role.toUpperCase()}</strong>. Pastikan data mutasi kas dimasukkan dengan teliti untuk menjaga integritas Buku Besar.
+          <div
+            style={{
+              fontSize: "0.85rem",
+              color: "var(--text-secondary, #8b9ba8)",
+              marginBottom: "20px",
+              lineHeight: 1.5,
+            }}
+          >
+            Anda login sebagai <strong>{currentUser.role.toUpperCase()}</strong>. Pastikan data mutasi kas dimasukkan
+            dengan teliti untuk menjaga integritas Buku Besar.
           </div>
 
           <form onSubmit={handleAdminRecordSubmit} className="maal-form">
             <label>JENIS TRANSAKSI</label>
             <select
               value={adminType}
-              onChange={e => setAdminType(e.target.value as "IN" | "OUT")}
+              onChange={(e) => setAdminType(e.target.value as "IN" | "OUT")}
               required
             >
               <option value="IN">Pemasukan (Khidmah / Infaq / Hibah)</option>
@@ -1171,7 +1746,7 @@ export default function BaitulMaalClient({
               type="number"
               placeholder="Contoh: 500000"
               value={adminAmount}
-              onChange={e => setAdminAmount(e.target.value)}
+              onChange={(e) => setAdminAmount(e.target.value)}
               required
               min="1"
             />
@@ -1181,25 +1756,32 @@ export default function BaitulMaalClient({
               rows={3}
               placeholder="Deskripsi detail transaksi kas..."
               value={adminDesc}
-              onChange={e => setAdminDesc(e.target.value)}
+              onChange={(e) => setAdminDesc(e.target.value)}
               required
             ></textarea>
 
-            <label style={{ display: "flex", alignItems: "center", gap: "10px", flexDirection: "row", cursor: "pointer", marginBottom: "25px" }}>
+            <label
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                flexDirection: "row",
+                cursor: "pointer",
+                marginBottom: "25px",
+              }}
+            >
               <input
                 type="checkbox"
                 checked={adminAnonim}
-                onChange={e => setAdminAnonim(e.target.checked)}
+                onChange={(e) => setAdminAnonim(e.target.checked)}
                 style={{ width: "auto", margin: 0 }}
               />
-              <span style={{ color: "var(--text-primary, #fff)", fontSize: "0.9rem" }}>Catat Sebagai Hamba Allah (Anonim)</span>
+              <span style={{ color: "var(--text-primary, #fff)", fontSize: "0.9rem" }}>
+                Catat Sebagai Hamba Allah (Anonim)
+              </span>
             </label>
 
-            <button
-              type="submit"
-              className="btn-submit-maal"
-              disabled={isAdminSubmitting}
-            >
+            <button type="submit" className="btn-submit-maal" disabled={isAdminSubmitting}>
               <i className="fa-solid fa-file-signature"></i>{" "}
               {isAdminSubmitting ? "Menyimpan Entri..." : "Otorisasi Entri Buku Besar"}
             </button>
@@ -1209,4 +1791,3 @@ export default function BaitulMaalClient({
     </div>
   );
 }
-
