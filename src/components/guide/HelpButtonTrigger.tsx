@@ -43,11 +43,27 @@ export default function HelpButtonTrigger() {
     }
   }, [pathname]);
 
+  const [isSidebarClosed, setIsSidebarClosed] = useState(false);
+
   // Dengarkan custom event dari tombol lain (misal dari command palette atau checklist)
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
     window.addEventListener("expedient-open-guide", handleOpen);
     return () => window.removeEventListener("expedient-open-guide", handleOpen);
+  }, []);
+
+  // Sinkronisasi status buka/tutup navbar/sidebar
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      setIsSidebarClosed(document.body.classList.contains("sidebar-closed"));
+    }
+    const handleToggle = (e: any) => {
+      if (e.detail && typeof e.detail.isOpen === "boolean") {
+        setIsSidebarClosed(!e.detail.isOpen);
+      }
+    };
+    window.addEventListener("expedient-sidebar-toggle", handleToggle);
+    return () => window.removeEventListener("expedient-sidebar-toggle", handleToggle);
   }, []);
 
   // Jangan tampilkan tombol melayang jika pengguna sedang membuka halaman /panduan
@@ -67,6 +83,8 @@ export default function HelpButtonTrigger() {
         }}
         title={`Bantuan & Panduan: ${currentGuide?.title || "Halaman Ini"}`}
         aria-label="Bantuan dan Panduan Halaman"
+        aria-hidden={isSidebarClosed}
+        tabIndex={isSidebarClosed ? -1 : 0}
       >
         <span className="help-btn-icon">
           <i className="fa-solid fa-question"></i>
