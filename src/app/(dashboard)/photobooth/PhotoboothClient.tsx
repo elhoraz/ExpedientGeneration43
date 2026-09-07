@@ -92,6 +92,14 @@ function LivePhotoCellVideo({
       webkit-playsinline="true"
       preload="auto"
       disablePictureInPicture
+      onEnded={() => {
+        try {
+          if (videoRef.current) {
+            videoRef.current.currentTime = 0;
+            videoRef.current.play().catch(() => {});
+          }
+        } catch {}
+      }}
       style={{
         width: "100%",
         height: "100%",
@@ -240,27 +248,29 @@ export default function PhotoboothClient() {
         throw new Error("Browser ini tidak mendukung akses kamera langsung.");
       }
 
-      const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
+      const isMobile =
+        typeof window !== "undefined" &&
+        (window.innerWidth <= 768 ||
+          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+
       let newStream: MediaStream;
       try {
-        // High-definition camera constraints matching mobile portrait orientation (Full HD 1080p)
         newStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: facing,
-            width: { ideal: 1920, min: 720 },
-            height: { ideal: 1920, min: 720 },
-            frameRate: { ideal: 30 },
+            width: { ideal: isMobile ? 1280 : 1920, max: 1920 },
+            height: { ideal: isMobile ? 720 : 1080, max: 1080 },
+            frameRate: { ideal: 30, max: 30 },
           },
           audio: false,
         });
       } catch {
-        // Fallback for older camera drivers
+        // Safe fallback for older mobile cameras with strict constraints
         newStream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: facing,
             width: { ideal: 1280 },
-            height: { ideal: 1280 },
-            frameRate: { ideal: 30 },
+            height: { ideal: 720 },
           },
           audio: false,
         });
@@ -411,7 +421,7 @@ export default function PhotoboothClient() {
       sy = (vh - sHeight) / 2;
     }
 
-    const outputWidth = Math.min(1920, Math.round(sWidth));
+    const outputWidth = Math.min(1280, Math.round(sWidth));
     const outputHeight = Math.round(outputWidth / targetAspect);
 
     const canvas = document.createElement("canvas");
@@ -441,7 +451,7 @@ export default function PhotoboothClient() {
       canvas.height
     );
 
-    return canvas.toDataURL("image/jpeg", 0.98);
+    return canvas.toDataURL("image/jpeg", 0.95);
   };
 
   // Start Live Motion Clip Recording directly from camera stream (Hardware accelerated, mobile optimized)
@@ -483,7 +493,7 @@ export default function PhotoboothClient() {
         try {
           recorder = new MediaRecorder(stream, {
             mimeType: mimeType || undefined,
-            videoBitsPerSecond: isIOS ? 6000000 : 5000000,
+            videoBitsPerSecond: isIOS ? 3500000 : 3000000,
           });
         } catch {
           try {
@@ -506,18 +516,14 @@ export default function PhotoboothClient() {
             const finalMime = recorder.mimeType || mimeType || chunks[0]?.type || "video/mp4";
             let blob = new Blob(chunks, { type: finalMime });
 
-            // Fix duration metadata for WebM (which Chromium leaves undefined)
+            // Fix duration metadata for WebM so Chrome recognizes finite duration and loops cleanly
             if (finalMime.includes("webm")) {
               try {
-                const fixMod = await import("fix-webm-duration");
-                const fixFn = (fixMod as any).default || fixMod;
-                if (typeof fixFn === "function") {
-                  const fixedBlob = await fixFn(blob, durationMs);
-                  if (fixedBlob && fixedBlob.size > 0) {
-                    blob = fixedBlob;
-                  }
-                }
-              } catch {}
+                const { fixWebmDuration } = await import("@/utils/fixWebmDuration");
+                blob = await fixWebmDuration(blob, durationMs);
+              } catch (fixErr) {
+                console.warn("Slot WebM fix duration error:", fixErr);
+              }
             }
 
             const videoUrl = URL.createObjectURL(blob);
@@ -534,7 +540,7 @@ export default function PhotoboothClient() {
           resolve(null);
         };
 
-        recorder.start(100);
+        recorder.start();
 
         setTimeout(() => {
           if (recorder.state === "recording") {
@@ -1245,8 +1251,8 @@ export default function PhotoboothClient() {
         throw new Error("Strip element has invalid dimensions.");
       }
 
-      // High-res export canvas (Full HD 1080px width)
-      const exportWidth = 1080;
+      // Optimal HD export canvas (720px width - crisp HD & rock-solid 30fps)
+      const exportWidth = 720;
       const exportScale = exportWidth / stripRect.width;
       const exportHeight = Math.round(stripRect.height * exportScale);
 
@@ -1341,23 +1347,14 @@ export default function PhotoboothClient() {
               (v as any)["webkit-playsinline"] = "true";
               v.preload = "auto";
               v.autoplay = true;
-              // Keep opacity: 1 and inside viewport under modal so browser compositor keeps decoding every single frame
               v.style.cssText =
                 "position:fixed;top:0;left:0;width:320px;height:240px;pointer-events:none;z-index:99998;opacity:1;visibility:visible;";
               
-              // Continuous looping guarantee: automatically rewind and restart immediately when ending
+              // Guarantee continuous seamless looping
               v.onended = () => {
                 try {
                   v.currentTime = 0;
                   v.play().catch(() => {});
-                } catch {}
-              };
-              v.ontimeupdate = () => {
-                try {
-                  if (v.duration && v.currentTime >= v.duration - 0.08) {
-                    v.currentTime = 0;
-                    v.play().catch(() => {});
-                  }
                 } catch {}
               };
 
@@ -1435,13 +1432,12 @@ export default function PhotoboothClient() {
       try {
         recorder = new MediaRecorder(canvasStream, {
           mimeType: mimeType || undefined,
-          videoBitsPerSecond: isIOS ? 8000000 : 7000000,
+          videoBitsPerSecond: isIOS ? 3500000 : 3000000,
         });
       } catch {
         try {
           recorder = new MediaRecorder(canvasStream, {
             mimeType: mimeType || undefined,
-            videoBitsPerSecond: 5000000,
           });
         } catch {
           recorder = new MediaRecorder(canvasStream);
@@ -1498,12 +1494,8 @@ export default function PhotoboothClient() {
           if (slot.videoEl && slot.videoEl.videoWidth > 0) {
             source = slot.videoEl;
             isVideo = true;
-            // If video paused or reached end, restart immediately to guarantee seamless 6-second continuous looping
-            if (slot.videoEl.paused || slot.videoEl.ended) {
-              try {
-                slot.videoEl.currentTime = 0;
-                slot.videoEl.play().catch(() => {});
-              } catch {}
+            if (slot.videoEl.paused && !slot.videoEl.seeking) {
+              slot.videoEl.play().catch(() => {});
             }
           } else if (slot.fallbackImg && slot.fallbackImg.complete) {
             source = slot.fallbackImg;
@@ -1626,14 +1618,8 @@ export default function PhotoboothClient() {
           // Inject EBML duration metadata into WebM so Android Gallery & WhatsApp report full 6 seconds (not 1 second)
           if (finalMime.includes("webm")) {
             try {
-              const fixMod = await import("fix-webm-duration");
-              const fixFn = (fixMod as any).default || fixMod;
-              if (typeof fixFn === "function") {
-                const fixedBlob = await fixFn(blob, actualDuration);
-                if (fixedBlob && fixedBlob.size > 0) {
-                  blob = fixedBlob;
-                }
-              }
+              const { fixWebmDuration } = await import("@/utils/fixWebmDuration");
+              blob = await fixWebmDuration(blob, actualDuration);
             } catch (fixErr) {
               console.warn("Failed to inject WebM duration metadata:", fixErr);
             }
@@ -1797,7 +1783,7 @@ export default function PhotoboothClient() {
               <div className="live-recording-overlay">
                 <div className="live-rec-pill">
                   <span className="live-rec-dot-pulsing" />
-                  <span>MEREKAM GERAK LIVE (3 DETIK)... TETAP BERPOSE!</span>
+                  <span>MEREKAM GERAK LIVE (3 DETIK)... SENYUM &amp; BERPOSE!</span>
                 </div>
               </div>
             )}
