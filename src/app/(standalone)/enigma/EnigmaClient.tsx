@@ -219,7 +219,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     <>
       <style>{`
         :root { --enigma-gold: #d4af37; --enigma-dark: #020403; }
-        body { margin: 0; background-color: var(--enigma-dark); user-select: none; font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100vh; }
+        body { margin: 0; background-color: var(--enigma-dark); user-select: none; font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100dvh; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
             display: flex; align-items: center; gap: 10px;
@@ -231,9 +231,9 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
         }
         .btn-back-vault:hover { transform: translateX(-5px); box-shadow: 0 0 20px rgba(212,175,55,0.5); border-color: #ffd700; color: #fff; }
 
-        .enigma-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .vault-container { position: relative; width: clamp(300px, 80vw, 500px); aspect-ratio: 1; display: flex; justify-content: center; align-items: center; }
-        .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.8), inset 0 0 5px var(--enigma-gold); background: radial-gradient(circle at center, #0a0f0c 0%, #030504 100%); display: flex; justify-content: center; align-items: center; cursor: grab; transition: filter 0.3s ease; }
+        .enigma-wrapper { position: relative; width: 100%; max-width: 100vw; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; }
+        .vault-container { position: relative; width: clamp(280px, 80vw, 450px); aspect-ratio: 1; display: flex; justify-content: center; align-items: center; touch-action: none; }
+        .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.8), inset 0 0 5px var(--enigma-gold); background: radial-gradient(circle at center, #0a0f0c 0%, #030504 100%); display: flex; justify-content: center; align-items: center; cursor: grab; transition: filter 0.3s ease; touch-action: none; }
         .ring:active { cursor: grabbing; }
         .ring.outer { width: 100%; height: 100%; z-index: 10; }
         .ring.middle { width: 75%; height: 75%; z-index: 20; }
@@ -245,9 +245,9 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
         .symbol { position: absolute; color: rgba(212,175,55,0.6); font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(14px, 4vw, 22px); text-shadow: 0 0 10px rgba(0,0,0,0.8); transform-origin: center center; pointer-events: none; }
         .selection-marker { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid var(--enigma-gold); z-index: 50; filter: drop-shadow(0 0 10px var(--enigma-gold)); }
 
-        .riddle-box { margin-top: 50px; text-align: center; width: 80%; max-width: 600px; z-index: 100; }
-        .riddle-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: 1.5rem; letter-spacing: 4px; margin-bottom: 10px; text-transform: uppercase; }
-        .riddle-text { font-family: 'Courier New', monospace; color: #8b9ba8; font-size: 0.9rem; line-height: 1.6; letter-spacing: 2px; }
+        .riddle-box { margin-top: 40px; text-align: center; width: 85%; max-width: 600px; z-index: 100; }
+        .riddle-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: 1.4rem; letter-spacing: 4px; margin-bottom: 10px; text-transform: uppercase; }
+        .riddle-text { font-family: 'Courier New', monospace; color: #8b9ba8; font-size: 0.85rem; line-height: 1.6; letter-spacing: 1.5px; }
 
         .vault-container.unlocked .ring { filter: brightness(1.5) drop-shadow(0 0 20px var(--enigma-gold)); pointer-events: none; }
         .vault-container.unlocked .vault-core { background: radial-gradient(circle at center, #d4af37 0%, #aa771c 100%); box-shadow: 0 0 100px var(--enigma-gold); transform: scale(1.1); }
@@ -255,16 +255,16 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
 
         .success-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 1.5s ease; }
         .success-overlay.show { opacity: 1; pointer-events: auto; }
-        .clearance-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(2rem, 6vw, 4rem); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
-        .secret-quote { font-family: 'Courier New', monospace; color: #fff; font-size: 1rem; text-align: center; max-width: 80%; line-height: 1.8; letter-spacing: 3px; transform: translateY(20px); opacity: 0; }
-        .btn-return { margin-top: 40px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
+        .clearance-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(1.8rem, 6vw, 3.5rem); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
+        .secret-quote { font-family: 'Courier New', monospace; color: #fff; font-size: 0.95rem; text-align: center; max-width: 85%; line-height: 1.8; letter-spacing: 2px; transform: translateY(20px); opacity: 0; }
+        .btn-return { margin-top: 30px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
         .btn-return:hover { background: var(--enigma-gold); color: #000; }
 
         @media (max-width: 768px) { 
-            .btn-back-vault { top: 15px; left: 15px; padding: 8px 14px; font-size: 10px; }
-            .enigma-wrapper { height: auto; min-height: 100vh; padding: 70px 15px 30px 15px; justify-content: flex-start; } 
-            .vault-container { width: clamp(260px, 85vw, 340px); margin-bottom: 15px; } 
-            .riddle-box { margin-top: 20px; width: 100%; }
+            .btn-back-vault { top: max(14px, calc(env(safe-area-inset-top, 14px) + 6px)); left: max(14px, env(safe-area-inset-left, 14px)); padding: 8px 12px; font-size: 9.5px; }
+            .enigma-wrapper { min-height: 100dvh; padding: max(65px, calc(env(safe-area-inset-top, 14px) + 50px)) 15px calc(30px + env(safe-area-inset-bottom, 16px)) 15px; justify-content: center; } 
+            .vault-container { width: clamp(250px, 82vw, 330px); margin-bottom: 15px; } 
+            .riddle-box { margin-top: 15px; width: 100%; }
         }
         @media (min-width: 769px) { .enigma-wrapper { flex-direction: row; gap: 60px; } .riddle-box { text-align: left; } .riddle-text { text-align: left !important; } .vault-container { width: 450px; } }
       `}</style>

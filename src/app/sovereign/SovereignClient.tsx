@@ -38,6 +38,8 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
     // Tambahkan class khusus agar CSS global (film-grain, aurora) disembunyikan
     document.body.classList.add("page-sovereign");
 
+    let cleanupFn: (() => void) | null = null;
+
     const container = containerRef.current;
     if (!container) return;
 
@@ -987,7 +989,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       // GYROSCOPE
       let baseBeta: number | null = null, baseGamma: number | null = null;
-      window.addEventListener("deviceorientation", (event: DeviceOrientationEvent) => {
+      const onDeviceOrientation = (event: DeviceOrientationEvent) => {
         if (!event.beta || !event.gamma) return;
         if (baseBeta === null) baseBeta = event.beta;
         if (baseGamma === null) baseGamma = event.gamma;
@@ -997,12 +999,14 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         globalCursorY = diffBeta / 45;
         targetCameraX = globalCursorX * 2.5;
         targetCameraY = globalCursorY * 2.5;
-      }, true);
+      };
+      window.addEventListener("deviceorientation", onDeviceOrientation, true);
 
       // RENDER LOOP
+      let animId: number | null = null;
       let lastCardPos = new THREE.Vector3();
       function animate() {
-        requestAnimationFrame(animate);
+        animId = requestAnimationFrame(animate);
         const time = Date.now() * 0.001;
 
         if (dayMarbleMat.opacity !== targetDayOpacity) {
@@ -1093,25 +1097,42 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       };
       window.addEventListener("resize", onResize);
 
-      // Cleanup
-      return () => {
+      // Cleanup registration
+      cleanupFn = () => {
+        if (animId) cancelAnimationFrame(animId);
         window.removeEventListener("resize", onResize);
         window.removeEventListener("mousemove", onPointerMove as EventListener);
         window.removeEventListener("mouseup", onPointerUp);
+        window.removeEventListener("touchmove", onPointerMove as EventListener);
+        window.removeEventListener("touchend", onPointerUp);
+        window.removeEventListener("deviceorientation", onDeviceOrientation, true);
+        if (container) {
+          container.removeEventListener("mousedown", onPointerDown as EventListener);
+          container.removeEventListener("touchstart", onPointerDown as EventListener);
+        }
         renderer.dispose();
-        if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
+        if (container && container.contains(renderer.domElement)) {
+          container.removeChild(renderer.domElement);
+        }
       };
     });
+
+    return () => {
+      isInitialized.current = false;
+      document.body.classList.remove("page-sovereign");
+      if (cleanupFn) cleanupFn();
+    };
   }, []);
 
   return (
     <div
       style={{
-        width: "100vw",
-        height: "100vh",
+        width: "100%",
+        height: "100dvh",
         background: "#020202",
         overflow: "hidden",
-        position: "relative",
+        position: "fixed",
+        inset: 0,
         fontFamily: "'Inter', sans-serif",
         userSelect: "none",
       }}
@@ -1320,8 +1341,8 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       <div
         ref={containerRef}
         style={{
-          width: "100vw",
-          height: "100vh",
+          width: "100%",
+          height: "100%",
           display: "block",
           position: "absolute",
           top: 0,
@@ -1329,6 +1350,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           zIndex: 10,
           outline: "none",
           pointerEvents: "auto",
+          touchAction: "none",
         }}
       />
 

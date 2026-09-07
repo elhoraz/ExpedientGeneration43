@@ -21,6 +21,13 @@ export default function FiturClient() {
     };
     window.addEventListener('beforeunload', saveScroll);
 
+    const isMobileDevice = typeof window !== 'undefined' && (
+      window.innerWidth <= 768 ||
+      ('ontouchstart' in window) ||
+      (navigator.maxTouchPoints > 0) ||
+      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+    );
+
     // GSAP context untuk mencegah animation glitch saat navigasi
     const ctx = gsap.context(() => {
       if (savedScroll && parseInt(savedScroll) > 0) {
@@ -32,7 +39,15 @@ export default function FiturClient() {
             mainWrapper.scrollTo({ top: parseInt(savedScroll), left: 0, behavior: 'instant' });
           }
         }, 100);
+      } else if (isMobileDevice) {
+        // Mobile-optimized: entrance ringan tanpa 3D rotationX & tanpa delay stagger panjang
+        gsap.from(".dashboard-header", { opacity: 0, y: -20, duration: 0.5, ease: "power2.out", clearProps: "all" });
+        gsap.from(".premium-card", {
+          opacity: 0, y: 25, duration: 0.4,
+          stagger: 0.03, ease: "power2.out", clearProps: "all"
+        });
       } else {
+        // Desktop cinematic entrance
         gsap.from(".dashboard-header", { opacity: 0, y: -40, duration: 1.2, ease: "expo.out", clearProps: "all" });
         gsap.from(".premium-card", {
           opacity: 0, y: 80, rotationX: -15, duration: 1.1,
@@ -42,9 +57,8 @@ export default function FiturClient() {
     });
 
     // JS Tilt Effect (Hanya untuk Desktop / Mouse Pointer)
-    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
     const tiltCards = cardsRef.current;
-    if (!isTouch && window.innerWidth > 768) {
+    if (!isMobileDevice && window.innerWidth > 768) {
       tiltCards.forEach(card => {
         if (!card) return;
 
@@ -73,6 +87,12 @@ export default function FiturClient() {
         
         (card as any)._mouseMoveHandler = mouseMoveHandler;
         (card as any)._mouseLeaveHandler = mouseLeaveHandler;
+      });
+    } else {
+      // Pastikan di mobile tidak ada inline transform yang tertinggal
+      tiltCards.forEach(card => {
+        if (!card) return;
+        card.style.transform = "none";
       });
     }
 

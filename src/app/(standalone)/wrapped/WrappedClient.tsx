@@ -10,8 +10,13 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
+      document.body.classList.add("page-wrapped");
       // Init animation for first slide
       animateSlide(0);
+
+      return () => {
+          document.body.classList.remove("page-wrapped");
+      };
   }, []);
 
   const animateSlide = (index: number) => {
@@ -47,10 +52,10 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
   return (
     <div className="wrapped-wrapper">
       <style>{`
-        body { margin: 0; overflow: hidden; background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
-        .wrapped-wrapper { width: 100vw; height: 100vh; position: relative; display: flex; justify-content: center; align-items: center; }
+        body.page-wrapped { margin: 0; overflow: hidden; background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
+        .wrapped-wrapper { position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100vw; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         
-        .progress-bar-container { position: absolute; top: 20px; left: 20px; right: 20px; display: flex; gap: 5px; z-index: 100; }
+        .progress-bar-container { position: absolute; top: max(16px, calc(env(safe-area-inset-top, 16px) + 6px)); left: max(16px, env(safe-area-inset-left, 16px)); right: max(75px, calc(env(safe-area-inset-right, 16px) + 60px)); display: flex; gap: 5px; z-index: 100; }
         .progress-segment { flex: 1; height: 3px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; background: #d4af37; transition: width 0.3s linear; }
 
@@ -71,7 +76,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
         .click-left { left: 0; }
         .click-right { right: 0; }
 
-        .btn-close { position: absolute; top: 40px; right: 20px; color: #fff; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 0.8rem; z-index: 100; backdrop-filter: blur(5px); }
+        .btn-close { position: absolute; top: max(12px, calc(env(safe-area-inset-top, 12px) + 4px)); right: max(16px, env(safe-area-inset-right, 16px)); color: #fff; background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; text-decoration: none; font-size: 0.8rem; z-index: 100; backdrop-filter: blur(5px); }
         .btn-action-vault { position: relative; z-index: 100; }
       `}</style>
 

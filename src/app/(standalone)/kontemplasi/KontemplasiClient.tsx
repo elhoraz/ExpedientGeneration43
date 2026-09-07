@@ -50,9 +50,8 @@ export default function KontemplasiClient({ initialJournals, userId }: { initial
               dust.classList.add('dust');
               let size = Math.random() * 2 + 1;
               dust.style.width = size + 'px';
-              dust.style.height = size + 'px';
-              dust.style.left = Math.random() * 100 + 'vw';
-              dust.style.top = Math.random() * 100 + 'vh';
+              dust.style.left = (Math.random() * 88 + 2) + '%';
+              dust.style.top = (Math.random() * 88 + 2) + '%';
               dustContainer.appendChild(dust);
               
               gsap.to(dust, {

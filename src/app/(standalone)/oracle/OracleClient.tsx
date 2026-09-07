@@ -71,7 +71,10 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       }
     }, 500);
 
+    document.body.classList.add("page-oracle");
+
     return () => {
+      document.body.classList.remove("page-oracle");
       clearInterval(checkFaceApi);
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -329,30 +332,31 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             --oracle-dark: #020202;
             --text-secondary: #8b9ba8;
         }
-        body { background: var(--oracle-dark); color: #fff; margin: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        body.page-oracle { background: var(--oracle-dark); color: #fff; margin: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 20px; background: rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px; background: rgba(0,0,0,0.65);
             border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
             color: #d4af37; font-size: 11px; font-weight: 600; 
-            letter-spacing: 3px; text-decoration: none; text-transform: uppercase;
+            letter-spacing: 2px; text-decoration: none; text-transform: uppercase;
             backdrop-filter: blur(10px); transition: all 0.3s ease;
         }
-        .btn-back-vault:hover { transform: translateX(-5px); box-shadow: 0 0 20px rgba(212,175,55,0.5); border-color: #ffd700; color: #fff; }
+        .btn-back-vault:hover { transform: translateX(-3px); box-shadow: 0 0 20px rgba(212,175,55,0.5); border-color: #ffd700; color: #fff; }
         .btn-time-capsule {
             position: absolute; top: 30px; right: 30px; z-index: 100;
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 20px; background: rgba(0,0,0,0.6);
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 18px; background: rgba(0,0,0,0.65);
             border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
             color: #d4af37; font-size: 11px; font-weight: 600; 
-            letter-spacing: 3px; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 2px; cursor: pointer; text-transform: uppercase;
+            backdrop-filter: blur(10px); transition: all 0.3s ease;
         }
         .time-capsule-panel {
-            position: absolute; top: 0; right: -400px; width: 400px; height: 100vh;
-            background: rgba(5,5,5,0.95); border-left: 1px solid var(--oracle-gold);
-            z-index: 90; padding: 100px 30px 30px; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-y: auto;
+            position: absolute; top: 0; right: -420px; width: min(400px, 92vw); height: 100dvh;
+            background: rgba(5,5,5,0.96); border-left: 1px solid var(--oracle-gold);
+            z-index: 90; padding: 100px 24px 24px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
         .time-capsule-panel.open { right: 0; }
         .capsule-form textarea {
@@ -368,10 +372,12 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             border: none; border-radius: 8px; font-weight: bold; letter-spacing: 2px; cursor: pointer;
         }
         .oracle-wrapper {
-            width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100vw;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            overflow: hidden; background: var(--oracle-dark);
         }
         .vision-container {
-            position: relative; width: clamp(300px, 90vw, 500px); aspect-ratio: 3/4;
+            position: relative; width: clamp(280px, 86vw, 440px); max-height: 52vh; aspect-ratio: 3/4;
             border: 2px solid rgba(212,175,55,0.3); border-radius: 20px; overflow: hidden;
             box-shadow: 0 0 50px rgba(0,0,0,0.8); background: #0a0a0a;
         }
@@ -380,13 +386,13 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         }
         .logo-reticle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60%; opacity: 0.15; filter: grayscale(1); pointer-events: none; transition: 0.5s; }
         .scanner-laser { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--oracle-gold); box-shadow: 0 0 20px var(--oracle-gold); display: none; z-index: 10; }
-        .hud-text { position: absolute; bottom: 30px; left: 0; width: 100%; text-align: center; font-family: 'Courier New'; color: var(--oracle-gold); font-size: 0.8rem; letter-spacing: 3px; z-index: 10; }
+        .hud-text { position: absolute; bottom: 25px; left: 0; width: 100%; text-align: center; font-family: 'Courier New'; color: var(--oracle-gold); font-size: 0.78rem; letter-spacing: 2.5px; z-index: 10; padding: 0 15px; }
         
-        .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px; opacity: 0; pointer-events: none; transition: 0.5s; }
+        .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px; opacity: 0; pointer-events: none; transition: 0.5s; }
         .result-overlay.show { opacity: 1; pointer-events: auto; }
         
-        .controls-panel { margin-top: 40px; display: flex; gap: 20px; }
-        .btn-initiate { padding: 15px 40px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: 'Inter'; text-transform: uppercase; letter-spacing: 4px; border-radius: 50px; cursor: pointer; transition: 0.3s; }
+        .controls-panel { margin-top: 30px; display: flex; gap: 15px; }
+        .btn-initiate { padding: 14px 36px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: 'Inter'; text-transform: uppercase; letter-spacing: 3px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
         .btn-initiate:hover { background: var(--oracle-gold); color: #000; }
         .btn-initiate:disabled { opacity: 0.5; pointer-events: none; }
         
@@ -428,6 +434,46 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         }
         .oi-close:hover { background: var(--oracle-gold); color: #000; box-shadow: 0 0 20px rgba(212,175,55,0.4); transform: translateY(-3px); }
         
+        @media (max-width: 640px) {
+          .btn-back-vault {
+            top: max(14px, calc(env(safe-area-inset-top, 14px) + 6px));
+            left: max(12px, env(safe-area-inset-left, 12px));
+            padding: 8px 12px;
+            font-size: 9px;
+            letter-spacing: 1px;
+          }
+          .btn-time-capsule {
+            top: max(14px, calc(env(safe-area-inset-top, 14px) + 6px));
+            right: max(12px, env(safe-area-inset-right, 12px));
+            padding: 8px 12px;
+            font-size: 9px;
+            letter-spacing: 1px;
+          }
+          .vision-container {
+            width: clamp(240px, 84vw, 340px);
+            max-height: 48vh;
+          }
+          .controls-panel {
+            margin-top: 18px;
+          }
+          .btn-initiate {
+            padding: 12px 26px;
+            font-size: 0.78rem;
+            letter-spacing: 2px;
+          }
+          .time-capsule-panel {
+            padding: 75px 18px 18px;
+          }
+          .oracle-insight-paper {
+            padding: 24px 16px;
+            max-height: 80vh;
+          }
+          .oi-title {
+            font-size: 1.4rem;
+            letter-spacing: 3px;
+          }
+        }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>

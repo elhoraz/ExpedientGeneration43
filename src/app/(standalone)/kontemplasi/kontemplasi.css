@@ -1,7 +1,7 @@
 .sanctuary-wrapper { 
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; max-width: 100vw;
     display: flex; flex-direction: column; justify-content: center; align-items: center; 
-    z-index: 9999;
+    z-index: 9999; overflow: hidden;
     background-color: var(--bg-main);
     background-image: radial-gradient(circle at center, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
     font-family: 'Playfair Display', serif;
@@ -12,7 +12,7 @@
 .start-overlay.hidden { display: none; }
 .start-title { font-size: clamp(2rem, 6vw, 3.5rem); color: #d4af37; margin-bottom: 20px; letter-spacing: 6px; text-transform: uppercase; text-align: center; }
 .start-desc { color: var(--text-secondary); font-family: 'Inter', sans-serif; max-width: 500px; text-align: center; line-height: 1.8; margin-bottom: 50px; }
-.btn-top-back { position: absolute; top: 40px; left: 20px; background: rgba(212, 175, 55, 0.1); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.3); padding: 10px 20px; border-radius: 30px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; backdrop-filter: blur(10px); z-index: 100; display: flex; align-items: center; gap: 8px; }
+.btn-top-back { position: absolute; top: max(16px, calc(env(safe-area-inset-top, 16px) + 8px)); left: max(16px, env(safe-area-inset-left, 16px)); background: rgba(212, 175, 55, 0.1); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.3); padding: 10px 20px; border-radius: 30px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; backdrop-filter: blur(10px); z-index: 100; display: flex; align-items: center; gap: 8px; }
 .btn-start { background: transparent; color: #d4af37; border: 1px solid #d4af37; padding: 15px 50px; font-family: 'Inter', sans-serif; font-size: 0.85rem; letter-spacing: 5px; text-transform: uppercase; border-radius: 40px; cursor: pointer; transition: 0.5s; }
 .btn-start:hover { background: rgba(212,175,55,0.15); box-shadow: 0 0 30px rgba(212,175,55,0.4); transform: translateY(-2px); }
 
@@ -70,6 +70,6 @@
 
 @media (max-width: 768px) {
     .journal-panel { right: -100%; padding: 30px 20px; }
-    .audio-menu { width: 90vw; bottom: 100px; }
-    .stealth-controls { gap: 30px; bottom: 30px; }
+    .audio-menu { width: 90vw; bottom: calc(100px + env(safe-area-inset-bottom, 16px)); }
+    .stealth-controls { gap: 24px; bottom: max(24px, calc(env(safe-area-inset-bottom, 24px) + 8px)); }
 }

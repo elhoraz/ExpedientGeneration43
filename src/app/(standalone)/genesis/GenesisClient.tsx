@@ -11,6 +11,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
   const animationRef = useRef<number | null>(null);
 
   useEffect(() => {
+    document.body.classList.add("page-genesis");
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -144,6 +145,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
     window.addEventListener('resize', onResize);
 
     return () => {
+        document.body.classList.remove("page-genesis");
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('touchmove', onTouchMove);
         window.removeEventListener('mouseleave', onLeave);
@@ -215,11 +217,11 @@ export default function GenesisClient({ userId }: { userId: string }) {
     <>
       <style>{`
         :root { --genesis-gold: #d4af37; --genesis-dark: #020202; }
-        body { margin: 0; padding: 0; background-color: var(--genesis-dark); overflow: hidden; user-select: none; font-family: 'Inter', sans-serif; height: 100vh; width: 100vw; }
+        body.page-genesis { margin: 0; padding: 0; background-color: var(--genesis-dark); overflow: hidden; user-select: none; font-family: 'Inter', sans-serif; height: 100dvh; width: 100%; }
         .btn-back-vault { position: absolute; top: 30px; left: 30px; z-index: 100; display: flex; align-items: center; gap: 10px; padding: 10px 20px; background: rgba(0,0,0,0.6); border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; color: #d4af37; font-size: 11px; font-weight: 600; letter-spacing: 3px; text-decoration: none; text-transform: uppercase; backdrop-filter: blur(10px); transition: all 0.3s ease; cursor: pointer; }
         .btn-back-vault:hover { transform: translateX(-5px); box-shadow: 0 0 20px rgba(212,175,55,0.5); border-color: #ffd700; color: #fff; }
 
-        .genesis-wrapper { position: relative; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .genesis-wrapper { position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100vw; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
         #canvas1 { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; touch-action: none; }
 
@@ -240,8 +242,8 @@ export default function GenesisClient({ userId }: { userId: string }) {
         .btn-return:hover { background: #fff; color: #000; }
 
         @media (max-width: 768px) { 
-            .btn-back-vault { top: 15px; left: 15px; padding: 8px 14px; font-size: 10px; } 
-            .hud-overlay { width: 90%; bottom: 25px; gap: 12px; }
+            .btn-back-vault { top: max(16px, calc(env(safe-area-inset-top, 16px) + 6px)); left: max(16px, env(safe-area-inset-left, 16px)); padding: 8px 14px; font-size: 10px; } 
+            .hud-overlay { width: 90%; bottom: max(20px, calc(env(safe-area-inset-bottom, 20px) + 8px)); gap: 12px; }
             .hud-text { font-size: 0.72rem; letter-spacing: 2px; }
             .btn-singularity { padding: 12px 24px; font-size: 0.8rem; letter-spacing: 2px; width: 100%; max-width: 280px; }
             .rev-title { font-size: 2.2rem; letter-spacing: 4px; }

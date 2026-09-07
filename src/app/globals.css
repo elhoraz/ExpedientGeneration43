@@ -172,15 +172,25 @@ body.sidebar-closed .floating-help-btn {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Berikan respons sentuhan instan pada tombol & kartu interaktif */
+  /* Berikan respons sentuhan instan hanya pada tombol mandiri tanpa merusak scroll kartu */
   button:active,
-  a:active,
+  .btn:active,
+  .launch-btn:active {
+    opacity: 0.85;
+    transition: opacity 0.1s ease !important;
+  }
+
+  /* Cegah jitter / jumping / matrix glitch pada kartu dan link saat di-scroll di mobile */
+  .premium-card,
   .premium-card:active,
+  .curator-card,
   .curator-card:active,
+  .luminary-card,
   .luminary-card:active,
+  .stat-card,
   .stat-card:active {
-    transition: transform 0.1s ease !important;
-    transform: scale(0.98) !important;
+    transform: none !important;
+    perspective: none !important;
   }
 }
 
