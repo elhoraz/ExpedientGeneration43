@@ -65,7 +65,13 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       const scene = new THREE.Scene();
       scene.fog = new THREE.FogExp2(0x020202, 0.015);
 
-      const isMobile = window.innerWidth < 768;
+      const isMobile = typeof window !== 'undefined' && (
+        window.innerWidth < 768 ||
+        ('ontouchstart' in window) ||
+        (navigator.maxTouchPoints > 0) ||
+        (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+      );
+
       const camera = new THREE.PerspectiveCamera(
         isMobile ? 50 : 45,
         window.innerWidth / window.innerHeight,
@@ -75,36 +81,42 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       camera.position.set(0, 0, isMobile ? 24 : 28);
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: !isMobile,
         alpha: true,
         powerPreference: "high-performance",
+        precision: isMobile ? "mediump" : "highp",
       });
       renderer.setClearColor(0x000000, 0);
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 2));
+      renderer.shadowMap.enabled = !isMobile;
+      if (!isMobile) {
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      }
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.1;
       container.appendChild(renderer.domElement);
 
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
       scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
+      pmremGenerator.dispose();
 
       // LIGHTING
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 1.0 : 0.8);
       scene.add(ambientLight);
 
-      const spotLight = new THREE.SpotLight(0xffeedd, 120);
+      const spotLight = new THREE.SpotLight(0xffeedd, isMobile ? 90 : 120);
       spotLight.position.set(10, 30, 25);
       spotLight.angle = Math.PI / 4;
       spotLight.penumbra = 0.8;
-      spotLight.castShadow = true;
-      spotLight.shadow.mapSize.width = isMobile ? 1024 : 2048;
-      spotLight.shadow.mapSize.height = isMobile ? 1024 : 2048;
+      spotLight.castShadow = !isMobile;
+      if (!isMobile) {
+        spotLight.shadow.mapSize.width = 2048;
+        spotLight.shadow.mapSize.height = 2048;
+      }
       scene.add(spotLight);
 
-      const rimLight = new THREE.PointLight(PURE_GOLD, 60, 40);
+      const rimLight = new THREE.PointLight(PURE_GOLD, isMobile ? 45 : 60, 40);
       rimLight.position.set(-10, -5, 10);
       scene.add(rimLight);
 
@@ -112,13 +124,15 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       cardGlowLight.position.set(0, 0, -2);
       scene.add(cardGlowLight);
 
-      const mouseLight = new THREE.PointLight(PURE_GOLD, 50, 40);
+      const mouseLight = new THREE.PointLight(PURE_GOLD, isMobile ? 0 : 50, 40);
       mouseLight.position.set(0, 0, -5);
-      scene.add(mouseLight);
+      if (!isMobile) {
+        scene.add(mouseLight);
+      }
 
       // DUST PARTICLES
       const dustGeo = new THREE.BufferGeometry();
-      const dustCount = 150;
+      const dustCount = isMobile ? 35 : 150;
       const dustPos = new Float32Array(dustCount * 3);
       for (let i = 0; i < dustCount * 3; i++) {
         dustPos[i] = (Math.random() - 0.5) * 60;
@@ -126,7 +140,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
       const dustMat = new THREE.PointsMaterial({
         color: PURE_GOLD,
-        size: 0.1,
+        size: isMobile ? 0.15 : 0.1,
         transparent: true,
         opacity: 0.5,
         blending: THREE.AdditiveBlending,
@@ -136,7 +150,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       // KINTSUGI MARBLE BACKGROUND
       function createSeamlessMarbleTexture(isDayMode: boolean) {
-        const size = 2048;
+        const size = isMobile ? 512 : 2048;
         const canvas = document.createElement("canvas");
         canvas.width = size;
         canvas.height = size;
@@ -150,11 +164,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           ctx.fillRect(0, 0, size, size);
           ctx.globalAlpha = 0.25;
           ctx.strokeStyle = "#cdd2d6";
-          ctx.lineWidth = 12;
-          for (let i = 0; i < 30; i++) {
+          ctx.lineWidth = isMobile ? 5 : 12;
+          const lineCount = isMobile ? 12 : 30;
+          for (let i = 0; i < lineCount; i++) {
             ctx.beginPath();
             ctx.moveTo(Math.random() * size, 0);
-            for (let j = 0; j < 8; j++) ctx.lineTo(Math.random() * size, (j + 1) * 300);
+            for (let j = 0; j < (isMobile ? 4 : 8); j++) ctx.lineTo(Math.random() * size, (j + 1) * (isMobile ? 120 : 300));
             ctx.stroke();
           }
         } else {
@@ -165,29 +180,33 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           ctx.fillRect(0, 0, size, size);
           ctx.globalAlpha = 0.2;
           ctx.strokeStyle = "#084d33";
-          ctx.lineWidth = 4;
-          for (let i = 0; i < 50; i++) {
+          ctx.lineWidth = isMobile ? 2 : 4;
+          const lineCount = isMobile ? 15 : 50;
+          for (let i = 0; i < lineCount; i++) {
             ctx.beginPath();
             ctx.moveTo(Math.random() * size, 0);
-            for (let j = 0; j < 8; j++) ctx.lineTo(Math.random() * size, (j + 1) * 300);
+            for (let j = 0; j < (isMobile ? 4 : 8); j++) ctx.lineTo(Math.random() * size, (j + 1) * (isMobile ? 120 : 300));
             ctx.stroke();
           }
         }
 
         ctx.globalAlpha = 1.0;
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = isDayMode ? "rgba(0,0,0,0.1)" : PURE_GOLD;
+        if (!isMobile) {
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = isDayMode ? "rgba(0,0,0,0.1)" : PURE_GOLD;
+        }
         ctx.strokeStyle = isDayMode ? "#d4af37" : PURE_GOLD;
-        ctx.lineWidth = isDayMode ? 4 : 6;
+        ctx.lineWidth = isDayMode ? (isMobile ? 2 : 4) : (isMobile ? 3 : 6);
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        for (let i = 0; i < 15; i++) {
+        const veinCount = isMobile ? 6 : 15;
+        for (let i = 0; i < veinCount; i++) {
           ctx.beginPath();
           let x = Math.random() * size, y = Math.random() * size;
           ctx.moveTo(x, y);
-          for (let j = 0; j < 12; j++) {
-            x += (Math.random() - 0.5) * 500;
-            y += Math.random() * 300;
+          for (let j = 0; j < (isMobile ? 6 : 12); j++) {
+            x += (Math.random() - 0.5) * (isMobile ? 200 : 500);
+            y += Math.random() * (isMobile ? 120 : 300);
             ctx.lineTo(x, y);
           }
           ctx.stroke();
@@ -201,33 +220,38 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       const marbleGroup = new THREE.Group();
       marbleGroup.position.set(0, 0, -10);
 
-      const nightMarbleMat = new THREE.MeshPhysicalMaterial({
+      const MarbleMatClass = isMobile ? THREE.MeshBasicMaterial : THREE.MeshPhysicalMaterial;
+      const nightMarbleMat = new MarbleMatClass({
         map: createSeamlessMarbleTexture(false),
-        metalness: 0.15,
-        roughness: 0.1,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.05,
+        ...(isMobile ? {} : {
+          metalness: 0.15,
+          roughness: 0.1,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.05,
+        }),
         color: 0xffffff,
         transparent: true,
         opacity: 1.0,
       });
       const nightMarbleMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), nightMarbleMat);
-      nightMarbleMesh.receiveShadow = true;
+      if (!isMobile) nightMarbleMesh.receiveShadow = true;
       marbleGroup.add(nightMarbleMesh);
 
-      const dayMarbleMat = new THREE.MeshPhysicalMaterial({
+      const dayMarbleMat = new MarbleMatClass({
         map: createSeamlessMarbleTexture(true),
-        metalness: 0.1,
-        roughness: 0.1,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.02,
+        ...(isMobile ? {} : {
+          metalness: 0.1,
+          roughness: 0.1,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.02,
+        }),
         color: 0xffffff,
         transparent: true,
         opacity: 0.0,
       });
       const dayMarbleMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), dayMarbleMat);
       dayMarbleMesh.position.z = 0.1;
-      dayMarbleMesh.receiveShadow = true;
+      if (!isMobile) dayMarbleMesh.receiveShadow = true;
       marbleGroup.add(dayMarbleMesh);
       scene.add(marbleGroup);
 
@@ -237,20 +261,20 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       mountGroup.position.copy(anchorPos);
 
       const mountBase = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.5, 1.8, 0.5, 64),
+        new THREE.CylinderGeometry(1.5, 1.8, 0.5, isMobile ? 16 : 64),
         new THREE.MeshStandardMaterial({ color: GOLD, metalness: 1.0, roughness: 0.2 })
       );
       mountBase.rotation.x = Math.PI / 2;
       mountBase.position.z = -0.5;
-      mountBase.receiveShadow = true;
+      if (!isMobile) mountBase.receiveShadow = true;
       mountGroup.add(mountBase);
 
       const mountRing = new THREE.Mesh(
-        new THREE.TorusGeometry(0.5, 0.12, 16, 32),
+        new THREE.TorusGeometry(0.5, 0.12, isMobile ? 8 : 16, isMobile ? 16 : 32),
         new THREE.MeshStandardMaterial({ color: GOLD, metalness: 1.0, roughness: 0.1 })
       );
       mountRing.rotation.y = Math.PI / 2;
-      mountRing.castShadow = true;
+      if (!isMobile) mountRing.castShadow = true;
       mountGroup.add(mountRing);
       scene.add(mountGroup);
 
@@ -545,25 +569,30 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           // Bump map WAJIB menggunakan Linear atau NoColorSpace agar data height tidak terdistorsi
           texture.colorSpace = THREE.NoColorSpace || THREE.LinearSRGBColorSpace;
         }
-        texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
+        texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), isMobile ? 1 : 16);
         return texture;
       }
 
       const texFront = createFrontTexture(false);
-      const bumpFront = createFrontTexture(true);
+      const bumpFront = isMobile ? null : createFrontTexture(true);
       const texBack = createBackTexture(false);
-      const bumpBack = createBackTexture(true);
+      const bumpBack = isMobile ? null : createBackTexture(true);
       const kFrontTex = createKTAFrontTexture(false);
-      const kFrontBump = createKTAFrontTexture(true);
+      const kFrontBump = isMobile ? null : createKTAFrontTexture(true);
       const kBackTex = createKTABackTexture(false);
-      const kBackBump = createKTABackTexture(true);
+      const kBackBump = isMobile ? null : createKTABackTexture(true);
 
-      const cardMaterialProps = {
+      const CardMatClass = isMobile ? THREE.MeshStandardMaterial : THREE.MeshPhysicalMaterial;
+
+      const cardMaterialProps = isMobile ? {
+        roughness: 0.2,
+        metalness: 0.5,
+      } : {
         roughness: 0.15,
         metalness: 0.6,
         clearcoat: 0.85,
         clearcoatRoughness: 0.1,
-        iridescence: isMobile ? 0.35 : 0.8,
+        iridescence: 0.8,
         iridescenceIOR: 1.5,
         iridescenceThicknessRange: [100, 400] as [number, number],
         bumpScale: 0.035,
@@ -573,24 +602,24 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       const materials = [
         goldEdgeMaterial, goldEdgeMaterial, goldEdgeMaterial, goldEdgeMaterial,
-        new THREE.MeshPhysicalMaterial({ map: texFront, bumpMap: bumpFront, ...cardMaterialProps }),
-        new THREE.MeshPhysicalMaterial({ map: texBack, bumpMap: bumpBack, ...cardMaterialProps }),
+        new CardMatClass({ map: texFront, ...(bumpFront ? { bumpMap: bumpFront } : {}), ...cardMaterialProps }),
+        new CardMatClass({ map: texBack, ...(bumpBack ? { bumpMap: bumpBack } : {}), ...cardMaterialProps }),
       ];
 
       // ID CARD VERTIKAL
       const cardWidth = 5.4, cardHeight = 8.6, cardDepth = 0.12;
-      const idCardGeo = new RoundedBoxGeometry(cardWidth, cardHeight, cardDepth, 24, 0.3);
+      const idCardGeo = new RoundedBoxGeometry(cardWidth, cardHeight, cardDepth, isMobile ? 8 : 24, 0.3);
       const idCard = new THREE.Mesh(idCardGeo, materials);
       idCard.position.set(0, 10, 0);
-      idCard.castShadow = true;
+      if (!isMobile) idCard.castShadow = true;
       scene.add(idCard);
 
-      const clipGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.4, 32);
+      const clipGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.4, isMobile ? 12 : 32);
       clipGeo.rotateZ(Math.PI / 2);
       const clipMat = new THREE.MeshStandardMaterial({ color: PURE_GOLD, metalness: 1.0, roughness: 0.2 });
       const metalClip = new THREE.Mesh(clipGeo, clipMat);
       metalClip.position.set(0, cardHeight / 2 + 0.1, 0);
-      metalClip.castShadow = true;
+      if (!isMobile) metalClip.castShadow = true;
       idCard.add(metalClip);
 
       const stringLength = 11.5;
@@ -606,25 +635,38 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         const control1 = new THREE.Vector3(anchorPos.x, anchorPos.y - stringLength * 0.3 - sag, anchorPos.z - 1);
         const control2 = new THREE.Vector3(clipGlobalPos.x, clipGlobalPos.y + stringLength * 0.3 + sag, clipGlobalPos.z - 1);
         const curve = new THREE.CubicBezierCurve3(anchorPos, control1, control2, clipGlobalPos);
-        const tubeGeo = new THREE.TubeGeometry(curve, isMobile ? 12 : 40, 0.12, isMobile ? 4 : 8, false);
+        const tubeGeo = new THREE.TubeGeometry(curve, isMobile ? 8 : 40, 0.12, isMobile ? 3 : 8, false);
         if (lanyardMesh) {
           lanyardMesh.geometry.dispose();
           lanyardMesh.geometry = tubeGeo;
         } else {
           lanyardMesh = new THREE.Mesh(tubeGeo, lanyardMat);
-          lanyardMesh.castShadow = true;
+          if (!isMobile) lanyardMesh.castShadow = true;
           scene.add(lanyardMesh);
         }
       }
+      updateLanyardGeometry();
 
       // KTA CARD HORIZONTAL
       const ktaWidth = 5.4, ktaHeight = 3.4, ktaDepth = 0.08;
-      const ktaGeo = new RoundedBoxGeometry(ktaWidth, ktaHeight, ktaDepth, 24, 0.3);
-      const ktaFrontMat = new THREE.MeshPhysicalMaterial({ map: kFrontTex, bumpMap: kFrontBump, ...cardMaterialProps, roughness: 0.1, metalness: 0.6 });
-      const ktaBackMat = new THREE.MeshPhysicalMaterial({ map: kBackTex, bumpMap: kBackBump, ...cardMaterialProps, roughness: 0.2, metalness: 0.8 });
+      const ktaGeo = new RoundedBoxGeometry(ktaWidth, ktaHeight, ktaDepth, isMobile ? 8 : 24, 0.3);
+      const ktaFrontMat = new CardMatClass({
+        map: kFrontTex,
+        ...(kFrontBump ? { bumpMap: kFrontBump } : {}),
+        ...cardMaterialProps,
+        roughness: isMobile ? 0.2 : 0.1,
+        metalness: 0.6
+      });
+      const ktaBackMat = new CardMatClass({
+        map: kBackTex,
+        ...(kBackBump ? { bumpMap: kBackBump } : {}),
+        ...cardMaterialProps,
+        roughness: 0.2,
+        metalness: 0.8
+      });
       const ktaMatArray = [goldEdgeMaterial, goldEdgeMaterial, goldEdgeMaterial, goldEdgeMaterial, ktaFrontMat, ktaBackMat];
       const ktaMesh = new THREE.Mesh(ktaGeo, ktaMatArray);
-      ktaMesh.castShadow = true;
+      if (!isMobile) ktaMesh.castShadow = true;
       scene.add(ktaMesh);
 
       const ktaRestPos = new THREE.Vector3();
@@ -1005,6 +1047,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       // RENDER LOOP
       let animId: number | null = null;
       let lastCardPos = new THREE.Vector3();
+      let lastLanyardUpdate = 0;
       function animate() {
         animId = requestAnimationFrame(animate);
         const time = Date.now() * 0.001;
@@ -1014,14 +1057,16 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           if (Math.abs(targetDayOpacity - dayMarbleMat.opacity) < 0.01) dayMarbleMat.opacity = targetDayOpacity;
         }
 
-        raycaster.setFromCamera(new THREE.Vector2(globalCursorX, globalCursorY), camera);
-        const wallIntersects = raycaster.intersectObject(nightMarbleMesh);
-        if (wallIntersects.length > 0) {
-          mouseLight.position.x += (wallIntersects[0].point.x - mouseLight.position.x) * 0.1;
-          mouseLight.position.y += (wallIntersects[0].point.y - mouseLight.position.y) * 0.1;
+        if (!isMobile) {
+          raycaster.setFromCamera(new THREE.Vector2(globalCursorX, globalCursorY), camera);
+          const wallIntersects = raycaster.intersectObject(nightMarbleMesh);
+          if (wallIntersects.length > 0) {
+            mouseLight.position.x += (wallIntersects[0].point.x - mouseLight.position.x) * 0.1;
+            mouseLight.position.y += (wallIntersects[0].point.y - mouseLight.position.y) * 0.1;
+          }
+          mouseLight.intensity = isLightMode ? 20 : 50;
+          mouseLight.color.setHex(isLightMode ? 0xffffff : 0xffd700);
         }
-        mouseLight.intensity = isLightMode ? 20 : 50;
-        mouseLight.color.setHex(isLightMode ? 0xffffff : 0xffd700);
 
         dustParticles.rotation.y += 0.0005;
         dustParticles.rotation.x += 0.0002;
@@ -1078,9 +1123,14 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           ktaMesh.rotation.z += (floatRotZ - ktaMesh.rotation.z) * 0.05;
         }
 
-        if (idCard.position.distanceToSquared(lastCardPos) > 0.0001) {
+        const now = performance.now();
+        const distSq = idCard.position.distanceToSquared(lastCardPos);
+        const lanyardInterval = isMobile ? 50 : 25;
+        const minMoveThreshold = isMobile ? 0.002 : 0.0001;
+        if ((isDragging || distSq > minMoveThreshold) && (now - lastLanyardUpdate > lanyardInterval)) {
           updateLanyardGeometry();
           lastCardPos.copy(idCard.position);
+          lastLanyardUpdate = now;
         }
 
         renderer.render(scene, camera);
@@ -1093,7 +1143,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         if (window.innerWidth < 768) { ktaRestPos.set(-4, -5, -4); } else { ktaRestPos.set(-8, 0, -2); }
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.0 : 2));
       };
       window.addEventListener("resize", onResize);
 
