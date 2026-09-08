@@ -1311,12 +1311,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       let targetCameraX = 0,
         targetCameraY = 0;
       let isKtaActive = false;
-      const ktaViewPos = new THREE.Vector3(0, 0, 16);
+      const ktaViewPos = new THREE.Vector3(0, 0, isMobile ? 6 : 16);
       let ktaTargetRotX = 0,
         ktaTargetRotY = 0,
         ktaDragDist = 0;
       let isMainActive = false;
-      const mainViewPos = new THREE.Vector3(0, 0, 16);
+      const mainViewPos = new THREE.Vector3(0, 0, isMobile ? 4 : 16);
       let mainTargetRotX = 0,
         mainTargetRotY = 0;
       let lastClickTime = 0;
@@ -1380,7 +1380,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       const onClickHandler = (event: MouseEvent) => {
         const currentTime = new Date().getTime();
         const timeDiff = currentTime - lastClickTime;
-        const isDoubleClick = timeDiff < 300 && timeDiff > 0;
+        const isDoubleClick = timeDiff < 350 && timeDiff > 0;
         lastClickTime = currentTime;
 
         if (isDragging && !isKtaActive && !isMainActive) return;
@@ -1614,16 +1614,21 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       animate();
 
       const onResize = () => {
+        const isMob = window.innerWidth < 768;
         camera.aspect = window.innerWidth / window.innerHeight;
-        camera.fov = window.innerWidth < 768 ? 50 : 45;
-        if (window.innerWidth < 768) {
+        camera.fov = isMob ? 50 : 45;
+        if (isMob) {
           ktaRestPos.set(-4, -5, -4);
+          mainViewPos.set(0, 0, 4);
+          ktaViewPos.set(0, 0, 6);
         } else {
           ktaRestPos.set(-8, 0, -2);
+          mainViewPos.set(0, 0, 16);
+          ktaViewPos.set(0, 0, 16);
         }
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(isMob ? 1.0 : Math.min(window.devicePixelRatio, 2));
       };
       window.addEventListener("resize", onResize);
 
@@ -1732,194 +1737,75 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       {/* ========================================================================= */}
       {/* HEADER NAVIGASI & CONTROLS                                                */}
       {/* ========================================================================= */}
-      {/* Back Button */}
-      <Link
-        href="/fitur"
-        id="btnBackToFitur"
-        style={{
-          position: "absolute",
-          top: "max(16px, env(safe-area-inset-top, 16px))",
-          left: "max(16px, env(safe-area-inset-left, 16px))",
-          zIndex: 100,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "8px 16px",
-          background: isLightMode ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.65)",
-          border: "1px solid rgba(212,175,55,0.4)",
-          borderRadius: 20,
-          color: isLightMode ? "#111" : "#d4af37",
-          fontSize: 11,
-          fontWeight: 700,
-          letterSpacing: 2,
-          textDecoration: "none",
-          textTransform: "uppercase",
-          backdropFilter: "blur(12px)",
-          boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-          transition: "all 0.3s ease",
-        }}
-      >
-        <i className="fa-solid fa-chevron-left" /> Kembali
-      </Link>
+      {/* ========================================================================= */}
+      {/* HEADER NAVIGASI (RESPONSIF, ANTI-TUMPANG TINDIH)                         */}
+      {/* ========================================================================= */}
+      <header className="sovereign-header">
+        {/* Row 1: Back Button (Left) & Actions (Right) */}
+        <div className="sovereign-header-row1">
+          <Link href="/fitur" id="btnBackToFitur" className="sovereign-back-btn">
+            <i className="fa-solid fa-chevron-left" />
+            <span>Kembali</span>
+          </Link>
 
-      {/* CENTER ENGINE MODE SWITCHER PILL */}
-      <div
-        style={{
-          position: "absolute",
-          top: "max(16px, env(safe-area-inset-top, 16px))",
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 100,
-          display: "flex",
-          alignItems: "center",
-          gap: 4,
-          background: isLightMode ? "rgba(255,255,255,0.9)" : "rgba(10,12,16,0.8)",
-          padding: "4px 6px",
-          borderRadius: 30,
-          border: "1px solid rgba(212,175,55,0.4)",
-          boxShadow: "0 10px 25px rgba(0,0,0,0.4), 0 0 15px rgba(212,175,55,0.15)",
-          backdropFilter: "blur(14px)",
-        }}
-      >
-        {/* Tombol Mode Super Ringan */}
-        <button
-          onClick={() => handleSelectMode("lite")}
-          title="Mode Super Ringan (0% Lag WebGL, 60 FPS CSS 3D)"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "6px 12px",
-            borderRadius: 20,
-            border: "none",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 1,
-            cursor: "pointer",
-            transition: "all 0.3s ease",
-            background:
-              viewMode === "lite"
-                ? "linear-gradient(135deg, #d4af37, #f3e5ab)"
-                : "transparent",
-            color: viewMode === "lite" ? "#000" : isLightMode ? "#666" : "#94a3b8",
-            boxShadow: viewMode === "lite" ? "0 2px 10px rgba(212,175,55,0.4)" : "none",
-          }}
-        >
-          <i className="fa-solid fa-bolt" />
-          <span>Super Ringan</span>
-        </button>
+          <div className="sovereign-header-actions">
+            {/* Quick Switcher Modal Button on Mobile */}
+            {isMobileDevice && (
+              <button
+                onClick={() => setShowMobileChoiceModal(true)}
+                id="btnOpenModeModal"
+                title="Pilih Versi (Super Ringan / 3D)"
+                className="sovereign-mode-pill-btn"
+              >
+                <i className="fa-solid fa-sliders" />
+                <span>Mode</span>
+              </button>
+            )}
 
-        {/* Tombol Mode 3D Studio */}
-        <button
-          onClick={() => handleSelectMode("3d")}
-          title="Mode 3D Studio Three.js (Fisika Tali & Galeri)"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "6px 12px",
-            borderRadius: 20,
-            border: "none",
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: 1,
-            cursor: "pointer",
-            transition: "all 0.3s ease",
-            background:
-              viewMode === "3d"
-                ? "linear-gradient(135deg, #d4af37, #f3e5ab)"
-                : "transparent",
-            color: viewMode === "3d" ? "#000" : isLightMode ? "#666" : "#94a3b8",
-            boxShadow: viewMode === "3d" ? "0 2px 10px rgba(212,175,55,0.4)" : "none",
-          }}
-        >
-          <i className="fa-solid fa-cube" />
-          <span>3D Studio</span>
-        </button>
+            <button
+              onClick={() => setIsLightMode(!isLightMode)}
+              id="btnThemeToggle"
+              title="Ganti Tema Siang/Malam"
+              aria-label="Ganti Tema"
+            >
+              <i className={isLightMode ? "fa-solid fa-moon" : "fa-solid fa-sun"} />
+            </button>
 
-        {/* Tombol Buka Modal Pilihan Mode (Khusus Mobile atau Fleksibel) */}
-        {isMobileDevice && (
-          <button
-            onClick={() => setShowMobileChoiceModal(true)}
-            title="Buka Pilihan Mode Tampilan"
-            style={{
-              padding: "6px 8px",
-              borderRadius: "50%",
-              border: "none",
-              background: "rgba(212,175,55,0.15)",
-              color: "#d4af37",
-              fontSize: 11,
-              cursor: "pointer",
-              marginLeft: 2,
-            }}
-          >
-            <i className="fa-solid fa-sliders" />
-          </button>
-        )}
-      </div>
+            <button
+              onClick={handleExportPng}
+              id="btnExportId"
+              disabled={isExporting}
+              title="Simpan Kartu ID (PNG HD)"
+              aria-label="Simpan PNG"
+            >
+              <i className={isExporting ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-download"} />
+            </button>
+          </div>
+        </div>
 
-      {/* Right Controls: Theme Toggle & Export PNG */}
-      <div
-        style={{
-          position: "absolute",
-          top: "max(16px, env(safe-area-inset-top, 16px))",
-          right: "max(16px, env(safe-area-inset-right, 16px))",
-          zIndex: 100,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <button
-          onClick={() => setIsLightMode(!isLightMode)}
-          id="btnThemeToggle"
-          title="Ganti Tema Siang/Malam"
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: "50%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            background: isLightMode ? "#ffffff" : "rgba(0,0,0,0.6)",
-            border: "1px solid rgba(212,175,55,0.4)",
-            color: isLightMode ? "#b48600" : "#d4af37",
-            fontSize: 15,
-            cursor: "pointer",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <i className={isLightMode ? "fa-solid fa-moon" : "fa-solid fa-sun"} />
-        </button>
+        {/* Row 2: Mode Switcher (Centered underneath Row 1 on mobile, 0% overlap) */}
+        <div className="sovereign-mode-switcher-wrap">
+          <div className="sovereign-mode-switcher">
+            <button
+              onClick={() => handleSelectMode("lite")}
+              className={`sovereign-mode-tab ${viewMode === "lite" ? "active" : ""}`}
+              title="Mode Super Ringan (0% Lag WebGL, 60 FPS CSS 3D)"
+            >
+              <i className="fa-solid fa-bolt" />
+              <span>Super Ringan</span>
+            </button>
 
-        <button
-          onClick={handleExportPng}
-          id="btnExportId"
-          disabled={isExporting}
-          title="Simpan Kartu ID (PNG HD)"
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: "50%",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            background: isLightMode ? "#ffffff" : "rgba(0,0,0,0.6)",
-            border: "1px solid rgba(212,175,55,0.4)",
-            color: isLightMode ? "#b48600" : "#d4af37",
-            fontSize: 15,
-            cursor: isExporting ? "wait" : "pointer",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-            transition: "all 0.3s ease",
-            opacity: isExporting ? 0.6 : 1,
-          }}
-        >
-          <i className={isExporting ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-download"} />
-        </button>
-      </div>
+            <button
+              onClick={() => handleSelectMode("3d")}
+              className={`sovereign-mode-tab ${viewMode === "3d" ? "active" : ""}`}
+              title="Mode 3D Studio Three.js (Fisika Tali & Galeri)"
+            >
+              <i className="fa-solid fa-cube" />
+              <span>3D Studio</span>
+            </button>
+          </div>
+        </div>
+      </header>
 
       {/* ========================================================================= */}
       {/* MODE SUPER RINGAN (SERINGAN-RINGANNYA: CSS 3D HOLOGRAPHIC CARD)           */}
@@ -1943,55 +1829,6 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           onPointerUp={handlePointerUp}
           onPointerLeave={handlePointerUp}
         >
-          {/* Format Switcher (ID Card Vertikal vs KTA Horizontal) */}
-          <div
-            style={{
-              position: "absolute",
-              top: "max(68px, calc(env(safe-area-inset-top, 16px) + 54px))",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              background: isLightMode ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.06)",
-              padding: "4px",
-              borderRadius: 20,
-              border: "1px solid rgba(212,175,55,0.25)",
-              zIndex: 30,
-            }}
-          >
-            <button
-              onClick={() => setCardFormat("id")}
-              style={{
-                padding: "4px 12px",
-                borderRadius: 14,
-                border: "none",
-                fontSize: 10,
-                fontWeight: 700,
-                cursor: "pointer",
-                background: cardFormat === "id" ? "#d4af37" : "transparent",
-                color: cardFormat === "id" ? "#000" : isLightMode ? "#666" : "#94a3b8",
-                transition: "all 0.2s ease",
-              }}
-            >
-              ID Card Vertikal
-            </button>
-            <button
-              onClick={() => setCardFormat("kta")}
-              style={{
-                padding: "4px 12px",
-                borderRadius: 14,
-                border: "none",
-                fontSize: 10,
-                fontWeight: 700,
-                cursor: "pointer",
-                background: cardFormat === "kta" ? "#d4af37" : "transparent",
-                color: cardFormat === "kta" ? "#000" : isLightMode ? "#666" : "#94a3b8",
-                transition: "all 0.2s ease",
-              }}
-            >
-              KTA Horizontal
-            </button>
-          </div>
-
           {/* Lanyard Strap Header (CSS ID Card Only) */}
           {cardFormat === "id" && (
             <div
@@ -2029,8 +1866,10 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
             onClick={() => setIsFlipped(!isFlipped)}
             style={{
               position: "relative",
-              width: cardFormat === "id" ? "min(310px, 82vw)" : "min(350px, 90vw)",
+              width: cardFormat === "id" ? "min(300px, 80vw)" : "min(340px, 88vw)",
               aspectRatio: cardFormat === "id" ? "54 / 86" : "85.6 / 54",
+              maxHeight: "calc(100dvh - 220px)",
+              maxWidth: cardFormat === "id" ? "calc((100dvh - 220px) * 54 / 86)" : "min(350px, 88vw)",
               transformStyle: "preserve-3d",
               transition: isDraggingCard.current
                 ? "none"
@@ -2490,83 +2329,161 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
             </div>
           </div>
 
-          {/* Quick Action Floating Bar */}
+          {/* Bottom Dock Controls (Unified, Clean, Anti-Tumpang Tindih) */}
           <div
             style={{
               position: "absolute",
-              bottom: "max(24px, env(safe-area-inset-bottom, 24px))",
+              bottom: "max(18px, env(safe-area-inset-bottom, 18px))",
               zIndex: 60,
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
               gap: 8,
-              background: isLightMode ? "rgba(255,255,255,0.9)" : "rgba(18,22,30,0.85)",
-              padding: "6px 12px",
-              borderRadius: 30,
-              border: "1px solid rgba(212,175,55,0.3)",
-              boxShadow: "0 10px 30px rgba(0,0,0,0.4)",
-              backdropFilter: "blur(14px)",
+              maxWidth: "94vw",
             }}
           >
-            <button
-              onClick={() => setIsFlipped(!isFlipped)}
+            {/* Format Switcher (ID Card vs KTA) */}
+            <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 6,
-                padding: "8px 12px",
+                gap: 4,
+                background: isLightMode ? "rgba(255,255,255,0.92)" : "rgba(18,22,30,0.88)",
+                padding: "3px 5px",
                 borderRadius: 20,
-                border: "none",
-                background: "rgba(212,175,55,0.15)",
-                color: "#d4af37",
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: "pointer",
+                border: "1px solid rgba(212,175,55,0.35)",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+                backdropFilter: "blur(12px)",
               }}
             >
-              <i className="fa-solid fa-repeat" />
-              <span>{isFlipped ? "Muka Depan" : "Muka Belakang"}</span>
-            </button>
+              <button
+                onClick={() => setCardFormat("id")}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 14,
+                  border: "none",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  cursor: "pointer",
+                  background:
+                    cardFormat === "id"
+                      ? "linear-gradient(135deg, #d4af37, #f3e5ab)"
+                      : "transparent",
+                  color: cardFormat === "id" ? "#000" : isLightMode ? "#666" : "#94a3b8",
+                  boxShadow: cardFormat === "id" ? "0 2px 8px rgba(212,175,55,0.4)" : "none",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+              >
+                <i className="fa-solid fa-id-badge" />
+                <span>ID Card</span>
+              </button>
 
-            <button
-              onClick={handleCopyId}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 12px",
-                borderRadius: 20,
-                border: "none",
-                background: copiedId ? "#10b981" : "rgba(212,175,55,0.15)",
-                color: copiedId ? "#fff" : "#d4af37",
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-            >
-              <i className={copiedId ? "fa-solid fa-check" : "fa-solid fa-copy"} />
-              <span>{copiedId ? "Tersalin!" : "Salin ID"}</span>
-            </button>
+              <button
+                onClick={() => setCardFormat("kta")}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 14,
+                  border: "none",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                  cursor: "pointer",
+                  background:
+                    cardFormat === "kta"
+                      ? "linear-gradient(135deg, #d4af37, #f3e5ab)"
+                      : "transparent",
+                  color: cardFormat === "kta" ? "#000" : isLightMode ? "#666" : "#94a3b8",
+                  boxShadow: cardFormat === "kta" ? "0 2px 8px rgba(212,175,55,0.4)" : "none",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+              >
+                <i className="fa-solid fa-address-card" />
+                <span>KTA Horizontal</span>
+              </button>
+            </div>
 
-            <button
-              onClick={() => setShowQrModal(true)}
+            {/* Action Buttons (Flip, Copy, QR) */}
+            <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "8px 12px",
-                borderRadius: 20,
-                border: "none",
-                background: "rgba(212,175,55,0.15)",
-                color: "#d4af37",
-                fontSize: 11,
-                fontWeight: 700,
-                cursor: "pointer",
+                background: isLightMode ? "rgba(255,255,255,0.92)" : "rgba(18,22,30,0.88)",
+                padding: "5px 8px",
+                borderRadius: 24,
+                border: "1px solid rgba(212,175,55,0.3)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+                backdropFilter: "blur(12px)",
               }}
             >
-              <i className="fa-solid fa-qrcode" />
-              <span>QR Scan</span>
-            </button>
+              <button
+                onClick={() => setIsFlipped(!isFlipped)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "6px 12px",
+                  borderRadius: 18,
+                  border: "none",
+                  background: "rgba(212,175,55,0.15)",
+                  color: "#d4af37",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                <i className="fa-solid fa-repeat" />
+                <span>{isFlipped ? "Depan" : "Belakang"}</span>
+              </button>
+
+              <button
+                onClick={handleCopyId}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "6px 12px",
+                  borderRadius: 18,
+                  border: "none",
+                  background: copiedId ? "#10b981" : "rgba(212,175,55,0.15)",
+                  color: copiedId ? "#fff" : "#d4af37",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <i className={copiedId ? "fa-solid fa-check" : "fa-solid fa-copy"} />
+                <span>{copiedId ? "Tersalin" : "Salin ID"}</span>
+              </button>
+
+              <button
+                onClick={() => setShowQrModal(true)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  padding: "6px 12px",
+                  borderRadius: 18,
+                  border: "none",
+                  background: "rgba(212,175,55,0.15)",
+                  color: "#d4af37",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                <i className="fa-solid fa-qrcode" />
+                <span>QR</span>
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -2576,50 +2493,51 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       {/* ========================================================================= */}
       {viewMode === "3d" && (
         <>
-          {/* Tactical HUD */}
+          {/* Tactical HUD (Compact, Safe Corner, Non-Overlapping) */}
           <div
             className="tactical-hud"
             style={{
               position: "absolute",
-              bottom: "max(24px, env(safe-area-inset-bottom, 24px))",
-              left: "max(24px, env(safe-area-inset-left, 24px))",
+              bottom: "max(14px, env(safe-area-inset-bottom, 14px))",
+              left: "max(14px, env(safe-area-inset-left, 14px))",
               zIndex: 15,
               color: isLightMode ? "#333" : "rgba(212,175,55,0.7)",
               fontFamily: "'Courier New', monospace",
-              fontSize: 10,
-              letterSpacing: 1,
-              lineHeight: 1.6,
+              fontSize: 9,
+              letterSpacing: 0.8,
+              lineHeight: 1.4,
               pointerEvents: "none",
               textShadow: isLightMode ? "none" : "0 0 10px #000",
+              maxWidth: 200,
             }}
           >
-            EXPEDIENT 43 • 3D STUDIO ACTIVE<br />
+            EXPEDIENT 43 • 3D STUDIO<br />
             STATUS: [SOVEREIGN VERIFIED]<br />
             ANGGOTA: [{(user.nama_panggilan || user.nama_lengkap).toUpperCase()}]
           </div>
 
-          {/* UX Interaction Overlay */}
+          {/* UX Interaction Overlay (Positioned Above HUD, Auto-fades on action) */}
           <div
             id="uxOverlay"
             style={{
               position: "absolute",
-              bottom: "max(28px, env(safe-area-inset-bottom, 28px))",
+              bottom: "max(78px, calc(env(safe-area-inset-bottom, 20px) + 58px))",
               left: "50%",
               transform: "translateX(-50%)",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 8,
+              gap: 6,
               zIndex: 20,
               pointerEvents: "none",
-              transition: "opacity 0.8s ease",
+              transition: "opacity 0.6s ease, transform 0.6s ease",
             }}
           >
             <i
               className="fa-solid fa-hand-pointer ux-icon"
               style={{
                 color: "#d4af37",
-                fontSize: 20,
+                fontSize: 18,
                 filter: "drop-shadow(0 0 10px rgba(212,175,55,0.6))",
               }}
             />
@@ -2628,14 +2546,15 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
               style={{
                 color: isLightMode ? "#222" : "#d4af37",
                 fontSize: 10,
-                fontWeight: 600,
+                fontWeight: 700,
                 textTransform: "uppercase",
-                letterSpacing: 3,
+                letterSpacing: 2,
                 textShadow: isLightMode ? "none" : "0 0 10px #000",
                 textAlign: "center",
+                whiteSpace: "nowrap",
               }}
             >
-              Tarik Kartu &amp; Usap Layar
+              Tarik Kartu • Klik 2x untuk Fokus
             </span>
           </div>
 
@@ -3032,10 +2951,176 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         }
 
         body.is-grabbing { cursor: grabbing !important; }
-        #uxOverlay.hidden { opacity: 0 !important; }
+        #uxOverlay.hidden { opacity: 0 !important; transform: translateX(-50%) translateY(10px) !important; }
+        
+        /* SOVEREIGN RESPONSIVE HEADER */
+        .sovereign-header {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 100;
+          padding: max(12px, env(safe-area-inset-top, 12px)) max(14px, env(safe-area-inset-right, 14px)) 6px max(14px, env(safe-area-inset-left, 14px));
+          pointer-events: none;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .sovereign-header-row1 {
+          display: flex;
+          width: 100%;
+          justify-content: space-between;
+          align-items: center;
+          pointer-events: auto;
+        }
+
+        .sovereign-back-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 14px;
+          background: rgba(0, 0, 0, 0.65);
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          border-radius: 20px;
+          color: #d4af37;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+          text-decoration: none;
+          text-transform: uppercase;
+          backdrop-filter: blur(12px);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+          transition: all 0.25s ease;
+        }
+        :root[data-theme='light'] .sovereign-back-btn {
+          background: rgba(255, 255, 255, 0.88);
+          color: #111;
+        }
+        .sovereign-back-btn:hover {
+          transform: translateX(-3px);
+          box-shadow: 0 0 20px rgba(212,175,55,0.5);
+          border-color: #ffd700;
+          color: #fff;
+        }
+
+        .sovereign-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          pointer-events: auto;
+        }
+
+        .sovereign-mode-pill-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 12px;
+          border-radius: 20px;
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          background: rgba(212, 175, 55, 0.15);
+          color: #d4af37;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          cursor: pointer;
+          backdrop-filter: blur(10px);
+          transition: all 0.2s ease;
+        }
+        :root[data-theme='light'] .sovereign-mode-pill-btn {
+          background: rgba(212, 175, 55, 0.2);
+          color: #996515;
+        }
+
+        #btnThemeToggle, #btnExportId {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background: rgba(0, 0, 0, 0.65);
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          color: #d4af37;
+          font-size: 14px;
+          cursor: pointer;
+          backdrop-filter: blur(10px);
+          box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+          transition: all 0.25s ease;
+        }
+        :root[data-theme='light'] #btnThemeToggle,
+        :root[data-theme='light'] #btnExportId {
+          background: #ffffff;
+          color: #b48600;
+        }
         #btnThemeToggle:hover { transform: scale(1.1) rotate(15deg); box-shadow: 0 0 20px rgba(212,175,55,0.5); }
         #btnExportId:hover { transform: scale(1.1) translateY(2px); box-shadow: 0 0 20px rgba(212,175,55,0.5); }
-        #btnBackToFitur:hover { transform: translateX(-3px); box-shadow: 0 0 20px rgba(212,175,55,0.5); border-color: #ffd700; color: #fff; }
+
+        .sovereign-mode-switcher-wrap {
+          pointer-events: auto;
+          display: flex;
+          justify-content: center;
+        }
+
+        .sovereign-mode-switcher {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          background: rgba(10, 12, 16, 0.85);
+          padding: 3px 5px;
+          border-radius: 30px;
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 15px rgba(212, 175, 55, 0.15);
+          backdrop-filter: blur(14px);
+        }
+        :root[data-theme='light'] .sovereign-mode-switcher {
+          background: rgba(255, 255, 255, 0.92);
+        }
+
+        .sovereign-mode-tab {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 13px;
+          border-radius: 20px;
+          border: none;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.8px;
+          cursor: pointer;
+          background: transparent;
+          color: #94a3b8;
+          transition: all 0.25s ease;
+        }
+        :root[data-theme='light'] .sovereign-mode-tab {
+          color: #64748b;
+        }
+
+        .sovereign-mode-tab.active {
+          background: linear-gradient(135deg, #d4af37, #f3e5ab);
+          color: #000 !important;
+          box-shadow: 0 2px 10px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Responsive adjustments for Desktop (>= 768px) */
+        @media (min-width: 768px) {
+          .sovereign-header {
+            flex-direction: row;
+            justify-content: space-between;
+            padding: max(16px, env(safe-area-inset-top, 16px)) max(24px, env(safe-area-inset-right, 24px)) 0 max(24px, env(safe-area-inset-left, 24px));
+            gap: 0;
+          }
+          .sovereign-header-row1 {
+            width: 100%;
+          }
+          .sovereign-mode-switcher-wrap {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: max(16px, env(safe-area-inset-top, 16px));
+          }
+        }
         
         /* TEMA SIANG */
         :root[data-theme='light'] body.page-sovereign { background-color: #f8f9fa !important; }
