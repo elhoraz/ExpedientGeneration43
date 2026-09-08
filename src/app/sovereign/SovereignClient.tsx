@@ -88,7 +88,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       });
       renderer.setClearColor(0x000000, 0);
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.25) : Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = !isMobile;
       if (!isMobile) {
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -122,7 +122,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       const cardGlowLight = new THREE.PointLight(0xffaa00, 0, 15);
       cardGlowLight.position.set(0, 0, -2);
-      scene.add(cardGlowLight);
+      if (!isMobile) {
+        scene.add(cardGlowLight);
+      }
 
       const mouseLight = new THREE.PointLight(PURE_GOLD, 50, 40);
       mouseLight.position.set(0, 0, -5);
@@ -132,7 +134,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       // DUST PARTICLES
       const dustGeo = new THREE.BufferGeometry();
-      const dustCount = isMobile ? 40 : 150;
+      const dustCount = isMobile ? 25 : 150;
       const dustPos = new Float32Array(dustCount * 3);
       for (let i = 0; i < dustCount * 3; i++) {
         dustPos[i] = (Math.random() - 0.5) * 60;
@@ -220,29 +222,35 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       const marbleGroup = new THREE.Group();
       marbleGroup.position.set(0, 0, -10);
 
-      const nightMarbleMat = new THREE.MeshPhysicalMaterial({
+      const MarbleMatClass = isMobile ? THREE.MeshBasicMaterial : THREE.MeshPhysicalMaterial;
+
+      const nightMarbleMat = new MarbleMatClass({
         map: createSeamlessMarbleTexture(false),
-        metalness: 0.15,
-        roughness: 0.1,
-        clearcoat: isMobile ? 0.3 : 1.0,
-        clearcoatRoughness: 0.05,
         color: 0xffffff,
         transparent: true,
         opacity: 1.0,
+        ...(isMobile ? {} : {
+          metalness: 0.15,
+          roughness: 0.1,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.05,
+        }),
       });
       const nightMarbleMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), nightMarbleMat);
       if (!isMobile) nightMarbleMesh.receiveShadow = true;
       marbleGroup.add(nightMarbleMesh);
 
-      const dayMarbleMat = new THREE.MeshPhysicalMaterial({
+      const dayMarbleMat = new MarbleMatClass({
         map: createSeamlessMarbleTexture(true),
-        metalness: 0.1,
-        roughness: 0.1,
-        clearcoat: isMobile ? 0.3 : 1.0,
-        clearcoatRoughness: 0.02,
         color: 0xffffff,
         transparent: true,
         opacity: 0.0,
+        ...(isMobile ? {} : {
+          metalness: 0.1,
+          roughness: 0.1,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.02,
+        }),
       });
       const dayMarbleMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), dayMarbleMat);
       dayMarbleMesh.position.z = 0.1;
@@ -580,9 +588,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       const cardMaterialProps = {
         roughness: 0.15,
         metalness: 0.6,
-        clearcoat: 0.85,
+        clearcoat: isMobile ? 0.3 : 0.85,
         clearcoatRoughness: 0.1,
-        iridescence: isMobile ? 0.2 : 0.8,
+        iridescence: isMobile ? 0 : 0.8,
         iridescenceIOR: 1.5,
         iridescenceThicknessRange: [100, 400] as [number, number],
         bumpScale: 0.035,
@@ -598,13 +606,13 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       // ID CARD VERTIKAL
       const cardWidth = 5.4, cardHeight = 8.6, cardDepth = 0.12;
-      const idCardGeo = new RoundedBoxGeometry(cardWidth, cardHeight, cardDepth, isMobile ? 12 : 24, 0.3);
+      const idCardGeo = new RoundedBoxGeometry(cardWidth, cardHeight, cardDepth, isMobile ? 8 : 24, 0.3);
       const idCard = new THREE.Mesh(idCardGeo, materials);
       idCard.position.set(0, 10, 0);
       if (!isMobile) idCard.castShadow = true;
       scene.add(idCard);
 
-      const clipGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.4, isMobile ? 16 : 32);
+      const clipGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.4, isMobile ? 12 : 32);
       clipGeo.rotateZ(Math.PI / 2);
       const clipMat = new THREE.MeshStandardMaterial({ color: PURE_GOLD, metalness: 1.0, roughness: 0.2 });
       const metalClip = new THREE.Mesh(clipGeo, clipMat);
@@ -625,7 +633,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         const control1 = new THREE.Vector3(anchorPos.x, anchorPos.y - stringLength * 0.3 - sag, anchorPos.z - 1);
         const control2 = new THREE.Vector3(clipGlobalPos.x, clipGlobalPos.y + stringLength * 0.3 + sag, clipGlobalPos.z - 1);
         const curve = new THREE.CubicBezierCurve3(anchorPos, control1, control2, clipGlobalPos);
-        const tubeGeo = new THREE.TubeGeometry(curve, isMobile ? 12 : 40, 0.12, isMobile ? 4 : 8, false);
+        const tubeGeo = new THREE.TubeGeometry(curve, isMobile ? 8 : 40, 0.12, isMobile ? 3 : 8, false);
         if (lanyardMesh) {
           lanyardMesh.geometry.dispose();
           lanyardMesh.geometry = tubeGeo;
@@ -639,7 +647,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       // KTA CARD HORIZONTAL
       const ktaWidth = 5.4, ktaHeight = 3.4, ktaDepth = 0.08;
-      const ktaGeo = new RoundedBoxGeometry(ktaWidth, ktaHeight, ktaDepth, isMobile ? 12 : 24, 0.3);
+      const ktaGeo = new RoundedBoxGeometry(ktaWidth, ktaHeight, ktaDepth, isMobile ? 8 : 24, 0.3);
       const ktaFrontMat = new THREE.MeshPhysicalMaterial({ map: kFrontTex, ...(kFrontBump ? { bumpMap: kFrontBump } : {}), ...cardMaterialProps, roughness: 0.1, metalness: 0.6 });
       const ktaBackMat = new THREE.MeshPhysicalMaterial({ map: kBackTex, ...(kBackBump ? { bumpMap: kBackBump } : {}), ...cardMaterialProps, roughness: 0.2, metalness: 0.8 });
       const ktaMatArray = [goldEdgeMaterial, goldEdgeMaterial, goldEdgeMaterial, goldEdgeMaterial, ktaFrontMat, ktaBackMat];
@@ -1080,10 +1088,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           idCard.rotation.z += (targetRotZ - idCard.rotation.z) * 0.2;
         }
 
-        cardGlowLight.position.copy(idCard.position);
-        cardGlowLight.position.z -= 1;
-        const glowIntensity = Math.max(0, 30 - idCard.position.z * 5);
-        cardGlowLight.intensity = isLightMode ? 0 : glowIntensity;
+        if (!isMobile) {
+          cardGlowLight.position.copy(idCard.position);
+          cardGlowLight.position.z -= 1;
+          const glowIntensity = Math.max(0, 30 - idCard.position.z * 5);
+          cardGlowLight.intensity = isLightMode ? 0 : glowIntensity;
+        }
 
         if (isKtaActive) {
           ktaMesh.position.lerp(ktaViewPos, 0.08);
@@ -1103,8 +1113,8 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
         const now = performance.now();
         const distSq = idCard.position.distanceToSquared(lastCardPos);
-        const lanyardInterval = isMobile ? 35 : 16;
-        const minMoveThreshold = isMobile ? 0.001 : 0.0001;
+        const lanyardInterval = isMobile ? 50 : 16;
+        const minMoveThreshold = isMobile ? 0.02 : 0.0001;
         if ((isDragging || distSq > minMoveThreshold) && (now - lastLanyardUpdate > lanyardInterval)) {
           updateLanyardGeometry();
           lastCardPos.copy(idCard.position);
@@ -1121,7 +1131,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         if (window.innerWidth < 768) { ktaRestPos.set(-4, -5, -4); } else { ktaRestPos.set(-8, 0, -2); }
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(isMobile ? Math.min(window.devicePixelRatio, 1.25) : Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio, 2));
       };
       window.addEventListener("resize", onResize);
 
