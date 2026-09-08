@@ -29,6 +29,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
   const [isExporting, setIsExporting] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0, glareX: 50, glareY: 50 });
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const isDraggingCard = useRef(false);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -74,8 +75,13 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       setShowMobileChoiceModal(false);
     }
 
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 350);
+
     document.body.classList.add("page-sovereign");
     return () => {
+      clearTimeout(timer);
       document.body.classList.remove("page-sovereign");
     };
   }, []);
@@ -1296,15 +1302,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           }
         }
 
-        setTimeout(() => {
-          const loader = document.getElementById("preloader");
-          if (loader) {
-            loader.style.opacity = "0";
-            setTimeout(() => {
-              loader.style.display = "none";
-            }, 800);
-          }
-        }, 500);
+        setIsLoading(false);
       });
 
       // INTERACTION / KINEMATICS
@@ -1611,6 +1609,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         }
 
         renderer.render(scene, camera);
+        setIsLoading(false);
       }
       animate();
 
@@ -1683,7 +1682,10 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          transition: "opacity 0.8s ease",
+          transition: "opacity 0.4s ease, visibility 0.4s ease",
+          opacity: isLoading ? 1 : 0,
+          visibility: isLoading ? "visible" : "hidden",
+          pointerEvents: isLoading ? "auto" : "none",
         }}
       >
         <div
