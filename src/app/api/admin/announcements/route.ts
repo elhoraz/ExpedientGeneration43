@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { broadcastWhatsAppMessage } from "@/lib/whatsapp";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
 
@@ -19,21 +20,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Judul dan konten wajib diisi." }, { status: 400 });
     }
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll() {},
-        },
-      }
-    );
-
-    // Dapatkan session admin jika ada (tapi admin auth kita bypass RLS, jadi kita catat created_by null atau ID user yang sedang login)
-    const { data: { user } } = await supabase.auth.getUser();
+    const userClient = await createClient();
+    const { data: { user } } = await userClient.auth.getUser();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase.from("announcements").insert([
       {

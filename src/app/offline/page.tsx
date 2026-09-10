@@ -20,13 +20,13 @@ export default function OfflinePage() {
       </p>
       
       <div style={{ display: "flex", gap: "15px" }}>
-        <a href="/" style={{
+        <Link href="/" style={{
           background: "linear-gradient(135deg, #d4af37, #aa8529)", border: "none", color: "#000",
           padding: "12px 30px", borderRadius: "30px", fontSize: "0.9rem", fontWeight: 600,
           letterSpacing: "1px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none"
         }}>
           <i className="fa-solid fa-rotate-right"></i> Coba Lagi
-        </a>
+        </Link>
         <Link href="/beranda" style={{
           background: "transparent", border: "1px solid #d4af37", color: "#d4af37", textDecoration: "none",
           padding: "12px 30px", borderRadius: "30px", fontSize: "0.9rem", fontWeight: 600,

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { verifyRegistrationResponse } from "@simplewebauthn/server";
 import { cookies } from "next/headers";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: Request) {
   try {
@@ -64,10 +64,7 @@ export async function POST(req: Request) {
     if (verification.verified && verification.registrationInfo) {
       const { credential, credentialDeviceType, credentialBackedUp } = verification.registrationInfo;
 
-      const supabaseAdmin = createSupabaseClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      const supabaseAdmin = createAdminClient();
 
       // Save credential to DB (check existing credential first to avoid ON CONFLICT constraint error)
       const { data: existingCred } = await supabaseAdmin

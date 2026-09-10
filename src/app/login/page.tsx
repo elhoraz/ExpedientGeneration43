@@ -12,6 +12,7 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [isBioLoading, setIsBioLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const prismRef = useRef<HTMLDivElement>(null);
   const emailInputRef = useRef<HTMLInputElement>(null);
@@ -35,19 +36,22 @@ function LoginContent() {
   useEffect(() => {
     if (errorMsg) {
       setToastData({ title: "Akses Ditolak", message: errorMsg, isError: true });
-      setTimeout(() => setToastData(null), 5000);
+      const timer = setTimeout(() => setToastData(null), 8000);
+      return () => clearTimeout(timer);
     } else if (successMsg) {
       setToastData({ title: "Akses Berhasil", message: successMsg, isError: false });
-      setTimeout(() => setToastData(null), 5000);
+      const timer = setTimeout(() => setToastData(null), 5000);
+      return () => clearTimeout(timer);
     } else if (verifyMsg === "true") {
       setToastData({ title: "Registrasi Berhasil", message: "Akun Anda telah terverifikasi. Silakan masuk.", isError: false });
-      setTimeout(() => setToastData(null), 6000);
+      const timer = setTimeout(() => setToastData(null), 6000);
+      return () => clearTimeout(timer);
     }
   }, [errorMsg, successMsg, verifyMsg]);
 
   const showToast = (title: string, message: string, isError: boolean) => {
     setToastData({ title, message, isError });
-    setTimeout(() => setToastData(null), 5000);
+    setTimeout(() => setToastData(null), isError ? 8000 : 5000);
   };
 
   useEffect(() => {
@@ -154,6 +158,53 @@ function LoginContent() {
     }
   };
 
+  const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isSubmitting) return;
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const emailVal = String(formData.get("email") || "").trim().toLowerCase();
+    const passwordVal = String(formData.get("password") || "");
+
+    if (!emailVal || !passwordVal) {
+      showToast("Data Tidak Lengkap", "Harap isi surel dan kata sandi akses.", true);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailVal, password: passwordVal }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        showToast("Akses Ditolak", data.error || "Surel atau kata sandi tidak valid.", true);
+        return;
+      }
+
+      if (data.unconfirmed && data.redirect) {
+        window.location.href = data.redirect;
+        return;
+      }
+
+      showToast("Akses Diterima", "Berhasil masuk! Mengalihkan ke Beranda...", false);
+      window.location.href = data.redirect || "/beranda";
+    } catch (err: any) {
+      showToast("Koneksi Bermasalah", err.message || "Gagal menghubungi server.", true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="login-page">
       <div className="ambient-field" id="ambientField">
@@ -163,12 +214,21 @@ function LoginContent() {
       </div>
 
       {toastData && (
-        <div id="toastAlert" className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}>
+        <div id="toastAlert" className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div className="toast-icon"><i className={`fa-solid ${toastData.isError ? 'fa-shield-virus' : 'fa-check-double'}`}></i></div>
-          <div style={{ transform: "translateZ(10px)" }}>
+          <div style={{ transform: "translateZ(10px)", flex: 1 }}>
             <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem" }}>{toastData.title}</strong><br/>
             <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{toastData.message}</span>
           </div>
+          <button
+            type="button"
+            onClick={() => setToastData(null)}
+            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', fontSize: '1rem', lineHeight: 1 }}
+            title="Tutup notifikasi"
+            aria-label="Tutup notifikasi"
+          >
+            <i className="fa-solid fa-xmark"></i>
+          </button>
         </div>
       )}
 
@@ -210,7 +270,7 @@ function LoginContent() {
             <h1 className="title-holo">{t('login_title', 'Portal Utama')}</h1>
           </div>
 
-          <form action="/auth/login" method="POST">
+          <form action="/auth/login" method="POST" onSubmit={handleFormSubmit}>
             <div className="input-group">
               <input
                 type="email"
@@ -256,8 +316,16 @@ function LoginContent() {
 
             <div className="btn-rack">
               <div className="magnetic-wrap">
-                <button type="submit" className="btn-prime magnetic-btn">
-                  {t('login_btn_submit', 'Inisiasi Masuk')} <i className="fa-solid fa-arrow-right-long"></i>
+                <button type="submit" className="btn-prime magnetic-btn" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <i className="fa-solid fa-circle-notch fa-spin"></i> Memverifikasi...
+                    </>
+                  ) : (
+                    <>
+                      {t('login_btn_submit', 'Inisiasi Masuk')} <i className="fa-solid fa-arrow-right-long"></i>
+                    </>
+                  )}
                 </button>
               </div>
 

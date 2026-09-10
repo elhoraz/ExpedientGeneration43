@@ -1,6 +1,14 @@
 // lib/rate-limit.ts
-// In-memory rate limiter (per serverless instance)
-// For distributed rate limiting, use @upstash/ratelimit with Redis
+// In-memory rate limiter (per serverless instance).
+//
+// IMPORTANT: On Vercel serverless, each function instance has its own Map.
+// This provides per-instance protection (still blocks rapid bursts from the
+// same client hitting the same instance), but is NOT a distributed rate limiter.
+// For strict distributed rate limiting, migrate to @upstash/ratelimit with Redis.
+//
+// The setInterval-based cleanup was removed because serverless functions are
+// frozen between invocations — intervals never fire. Instead, stale entries
+// are cleaned up inline during each rateLimit() call.
 
 interface RateLimitEntry {
   count: number;
@@ -9,18 +17,25 @@ interface RateLimitEntry {
 
 const rateLimitMap = new Map<string, RateLimitEntry>();
 
-// Cleanup stale entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
+// Max entries to prevent unbounded memory growth in long-lived instances
+const MAX_ENTRIES = 10000;
+
+/**
+ * Inline cleanup: remove expired entries when the map grows too large.
+ * Called automatically during rateLimit() — no setInterval needed.
+ */
+function cleanupStaleEntries(now: number): void {
+  if (rateLimitMap.size <= MAX_ENTRIES) return;
+
   for (const [key, entry] of rateLimitMap.entries()) {
     if (now > entry.resetTime) {
       rateLimitMap.delete(key);
     }
   }
-}, 5 * 60 * 1000);
+}
 
 /**
- * Simple in-memory rate limiter.
+ * Simple in-memory rate limiter with per-access stale cleanup.
  * @param key - Unique identifier (e.g., IP address or user ID)
  * @param limit - Maximum number of requests allowed in the window
  * @param windowMs - Time window in milliseconds (default: 15 minutes)
@@ -32,10 +47,14 @@ export function rateLimit(
   windowMs: number = 15 * 60 * 1000
 ): { success: boolean; remaining: number; resetIn: number } {
   const now = Date.now();
+
+  // Inline cleanup instead of setInterval (serverless-compatible)
+  cleanupStaleEntries(now);
+
   const entry = rateLimitMap.get(key);
 
   if (!entry || now > entry.resetTime) {
-    // New window
+    // New window — also cleans up the expired entry implicitly
     rateLimitMap.set(key, { count: 1, resetTime: now + windowMs });
     return { success: true, remaining: limit - 1, resetIn: windowMs };
   }

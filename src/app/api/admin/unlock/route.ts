@@ -3,9 +3,20 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createSignedAdminSession } from "@/lib/admin-auth";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    // Rate limiting: 5 attempts per 15 minutes per IP
+    const clientIp = getClientIp(request);
+    const rl = rateLimit(`admin-unlock:${clientIp}`, 5, 15 * 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { status: "error", message: "Terlalu banyak percobaan. Silakan coba lagi nanti." },
+        { status: 429 }
+      );
+    }
+
     const { password } = await request.json();
     const adminPassword = process.env.ADMIN_MASTER_PASSWORD;
 

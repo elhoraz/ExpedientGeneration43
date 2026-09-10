@@ -1,6 +1,6 @@
 "use server";
 
-import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
@@ -11,18 +11,7 @@ export async function deleteAnnouncement(formData: FormData) {
     throw new Error("Unauthorized");
   }
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
+  const supabase = createAdminClient();
 
   const id = formData.get("id") as string;
   if (!id) return;

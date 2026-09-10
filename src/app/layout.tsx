@@ -7,7 +7,8 @@ import "../../public/css/design-system.css";
 import "../../public/css/template.css";
 import ClientLayout from "@/components/layout/ClientLayout";
 import { CmsProvider } from "@/components/layout/CmsProvider";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { unstable_cache } from "next/cache";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -90,16 +91,28 @@ export const metadata: Metadata = {
   },
 };
 
+const getCachedSiteContent = unstable_cache(
+  async () => {
+    try {
+      const supabase = createAdminClient();
+      const cmsPromise = supabase.from("site_content").select("content_key, content_value, content_type");
+      const timeoutPromise = new Promise<{ data: null }>((resolve) => setTimeout(() => resolve({ data: null }), 3000));
+      const { data } = await Promise.race([cmsPromise, timeoutPromise]);
+      return data || [];
+    } catch {
+      return [];
+    }
+  },
+  ["site_content_root_layout"],
+  { revalidate: 60, tags: ["site_content"] }
+);
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  // Timeout: jangan biarkan root layout hang selamanya jika Supabase lambat
-  const cmsPromise = supabase.from("site_content").select("content_key, content_value, content_type");
-  const timeoutPromise = new Promise<{ data: null }>((resolve) => setTimeout(() => resolve({ data: null }), 5000));
-  const { data: allCms } = await Promise.race([cmsPromise, timeoutPromise]);
+  const allCms = await getCachedSiteContent();
   return (
     <html lang="id" className={`${inter.variable} ${playfair.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>

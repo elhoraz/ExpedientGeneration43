@@ -1,5 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import AdminUsersClient from "./AdminUsersClient";
 
@@ -8,28 +8,17 @@ export const metadata = {
 };
 
 export default async function AdminUsersPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+  const userClient = await createClient();
+  const { data: { user } } = await userClient.auth.getUser();
 
   if (!user) {
     redirect("/login");
   }
 
+  const supabase = createAdminClient();
+
   // Fetch all auth users using Admin API
-  const { data: authData, error: authError } = await supabase.auth.admin.listUsers();
+  const { data: authData, error: authError } = await supabase.auth.admin.listUsers({ perPage: 1000 });
   
   // Fetch all profiles
   const { data: profiles, error: profileError } = await supabase

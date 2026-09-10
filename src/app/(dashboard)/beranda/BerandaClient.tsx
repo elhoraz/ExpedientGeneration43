@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Script from "next/script";
+import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useCms } from "@/components/layout/CmsProvider";
+import { sanitizeHtml } from "@/lib/sanitize";
 import LorongKenangan from "./LorongKenangan";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import "./beranda.css";
@@ -79,6 +81,9 @@ export default function BerandaClient({
 
     return () => {
       document.body.classList.remove("page-beranda");
+      if (typeof window !== "undefined") {
+        delete (window as any).BERANDA_CMS;
+      }
     };
   }, [t]);
 
@@ -159,8 +164,7 @@ export default function BerandaClient({
 
       <main className="museum-halls">
           <section className="hall-section epigraph-section">
-              <h1 className="grand-text reveal-up" dangerouslySetInnerHTML={{__html: t('beranda_epigraph', 'Kami bukan sekadar angkatan.<br class="desktop-br" /> Kami adalah <span class="highlight-gold">barisan pelopor</span> yang lahir dari rahim Arrisalah,<br class="desktop-br" /> dibentuk oleh waktu, dipersatukan oleh takdir.')}}>
-              </h1>
+              <h1 className="grand-text reveal-up" dangerouslySetInnerHTML={{__html: sanitizeHtml(t('beranda_epigraph', 'Kami bukan sekadar angkatan.<br class="desktop-br" /> Kami adalah <span class="highlight-gold">barisan pelopor</span> yang lahir dari rahim Arrisalah,<br class="desktop-br" /> dibentuk oleh waktu, dipersatukan oleh takdir.'))}}></h1>
           </section>
 
           <section className="hall-section">
@@ -373,7 +377,7 @@ export default function BerandaClient({
                       <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.4 }}>
                           Hari ini adalah ulang tahun <strong>{birthdayUsers[0].nama_panggilan || birthdayUsers[0].nama_lengkap}</strong>
                           {birthdayUsers.length > 1 ? ` dan ${birthdayUsers.length - 1} alumni lainnya` : ''}. <br/>
-                          <a href="/birthday" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>Kirim Ucapan <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></a>
+                          <Link href="/birthday" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>Kirim Ucapan <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
                       </div>
                   </div>
                   <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 800); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px' }}><i className="fa-solid fa-times"></i></button>

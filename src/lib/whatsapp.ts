@@ -21,7 +21,7 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
     return false;
   }
 
-  const fonnteToken = (process.env.FONNTE_TOKEN || "FYqrAtZE4eFXkYXN7Z1c").trim();
+  const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
 
   // 1. PRIMARY: Fonnte API dengan Parameter Anti-Ban Resmi
   if (fonnteToken) {
@@ -57,8 +57,8 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
   }
 
   // 2. SECONDARY FALLBACK: Meta WhatsApp Cloud API
-  const metaPhoneId = process.env.META_WA_PHONE_NUMBER_ID || "1217693854771569";
-  const metaToken = (process.env.META_WA_ACCESS_TOKEN || "EAA9XTyf2nZCQBSfa06QmwXmkDT4WSAN8pNtDFz2yPZCHBlQlI4eqYC63XoX8xKMFysvnuADnxYoLAjXZBwANkYCmZBaACKMdk4AoYZCGZCAXY5ldRRYm5aor8PVb5KUuQ6eIhsEmsagwVA806b6KYjF221HfhP99a992j4JTCQOO3Vlpv8GqjxW0vfalpFAQZDZD").trim();
+  const metaPhoneId = process.env.META_WA_PHONE_NUMBER_ID || "";
+  const metaToken = (process.env.META_WA_ACCESS_TOKEN || "").trim();
 
   if (metaPhoneId && metaToken) {
     try {

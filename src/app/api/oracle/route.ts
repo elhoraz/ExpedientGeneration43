@@ -87,6 +87,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ insight: text });
   } catch (err: any) {
     console.error("Oracle AI Error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Gagal memproses permintaan AI Oracle. Silakan coba beberapa saat lagi." },
+      { status: 500 }
+    );
   }
 }

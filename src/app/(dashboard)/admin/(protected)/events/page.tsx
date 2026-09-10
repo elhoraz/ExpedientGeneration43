@@ -1,4 +1,4 @@
-import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { broadcastWhatsAppMessage } from "@/lib/whatsapp";
@@ -16,11 +16,7 @@ async function addEvent(formData: FormData) {
   const cookieStore = await cookies();
   if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") throw new Error("Unauthorized");
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return cookieStore.getAll(); }, setAll() {} } }
-  );
+  const supabase = createAdminClient();
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
@@ -56,11 +52,7 @@ async function deleteEvent(formData: FormData) {
   const cookieStore = await cookies();
   if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") throw new Error("Unauthorized");
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return cookieStore.getAll(); }, setAll() {} } }
-  );
+  const supabase = createAdminClient();
 
   const id = formData.get("id") as string;
   if (id) {
@@ -70,12 +62,7 @@ async function deleteEvent(formData: FormData) {
 }
 
 export default async function EventsPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { cookies: { getAll() { return cookieStore.getAll(); }, setAll() {} } }
-  );
+  const supabase = createAdminClient();
 
   const { data: events } = await supabase
     .from("events")

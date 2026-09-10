@@ -1,5 +1,4 @@
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { deleteAnnouncement } from "./actions";
 import Link from "next/link";
 import "../admin.css";
@@ -10,19 +9,7 @@ export const metadata = {
 };
 
 export default async function AnnouncementsPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
+  const supabase = createAdminClient();
 
   const { data: announcements } = await supabase
     .from("announcements")

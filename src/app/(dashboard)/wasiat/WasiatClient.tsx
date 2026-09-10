@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { addPrestise } from "@/lib/gamification";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { getAvatarUrl } from "@/lib/avatar";
+import { sanitizeHtml } from "@/lib/sanitize";
 import "./wasiat.css";
 
 export default function WasiatClient({ currentUser, initialWasiats }: { currentUser: any, initialWasiats: any[] }) {
@@ -309,7 +310,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
           </div>
           
           <div
-            dangerouslySetInnerHTML={{ __html: unsealContent.replace(/\n/g, "<br/>") }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(unsealContent.replace(/\n/g, "<br/>")) }}
             style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", lineHeight: 1.8, wordBreak: "break-word" }}
           ></div>
           

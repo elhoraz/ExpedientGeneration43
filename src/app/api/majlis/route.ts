@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { addPrestise } from "@/lib/gamification";
 
@@ -69,12 +69,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const action = body.action || "create_topic";
 
-    // Create Admin Client using service role key directly (no cookies)
-    // This properly bypasses RLS for server-side operations
-    const adminSupabase = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    // Create Admin Client using shared createAdminClient
+    const adminSupabase = createAdminClient();
 
     // ==========================================
     // ACTION 1: CREATE TOPIC

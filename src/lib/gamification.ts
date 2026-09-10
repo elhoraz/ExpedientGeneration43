@@ -84,25 +84,27 @@ export async function addPrestise(
   if (insertError) return false;
 
   // Tambahkan ke total user di profil secara atomik (Mencegah Race Condition)
-  const { error: rpcError } = await (supabase as any).rpc('increment_prestise', {
-    user_id: userId,
-    amount: points,
-  });
+  // Retry RPC up to 2 times instead of non-atomic fallback to prevent race conditions
+  let rpcSucceeded = false;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error: rpcError } = await (supabase as any).rpc('increment_prestise', {
+      user_id: userId,
+      amount: points,
+    });
 
-  if (rpcError) {
-    // Fallback jika RPC mengalami kendala sementara
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('prestise_points')
-      .eq('id', userId)
-      .single();
-
-    if (profile) {
-      await supabase
-        .from('profiles')
-        .update({ prestise_points: (profile.prestise_points || 0) + points })
-        .eq('id', userId);
+    if (!rpcError) {
+      rpcSucceeded = true;
+      break;
     }
+
+    // Brief delay before retry (100ms, 200ms)
+    if (attempt < 2) {
+      await new Promise(resolve => setTimeout(resolve, (attempt + 1) * 100));
+    }
+  }
+
+  if (!rpcSucceeded) {
+    console.warn(`[GAMIFICATION] Failed to increment prestise for user ${userId} after 3 attempts. Points logged but total may be stale.`);
   }
 
   return true;

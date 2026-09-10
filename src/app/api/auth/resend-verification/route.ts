@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getRequestOrigin } from "@/lib/url";
 
 export async function POST(request: Request) {
@@ -16,19 +16,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const adminSupabase = createAdminClient();
 
     // Look up user by email in auth
-    const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers();
+    const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers({ perPage: 1000 });
     if (listError) {
       return NextResponse.json({ error: listError.message }, { status: 500 });
     }

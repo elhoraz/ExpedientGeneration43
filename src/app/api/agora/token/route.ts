@@ -1,8 +1,24 @@
 import { NextResponse } from "next/server";
 import { RtcTokenBuilder, RtcRole } from "agora-token";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   try {
+    // Auth check: only authenticated users can generate Agora tokens
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Unauthorized: Harap login terlebih dahulu",
+          data: null,
+        },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const channelName = searchParams.get("channel") || "majlis_main_room";
     const uid = searchParams.get("uid") || "";

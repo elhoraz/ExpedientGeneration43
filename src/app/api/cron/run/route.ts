@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
@@ -23,10 +23,7 @@ export async function GET(request: Request) {
   }
 
   // Use service role for cron tasks
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = createAdminClient();
 
   let output = `===== EXPEDIENT CRON RUNNER =====\n`;
   output += `Waktu : ${new Date().toISOString()}\n\n`;

@@ -43,16 +43,8 @@ export async function GET() {
     isHealthy = false;
   }
 
-  // 2. Check Essential Environment Secrets
-  const envCheck = {
-    supabase: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    serviceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-    gemini: !!process.env.GEMINI_API_KEY,
-    fonnte: !!process.env.FONNTE_TOKEN,
-    adminMaster: !!process.env.ADMIN_MASTER_PASSWORD,
-    smtp: !!(process.env.SMTP_USER || process.env.SUPABASE_CUSTOM_SMTP_USER),
-  };
-  checks.servicesConfigured = envCheck;
+  // 2. Service availability (no details about which secrets are configured)
+  checks.services = isHealthy ? "all_operational" : "degraded";
 
   const totalLatency = Date.now() - startTime;
   checks.latencyMs = totalLatency;

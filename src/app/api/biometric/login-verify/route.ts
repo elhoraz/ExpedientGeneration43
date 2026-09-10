@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
 
 export async function POST(req: Request) {
   try {
@@ -15,16 +15,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const supabaseAdmin = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll() {},
-        },
-      }
-    );
+    const supabaseAdmin = createAdminClient();
 
     // Find the credential
     const { data: biometrics } = await supabaseAdmin

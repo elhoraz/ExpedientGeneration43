@@ -1,5 +1,4 @@
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import "../admin.css";
 import AdminLockBtn from "../../AdminLockBtn";
@@ -12,17 +11,7 @@ export const metadata = {
 };
 
 export default async function ModerationPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use Service Role to bypass RLS for Admin
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll() {},
-      },
-    }
-  );
+  const supabase = createAdminClient();
 
   // Fetch recent contents
   const [

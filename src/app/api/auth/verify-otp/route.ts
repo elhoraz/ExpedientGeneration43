@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendEmail } from "@/lib/email";
 
@@ -16,16 +17,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const adminSupabase = createAdminClient();
 
     // 1. Cari user di Supabase Auth
     const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers({
@@ -90,7 +82,7 @@ export async function POST(request: Request) {
     // B. Jika belum cocok, cek dengan Supabase Auth verifyOtp (jika dikirim via Supabase Gmail SMTP)
     if (!isOtpValid) {
       try {
-        const anonSupabase = createAdminClient(
+        const anonSupabase = createClient(
           process.env.NEXT_PUBLIC_SUPABASE_URL!,
           process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
         );

@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function GET(req: Request) {
   try {
@@ -16,10 +16,7 @@ export async function GET(req: Request) {
       );
     }
 
-    const supabaseAdmin = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseAdmin = createAdminClient();
 
     // 1. Cari user di auth.users berdasarkan email
     const { data: usersData, error: userError } = await supabaseAdmin.auth.admin.listUsers({

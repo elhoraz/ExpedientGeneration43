@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join, extname } from 'path';
 import { createClient } from '@/lib/supabase/server';
-import { createServerClient } from '@supabase/ssr';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const ALLOWED_FOLDERS = ['gallery', 'profiles', 'chat', 'feed', 'documents', 'bisnis'];
 
@@ -84,16 +84,7 @@ export async function POST(req: Request) {
     const bucketName = bucketMapping[folderInput] || 'profile-photos';
 
     try {
-      const adminSupabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        {
-          cookies: {
-            getAll() { return []; },
-            setAll() {},
-          },
-        }
-      );
+      const adminSupabase = createAdminClient();
 
       const { error: storageError } = await adminSupabase.storage
         .from(bucketName)
@@ -145,6 +136,9 @@ export async function POST(req: Request) {
 
   } catch (e: any) {
     console.error('Upload error:', e);
-    return NextResponse.json({ error: 'Gagal memproses unggahan file: ' + (e?.message || '') }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Gagal memproses unggahan file. Pastikan format dan ukuran file sesuai ketentuan.' },
+      { status: 500 }
+    );
   }
 }

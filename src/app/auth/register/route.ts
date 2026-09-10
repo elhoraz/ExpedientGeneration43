@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { getRequestOrigin } from "@/lib/url";
@@ -67,12 +67,12 @@ export async function POST(request: Request) {
     if (error.message.includes("already registered") || error.message.includes("User already registered")) {
       // Periksa apakah akun yang sudah ada tersebut BELUM diverifikasi (bisa lanjutkan verifikasi OTP)
       try {
-        const adminSupabase = createAdminClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!,
-          { auth: { autoRefreshToken: false, persistSession: false } }
-        );
-        const { data: { users } } = await adminSupabase.auth.admin.listUsers();
+        const adminSupabase = createAdminClient();
+        // Fetch users with large page size to avoid missing users beyond default limit of 50
+        const { data: { users } } = await adminSupabase.auth.admin.listUsers({
+          page: 1,
+          perPage: 1000,
+        });
         const existingUser = users?.find(u => u.email?.toLowerCase() === email);
 
         if (existingUser && !existingUser.email_confirmed_at) {
@@ -134,16 +134,7 @@ export async function POST(request: Request) {
 
   // Use Service Role to bypass RLS completely (without cookie interference)
   if (data.user) {
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      }
-    );
+    const adminSupabase = createAdminClient();
 
     let foto_profil = null;
 

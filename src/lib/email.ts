@@ -18,9 +18,8 @@ interface EmailPayload {
  * Returns true if sent successfully.
  */
 export async function sendEmail(payload: EmailPayload): Promise<boolean> {
-  const smtpUser = process.env.SMTP_USER || "expedientgeneration43@gmail.com";
-  // Fallback ke app password Gmail jika env var belum terpasang di Vercel
-  const smtpPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "wxgyxvfurathwfez").replace(/\s/g, "");
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || "").replace(/\s/g, "");
 
   // 1. PRIMARY: Kirim langsung via Gmail SMTP menggunakan Nodemailer
   if (smtpPass) {

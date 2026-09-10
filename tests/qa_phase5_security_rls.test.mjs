@@ -9,6 +9,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, "..");
 
+process.env.ADMIN_MASTER_PASSWORD = process.env.ADMIN_MASTER_PASSWORD || "test_admin_master_password_secret_2026";
+
 describe("Phase 5: Automated Security & RLS Regression Test Suite (QA-01)", () => {
   describe("SEC-01: Profiles RLS Privilege Escalation Guard", () => {
     const migrationPath = path.join(ROOT_DIR, "supabase/migrations/20260907000000_fix_profiles_rls.sql");

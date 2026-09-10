@@ -6,6 +6,7 @@ import { useConfirm } from "@/components/layout/AegisConfirm";
 import Link from "next/link";
 import AdminLockBtn from "../../AdminLockBtn";
 import { compressImageFile } from "@/lib/image-compression";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 type SiteContent = {
   id: string;
@@ -830,7 +831,7 @@ export default function CmsClient({
                       <input type="url" className="form-control" value={editValue} onChange={(e) => { setEditValue(e.target.value); setCmsEditFile(null); setCmsEditFilePreview(''); }} placeholder="https://..." />
                     </>
                   ) : showPreviewHtml ? (
-                    <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid var(--glass-border)", borderRadius: "8px", padding: "16px", minHeight: "150px", color: "var(--text-primary)", fontSize: "0.85rem", lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: editValue }}>
+                    <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid var(--glass-border)", borderRadius: "8px", padding: "16px", minHeight: "150px", color: "var(--text-primary)", fontSize: "0.85rem", lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(editValue) }}>
                     </div>
                   ) : (
                     <textarea 

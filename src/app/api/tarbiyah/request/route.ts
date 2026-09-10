@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { addPrestise } from "@/lib/gamification";
 
 const jsonResponse = (
@@ -31,10 +31,7 @@ export async function POST(req: Request) {
     const action = body.action || "create_request";
 
     const adminSupabase = process.env.SUPABASE_SERVICE_ROLE_KEY
-      ? createSupabaseClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-        )
+      ? createAdminClient()
       : supabase;
 
     // =========================================================================
