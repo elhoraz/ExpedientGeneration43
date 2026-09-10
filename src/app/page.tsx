@@ -61,8 +61,8 @@ export default async function LandingPage() {
         <div className="nav-actions">
           <ThemeToggle />
           <Link href="/login" className="nav-btn-portal" id="navCtaLogin">
-            <i className="fa-solid fa-arrow-right-to-bracket"></i>
-            <span>Portal Masuk</span>
+            <i className="fa-solid fa-compass"></i>
+            <span>Jelajahi Sekarang</span>
           </Link>
         </div>
       </header>
@@ -120,7 +120,7 @@ export default async function LandingPage() {
           {/* Action Button Group */}
           <div className="cta-group">
             <Link href="/login" className="btn-primary" id="ctaLogin">
-              <i className="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
+              <i className="fa-solid fa-door-open"></i> Telusuri Jejak Langkah
             </Link>
             <Link
               href="/download"
@@ -130,7 +130,7 @@ export default async function LandingPage() {
               <i className="fa-brands fa-android"></i> Download App Mobile
             </Link>
             <Link href="/beranda" className="btn-secondary" id="ctaExplore">
-              <i className="fa-solid fa-compass"></i> Jelajahi Museum
+              <i className="fa-solid fa-landmark"></i> Jelajahi Museum
             </Link>
           </div>
 
@@ -355,7 +355,7 @@ export default async function LandingPage() {
               </div>
               <div className="bento-action">
                 <Link href="/chat/lounge" className="bento-link">
-                  Masuk Lounge <i className="fa-solid fa-arrow-right"></i>
+                  Kunjungi Lounge <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
             </TiltCard>
@@ -371,11 +371,11 @@ export default async function LandingPage() {
               Tautkan Langkah, Bersatu untuk Risalah
             </h2>
             <p className="cta-banner-desc">
-              Bagi seluruh alumni Angkatan ke-43 Pondok Modern Arrisalah Slahung Ponorogo di manapun Anda berada, pintu gerbang portal digital Anda telah siap.
+              Bagi seluruh alumni Angkatan ke-43 Pondok Modern Arrisalah Slahung Ponorogo di manapun Anda berada, pintu gerbang penjelajahan digital Anda telah siap.
             </p>
             <div className="cta-banner-buttons">
               <Link href="/login" className="btn-primary">
-                <i className="fa-solid fa-id-badge"></i> Masuk ke Akun Anda
+                <i className="fa-solid fa-door-open"></i> Telusuri Jejak Langkah
               </Link>
               <Link href="/download" className="btn-secondary">
                 <i className="fa-brands fa-android"></i> Pasang Aplikasi Android
@@ -424,7 +424,7 @@ export default async function LandingPage() {
             <div className="footer-links-col">
               <h4>Layanan Angkatan</h4>
               <ul>
-                <li><Link href="/login">Portal Anggota</Link></li>
+                <li><Link href="/login">Ruang Anggota</Link></li>
                 <li><Link href="/sovereign">KTA Digital 3D</Link></li>
                 <li><Link href="/beranda">Museum &amp; Arsip</Link></li>
                 <li><Link href="/baitul-maal">Baitul Maal</Link></li>
