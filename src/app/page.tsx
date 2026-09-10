@@ -60,9 +60,13 @@ export default async function LandingPage() {
 
         <div className="nav-actions">
           <ThemeToggle />
-          <Link href="/login" className="nav-btn-portal" id="navCtaLogin">
-            <i className="fa-solid fa-compass"></i>
-            <span>Jelajahi Sekarang</span>
+          <Link href="/login" className="nav-link" title="Ruang Anggota Khusus Alumni">
+            <i className="fa-solid fa-circle-user"></i>
+            <span>Masuk</span>
+          </Link>
+          <Link href="/beranda" className="nav-btn-portal" id="navCtaExplore">
+            <i className="fa-solid fa-landmark"></i>
+            <span>Jelajahi Museum</span>
           </Link>
         </div>
       </header>
@@ -119,18 +123,19 @@ export default async function LandingPage() {
 
           {/* Action Button Group */}
           <div className="cta-group">
-            <Link href="/login" className="btn-primary" id="ctaLogin">
-              <i className="fa-solid fa-door-open"></i> Telusuri Jejak Langkah
+            <Link href="/beranda" className="btn-primary" id="ctaExplore">
+              <i className="fa-solid fa-landmark"></i> Jelajahi Museum
             </Link>
             <Link
               href="/download"
               className="btn-secondary btn-app-download"
               id="ctaDownload"
+              title="Unduh Expedient Mobile App (.APK) untuk Android"
             >
               <i className="fa-brands fa-android"></i> Download App Mobile
             </Link>
-            <Link href="/beranda" className="btn-secondary" id="ctaExplore">
-              <i className="fa-solid fa-landmark"></i> Jelajahi Museum
+            <Link href="/login" className="btn-secondary" id="ctaLogin" title="Khusus Anggota Alumni">
+              <i className="fa-solid fa-circle-user"></i> Ruang Anggota
             </Link>
           </div>
 
@@ -374,8 +379,11 @@ export default async function LandingPage() {
               Bagi seluruh alumni Angkatan ke-43 Pondok Modern Arrisalah Slahung Ponorogo di manapun Anda berada, pintu gerbang penjelajahan digital Anda telah siap.
             </p>
             <div className="cta-banner-buttons">
-              <Link href="/login" className="btn-primary">
-                <i className="fa-solid fa-door-open"></i> Telusuri Jejak Langkah
+              <Link href="/beranda" className="btn-primary">
+                <i className="fa-solid fa-landmark"></i> Jelajahi Museum Sekarang
+              </Link>
+              <Link href="/login" className="btn-secondary">
+                <i className="fa-solid fa-circle-user"></i> Ruang Anggota
               </Link>
               <Link href="/download" className="btn-secondary">
                 <i className="fa-brands fa-android"></i> Pasang Aplikasi Android
