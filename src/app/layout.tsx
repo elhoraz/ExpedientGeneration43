@@ -44,10 +44,20 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    template: "%s - Expedient Generation",
-    default: "Expedient Generation",
+    template: "%s - Expedient Generation 43",
+    default: "Expedient Generation — Angkatan Ke-43 Pondok Modern Arrisalah Slahung Ponorogo",
   },
-  description: "Museum Galeri Digital VVIP & Arsip Direktori Expedient Generation.",
+  description: "Mahakarya digital & museum jejak langkah alumni angkatan ke-43 Pondok Modern Arrisalah Program Internasional, Slahung, Ponorogo, Jawa Timur.",
+  keywords: [
+    "Expedient Generation",
+    "Expedient 43",
+    "Pondok Modern Arrisalah",
+    "Arrisalah Slahung",
+    "Arrisalah Ponorogo",
+    "Alumni Arrisalah",
+    "Santri Ponorogo",
+    "Angkatan 43",
+  ],
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -65,19 +75,19 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Expedient",
+    title: "Expedient 43",
   },
   openGraph: {
-    title: "Expedient Generation - Portal VVIP Alumni",
-    description: "Akses portal eksklusif peninggalan dan jejak langkah Expedient Generation.",
+    title: "Expedient Generation — Angkatan Ke-43 Pondok Modern Arrisalah Slahung Ponorogo",
+    description: "Mahakarya digital, museum kenangan, dan wadah persatuan alumni ke-43 Pondok Modern Arrisalah Program Internasional Slahung Ponorogo.",
     url: siteUrl,
-    siteName: "Expedient Generation",
+    siteName: "Expedient Generation 43",
     images: [
       {
         url: "/images/logo-utuh.webp",
         width: 1200,
         height: 630,
-        alt: "Expedient Generation Logo",
+        alt: "Expedient Generation 43 - Arrisalah Slahung Ponorogo",
       },
     ],
     locale: "id_ID",
@@ -85,8 +95,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Expedient Generation",
-    description: "Portal eksklusif peninggalan dan jejak langkah Expedient Generation.",
+    title: "Expedient Generation — Angkatan 43 Arrisalah Slahung",
+    description: "Mahakarya digital, museum kenangan, dan wadah persatuan alumni ke-43 Pondok Modern Arrisalah Slahung Ponorogo.",
     images: ["/images/logo-utuh.webp"],
   },
 };
