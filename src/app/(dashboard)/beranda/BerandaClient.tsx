@@ -341,10 +341,10 @@ export default function BerandaClient({
               ) : (
                   <div className="guestbook-empty">
                       <i className="fa-solid fa-lock guestbook-empty-icon"></i>
-                      <p className="guestbook-empty-text">Masuk ke portal untuk menandatangani buku tamu.</p>
-                      <a href="/login" className="guestbook-login-link">
-                          <i className="fa-solid fa-right-to-bracket"></i> Masuk Sekarang
-                      </a>
+                      <p className="guestbook-empty-text">Silakan telusuri jejak langkah untuk menandatangani buku tamu peradaban.</p>
+                      <Link href="/login" className="guestbook-login-link">
+                          <i className="fa-solid fa-door-open"></i> Telusuri Jejak Langkah
+                      </Link>
                   </div>
               )}
 

@@ -122,8 +122,8 @@ export default function Sidebar() {
             <span className="nav-label">Profil</span>
           </Link>
         ) : isLoggedIn === false ? (
-          <Link href="/login" className="nav-item hover-trigger" data-tooltip="Masuk ke Portal" onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className="fa-solid fa-right-to-bracket"></i>
+          <Link href="/login" className="nav-item hover-trigger" data-tooltip="Ruang Anggota" onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+            <i className="fa-solid fa-door-open"></i>
             <span className="nav-label">Masuk</span>
           </Link>
         ) : null}

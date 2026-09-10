@@ -139,28 +139,31 @@ function urlBase64ToUint8Array(base64String: string) {
   return (
     <>
       <>
-        <a 
-          href="#"
-          className="chat-widget hover-trigger" 
-          id="btnChatWidget"
-          title="Obrolan Angkatan" 
-          onClick={(e) => { 
-            e.preventDefault(); 
-            setChatOpen(!chatOpen); 
-            setNotifOpen(false); 
-            setHasNewNotif(false); 
-          }}
-        >
-          <div className="icon-orb">
-            <i className="fa-solid fa-comment-dots"></i>
-          </div>
-          {hasNewNotif && (
-            <span id="chatBadge" className="chat-badge" style={{
-              display: "block", position: "absolute", top: "2px", right: "2px",
-              width: "12px", height: "12px", background: "#ff5555", borderRadius: "50%"
-            }}></span>
-          )}
-        </a>
+        {/* Obrolan Angkatan - Hanya untuk anggota terautentikasi */}
+        {userId && (
+          <a 
+            href="#"
+            className="chat-widget hover-trigger" 
+            id="btnChatWidget"
+            title="Obrolan Angkatan" 
+            onClick={(e) => { 
+              e.preventDefault(); 
+              setChatOpen(!chatOpen); 
+              setNotifOpen(false); 
+              setHasNewNotif(false); 
+            }}
+          >
+            <div className="icon-orb">
+              <i className="fa-solid fa-comment-dots"></i>
+            </div>
+            {hasNewNotif && (
+              <span id="chatBadge" className="chat-badge" style={{
+                display: "block", position: "absolute", top: "2px", right: "2px",
+                width: "12px", height: "12px", background: "#ff5555", borderRadius: "50%"
+              }}></span>
+            )}
+          </a>
+        )}
 
         {/* Theme Toggle Widget */}
         <ThemeToggle />
@@ -172,7 +175,7 @@ function urlBase64ToUint8Array(base64String: string) {
         {userId && <GlobalCallReceiver userId={userId} />}
       </>
 
-      {chatOpen && (
+      {userId && chatOpen && (
         <div className="chat-dropdown">
           <div className="chat-dropdown-header">
             <div className="chat-dropdown-title">
