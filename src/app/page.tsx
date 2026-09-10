@@ -213,6 +213,44 @@ export default async function LandingPage() {
               <div className="pillar-badge">Panca Jiwa Arrisalah</div>
             </TiltCard>
           </div>
+
+          {/* Video Dokumenter Profil & Suasana Almamater */}
+          <div className="heritage-video-container">
+            <div className="heritage-video-card">
+              <div className="heritage-video-header">
+                <div className="video-badge">
+                  <i className="fa-solid fa-play"></i>
+                  <span>DOKUMENTER KAMPUS PONDOK MODERN ARRISALAH</span>
+                </div>
+                <span className="video-loc">
+                  <i className="fa-solid fa-location-dot"></i> Desa Gundik, Slahung, Ponorogo
+                </span>
+              </div>
+              <div className="heritage-video-frame">
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed?listType=playlist&list=UU_cI0wW5C3jZ6I-v_2p&origin=https://expedientgeneration.vercel.app"
+                  title="Dokumentasi Profil Kampus Pondok Modern Arrisalah Slahung Ponorogo"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+              <div className="heritage-video-footer">
+                <div className="video-desc">
+                  <em>&ldquo;Dari Slahung menatap dunia — menggembleng santri berilmu amaliah, beramal ilmiah, dan berakhlakul karimah.&rdquo;</em>
+                </div>
+                <a
+                  href="https://www.youtube.com/@pengajianumumahadpagipmarr2004"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="video-channel-btn"
+                >
+                  <i className="fa-brands fa-youtube"></i>
+                  <span>Kanal Resmi Pondok</span>
+                </a>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* ====== SECTION 2: THE PHILOSOPHY OF EXPEDIENT (IDENTITAS 43) ====== */}
@@ -388,6 +426,15 @@ export default async function LandingPage() {
               <Link href="/download" className="btn-secondary">
                 <i className="fa-brands fa-android"></i> Pasang Aplikasi Android
               </Link>
+              <a
+                href="https://api.whatsapp.com/send?text=Assalamu%27alaikum%20sahabat%20alumni%20Expedient%2043!%20Mari%20buka%20dan%20jelajahi%20mahakarya%20museum%20digital%20angkatan%20kita%20Pondok%20Modern%20Arrisalah%20Slahung%20di%3A%20https%3A%2F%2Fexpedientgeneration.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary btn-share-wa"
+                title="Sebarkan Tautan ke Grup WhatsApp Alumni"
+              >
+                <i className="fa-brands fa-whatsapp"></i> Ajak Teman Angkatan
+              </a>
             </div>
           </div>
         </section>
