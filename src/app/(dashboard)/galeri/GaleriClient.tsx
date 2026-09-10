@@ -178,10 +178,16 @@ export default function GaleriClient({
   // CSS Scoping
   useEffect(() => {
     document.body.classList.add("page-galeri");
+    if (galleryMode === "yearbook") {
+      document.body.classList.add("mode-yearbook");
+    } else {
+      document.body.classList.remove("mode-yearbook");
+    }
     return () => {
       document.body.classList.remove("page-galeri");
+      document.body.classList.remove("mode-yearbook");
     };
-  }, []);
+  }, [galleryMode]);
 
   // Filter & Search Photos Pipeline
   const filteredPhotos = useMemo(() => {
@@ -1005,27 +1011,51 @@ export default function GaleriClient({
             <i className="fa-solid fa-mobile-screen"></i>
             <h2>AKSES TERKUNCI</h2>
             <p>Ruang Kenangan 3D terbaik dinikmati dalam mode Landscape.<br />Silakan putar perangkat Anda.</p>
-            <button
-              id="btnBypassLock"
-              onClick={() => {
-                document.body.classList.add("bypass-portrait");
-              }}
-              style={{
-                marginTop: "20px",
-                padding: "10px 22px",
-                background: "rgba(212,175,55,0.15)",
-                border: "1px solid #d4af37",
-                color: "#d4af37",
-                borderRadius: "50px",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-              }}
-            >
-              <i className="fa-solid fa-unlock" style={{ marginRight: "6px" }}></i> Tetap Buka dalam Mode Tegak
-            </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setGalleryMode("vault");
+                  triggerHaptic(12);
+                }}
+                style={{
+                  padding: "12px 24px",
+                  background: "linear-gradient(135deg, #d4af37, #b8860b)",
+                  border: "none",
+                  color: "#0b120e",
+                  borderRadius: "50px",
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  boxShadow: "0 6px 20px rgba(212, 175, 55, 0.4)",
+                }}
+              >
+                <i className="fa-solid fa-arrow-left"></i> Kembali ke Galeri Foto (Mode Tegak)
+              </button>
+              <button
+                id="btnBypassLock"
+                type="button"
+                onClick={() => {
+                  document.body.classList.add("bypass-portrait");
+                }}
+                style={{
+                  padding: "10px 22px",
+                  background: "rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  color: "#e2e8f0",
+                  borderRadius: "50px",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <i className="fa-solid fa-unlock" style={{ marginRight: "6px" }}></i> Buka 3D dalam Mode Tegak
+              </button>
+            </div>
           </div>
 
           <div className="gallery-stage" id="galleryStage">

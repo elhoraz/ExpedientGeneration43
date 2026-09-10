@@ -95,13 +95,23 @@ export default function DirektoriClient({
       const supabase = createClient();
       const fetchAlumni = async () => {
         try {
-          const { data } = await supabase
+          const { data: fullData, error: fullError } = await supabase
             .from("profiles")
             .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points, kelas, tahun_masuk, tahun_lulus, privacy_settings")
             .or("is_active.eq.true,is_active.is.null")
             .order("id", { ascending: true });
-          if (data && data.length > 0) {
-            setAlumni(data as any);
+
+          if (!fullError && fullData && fullData.length > 0) {
+            setAlumni(fullData as any);
+          } else {
+            const { data: fallbackData } = await supabase
+              .from("profiles")
+              .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points")
+              .or("is_active.eq.true,is_active.is.null")
+              .order("id", { ascending: true });
+            if (fallbackData && fallbackData.length > 0) {
+              setAlumni(fallbackData as any);
+            }
           }
         } catch {
           // ignore

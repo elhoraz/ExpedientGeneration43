@@ -30,14 +30,29 @@ export default async function DirektoriPage() {
     }
   }
 
-  // Optimized query projecting needed columns for modern directory
-  const { data: alumni } = await supabase
+  // Query profiles with graceful fallback if optional migration columns do not exist
+  let safeAlumni: any[] = [];
+  const { data: fullAlumni, error: fullError } = await supabase
     .from("profiles")
     .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points, kelas, tahun_masuk, tahun_lulus, privacy_settings")
     .or("is_active.eq.true,is_active.is.null")
     .order("id", { ascending: true });
 
-  const safeAlumni = (alumni || []).filter((a: any) => !blockedUserIds.has(a.id));
+  if (!fullError && fullAlumni) {
+    safeAlumni = fullAlumni.filter((a: any) => !blockedUserIds.has(a.id));
+  } else {
+    // Fallback query without optional un-migrated columns
+    const { data: fallbackAlumni, error: fallbackError } = await supabase
+      .from("profiles")
+      .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points")
+      .or("is_active.eq.true,is_active.is.null")
+      .order("id", { ascending: true });
+
+    if (fallbackAlumni) {
+      safeAlumni = fallbackAlumni.filter((a: any) => !blockedUserIds.has(a.id));
+    }
+  }
 
   return <DirektoriClient alumni={safeAlumni} isLoggedIn={!!user} currentUserId={user?.id || null} />;
 }
+
