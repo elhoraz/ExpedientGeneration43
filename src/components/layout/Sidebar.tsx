@@ -61,7 +61,8 @@ export default function Sidebar() {
 
   // Public pages: accessible without login
   const publicNavItems = [
-    { href: "/beranda", icon: "fa-landmark", label: "Beranda", tooltip: "Beranda Kenangan" },
+    { href: "/", icon: "fa-house", label: "Depan", tooltip: "Halaman Utama & Profil Pondok" },
+    { href: "/beranda", icon: "fa-landmark", label: "Museum", tooltip: "Museum Digital & Linimasa" },
     { href: "/direktori", icon: "fa-address-book", label: "Direktori", tooltip: "Buku Kontak Alumni" },
     { href: "/galeri", icon: "fa-film", label: "Galeri", tooltip: "Arsip Foto & Video" },
   ];
@@ -78,6 +79,9 @@ export default function Sidebar() {
   const fiturPages = ["/fitur", "/photobooth", "/oracle", "/enigma", "/genesis", "/celestial", "/majlis", "/tarbiyah", "/baitul-maal", "/wasiat", "/multazam", "/kontemplasi", "/divine", "/nexus"];
 
   const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
     if (href === "/fitur") {
       return fiturPages.some(p => pathname?.startsWith(p));
     }
