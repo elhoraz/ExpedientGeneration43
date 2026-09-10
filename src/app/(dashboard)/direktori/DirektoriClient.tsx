@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Swiper from "swiper";
@@ -9,24 +9,77 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
+import { getGelar, getGelarIcon, getBadgeColor } from "@/lib/gamification";
 import { createClient } from "@/lib/supabase/client";
 import "./direktori.css";
 
-export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: { alumni: any[], isLoggedIn: boolean }) {
-  const [alumni, setAlumni] = useState<any[]>(initialAlumni || []);
+interface ProfileItem {
+  id: string;
+  nama_lengkap: string;
+  nama_panggilan: string | null;
+  jenis_kelamin: string | null;
+  foto_profil: string | null;
+  tempat_lahir: string | null;
+  tanggal_lahir: string | null;
+  alamat_lengkap: string | null;
+  cita_cita: string | null;
+  motivasi_hidup: string | null;
+  akun_ig: string | null;
+  akun_tiktok: string | null;
+  no_whatsapp: string | null;
+  role: string | null;
+  is_active: boolean | null;
+  prestise_points?: number | null;
+  kelas?: string | null;
+  tahun_masuk?: number | null;
+  tahun_lulus?: number | null;
+  privacy_settings?: {
+    show_whatsapp?: boolean;
+    show_social?: boolean;
+    show_domisili?: boolean;
+  } | null;
+}
+
+export default function DirektoriClient({
+  alumni: initialAlumni,
+  isLoggedIn,
+  currentUserId,
+}: {
+  alumni: ProfileItem[];
+  isLoggedIn: boolean;
+  currentUserId: string | null;
+}) {
+  const [alumni, setAlumni] = useState<ProfileItem[]>(initialAlumni || []);
   const [isSelfHealing, setIsSelfHealing] = useState(false);
   const [search, setSearch] = useState("");
-  const [visibleCount, setVisibleCount] = useState(25);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [qrModalUser, setQrModalUser] = useState<any | null>(null);
-  const [failedPhotos, setFailedPhotos] = useState<{ [id: string]: boolean }>({});
-  const swiperRef = useRef<any>(null);
-  const visibleCountRef = useRef(visibleCount);
-  const filteredAlumniRef = useRef<any[]>([]);
+  const [genderFilter, setGenderFilter] = useState<"all" | "Laki-laki" | "Perempuan">("all");
+  const [classFilter, setClassFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"name_asc" | "name_desc" | "points" | "recent">("name_asc");
+  const [viewMode, setViewMode] = useState<"grid" | "coverflow" | "list">("grid");
 
-  useEffect(() => {
-    visibleCountRef.current = visibleCount;
-  }, [visibleCount]);
+  // Selected user for Mobile Bottom Sheet / Modal Detail
+  const [selectedUser, setSelectedUser] = useState<ProfileItem | null>(null);
+  const [sheetTab, setSheetTab] = useState<"biodata" | "kontak" | "visi">("biodata");
+  const [isSheetClosing, setIsSheetClosing] = useState(false);
+
+  // Pagination & Swiper states
+  const [visibleCount, setVisibleCount] = useState(30);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [qrModalUser, setQrModalUser] = useState<ProfileItem | null>(null);
+  const [failedPhotos, setFailedPhotos] = useState<{ [id: string]: boolean }>({});
+
+  const swiperRef = useRef<any>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const bottomSheetRef = useRef<HTMLDivElement>(null);
+
+  // Trigger safe haptic
+  const triggerHaptic = useCallback((duration = 12) => {
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
+      try {
+        navigator.vibrate(duration);
+      } catch {}
+    }
+  }, []);
 
   // Sync state if initialAlumni changes
   useEffect(() => {
@@ -35,7 +88,7 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
     }
   }, [initialAlumni]);
 
-  // Self-healing fallback: If initial server prop was empty (due to stale CDN/PWA cache), fetch directly from Supabase
+  // Self-healing fallback if server prop was empty due to cache
   useEffect(() => {
     if (!initialAlumni || initialAlumni.length === 0) {
       setIsSelfHealing(true);
@@ -44,14 +97,14 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
         try {
           const { data } = await supabase
             .from("profiles")
-            .select("id, nama_lengkap, nama_panggilan, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active")
+            .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points, kelas, tahun_masuk, tahun_lulus, privacy_settings")
             .or("is_active.eq.true,is_active.is.null")
             .order("id", { ascending: true });
           if (data && data.length > 0) {
-            setAlumni(data);
+            setAlumni(data as any);
           }
         } catch {
-          // ignore error
+          // ignore
         } finally {
           setIsSelfHealing(false);
         }
@@ -60,22 +113,102 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
     }
   }, [initialAlumni]);
 
-  const triggerQuest = () => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("expedient_quest_directory", "true");
-      window.dispatchEvent(new CustomEvent("expedient-quest-updated"));
-    }
-  };
-
+  // CSS Scoping
   useEffect(() => {
-    triggerQuest();
     document.body.classList.add("page-direktori");
     return () => {
       document.body.classList.remove("page-direktori");
     };
   }, []);
 
+  // Keyboard accessibility
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "/" && document.activeElement !== searchInputRef.current) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (e.key === "Escape") {
+        if (selectedUser) closeBottomSheet();
+        if (qrModalUser) setQrModalUser(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedUser, qrModalUser]);
+
+  // Close Bottom Sheet with smooth animation
+  const closeBottomSheet = () => {
+    setIsSheetClosing(true);
+    setTimeout(() => {
+      setSelectedUser(null);
+      setIsSheetClosing(false);
+      setSheetTab("biodata");
+    }, 250);
+  };
+
+  const openUserDetail = (user: ProfileItem) => {
+    triggerHaptic(15);
+    setSelectedUser(user);
+    setSheetTab("biodata");
+  };
+
+  // Distinct classes available
+  const availableClasses = useMemo(() => {
+    const classes = new Set<string>();
+    alumni.forEach((a) => {
+      if (a.kelas && a.kelas.trim().length > 0) {
+        classes.add(a.kelas.trim());
+      }
+    });
+    return Array.from(classes).sort();
+  }, [alumni]);
+
+  // Filter & Sort Pipeline
+  const filteredAndSortedAlumni = useMemo(() => {
+    let result = alumni.filter((user) => {
+      // 1. Text Search
+      const searchString = `${user.nama_lengkap || ""} ${user.nama_panggilan || ""} ${user.alamat_lengkap || ""} ${user.tempat_lahir || ""} ${user.motivasi_hidup || ""} ${user.kelas || ""}`.toLowerCase();
+      if (search.trim() && !searchString.includes(search.toLowerCase())) {
+        return false;
+      }
+
+      // 2. Gender Filter
+      if (genderFilter !== "all" && user.jenis_kelamin !== genderFilter) {
+        return false;
+      }
+
+      // 3. Class Filter
+      if (classFilter !== "all" && user.kelas !== classFilter) {
+        return false;
+      }
+
+      return true;
+    });
+
+    // 4. Sorting
+    result.sort((a, b) => {
+      if (sortBy === "name_asc") {
+        const nameA = a.nama_panggilan || a.nama_lengkap || "";
+        const nameB = b.nama_panggilan || b.nama_lengkap || "";
+        return nameA.localeCompare(nameB);
+      }
+      if (sortBy === "name_desc") {
+        const nameA = a.nama_panggilan || a.nama_lengkap || "";
+        const nameB = b.nama_panggilan || b.nama_lengkap || "";
+        return nameB.localeCompare(nameA);
+      }
+      if (sortBy === "points") {
+        return (b.prestise_points || 0) - (a.prestise_points || 0);
+      }
+      return 0; // default order
+    });
+
+    return result;
+  }, [alumni, search, genderFilter, classFilter, sortBy]);
+
+  // Init Swiper if Coverflow mode is selected
+  useEffect(() => {
+    if (viewMode !== "coverflow") return;
     if (typeof window === "undefined") return;
 
     if (swiperRef.current) {
@@ -94,7 +227,7 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
           centeredSlides: true,
           slidesPerView: "auto",
           initialSlide: 0,
-          speed: 600,
+          speed: 500,
           touchRatio: 1.2,
           touchAngle: 45,
           threshold: 5,
@@ -107,26 +240,19 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
           },
           navigation: { nextEl: "#btnNext", prevEl: "#btnPrev" },
           keyboard: { enabled: true },
-          on: { 
+          on: {
             slideChange: (swiper: any) => {
-              const current = swiper.activeIndex;
-              setActiveIndex(current);
-              if (current >= visibleCountRef.current - 6 && visibleCountRef.current < filteredAlumniRef.current.length) {
-                setVisibleCount(prev => Math.min(prev + 25, filteredAlumniRef.current.length));
-              }
+              setActiveIndex(swiper.activeIndex);
+              triggerHaptic(10);
             },
-            slideChangeTransitionStart: () => { 
-              if (navigator.vibrate) navigator.vibrate(10); 
-              triggerQuest();
-            } 
           },
           observer: true,
-          observeParents: true
+          observeParents: true,
         });
       } catch (err) {
         console.error("Swiper init error:", err);
       }
-    }, 50);
+    }, 60);
 
     return () => {
       clearTimeout(timer);
@@ -136,265 +262,735 @@ export default function DirektoriClient({ alumni: initialAlumni, isLoggedIn }: {
         } catch {}
       }
     };
-  }, [search, alumni]);
+  }, [viewMode, filteredAndSortedAlumni, triggerHaptic]);
 
-  const filteredAlumni = alumni.filter(user => {
-    const searchString = `${user.nama_lengkap || ''} ${user.nama_panggilan || ''} ${user.alamat_lengkap || ''} ${user.tempat_lahir || ''} ${user.motivasi_hidup || ''}`.toLowerCase();
-    return searchString.includes(search.toLowerCase());
-  });
+  const displayedAlumni = filteredAndSortedAlumni.slice(0, visibleCount);
 
-  useEffect(() => {
-    filteredAlumniRef.current = filteredAlumni;
-    setVisibleCount(25);
-    setActiveIndex(0);
-  }, [search, alumni]);
+  // Helper for masking WhatsApp phone
+  const getWhatsAppLink = (user: ProfileItem) => {
+    const isOwner = currentUserId && currentUserId === user.id;
+    const isPublic = user.privacy_settings?.show_whatsapp !== false;
 
-  useEffect(() => {
-    if (swiperRef.current) {
-      swiperRef.current.update();
+    if (!user.no_whatsapp) return null;
+    if (!isPublic && !isOwner) return null; // hidden by privacy
+
+    let raw = user.no_whatsapp.replace(/\D/g, "");
+    if (raw.startsWith("0")) raw = "62" + raw.slice(1);
+    if (!raw.startsWith("62")) raw = "62" + raw;
+    return `https://wa.me/${raw}?text=${encodeURIComponent("Assalamu'alaikum sahabat Expedient 43...")}`;
+  };
+
+  const formatDisplayPhone = (user: ProfileItem) => {
+    const isOwner = currentUserId && currentUserId === user.id;
+    const isPublic = user.privacy_settings?.show_whatsapp !== false;
+
+    if (!user.no_whatsapp) return "-";
+    if (!isPublic && !isOwner) {
+      // Masking: +62 812-••••-•••
+      const raw = user.no_whatsapp.replace(/\D/g, "");
+      return raw.length > 6 ? `+${raw.slice(0, 4)} ••••-••• (Privat)` : "Nomor Disembunyikan";
     }
-  }, [visibleCount]);
-
-  const displayedAlumni = filteredAlumni.slice(0, visibleCount);
+    return user.no_whatsapp;
+  };
 
   return (
     <div className="direktori-container">
-        <div className="ethereal-glow"></div>
+      <div className="ethereal-glow"></div>
 
-        <div className="search-wrapper">
-            <div style={{ display: "flex", gap: "8px", width: "100%", maxWidth: "500px", margin: "0 auto" }}>
-                <input 
-                  type="text" 
-                  className="search-input" 
-                  placeholder="Temukan Rekam Jejak..." 
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    if (e.target.value.trim().length >= 2) {
-                      triggerQuest();
-                    }
-                  }}
-                />
-                <button 
-                  onClick={() => { if (search.trim()) triggerQuest(); }}
-                  style={{ background: "var(--gold-main, #d4af37)", border: "none", color: "var(--bg-main, #000)", padding: "10px 18px", borderRadius: "10px", cursor: "pointer", fontWeight: "bold", fontSize: "0.85rem", letterSpacing: "1px" }}
-                >
-                  <i className="fa-solid fa-magnifying-glass"></i>
-                </button>
-            </div>
-            {search && (
-                <div style={{ textAlign: "center", marginTop: "10px" }}>
-                    <button onClick={() => setSearch("")} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "0.8rem", cursor: "pointer" }}>
-                      <i className="fa-solid fa-times"></i> Reset pencarian
-                    </button>
-                </div>
-            )}
+      {/* ================= STICKY SEARCH & FILTER CONTROL DECK ================= */}
+      <div className="direktori-control-deck">
+        {/* Search Input Bar */}
+        <div className="search-pill-wrapper">
+          <i className="fa-solid fa-magnifying-glass search-pill-icon"></i>
+          <input
+            ref={searchInputRef}
+            type="text"
+            className="search-pill-input"
+            placeholder="Cari nama, panggilan, kota, kelas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button
+              type="button"
+              className="search-pill-clear"
+              onClick={() => {
+                setSearch("");
+                searchInputRef.current?.focus();
+                triggerHaptic(8);
+              }}
+              title="Hapus pencarian"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          )}
         </div>
 
-        {filteredAlumni.length === 0 ? (
-            <div className="text-center text-themeSec font-tech w-full py-12" style={{ textAlign: "center", marginTop: "50px", color: "var(--text-secondary)" }}>
-                {isSelfHealing ? (
-                    <div>
-                      <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "#d4af37", marginBottom: "15px" }}></i>
-                      <br />Memuat direktori alumni...
-                    </div>
-                ) : (
-                    <>
-                      <i className="fa-solid fa-book-open" style={{ fontSize: "2rem", opacity: 0.5, marginBottom: "15px" }}></i>
-                      <br />Arsip belum mencatat histori apapun.
-                    </>
-                )}
-            </div>
-        ) : (
-            <>
-                <div className="mobile-swipe-hint">
-                    <i className="fa-solid fa-arrows-left-right" style={{ marginRight: "6px" }}></i> Geser kartu ({activeIndex + 1} dari {filteredAlumni.length} alumni)
-                </div>
-                <div className="swiper mySwiper">
-                    <div className="swiper-wrapper" id="swiperWrapper">
-                    
-                    {displayedAlumni.map((user, idx) => {
-                        const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
-
-                        return (
-                            <div key={user.id} className="swiper-slide alumni-slide">
-                                <div className="luminary-card">
-                                    <div className="photo-ring">
-                                        <Image 
-                                            src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto} 
-                                            width={150} 
-                                            height={150} 
-                                            className="card-photo" 
-                                            alt={user.nama_panggilan || user.nama_lengkap || "Foto Alumni"} 
-                                            priority={idx < 8}
-                                            sizes="(max-width: 768px) 130px, 150px"
-                                            onError={() => setFailedPhotos(prev => ({ ...prev, [user.id]: true }))}
-                                            unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com") || foto.includes("supabase.co")}
-                                        />
-                                    </div>
-                                    <h3 className="card-name">{user.nama_panggilan}</h3>
-                                    <div className="card-full-name">{user.nama_lengkap}</div>
-                                    
-                                    <div className="card-details">
-                                        {isLoggedIn ? (
-                                            <>
-                                                <div className="detail-group reveal-item r-1">
-                                                    <div className="d-label">Asal</div>
-                                                    <div className="d-value">{(user.tempat_lahir || "-")} {user.tanggal_lahir ? `, ${new Date(user.tanggal_lahir).toLocaleDateString("id-ID", { day: '2-digit', month: 'long', year: 'numeric' })}` : ''}</div>
-                                                </div>
-                                                <div className="detail-group reveal-item r-2">
-                                                    <div className="d-label">Domisili</div>
-                                                    <div className="d-value">{user.alamat_lengkap || "-"}</div>
-                                                </div>
-                                                <div className="detail-group reveal-item r-3">
-                                                    <div className="d-label">Visi & Aspirasi</div>
-                                                    <div className="d-value">{user.cita_cita || "Merahasiakan Tujuannya"}</div>
-                                                </div>
-
-                                                <div className="card-quote reveal-item r-4">
-                                                    "{user.motivasi_hidup || "Belum membagikan kutipan."}"
-                                                </div>
-
-                                                <div className="card-socials reveal-item r-4">
-                                                    <Link href={`/chat/personal/${user.id}`} className="soc-btn" title="Kirim Pesan"><i className="fa-solid fa-comment-dots"></i></Link>
-                                                    <a 
-                                                      href={`/api/vcard/${user.id}`} 
-                                                      download={`Expedient_${(user.nama_panggilan || user.nama_lengkap || 'Kontak').replace(/[^a-zA-Z0-9_-]/g, '_')}.vcf`} 
-                                                      className="soc-btn" 
-                                                      title="Simpan Kontak vCard (.vcf)"
-                                                    >
-                                                      <i className="fa-solid fa-address-card"></i>
-                                                    </a>
-                                                    <button type="button" onClick={() => setQrModalUser(user)} className="soc-btn" title="Tampilkan QR Kontak (Scan)"><i className="fa-solid fa-qrcode"></i></button>
-                                                    {user.akun_ig && <a href={`https://instagram.com/${user.akun_ig.replace('@', '')}`} target="_blank" className="soc-btn" title="Instagram"><i className="fa-brands fa-instagram"></i></a>}
-                                                    {user.akun_tiktok && <a href={`https://tiktok.com/@${user.akun_tiktok.replace('@', '')}`} target="_blank" className="soc-btn" title="TikTok"><i className="fa-brands fa-tiktok"></i></a>}
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <div className="reveal-item r-1" style={{ textAlign: "center", padding: "15px 0" }}>
-                                                <Link href="/login" style={{ color: "var(--gold-main, #d4af37)", textDecoration: "none", fontSize: "0.8rem", fontWeight: 600, letterSpacing: "1px" }}>
-                                                    <i className="fa-solid fa-lock" style={{ marginRight: "6px" }}></i> Masuk untuk lihat profil lengkap
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-            </>
-        )}
-
-        <div className="nav-arrow nav-prev" id="btnPrev"><i className="fa-solid fa-chevron-left"></i></div>
-        <div className="nav-arrow nav-next" id="btnNext"><i className="fa-solid fa-chevron-right"></i></div>
-        {/* QR CODE VCARD MODAL (TASK 20) */}
-        {qrModalUser && (
-          <div 
-            onClick={() => setQrModalUser(null)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 999999,
-              background: "rgba(0, 0, 0, 0.85)",
-              backdropFilter: "blur(10px)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "20px"
+        {/* Horizontal Scrollable Filter Chips (Mobile-First) */}
+        <div className="filter-chips-scroll">
+          {/* Gender Filter Chips */}
+          <button
+            type="button"
+            className={`chip-item ${genderFilter === "all" ? "active" : ""}`}
+            onClick={() => {
+              setGenderFilter("all");
+              triggerHaptic(10);
             }}
           >
-            <div 
-              onClick={e => e.stopPropagation()}
-              style={{
-                background: "var(--bg-secondary, #0c120f)",
-                border: "1px solid rgba(212, 175, 55, 0.4)",
-                borderRadius: "24px",
-                padding: "30px 24px",
-                maxWidth: "340px",
-                width: "100%",
-                textAlign: "center",
-                boxShadow: "0 25px 60px rgba(0, 0, 0, 0.8)"
+            <i className="fa-solid fa-users"></i> Semua
+          </button>
+          <button
+            type="button"
+            className={`chip-item chip-putra ${genderFilter === "Laki-laki" ? "active" : ""}`}
+            onClick={() => {
+              setGenderFilter(genderFilter === "Laki-laki" ? "all" : "Laki-laki");
+              triggerHaptic(10);
+            }}
+          >
+            <i className="fa-solid fa-mars"></i> Putra
+          </button>
+          <button
+            type="button"
+            className={`chip-item chip-putri ${genderFilter === "Perempuan" ? "active" : ""}`}
+            onClick={() => {
+              setGenderFilter(genderFilter === "Perempuan" ? "all" : "Perempuan");
+              triggerHaptic(10);
+            }}
+          >
+            <i className="fa-solid fa-venus"></i> Putri
+          </button>
+
+          {/* Class Filters (If available) */}
+          {availableClasses.map((cls) => (
+            <button
+              key={cls}
+              type="button"
+              className={`chip-item ${classFilter === cls ? "active" : ""}`}
+              onClick={() => {
+                setClassFilter(classFilter === cls ? "all" : cls);
+                triggerHaptic(10);
               }}
             >
-              <div style={{ fontSize: "0.75rem", fontFamily: "Courier New, monospace", color: "#d4af37", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "8px" }}>
-                KARTU KONTAK DIGITAL
-              </div>
-              <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: "1.3rem", color: "var(--text-primary)", marginBottom: "4px" }}>
-                {qrModalUser.nama_panggilan || qrModalUser.nama_lengkap}
-              </h3>
-              <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "20px" }}>
-                Arahkan kamera smartphone untuk menyimpan nomor langsung ke kontak.
-              </p>
+              <i className="fa-solid fa-chalkboard-user"></i> Kelas {cls}
+            </button>
+          ))}
+        </div>
 
-              <div style={{ background: "#ffffff", padding: "12px", borderRadius: "16px", display: "inline-block", boxShadow: "0 8px 20px rgba(0,0,0,0.3)", marginBottom: "20px" }}>
-                {(() => {
-                  let rawPhone = (qrModalUser.no_whatsapp || "").replace(/\D/g, "");
-                  if (rawPhone.startsWith("0")) rawPhone = "62" + rawPhone.slice(1);
-                  const phoneFormatted = rawPhone ? `+${rawPhone}` : "";
-                  const vcardPayload = [
-                    "BEGIN:VCARD",
-                    "VERSION:3.0",
-                    `FN:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan}`,
-                    `N:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan};;;;`,
-                    `NICKNAME:${qrModalUser.nama_panggilan || ""}`,
-                    "ORG:Expedient Generation 43",
-                    phoneFormatted ? `TEL;TYPE=CELL,VOICE:${phoneFormatted}` : "",
-                    "NOTE:Alumni Expedient Generation Angkatan 43",
-                    "END:VCARD"
-                  ].filter(Boolean).join("\r\n");
+        {/* View Switcher & Sorting Bar */}
+        <div className="view-and-sort-bar">
+          <div className="results-count">
+            <span>{filteredAndSortedAlumni.length}</span> Alumni Terdata
+          </div>
 
-                  return (
-                    <img 
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(vcardPayload)}`}
-                      alt="QR Code Kontak"
-                      style={{ width: "190px", height: "190px", display: "block" }}
-                    />
-                  );
-                })()}
-              </div>
+          <div className="controls-right">
+            {/* Sort Selector */}
+            <select
+              className="sort-dropdown"
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value as any);
+                triggerHaptic(8);
+              }}
+            >
+              <option value="name_asc">Nama (A - Z)</option>
+              <option value="name_desc">Nama (Z - A)</option>
+              <option value="points">Poin Prestise Tertinggi</option>
+            </select>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <a 
-                  href={`/api/vcard/${qrModalUser.id}`}
-                  download={`Expedient_${(qrModalUser.nama_panggilan || qrModalUser.nama_lengkap || 'Kontak').replace(/[^a-zA-Z0-9_-]/g, '_')}.vcf`}
-                  style={{
-                    background: "rgba(212, 175, 55, 0.15)",
-                    border: "1px solid #d4af37",
-                    color: "#d4af37",
-                    padding: "10px",
-                    borderRadius: "12px",
-                    fontSize: "0.8rem",
-                    fontWeight: 600,
-                    textDecoration: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px"
-                  }}
-                >
-                  <i className="fa-solid fa-download"></i> Unduh File .vcf
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setQrModalUser(null)}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid var(--glass-border)",
-                    color: "var(--text-secondary)",
-                    padding: "8px",
-                    borderRadius: "12px",
-                    fontSize: "0.8rem",
-                    cursor: "pointer"
-                  }}
-                >
-                  Tutup
-                </button>
-              </div>
+            {/* Layout Toggle Buttons */}
+            <div className="view-mode-group">
+              <button
+                type="button"
+                className={`mode-btn ${viewMode === "grid" ? "active" : ""}`}
+                onClick={() => {
+                  setViewMode("grid");
+                  triggerHaptic(10);
+                }}
+                title="Tampilan Kartu Grid"
+              >
+                <i className="fa-solid fa-grip"></i>
+              </button>
+              <button
+                type="button"
+                className={`mode-btn ${viewMode === "list" ? "active" : ""}`}
+                onClick={() => {
+                  setViewMode("list");
+                  triggerHaptic(10);
+                }}
+                title="Tampilan Daftar Kontak Cepat"
+              >
+                <i className="fa-solid fa-list-ul"></i>
+              </button>
+              <button
+                type="button"
+                className={`mode-btn ${viewMode === "coverflow" ? "active" : ""}`}
+                onClick={() => {
+                  setViewMode("coverflow");
+                  triggerHaptic(10);
+                }}
+                title="Tampilan 3D Coverflow"
+              >
+                <i className="fa-solid fa-layer-group"></i>
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* ================= MAIN CONTENT LISTING ================= */}
+      {filteredAndSortedAlumni.length === 0 ? (
+        <div className="empty-direktori-state">
+          {isSelfHealing ? (
+            <div>
+              <i className="fa-solid fa-circle-notch fa-spin empty-icon"></i>
+              <p>Menghubungkan direktori alumni...</p>
+            </div>
+          ) : (
+            <div>
+              <i className="fa-solid fa-user-slash empty-icon"></i>
+              <h3>Tidak ada alumni yang sesuai</h3>
+              <p>Coba sesuaikan kata kunci atau bersihkan filter pencarian.</p>
+              <button
+                type="button"
+                className="btn-reset-filters"
+                onClick={() => {
+                  setSearch("");
+                  setGenderFilter("all");
+                  setClassFilter("all");
+                  triggerHaptic(12);
+                }}
+              >
+                Reset Semua Filter
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* 1. GRID CARDS VIEW (DEFAULT - SUPER MOBILE FRIENDLY) */}
+          {viewMode === "grid" && (
+            <div className="direktori-grid-container">
+              {displayedAlumni.map((user) => {
+                const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
+                const gelar = getGelar(user.prestise_points || 0);
+                const gelarIcon = getGelarIcon(user.prestise_points || 0);
+                const badgeColor = getBadgeColor(user.prestise_points || 0);
+
+                return (
+                  <div
+                    key={user.id}
+                    className="alumni-grid-card cursor-bind"
+                    onClick={() => openUserDetail(user)}
+                  >
+                    {/* Top Identity Row */}
+                    <div className="card-top-row">
+                      <div className="card-avatar-wrapper">
+                        <Image
+                          src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto}
+                          width={72}
+                          height={72}
+                          className="card-avatar-img"
+                          alt={user.nama_panggilan || user.nama_lengkap}
+                          sizes="72px"
+                          onError={() => setFailedPhotos((prev) => ({ ...prev, [user.id]: true }))}
+                          unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
+                        />
+                        {user.jenis_kelamin === "Laki-laki" && (
+                          <span className="gender-dot dot-putra" title="Putra">
+                            <i className="fa-solid fa-mars"></i>
+                          </span>
+                        )}
+                        {user.jenis_kelamin === "Perempuan" && (
+                          <span className="gender-dot dot-putri" title="Putri">
+                            <i className="fa-solid fa-venus"></i>
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="card-heading">
+                        <div className="card-nickname">{user.nama_panggilan || "Alumni"}</div>
+                        <div className="card-fullname">{user.nama_lengkap}</div>
+                        <div className="card-badges-row">
+                          {user.kelas && <span className="badge-class">Kls {user.kelas}</span>}
+                          <span className="badge-gelar" style={{ background: badgeColor }}>
+                            <i className={gelarIcon}></i> {gelar}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Meta info */}
+                    <div className="card-meta-list">
+                      <div className="meta-item">
+                        <i className="fa-solid fa-location-dot"></i>
+                        <span>{user.alamat_lengkap || user.tempat_lahir || "Domisili belum diisi"}</span>
+                      </div>
+                      {user.cita_cita && (
+                        <div className="meta-item aspiration">
+                          <i className="fa-solid fa-compass"></i>
+                          <span>{user.cita_cita}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Bottom Tap Action Hint */}
+                    <div className="card-footer-tap">
+                      <span>Buka Profil</span>
+                      <i className="fa-solid fa-chevron-right"></i>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 2. COMPACT CONTACT LIST VIEW */}
+          {viewMode === "list" && (
+            <div className="direktori-list-container">
+              {displayedAlumni.map((user) => {
+                const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
+
+                return (
+                  <div
+                    key={user.id}
+                    className="alumni-list-row cursor-bind"
+                    onClick={() => openUserDetail(user)}
+                  >
+                    <div className="list-avatar">
+                      <Image
+                        src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto}
+                        width={46}
+                        height={46}
+                        className="list-avatar-img"
+                        alt={user.nama_panggilan || user.nama_lengkap}
+                        sizes="46px"
+                        onError={() => setFailedPhotos((prev) => ({ ...prev, [user.id]: true }))}
+                        unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
+                      />
+                    </div>
+
+                    <div className="list-info">
+                      <div className="list-primary-name">
+                        <strong>{user.nama_panggilan || user.nama_lengkap}</strong>
+                        {user.nama_panggilan && <span className="list-full-sub">({user.nama_lengkap})</span>}
+                      </div>
+                      <div className="list-meta-sub">
+                        <span>{user.kelas ? `Kls ${user.kelas} • ` : ""}{user.tempat_lahir || user.alamat_lengkap || "Alumni 43"}</span>
+                      </div>
+                    </div>
+
+                    <div className="list-right-arrow">
+                      <i className="fa-solid fa-angle-right"></i>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* 3. 3D SWIPER COVERFLOW VIEW (PRESERVED) */}
+          {viewMode === "coverflow" && (
+            <div className="coverflow-wrapper">
+              <div className="mobile-swipe-hint">
+                <i className="fa-solid fa-arrows-left-right"></i> Geser kartu ({activeIndex + 1} dari {filteredAndSortedAlumni.length})
+              </div>
+
+              <div className="swiper mySwiper">
+                <div className="swiper-wrapper" id="swiperWrapper">
+                  {displayedAlumni.map((user, idx) => {
+                    const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
+                    const gelar = getGelar(user.prestise_points || 0);
+
+                    return (
+                      <div key={user.id} className="swiper-slide alumni-slide">
+                        <div className="luminary-card" onClick={() => openUserDetail(user)}>
+                          <div className="photo-ring">
+                            <Image
+                              src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto}
+                              width={150}
+                              height={150}
+                              className="card-photo"
+                              alt={user.nama_panggilan || user.nama_lengkap}
+                              priority={idx < 6}
+                              sizes="150px"
+                              onError={() => setFailedPhotos((prev) => ({ ...prev, [user.id]: true }))}
+                              unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
+                            />
+                          </div>
+                          <h3 className="card-name">{user.nama_panggilan}</h3>
+                          <div className="card-full-name">{user.nama_lengkap}</div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--gold-main, #d4af37)", marginTop: "4px" }}>
+                            {gelar} {user.kelas ? `• Kelas ${user.kelas}` : ""}
+                          </div>
+
+                          <div className="card-quote" style={{ margin: "14px 0", fontSize: "0.82rem", fontStyle: "italic", opacity: 0.85 }}>
+                            "{user.motivasi_hidup || "Menjaga warisan, membangun masa depan."}"
+                          </div>
+
+                          <button
+                            type="button"
+                            className="btn-open-dossier"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openUserDetail(user);
+                            }}
+                          >
+                            <i className="fa-solid fa-id-card"></i> Lihat Profil Lengkap
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="nav-arrow nav-prev" id="btnPrev">
+                <i className="fa-solid fa-chevron-left"></i>
+              </div>
+              <div className="nav-arrow nav-next" id="btnNext">
+                <i className="fa-solid fa-chevron-right"></i>
+              </div>
+            </div>
+          )}
+
+          {/* Load More Trigger */}
+          {visibleCount < filteredAndSortedAlumni.length && (
+            <div style={{ textAlign: "center", margin: "35px 0" }}>
+              <button
+                type="button"
+                className="btn-load-more cursor-bind"
+                onClick={() => {
+                  setVisibleCount((prev) => Math.min(prev + 30, filteredAndSortedAlumni.length));
+                  triggerHaptic(10);
+                }}
+              >
+                <i className="fa-solid fa-angles-down"></i> Tampilkan Lebih Banyak ({filteredAndSortedAlumni.length - visibleCount} tersisa)
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ================= NATIVE DRAGGABLE BOTTOM SHEET / MODAL DETAIL ================= */}
+      {selectedUser && (
+        <div
+          className={`sheet-backdrop ${isSheetClosing ? "closing" : ""}`}
+          onClick={closeBottomSheet}
+        >
+          <div
+            ref={bottomSheetRef}
+            className={`alumni-bottom-sheet ${isSheetClosing ? "closing" : ""}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Pull Bar (Mobile Native Handle) */}
+            <div className="sheet-drag-handle" onClick={closeBottomSheet}>
+              <div className="drag-pill"></div>
+            </div>
+
+            {/* Sheet Header */}
+            <div className="sheet-header">
+              <button
+                type="button"
+                className="sheet-close-btn"
+                onClick={closeBottomSheet}
+                title="Tutup (Esc)"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+
+              <div className="sheet-hero-row">
+                <div className="sheet-avatar-ring">
+                  <Image
+                    src={failedPhotos[selectedUser.id] ? getAvatarFallback(selectedUser.nama_panggilan || selectedUser.nama_lengkap) : getAvatarUrl(selectedUser.foto_profil, selectedUser.nama_panggilan || selectedUser.nama_lengkap)}
+                    width={90}
+                    height={90}
+                    className="sheet-avatar-img"
+                    alt={selectedUser.nama_panggilan || selectedUser.nama_lengkap}
+                    sizes="90px"
+                    onError={() => setFailedPhotos((prev) => ({ ...prev, [selectedUser.id]: true }))}
+                    unoptimized
+                  />
+                </div>
+
+                <div className="sheet-hero-info">
+                  <h2 className="sheet-user-name">{selectedUser.nama_lengkap}</h2>
+                  <div className="sheet-user-panggilan">
+                    Panggilan: <strong>{selectedUser.nama_panggilan || "-"}</strong>
+                  </div>
+                  <div className="sheet-badges-container">
+                    <span
+                      className="sheet-gelar-badge"
+                      style={{ background: getBadgeColor(selectedUser.prestise_points || 0) }}
+                    >
+                      <i className={getGelarIcon(selectedUser.prestise_points || 0)}></i> {getGelar(selectedUser.prestise_points || 0)}
+                    </span>
+                    {selectedUser.kelas && <span className="sheet-class-badge">Kelas {selectedUser.kelas}</span>}
+                    <span className="sheet-class-badge">Angkatan 43</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Action Dock (1-Click Actions) */}
+            <div className="sheet-action-dock">
+              {/* WhatsApp Direct Chat */}
+              {(() => {
+                const waLink = getWhatsAppLink(selectedUser);
+                if (waLink) {
+                  return (
+                    <a
+                      href={waLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="dock-action-btn dock-whatsapp"
+                      title="Kirim Pesan WhatsApp"
+                      onClick={() => triggerHaptic(15)}
+                    >
+                      <i className="fa-brands fa-whatsapp"></i>
+                      <span>WhatsApp</span>
+                    </a>
+                  );
+                }
+                return (
+                  <button
+                    type="button"
+                    disabled
+                    className="dock-action-btn dock-disabled"
+                    title="Nomor WhatsApp disembunyikan oleh alumni demi privasi"
+                  >
+                    <i className="fa-solid fa-lock"></i>
+                    <span>WA Privat</span>
+                  </button>
+                );
+              })()}
+
+              {/* Simpan Kontak vCard (.vcf) */}
+              <a
+                href={`/api/vcard/${selectedUser.id}`}
+                download={`Expedient_${(selectedUser.nama_panggilan || selectedUser.nama_lengkap || "Kontak").replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`}
+                className="dock-action-btn dock-vcard"
+                title="Simpan Kontak ke HP (.vcf)"
+                onClick={() => triggerHaptic(12)}
+              >
+                <i className="fa-solid fa-address-card"></i>
+                <span>Simpan</span>
+              </a>
+
+              {/* Tampilkan QR Kontak */}
+              <button
+                type="button"
+                className="dock-action-btn dock-qr"
+                onClick={() => {
+                  triggerHaptic(10);
+                  setQrModalUser(selectedUser);
+                }}
+                title="Pindai QR Kontak"
+              >
+                <i className="fa-solid fa-qrcode"></i>
+                <span>QR Kode</span>
+              </button>
+
+              {/* Kirim Pesan Internal Portal */}
+              {isLoggedIn && (
+                <Link
+                  href={`/chat/personal/${selectedUser.id}`}
+                  className="dock-action-btn dock-chat"
+                  title="Obrolan Internal Portal"
+                  onClick={() => triggerHaptic(12)}
+                >
+                  <i className="fa-solid fa-comment-dots"></i>
+                  <span>Portal</span>
+                </Link>
+              )}
+            </div>
+
+            {/* Sheet Tabs */}
+            <div className="sheet-tabs-nav">
+              <button
+                type="button"
+                className={`sheet-tab-btn ${sheetTab === "biodata" ? "active" : ""}`}
+                onClick={() => {
+                  setSheetTab("biodata");
+                  triggerHaptic(8);
+                }}
+              >
+                <i className="fa-solid fa-user"></i> Biodata
+              </button>
+              <button
+                type="button"
+                className={`sheet-tab-btn ${sheetTab === "kontak" ? "active" : ""}`}
+                onClick={() => {
+                  setSheetTab("kontak");
+                  triggerHaptic(8);
+                }}
+              >
+                <i className="fa-solid fa-phone"></i> Kontak
+              </button>
+              <button
+                type="button"
+                className={`sheet-tab-btn ${sheetTab === "visi" ? "active" : ""}`}
+                onClick={() => {
+                  setSheetTab("visi");
+                  triggerHaptic(8);
+                }}
+              >
+                <i className="fa-solid fa-bullseye"></i> Visi & Sosial
+              </button>
+            </div>
+
+            {/* Sheet Tab Body */}
+            <div className="sheet-content-body">
+              {sheetTab === "biodata" && (
+                <div className="sheet-section-block">
+                  <div className="sheet-field-group">
+                    <span className="field-label">Tempat & Tanggal Lahir</span>
+                    <span className="field-value">
+                      {selectedUser.tempat_lahir || "-"}
+                      {selectedUser.tanggal_lahir
+                        ? `, ${new Date(selectedUser.tanggal_lahir).toLocaleDateString("id-ID", {
+                            day: "2-digit",
+                            month: "long",
+                            year: "numeric",
+                          })}`
+                        : ""}
+                    </span>
+                  </div>
+
+                  <div className="sheet-field-group">
+                    <span className="field-label">Alamat Domisili</span>
+                    <span className="field-value">{selectedUser.alamat_lengkap || "Belum dicatat"}</span>
+                  </div>
+
+                  <div className="sheet-field-group">
+                    <span className="field-label">Cita-cita & Aspirasi</span>
+                    <span className="field-value">{selectedUser.cita_cita || "Menjadi pribadi yang berdaya guna bagi umat."}</span>
+                  </div>
+                </div>
+              )}
+
+              {sheetTab === "kontak" && (
+                <div className="sheet-section-block">
+                  <div className="sheet-field-group">
+                    <span className="field-label">Nomor WhatsApp</span>
+                    <span className="field-value">{formatDisplayPhone(selectedUser)}</span>
+                    {selectedUser.privacy_settings?.show_whatsapp === false && selectedUser.id !== currentUserId && (
+                      <span className="privacy-shield-note">
+                        <i className="fa-solid fa-shield-halved"></i> Nomor kontak ini dilindungi privasi sesuai preferensi alumni.
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="sheet-field-group">
+                    <span className="field-label">Kartu Kontak Digital</span>
+                    <span className="field-value">
+                      Dapat diunduh langsung sebagai file vCard (.vcf) untuk disinkronkan otomatis dengan kontak smartphone Anda.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {sheetTab === "visi" && (
+                <div className="sheet-section-block">
+                  <div className="sheet-field-group">
+                    <span className="field-label">Kutipan Hidup & Motivasi</span>
+                    <blockquote className="sheet-quote">
+                      "{selectedUser.motivasi_hidup || "Tetap ikhlas, sederhana, dan berdikari di mana pun melangkah."}"
+                    </blockquote>
+                  </div>
+
+                  <div className="sheet-field-group">
+                    <span className="field-label">Akun Sosial Media</span>
+                    <div className="sheet-social-links">
+                      {selectedUser.akun_ig ? (
+                        <a
+                          href={`https://instagram.com/${selectedUser.akun_ig.replace("@", "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="sheet-social-badge ig-badge"
+                        >
+                          <i className="fa-brands fa-instagram"></i> @{selectedUser.akun_ig.replace("@", "")}
+                        </a>
+                      ) : (
+                        <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>Instagram belum dicantumkan</span>
+                      )}
+
+                      {selectedUser.akun_tiktok && (
+                        <a
+                          href={`https://tiktok.com/@${selectedUser.akun_tiktok.replace("@", "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="sheet-social-badge tt-badge"
+                        >
+                          <i className="fa-brands fa-tiktok"></i> @{selectedUser.akun_tiktok.replace("@", "")}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= QR CODE VCARD MODAL ================= */}
+      {qrModalUser && (
+        <div className="qr-modal-backdrop" onClick={() => setQrModalUser(null)}>
+          <div className="qr-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="qr-card-tag">KARTU KONTAK DIGITAL</div>
+            <h3 className="qr-card-title">{qrModalUser.nama_panggilan || qrModalUser.nama_lengkap}</h3>
+            <p className="qr-card-desc">Arahkan kamera smartphone ke QR Code untuk simpan kontak otomatis.</p>
+
+            <div className="qr-frame">
+              {(() => {
+                let rawPhone = (qrModalUser.no_whatsapp || "").replace(/\D/g, "");
+                if (rawPhone.startsWith("0")) rawPhone = "62" + rawPhone.slice(1);
+                const phoneFormatted = rawPhone ? `+${rawPhone}` : "";
+                const isWaHidden = qrModalUser.privacy_settings?.show_whatsapp === false && qrModalUser.id !== currentUserId;
+
+                const vcardPayload = [
+                  "BEGIN:VCARD",
+                  "VERSION:3.0",
+                  `FN:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan}`,
+                  `N:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan};;;;`,
+                  `NICKNAME:${qrModalUser.nama_panggilan || ""}`,
+                  "ORG:Expedient Generation 43",
+                  !isWaHidden && phoneFormatted ? `TEL;TYPE=CELL,VOICE:${phoneFormatted}` : "",
+                  "NOTE:Alumni Expedient Generation Angkatan 43",
+                  "END:VCARD",
+                ]
+                  .filter(Boolean)
+                  .join("\r\n");
+
+                return (
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(vcardPayload)}`}
+                    alt="QR Code Kontak"
+                    className="qr-img-canvas"
+                  />
+                );
+              })()}
+            </div>
+
+            <div className="qr-card-actions">
+              <a
+                href={`/api/vcard/${qrModalUser.id}`}
+                download={`Expedient_${(qrModalUser.nama_panggilan || qrModalUser.nama_lengkap || "Kontak").replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`}
+                className="btn-download-vcf"
+              >
+                <i className="fa-solid fa-download"></i> Unduh File .vcf
+              </a>
+              <button
+                type="button"
+                className="btn-close-qr"
+                onClick={() => setQrModalUser(null)}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
