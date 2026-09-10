@@ -7,6 +7,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const { id } = await params;
     const supabase = await createClient();
 
+    // vCard contains direct phone number & contact details — require authenticated member session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return new NextResponse("Unauthorized: Sesi anggota alumni diperlukan untuk mengunduh kontak.", { status: 401 });
+    }
+
     // Query profile by id
     const { data: profile, error } = await supabase
       .from("profiles")

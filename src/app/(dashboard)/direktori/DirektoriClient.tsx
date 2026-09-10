@@ -278,6 +278,7 @@ export default function DirektoriClient({
 
   // Helper for masking WhatsApp phone
   const getWhatsAppLink = (user: ProfileItem) => {
+    if (!isLoggedIn) return null; // Protect privacy from unauthenticated visitors
     const isOwner = currentUserId && currentUserId === user.id;
     const isPublic = user.privacy_settings?.show_whatsapp !== false;
 
@@ -291,6 +292,7 @@ export default function DirektoriClient({
   };
 
   const formatDisplayPhone = (user: ProfileItem) => {
+    if (!isLoggedIn) return "🔒 Terkunci (Khusus Anggota)";
     const isOwner = currentUserId && currentUserId === user.id;
     const isPublic = user.privacy_settings?.show_whatsapp !== false;
 
@@ -745,6 +747,18 @@ export default function DirektoriClient({
             <div className="sheet-action-dock">
               {/* WhatsApp Direct Chat */}
               {(() => {
+                if (!isLoggedIn) {
+                  return (
+                    <Link
+                      href="/login"
+                      className="dock-action-btn dock-disabled"
+                      title="Masuk sebagai anggota alumni untuk menghubungi kontak"
+                    >
+                      <i className="fa-solid fa-lock"></i>
+                      <span>WA Terkunci</span>
+                    </Link>
+                  );
+                }
                 const waLink = getWhatsAppLink(selectedUser);
                 if (waLink) {
                   return (
@@ -775,16 +789,27 @@ export default function DirektoriClient({
               })()}
 
               {/* Simpan Kontak vCard (.vcf) */}
-              <a
-                href={`/api/vcard/${selectedUser.id}`}
-                download={`Expedient_${(selectedUser.nama_panggilan || selectedUser.nama_lengkap || "Kontak").replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`}
-                className="dock-action-btn dock-vcard"
-                title="Simpan Kontak ke HP (.vcf)"
-                onClick={() => triggerHaptic(12)}
-              >
-                <i className="fa-solid fa-address-card"></i>
-                <span>Simpan</span>
-              </a>
+              {isLoggedIn ? (
+                <a
+                  href={`/api/vcard/${selectedUser.id}`}
+                  download={`Expedient_${(selectedUser.nama_panggilan || selectedUser.nama_lengkap || "Kontak").replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`}
+                  className="dock-action-btn dock-vcard"
+                  title="Simpan Kontak ke HP (.vcf)"
+                  onClick={() => triggerHaptic(12)}
+                >
+                  <i className="fa-solid fa-address-card"></i>
+                  <span>Simpan</span>
+                </a>
+              ) : (
+                <Link
+                  href="/login"
+                  className="dock-action-btn dock-disabled"
+                  title="Masuk untuk mengunduh kontak resmi alumni"
+                >
+                  <i className="fa-solid fa-lock"></i>
+                  <span>Simpan</span>
+                </Link>
+              )}
 
               {/* Tampilkan QR Kontak */}
               <button
@@ -883,17 +908,25 @@ export default function DirektoriClient({
                   <div className="sheet-field-group">
                     <span className="field-label">Nomor WhatsApp</span>
                     <span className="field-value">{formatDisplayPhone(selectedUser)}</span>
-                    {selectedUser.privacy_settings?.show_whatsapp === false && selectedUser.id !== currentUserId && (
+                    {!isLoggedIn ? (
+                      <span className="privacy-shield-note" style={{ color: "#d4af37", marginTop: "6px", display: "inline-block" }}>
+                        <i className="fa-solid fa-lock"></i> Kontak privat dilindungi. <Link href="/login" style={{ color: "#ffd700", textDecoration: "underline", fontWeight: 600 }}>Masuk ke Ruang Anggota</Link> untuk melihat nomor alumni.
+                      </span>
+                    ) : selectedUser.privacy_settings?.show_whatsapp === false && selectedUser.id !== currentUserId ? (
                       <span className="privacy-shield-note">
                         <i className="fa-solid fa-shield-halved"></i> Nomor kontak ini dilindungi privasi sesuai preferensi alumni.
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="sheet-field-group">
                     <span className="field-label">Kartu Kontak Digital</span>
                     <span className="field-value">
-                      Dapat diunduh langsung sebagai file vCard (.vcf) untuk disinkronkan otomatis dengan kontak smartphone Anda.
+                      {isLoggedIn ? (
+                        "Dapat diunduh langsung sebagai file vCard (.vcf) untuk disinkronkan otomatis dengan kontak smartphone Anda."
+                      ) : (
+                        <span>Unduhan file vCard (.vcf) hanya tersedia bagi sesama anggota angkatan. <Link href="/login" style={{ color: "#d4af37", textDecoration: "underline" }}>Masuk</Link></span>
+                      )}
                     </span>
                   </div>
                 </div>

@@ -53,6 +53,16 @@ export default async function DirektoriPage() {
     }
   }
 
+  // If not logged in, mask private fields (phone, full address, birthdate) for guest privacy protection
+  if (!user) {
+    safeAlumni = safeAlumni.map((a: any) => ({
+      ...a,
+      no_whatsapp: null,
+      alamat_lengkap: a.alamat_lengkap ? a.alamat_lengkap.split(",").slice(-1)[0].trim() : null, // only general city if present
+      tanggal_lahir: null,
+    }));
+  }
+
   return <DirektoriClient alumni={safeAlumni} isLoggedIn={!!user} currentUserId={user?.id || null} />;
 }
 
