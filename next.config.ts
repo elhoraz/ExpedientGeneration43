@@ -48,9 +48,9 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://va.vercel-scripts.com https://*.vercel-scripts.com https://*.pusher.com https://*.agora.io",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com",
       "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
-      "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://ui-avatars.com https://api.qrserver.com https://cdnjs.cloudflare.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://ui-avatars.com https://api.qrserver.com https://cdnjs.cloudflare.com https://unpkg.com https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.arcgisonline.com https://*.opentopomap.org https://*.google.com https://*.googleapis.com https://*.cartocdn.com",
       "media-src 'self' blob: data: https://*.supabase.co",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://va.vercel-scripts.com https://*.vercel-scripts.com https://*.agora.io wss://*.agora.io https://api.fonnte.com https://graph.facebook.com https://api.resend.com https://generativelanguage.googleapis.com blob: data:",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://va.vercel-scripts.com https://*.vercel-scripts.com https://*.agora.io wss://*.agora.io https://api.fonnte.com https://graph.facebook.com https://api.resend.com https://generativelanguage.googleapis.com https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.arcgisonline.com https://*.opentopomap.org https://*.google.com blob: data:",
       "worker-src 'self' blob: data:",
       "child-src 'self' blob: data:",
       "frame-ancestors 'none'",
@@ -61,12 +61,19 @@ const nextConfig: NextConfig = {
 
     return [
       {
-        source: '/(.*)',
+        // Exclude /radar (flat maps, satellite, terrain, etc.) from CSP so Leaflet can load freely
+        source: '/((?!radar).*)',
         headers: [
           {
             key: 'Content-Security-Policy',
             value: cspDirectives,
           },
+        ],
+      },
+      {
+        // Global security headers for all routes
+        source: '/(.*)',
+        headers: [
           {
             key: 'X-Frame-Options',
             value: 'DENY',
