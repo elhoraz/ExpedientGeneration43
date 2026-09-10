@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Script from "next/script";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
@@ -27,7 +27,35 @@ export default function BerandaClient({
 }) {
   const [gsapReady, setGsapReady] = useState(false);
   const [scrollTriggerReady, setScrollTriggerReady] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { t } = useCms();
+
+  useEffect(() => {
+    const audio = new Audio("/assets/audio/memori.mp3");
+    audio.loop = true;
+    audio.volume = 0.35;
+    audioRef.current = audio;
+
+    return () => {
+      audio.pause();
+      audio.src = "";
+    };
+  }, []);
+
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+    if (isPlayingAudio) {
+      audioRef.current.pause();
+      setIsPlayingAudio(false);
+    } else {
+      audioRef.current.play().then(() => {
+        setIsPlayingAudio(true);
+      }).catch(() => {
+        setIsPlayingAudio(false);
+      });
+    }
+  };
 
   useEffect(() => {
     document.body.classList.add("page-beranda");
@@ -149,6 +177,15 @@ export default function BerandaClient({
           <div className="hud-controls">
               <div className="hud-hint" id="hudHint"><i className="fa-solid fa-arrows-left-right"></i> Tahan & Geser Untuk Memutar</div>
               <button className="btn-mecha hover-trigger" id="btnAction"><i className="fa-solid fa-expand"></i> Pencar Formasi</button>
+              <button 
+                type="button" 
+                className="btn-mecha hover-trigger" 
+                onClick={toggleAudio}
+                title={isPlayingAudio ? "Jeda Suasana Memori" : "Putar Suasana Memori"}
+                style={{ marginLeft: '10px' }}
+              >
+                <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i> {isPlayingAudio ? 'Atmosfer Aktif' : 'Atmosfer Memori'}
+              </button>
           </div>
 
           <i className="fa-solid fa-chevron-down scroll-indicator" style={{ position: 'absolute', bottom: '5vh', left: '50%', transform: 'translateX(-50%)', color: '#d4af37', fontSize: '2rem', animation: 'bounceIndicator 2s infinite', zIndex: 20, opacity: 0.7 }}></i>
@@ -383,6 +420,21 @@ export default function BerandaClient({
                   <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 800); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px' }}><i className="fa-solid fa-times"></i></button>
               </div>
           )}
+
+          {/* Floating Audio Ambience Controller */}
+          <div 
+            className={`museum-audio-pill ${isPlayingAudio ? 'playing' : ''}`}
+            onClick={toggleAudio}
+            title={isPlayingAudio ? "Jeda Atmosfer Suasana" : "Putar Suasana Memori & Syahdu"}
+          >
+            <div className="audio-wave-bars">
+              <span className={`bar ${isPlayingAudio ? 'anim-bar' : ''}`}></span>
+              <span className={`bar ${isPlayingAudio ? 'anim-bar' : ''}`}></span>
+              <span className={`bar ${isPlayingAudio ? 'anim-bar' : ''}`}></span>
+            </div>
+            <span className="audio-label">{isPlayingAudio ? 'Atmosfer Aktif' : 'Putar Audio'}</span>
+            <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
+          </div>
       </main>
 
       {/* GSAP & ScrollTrigger — chained loading agar urutan terjamin */}
