@@ -11,6 +11,7 @@ import { getAvatarUrl } from "@/lib/avatar";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "./profil.css";
 
 export default function ProfilClient({ user, initialBiometrics = [] }: { user: any; initialBiometrics?: any[] }) {
@@ -524,7 +525,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                   gap: "8px"
                 }}
               >
-                <i className="fa-solid fa-fingerprint"></i> Keamanan
+                <i className="fa-solid fa-sliders"></i> Keamanan &amp; Bahasa
               </button>
             </div>
 
@@ -714,8 +715,19 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     </form>
                 </div>
 
-                {/* KOLOM KANAN: PROTOKOL KEAMANAN */}
+                {/* KOLOM KANAN: PROTOKOL KEAMANAN & PREFERENSI */}
                 <div className="premium-panel stagger-item parallax-card">
+                    {/* PREFERENSI BAHASA / LANGUAGE PREFERENCE */}
+                    <div style={{ marginBottom: "35px", paddingBottom: "25px", borderBottom: "1px solid var(--glass-border)" }}>
+                        <h2 className="panel-title" style={{ marginBottom: "8px" }}>
+                            <i className="fa-solid fa-language"></i> Preferensi Bahasa / Language
+                        </h2>
+                        <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
+                            Pilih bahasa antarmuka portal. Seluruh menu, teks sistem, dan navigasi akan disesuaikan secara otomatis.
+                        </p>
+                        <LanguageSwitcher variant="cards" />
+                    </div>
+
                     <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> Akses &amp; Keamanan Biometrik</h2>
                     
                     <div className="bio-status-box" style={{

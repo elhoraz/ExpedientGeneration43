@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageGuide } from "@/data/guideData";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "./guide.css";
 
 interface PageGuideModalProps {
@@ -55,6 +56,25 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
           >
             <i className="fa-solid fa-xmark"></i>
           </button>
+        </div>
+
+        {/* Quick Language Switcher Bar */}
+        <div className="guide-lang-bar" style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 16px",
+          margin: "0 24px 14px 24px",
+          background: "rgba(255, 255, 255, 0.03)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: "12px",
+          fontSize: "0.78rem"
+        }}>
+          <span style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
+            <i className="fa-solid fa-language" style={{ color: "var(--gold-premium, #d4af37)" }}></i>
+            <span>Bahasa / Language:</span>
+          </span>
+          <LanguageSwitcher variant="compact" />
         </div>
 
         {/* Tab Navigation */}

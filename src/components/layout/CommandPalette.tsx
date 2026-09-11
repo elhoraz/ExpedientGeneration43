@@ -4,14 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { Locale } from "@/lib/i18n/types";
 import "./CommandPalette.css";
 
 const COMMANDS = [
-  { id: "home", title: "Beranda Utama", url: "/beranda", icon: "fa-landmark" },
-  { id: "dir", title: "Direktori Alumni", url: "/direktori", icon: "fa-address-book" },
-  { id: "galeri", title: "Galeri & Arsip Kenangan", url: "/galeri", icon: "fa-film" },
-  { id: "chat", title: "Kotak Pesan", url: "/chat", icon: "fa-envelope" },
-  { id: "lounge", title: "Ruang Obrolan Angkatan", url: "/chat/lounge", icon: "fa-comments" },
+  { id: "beranda", title: "Beranda Utama & Mini Museum", url: "/beranda", icon: "fa-landmark" },
+  { id: "direktori", title: "Direktori & Buku Angkatan", url: "/direktori", icon: "fa-address-book" },
+  { id: "galeri", title: "Galeri & Visual Angkatan", url: "/galeri", icon: "fa-photo-film" },
   { id: "sovereign", title: "Kartu Alumni 3D (KTA)", url: "/sovereign", icon: "fa-id-card" },
   { id: "oracle", title: "Kamera Aura Positif", url: "/oracle", icon: "fa-camera-retro" },
   { id: "enigma", title: "Catatan Kenangan Pribadi", url: "/enigma", icon: "fa-book-bookmark" },
@@ -27,12 +26,15 @@ const COMMANDS = [
   { id: "genesis", title: "Sejarah & Filosofi Angkatan", url: "/genesis", icon: "fa-monument" },
   { id: "nexus", title: "Pencocok Minat & Domisili", url: "/nexus", icon: "fa-network-wired" },
   { id: "panduan", title: "Pusat Panduan & Bantuan Alumni", url: "/panduan", icon: "fa-book-bookmark" },
-  { id: "profile", title: "Profil Saya", url: "/profil", icon: "fa-circle-user" },
+  { id: "profile", title: "Profil Saya & Pengaturan", url: "/profil", icon: "fa-circle-user" },
   { id: "admin", title: "Panel Admin Angkatan", url: "/admin", icon: "fa-shield-halved" },
+  { id: "lang-id", title: "Ganti Bahasa: Indonesia (Bahasa Indonesia)", url: "lang:id", icon: "fa-globe" },
+  { id: "lang-ar", title: "Ganti Bahasa: Arab (العربية)", url: "lang:ar", icon: "fa-globe" },
+  { id: "lang-en", title: "Ganti Bahasa: English (UK/US)", url: "lang:en", icon: "fa-globe" },
 ];
 
 export default function CommandPalette() {
-  const { t } = useLanguage();
+  const { t, setLocale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -42,6 +44,19 @@ export default function CommandPalette() {
   const filteredCommands = COMMANDS.filter(cmd => 
     cmd.title.toLowerCase().includes(query.toLowerCase())
   );
+
+  const executeCommand = (cmd: (typeof COMMANDS)[0]) => {
+    if (cmd.url.startsWith("lang:")) {
+      const targetLang = cmd.url.slice(5) as Locale;
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(15);
+      }
+      setLocale(targetLang);
+    } else {
+      router.push(cmd.url);
+    }
+    setIsOpen(false);
+  };
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -70,8 +85,7 @@ export default function CommandPalette() {
         setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
       } else if (e.key === "Enter" && filteredCommands.length > 0) {
         e.preventDefault();
-        router.push(filteredCommands[selectedIndex].url);
-        setIsOpen(false);
+        executeCommand(filteredCommands[selectedIndex]);
       }
     };
 
@@ -123,10 +137,7 @@ export default function CommandPalette() {
                 <div 
                   key={cmd.id} 
                   className={`cmd-item ${index === selectedIndex ? 'selected' : ''}`}
-                  onClick={() => {
-                    router.push(cmd.url);
-                    setIsOpen(false);
-                  }}
+                  onClick={() => executeCommand(cmd)}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
                   <i className={`fa-solid ${cmd.icon} cmd-item-icon`}></i>

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -135,9 +134,6 @@ export default function Sidebar() {
             <span className="nav-label">{t.sidebar.login}</span>
           </Link>
         ) : null}
-
-        {/* Language selector in sidebar when expanded */}
-        {isOpen && <LanguageSwitcher variant="sidebar" />}
       </nav>
     </>
   );

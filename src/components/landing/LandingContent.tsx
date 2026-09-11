@@ -58,7 +58,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </nav>
 
         <div className="nav-actions">
-          <LanguageSwitcher />
           <ThemeToggle />
           <Link href="/login" className="nav-link" title="Ruang Anggota Khusus Alumni">
             <i className="fa-solid fa-circle-user"></i>

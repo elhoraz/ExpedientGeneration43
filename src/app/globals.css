@@ -63,8 +63,7 @@ body.sidebar-closed .theme-widget,
 body.sidebar-closed .notif-widget,
 body.sidebar-closed .chat-widget,
 body.sidebar-closed .chat-dropdown,
-body.sidebar-closed .notif-dropdown,
-body.sidebar-closed .nav-lang-widget {
+body.sidebar-closed .notif-dropdown {
   opacity: 0 !important;
   transform: translateY(-25px) scale(0.92) !important;
   pointer-events: none !important;
@@ -248,38 +247,33 @@ html[lang="ar"] body {
 }
 
 /* ==========================================================================
-   SIMPLE & ELEGANT LANGUAGE WIDGET (ADJACENT TO THEME TOGGLE)
+   LANGUAGE PREFERENCE WIDGET (FLEXIBLE / COMPACT)
    ========================================================================== */
 .lang-widget {
-  position: fixed;
-  top: 30px;
-  right: 160px;
-  z-index: 9999;
-  background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%);
+  background: linear-gradient(135deg, var(--glass-bg, rgba(255,255,255,0.03)) 0%, rgba(255,255,255,0.01) 100%);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: 40px;
   padding: 6px 14px 6px 6px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: var(--glass-shadow);
   color: var(--text-primary);
-  pointer-events: auto;
   font-family: var(--font-inter, sans-serif);
 }
 
 .lang-widget:hover {
-  transform: translateY(-3px) scale(1.05);
+  transform: translateY(-2px);
   border-color: #d4af37;
 }
 
 .lang-widget .icon-orb {
-  width: 35px;
-  height: 35px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--bg-main);
   display: flex;
@@ -287,8 +281,8 @@ html[lang="ar"] body {
   align-items: center;
   color: var(--text-primary);
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-  transition: 0.4s;
-  font-size: 0.95rem;
+  transition: 0.3s;
+  font-size: 0.9rem;
 }
 
 :root[data-theme="light"] .lang-widget .icon-orb {
@@ -301,12 +295,12 @@ html[lang="ar"] body {
 }
 
 .lang-widget .widget-text {
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   text-transform: uppercase;
   color: var(--text-secondary);
-  transition: 0.4s;
+  transition: 0.3s;
 }
 
 :root[data-theme="light"] .lang-widget {
@@ -317,42 +311,6 @@ html[lang="ar"] body {
 
 :root[data-theme="light"] .lang-widget:hover {
   border-color: #aa771c;
-}
-
-/* Adjust notif and chat widgets on desktop so they flow naturally to the left of the language widget */
-@media (min-width: 769px) {
-  body:not(.sidebar-closed) .notif-widget {
-    right: 245px !important;
-  }
-  body:not(.sidebar-closed) .notif-dropdown {
-    right: 245px !important;
-  }
-  body:not(.sidebar-closed) .chat-widget {
-    right: 305px !important;
-  }
-  body:not(.sidebar-closed) .chat-dropdown {
-    right: 305px !important;
-  }
-}
-
-/* Strictly hide from mobile navbar (screen width <= 768px). Mobile uses sidebar drawer */
-@media (max-width: 768px) {
-  .lang-widget,
-  .nav-lang-widget {
-    display: none !important;
-  }
-}
-
-/* Hide when sidebar panel is collapsed / closed */
-body.sidebar-closed .lang-widget,
-body.sidebar-closed .nav-lang-widget {
-  opacity: 0 !important;
-  transform: translateY(-25px) scale(0.92) !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.35s !important;
 }
 
 .lang-switcher-btn {

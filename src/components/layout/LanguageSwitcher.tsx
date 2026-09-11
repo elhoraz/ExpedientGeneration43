@@ -4,12 +4,19 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Locale, SUPPORTED_LOCALES } from "@/lib/i18n/types";
 
 interface LanguageSwitcherProps {
-  variant?: "pill" | "minimal" | "sidebar";
+  variant?: "pill" | "minimal" | "sidebar" | "compact" | "cards";
   className?: string;
 }
 
 export default function LanguageSwitcher({ variant = "pill", className = "" }: LanguageSwitcherProps) {
   const { locale, setLocale } = useLanguage();
+
+  const handleSelect = (code: Locale) => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(12);
+    }
+    setLocale(code);
+  };
 
   const cycleLanguage = () => {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -20,6 +27,72 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
   };
 
   const localesList = Object.values(SUPPORTED_LOCALES);
+
+  if (variant === "compact") {
+    return (
+      <div className={`lang-compact-group ${className}`} style={{ display: "inline-flex", gap: "6px", alignItems: "center" }}>
+        {localesList.map((item) => (
+          <button
+            key={item.code}
+            type="button"
+            className={`lang-pill-btn ${locale === item.code ? "active" : ""}`}
+            onClick={() => handleSelect(item.code)}
+            title={item.nativeLabel}
+            style={{
+              padding: "4px 10px",
+              borderRadius: "20px",
+              border: locale === item.code ? "1px solid var(--gold-premium, #d4af37)" : "1px solid var(--glass-border)",
+              background: locale === item.code ? "rgba(212, 175, 55, 0.15)" : "transparent",
+              color: locale === item.code ? "var(--gold-premium, #d4af37)" : "var(--text-secondary)",
+              fontSize: "0.75rem",
+              fontWeight: locale === item.code ? 700 : 500,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "5px",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <span>{item.flag}</span>
+            <span>{item.code.toUpperCase()}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  if (variant === "cards") {
+    return (
+      <div className={`lang-cards-grid ${className}`} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px" }}>
+        {localesList.map((item) => (
+          <button
+            key={item.code}
+            type="button"
+            onClick={() => handleSelect(item.code)}
+            className="cursor-bind"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "14px 8px",
+              borderRadius: "14px",
+              background: locale === item.code ? "rgba(212, 175, 55, 0.15)" : "rgba(255, 255, 255, 0.03)",
+              border: locale === item.code ? "1.5px solid var(--gold-premium, #d4af37)" : "1px solid var(--glass-border)",
+              color: locale === item.code ? "var(--gold-premium, #d4af37)" : "var(--text-primary)",
+              cursor: "pointer",
+              transition: "all 0.25s ease",
+              textAlign: "center"
+            }}
+          >
+            <span style={{ fontSize: "1.6rem", marginBottom: "4px" }}>{item.flag}</span>
+            <span style={{ fontWeight: 700, fontSize: "0.82rem" }}>{item.nativeLabel}</span>
+            <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</span>
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   if (variant === "sidebar") {
     return (
@@ -34,12 +107,7 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
               key={item.code}
               type="button"
               className={`lang-sidebar-pill ${locale === item.code ? "active" : ""}`}
-              onClick={() => {
-                if (typeof navigator !== "undefined" && navigator.vibrate) {
-                  navigator.vibrate(10);
-                }
-                setLocale(item.code);
-              }}
+              onClick={() => handleSelect(item.code)}
               title={item.nativeLabel}
             >
               <span className="lang-flag">{item.flag}</span>
@@ -67,3 +135,4 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
     </button>
   );
 }
+
