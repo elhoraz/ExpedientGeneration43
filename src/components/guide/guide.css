@@ -77,6 +77,34 @@ body.sidebar-closed .floating-help-btn {
   color: var(--gold-main, #d4af37);
 }
 
+.help-btn-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--glass-border, rgba(212, 175, 55, 0.35));
+  margin: 0 4px;
+}
+
+.help-btn-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--gold-main, #d4af37);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.help-btn-lang:hover {
+  background: rgba(212, 175, 55, 0.3);
+  border-color: var(--gold-main, #d4af37);
+  transform: scale(1.06);
+}
+
 /* Light Mode Styles for Floating Help */
 :root[data-theme="light"] .floating-help-btn {
   background: rgba(255, 255, 255, 0.94);
@@ -85,6 +113,14 @@ body.sidebar-closed .floating-help-btn {
 }
 :root[data-theme="light"] .floating-help-btn .help-btn-label {
   color: #171717;
+}
+:root[data-theme="light"] .help-btn-divider {
+  background: rgba(170, 119, 28, 0.25);
+}
+:root[data-theme="light"] .help-btn-lang {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #aa771c;
 }
 :root[data-theme="light"] .floating-help-btn .help-btn-icon {
   background: linear-gradient(135deg, #d4af37, #aa771c);
@@ -525,8 +561,10 @@ body.sidebar-closed .floating-help-btn {
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
   }
 
-  /* Sembunyikan teks label "Bantuan" di mobile kecil agar ramping jadi lingkaran FAB */
-  .floating-help-btn .help-btn-label {
+  /* Sembunyikan teks label "Bantuan" & badge di mobile kecil agar ramping jadi lingkaran FAB */
+  .floating-help-btn .help-btn-label,
+  .floating-help-btn .help-btn-divider,
+  .floating-help-btn .help-btn-lang {
     display: none;
   }
 

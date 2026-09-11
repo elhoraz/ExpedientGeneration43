@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { getGuideByPath, PAGE_GUIDES, PageGuide } from "@/data/guideData";
 import PageGuideModal from "./PageGuideModal";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./guide.css";
 
 export default function HelpButtonTrigger() {
   const pathname = usePathname();
+  const { locale, setLocale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [currentGuide, setCurrentGuide] = useState<PageGuide | null>(null);
 
@@ -81,7 +83,7 @@ export default function HelpButtonTrigger() {
           if (navigator.vibrate) navigator.vibrate(20);
           setIsOpen(true);
         }}
-        title={`Bantuan & Panduan: ${currentGuide?.title || "Halaman Ini"}`}
+        title={`Bantuan & Bahasa / Help & Language (${locale.toUpperCase()})`}
         aria-label="Bantuan dan Panduan Halaman"
         aria-hidden={isSidebarClosed}
         tabIndex={isSidebarClosed ? -1 : 0}
@@ -89,7 +91,23 @@ export default function HelpButtonTrigger() {
         <span className="help-btn-icon">
           <i className="fa-solid fa-question"></i>
         </span>
-        <span className="help-btn-label">Bantuan</span>
+        <span className="help-btn-label">
+          {locale === "ar" ? "مساعدة" : locale === "en" ? "Help" : "Bantuan"}
+        </span>
+        <span className="help-btn-divider"></span>
+        <span
+          className="help-btn-lang"
+          onClick={(e) => {
+            e.stopPropagation();
+            const nextLocale = locale === "id" ? "ar" : locale === "ar" ? "en" : "id";
+            if (navigator.vibrate) navigator.vibrate(15);
+            setLocale(nextLocale);
+          }}
+          title="Klik untuk beralih bahasa / Click to cycle language (ID → AR → EN)"
+        >
+          <i className="fa-solid fa-globe" style={{ fontSize: "0.72rem", marginRight: "3px" }}></i>
+          <span>{locale.toUpperCase()}</span>
+        </span>
       </button>
 
       <PageGuideModal

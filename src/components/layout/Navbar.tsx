@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import ThemeToggle from "./ThemeToggle";
-import LanguageSwitcher from "./LanguageSwitcher";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -170,9 +169,6 @@ function urlBase64ToUint8Array(base64String: string) {
 
         {/* Theme Toggle Widget */}
         <ThemeToggle />
-
-        {/* Language Switcher Widget */}
-        <LanguageSwitcher variant="pill" />
         
         {/* Notification Bell Widget */}
         {userId && <NotificationBell userId={userId} />}

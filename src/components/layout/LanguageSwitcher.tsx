@@ -39,22 +39,23 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
             onClick={() => handleSelect(item.code)}
             title={item.nativeLabel}
             style={{
-              padding: "4px 10px",
+              padding: "5px 12px",
               borderRadius: "20px",
               border: locale === item.code ? "1px solid var(--gold-premium, #d4af37)" : "1px solid var(--glass-border)",
-              background: locale === item.code ? "rgba(212, 175, 55, 0.15)" : "transparent",
+              background: locale === item.code ? "rgba(212, 175, 55, 0.22)" : "rgba(255, 255, 255, 0.04)",
               color: locale === item.code ? "var(--gold-premium, #d4af37)" : "var(--text-secondary)",
-              fontSize: "0.75rem",
+              fontSize: "0.78rem",
               fontWeight: locale === item.code ? 700 : 500,
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
-              gap: "5px",
-              transition: "all 0.2s ease"
+              gap: "6px",
+              transition: "all 0.2s ease",
+              boxShadow: locale === item.code ? "0 0 12px rgba(212, 175, 55, 0.25)" : "none"
             }}
           >
             <span>{item.flag}</span>
-            <span>{item.code.toUpperCase()}</span>
+            <span>{item.nativeLabel}</span>
           </button>
         ))}
       </div>

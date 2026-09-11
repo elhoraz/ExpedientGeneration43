@@ -65,15 +65,17 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "8px 16px",
+          flexWrap: "wrap",
+          gap: "10px",
+          padding: "10px 16px",
           margin: "0 24px 14px 24px",
-          background: "rgba(255, 255, 255, 0.03)",
+          background: "linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)",
           border: "1px solid var(--glass-border)",
-          borderRadius: "12px",
-          fontSize: "0.78rem"
+          borderRadius: "14px",
+          fontSize: "0.8rem"
         }}>
-          <span style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
-            <i className="fa-solid fa-language" style={{ color: "var(--gold-premium, #d4af37)" }}></i>
+          <span style={{ color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
+            <i className="fa-solid fa-globe" style={{ color: "var(--gold-premium, #d4af37)", fontSize: "0.95rem" }}></i>
             <span>{t.panduan.language_select_label}</span>
           </span>
           <LanguageSwitcher variant="compact" />
