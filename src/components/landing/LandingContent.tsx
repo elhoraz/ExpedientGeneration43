@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import "@/app/landing.css";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
@@ -10,9 +11,17 @@ import HeritageVideoPlayer from "@/components/features/HeritageVideoPlayer";
 
 interface LandingContentProps {
   totalAlumni: number;
+  cms?: any[];
 }
 
-export default function LandingContent({ totalAlumni }: LandingContentProps) {
+// Helper function to get content from CMS array with fallback
+function getCms(contents: any[] | undefined, key: string, defaultValue: string) {
+  if (!contents) return defaultValue;
+  const item = contents.find((c: any) => c.content_key === key);
+  return item ? item.content_value : defaultValue;
+}
+
+export default function LandingContent({ totalAlumni, cms = [] }: LandingContentProps) {
   const { t, locale, isRTL } = useLanguage();
   const currentYear = new Date().getFullYear();
 
@@ -73,125 +82,125 @@ export default function LandingContent({ totalAlumni }: LandingContentProps) {
           </div>
 
           <div className="landing-logo-container">
-            <div className="landing-logo-pulse"></div>
+            <div className="logo-ring"></div>
+            <div className="logo-ring-outer"></div>
             <Image
-              src="/images/logo-utuh.webp"
-              alt="Lambang Angkatan Expedient 43 Arrisalah"
-              width={160}
-              height={160}
+              src={getCms(cms, "landing_hero_image", "/images/logo-utuh.webp")}
+              alt="Expedient Generation"
+              width={190}
+              height={190}
               priority
-              className="landing-emblem-img"
+              className="logo-img"
+              unoptimized={getCms(cms, "landing_hero_image", "/images/logo-utuh.webp").startsWith("data:")}
             />
           </div>
 
+          <p className="landing-eyebrow">
+            {locale === "id" ? getCms(cms, "landing_hero_eyebrow", t.hero.eyebrow) : t.hero.eyebrow}
+          </p>
+
           <h1 className="landing-title">
-            {t.hero.title_prefix}{" "}
-            <span className="title-highlight">{t.hero.title_highlight}</span>
+            {locale === "id" ? getCms(cms, "landing_hero_title", t.hero.title) : t.hero.title}
           </h1>
 
           <p className="landing-subtitle">
-            {t.hero.subtitle}
+            {locale === "id" ? getCms(cms, "landing_hero_subtitle", t.hero.subtitle) : t.hero.subtitle}
           </p>
 
-          <div className="landing-cta-group">
-            <Link href="/beranda" className="btn-expedient-primary" id="btnExplore">
-              <span className="btn-beam"></span>
-              <i className="fa-solid fa-compass"></i>
-              <span>{t.hero.cta_primary}</span>
-              <i className="fa-solid fa-arrow-right"></i>
-            </Link>
+          {/* Location Origin Anchor */}
+          <div className="landing-origin-chip">
+            <i className="fa-solid fa-location-dot"></i>
+            <span>{t.hero.origin_loc}</span>
+            <span className="origin-divider">•</span>
+            <span className="origin-coords">{t.hero.origin_coords}</span>
+            <span className="origin-divider">➔</span>
+            <span className="origin-dest">{t.hero.origin_dest}</span>
+          </div>
 
-            <Link href="/login" className="btn-expedient-secondary" id="btnLogin">
-              <i className="fa-solid fa-lock"></i>
-              <span>{t.hero.cta_secondary}</span>
+          {/* Action Button Group */}
+          <div className="cta-group">
+            <Link href="/beranda" className="btn-primary" id="ctaExplore">
+              <i className="fa-solid fa-landmark"></i> {t.hero.cta_explore}
+            </Link>
+            <Link
+              href="/download"
+              className="btn-secondary btn-app-download"
+              id="ctaDownload"
+              title="Unduh Expedient Mobile App (.APK) untuk Android"
+            >
+              <i className="fa-brands fa-android"></i> {t.hero.cta_download}
+            </Link>
+            <Link href="/login" className="btn-secondary" id="ctaLogin" title="Khusus Anggota Alumni">
+              <i className="fa-solid fa-circle-user"></i> {t.hero.cta_login}
             </Link>
           </div>
 
-          {/* Quick Cohort Stats Strip */}
-          <div className="landing-stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon"><i className="fa-solid fa-layer-group"></i></div>
-              <div className="stat-data">
-                <span className="stat-num">{t.hero.stat_cohort_val}</span>
-                <span className="stat-label">{t.hero.stat_cohort_label}</span>
+          {/* Key Facts Stats Counter Row */}
+          <div className="stats-row">
+            <div className="stat-item">
+              <div className="stat-number" id="counterAlumni">
+                {totalAlumni || 240}
               </div>
+              <div className="stat-label">{t.hero.stat_alumni_label}</div>
             </div>
+            <div className="stat-item">
+              <div className="stat-number">{t.hero.stat_grad_year}</div>
+              <div className="stat-label">{t.hero.stat_grad_label}</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">{t.hero.stat_gen_num}</div>
+              <div className="stat-label">{t.hero.stat_gen_label}</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">{t.hero.stat_ukhuwah_num}</div>
+              <div className="stat-label">{t.hero.stat_ukhuwah_label}</div>
+            </div>
+          </div>
 
-            <div className="stat-card">
-              <div className="stat-icon"><i className="fa-solid fa-users"></i></div>
-              <div className="stat-data">
-                <span className="stat-num">{totalAlumni || 240}+</span>
-                <span className="stat-label">{t.hero.stat_alumni_label}</span>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon"><i className="fa-solid fa-book-quran"></i></div>
-              <div className="stat-data">
-                <span className="stat-num">{t.hero.stat_curriculum_val}</span>
-                <span className="stat-label">{t.hero.stat_curriculum_label}</span>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon"><i className="fa-solid fa-earth-asia"></i></div>
-              <div className="stat-data">
-                <span className="stat-num">{t.hero.stat_status_val}</span>
-                <span className="stat-label">{t.hero.stat_status_label}</span>
-              </div>
-            </div>
+          <div className="scroll-hint">
+            <span>{t.hero.scroll_hint}</span>
+            <div className="scroll-line"></div>
           </div>
         </section>
 
-        {/* ====== SECTION 1: THE ALMAMATER HERITAGE ====== */}
+        {/* ====== SECTION 1: ALMAMATER HERITAGE (BUMI SLAHUNG) ====== */}
         <section className="heritage-section" id="almamater">
           <div className="section-header">
             <p className="section-eyebrow">{t.almamater.eyebrow}</p>
-            <h2 className="section-title">{t.almamater.title}</h2>
-          </div>
-
-          <div className="heritage-quote-banner">
-            <div className="quote-mark">&ldquo;</div>
-            <p className="quote-body">
-              {t.almamater.desc_quote}
+            <h2 className="section-title">
+              {t.almamater.title}
+            </h2>
+            <p className="section-lead">
+              {t.almamater.lead}
             </p>
           </div>
 
           <div className="heritage-pillars-grid">
             <TiltCard className="pillar-card">
-              <div className="pillar-icon">
-                <i className="fa-solid fa-monument"></i>
+              <div className="pillar-icon-wrap">
+                <i className="fa-solid fa-globe"></i>
               </div>
               <h3 className="pillar-title">{t.almamater.p1_title}</h3>
               <p className="pillar-desc">{t.almamater.p1_desc}</p>
-              <div className="pillar-badge">Est. 1982 • Peresmian 1985</div>
+              <div className="pillar-badge">{t.almamater.p1_badge}</div>
             </TiltCard>
 
             <TiltCard className="pillar-card">
-              <div className="pillar-icon">
-                <i className="fa-solid fa-earth-americas"></i>
+              <div className="pillar-icon-wrap">
+                <i className="fa-solid fa-microchip"></i>
               </div>
               <h3 className="pillar-title">{t.almamater.p2_title}</h3>
               <p className="pillar-desc">{t.almamater.p2_desc}</p>
-              <div className="pillar-badge">Bilingual Immersion</div>
+              <div className="pillar-badge">{t.almamater.p2_badge}</div>
             </TiltCard>
 
             <TiltCard className="pillar-card">
-              <div className="pillar-icon">
-                <i className="fa-solid fa-graduation-cap"></i>
+              <div className="pillar-icon-wrap">
+                <i className="fa-solid fa-mosque"></i>
               </div>
               <h3 className="pillar-title">{t.almamater.p3_title}</h3>
               <p className="pillar-desc">{t.almamater.p3_desc}</p>
-              <div className="pillar-badge">Kurikulum KMI Gontori</div>
-            </TiltCard>
-
-            <TiltCard className="pillar-card pillar-card-highlight">
-              <div className="pillar-icon">
-                <i className="fa-solid fa-hand-holding-heart"></i>
-              </div>
-              <h3 className="pillar-title">{t.almamater.pillar_title}</h3>
-              <p className="pillar-desc">{t.almamater.pillar_desc}</p>
-              <div className="pillar-badge">{t.almamater.pillar_badge}</div>
+              <div className="pillar-badge">{t.almamater.p3_badge}</div>
             </TiltCard>
           </div>
 
@@ -211,200 +220,224 @@ export default function LandingContent({ totalAlumni }: LandingContentProps) {
           {/* Grand Epigraph Banner */}
           <div className="epigraph-card">
             <div className="epigraph-quote-mark">&ldquo;</div>
-            <p className="epigraph-body">{t.philosophy.epigraph_body}</p>
-            <div className="epigraph-footer">
-              <span className="epigraph-author">{t.philosophy.epigraph_author}</span>
-              <span className="epigraph-badge">{t.philosophy.epigraph_badge}</span>
+            <blockquote className="epigraph-text">
+              {t.philosophy.epigraph_body}
+            </blockquote>
+            <div className="epigraph-author">
+              {t.philosophy.epigraph_author}
             </div>
           </div>
 
-          {/* 3 Pillars of the Emblem */}
-          <div className="philosophy-grid">
-            <TiltCard className="philo-card">
-              <div className="philo-icon-wrap icon-gold">
-                <i className="fa-solid fa-location-crosshairs"></i>
+          <div className="philosophy-cards-row">
+            <div className="philo-card">
+              <div className="philo-icon">
+                <i className="fa-solid fa-bolt-lightning"></i>
               </div>
-              <h3 className="philo-title">{t.philosophy.c1_title}</h3>
-              <p className="philo-desc">{t.philosophy.c1_desc}</p>
-            </TiltCard>
-
-            <TiltCard className="philo-card">
-              <div className="philo-icon-wrap icon-cyan">
-                <i className="fa-solid fa-shield-halved"></i>
-              </div>
-              <h3 className="philo-title">{t.philosophy.c2_title}</h3>
-              <p className="philo-desc">{t.philosophy.c2_desc}</p>
-            </TiltCard>
-
-            <TiltCard className="philo-card">
-              <div className="philo-icon-wrap icon-purple">
-                <i className="fa-solid fa-feather-pointed"></i>
-              </div>
-              <h3 className="philo-title">{t.philosophy.c3_title}</h3>
-              <p className="philo-desc">{t.philosophy.c3_desc}</p>
-            </TiltCard>
-          </div>
-
-          {/* Emblem Metadata Strip */}
-          <div className="emblem-meta-strip">
-            <div className="meta-strip-item">
-              <span className="meta-label">{t.philosophy.meta_batch_label}</span>
-              <span className="meta-val">{t.philosophy.meta_batch_val}</span>
+              <h3 className="philo-title">{t.philosophy.card1_title}</h3>
+              <p className="philo-desc">{t.philosophy.card1_desc}</p>
             </div>
-            <div className="meta-divider"></div>
-            <div className="meta-strip-item">
-              <span className="meta-label">{t.philosophy.meta_motto_label}</span>
-              <span className="meta-val">{t.philosophy.meta_motto_val}</span>
-            </div>
-            <div className="meta-divider"></div>
-            <div className="meta-strip-item">
-              <span className="meta-label">{t.philosophy.meta_campus_label}</span>
-              <span className="meta-val">{t.philosophy.meta_campus_val}</span>
+
+            <div className="philo-card">
+              <div className="philo-icon">
+                <i className="fa-solid fa-ring"></i>
+              </div>
+              <h3 className="philo-title">{t.philosophy.card2_title}</h3>
+              <p className="philo-desc">{t.philosophy.card2_desc}</p>
             </div>
           </div>
         </section>
 
-        {/* ====== SECTION 3: THE DIGITAL ECOSYSTEM (FITUR INTEGRAL) ====== */}
-        <section className="ecosystem-section" id="ekosistem">
+        {/* ====== SECTION 3: BENTO GRID EKOSISTEM DIGITAL ====== */}
+        <section className="bento-section" id="ekosistem">
           <div className="section-header">
             <p className="section-eyebrow">{t.ecosystem.eyebrow}</p>
             <h2 className="section-title">{t.ecosystem.title}</h2>
-            <p className="section-desc">{t.ecosystem.desc}</p>
+            <p className="section-lead">{t.ecosystem.lead}</p>
           </div>
 
-          <div className="features-showcase-grid">
-            <TiltCard className="feature-cell">
-              <div className="cell-glow glow-gold"></div>
-              <div className="cell-icon"><i className="fa-solid fa-monument"></i></div>
-              <div className="cell-content">
-                <h3 className="cell-title">{t.ecosystem.item_museum_title}</h3>
-                <p className="cell-desc">{t.ecosystem.item_museum_desc}</p>
-                <Link href="/beranda" className="cell-link">
-                  <span>{t.nav.explore_museum}</span>
-                  <i className="fa-solid fa-arrow-right"></i>
+          <div className="bento-grid">
+            {/* Bento 1: Radar Alumni (Wide Card) */}
+            <div className="bento-card bento-wide">
+              <div className="bento-badge">
+                <span className="radar-live-dot"></span>
+                <span>{t.ecosystem.b1_badge}</span>
+              </div>
+              <div className="bento-content">
+                <h3 className="bento-title">{t.ecosystem.b1_title}</h3>
+                <p className="bento-desc">{t.ecosystem.b1_desc}</p>
+                <div className="bento-meta-strip">
+                  <span><i className="fa-solid fa-satellite"></i> {t.ecosystem.b1_meta1}</span>
+                  <span><i className="fa-solid fa-location-crosshairs"></i> {t.ecosystem.b1_meta2}</span>
+                </div>
+              </div>
+              <div className="bento-action">
+                <Link href="/radar" className="bento-link">
+                  {t.ecosystem.b1_action} <i className="fa-solid fa-arrow-right"></i>
+                </Link>
+              </div>
+            </div>
+
+            {/* Bento 2: Sovereign 3D KTA */}
+            <TiltCard className="bento-card">
+              <div className="bento-badge">
+                <i className="fa-solid fa-cube"></i>
+                <span>{t.ecosystem.b2_badge}</span>
+              </div>
+              <div className="bento-content">
+                <h3 className="bento-title">{t.ecosystem.b2_title}</h3>
+                <p className="bento-desc">{t.ecosystem.b2_desc}</p>
+              </div>
+              <div className="bento-action">
+                <Link href="/sovereign" className="bento-link">
+                  {t.ecosystem.b2_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
             </TiltCard>
 
-            <TiltCard className="feature-cell">
-              <div className="cell-glow glow-cyan"></div>
-              <div className="cell-icon"><i className="fa-solid fa-address-book"></i></div>
-              <div className="cell-content">
-                <h3 className="cell-title">{t.ecosystem.item_dir_title}</h3>
-                <p className="cell-desc">{t.ecosystem.item_dir_desc}</p>
-                <Link href="/direktori" className="cell-link">
-                  <span>{t.sidebar.directory}</span>
-                  <i className="fa-solid fa-arrow-right"></i>
+            {/* Bento 3: Museum Digital */}
+            <TiltCard className="bento-card">
+              <div className="bento-badge">
+                <i className="fa-solid fa-landmark"></i>
+                <span>{t.ecosystem.b3_badge}</span>
+              </div>
+              <div className="bento-content">
+                <h3 className="bento-title">{t.ecosystem.b3_title}</h3>
+                <p className="bento-desc">{t.ecosystem.b3_desc}</p>
+              </div>
+              <div className="bento-action">
+                <Link href="/beranda" className="bento-link">
+                  {t.ecosystem.b3_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
             </TiltCard>
 
-            <TiltCard className="feature-cell">
-              <div className="cell-glow glow-blue"></div>
-              <div className="cell-icon"><i className="fa-solid fa-map-location-dot"></i></div>
-              <div className="cell-content">
-                <h3 className="cell-title">{t.ecosystem.item_radar_title}</h3>
-                <p className="cell-desc">{t.ecosystem.item_radar_desc}</p>
-                <Link href="/radar" className="cell-link">
-                  <span>{t.nav.radar}</span>
-                  <i className="fa-solid fa-arrow-right"></i>
+            {/* Bento 4: Baitul Maal & Sinergi */}
+            <TiltCard className="bento-card">
+              <div className="bento-badge">
+                <i className="fa-solid fa-hand-holding-dollar"></i>
+                <span>{t.ecosystem.b4_badge}</span>
+              </div>
+              <div className="bento-content">
+                <h3 className="bento-title">{t.ecosystem.b4_title}</h3>
+                <p className="bento-desc">{t.ecosystem.b4_desc}</p>
+              </div>
+              <div className="bento-action">
+                <Link href="/baitul-maal" className="bento-link">
+                  {t.ecosystem.b4_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
             </TiltCard>
 
-            <TiltCard className="feature-cell">
-              <div className="cell-glow glow-purple"></div>
-              <div className="cell-icon"><i className="fa-solid fa-vault"></i></div>
-              <div className="cell-content">
-                <h3 className="cell-title">{t.ecosystem.item_vault_title}</h3>
-                <p className="cell-desc">{t.ecosystem.item_vault_desc}</p>
-                <Link href="/galeri" className="cell-link">
-                  <span>{t.sidebar.gallery}</span>
-                  <i className="fa-solid fa-arrow-right"></i>
-                </Link>
+            {/* Bento 5: Audio Lounge & Realtime */}
+            <TiltCard className="bento-card">
+              <div className="bento-badge">
+                <i className="fa-solid fa-headphones"></i>
+                <span>{t.ecosystem.b5_badge}</span>
               </div>
-            </TiltCard>
-
-            <TiltCard className="feature-cell">
-              <div className="cell-glow glow-emerald"></div>
-              <div className="cell-icon"><i className="fa-solid fa-comments"></i></div>
-              <div className="cell-content">
-                <h3 className="cell-title">{t.ecosystem.item_forum_title}</h3>
-                <p className="cell-desc">{t.ecosystem.item_forum_desc}</p>
-                <Link href="/forum" className="cell-link">
-                  <span>{t.sidebar.forum}</span>
-                  <i className="fa-solid fa-arrow-right"></i>
-                </Link>
+              <div className="bento-content">
+                <h3 className="bento-title">{t.ecosystem.b5_title}</h3>
+                <p className="bento-desc">{t.ecosystem.b5_desc}</p>
               </div>
-            </TiltCard>
-
-            <TiltCard className="feature-cell">
-              <div className="cell-glow glow-amber"></div>
-              <div className="cell-icon"><i className="fa-solid fa-id-card-clip"></i></div>
-              <div className="cell-content">
-                <h3 className="cell-title">{t.ecosystem.item_kta_title}</h3>
-                <p className="cell-desc">{t.ecosystem.item_kta_desc}</p>
-                <Link href="/sovereign" className="cell-link">
-                  <span>{t.sidebar.kta}</span>
-                  <i className="fa-solid fa-arrow-right"></i>
+              <div className="bento-action">
+                <Link href="/chat/lounge" className="bento-link">
+                  {t.ecosystem.b5_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
             </TiltCard>
           </div>
         </section>
 
-        {/* ====== SECTION 4: CALL TO ACTION BANNER ====== */}
-        <section className="landing-cta-banner">
-          <div className="cta-banner-card">
-            <div className="cta-banner-glow"></div>
-            <div className="cta-banner-content">
-              <h2 className="cta-title">{t.cta.title}</h2>
-              <p className="cta-desc">{t.cta.desc}</p>
-              <div className="cta-actions">
-                <Link href="/beranda" className="btn-cta-gold">
-                  <i className="fa-solid fa-landmark"></i>
-                  <span>{t.cta.btn_museum}</span>
-                </Link>
-                <Link href="/login" className="btn-cta-ghost">
-                  <i className="fa-solid fa-arrow-right-to-bracket"></i>
-                  <span>{t.cta.btn_login}</span>
-                </Link>
-                <a
-                  href={shareWaUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-cta-wa"
-                  title="Bagikan Tautan Website ke Grup WhatsApp Angkatan"
-                >
-                  <i className="fa-brands fa-whatsapp"></i>
-                  <span>{t.cta.btn_share_wa}</span>
-                </a>
-              </div>
+        {/* ====== SECTION 4: CALL TO ACTION ====== */}
+        <section className="cta-banner-section">
+          <div className="cta-banner-box">
+            <div className="cta-glow-circle"></div>
+            <p className="cta-banner-eyebrow">{t.cta.eyebrow}</p>
+            <h2 className="cta-banner-title">
+              {t.cta.title}
+            </h2>
+            <p className="cta-banner-desc">
+              {t.cta.desc}
+            </p>
+            <div className="cta-banner-buttons">
+              <Link href="/beranda" className="btn-primary">
+                <i className="fa-solid fa-landmark"></i> {t.cta.btn_explore}
+              </Link>
+              <Link href="/login" className="btn-secondary">
+                <i className="fa-solid fa-circle-user"></i> {t.cta.btn_member}
+              </Link>
+              <Link href="/download" className="btn-secondary">
+                <i className="fa-brands fa-android"></i> {t.cta.btn_apk}
+              </Link>
+              <a
+                href={shareWaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-secondary btn-share-wa"
+                title="Sebarkan Tautan ke Grup WhatsApp Alumni"
+              >
+                <i className="fa-brands fa-whatsapp"></i> {t.cta.btn_share_wa}
+              </a>
             </div>
           </div>
         </section>
 
-        {/* ====== FOOTER ====== */}
+        {/* ====== FOOTER (BERBOBOT ALMAMATER) ====== */}
         <footer className="landing-footer">
-          <div className="footer-content">
-            <div className="footer-brand">
-              <Image
-                src="/images/logo-utuh.webp"
-                alt="Logo Expedient 43"
-                width={36}
-                height={36}
-                className="footer-logo"
-              />
-              <span className="footer-brand-name">EXPEDIENT 43</span>
+          <div className="footer-top-grid">
+            <div className="footer-brand-col">
+              <div className="footer-logo-row">
+                <Image
+                  src="/images/logo-utuh.webp"
+                  alt="Logo Expedient 43"
+                  width={40}
+                  height={40}
+                  className="footer-logo"
+                />
+                <div>
+                  <div className="footer-brand-name">{t.footer.brand_title}</div>
+                  <div className="footer-brand-sub">{t.footer.brand_sub}</div>
+                </div>
+              </div>
+              <p className="footer-address">
+                <strong>{t.footer.address_title}</strong><br />
+                {t.footer.address_desc}
+              </p>
+              <div className="footer-motto">
+                <em>&ldquo;{t.footer.motto}&rdquo;</em>
+              </div>
             </div>
-            <p className="footer-motto">{t.footer.desc}</p>
-            <div className="footer-bottom">
-              <span className="footer-copy">
-                &copy; {currentYear} {t.footer.rights}
-              </span>
-              <span className="footer-tagline">
-                <em>&ldquo;{t.footer.tagline}&rdquo;</em>
-              </span>
+
+            <div className="footer-links-col">
+              <h4>{t.footer.col1_title}</h4>
+              <ul>
+                <li><a href="#beranda">{t.footer.nav_home}</a></li>
+                <li><a href="#almamater">{t.footer.nav_almamater}</a></li>
+                <li><a href="#filosofi">{t.footer.nav_philosophy}</a></li>
+                <li><a href="#ekosistem">{t.footer.nav_ecosystem}</a></li>
+                <li><Link href="/radar">{t.footer.nav_radar}</Link></li>
+              </ul>
+            </div>
+
+            <div className="footer-links-col">
+              <h4>{t.footer.col2_title}</h4>
+              <ul>
+                <li><Link href="/login">{t.footer.srv_member}</Link></li>
+                <li><Link href="/sovereign">{t.footer.srv_kta}</Link></li>
+                <li><Link href="/beranda">{t.footer.srv_museum}</Link></li>
+                <li><Link href="/baitul-maal">{t.footer.srv_baitul}</Link></li>
+                <li><Link href="/download">{t.footer.srv_apk}</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="footer-bottom-bar">
+            <div>
+              &copy; {currentYear} {locale === "id" ? getCms(cms, "landing_footer_text", t.footer.copy_text) : t.footer.copy_text}
+            </div>
+            <div className="footer-meta-links">
+              <Link href="/download">{t.footer.link_apk}</Link>
+              <span>•</span>
+              <Link href="/delete-account">{t.footer.link_privacy}</Link>
             </div>
           </div>
         </footer>

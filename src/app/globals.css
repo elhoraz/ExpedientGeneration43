@@ -197,11 +197,12 @@ body.sidebar-closed .floating-help-btn {
 /* ==========================================================================
    ARABIC TYPOGRAPHY & RTL SUPPORT
    ========================================================================== */
-.font-arabic,
-[dir="rtl"],
 html[lang="ar"] body {
   font-family: var(--font-amiri), "Traditional Arabic", "Scheherazade New", serif, sans-serif;
-  letter-spacing: 0 !important;
+}
+
+[dir="rtl"] {
+  direction: rtl;
 }
 
 [dir="rtl"] h1,
@@ -211,26 +212,36 @@ html[lang="ar"] body {
 [dir="rtl"] .section-title,
 [dir="rtl"] .brand-title {
   font-family: var(--font-amiri), "Traditional Arabic", serif;
-  font-weight: 700;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
-[dir="rtl"] .nav-brand-text {
-  text-align: right;
-}
-
-[dir="rtl"] .section-header {
+[dir="rtl"] .section-header,
+[dir="rtl"] .landing-content,
+[dir="rtl"] .landing-title,
+[dir="rtl"] .landing-subtitle,
+[dir="rtl"] .landing-eyebrow,
+[dir="rtl"] .landing-origin-chip,
+[dir="rtl"] .stats-row,
+[dir="rtl"] .cta-banner-box,
+[dir="rtl"] .epigraph-card,
+[dir="rtl"] .footer-content {
   text-align: center;
+}
+
+[dir="rtl"] .bento-content,
+[dir="rtl"] .pillar-card,
+[dir="rtl"] .philo-card {
+  text-align: right;
 }
 
 [dir="rtl"] .video-badge,
 [dir="rtl"] .landing-prestige-badge,
+[dir="rtl"] .bento-badge,
 [dir="rtl"] .pillar-badge {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
-[dir="rtl"] .fa-arrow-right,
-[dir="rtl"] .fa-arrow-up-right-from-square {
+[dir="rtl"] .fa-arrow-right {
   transform: scaleX(-1);
 }
 
