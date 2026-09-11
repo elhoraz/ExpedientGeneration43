@@ -2,6 +2,7 @@
 @import url("https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css");
 @import url("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
 @import url("https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 
 :root {
   --font-inter: var(--font-inter, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
@@ -425,5 +426,44 @@ html[lang="ar"] body {
   background: rgba(212, 175, 55, 0.2);
   color: #ffd700;
   border-color: rgba(212, 175, 55, 0.6);
+}
+
+/* ================= RTL & ARABIC TYPOGRAPHY ================= */
+html[dir="rtl"],
+html.rtl-mode,
+body.font-arabic {
+  font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', -apple-system, sans-serif !important;
+  letter-spacing: 0px !important;
+}
+
+html[dir="rtl"] .main-wrapper {
+  direction: rtl;
+}
+
+/* Preserve center alignment for titles, stats, and banners in RTL */
+html[dir="rtl"] .text-center,
+html[dir="rtl"] .center-aligned,
+html[dir="rtl"] .landing-hero,
+html[dir="rtl"] .prism-header,
+html[dir="rtl"] .hud-controls,
+html[dir="rtl"] .stats-grid,
+html[dir="rtl"] .grand-text,
+html[dir="rtl"] .monolith-pillar,
+html[dir="rtl"] .museum-audio-pill,
+html[dir="rtl"] .section-title {
+  text-align: center;
+}
+
+/* RTL directional flips for navigation arrows */
+html[dir="rtl"] .fa-arrow-right:not(.no-rtl-flip),
+html[dir="rtl"] .fa-arrow-right-long:not(.no-rtl-flip),
+html[dir="rtl"] .fa-chevron-right:not(.no-rtl-flip) {
+  transform: scaleX(-1);
+}
+
+html[dir="rtl"] .fa-arrow-left:not(.no-rtl-flip),
+html[dir="rtl"] .fa-arrow-left-long:not(.no-rtl-flip),
+html[dir="rtl"] .fa-chevron-left:not(.no-rtl-flip) {
+  transform: scaleX(-1);
 }
 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./CommandPalette.css";
 
 const COMMANDS = [
@@ -31,6 +32,7 @@ const COMMANDS = [
 ];
 
 export default function CommandPalette() {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -104,7 +106,7 @@ export default function CommandPalette() {
             ref={inputRef}
             type="text" 
             className="cmd-input" 
-            placeholder="Cari halaman, fitur..." 
+            placeholder={t.navbar.search_palette} 
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoComplete="off" 

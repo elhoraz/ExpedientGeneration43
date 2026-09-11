@@ -273,6 +273,19 @@
 .register-link.return-link { border-top: 1px solid var(--border-divider) !important; }
 
 /* ================= 7. FUTURISTIC THEME TOGGLE ================= */
+.login-top-bar {
+    position: fixed;
+    top: max(20px, calc(env(safe-area-inset-top, 20px) + 6px));
+    right: max(20px, env(safe-area-inset-right, 20px));
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.login-top-bar .toggle-widget {
+    position: static;
+}
+
 .toggle-widget {
     position: fixed; 
     top: max(20px, calc(env(safe-area-inset-top, 20px) + 6px)); 

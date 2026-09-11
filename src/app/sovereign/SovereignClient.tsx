@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { getAvatarUrl } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 const SovereignThreeScene = dynamic(() => import("./SovereignThreeScene"), {
   ssr: false,
@@ -36,6 +38,7 @@ interface SovereignUser {
 }
 
 export default function SovereignClient({ user }: { user: SovereignUser }) {
+  const { t } = useLanguage();
   const cardRef = useRef<HTMLDivElement>(null);
 
   // Engine Mode: 'lite' (60 FPS CSS3D Hologram - Bebas Lag) vs '3d' (Three.js Studio Lanyard)
@@ -509,10 +512,13 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         <div className="sovereign-header-row1">
           <Link href="/fitur" id="btnBackToFitur" className="sovereign-back-btn">
             <i className="fa-solid fa-chevron-left" />
-            <span>Kembali</span>
+            <span>{t.common.back}</span>
           </Link>
 
           <div className="sovereign-header-actions">
+            {/* Language Switcher */}
+            <LanguageSwitcher variant="pill" />
+
             {/* Quick Switcher Modal Button on Mobile */}
             {isMobileDevice && (
               <button
@@ -539,7 +545,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
               onClick={handleExportPng}
               id="btnExportId"
               disabled={isExporting}
-              title="Simpan Kartu ID (PNG HD)"
+              title={isExporting ? t.sovereign.exporting_btn : t.sovereign.export_btn}
               aria-label="Simpan PNG"
             >
               <i className={isExporting ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-download"} />
@@ -556,7 +562,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
               title="Mode Super Ringan (0% Lag WebGL, 60 FPS CSS 3D)"
             >
               <i className="fa-solid fa-bolt" />
-              <span>Super Ringan</span>
+              <span>{t.sovereign.mode_lite}</span>
             </button>
 
             <button
@@ -565,7 +571,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
               title="Mode 3D Studio Three.js (Fisika Tali & Galeri)"
             >
               <i className="fa-solid fa-cube" />
-              <span>3D Studio</span>
+              <span>{t.sovereign.mode_3d}</span>
             </button>
           </div>
         </div>

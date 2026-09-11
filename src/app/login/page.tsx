@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCms } from "@/components/layout/CmsProvider";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "./login.css";
 
 function LoginContent() {
@@ -18,6 +20,7 @@ function LoginContent() {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { t } = useCms();
+  const { t: tLang } = useLanguage();
   
   const searchParams = useSearchParams();
   const errorMsg = searchParams.get("error");
@@ -232,14 +235,17 @@ function LoginContent() {
         </div>
       )}
 
-      <button className="toggle-widget" id="btnTheme" title="Ganti Mode" onClick={toggleTheme}>
-        <div className="icon-orb">
-          <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
-        </div>
-        <span className="widget-text" id="themeText">
-          {theme === "dark" ? "Malam" : "Siang"}
-        </span>
-      </button>
+      <div className="login-top-bar">
+        <LanguageSwitcher variant="pill" />
+        <button className="toggle-widget" id="btnTheme" title="Ganti Mode" onClick={toggleTheme}>
+          <div className="icon-orb">
+            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
+          </div>
+          <span className="widget-text" id="themeText">
+            {theme === "dark" ? "Malam" : "Siang"}
+          </span>
+        </button>
+      </div>
 
       <button className="toggle-widget install-app-btn" onClick={() => setIsModalOpen(true)} title="Panduan Install">
         <div className="icon-orb" style={{ color: "#d4af37", background: "rgba(212,175,55,0.1)" }}>
@@ -266,8 +272,8 @@ function LoginContent() {
               <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="Part" />
               <img src={t('login_hero_image', '/images/logo-utuh.webp')} className="logo-utuh" alt="Expedient Logo" />
             </div>
-            <div className="subtitle-spec">{t('login_subtitle', 'Expedient Generation')}</div>
-            <h1 className="title-holo">{t('login_title', 'Portal Utama')}</h1>
+            <div className="subtitle-spec">{tLang.hero.title}</div>
+            <h1 className="title-holo">{tLang.login.title}</h1>
           </div>
 
           <form action="/auth/login" method="POST" onSubmit={handleFormSubmit}>
@@ -283,7 +289,7 @@ function LoginContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 ref={emailInputRef}
               />
-              <label htmlFor="email" className="input-label">{t('login_label_email', 'Surel Resmi')}</label>
+              <label htmlFor="email" className="input-label">{tLang.login.email_label}</label>
               <div className="input-neon-line"></div>
             </div>
 
@@ -296,7 +302,7 @@ function LoginContent() {
                 required
                 placeholder=" "
               />
-              <label htmlFor="inputPw" className="input-label">{t('login_label_password', 'Kata Sandi Akses')}</label>
+              <label htmlFor="inputPw" className="input-label">{tLang.login.pass_label}</label>
               <div className="input-neon-line"></div>
               <i
                 className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`}
@@ -310,7 +316,7 @@ function LoginContent() {
                 Ingat Saya
               </label>
               <Link href="/forgot-password" style={{ color: "var(--text-muted)", fontSize: "clamp(0.7rem,1.3vh,0.8rem)", textDecoration: "none", transition: "0.3s", borderBottom: "1px solid transparent" }}>
-                <i className="fa-solid fa-key" style={{ fontSize: "0.65rem", marginRight: "4px" }}></i>Lupa Sandi?
+                <i className="fa-solid fa-key" style={{ fontSize: "0.65rem", marginRight: "4px" }}></i>{tLang.login.forgot_pass}
               </Link>
             </div>
 
@@ -319,11 +325,11 @@ function LoginContent() {
                 <button type="submit" className="btn-prime magnetic-btn" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> Memverifikasi...
+                      <i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.login.btn_submitting}
                     </>
                   ) : (
                     <>
-                      {t('login_btn_submit', 'Inisiasi Masuk')} <i className="fa-solid fa-arrow-right-long"></i>
+                      {tLang.login.btn_submit} <i className="fa-solid fa-arrow-right-long"></i>
                     </>
                   )}
                 </button>
@@ -342,11 +348,11 @@ function LoginContent() {
                 >
                   {isBioLoading ? (
                     <>
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> Proses...
+                      <i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-fingerprint" style={{ fontSize: "1.1rem" }}></i> {t('login_btn_biometric', 'Pemindaian Biometrik')}
+                      <i className="fa-solid fa-fingerprint" style={{ fontSize: "1.1rem" }}></i> {tLang.login.btn_bio}
                     </>
                   )}
                 </button>
@@ -355,12 +361,12 @@ function LoginContent() {
           </form>
 
           <div className="register-link">
-            {t('login_text_register', 'Identitas belum terdaftar?')} <Link href="/register">{t('login_link_register', 'Ajukan Registrasi')}</Link>
+            {tLang.login.no_account} <Link href="/register">{tLang.login.register_link}</Link>
           </div>
 
           <div className="register-link return-link" style={{ marginTop: "10px", paddingTop: "15px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
-            <Link href="/"><i className="fa-solid fa-arrow-left"></i> Gerbang Utama</Link>
-            <Link href="/download" style={{ color: "#f3ba2f", fontWeight: 600 }}><i className="fa-brands fa-android"></i> Unduh APK</Link>
+            <Link href="/"><i className="fa-solid fa-arrow-left"></i> {tLang.login.back_home}</Link>
+            <Link href="/download" style={{ color: "#f3ba2f", fontWeight: 600 }}><i className="fa-brands fa-android"></i> {tLang.hero.cta_download}</Link>
           </div>
         </div>
       </div>

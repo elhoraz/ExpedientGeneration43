@@ -10,6 +10,7 @@ import { getGelar, getBadgeColor, getGelarIcon } from "@/lib/gamification";
 import { getAvatarUrl } from "@/lib/avatar";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { useCms } from "@/components/layout/CmsProvider";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./profil.css";
 
 export default function ProfilClient({ user, initialBiometrics = [] }: { user: any; initialBiometrics?: any[] }) {
@@ -61,6 +62,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const router = useRouter();
   const supabase = createClient();
   const { t } = useCms();
+  const { t: tLang } = useLanguage();
 
   // UX-02: Progressive disclosure completeness percentage calculation
   const profileCompleteness = useMemo(() => {
@@ -545,7 +547,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                             <div className="wizard-progress-header">
                                 <span className="wizard-progress-label">
                                     <i className="fa-solid fa-chart-pie" style={{ marginRight: "6px", color: "var(--gold-premium, #d4af37)" }}></i>
-                                    Kelengkapan Profil
+                                    {tLang.profil.completeness}
                                 </span>
                                 <span className="wizard-progress-badge">
                                     {profileCompleteness}% • {profileCompleteness === 100 ? "Sempurna" : profileCompleteness >= 75 ? "Sangat Baik" : profileCompleteness >= 50 ? "Cukup Lengkap" : "Perlu Dilengkapi"}
@@ -559,7 +561,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                     onClick={() => setWizardStep(1)}
                                 >
                                     <span className="step-num">1</span>
-                                    <span className="step-title">Identitas</span>
+                                    <span className="step-title">{tLang.profil.step1 || "Identitas Personal"}</span>
                                 </button>
                                 <div className="wizard-tab-line"></div>
                                 <button
@@ -568,7 +570,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                     onClick={() => setWizardStep(2)}
                                 >
                                     <span className="step-num">2</span>
-                                    <span className="step-title">Kontak & Domisili</span>
+                                    <span className="step-title">{tLang.profil.step2 || "Kontak & Domisili"}</span>
                                 </button>
                                 <div className="wizard-tab-line"></div>
                                 <button
@@ -577,7 +579,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                     onClick={() => setWizardStep(3)}
                                 >
                                     <span className="step-num">3</span>
-                                    <span className="step-title">Visi & Sosial</span>
+                                    <span className="step-title">{tLang.profil.step3 || "Visi & Sosial"}</span>
                                 </button>
                             </div>
                         </div>
@@ -689,7 +691,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                     className="action-btn cursor-bind"
                                     style={{ gap: "8px" }}
                                 >
-                                    <i className="fa-solid fa-arrow-left"></i> Sebelumnya
+                                    <i className="fa-solid fa-arrow-left"></i> {tLang.common.back}
                                 </button>
                             ) : <div></div>}
 
@@ -701,11 +703,11 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                         className="action-btn cursor-bind"
                                         style={{ background: "rgba(212,175,55,0.15)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)", gap: "8px" }}
                                     >
-                                        Lanjut <i className="fa-solid fa-arrow-right"></i>
+                                        {tLang.common.next} <i className="fa-solid fa-arrow-right"></i>
                                     </button>
                                 )}
                                 <button type="submit" className="btn-submit cursor-bind" disabled={saving}>
-                                    {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Menyimpan...</> : "Simpan Perubahan"}
+                                    {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.profil.saving_btn}</> : tLang.profil.save_btn}
                                 </button>
                             </div>
                         </div>

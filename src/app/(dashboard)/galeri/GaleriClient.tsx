@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./galeri.css";
 
 export interface AlbumItem {
@@ -110,6 +111,7 @@ export default function GaleriClient({
   initialPhotos?: PhotoItem[];
   currentUser?: { id: string; email?: string } | null;
 }) {
+  const { t } = useLanguage();
   // Mode Switcher: "vault" (Mobile-first Modern Grid & Highlights) vs "yearbook" (3D Flipbook)
   const [galleryMode, setGalleryMode] = useState<"vault" | "yearbook">("vault");
 
@@ -512,7 +514,7 @@ export default function GaleriClient({
             }}
           >
             <i className="fa-solid fa-camera-retro"></i>
-            <span>Dokumentasi & Album</span>
+            <span>{t.galeri.tab_photos}</span>
           </button>
           <button
             type="button"
@@ -523,7 +525,7 @@ export default function GaleriClient({
             }}
           >
             <i className="fa-solid fa-book-open"></i>
-            <span>Buku Kenangan 3D</span>
+            <span>{t.galeri.tab_yearbook}</span>
           </button>
         </div>
       </div>
@@ -552,7 +554,7 @@ export default function GaleriClient({
                         <i className={album.icon || "fa-solid fa-images"}></i>
                       </div>
                     </div>
-                    <span className="story-title">{album.title}</span>
+                    <span className="story-title">{album.id === "all" ? t.galeri.tab_all : album.title}</span>
                   </div>
                 );
               })}
@@ -567,7 +569,7 @@ export default function GaleriClient({
               <input
                 type="text"
                 className="vault-search-input"
-                placeholder="Cari momen, acara, sahabat..."
+                placeholder={t.common.search}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -594,7 +596,7 @@ export default function GaleriClient({
                     triggerHaptic(8);
                   }}
                 >
-                  {yr === "all" ? "Semua Tahun" : yr}
+                  {yr === "all" ? t.common.all : yr}
                 </button>
               ))}
             </div>
@@ -611,14 +613,14 @@ export default function GaleriClient({
             {filteredPhotos.length === 0 ? (
               <div className="vault-empty-state">
                 <i className="fa-solid fa-images empty-icon"></i>
-                <h3>Belum Ada Foto untuk Filter Ini</h3>
+                <h3>{t.galeri.empty_msg}</h3>
                 <p>Jadilah yang pertama mengabadikan momen ini ke dalam arsip angkatan.</p>
                 <button
                   type="button"
                   className="btn-empty-upload"
                   onClick={() => setIsUploadOpen(true)}
                 >
-                  <i className="fa-solid fa-cloud-arrow-up"></i> Unggah Foto Sekarang
+                  <i className="fa-solid fa-cloud-arrow-up"></i> {t.galeri.upload_btn}
                 </button>
               </div>
             ) : (
@@ -705,10 +707,10 @@ export default function GaleriClient({
               setIsUploadOpen(true);
               triggerHaptic(18);
             }}
-            title="Unggah Foto Kenangan"
+            title={t.galeri.upload_btn}
           >
             <i className="fa-solid fa-plus"></i>
-            <span className="fab-label">Unggah Foto</span>
+            <span className="fab-label">{t.galeri.upload_btn}</span>
           </button>
 
           {/* 5. FULLSCREEN TOUCH GESTURE LIGHTBOX */}

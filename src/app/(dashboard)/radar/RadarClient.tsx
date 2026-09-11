@@ -6,10 +6,12 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { mountRadar2D, destroyRadar2D } from "./radar2dEngine";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "leaflet/dist/leaflet.css";
 import "./radar.css";
 
 function RadarMapContent({ nodes }: { nodes: any[] }) {
+  const { t } = useLanguage();
   const [isClient, setIsClient] = useState(false);
   const [isMapMenuOpen, setIsMapMenuOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -121,17 +123,17 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
 
         <div className="search-pill" style={{ zIndex: 60 }}>
             <i className="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Cari nama alumni..." autoComplete="off" />
+            <input type="text" id="searchInput" placeholder={t.common.search} autoComplete="off" />
         </div>
         <div className="search-results" id="searchResults" style={{ zIndex: 60 }}></div>
 
         <div className="radar-hud" style={{ zIndex: 50 }}>
-            <div className="hud-title">Jaringan Silaturahmi <span className="status-dot"></span></div>
-            <div className="hud-subtitle">Persebaran Alumni Global</div>
+            <div className="hud-title">{t.radar.title} <span className="status-dot"></span></div>
+            <div className="hud-subtitle">{t.radar.subtitle}</div>
             <div className="stats-panel">
-                <div className="stat-box"><div className="stat-num" id="sTotal">0</div><div className="stat-label">Total</div></div>
-                <div className="stat-box"><div className="stat-num" id="sArea">0</div><div className="stat-label">Area</div></div>
-                <div className="stat-box"><div className="stat-num" id="sFar">0</div><div className="stat-label">KM Terjauh</div></div>
+                <div className="stat-box"><div className="stat-num" id="sTotal">0</div><div className="stat-label">{t.radar.stat_points}</div></div>
+                <div className="stat-box"><div className="stat-num" id="sArea">0</div><div className="stat-label">{t.radar.stat_cities}</div></div>
+                <div className="stat-box"><div className="stat-num" id="sFar">0</div><div className="stat-label">{t.radar.stat_countries}</div></div>
             </div>
         </div>
 
@@ -141,9 +143,9 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         </div>
 
         <div className="filter-panel" id="filterPanel" style={{ zIndex: 50 }}>
-            <div className="filter-chip active" data-filter="all"><i className="fa-solid fa-globe"></i> Semua</div>
-            <div className="filter-chip" data-filter="L"><i className="fa-solid fa-mars"></i> Ikhwan</div>
-            <div className="filter-chip" data-filter="P"><i className="fa-solid fa-venus"></i> Akhwat</div>
+            <div className="filter-chip active" data-filter="all"><i className="fa-solid fa-globe"></i> {t.common.all}</div>
+            <div className="filter-chip" data-filter="L"><i className="fa-solid fa-mars"></i> {t.direktori.filter_gender_male}</div>
+            <div className="filter-chip" data-filter="P"><i className="fa-solid fa-venus"></i> {t.direktori.filter_gender_female}</div>
             <div className="filter-chip" data-filter="lb"><i className="fa-solid fa-trophy"></i> Leaderboard</div>
         </div>
 

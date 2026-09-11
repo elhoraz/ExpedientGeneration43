@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import ThemeToggle from "./ThemeToggle";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import NotificationBell from "./NotificationBell";
@@ -9,6 +11,7 @@ import GlobalCallReceiver from "@/components/chat/GlobalCallReceiver";
 import "@/app/(dashboard)/chat/chat.css";
 
 export default function Navbar() {
+  const { t } = useLanguage();
   const [notifOpen, setNotifOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   
@@ -145,7 +148,7 @@ function urlBase64ToUint8Array(base64String: string) {
             href="#"
             className="chat-widget hover-trigger" 
             id="btnChatWidget"
-            title="Obrolan Angkatan" 
+            title={t.navbar.chat_title} 
             onClick={(e) => { 
               e.preventDefault(); 
               setChatOpen(!chatOpen); 
@@ -165,6 +168,9 @@ function urlBase64ToUint8Array(base64String: string) {
           </a>
         )}
 
+        {/* Language Switcher Widget */}
+        <LanguageSwitcher variant="pill" />
+
         {/* Theme Toggle Widget */}
         <ThemeToggle />
         
@@ -179,13 +185,13 @@ function urlBase64ToUint8Array(base64String: string) {
         <div className="chat-dropdown">
           <div className="chat-dropdown-header">
             <div className="chat-dropdown-title">
-              Obrolan Angkatan
+              {t.navbar.chat_title}
             </div>
             <div className="chat-dropdown-actions">
               <Link
                 href="/chat/lounge"
                 onClick={() => setChatOpen(false)}
-                title="Perbesar / Buka Full"
+                title={t.navbar.chat_open_full}
                 className="chat-dropdown-btn-action"
               >
                 <i className="fa-solid fa-expand"></i>
@@ -194,7 +200,7 @@ function urlBase64ToUint8Array(base64String: string) {
                 type="button"
                 onClick={() => setChatOpen(false)}
                 className="chat-dropdown-btn-action"
-                title="Tutup"
+                title={t.navbar.chat_close}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -202,7 +208,7 @@ function urlBase64ToUint8Array(base64String: string) {
           </div>
           <div className="chat-dropdown-body">
             {recentChats.length === 0 ? (
-              <div className="chat-dropdown-empty">Belum ada obrolan terbaru.</div>
+              <div className="chat-dropdown-empty">{t.navbar.no_notif}</div>
             ) : (
               recentChats.map((c) => (
                 <div key={c.id} className="chat-dropdown-item">

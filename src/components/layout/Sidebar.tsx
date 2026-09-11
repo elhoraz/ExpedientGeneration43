@@ -74,9 +74,9 @@ export default function Sidebar() {
   // Auth-only pages
   const authNavItems = [
     { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: "Peta Persebaran Alumni" },
-    { href: "/syndicate", icon: "fa-briefcase", label: "Bisnis", tooltip: "Katalog Usaha Alumni" },
-    { href: "/fitur", icon: "fa-cubes", label: "Fitur", tooltip: "Menu & Layanan Alumni" },
-    { href: "/panduan", icon: "fa-book-bookmark", label: "Panduan", tooltip: "Pusat Panduan & Bantuan", extraClass: "nav-item-panduan" },
+    { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar.business, tooltip: "Katalog Usaha Alumni" },
+    { href: "/fitur", icon: "fa-cubes", label: t.sidebar.features, tooltip: "Menu & Layanan Alumni" },
+    { href: "/panduan", icon: "fa-book-bookmark", label: t.sidebar.guide, tooltip: "Pusat Panduan & Bantuan", extraClass: "nav-item-panduan" },
   ];
 
   // Fitur sub-pages for active state detection
@@ -102,7 +102,7 @@ export default function Sidebar() {
       <nav className={`sidebar no-select ${isOpen ? 'active' : ''}`} id="sidebarNav">
         <a href="#" className="nav-item hover-trigger" id="btnMenuClose" onClick={(e) => { e.preventDefault(); toggleSidebar(); }} data-tooltip="Sembunyikan Panel">
           <i className="fa-solid fa-compress"></i>
-          <span className="nav-label">Tutup</span>
+          <span className="nav-label">{t.sidebar.close}</span>
         </a>
         
         {/* Public navigation items */}

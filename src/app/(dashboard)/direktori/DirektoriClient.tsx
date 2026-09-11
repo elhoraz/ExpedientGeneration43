@@ -11,6 +11,7 @@ import "swiper/css/navigation";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import { getGelar, getGelarIcon, getBadgeColor } from "@/lib/gamification";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./direktori.css";
 
 interface ProfileItem {
@@ -49,6 +50,7 @@ export default function DirektoriClient({
   isLoggedIn: boolean;
   currentUserId: string | null;
 }) {
+  const { t } = useLanguage();
   const [alumni, setAlumni] = useState<ProfileItem[]>(initialAlumni || []);
   const [isSelfHealing, setIsSelfHealing] = useState(false);
   const [search, setSearch] = useState("");
@@ -318,7 +320,7 @@ export default function DirektoriClient({
             ref={searchInputRef}
             type="text"
             className="search-pill-input"
-            placeholder="Cari nama, panggilan, kota, kelas..."
+            placeholder={t.direktori.search_placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -349,7 +351,7 @@ export default function DirektoriClient({
               triggerHaptic(10);
             }}
           >
-            <i className="fa-solid fa-users"></i> Semua
+            <i className="fa-solid fa-users"></i> {t.direktori.filter_gender_all}
           </button>
           <button
             type="button"
@@ -359,7 +361,7 @@ export default function DirektoriClient({
               triggerHaptic(10);
             }}
           >
-            <i className="fa-solid fa-mars"></i> Putra
+            <i className="fa-solid fa-mars"></i> {t.direktori.filter_gender_male}
           </button>
           <button
             type="button"
@@ -369,7 +371,7 @@ export default function DirektoriClient({
               triggerHaptic(10);
             }}
           >
-            <i className="fa-solid fa-venus"></i> Putri
+            <i className="fa-solid fa-venus"></i> {t.direktori.filter_gender_female}
           </button>
 
           {/* Class Filters (If available) */}
@@ -391,7 +393,7 @@ export default function DirektoriClient({
         {/* View Switcher & Sorting Bar */}
         <div className="view-and-sort-bar">
           <div className="results-count">
-            <span>{filteredAndSortedAlumni.length}</span> Alumni Terdata
+            <span>{filteredAndSortedAlumni.length}</span> {t.direktori.stat_total}
           </div>
 
           <div className="controls-right">
@@ -404,9 +406,9 @@ export default function DirektoriClient({
                 triggerHaptic(8);
               }}
             >
-              <option value="name_asc">Nama (A - Z)</option>
-              <option value="name_desc">Nama (Z - A)</option>
-              <option value="points">Poin Prestise Tertinggi</option>
+              <option value="name_asc">{t.direktori.sort_name_asc}</option>
+              <option value="name_desc">{t.direktori.sort_name_desc}</option>
+              <option value="points">{t.direktori.sort_points}</option>
             </select>
 
             {/* Layout Toggle Buttons */}
@@ -418,7 +420,7 @@ export default function DirektoriClient({
                   setViewMode("grid");
                   triggerHaptic(10);
                 }}
-                title="Tampilan Kartu Grid"
+                title={t.direktori.view_grid}
               >
                 <i className="fa-solid fa-grip"></i>
               </button>
@@ -429,7 +431,7 @@ export default function DirektoriClient({
                   setViewMode("list");
                   triggerHaptic(10);
                 }}
-                title="Tampilan Daftar Kontak Cepat"
+                title={t.direktori.view_list}
               >
                 <i className="fa-solid fa-list-ul"></i>
               </button>
@@ -440,7 +442,7 @@ export default function DirektoriClient({
                   setViewMode("coverflow");
                   triggerHaptic(10);
                 }}
-                title="Tampilan 3D Coverflow"
+                title={t.direktori.view_coverflow}
               >
                 <i className="fa-solid fa-layer-group"></i>
               </button>
@@ -547,7 +549,7 @@ export default function DirektoriClient({
 
                     {/* Bottom Tap Action Hint */}
                     <div className="card-footer-tap">
-                      <span>Buka Profil</span>
+                      <span>{t.direktori.card_detail_btn}</span>
                       <i className="fa-solid fa-chevron-right"></i>
                     </div>
                   </div>
@@ -647,7 +649,7 @@ export default function DirektoriClient({
                               openUserDetail(user);
                             }}
                           >
-                            <i className="fa-solid fa-id-card"></i> Lihat Profil Lengkap
+                            <i className="fa-solid fa-id-card"></i> {t.direktori.card_detail_btn}
                           </button>
                         </div>
                       </div>
@@ -798,7 +800,7 @@ export default function DirektoriClient({
                   onClick={() => triggerHaptic(12)}
                 >
                   <i className="fa-solid fa-address-card"></i>
-                  <span>Simpan</span>
+                  <span>{t.direktori.card_vcard_btn}</span>
                 </a>
               ) : (
                 <Link
@@ -807,7 +809,7 @@ export default function DirektoriClient({
                   title="Masuk untuk mengunduh kontak resmi alumni"
                 >
                   <i className="fa-solid fa-lock"></i>
-                  <span>Simpan</span>
+                  <span>{t.direktori.card_vcard_btn}</span>
                 </Link>
               )}
 
@@ -822,7 +824,7 @@ export default function DirektoriClient({
                 title="Pindai QR Kontak"
               >
                 <i className="fa-solid fa-qrcode"></i>
-                <span>QR Kode</span>
+                <span>QR</span>
               </button>
 
               {/* Kirim Pesan Internal Portal */}
@@ -849,7 +851,7 @@ export default function DirektoriClient({
                   triggerHaptic(8);
                 }}
               >
-                <i className="fa-solid fa-user"></i> Biodata
+                <i className="fa-solid fa-user"></i> {t.direktori.modal_personal}
               </button>
               <button
                 type="button"
@@ -859,7 +861,7 @@ export default function DirektoriClient({
                   triggerHaptic(8);
                 }}
               >
-                <i className="fa-solid fa-phone"></i> Kontak
+                <i className="fa-solid fa-phone"></i> {t.direktori.modal_social}
               </button>
               <button
                 type="button"

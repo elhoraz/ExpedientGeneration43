@@ -5,6 +5,7 @@ import Script from "next/script";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useCms } from "@/components/layout/CmsProvider";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { sanitizeHtml } from "@/lib/sanitize";
 import LorongKenangan from "./LorongKenangan";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
@@ -30,6 +31,7 @@ export default function BerandaClient({
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { t } = useCms();
+  const { t: tLang } = useLanguage();
 
   useEffect(() => {
     const audio = new Audio("/assets/audio/memori.mp3");
@@ -175,16 +177,16 @@ export default function BerandaClient({
           <div className="merge-flash" id="flashEffect"></div>
           
           <div className="hud-controls">
-              <div className="hud-hint" id="hudHint"><i className="fa-solid fa-arrows-left-right"></i> Tahan & Geser Untuk Memutar</div>
-              <button className="btn-mecha hover-trigger" id="btnAction"><i className="fa-solid fa-expand"></i> Pencar Formasi</button>
+              <div className="hud-hint" id="hudHint"><i className="fa-solid fa-arrows-left-right"></i> {tLang.beranda.hint_drag}</div>
+              <button className="btn-mecha hover-trigger" id="btnAction"><i className="fa-solid fa-expand"></i> {tLang.beranda.hint_spin}</button>
               <button 
                 type="button" 
                 className="btn-mecha hover-trigger" 
                 onClick={toggleAudio}
-                title={isPlayingAudio ? "Jeda Suasana Memori" : "Putar Suasana Memori"}
+                title={isPlayingAudio ? tLang.beranda.audio_paused : tLang.beranda.audio_playing}
                 style={{ marginLeft: '10px' }}
               >
-                <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i> {isPlayingAudio ? 'Atmosfer Aktif' : 'Atmosfer Memori'}
+                <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i> {isPlayingAudio ? tLang.beranda.audio_playing : tLang.beranda.audio_pill_title}
               </button>
           </div>
 
@@ -195,7 +197,7 @@ export default function BerandaClient({
           <div className="phil-content">
               <h2 className="phil-title" id="modalTitle">Judul</h2>
               <p className="phil-desc" id="modalDesc">Deskripsi filosofi.</p>
-              <button className="btn-mecha hover-trigger" style={{ marginTop: '25px', padding: '10px 25px', fontSize: '0.8rem' }} onClick={closeModal}>TUTUP</button>
+              <button className="btn-mecha hover-trigger" style={{ marginTop: '25px', padding: '10px 25px', fontSize: '0.8rem' }} onClick={closeModal}>{tLang.common.close.toUpperCase()}</button>
           </div>
       </div>
 
@@ -358,15 +360,15 @@ export default function BerandaClient({
           </section>
 
           <section className="hall-section ledger-section reveal-up">
-              <h2 className="section-title" style={{ marginBottom: '20px' }}>{t('beranda_guestbook_title', 'Buku Tamu Eksklusif')}</h2>
-              <p style={{ color: 'var(--text-muted, #5e7a6b)', marginBottom: '40px', fontSize: '0.9rem' }}>{t('beranda_guestbook_desc', 'Segel kehadiran Anda di dalam sejarah peradaban.')}</p>
+              <h2 className="section-title" style={{ marginBottom: '20px' }}>{tLang.beranda.buku_tamu_title}</h2>
+              <p style={{ color: 'var(--text-muted, #5e7a6b)', marginBottom: '40px', fontSize: '0.9rem' }}>{tLang.beranda.buku_tamu_subtitle}</p>
               
               {isLoggedIn ? (
                   <form onSubmit={handleGuestbookSubmit} className="ledger-form" id="ledgerForm">
                       <input type="text" name="nama" className="luxury-input input-signature" placeholder="Tanda Tangan (Nama)" required />
                       <textarea name="pesan" className="luxury-input" placeholder="Tuliskan pesan berharga Anda..." rows={2} required></textarea>
                       <div>
-                          <button type="submit" className="btn-stamp" id="desktopSubmitBtn">STEMPEL KEHADIRAN</button>
+                          <button type="submit" className="btn-stamp" id="desktopSubmitBtn">{tLang.beranda.buku_tamu_btn.toUpperCase()}</button>
                           
                           <div className="swipe-seal-container" id="swipeSealContainer">
                               <div className="swipe-fill" id="swipeFill"></div>
@@ -378,16 +380,16 @@ export default function BerandaClient({
               ) : (
                   <div className="guestbook-empty">
                       <i className="fa-solid fa-lock guestbook-empty-icon"></i>
-                      <p className="guestbook-empty-text">Silakan telusuri jejak langkah untuk menandatangani buku tamu peradaban.</p>
+                      <p className="guestbook-empty-text">{tLang.direktori.card_guest_locked}</p>
                       <Link href="/login" className="guestbook-login-link">
-                          <i className="fa-solid fa-door-open"></i> Telusuri Jejak Langkah
+                          <i className="fa-solid fa-door-open"></i> {tLang.nav.login}
                       </Link>
                   </div>
               )}
 
               {bukuTamu.length > 0 && (
                   <div className="guestbook-list">
-                      <h3 className="guestbook-title">Jejak Terkini</h3>
+                      <h3 className="guestbook-title">{tLang.beranda.buku_tamu_title}</h3>
                       <div className="guestbook-items">
                           {bukuTamu.map((bt, idx) => (
                               <div className="guestbook-item" key={idx}>
@@ -398,7 +400,7 @@ export default function BerandaClient({
                           ))}
                       </div>
                       <div className="guestbook-footer">
-                          <a href="/buku-tamu" className="guestbook-more-link">Lihat Seluruh Catatan <i className="fa-solid fa-arrow-right"></i></a>
+                          <a href="/buku-tamu" className="guestbook-more-link">{tLang.common.view} {tLang.common.all} <i className="fa-solid fa-arrow-right"></i></a>
                       </div>
                   </div>
               )}
@@ -425,14 +427,14 @@ export default function BerandaClient({
           <div 
             className={`museum-audio-pill ${isPlayingAudio ? 'playing' : ''}`}
             onClick={toggleAudio}
-            title={isPlayingAudio ? "Jeda Atmosfer Suasana" : "Putar Suasana Memori & Syahdu"}
+            title={isPlayingAudio ? tLang.beranda.audio_paused : tLang.beranda.audio_playing}
           >
             <div className="audio-wave-bars">
               <span className={`bar ${isPlayingAudio ? 'anim-bar' : ''}`}></span>
               <span className={`bar ${isPlayingAudio ? 'anim-bar' : ''}`}></span>
               <span className={`bar ${isPlayingAudio ? 'anim-bar' : ''}`}></span>
             </div>
-            <span className="audio-label">{isPlayingAudio ? 'Atmosfer Aktif' : 'Putar Audio'}</span>
+            <span className="audio-label">{isPlayingAudio ? tLang.beranda.audio_playing : tLang.beranda.audio_pill_title}</span>
             <i className={`fa-solid ${isPlayingAudio ? 'fa-volume-high' : 'fa-volume-xmark'}`}></i>
           </div>
       </main>
