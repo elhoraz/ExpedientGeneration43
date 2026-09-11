@@ -4,6 +4,7 @@ import "./landing.css";
 import { sanitizeHtml } from "@/lib/sanitize";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import TiltCard from "@/components/features/TiltCard";
+import HeritageVideoPlayer from "@/components/features/HeritageVideoPlayer";
 import { createClient } from "@/lib/supabase/server";
 
 // Helper function to get content from CMS array
@@ -216,40 +217,7 @@ export default async function LandingPage() {
 
           {/* Video Dokumenter Profil & Suasana Almamater */}
           <div className="heritage-video-container">
-            <div className="heritage-video-card">
-              <div className="heritage-video-header">
-                <div className="video-badge">
-                  <i className="fa-solid fa-play"></i>
-                  <span>DOKUMENTER KAMPUS PONDOK MODERN ARRISALAH</span>
-                </div>
-                <span className="video-loc">
-                  <i className="fa-solid fa-location-dot"></i> Desa Gundik, Slahung, Ponorogo
-                </span>
-              </div>
-              <div className="heritage-video-frame">
-                <iframe
-                  src="https://www.youtube-nocookie.com/embed?listType=playlist&list=UU_cI0wW5C3jZ6I-v_2p&origin=https://expedientgeneration.vercel.app"
-                  title="Dokumentasi Profil Kampus Pondok Modern Arrisalah Slahung Ponorogo"
-                  loading="lazy"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
-              </div>
-              <div className="heritage-video-footer">
-                <div className="video-desc">
-                  <em>&ldquo;Dari Slahung menatap dunia — menggembleng santri berilmu amaliah, beramal ilmiah, dan berakhlakul karimah.&rdquo;</em>
-                </div>
-                <a
-                  href="https://www.youtube.com/@pengajianumumahadpagipmarr2004"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="video-channel-btn"
-                >
-                  <i className="fa-brands fa-youtube"></i>
-                  <span>Kanal Resmi Pondok</span>
-                </a>
-              </div>
-            </div>
+            <HeritageVideoPlayer />
           </div>
         </section>
 
