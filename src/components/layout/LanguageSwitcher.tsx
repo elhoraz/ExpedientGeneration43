@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Locale, SUPPORTED_LOCALES } from "@/lib/i18n/types";
 
@@ -10,26 +9,14 @@ interface LanguageSwitcherProps {
 }
 
 export default function LanguageSwitcher({ variant = "pill", className = "" }: LanguageSwitcherProps) {
-  const { locale, setLocale, meta } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { locale, setLocale } = useLanguage();
 
-  // Close when clicking outside
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
+  const cycleLanguage = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate(15);
     }
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
-  const handleSelect = (code: Locale) => {
-    setLocale(code);
-    setIsOpen(false);
+    const next: Locale = locale === "id" ? "ar" : locale === "ar" ? "en" : "id";
+    setLocale(next);
   };
 
   const localesList = Object.values(SUPPORTED_LOCALES);
@@ -47,7 +34,12 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
               key={item.code}
               type="button"
               className={`lang-sidebar-pill ${locale === item.code ? "active" : ""}`}
-              onClick={() => handleSelect(item.code)}
+              onClick={() => {
+                if (typeof navigator !== "undefined" && navigator.vibrate) {
+                  navigator.vibrate(10);
+                }
+                setLocale(item.code);
+              }}
               title={item.nativeLabel}
             >
               <span className="lang-flag">{item.flag}</span>
@@ -60,41 +52,18 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
   }
 
   return (
-    <div className={`lang-switcher-container ${className}`} ref={dropdownRef}>
-      <button
-        type="button"
-        className="lang-switcher-btn hover-trigger"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-        title="Ganti Bahasa / Change Language / تغيير اللغة"
-      >
-        <span className="lang-flag-current">{meta.flag}</span>
-        <span className="lang-code-current">{locale.toUpperCase()}</span>
-        <i className={`fa-solid fa-chevron-down lang-chevron ${isOpen ? "rotate" : ""}`}></i>
-      </button>
-
-      {isOpen && (
-        <div className="lang-dropdown-menu" role="listbox">
-          {localesList.map((item) => {
-            const isSelected = locale === item.code;
-            return (
-              <button
-                key={item.code}
-                type="button"
-                role="option"
-                aria-selected={isSelected}
-                className={`lang-dropdown-item ${isSelected ? "active" : ""}`}
-                onClick={() => handleSelect(item.code)}
-              >
-                <span className="lang-item-flag">{item.flag}</span>
-                <span className="lang-item-name">{item.nativeLabel}</span>
-                {isSelected && <i className="fa-solid fa-check lang-check-icon"></i>}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    <button
+      type="button"
+      className={`theme-widget lang-widget hover-trigger ${className}`}
+      id="btnLang"
+      title="Ganti Bahasa / Switch Language (ID → AR → EN)"
+      onClick={cycleLanguage}
+      suppressHydrationWarning
+    >
+      <div className="icon-orb">
+        <i className="fa-solid fa-globe" id="langIcon"></i>
+      </div>
+      <span className="widget-text" id="langText">{locale.toUpperCase()}</span>
+    </button>
   );
 }

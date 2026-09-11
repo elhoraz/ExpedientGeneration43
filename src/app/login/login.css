@@ -282,7 +282,8 @@
     align-items: center;
     gap: 10px;
 }
-.login-top-bar .toggle-widget {
+.login-top-bar .toggle-widget,
+.login-top-bar .lang-widget {
     position: static;
 }
 

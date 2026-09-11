@@ -133,6 +133,13 @@
   gap: 12px;
 }
 
+.landing-nav-island .theme-widget,
+.landing-nav-island .lang-widget {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+}
+
 .nav-btn-portal {
   background: linear-gradient(135deg, #d4af37, #c9a029);
   color: #050706;
@@ -1293,6 +1300,7 @@
   }
 
   /* Keep mobile navbar minimal & untouched - language switcher available in footer */
+  .landing-nav-island .lang-widget,
   .landing-nav-island .lang-switcher-container {
     display: none !important;
   }

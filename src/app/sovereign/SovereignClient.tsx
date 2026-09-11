@@ -1707,6 +1707,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           pointer-events: auto;
         }
 
+        .sovereign-header-actions .lang-widget {
+          position: static !important;
+          top: auto !important;
+          right: auto !important;
+        }
+
         .sovereign-mode-pill-btn {
           display: inline-flex;
           align-items: center;
