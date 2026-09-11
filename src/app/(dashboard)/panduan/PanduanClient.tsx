@@ -8,36 +8,110 @@ import PageGuideModal from "@/components/guide/PageGuideModal";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./panduan.css";
 
-const GENERAL_FAQS = [
-  {
-    q: "Bagaimana cara mengubah nomor WhatsApp atau foto profil saya?",
-    a: "Buka menu 'Profil' dari bilah samping (Sidebar) atau klik foto profil Anda. Di halaman tersebut, Anda dapat mengunggah foto baru, memotong foto avatar, serta memperbarui nomor WhatsApp, kota tinggal, dan profesi Anda lalu tekan 'Simpan Perubahan'.",
-  },
-  {
-    q: "Apakah data kontak alumni aman di portal ini?",
-    a: "Sangat aman. Seluruh akses direktori, nomor telepon, dan fitur obrolan dilindungi sistem autentikasi terenkripsi yang hanya dapat diakses oleh anggota resmi angkatan ke-43 yang telah diverifikasi.",
-  },
-  {
-    q: "Bagaimana cara memasang aplikasi ini di layar utama ponsel (Homescreen)?",
-    a: "Buka menu 'Fitur' lalu pilih 'Pusat Unduhan (Download)'. Di Android Chrome, tekan tombol 'Pasang Aplikasi'. Di iPhone Safari, tekan tombol Share (ikon kotak panah ke atas) lalu pilih 'Add to Home Screen' (Tambah ke Layar Utama).",
-  },
-  {
-    q: "Bagaimana cara mengunduh Kartu Tanda Anggota (KTA 3D)?",
-    a: "Buka menu 'Fitur' > 'Kartu Alumni (KTA 3D)'. Sentuh dan putar kartu digital Anda, lalu tekan tombol ikon unduh (panah ke bawah) di sudut kanan atas untuk menyimpan gambar KTA beresolusi tinggi ke galeri ponsel Anda.",
-  },
-  {
-    q: "Mengapa saya tidak bisa membuka halaman Admin?",
-    a: "Menu Administrator hanya dapat diakses oleh akun pengurus resmi yang memiliki role 'admin' atau 'superadmin'. Jika Anda merupakan pengurus angkatan, silakan hubungi tim sekretariat untuk aktivasi hak akses.",
-  },
-];
+const GENERAL_FAQS_I18N = {
+  id: [
+    {
+      q: "Bagaimana cara mengubah nomor WhatsApp atau foto profil saya?",
+      a: "Buka menu 'Profil' dari bilah samping (Sidebar) atau klik foto profil Anda. Di halaman tersebut, Anda dapat mengunggah foto baru, memotong foto avatar, serta memperbarui nomor WhatsApp, kota tinggal, dan profesi Anda lalu tekan 'Simpan Perubahan'.",
+    },
+    {
+      q: "Apakah data kontak alumni aman di portal ini?",
+      a: "Sangat aman. Seluruh akses direktori, nomor telepon, dan fitur obrolan dilindungi sistem autentikasi terenkripsi yang hanya dapat diakses oleh anggota resmi angkatan ke-43 yang telah diverifikasi.",
+    },
+    {
+      q: "Bagaimana cara memasang aplikasi ini di layar utama ponsel (Homescreen)?",
+      a: "Buka menu 'Fitur' lalu pilih 'Pusat Unduhan (Download)'. Di Android Chrome, tekan tombol 'Pasang Aplikasi'. Di iPhone Safari, tekan tombol Share (ikon kotak panah ke atas) lalu pilih 'Add to Home Screen' (Tambah ke Layar Utama).",
+    },
+    {
+      q: "Bagaimana cara mengunduh Kartu Tanda Anggota (KTA 3D)?",
+      a: "Buka menu 'Fitur' > 'Kartu Alumni (KTA 3D)'. Sentuh dan putar kartu digital Anda, lalu tekan tombol ikon unduh (panah ke bawah) di sudut kanan atas untuk menyimpan gambar KTA beresolusi tinggi ke galeri ponsel Anda.",
+    },
+    {
+      q: "Mengapa saya tidak bisa membuka halaman Admin?",
+      a: "Menu Administrator hanya dapat diakses oleh akun pengurus resmi yang memiliki role 'admin' atau 'superadmin'. Jika Anda merupakan pengurus angkatan, silakan hubungi tim sekretariat untuk aktivasi hak akses.",
+    },
+  ],
+  en: [
+    {
+      q: "How do I change my WhatsApp number or profile picture?",
+      a: "Open the 'Profile' menu from the sidebar or click your profile avatar. On that page, you can upload a new photo, crop your avatar, update your WhatsApp number, city, and aspirations, then click 'Save Changes'.",
+    },
+    {
+      q: "Is alumni contact data secure on this portal?",
+      a: "Extremely secure. All access to the directory, phone numbers, and chat features is protected by encrypted authentication only accessible to verified official members of the 43rd generation.",
+    },
+    {
+      q: "How do I install this application to my smartphone's home screen?",
+      a: "Open the 'Features' menu and select 'Download Center'. On Android Chrome, tap 'Install App'. On iPhone Safari, tap the Share icon (box with upward arrow) and select 'Add to Home Screen'.",
+    },
+    {
+      q: "How do I download the 3D Alumni ID Card (KTA)?",
+      a: "Go to 'Features' > 'Alumni Card (3D KTA)'. Rotate and interact with your digital card, then tap the download icon in the top right corner to save the high-resolution KTA image to your phone gallery.",
+    },
+    {
+      q: "Why can't I access the Admin page?",
+      a: "The Administrator menu is restricted to official committee accounts with 'admin' or 'superadmin' roles. If you are part of the board, please contact the secretariat team for access activation.",
+    },
+  ],
+  ar: [
+    {
+      q: "كيف يمكنني تغيير رقم الواتساب أو صورتي الشخصية؟",
+      a: "افتح قائمة 'الملف الشخصي' من الشريط الجانبي أو اضغط على صورتك الرمزية. في تلك الصفحة، يمكنك رفع صورة جديدة، واقتصاص صورتك الرمزية، وتحديث رقم الواتساب، والمدينة، والطموحات، ثم الضغط على 'حفظ التغييرات'.",
+    },
+    {
+      q: "هل بيانات جهات اتصال الخريجين آمنة في هذه البوابة؟",
+      a: "آمنة للغاية. جميع بيانات الدليل وأرقام الهواتف وميزات الدردشة محمية بنظام مصادقة مشفر متاح حصرياً للأعضاء المعتمدين رسمياً من الدفعة 43.",
+    },
+    {
+      q: "كيف يمكنني تثبيت التطبيق على الشاشة الرئيسية للهاتف؟",
+      a: "افتح قائمة 'الميزات' ثم اختر 'مركز التنزيل'. في متصفح كروم على أندرويد، اضغط على 'تثبيت التطبيق'. وفي سفاري على آيفون، اضغط على أيقونة المشاركة واختر 'إضافة إلى الشاشة الرئيسية'.",
+    },
+    {
+      q: "كيف يمكنني تنزيل بطاقة العضوية ثلاثية الأبعاد (KTA 3D)؟",
+      a: "انتقل إلى 'الميزات' > 'بطاقة الخريج (KTA 3D)'. يمكنك تدوير بطاقتك الرقمية، ثم النقر فوق أيقونة التنزيل في الزاوية العلوية لحفظ صورة البطاقة عالية الدقة في استوديو هاتفك.",
+    },
+    {
+      q: "لماذا لا يمكنني فتح صفحة المشرف (الإدارة)؟",
+      a: "قائمة المشرفين مخصصة لحسابات الإدارة الرسمية التي تملك صلاحية 'admin' أو 'superadmin'. إذا كنت من مسؤولي الدفعة، يرجى التواصل مع فريق السكرتارية لتفعيل الصلاحية.",
+    },
+  ],
+};
 
 export default function PanduanClient() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>("semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeModalGuide, setActiveModalGuide] = useState<PageGuide | null>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+
+  // Localized Categories
+  const categoriesLocalized = useMemo(() => {
+    return CATEGORIES.map((cat) => {
+      let label: string = cat.label;
+      if (locale === "ar") {
+        if (cat.id === "semua") label = "جميع الميزات";
+        else if (cat.id === "utama") label = "القائمة الرئيسية";
+        else if (cat.id === "komunikasi") label = "التواصل";
+        else if (cat.id === "sosial") label = "المجتمع والعبادة";
+        else if (cat.id === "eksklusif") label = "ميزات خاصة";
+        else if (cat.id === "admin") label = "إدارة النظام";
+      } else if (locale === "en") {
+        if (cat.id === "semua") label = "All Features";
+        else if (cat.id === "utama") label = "Main Menu";
+        else if (cat.id === "komunikasi") label = "Communication";
+        else if (cat.id === "sosial") label = "Social & Worship";
+        else if (cat.id === "eksklusif") label = "Special Features";
+        else if (cat.id === "admin") label = "Admin Management";
+      }
+      return { id: cat.id, label, icon: cat.icon };
+    });
+  }, [locale]);
+
+  // Localized FAQs
+  const faqs = useMemo(() => {
+    return GENERAL_FAQS_I18N[locale as "id" | "en" | "ar"] || GENERAL_FAQS_I18N.id;
+  }, [locale]);
 
   // Filter panduan berdasarkan kategori dan kata kunci pencarian
   const filteredGuides = useMemo(() => {
@@ -113,8 +187,8 @@ export default function PanduanClient() {
             <i className="fa-solid fa-compass"></i>
           </div>
           <div className="quick-banner-text">
-            <h4>Butuh Tur Pengenalan Ulang?</h4>
-            <p>Jalankan kembali tur panduan langkah-demi-langkah yang menyorot tombol-tombol utama.</p>
+            <h4>{t.panduan.restart_tour_title}</h4>
+            <p>{t.panduan.restart_tour_desc}</p>
           </div>
         </div>
         <button
@@ -122,13 +196,13 @@ export default function PanduanClient() {
           className="btn-restart-tour"
           onClick={handleRestartTour}
         >
-          <i className="fa-solid fa-play"></i> Mulai Tur Interaktif
+          <i className="fa-solid fa-play"></i> {t.panduan.restart_tour_btn}
         </button>
       </div>
 
       {/* 3. CATEGORY CHIPS */}
       <div className="panduan-categories">
-        {CATEGORIES.map((cat) => (
+        {categoriesLocalized.map((cat) => (
           <button
             key={cat.id}
             type="button"
@@ -146,8 +220,14 @@ export default function PanduanClient() {
         {filteredGuides.length === 0 ? (
           <div className="panduan-empty-state">
             <i className="fa-solid fa-magnifying-glass-chart"></i>
-            <h3>Tidak Ditemukan Panduan</h3>
-            <p>Tidak ada panduan yang cocok dengan kata kunci &quot;{searchQuery}&quot;. Silakan coba kata kunci lain.</p>
+            <h3>{locale === "ar" ? "لم يتم العثور على أي دليل" : locale === "en" ? "No Guides Found" : "Tidak Ditemukan Panduan"}</h3>
+            <p>
+              {locale === "ar"
+                ? `لا توجد أدلة تطابق كلمة البحث "${searchQuery}". يرجى تجربة كلمات أخرى.`
+                : locale === "en"
+                ? `No guides matched "${searchQuery}". Please try other keywords.`
+                : `Tidak ada panduan yang cocok dengan kata kunci "${searchQuery}". Silakan coba kata kunci lain.`}
+            </p>
           </div>
         ) : (
           filteredGuides.map((guide) => (
@@ -169,7 +249,9 @@ export default function PanduanClient() {
               {/* Preview Tombol Penting */}
               {guide.controls.length > 0 && (
                 <div className="guide-card-controls-preview">
-                  <span className="preview-label">Tombol Utama:</span>
+                  <span className="preview-label">
+                    {locale === "ar" ? "الأزرار الرئيسية:" : locale === "en" ? "Key Buttons:" : "Tombol Utama:"}
+                  </span>
                   <div className="preview-chips">
                     {guide.controls.slice(0, 3).map((ctrl, i) => (
                       <span key={i} className="preview-chip">
@@ -177,7 +259,9 @@ export default function PanduanClient() {
                       </span>
                     ))}
                     {guide.controls.length > 3 && (
-                      <span className="preview-chip">+{guide.controls.length - 3} lainnya</span>
+                      <span className="preview-chip">
+                        +{guide.controls.length - 3} {locale === "ar" ? "أخرى" : locale === "en" ? "more" : "lainnya"}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -190,12 +274,12 @@ export default function PanduanClient() {
                   className="btn-open-guide-modal"
                   onClick={() => setActiveModalGuide(guide)}
                 >
-                  <i className="fa-solid fa-book-open-reader"></i> Baca Panduan Lengkap
+                  <i className="fa-solid fa-book-open-reader"></i> {locale === "ar" ? "قراءة الدليل كاملاً" : locale === "en" ? "Read Full Guide" : "Baca Panduan Lengkap"}
                 </button>
                 <Link
                   href={guide.route}
                   className="btn-visit-page"
-                  title={`Buka halaman ${guide.title}`}
+                  title={`${locale === "ar" ? "فتح صفحة" : locale === "en" ? "Open page" : "Buka halaman"} ${guide.title}`}
                 >
                   <i className="fa-solid fa-arrow-up-right-from-square"></i>
                 </Link>
@@ -213,7 +297,7 @@ export default function PanduanClient() {
         </div>
 
         <div className="faq-list">
-          {GENERAL_FAQS.map((faq, idx) => {
+          {faqs.map((faq, idx) => {
             const isOpen = openFaqIndex === idx;
             return (
               <div key={idx} className={`faq-card ${isOpen ? "open" : ""}`}>

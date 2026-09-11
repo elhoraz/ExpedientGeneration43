@@ -106,8 +106,8 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
     <>
         <div id="radarLoading" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#030504', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'opacity 1.5s ease' }}>
             <div className="rl-ring" style={{ width: '80px', height: '80px', border: '2px solid rgba(212,175,55,0.15)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'rlSpin 1s linear infinite', marginBottom: '30px' }}></div>
-            <div className="rl-txt" style={{ fontFamily: '"Playfair Display", serif', fontSize: '1.4rem', color: '#d4af37', letterSpacing: '6px', textTransform: 'uppercase', animation: 'rlFade 2s ease-in-out infinite' }}>Jaringan Silaturahmi</div>
-            <div className="rl-sub" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', letterSpacing: '3px', marginTop: '10px' }}>Menghubungkan titik-titik persaudaraan...</div>
+            <div className="rl-txt" style={{ fontFamily: '"Playfair Display", serif', fontSize: '1.4rem', color: '#d4af37', letterSpacing: '6px', textTransform: 'uppercase', animation: 'rlFade 2s ease-in-out infinite' }}>{t.radar.network_title}</div>
+            <div className="rl-sub" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', letterSpacing: '3px', marginTop: '10px' }}>{t.radar.network_sub}</div>
         </div>
 
         {is3DMode ? (
@@ -150,18 +150,18 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         </div>
 
         <div className="leaderboard" id="leaderboard" style={{ zIndex: 49 }}>
-            <div className="lb-title"><i className="fa-solid fa-trophy" style={{ marginRight: "6px" }}></i>Top 5 Kota</div>
+            <div className="lb-title"><i className="fa-solid fa-trophy" style={{ marginRight: "6px" }}></i>{t.radar.top_cities}</div>
             <div id="lbContent"></div>
         </div>
 
         <div className="radar-controls" style={{ zIndex: 50 }}>
-            <button className="btn-radar btn-radar-gold" id="btnSyncLocation" title="Bagikan lokasi Anda saat ini ke peta alumni">
+            <button className="btn-radar btn-radar-gold" id="btnSyncLocation" title={t.radar.update_loc_title}>
               <i className="fa-solid fa-location-crosshairs"></i>
-              <span className="btn-radar-text">Update Lokasi</span>
+              <span className="btn-radar-text">{t.radar.update_loc}</span>
             </button>
-            <button className="btn-radar btn-radar-glass" id="btnAutoTour" title="Jelajahi titik alumni di peta">
+            <button className="btn-radar btn-radar-glass" id="btnAutoTour" title={t.radar.tour_map_title}>
               <i className="fa-solid fa-plane-departure"></i>
-              <span className="btn-radar-text">Jelajah Peta</span>
+              <span className="btn-radar-text">{t.radar.tour_map}</span>
             </button>
             <div className="sync-status" id="syncStatus"></div>
             <div className="map-dropdown-wrap">
@@ -172,10 +172,10 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                     e.stopPropagation();
                     setIsMapMenuOpen(!isMapMenuOpen);
                   }}
-                  title="Ganti jenis peta"
+                  title={t.radar.change_map}
                 >
                   <i className="fa-solid fa-layer-group"></i>
-                  <span className="btn-radar-text">Ganti Peta</span>
+                  <span className="btn-radar-text">{t.radar.change_map}</span>
                 </button>
                 <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown">
                     <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=globe'; }}><i className="fa-solid fa-earth-asia"></i> Globe 3D</button>
@@ -213,18 +213,18 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                 <div className="id-nick" id="idNick"></div>
             </div>
             <div className="id-body">
-                <div className="id-row"><i className="fa-solid fa-location-dot"></i><div><div className="id-row-label">Domisili</div><div className="id-row-val" id="idCity"></div></div></div>
-                <div className="id-row"><i className="fa-solid fa-venus-mars"></i><div><div className="id-row-label">Gender</div><div className="id-row-val" id="idGender"></div></div></div>
-                <div className="id-row"><i className="fa-solid fa-ruler"></i><div><div className="id-row-label">Jarak dari Pondok</div><div className="id-row-val" id="idDist"></div></div></div>
+                <div className="id-row"><i className="fa-solid fa-location-dot"></i><div><div className="id-row-label">{t.radar.domicile}</div><div className="id-row-val" id="idCity"></div></div></div>
+                <div className="id-row"><i className="fa-solid fa-venus-mars"></i><div><div className="id-row-label">{t.radar.gender}</div><div className="id-row-val" id="idGender"></div></div></div>
+                <div className="id-row"><i className="fa-solid fa-ruler"></i><div><div className="id-row-label">{t.radar.dist_from_pondok}</div><div className="id-row-val" id="idDist"></div></div></div>
             </div>
             <div className="id-actions">
                 <a className="id-btn id-btn-wa" id="idWa" href="#" target="_blank" onClick={(e) => {
                     if (e.currentTarget.getAttribute('href') === '#') {
                         e.preventDefault();
-                        alert("Nomor WhatsApp tidak tersedia.");
+                        alert(t.radar.wa_not_available);
                     }
-                }}><i className="fa-brands fa-whatsapp"></i> Hubungi via WhatsApp</a>
-                <a className="id-btn id-btn-profile" id="idProfile" href="#"><i className="fa-solid fa-user"></i> Lihat Profil</a>
+                }}><i className="fa-brands fa-whatsapp"></i> {t.radar.contact_wa}</a>
+                <a className="id-btn id-btn-profile" id="idProfile" href="#"><i className="fa-solid fa-user"></i> {t.radar.view_profile}</a>
             </div>
         </div>
 

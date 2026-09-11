@@ -63,7 +63,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const router = useRouter();
   const supabase = createClient();
   const { t } = useCms();
-  const { t: tLang } = useLanguage();
+  const { t: tLang, locale } = useLanguage();
 
   // UX-02: Progressive disclosure completeness percentage calculation
   const profileCompleteness = useMemo(() => {
@@ -460,14 +460,14 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         <div className="control-panel" id="controlPanel">
             
             <div className="nav-actions stagger-item">
-                <Link href="/fitur" className="action-btn cursor-bind"><i className="fa-solid fa-arrow-left-long"></i> {t('profil_btn_back', 'Kembali')}</Link>
-                <Link href="/chat" className="action-btn cursor-bind" style={{ background: "rgba(212,175,55,0.1)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)" }}><i className="fa-solid fa-envelope"></i> {t('profil_btn_chat', 'Kotak Pesan')}</Link>
-                <button className="action-btn btn-danger cursor-bind" onClick={handleLogout}><i className="fa-solid fa-power-off"></i> {t('profil_btn_logout', 'Keluar')}</button>
+                <Link href="/fitur" className="action-btn cursor-bind"><i className="fa-solid fa-arrow-left-long"></i> {locale === 'id' ? t('profil_btn_back', tLang.profil.btn_back) : tLang.profil.btn_back}</Link>
+                <Link href="/chat" className="action-btn cursor-bind" style={{ background: "rgba(212,175,55,0.1)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)" }}><i className="fa-solid fa-envelope"></i> {locale === 'id' ? t('profil_btn_chat', tLang.profil.btn_chat) : tLang.profil.btn_chat}</Link>
+                <button className="action-btn btn-danger cursor-bind" onClick={handleLogout}><i className="fa-solid fa-power-off"></i> {locale === 'id' ? t('profil_btn_logout', tLang.profil.btn_logout) : tLang.profil.btn_logout}</button>
             </div>
 
             <div className="dashboard-header stagger-item">
-                <h1 className="dashboard-title">{t('profil_title', 'Profil Eksklusif')}</h1>
-                <p className="dashboard-subtitle">{t('profil_subtitle', 'Kelola Data Pribadi Anda')}</p>
+                <h1 className="dashboard-title">{locale === 'id' ? t('profil_title', tLang.profil.title) : tLang.profil.title}</h1>
+                <p className="dashboard-subtitle">{locale === 'id' ? t('profil_subtitle', tLang.profil.subtitle) : tLang.profil.subtitle}</p>
                 
                 <div style={{ marginTop: "20px", display: "inline-flex", alignItems: "center", background: "var(--glass-bg)", padding: "8px 20px", borderRadius: "50px", border: "1px solid var(--glass-border)", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
                     <div style={{ background: badgeColor, padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold", color: "#fff", textTransform: "uppercase", letterSpacing: "1px", marginRight: "15px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" }}>
@@ -551,7 +551,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                     {tLang.profil.completeness}
                                 </span>
                                 <span className="wizard-progress-badge">
-                                    {profileCompleteness}% • {profileCompleteness === 100 ? "Sempurna" : profileCompleteness >= 75 ? "Sangat Baik" : profileCompleteness >= 50 ? "Cukup Lengkap" : "Perlu Dilengkapi"}
+                                    {profileCompleteness}% • {profileCompleteness === 100 ? tLang.profil.completeness_perfect : profileCompleteness >= 75 ? tLang.profil.completeness_great : profileCompleteness >= 50 ? tLang.profil.completeness_good : tLang.profil.completeness_needs_work}
                                 </span>
                             </div>
 
@@ -560,64 +560,67 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                     type="button"
                                     className={`wizard-tab-btn cursor-bind ${wizardStep === 1 ? "active" : ""} ${profileCompleteness >= 33 ? "completed" : ""}`}
                                     onClick={() => setWizardStep(1)}
+                                    aria-label="Identitas Personal"
                                 >
                                     <span className="step-num">1</span>
-                                    <span className="step-title">{tLang.profil.step1 || "Identitas Personal"}</span>
+                                    <span className="step-title">{tLang.profil.step1}</span>
                                 </button>
                                 <div className="wizard-tab-line"></div>
                                 <button
                                     type="button"
                                     className={`wizard-tab-btn cursor-bind ${wizardStep === 2 ? "active" : ""} ${profileCompleteness >= 66 ? "completed" : ""}`}
                                     onClick={() => setWizardStep(2)}
+                                    aria-label="Kontak & Domisili"
                                 >
                                     <span className="step-num">2</span>
-                                    <span className="step-title">{tLang.profil.step2 || "Kontak & Domisili"}</span>
+                                    <span className="step-title">{tLang.profil.step2}</span>
                                 </button>
                                 <div className="wizard-tab-line"></div>
                                 <button
                                     type="button"
                                     className={`wizard-tab-btn cursor-bind ${wizardStep === 3 ? "active" : ""} ${profileCompleteness === 100 ? "completed" : ""}`}
                                     onClick={() => setWizardStep(3)}
+                                    aria-label="Visi & Sosial"
                                 >
                                     <span className="step-num">3</span>
-                                    <span className="step-title">{tLang.profil.step3 || "Visi & Sosial"}</span>
+                                    <span className="step-title">{tLang.profil.step3}</span>
                                 </button>
                             </div>
                         </div>
 
-                        {/* STEP 1: IDENTITAS PERSONAL */}
+                        {/* STEP 1: Identitas Personal */}
                         <div className="wizard-step-section" style={{ display: wizardStep === 1 ? "block" : "none" }}>
                             <div className="photo-upload-wrapper">
                                 <div className="magnetic-avatar cursor-bind" id="magAvatar">
                                     <img src={avatarPreviewSrc} className="avatar-preview" id="avatarPreview" alt="Profil" />
                                 </div>
                                 <div>
-                                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "15px" }}>Potret Resmi</div>
+                                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "15px" }}>{tLang.profil.photo_official_label}</div>
                                     <div className="magnetic-btn-wrap" id="magBtnWrap">
                                         <label className="upload-btn-ui cursor-bind" id="magBtn" htmlFor="inputFileImg">
-                                            Pilih Potret
+                                            {tLang.profil.photo_choose_btn}
                                         </label>
                                     </div>
                                     <input type="file" id="inputFileImg" ref={fileInputRef} accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
-                                    <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginTop: "5px" }}>Maksimum resolusi HD disarankan.</div>
+                                    <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginTop: "5px" }}>{tLang.profil.photo_hd_hint}</div>
                                 </div>
                             </div>
 
                             <div className="form-group">
                                 <input type="text" name="nama_panggilan" className="form-input" id="inp_panggilan" placeholder=" " defaultValue={user.nama_panggilan} required />
-                                <label className="form-label" htmlFor="inp_panggilan">Nama Sandi / Panggilan</label>
+                                <label className="form-label" htmlFor="inp_panggilan">{tLang.profil.nickname_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
 
                             <div className="form-group">
                                 <input type="text" name="nama_lengkap" className="form-input" id="inp_lengkap" placeholder=" " defaultValue={user.nama_lengkap} required />
-                                <label className="form-label" htmlFor="inp_lengkap">Nama Lengkap Resmi</label>
+                                <label className="form-label" htmlFor="inp_lengkap">{tLang.profil.fullname_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
 
                             <div className="form-group">
                                 <input type="email" name="email" className="form-input" id="inp_email" placeholder=" " defaultValue={user.email} required />
-                                <label className="form-label" htmlFor="inp_email">Alamat Surel Utama</label>
+                                <label className="form-label" htmlFor="inp_email">{tLang.profil.email_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
                         </div>
@@ -626,7 +629,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                         <div className="wizard-step-section" style={{ display: wizardStep === 2 ? "block" : "none" }}>
                             <div className="form-group">
                                 <input type="number" name="no_whatsapp" className="form-input" id="inp_wa" placeholder=" " defaultValue={user.no_whatsapp} required />
-                                <label className="form-label" htmlFor="inp_wa">Nomor Kontak (WhatsApp)</label>
+                                <label className="form-label" htmlFor="inp_wa">{tLang.profil.wa_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
 
@@ -636,8 +639,8 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                         <i className="fa-brands fa-whatsapp"></i>
                                     </div>
                                     <div>
-                                        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "0.5px" }}>Notifikasi WhatsApp</div>
-                                        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "2px" }}>Event baru, pengumuman, &amp; alumni bergabung</div>
+                                        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "0.5px" }}>{tLang.profil.wa_notif_title}</div>
+                                        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "2px" }}>{tLang.profil.wa_notif_desc}</div>
                                     </div>
                                 </div>
                                 <label className="wa-toggle-switch" style={{ position: "relative", display: "inline-block", width: "48px", height: "26px", flexShrink: 0, cursor: "pointer" }}>
@@ -650,7 +653,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
 
                             <div className="form-group">
                                 <textarea name="alamat_lengkap" className="form-input" id="inp_alamat" placeholder=" " defaultValue={user.alamat_lengkap || ""}></textarea>
-                                <label className="form-label" htmlFor="inp_alamat">Alamat Domisili Lengkap</label>
+                                <label className="form-label" htmlFor="inp_alamat">{tLang.profil.address_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
                         </div>
@@ -660,25 +663,25 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                             <div className="form-row">
                                 <div className="form-group">
                                     <input type="text" name="akun_ig" className="form-input" id="inp_ig" placeholder=" " defaultValue={user.akun_ig} />
-                                    <label className="form-label" htmlFor="inp_ig">Instagram (Opsional)</label>
+                                    <label className="form-label" htmlFor="inp_ig">{tLang.profil.ig_field_label}</label>
                                     <div className="liquid-line"></div>
                                 </div>
                                 <div className="form-group">
                                     <input type="text" name="akun_tiktok" className="form-input" id="inp_tt" placeholder=" " defaultValue={user.akun_tiktok} />
-                                    <label className="form-label" htmlFor="inp_tt">TikTok (Opsional)</label>
+                                    <label className="form-label" htmlFor="inp_tt">{tLang.profil.tiktok_field_label}</label>
                                     <div className="liquid-line"></div>
                                 </div>
                             </div>
 
                             <div className="form-group">
                                 <textarea name="motivasi_hidup" className="form-input" id="inp_motivasi" placeholder=" " defaultValue={user.motivasi_hidup}></textarea>
-                                <label className="form-label" htmlFor="inp_motivasi">Visi &amp; Motivasi</label>
+                                <label className="form-label" htmlFor="inp_motivasi">{tLang.profil.vision_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
                             
                             <div className="form-group">
                                 <input type="text" name="cita_cita" className="form-input" id="inp_cita" placeholder=" " defaultValue={user.cita_cita} />
-                                <label className="form-label" htmlFor="inp_cita">Target Pencapaian</label>
+                                <label className="form-label" htmlFor="inp_cita">{tLang.profil.aspiration_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
                         </div>
@@ -918,11 +921,11 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                           <form onSubmit={handleDeleteAccount} style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "16px", padding: "20px", textAlign: "center" }}>
                             <p style={{ color: "#ef4444", fontSize: "0.9rem", fontWeight: 600, marginBottom: "15px" }}>
                               <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "6px" }}></i>
-                              Konfirmasi Penghapusan Permanen
+                              {tLang.profil.delete_modal_title}
                             </p>
                             <div className="form-group" style={{ marginBottom: "15px", textAlign: "left" }}>
                               <input type="password" name="password_delete" className="form-input" id="inp_delpass" placeholder=" " required style={{ borderColor: "rgba(239, 68, 68, 0.4)" }} value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
-                              <label className="form-label" htmlFor="inp_delpass" style={{ color: "#ef4444" }}>Masukkan Kata Sandi untuk Konfirmasi</label>
+                              <label className="form-label" htmlFor="inp_delpass" style={{ color: "#ef4444" }}>{tLang.profil.delete_modal_pass_label}</label>
                               <div className="liquid-line" style={{ background: "linear-gradient(90deg, transparent, #ef4444, transparent)" }}></div>
                             </div>
                             <div style={{ display: "flex", gap: "10px" }}>
@@ -931,14 +934,14 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                 onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); }}
                                 style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem" }}
                               >
-                                Batal
+                                {tLang.common.cancel}
                               </button>
                               <button
                                 type="submit"
                                 disabled={deletingAccount}
                                 style={{ flex: 1, background: "#ef4444", border: "none", color: "#fff", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}
                               >
-                                {deletingAccount ? <i className="fa-solid fa-circle-notch fa-spin"></i> : "Hapus Akun Permanen"}
+                                {deletingAccount ? <i className="fa-solid fa-circle-notch fa-spin"></i> : tLang.profil.delete_modal_submit}
                               </button>
                             </div>
                           </form>
@@ -959,7 +962,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         <ImageCropperModal
           isOpen={isCropperOpen}
           imageSrc={rawCropImage || ""}
-          title="Sesuaikan Potret Profil"
+          title={tLang.profil.crop_modal_title}
           aspectRatio={1}
           outputWidth={600}
           outputHeight={600}

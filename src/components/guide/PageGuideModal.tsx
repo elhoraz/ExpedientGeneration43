@@ -15,7 +15,7 @@ interface PageGuideModalProps {
 
 export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModalProps) {
   const [activeTab, setActiveTab] = useState<"fungsi" | "cara" | "tombol" | "tips">("fungsi");
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
   useEffect(() => {
     if (isOpen) {
@@ -116,12 +116,12 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
           {activeTab === "fungsi" && (
             <div className="guide-tab-pane">
               <h4 className="guide-section-heading">
-                <i className="fa-solid fa-bullseye"></i> Ringkasan Halaman
+                <i className="fa-solid fa-bullseye"></i> {locale === "ar" ? "ملخص الصفحة" : locale === "en" ? "Page Summary" : "Ringkasan Halaman"}
               </h4>
               <p className="guide-summary-text">{guide.summary}</p>
 
               <div className="guide-route-box">
-                <span className="route-label">Rute Halaman:</span>
+                <span className="route-label">{locale === "ar" ? "مسار الصفحة:" : locale === "en" ? "Page Route:" : "Rute Halaman:"}</span>
                 <code className="route-code">{guide.route}</code>
               </div>
             </div>
@@ -130,7 +130,7 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
           {activeTab === "cara" && (
             <div className="guide-tab-pane">
               <h4 className="guide-section-heading">
-                <i className="fa-solid fa-shoe-prints"></i> Langkah Penggunaan
+                <i className="fa-solid fa-shoe-prints"></i> {locale === "ar" ? "خطوات الاستخدام" : locale === "en" ? "Usage Steps" : "Langkah Penggunaan"}
               </h4>
               <ol className="guide-steps-list">
                 {guide.howToUse.map((step, idx) => (
@@ -146,7 +146,7 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
           {activeTab === "tombol" && (
             <div className="guide-tab-pane">
               <h4 className="guide-section-heading">
-                <i className="fa-solid fa-gamepad"></i> Tombol &amp; Kontrol Penting
+                <i className="fa-solid fa-gamepad"></i> {locale === "ar" ? "الأزرار وعناصر التحكم الهامة" : locale === "en" ? "Key Buttons & Controls" : "Tombol & Kontrol Penting"}
               </h4>
               <div className="guide-controls-grid">
                 {guide.controls.map((ctrl, idx) => (
@@ -167,7 +167,7 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
           {activeTab === "tips" && (
             <div className="guide-tab-pane">
               <h4 className="guide-section-heading">
-                <i className="fa-solid fa-star"></i> Tips &amp; Saran Penggunaan
+                <i className="fa-solid fa-star"></i> {locale === "ar" ? "نصائح وإرشادات الاستخدام" : locale === "en" ? "Usage Tips & Recommendations" : "Tips & Saran Penggunaan"}
               </h4>
               <ul className="guide-tips-list">
                 {guide.tips.map((tip, idx) => (

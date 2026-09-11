@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useCms } from "@/components/layout/CmsProvider";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import "./register.css";
-
-
 
 function RegisterFormContent() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -16,21 +16,22 @@ function RegisterFormContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState("");
   const { t } = useCms();
+  const { t: tLang, locale } = useLanguage();
 
   const getPasswordStrength = (pwd: string) => {
     if (!pwd) return { level: 0, label: "", percent: 0 };
-    if (pwd.length < 8) return { level: 1, label: "Kurang dari 8 karakter", percent: 25 };
+    if (pwd.length < 8) return { level: 1, label: tLang.register.pwd_strength_short, percent: 25 };
     const hasLetter = /[a-zA-Z]/.test(pwd);
     const hasNumber = /[0-9]/.test(pwd);
     const hasSpecial = /[^a-zA-Z0-9]/.test(pwd);
 
     if (pwd.length >= 10 && hasLetter && hasNumber && hasSpecial) {
-      return { level: 4, label: "Sangat Kuat", percent: 100 };
+      return { level: 4, label: tLang.register.pwd_strength_very_strong, percent: 100 };
     }
     if (hasLetter && hasNumber) {
-      return { level: 3, label: "Kuat", percent: 75 };
+      return { level: 3, label: tLang.register.pwd_strength_strong, percent: 75 };
     }
-    return { level: 2, label: "Cukup", percent: 50 };
+    return { level: 2, label: tLang.register.pwd_strength_fair, percent: 50 };
   };
 
   const pwdStrength = getPasswordStrength(passwordValue);
@@ -553,16 +554,19 @@ function RegisterFormContent() {
       )}
 
       <Link href="/login" className="floating-nav">
-        <i className="fa-solid fa-arrow-left-long"></i> <span className="nav-text">Kembali</span>
+        <i className="fa-solid fa-arrow-left-long"></i> <span className="nav-text">{tLang.common.back}</span>
       </Link>
-      <button className="theme-widget" id="btnTheme" title="Ganti Mode" onClick={toggleTheme}>
-        <div className="icon-orb">
-          <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
-        </div>
-        <span className="widget-text" id="themeText">
-          {theme === "dark" ? "Malam" : "Siang"}
-        </span>
-      </button>
+      <div className="register-top-bar" style={{ position: "fixed", top: "20px", right: "20px", display: "flex", alignItems: "center", gap: "10px", zIndex: 999 }}>
+        <LanguageSwitcher variant="pill" />
+        <button className="theme-widget" id="btnTheme" title={tLang.common.theme_toggle} onClick={toggleTheme}>
+          <div className="icon-orb">
+            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
+          </div>
+          <span className="widget-text" id="themeText">
+            {theme === "dark" ? tLang.common.theme_dark : tLang.common.theme_light}
+          </span>
+        </button>
+      </div>
 
       <div className="main-container">
         <div className="register-vault" id="mainVault">
@@ -575,8 +579,8 @@ function RegisterFormContent() {
               <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="Part" />
               <img src={t('register_hero_image', '/images/logo-utuh.webp')} className="logo-utuh" alt="Expedient Logo" />
             </div>
-            <h1 className="title-holographic">{t('register_title', 'Inisiasi Angkatan')}</h1>
-            <p className="subtitle-spec">{t('register_subtitle', 'Pahat identitas Anda dalam sejarah 43rd Arrisalah Expedient Generation.')}</p>
+            <h1 className="title-holographic">{locale === "id" ? t('register_title', tLang.register.title) : tLang.register.title}</h1>
+            <p className="subtitle-spec">{locale === "id" ? t('register_subtitle', tLang.register.subtitle) : tLang.register.subtitle}</p>
           </div>
 
           <form action="/auth/register" method="POST" encType="multipart/form-data" id="registerForm" noValidate onSubmit={handleSubmit}>
@@ -585,53 +589,53 @@ function RegisterFormContent() {
             <div className="form-grid">
               <div className="input-group">
                 <input type="text" name="nama_lengkap" className="input-control" required minLength={3} placeholder=" " />
-                <label className="input-label">Nama Lengkap (Sesuai Ijazah)</label>
+                <label className="input-label">{tLang.register.full_name_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint">Wajib diisi dengan benar.</div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="nama_panggilan" className="input-control" required minLength={2} placeholder=" " />
-                <label className="input-label">Nama Panggilan</label>
+                <label className="input-label">{tLang.register.nickname_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint">Wajib diisi dengan benar.</div>
               </div>
 
               <div className="input-group">
                 <select name="jenis_kelamin" className="input-control" required defaultValue="">
-                  <option value="" disabled hidden>Pilih Gender...</option>
-                  <option value="Laki-laki">Laki-laki</option>
-                  <option value="Perempuan">Perempuan</option>
+                  <option value="" disabled hidden>{tLang.register.gender_select}</option>
+                  <option value="Laki-laki">{tLang.register.gender_male}</option>
+                  <option value="Perempuan">{tLang.register.gender_female}</option>
                 </select>
-                <label className="input-label">Jenis Kelamin</label>
+                <label className="input-label">{tLang.register.gender_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="tempat_lahir" className="input-control" required placeholder=" " />
-                <label className="input-label">Tempat Lahir</label>
+                <label className="input-label">{tLang.register.pob_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
 
               <div className="input-group">
                 <input type="date" name="tanggal_lahir" className="input-control" required placeholder=" " style={{ colorScheme: "dark" }} />
-                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>Tanggal Lahir</label>
+                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>{tLang.register.dob_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
 
               <div className="input-group span-full">
                 <input type="text" name="alamat_lengkap" className="input-control" required minLength={10} placeholder=" " />
-                <label className="input-label">Alamat Lengkap Domisili</label>
+                <label className="input-label">{tLang.register.address_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
 
               <div className="input-group">
                 <input type="email" name="email" className="input-control" required placeholder=" " />
-                <label className="input-label">Surel Resmi (Email Aktif)</label>
+                <label className="input-label">{tLang.register.email_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
@@ -647,7 +651,7 @@ function RegisterFormContent() {
                   pattern="^(08|628)[0-9]{8,12}$" 
                   placeholder=" " 
                 />
-                <label className="input-label">Nomor WhatsApp (Aktif, Contoh: 081234567890)</label>
+                <label className="input-label">{tLang.register.whatsapp_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint">Format nomor salah. Wajib diawali 08 atau 628 dengan 10-14 digit angka.</div>
               </div>
@@ -669,15 +673,15 @@ function RegisterFormContent() {
                     }
                   }}
                 />
-                <label className="input-label">Kata Sandi Akses</label>
+                <label className="input-label">{tLang.register.password_label}</label>
                 <div className="input-neon-line"></div>
                 <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`} onClick={() => setShowPassword(!showPassword)}></i>
-                <div className="error-hint">Kata sandi minimal harus 8 karakter.</div>
+                <div className="error-hint">{tLang.register.password_hint}</div>
 
                 <div className="password-requirements-box">
                   <div className="pwd-req-header">
                     <span className="pwd-req-title">
-                      <i className="fa-solid fa-shield-halved"></i> Ketentuan Kata Sandi
+                      <i className="fa-solid fa-shield-halved"></i> {tLang.register.password_rules_title}
                     </span>
                     {passwordValue.length > 0 && (
                       <span className={`pwd-strength-badge strength-${pwdStrength.level}`}>
@@ -698,11 +702,11 @@ function RegisterFormContent() {
                   <div className="pwd-req-items">
                     <div className={`pwd-req-item ${passwordValue.length >= 8 ? "valid" : "pending"}`}>
                       <i className={`fa-solid ${passwordValue.length >= 8 ? "fa-circle-check" : "fa-circle"}`}></i>
-                      <span>Minimal 8 karakter ({passwordValue.length}/8)</span>
+                      <span>{tLang.register.pwd_rule_min} ({passwordValue.length}/8)</span>
                     </div>
                     <div className={`pwd-req-item ${/[a-zA-Z]/.test(passwordValue) && /[0-9]/.test(passwordValue) ? "valid" : "info"}`}>
                       <i className={`fa-solid ${/[a-zA-Z]/.test(passwordValue) && /[0-9]/.test(passwordValue) ? "fa-circle-check" : "fa-circle-info"}`}></i>
-                      <span>Disarankan perpaduan huruf & angka</span>
+                      <span>{tLang.register.pwd_rule_mix}</span>
                     </div>
                   </div>
                 </div>
@@ -710,43 +714,43 @@ function RegisterFormContent() {
 
               <div className="input-group">
                 <input type="text" name="motivasi_hidup" className="input-control" placeholder=" " />
-                <label className="input-label">Motivasi & Filosofi Hidup</label>
+                <label className="input-label">{tLang.register.motivation_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="cita_cita" className="input-control" placeholder=" " />
-                <label className="input-label">Cita-Cita Terbesar</label>
+                <label className="input-label">{tLang.register.aspiration_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
 
               <div className="input-group">
                 <input type="text" name="akun_ig" className="input-control" placeholder=" " />
-                <label className="input-label">Instagram (@username)</label>
+                <label className="input-label">{tLang.register.instagram_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="akun_tiktok" className="input-control" placeholder=" " />
-                <label className="input-label">TikTok (@username)</label>
+                <label className="input-label">{tLang.register.tiktok_label}</label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
 
               <div className="input-group span-full">
-                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>Foto Profil Eksklusif</label>
+                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>{tLang.register.photo_title}</label>
                 
                 {/* Upload Zone (Tampil saat belum ada foto terpilih) */}
                 {!imagePreview && (
                   <label className="upload-zone" onClick={() => fileInputRef.current?.click()}>
                     <i className="fa-solid fa-cloud-arrow-up"></i>
-                    <span style={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: "5px" }}>Unggah Pasfoto Terbaik</span>
-                    <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>Tap/Klik di area ini untuk menelusuri galeri (Maksimal 15MB)</span>
+                    <span style={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: "5px" }}>{tLang.register.photo_upload_tap}</span>
+                    <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>{tLang.register.photo_upload_hint}</span>
                     <span style={{ color: "#d4af37", fontSize: "0.75rem", marginTop: "4px" }}>
-                      <i className="fa-solid fa-crop-simple"></i> Pemotong otomatis rasio 1:1 akan muncul
+                      <i className="fa-solid fa-crop-simple"></i> {tLang.register.photo_crop_notice}
                     </span>
                     <input 
                       type="file" 
@@ -765,13 +769,13 @@ function RegisterFormContent() {
                     <div className="preview-avatar-wrap">
                       <img src={imagePreview} alt="Pratinjau Pasfoto" className="preview-avatar-img" />
                       <div className="preview-status-badge">
-                        <i className="fa-solid fa-circle-check"></i> Siap Disimpan
+                        <i className="fa-solid fa-circle-check"></i> {tLang.register.photo_ready}
                       </div>
                     </div>
                     
                     <div className="preview-details">
-                      <h4 className="preview-details-title">Pasfoto Terpilih</h4>
-                      <p className="preview-details-sub">Rasio 1:1 pasfoto siap digunakan untuk direktori resmi & buku tahunan angkatan.</p>
+                      <h4 className="preview-details-title">{tLang.register.photo_selected}</h4>
+                      <p className="preview-details-sub">{tLang.register.photo_selected_desc}</p>
                       
                       <div className="preview-actions">
                         <button 
@@ -785,22 +789,22 @@ function RegisterFormContent() {
                             }
                           }}
                         >
-                          <i className="fa-solid fa-crop-simple"></i> Atur Ulang Posisi (Crop)
+                          <i className="fa-solid fa-crop-simple"></i> {tLang.register.btn_recrop}
                         </button>
                         <button 
                           type="button" 
                           className="btn-preview-action btn-change" 
                           onClick={handleResetPhoto}
                         >
-                          <i className="fa-solid fa-arrows-rotate"></i> Ganti Foto Lain
+                          <i className="fa-solid fa-arrows-rotate"></i> {tLang.register.btn_change_photo}
                         </button>
                         <button 
                           type="button" 
                           className="btn-preview-action btn-remove" 
                           onClick={handleRemovePhoto}
-                          title="Hapus foto"
+                          title={tLang.register.btn_remove_photo}
                         >
-                          <i className="fa-solid fa-trash-can"></i> Hapus
+                          <i className="fa-solid fa-trash-can"></i> {tLang.register.btn_remove_photo}
                         </button>
                       </div>
                     </div>
@@ -852,7 +856,7 @@ function RegisterFormContent() {
 
               <div className="input-group span-full checkbox-container" id="snkContainer">
                 <input type="checkbox" id="snk" name="snk" required />
-                <label htmlFor="snk">Saya menyatakan dengan sadar bahwa data ini benar dan menyetujui penyimpanannya ke dalam direktori angkatan Expedient.</label>
+                <label htmlFor="snk">{tLang.register.terms_declaration}</label>
                 <div className="error-hint" style={{ bottom: "-15px" }}></div>
               </div>
 
@@ -860,11 +864,11 @@ function RegisterFormContent() {
                 <button type="submit" className="btn-prime magnetic-btn" disabled={isSubmittingForm}>
                   {isSubmittingForm ? (
                     <>
-                      <i className="fa-solid fa-spinner fa-spin"></i> Menyimpan Inisiasi...
+                      <i className="fa-solid fa-spinner fa-spin"></i> {tLang.register.btn_submitting}
                     </>
                   ) : (
                     <>
-                      Selesaikan Inisiasi <i className="fa-solid fa-check"></i>
+                      {tLang.register.btn_submit} <i className="fa-solid fa-check"></i>
                     </>
                   )}
                 </button>
@@ -902,9 +906,9 @@ function RegisterFormContent() {
                 <div className="otp-badge-icon">
                   <i className="fa-solid fa-shield-halved"></i>
                 </div>
-                <h3 className="otp-title">Pilih Metode Verifikasi</h3>
+                <h3 className="otp-title">{tLang.register.otp_choose_title}</h3>
                 <p className="otp-subtitle">
-                  Pilih jalur pengiriman kode verifikasi OTP (6 digit) untuk mengesahkan identitas akun Anda:
+                  {tLang.register.otp_choose_subtitle}
                 </p>
 
                 <div className="otp-channel-grid">
@@ -920,9 +924,9 @@ function RegisterFormContent() {
                     </div>
                     <div className="channel-info">
                       <div className="channel-name" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span>Kirim via Gmail</span>
+                        <span>{tLang.register.otp_via_gmail}</span>
                         <span style={{ fontSize: "0.65rem", padding: "2px 7px", borderRadius: "10px", background: "rgba(212, 175, 55, 0.2)", border: "1px solid rgba(212, 175, 55, 0.45)", color: "#ffd700", fontWeight: 700, letterSpacing: "0.5px" }}>
-                          Rekomendasi
+                          {tLang.register.otp_recommended}
                         </span>
                       </div>
                       <div className="channel-target">{registeredEmail || "Email Anda"}</div>
@@ -944,7 +948,7 @@ function RegisterFormContent() {
                     </div>
                     <div className="channel-info">
                       <div className="channel-name" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                        <span>Kirim via WhatsApp</span>
+                        <span>{tLang.register.otp_via_wa}</span>
                       </div>
                       <div className="channel-target">{registeredWa || "Nomor WhatsApp Anda"}</div>
                     </div>
@@ -957,7 +961,7 @@ function RegisterFormContent() {
                 {isSendingOtp && (
                   <div className="otp-loading-status">
                     <i className="fa-solid fa-circle-notch fa-spin"></i>
-                    <span>Sedang mengirimkan kode OTP...</span>
+                    <span>{tLang.register.otp_sending}</span>
                   </div>
                 )}
               </div>
@@ -969,13 +973,13 @@ function RegisterFormContent() {
                 <div className="otp-badge-icon">
                   <i className="fa-solid fa-key"></i>
                 </div>
-                <h3 className="otp-title">Masukkan Kode OTP</h3>
+                <h3 className="otp-title">{tLang.register.otp_input_title}</h3>
                 <p className="otp-subtitle">
-                  Kode 6 digit telah dikirimkan ke{" "}
+                  {tLang.register.otp_input_subtitle}{" "}
                   <strong style={{ color: "#ffd700" }}>
                     {selectedChannel === "whatsapp" ? `WhatsApp (${maskedTarget})` : `Gmail (${maskedTarget})`}
                   </strong>
-                  . Silakan masukkan 6 angka di bawah:
+                  .
                 </p>
 
                 {selectedChannel === "gmail" && (
@@ -1115,11 +1119,11 @@ function RegisterFormContent() {
                 >
                   {isVerifyingOtp ? (
                     <>
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> Mengesahkan Akun...
+                      <i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.register.otp_verifying}
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-check-double"></i> Sahkan & Aktifkan Akun
+                      <i className="fa-solid fa-check-double"></i> {tLang.register.otp_verify_btn}
                     </>
                   )}
                 </button>
@@ -1127,7 +1131,7 @@ function RegisterFormContent() {
                 <div className="otp-resend-row">
                   {otpCooldown > 0 ? (
                     <span className="otp-cooldown-text">
-                      Kirim ulang kode dalam <strong>{otpCooldown}s</strong>
+                      {tLang.register.otp_resend} dalam <strong>{otpCooldown}s</strong>
                     </span>
                   ) : (
                     <button
@@ -1136,7 +1140,7 @@ function RegisterFormContent() {
                       onClick={() => handleSendOtp(selectedChannel || "gmail")}
                       disabled={isSendingOtp}
                     >
-                      <i className="fa-solid fa-rotate-right"></i> Kirim Ulang Kode OTP
+                      <i className="fa-solid fa-rotate-right"></i> {tLang.register.otp_resend}
                     </button>
                   )}
                 </div>
@@ -1172,7 +1176,7 @@ function RegisterFormContent() {
                       setOtpError(null);
                     }}
                   >
-                    <i className="fa-solid fa-arrow-left"></i> Ganti Saluran (Pilih WhatsApp / Gmail)
+                    <i className="fa-solid fa-arrow-left"></i> {tLang.register.otp_change_method}
                   </button>
                 </div>
               </div>
@@ -1185,16 +1189,15 @@ function RegisterFormContent() {
                   <i className="fa-solid fa-circle-check"></i>
                 </div>
                 <h3 className="otp-title" style={{ color: "#ffd700" }}>
-                  Verifikasi Berhasil!
+                  {tLang.register.otp_success_title}
                 </h3>
                 <p className="otp-subtitle" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
-                  Akun Anda telah <strong>resmi aktif 100%</strong>.<br />
-                  Surat & ucapan selamat bergabung resmi telah dikirimkan ke <strong>WhatsApp</strong> dan <strong>Email</strong> Anda.
+                  {tLang.register.otp_success_desc}
                 </p>
                 <div style={{ marginTop: "25px" }}>
-                  <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                    <i className="fa-solid fa-spinner fa-spin"></i> Mengalihkan ke Gerbang Masuk...
-                  </span>
+                  <Link href="/login" className="btn-prime" style={{ display: "inline-block", padding: "10px 24px", textDecoration: "none", color: "#000", fontWeight: 700, borderRadius: "10px" }}>
+                    {tLang.register.otp_goto_login}
+                  </Link>
                 </div>
               </div>
             )}

@@ -237,22 +237,22 @@ function LoginContent() {
 
       <div className="login-top-bar">
         <LanguageSwitcher variant="pill" />
-        <button className="toggle-widget" id="btnTheme" title="Ganti Mode" onClick={toggleTheme}>
+        <button className="toggle-widget" id="btnTheme" title={tLang.common.theme_toggle} onClick={toggleTheme}>
           <div className="icon-orb">
             <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
           </div>
           <span className="widget-text" id="themeText">
-            {theme === "dark" ? "Malam" : "Siang"}
+            {theme === "dark" ? tLang.common.theme_dark : tLang.common.theme_light}
           </span>
         </button>
       </div>
 
-      <button className="toggle-widget install-app-btn" onClick={() => setIsModalOpen(true)} title="Panduan Install">
+      <button className="toggle-widget install-app-btn" onClick={() => setIsModalOpen(true)} title={tLang.login.install_app}>
         <div className="icon-orb" style={{ color: "#d4af37", background: "rgba(212,175,55,0.1)" }}>
           <i className="fa-solid fa-download"></i>
         </div>
         <span className="widget-text" style={{ color: "#d4af37" }}>
-          Install App
+          {tLang.login.install_app}
         </span>
       </button>
 
@@ -313,7 +313,7 @@ function LoginContent() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-10px", marginBottom: "15px", transform: "translateZ(25px)" }}>
               <label style={{ color: "var(--text-muted)", fontSize: "clamp(0.7rem,1.3vh,0.8rem)", display: "flex", alignItems: "center", gap: "5px", cursor: "pointer" }}>
                 <input type="checkbox" name="remember" style={{ accentColor: "#d4af37", cursor: "pointer" }} />
-                Ingat Saya
+                {tLang.login.remember_me}
               </label>
               <Link href="/forgot-password" style={{ color: "var(--text-muted)", fontSize: "clamp(0.7rem,1.3vh,0.8rem)", textDecoration: "none", transition: "0.3s", borderBottom: "1px solid transparent" }}>
                 <i className="fa-solid fa-key" style={{ fontSize: "0.65rem", marginRight: "4px" }}></i>{tLang.login.forgot_pass}
@@ -336,7 +336,7 @@ function LoginContent() {
               </div>
 
               <div className="divider">
-                <hr /><span>ALTERNATIF</span><hr />
+                <hr /><span>{tLang.common.alternative}</span><hr />
               </div>
 
               <div className="magnetic-wrap">
@@ -373,22 +373,22 @@ function LoginContent() {
 
       <div className={`install-modal ${isModalOpen ? "active" : ""}`} id="installModal">
         <div className="install-content">
-          <h2 className="install-title">Instalasi VVIP App</h2>
+          <h2 className="install-title">{tLang.login.install_modal_title}</h2>
           <div className="install-step">
             <div className="step-icon"><i className="fa-brands fa-android"></i></div>
             <div className="step-text">
-              <h4>Android (Chrome)</h4>
-              <p>Ketuk ikon <b>Titik Tiga</b> di pojok kanan atas browser, lalu pilih <b>"Tambahkan ke Layar Utama"</b>.</p>
+              <h4>{tLang.login.install_android_step}</h4>
+              <p>{tLang.login.install_android_desc}</p>
             </div>
           </div>
           <div className="install-step">
             <div className="step-icon"><i className="fa-brands fa-apple"></i></div>
             <div className="step-text">
-              <h4>iOS / iPhone (Safari)</h4>
-              <p>Ketuk ikon <b>Bagikan/Share</b> (kotak dengan panah) di bawah layar, geser ke bawah, lalu pilih <b>"Tambah ke Layar Utama"</b>.</p>
+              <h4>{tLang.login.install_ios_step}</h4>
+              <p>{tLang.login.install_ios_desc}</p>
             </div>
           </div>
-          <button type="button" className="btn-prime magnetic-btn" style={{ marginTop: "20px", width: "100%", borderRadius: "10px", fontSize: "0.8rem" }} onClick={() => setIsModalOpen(false)}>SAYA MENGERTI</button>
+          <button type="button" className="btn-prime magnetic-btn" style={{ marginTop: "20px", width: "100%", borderRadius: "10px", fontSize: "0.8rem" }} onClick={() => setIsModalOpen(false)}>{tLang.login.install_got_it}</button>
         </div>
       </div>
     </div>

@@ -662,7 +662,7 @@ export default function GaleriClient({
                             setLightboxIndex(index);
                             triggerHaptic(10);
                           }}
-                          title="Buka Layar Penuh"
+                          title={t.galeri.fullscreen}
                         >
                           <i className="fa-solid fa-expand"></i>
                         </button>
@@ -685,7 +685,7 @@ export default function GaleriClient({
                               e.stopPropagation();
                               handleToggleLike(photo);
                             }}
-                            title={photo.is_liked ? "Batal Suka" : "Sukai Foto"}
+                            title={photo.is_liked ? t.galeri.unlike_photo : t.galeri.like_photo}
                           >
                             <i className={photo.is_liked ? "fa-solid fa-heart" : "fa-regular fa-heart"}></i>
                             <span>{photo.likes_count || 0}</span>
@@ -783,7 +783,7 @@ export default function GaleriClient({
                       type="button"
                       className="lightbox-action-btn"
                       onClick={() => setIsLightboxZoomed(!isLightboxZoomed)}
-                      title={isLightboxZoomed ? "Perkecil (Zoom Out)" : "Perbesar (Zoom In)"}
+                      title={isLightboxZoomed ? t.galeri.zoom_out : t.galeri.zoom_in}
                     >
                       <i className={isLightboxZoomed ? "fa-solid fa-magnifying-glass-minus" : "fa-solid fa-magnifying-glass-plus"}></i>
                     </button>
@@ -794,7 +794,7 @@ export default function GaleriClient({
                       target="_blank"
                       rel="noreferrer"
                       className="lightbox-action-btn"
-                      title="Unduh Resolusi Asli"
+                      title={t.galeri.download_orig}
                     >
                       <i className="fa-solid fa-download"></i>
                     </a>
@@ -803,7 +803,7 @@ export default function GaleriClient({
                       type="button"
                       className="lightbox-action-btn close-btn"
                       onClick={() => setLightboxIndex(null)}
-                      title="Tutup (Esc)"
+                      title={t.common.close}
                     >
                       <i className="fa-solid fa-xmark"></i>
                     </button>
@@ -835,7 +835,7 @@ export default function GaleriClient({
 
                   <div className="lightbox-bottom-row">
                     <span className="lightbox-meta-uploader">
-                      Diabadikan oleh <strong>{filteredPhotos[lightboxIndex].uploader_name || "Alumni"}</strong>
+                      {t.galeri.captured_by} <strong>{filteredPhotos[lightboxIndex].uploader_name || "Alumni"}</strong>
                       {filteredPhotos[lightboxIndex].year ? ` • ${filteredPhotos[lightboxIndex].year}` : ""}
                     </span>
 
@@ -872,10 +872,10 @@ export default function GaleriClient({
                     <i className="fa-solid fa-xmark"></i>
                   </button>
                   <h3 className="sheet-user-name" style={{ marginTop: "4px" }}>
-                    Abadikan Foto Kenangan
+                    {t.galeri.immortalize_photo}
                   </h3>
                   <div style={{ fontSize: "0.82rem", color: "var(--gold-main, #d4af37)" }}>
-                    Arsip visual resmi seluruh sahabat angkatan
+                    {t.galeri.immortalize_sub}
                   </div>
                 </div>
 
@@ -914,15 +914,15 @@ export default function GaleriClient({
                         <div className="dropzone-icon-ring">
                           <i className="fa-solid fa-cloud-arrow-up"></i>
                         </div>
-                        <h4>Pilih Foto dari Galeri atau Kamera</h4>
-                        <p>Mendukung JPG, PNG, WEBP hingga 8 MB</p>
+                        <h4>{t.galeri.choose_from_gallery}</h4>
+                        <p>{t.galeri.upload_file_hint}</p>
                       </div>
                     )}
                   </div>
 
                   {/* Album Selector */}
                   <div className="sheet-field-group">
-                    <label className="field-label">Pilih Kategori Album</label>
+                    <label className="field-label">{t.galeri.choose_album}</label>
                     <select
                       className="upload-select-input"
                       value={uploadAlbumId}
@@ -937,7 +937,7 @@ export default function GaleriClient({
 
                   {/* Year Selector */}
                   <div className="sheet-field-group">
-                    <label className="field-label">Tahun Pengambilan</label>
+                    <label className="field-label">{t.galeri.year_taken}</label>
                     <input
                       type="number"
                       className="upload-text-input"

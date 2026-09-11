@@ -50,7 +50,7 @@ export default function DirektoriClient({
   isLoggedIn: boolean;
   currentUserId: string | null;
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [alumni, setAlumni] = useState<ProfileItem[]>(initialAlumni || []);
   const [isSelfHealing, setIsSelfHealing] = useState(false);
   const [search, setSearch] = useState("");
@@ -457,7 +457,7 @@ export default function DirektoriClient({
           {isSelfHealing ? (
             <div>
               <i className="fa-solid fa-circle-notch fa-spin empty-icon"></i>
-              <p>Menghubungkan direktori alumni...</p>
+              <p>{t.direktori.connecting_text}</p>
             </div>
           ) : (
             <div>
@@ -880,11 +880,11 @@ export default function DirektoriClient({
               {sheetTab === "biodata" && (
                 <div className="sheet-section-block">
                   <div className="sheet-field-group">
-                    <span className="field-label">Tempat & Tanggal Lahir</span>
+                    <span className="field-label">{t.direktori.field_birth}</span>
                     <span className="field-value">
                       {selectedUser.tempat_lahir || "-"}
                       {selectedUser.tanggal_lahir
-                        ? `, ${new Date(selectedUser.tanggal_lahir).toLocaleDateString("id-ID", {
+                        ? `, ${new Date(selectedUser.tanggal_lahir).toLocaleDateString(locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID", {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
@@ -894,13 +894,13 @@ export default function DirektoriClient({
                   </div>
 
                   <div className="sheet-field-group">
-                    <span className="field-label">Alamat Domisili</span>
-                    <span className="field-value">{selectedUser.alamat_lengkap || "Belum dicatat"}</span>
+                    <span className="field-label">{t.direktori.field_domicile}</span>
+                    <span className="field-value">{selectedUser.alamat_lengkap || (locale === "ar" ? "لم يُسجّل بعد" : locale === "en" ? "Not recorded yet" : "Belum dicatat")}</span>
                   </div>
 
                   <div className="sheet-field-group">
-                    <span className="field-label">Cita-cita & Aspirasi</span>
-                    <span className="field-value">{selectedUser.cita_cita || "Menjadi pribadi yang berdaya guna bagi umat."}</span>
+                    <span className="field-label">{t.direktori.field_aspiration}</span>
+                    <span className="field-value">{selectedUser.cita_cita || (locale === "ar" ? "أن أكون شخصاً نافعاً للأمة." : locale === "en" ? "To become a beneficial individual for society." : "Menjadi pribadi yang berdaya guna bagi umat.")}</span>
                   </div>
                 </div>
               )}
@@ -908,26 +908,34 @@ export default function DirektoriClient({
               {sheetTab === "kontak" && (
                 <div className="sheet-section-block">
                   <div className="sheet-field-group">
-                    <span className="field-label">Nomor WhatsApp</span>
+                    <span className="field-label">{t.direktori.field_phone}</span>
                     <span className="field-value">{formatDisplayPhone(selectedUser)}</span>
                     {!isLoggedIn ? (
                       <span className="privacy-shield-note" style={{ color: "#d4af37", marginTop: "6px", display: "inline-block" }}>
-                        <i className="fa-solid fa-lock"></i> Kontak privat dilindungi. <Link href="/login" style={{ color: "#ffd700", textDecoration: "underline", fontWeight: 600 }}>Masuk ke Ruang Anggota</Link> untuk melihat nomor alumni.
+                        <i className="fa-solid fa-lock"></i> {t.direktori.privacy_shield_guest}{" "}
+                        <Link href="/login" style={{ color: "#ffd700", textDecoration: "underline", fontWeight: 600 }}>
+                          {locale === "ar" ? "دخول" : locale === "en" ? "Login" : "Masuk"}
+                        </Link>
                       </span>
                     ) : selectedUser.privacy_settings?.show_whatsapp === false && selectedUser.id !== currentUserId ? (
                       <span className="privacy-shield-note">
-                        <i className="fa-solid fa-shield-halved"></i> Nomor kontak ini dilindungi privasi sesuai preferensi alumni.
+                        <i className="fa-solid fa-shield-halved"></i> {t.direktori.privacy_shield_member}
                       </span>
                     ) : null}
                   </div>
 
                   <div className="sheet-field-group">
-                    <span className="field-label">Kartu Kontak Digital</span>
+                    <span className="field-label">{t.direktori.field_vcard}</span>
                     <span className="field-value">
                       {isLoggedIn ? (
-                        "Dapat diunduh langsung sebagai file vCard (.vcf) untuk disinkronkan otomatis dengan kontak smartphone Anda."
+                        t.direktori.vcard_desc_member
                       ) : (
-                        <span>Unduhan file vCard (.vcf) hanya tersedia bagi sesama anggota angkatan. <Link href="/login" style={{ color: "#d4af37", textDecoration: "underline" }}>Masuk</Link></span>
+                        <span>
+                          {t.direktori.vcard_desc_guest}{" "}
+                          <Link href="/login" style={{ color: "#d4af37", textDecoration: "underline" }}>
+                            {locale === "ar" ? "دخول" : locale === "en" ? "Login" : "Masuk"}
+                          </Link>
+                        </span>
                       )}
                     </span>
                   </div>
@@ -937,14 +945,14 @@ export default function DirektoriClient({
               {sheetTab === "visi" && (
                 <div className="sheet-section-block">
                   <div className="sheet-field-group">
-                    <span className="field-label">Kutipan Hidup & Motivasi</span>
+                    <span className="field-label">{t.direktori.field_quote}</span>
                     <blockquote className="sheet-quote">
-                      "{selectedUser.motivasi_hidup || "Tetap ikhlas, sederhana, dan berdikari di mana pun melangkah."}"
+                      "{selectedUser.motivasi_hidup || (locale === "ar" ? "ابق مخلصاً، بسيطاً، ومعتمداً على النفس أينما خطوت." : locale === "en" ? "Stay sincere, simple, and self-reliant wherever you tread." : "Tetap ikhlas, sederhana, dan berdikari di mana pun melangkah.")}"
                     </blockquote>
                   </div>
 
                   <div className="sheet-field-group">
-                    <span className="field-label">Akun Sosial Media</span>
+                    <span className="field-label">{t.direktori.field_social}</span>
                     <div className="sheet-social-links">
                       {selectedUser.akun_ig ? (
                         <a
@@ -956,7 +964,9 @@ export default function DirektoriClient({
                           <i className="fa-brands fa-instagram"></i> @{selectedUser.akun_ig.replace("@", "")}
                         </a>
                       ) : (
-                        <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>Instagram belum dicantumkan</span>
+                        <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>
+                          {locale === "ar" ? "إنستغرام لم يُسجّل بعد" : locale === "en" ? "Instagram not listed" : "Instagram belum dicantumkan"}
+                        </span>
                       )}
 
                       {selectedUser.akun_tiktok && (
@@ -982,9 +992,15 @@ export default function DirektoriClient({
       {qrModalUser && (
         <div className="qr-modal-backdrop" onClick={() => setQrModalUser(null)}>
           <div className="qr-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="qr-card-tag">KARTU KONTAK DIGITAL</div>
+            <div className="qr-card-tag">{t.direktori.field_vcard.toUpperCase()}</div>
             <h3 className="qr-card-title">{qrModalUser.nama_panggilan || qrModalUser.nama_lengkap}</h3>
-            <p className="qr-card-desc">Arahkan kamera smartphone ke QR Code untuk simpan kontak otomatis.</p>
+            <p className="qr-card-desc">
+              {locale === "ar"
+                ? "وجّه كاميرا هاتفك نحو رمز الاستجابة السريعة لحفظ جهة الاتصال تلقائياً."
+                : locale === "en"
+                ? "Point your phone camera at the QR Code to automatically save the contact."
+                : "Arahkan kamera smartphone ke QR Code untuk simpan kontak otomatis."}
+            </p>
 
             <div className="qr-frame">
               {(() => {
@@ -1010,7 +1026,7 @@ export default function DirektoriClient({
                 return (
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(vcardPayload)}`}
-                    alt="QR Code Kontak"
+                    alt={t.direktori.field_vcard}
                     className="qr-img-canvas"
                   />
                 );
@@ -1023,14 +1039,14 @@ export default function DirektoriClient({
                 download={`Expedient_${(qrModalUser.nama_panggilan || qrModalUser.nama_lengkap || "Kontak").replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`}
                 className="btn-download-vcf"
               >
-                <i className="fa-solid fa-download"></i> Unduh File .vcf
+                <i className="fa-solid fa-download"></i> {locale === "ar" ? "تنزيل ملف .vcf" : locale === "en" ? "Download .vcf File" : "Unduh File .vcf"}
               </a>
               <button
                 type="button"
                 className="btn-close-qr"
                 onClick={() => setQrModalUser(null)}
               >
-                Tutup
+                {locale === "ar" ? "إغلاق" : locale === "en" ? "Close" : "Tutup"}
               </button>
             </div>
           </div>

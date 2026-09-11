@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const { t } = useLanguage();
 
   useEffect(() => {
     const savedTheme = (localStorage.getItem("expedient_theme") as "dark" | "light") || "dark";
@@ -21,14 +23,16 @@ export default function ThemeToggle() {
     <button 
       className="theme-widget hover-trigger" 
       id="btnTheme" 
-      title="Ganti Mode" 
+      title={t.common.theme_toggle} 
       onClick={toggleTheme}
       suppressHydrationWarning
     >
       <div className="icon-orb">
         <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
       </div>
-      <span className="widget-text" id="themeText">{theme === "dark" ? "Malam" : "Siang"}</span>
+      <span className="widget-text" id="themeText">
+        {theme === "dark" ? t.common.theme_dark : t.common.theme_light}
+      </span>
     </button>
   );
 }
