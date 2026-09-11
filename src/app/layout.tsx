@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/react";
-import { Inter, Playfair_Display, Manrope } from "next/font/google";
+import { Inter, Playfair_Display, Manrope, Amiri } from "next/font/google";
 import "./globals.css";
 import "../../public/css/design-system.css";
 import "../../public/css/template.css";
 import ClientLayout from "@/components/layout/ClientLayout";
 import { CmsProvider } from "@/components/layout/CmsProvider";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { unstable_cache } from "next/cache";
 
@@ -28,6 +29,13 @@ const manrope = Manrope({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-manrope",
+  display: "swap",
+});
+
+const amiri = Amiri({
+  subsets: ["arabic"],
+  weight: ["400", "700"],
+  variable: "--font-amiri",
   display: "swap",
 });
 
@@ -148,6 +156,10 @@ export default async function RootLayout({
 
                   document.documentElement.setAttribute('data-perf', isLowEnd ? 'lite' : 'high');
                   document.documentElement.setAttribute('data-device', isMobile ? 'mobile' : 'desktop');
+                  const savedLang = localStorage.getItem('expedient_locale') || 'id';
+                  document.documentElement.lang = savedLang;
+                  document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
+                  if (savedLang === 'ar') document.documentElement.classList.add('rtl-mode');
                 } catch(e) {
                   document.documentElement.setAttribute('data-perf', 'lite');
                   document.documentElement.setAttribute('data-device', 'mobile');
@@ -157,7 +169,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${amiri.variable}`} suppressHydrationWarning>
         <noscript>
           <style>{`.film-grain,.cursor-dot,.cursor-ring,#loadingScreen{display:none!important}body{background:#030504;color:#d4af37;font-family:sans-serif}`}</style>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px", gap: "20px" }}>
@@ -180,9 +192,11 @@ export default async function RootLayout({
         <canvas id="particles-js"></canvas>
 
         <CmsProvider initialData={allCms || []}>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
+          <LanguageProvider>
+            <ClientLayout>
+              {children}
+            </ClientLayout>
+          </LanguageProvider>
         </CmsProvider>
         <Analytics />
       </body>

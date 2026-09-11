@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -59,17 +61,19 @@ export default function Sidebar() {
     }
   }, []);
 
+  const { t } = useLanguage();
+
   // Public pages: accessible without login
   const publicNavItems = [
-    { href: "/", icon: "fa-house", label: "Depan", tooltip: "Halaman Utama & Profil Pondok" },
-    { href: "/beranda", icon: "fa-landmark", label: "Museum", tooltip: "Museum Digital & Linimasa" },
-    { href: "/direktori", icon: "fa-address-book", label: "Direktori", tooltip: "Buku Kontak Alumni" },
-    { href: "/galeri", icon: "fa-film", label: "Galeri", tooltip: "Arsip Foto & Video" },
+    { href: "/", icon: "fa-house", label: t.sidebar.home, tooltip: "Halaman Utama & Profil Pondok" },
+    { href: "/beranda", icon: "fa-landmark", label: t.sidebar.museum, tooltip: "Museum Digital & Linimasa" },
+    { href: "/direktori", icon: "fa-address-book", label: t.sidebar.directory, tooltip: "Buku Kontak Alumni" },
+    { href: "/galeri", icon: "fa-film", label: t.sidebar.gallery, tooltip: "Arsip Foto & Video" },
   ];
 
   // Auth-only pages
   const authNavItems = [
-    { href: "/radar", icon: "fa-map-location-dot", label: "Peta", tooltip: "Peta Persebaran Alumni" },
+    { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: "Peta Persebaran Alumni" },
     { href: "/syndicate", icon: "fa-briefcase", label: "Bisnis", tooltip: "Katalog Usaha Alumni" },
     { href: "/fitur", icon: "fa-cubes", label: "Fitur", tooltip: "Menu & Layanan Alumni" },
     { href: "/panduan", icon: "fa-book-bookmark", label: "Panduan", tooltip: "Pusat Panduan & Bantuan", extraClass: "nav-item-panduan" },
@@ -121,16 +125,19 @@ export default function Sidebar() {
 
         {/* Bottom: Profil (logged in) or Masuk (guest) */}
         {isLoggedIn ? (
-          <Link href="/profil" className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`} data-tooltip="Profil Saya" onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+          <Link href="/profil" className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`} data-tooltip={t.sidebar.profile} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
             <i className="fa-solid fa-circle-user"></i>
-            <span className="nav-label">Profil</span>
+            <span className="nav-label">{t.sidebar.profile}</span>
           </Link>
         ) : isLoggedIn === false ? (
-          <Link href="/login" className="nav-item hover-trigger" data-tooltip="Ruang Anggota" onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+          <Link href="/login" className="nav-item hover-trigger" data-tooltip={t.sidebar.login} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
             <i className="fa-solid fa-door-open"></i>
-            <span className="nav-label">Masuk</span>
+            <span className="nav-label">{t.sidebar.login}</span>
           </Link>
         ) : null}
+
+        {/* Language selector in sidebar when expanded */}
+        {isOpen && <LanguageSwitcher variant="sidebar" />}
       </nav>
     </>
   );
