@@ -83,7 +83,7 @@ export default function HeritageVideoPlayer() {
       <div className="heritage-video-frame">
         <iframe
           key={active.id}
-          src={`https://www.youtube-nocookie.com/embed/${active.id}?rel=0&modestbranding=1`}
+          src={`https://www.youtube.com/embed/${active.id}?rel=0&modestbranding=1`}
           title={`${active.title} - Pondok Modern Arrisalah Slahung Ponorogo`}
           loading="lazy"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
