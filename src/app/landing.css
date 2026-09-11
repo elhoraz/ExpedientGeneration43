@@ -1292,6 +1292,11 @@
     padding: 8px 14px;
   }
 
+  /* Keep mobile navbar minimal & untouched - language switcher available in footer */
+  .landing-nav-island .lang-switcher-container {
+    display: none !important;
+  }
+
   .nav-btn-portal span {
     display: none;
   }

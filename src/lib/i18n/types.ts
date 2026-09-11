@@ -201,6 +201,10 @@ export interface Dictionary {
     buku_tamu_title: string;
     buku_tamu_subtitle: string;
     buku_tamu_btn: string;
+    buku_tamu_empty_locked: string;
+    buku_tamu_login_cta: string;
+    buku_tamu_recent_title: string;
+    buku_tamu_view_all: string;
     kurator_title: string;
     kurator_subtitle: string;
   };

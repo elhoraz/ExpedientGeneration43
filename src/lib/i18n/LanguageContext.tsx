@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
+import { flushSync } from "react-dom";
 import { Locale, Direction, Dictionary, SUPPORTED_LOCALES, LanguageMeta } from "./types";
 import { DICTIONARIES, getDictionary } from "./index";
 
@@ -72,7 +73,32 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLocale = (newLocale: Locale) => {
     if (newLocale === locale) return;
-    setLocaleState(newLocale);
+
+    if (typeof document !== "undefined") {
+      const doc = document as any;
+      // 1. If View Transitions API is natively supported, use it for silky smooth cross-fade
+      if (typeof doc.startViewTransition === "function") {
+        doc.startViewTransition(() => {
+          flushSync(() => {
+            setLocaleState(newLocale);
+          });
+        });
+        return;
+      }
+
+      // 2. Hardware-accelerated CSS dissolve transition fallback
+      document.documentElement.classList.add("lang-switching");
+      setTimeout(() => {
+        setLocaleState(newLocale);
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            document.documentElement.classList.remove("lang-switching");
+          }, 60);
+        });
+      }, 120);
+    } else {
+      setLocaleState(newLocale);
+    }
   };
 
   const dictionary = useMemo(() => getDictionary(locale), [locale]);

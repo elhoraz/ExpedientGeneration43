@@ -168,8 +168,8 @@ function urlBase64ToUint8Array(base64String: string) {
           </a>
         )}
 
-        {/* Language Switcher Widget */}
-        <LanguageSwitcher variant="pill" />
+        {/* Language Switcher Widget (Desktop navbar only, mobile uses sidebar drawer) */}
+        <LanguageSwitcher variant="pill" className={`nav-lang-widget ${userId ? 'has-auth' : 'no-auth'}`} />
 
         {/* Theme Toggle Widget */}
         <ThemeToggle />

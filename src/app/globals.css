@@ -63,7 +63,8 @@ body.sidebar-closed .theme-widget,
 body.sidebar-closed .notif-widget,
 body.sidebar-closed .chat-widget,
 body.sidebar-closed .chat-dropdown,
-body.sidebar-closed .notif-dropdown {
+body.sidebar-closed .notif-dropdown,
+body.sidebar-closed .nav-lang-widget {
   opacity: 0 !important;
   transform: translateY(-25px) scale(0.92) !important;
   pointer-events: none !important;
@@ -256,6 +257,29 @@ html[lang="ar"] body {
   z-index: 99;
 }
 
+/* Fixed positioning on desktop navbar (aligned with chat, notif, and theme widgets) */
+.nav-lang-widget {
+  position: fixed;
+  top: 30px;
+  right: 295px;
+  z-index: 9999;
+  pointer-events: auto;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.35s;
+}
+
+.nav-lang-widget.no-auth {
+  right: 170px;
+}
+
+/* Strictly hide from mobile navbar (screen width <= 768px). Mobile uses sidebar drawer */
+@media (max-width: 768px) {
+  .nav-lang-widget {
+    display: none !important;
+  }
+}
+
 .lang-switcher-btn {
   display: inline-flex;
   align-items: center;
@@ -273,11 +297,22 @@ html[lang="ar"] body {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+:root[data-theme="light"] .lang-switcher-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(170, 119, 28, 0.3);
+  color: #0a110e;
+}
+
 .lang-switcher-btn:hover {
   border-color: rgba(212, 175, 55, 0.6);
   background: rgba(212, 175, 55, 0.12);
   transform: translateY(-1px);
   box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+}
+
+:root[data-theme="light"] .lang-switcher-btn:hover {
+  background: rgba(170, 119, 28, 0.1);
+  border-color: #aa771c;
 }
 
 .lang-flag-current {
@@ -290,6 +325,10 @@ html[lang="ar"] body {
   font-family: monospace;
   font-weight: 700;
   color: #ffd700;
+}
+
+:root[data-theme="light"] .lang-code-current {
+  color: #aa771c;
 }
 
 .lang-chevron {
@@ -361,6 +400,26 @@ html[lang="ar"] body {
   background: rgba(212, 175, 55, 0.22);
   color: #ffd700;
   font-weight: 700;
+}
+
+:root[data-theme="light"] .lang-dropdown-menu {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(170, 119, 28, 0.35);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1), 0 0 20px rgba(170, 119, 28, 0.1);
+}
+
+:root[data-theme="light"] .lang-dropdown-item {
+  color: #24292f;
+}
+
+:root[data-theme="light"] .lang-dropdown-item:hover {
+  background: rgba(170, 119, 28, 0.1);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .lang-dropdown-item.active {
+  background: rgba(170, 119, 28, 0.18);
+  color: #aa771c;
 }
 
 .lang-item-flag {
@@ -466,4 +525,25 @@ html[dir="rtl"] .fa-arrow-left-long:not(.no-rtl-flip),
 html[dir="rtl"] .fa-chevron-left:not(.no-rtl-flip) {
   transform: scaleX(-1);
 }
+
+/* ==========================================================================
+   SMOOTH & FLUID LANGUAGE TRANSITIONS (APPLE-GRADE DISSOLVE)
+   ========================================================================== */
+html.lang-switching body {
+  opacity: 0.72 !important;
+  filter: blur(0.4px);
+  transition: opacity 0.14s ease, filter 0.14s ease;
+}
+
+body {
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.25s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 

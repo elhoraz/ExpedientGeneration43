@@ -380,16 +380,16 @@ export default function BerandaClient({
               ) : (
                   <div className="guestbook-empty">
                       <i className="fa-solid fa-lock guestbook-empty-icon"></i>
-                      <p className="guestbook-empty-text">{tLang.direktori.card_guest_locked}</p>
+                      <p className="guestbook-empty-text">{tLang.beranda.buku_tamu_empty_locked}</p>
                       <Link href="/login" className="guestbook-login-link">
-                          <i className="fa-solid fa-door-open"></i> {tLang.nav.login}
+                          <i className="fa-solid fa-door-open"></i> {tLang.beranda.buku_tamu_login_cta}
                       </Link>
                   </div>
               )}
 
               {bukuTamu.length > 0 && (
                   <div className="guestbook-list">
-                      <h3 className="guestbook-title">{tLang.beranda.buku_tamu_title}</h3>
+                      <h3 className="guestbook-title">{tLang.beranda.buku_tamu_recent_title}</h3>
                       <div className="guestbook-items">
                           {bukuTamu.map((bt, idx) => (
                               <div className="guestbook-item" key={idx}>
@@ -400,7 +400,7 @@ export default function BerandaClient({
                           ))}
                       </div>
                       <div className="guestbook-footer">
-                          <a href="/buku-tamu" className="guestbook-more-link">{tLang.common.view} {tLang.common.all} <i className="fa-solid fa-arrow-right"></i></a>
+                          <a href="/buku-tamu" className="guestbook-more-link">{tLang.beranda.buku_tamu_view_all} <i className="fa-solid fa-arrow-right"></i></a>
                       </div>
                   </div>
               )}

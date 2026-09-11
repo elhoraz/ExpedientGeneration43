@@ -435,6 +435,8 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               &copy; {currentYear} {locale === "id" ? getCms(cms, "landing_footer_text", t.footer.copy_text) : t.footer.copy_text}
             </div>
             <div className="footer-meta-links">
+              <LanguageSwitcher variant="pill" />
+              <span>•</span>
               <Link href="/download">{t.footer.link_apk}</Link>
               <span>•</span>
               <Link href="/delete-account">{t.footer.link_privacy}</Link>
