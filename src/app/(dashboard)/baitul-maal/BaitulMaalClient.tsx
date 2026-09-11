@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./baitul-maal.css";
 
 export interface BankAccount {
@@ -48,6 +49,7 @@ export default function BaitulMaalClient({
   initialBankAccounts?: BankAccount[];
   bendaharaContact?: BendaharaContact | null;
 }) {
+  const { t, locale } = useLanguage();
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(initialBankAccounts);
   const [contactInfo, setContactInfo] = useState<BendaharaContact | null>(bendaharaContact);
@@ -741,11 +743,11 @@ export default function BaitulMaalClient({
         {/* HEADER */}
         <header className="maal-header">
           <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left-long"></i> Kembali ke Vault
+            <i className="fa-solid fa-arrow-left-long"></i> {t.baitul_maal.back_btn}
           </Link>
           <div style={{ textAlign: "right" }}>
-            <h1 className="page-title">Baitul Maal</h1>
-            <p className="page-subtitle">Constellation of Giving & Financial Transparency</p>
+            <h1 className="page-title">{t.baitul_maal.title}</h1>
+            <p className="page-subtitle">{t.baitul_maal.subtitle}</p>
           </div>
         </header>
 
@@ -753,28 +755,28 @@ export default function BaitulMaalClient({
         <div className="dashboard-grid" id="financeDashboard">
           <div className="stat-card primary">
             <i className="fa-solid fa-scale-balanced stat-icon"></i>
-            <div className="stat-label">Total Saldo Kas Terkini</div>
+            <div className="stat-label">{t.baitul_maal.balance_label}</div>
             <h2 className="stat-value">{formatRupiah(balance)}</h2>
             <div className="stat-footnote">
-              <i className="fa-solid fa-shield-halved"></i> Dana umat terkelola secara amanah & transparan
+              <i className="fa-solid fa-shield-halved"></i> {t.baitul_maal.transparency_note}
             </div>
           </div>
 
           <div className="stat-card">
             <i className="fa-solid fa-arrow-turn-down stat-icon" style={{ color: "#00ff88" }}></i>
-            <div className="stat-label">Total Pemasukan Kas</div>
+            <div className="stat-label">{t.baitul_maal.income_label}</div>
             <h2 className="stat-value text-in">{formatRupiah(totalIn)}</h2>
             <div className="stat-sub">
-              {completedTransactions.filter((t) => t.transaction_type === "IN").length} Transaksi Terverifikasi
+              {completedTransactions.filter((t) => t.transaction_type === "IN").length} {t.baitul_maal.verified_tx}
             </div>
           </div>
 
           <div className="stat-card">
             <i className="fa-solid fa-arrow-turn-up stat-icon" style={{ color: "#ff5555" }}></i>
-            <div className="stat-label">Total Penyaluran Kas</div>
+            <div className="stat-label">{t.baitul_maal.expense_label}</div>
             <h2 className="stat-value text-out">{formatRupiah(totalOut)}</h2>
             <div className="stat-sub">
-              {completedTransactions.filter((t) => t.transaction_type === "OUT").length} Penyaluran Operasional
+              {completedTransactions.filter((t) => t.transaction_type === "OUT").length} {t.baitul_maal.operational_exp}
             </div>
           </div>
         </div>
@@ -786,21 +788,21 @@ export default function BaitulMaalClient({
             className="btn-action-hero btn-donate-pulse"
             onClick={() => setIsDonateOpen(true)}
           >
-            <i className="fa-solid fa-hand-holding-heart"></i> Salurkan Infaq / Donasi
+            <i className="fa-solid fa-hand-holding-heart"></i> {t.baitul_maal.donate_btn}
           </button>
           <button
             type="button"
             className="btn-action-secondary"
             onClick={() => setIsZakatOpen(true)}
           >
-            <i className="fa-solid fa-calculator"></i> Kalkulator Zakat
+            <i className="fa-solid fa-calculator"></i> {t.baitul_maal.calc_zakat}
           </button>
           <button
             type="button"
             className="btn-action-secondary"
             onClick={handleExportCSV}
           >
-            <i className="fa-solid fa-file-csv"></i> Unduh Laporan (CSV)
+            <i className="fa-solid fa-file-csv"></i> {t.baitul_maal.download_csv}
           </button>
           {isAdmin && (
             <>
@@ -940,8 +942,8 @@ export default function BaitulMaalClient({
         <div className="ledger-section" id="openLedger">
           <div className="ledger-header">
             <div>
-              <h2 className="ledger-title">Buku Besar Kas</h2>
-              <div className="ledger-subtitle">Laporan Transparansi Arus Keuangan Terbuka</div>
+              <h2 className="ledger-title">{t.baitul_maal.report_title}</h2>
+              <div className="ledger-subtitle">{t.baitul_maal.recent_transactions}</div>
             </div>
             <div>
               <i
@@ -959,21 +961,21 @@ export default function BaitulMaalClient({
                 className={`filter-tab ${filterType === "ALL" ? "active" : ""}`}
                 onClick={() => handleFilterChange("ALL")}
               >
-                Semua ({transactions.length})
+                {t.baitul_maal.filter_all} ({transactions.length})
               </button>
               <button
                 type="button"
                 className={`filter-tab ${filterType === "IN" ? "active" : ""}`}
                 onClick={() => handleFilterChange("IN")}
               >
-                <i className="fa-solid fa-arrow-down" style={{ color: "#00ff88" }}></i> Pemasukan
+                <i className="fa-solid fa-arrow-down" style={{ color: "#00ff88" }}></i> {t.baitul_maal.filter_in}
               </button>
               <button
                 type="button"
                 className={`filter-tab ${filterType === "OUT" ? "active" : ""}`}
                 onClick={() => handleFilterChange("OUT")}
               >
-                <i className="fa-solid fa-arrow-up" style={{ color: "#ff5555" }}></i> Pengeluaran
+                <i className="fa-solid fa-arrow-up" style={{ color: "#ff5555" }}></i> {t.baitul_maal.filter_out}
               </button>
             </div>
 
@@ -981,7 +983,7 @@ export default function BaitulMaalClient({
               <i className="fa-solid fa-magnifying-glass"></i>
               <input
                 type="text"
-                placeholder="Cari transaksi atau donatur..."
+                placeholder={t.baitul_maal.search_placeholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -1019,8 +1021,8 @@ export default function BaitulMaalClient({
                 <i className="fa-solid fa-folder-open" style={{ fontSize: "3rem", marginBottom: "15px", opacity: 0.3 }}></i>
                 <br />
                 {searchQuery
-                  ? "Tidak ada transaksi yang cocok dengan pencarian."
-                  : "Belum ada catatan transaksi di dalam buku besar ini."}
+                  ? (locale === "ar" ? "لا توجد معاملات مطابقة للبحث." : locale === "en" ? "No matching transactions found." : "Tidak ada transaksi yang cocok dengan pencarian.")
+                  : t.baitul_maal.no_tx_found}
               </div>
             ) : (
               filteredTransactions.map((tx) => (

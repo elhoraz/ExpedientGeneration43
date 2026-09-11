@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useCms } from "@/components/layout/CmsProvider";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import Link from "next/link";
 import "./event.css";
 
@@ -23,6 +24,7 @@ interface EventItem {
 export default function EventClient({ initialEvents }: { initialEvents: EventItem[]; userId?: string }) {
   const [events, setEvents] = useState<EventItem[]>(initialEvents);
   const { t } = useCms();
+  const { t: tLang, locale } = useLanguage();
   
   useEffect(() => {
     document.body.classList.add("page-event");
@@ -88,7 +90,7 @@ export default function EventClient({ initialEvents }: { initialEvents: EventIte
     // 3. Immediately set state without waiting for network
     setEvents(updatedEvents);
     setSubmittingId(eventId);
-    showToast(`Konfirmasi kehadiran berhasil: ${status}`);
+    showToast(`${tLang.common.success}: ${status}`);
 
     try {
       const res = await fetch("/api/events/rsvp", {
@@ -98,13 +100,12 @@ export default function EventClient({ initialEvents }: { initialEvents: EventIte
       });
 
       if (!res.ok) {
-        throw new Error("Gagal menyimpan konfirmasi kehadiran di server.");
+        setEvents(prevEvents);
+        showToast(tLang.common.error, true);
       }
-    } catch (err: unknown) {
-      // 4. Gracefully rollback on failure
+    } catch {
       setEvents(prevEvents);
-      const errMsg = err instanceof Error ? err.message : "Gagal memperbarui status RSVP.";
-      showToast(errMsg, true);
+      showToast(tLang.common.error, true);
     } finally {
       setSubmittingId(null);
     }
@@ -144,12 +145,12 @@ export default function EventClient({ initialEvents }: { initialEvents: EventIte
       )}
 
       <Link href="/fitur" className="btn-back">
-        <i className="fa-solid fa-arrow-left"></i> {t('event_btn_back', 'Kembali')}
+        <i className="fa-solid fa-arrow-left"></i> {tLang.common.back}
       </Link>
 
       <div className="event-header">
-        <h1 className="event-title">{t('event_title', 'Agenda & Eksibisi')}</h1>
-        <div className="event-subtitle">{t('event_subtitle', 'Pertemuan Para Pelopor Peradaban')}</div>
+        <h1 className="event-title">{tLang.event.title}</h1>
+        <div className="event-subtitle">{tLang.event.subtitle}</div>
       </div>
 
       <div style={{ maxWidth: "1000px", margin: "0 auto", paddingBottom: "80px" }}>
@@ -158,7 +159,7 @@ export default function EventClient({ initialEvents }: { initialEvents: EventIte
         {/* Timeline Events */}
         {events.length === 0 ? (
           <div style={{ textAlign: "center", color: "var(--text-secondary)", padding: "50px", fontStyle: "italic", background: "var(--glass-bg)", borderRadius: "16px", border: "1px dashed rgba(212,175,55,0.3)" }}>
-            {t('event_empty_msg', 'Belum ada agenda yang dijadwalkan di masa mendatang.')}
+            {tLang.event.empty_events}
           </div>
         ) : (
           <div className="event-timeline">
@@ -167,47 +168,47 @@ export default function EventClient({ initialEvents }: { initialEvents: EventIte
                 <div className="timeline-dot"></div>
                 
                 <div className="event-date">
-                  {new Date(ev.event_date).toLocaleDateString()} 
-                  <span className="event-time"><i className="fa-regular fa-clock"></i> {new Date(ev.event_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} WIB</span>
+                  {new Date(ev.event_date).toLocaleDateString(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID')} 
+                  <span className="event-time"><i className="fa-regular fa-clock"></i> {new Date(ev.event_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
                 
                 <div className="event-name">{ev.title}</div>
                 <div className="event-desc">{ev.description}</div>
                 
                 <div className="event-meta">
-                  <div className="meta-item"><i className="fa-solid fa-location-dot"></i> {ev.location || t('event_loc_empty', 'Lokasi belum ditentukan')}</div>
-                  <div className="meta-item"><i className="fa-solid fa-user-pen"></i> {t('event_creator_label', 'Dijadwalkan oleh')} {ev.creator_name}</div>
+                  <div className="meta-item"><i className="fa-solid fa-location-dot"></i> {ev.location || (locale === 'ar' ? 'الموقع يُحدد لاحقاً' : locale === 'en' ? 'Location TBD' : 'Lokasi belum ditentukan')}</div>
+                  <div className="meta-item"><i className="fa-solid fa-user-pen"></i> {locale === 'ar' ? 'بواسطة' : locale === 'en' ? 'Scheduled by' : 'Dijadwalkan oleh'} {ev.creator_name}</div>
                 </div>
 
                 <div className="event-footer">
                   <div className="rsvp-stats">
-                    <div className="stat-badge stat-hadir"><i className="fa-solid fa-check"></i> {ev.stats.Hadir} {t('event_stat_hadir', 'Hadir')}</div>
-                    <div className="stat-badge stat-tentatif"><i className="fa-solid fa-question"></i> {ev.stats.Tentatif} {t('event_stat_tentatif', 'Tentatif')}</div>
-                    <div className="stat-badge stat-absen"><i className="fa-solid fa-xmark"></i> {ev.stats.Tidak} {t('event_stat_absen', 'Absen')}</div>
+                    <div className="stat-badge stat-hadir"><i className="fa-solid fa-check"></i> {ev.stats.Hadir} {tLang.event.rsvp_yes}</div>
+                    <div className="stat-badge stat-tentatif"><i className="fa-solid fa-question"></i> {ev.stats.Tentatif} {tLang.event.rsvp_maybe}</div>
+                    <div className="stat-badge stat-absen"><i className="fa-solid fa-xmark"></i> {ev.stats.Tidak} {tLang.event.rsvp_no}</div>
                   </div>
 
                   <div className="rsvp-actions">
-                    <span className="rsvp-label">{t('event_rsvp_label', 'Konfirmasi Anda:')}</span>
+                    <span className="rsvp-label">{locale === 'ar' ? 'تأكيد الحضور:' : locale === 'en' ? 'Your RSVP:' : 'Konfirmasi Anda:'}</span>
                     <button 
                       onClick={() => handleRsvp(ev.id, "Hadir")} 
                       disabled={submittingId === ev.id}
                       className={`btn-rsvp ${ev.my_rsvp === "Hadir" ? "active" : ""}`}
                     >
-                      {t('event_btn_hadir', 'Hadir')}
+                      {tLang.event.rsvp_yes}
                     </button>
                     <button 
                       onClick={() => handleRsvp(ev.id, "Tentatif")} 
                       disabled={submittingId === ev.id}
                       className={`btn-rsvp ${ev.my_rsvp === "Tentatif" ? "active" : ""}`}
                     >
-                      {t('event_btn_tentatif', 'Tentatif')}
+                      {tLang.event.rsvp_maybe}
                     </button>
                     <button 
                       onClick={() => handleRsvp(ev.id, "Tidak Hadir")} 
                       disabled={submittingId === ev.id}
                       className={`btn-rsvp ${ev.my_rsvp === "Tidak Hadir" ? "active" : ""}`}
                     >
-                      {t('event_btn_absen', 'Absen')}
+                      {tLang.event.rsvp_no}
                     </button>
                   </div>
                 </div>

@@ -10,6 +10,7 @@ import VideoNotePlayer from "@/components/chat/VideoNotePlayer";
 import VoiceRecorder from "@/components/chat/VoiceRecorder";
 import VideoNoteRecorder from "@/components/chat/VideoNoteRecorder";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "../chat.css";
 
 const EMOJI_DATA = {
@@ -20,6 +21,7 @@ const EMOJI_DATA = {
 };
 
 export default function ChatClient({ initialMessages, userId }: { initialMessages: any[]; userId: string }) {
+  const { t, locale } = useLanguage();
   const [messages, setMessages] = useState<any[]>(initialMessages);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -260,16 +262,18 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
     setInputMessage(prev => prev + emoji);
   };
 
+  const timeLocale = locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID";
+
   return (
     <div className="chat-room-container" style={{ padding: "clamp(70px, 10vh, 95px) 12px 18px", maxWidth: "900px" }}>
       <div className="lounge-header-container">
         <h2 className="lounge-title">
-          Obrolan Angkatan
+          {t.chat.lounge_title}
         </h2>
         <div className="lounge-subtitle">
-          RUANG OBROLAN & DISKUSI ANGKATAN 43
+          {t.chat.lounge_subtitle}
         </div>
-        <Link href="/direktori" style={{ position: "absolute", right: "5px", top: "5px", color: "var(--text-secondary)", textDecoration: "none", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} title="Tutup">
+        <Link href="/direktori" style={{ position: "absolute", right: "5px", top: "5px", color: "var(--text-secondary)", textDecoration: "none", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} title={t.common.close}>
           <i className="fa-solid fa-times"></i>
         </Link>
       </div>
@@ -302,7 +306,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                   transition: "0.3s"
                 }}
               >
-                {isLoadingMore ? "Memuat..." : "Muat Lebih Lama"}
+                {isLoadingMore ? t.common.loading : t.chat.load_older}
               </button>
             </div>
           )}
@@ -311,7 +315,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
             const isMine = msg.sender_id === userId;
             const senderName = msg.profiles?.nama_panggilan || msg.profiles?.nama_lengkap || "Unknown";
             const avatarUrl = getAvatarUrl(msg.profiles?.foto_profil, senderName);
-            const timeString = new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const timeString = new Date(msg.created_at).toLocaleTimeString(timeLocale, { hour: '2-digit', minute: '2-digit' });
 
             return (
               <div key={msg.id} className={`msg-bubble-wrapper ${isMine ? 'mine' : 'other'}`}>
@@ -339,14 +343,14 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                       className="msg-image-container"
                       onClick={() => setActiveImage({
                         url: msg.image_url,
-                        sender: isMine ? "Anda" : senderName,
+                        sender: isMine ? (locale === 'ar' ? 'أنت' : locale === 'en' ? 'You' : 'Anda') : senderName,
                         time: timeString
                       })}
                       title="Klik untuk memperbesar & mengunduh"
                     >
                       <img src={msg.image_url} className="msg-image" alt="Gambar" />
                       <div className="msg-image-overlay-hint">
-                        <i className="fa-solid fa-expand"></i> Buka
+                        <i className="fa-solid fa-expand"></i> {t.chat.open_image}
                       </div>
                     </div>
                   )}
@@ -369,7 +373,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                       <button 
                         className="btn-delete-msg"
                         onClick={() => handleDeleteMessage(msg.id)}
-                        title="Hapus"
+                        title={t.common.delete}
                       >
                         <i className="fa-solid fa-trash"></i>
                       </button>
@@ -382,7 +386,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
           })}
           {messages.length === 0 && (
             <div className="inbox-empty-state" style={{ margin: "auto" }}>
-              Belum ada diskusi. Jadilah yang pertama.
+              {t.chat.no_chats}
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -430,7 +434,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                   className="btn-chat-tool" 
                   onClick={() => fileInputRef.current?.click()} 
                   disabled={uploadingImage}
-                  title="Kirim Gambar"
+                  title={t.chat.send_image}
                 >
                   {uploadingImage ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-paperclip"></i>}
                 </button>
@@ -440,7 +444,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                   type="button"
                   onClick={() => setShowVideoNoteRecorder(true)}
                   className="btn-chat-tool"
-                  title="Kirim Video Note Bulat"
+                  title={t.chat.send_video}
                 >
                   <i className="fa-solid fa-video"></i>
                 </button>
@@ -451,12 +455,12 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                   type="text" 
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Tulis pesan ke Lounge..." 
+                  placeholder={t.chat.type_message} 
                   className="chat-text-input"
                   maxLength={1000}
                 />
                 {inputMessage.trim() ? (
-                  <button type="submit" className="btn-chat-send" title="Kirim">
+                  <button type="submit" className="btn-chat-send" title={t.chat.send_btn}>
                     <i className="fa-solid fa-paper-plane"></i>
                   </button>
                 ) : (
@@ -464,7 +468,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                     type="button"
                     onClick={() => setIsRecordingVoice(true)}
                     className="btn-chat-send"
-                    title="Tekan untuk Rekam Voice Note"
+                    title={t.chat.record_voice}
                   >
                     <i className="fa-solid fa-microphone"></i>
                   </button>

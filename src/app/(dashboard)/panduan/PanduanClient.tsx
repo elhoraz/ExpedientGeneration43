@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PAGE_GUIDES, CATEGORIES, PageGuide } from "@/data/guideData";
 import PageGuideModal from "@/components/guide/PageGuideModal";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./panduan.css";
 
 const GENERAL_FAQS = [
@@ -32,6 +33,7 @@ const GENERAL_FAQS = [
 
 export default function PanduanClient() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState<string>("semua");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeModalGuide, setActiveModalGuide] = useState<PageGuide | null>(null);
@@ -74,11 +76,11 @@ export default function PanduanClient() {
       {/* 1. HERO SECTION */}
       <section className="panduan-hero">
         <div className="panduan-tagline">
-          <i className="fa-solid fa-graduation-cap"></i> Ensiklopedia Portal Alumni
+          <i className="fa-solid fa-graduation-cap"></i> Expedient 43
         </div>
-        <h1 className="panduan-title">Pusat Panduan &amp; Bantuan</h1>
+        <h1 className="panduan-title">{t.panduan.title}</h1>
         <p className="panduan-subtitle">
-          Panduan komprehensif seluruh fitur, tombol navigasi, dan tutorial penggunaan portal resmi Expedient Generation.
+          {t.panduan.subtitle}
         </p>
 
         {/* Live Search Bar */}
@@ -87,7 +89,7 @@ export default function PanduanClient() {
           <input
             type="text"
             className="panduan-search-input"
-            placeholder="Cari panduan fitur (contoh: radar, kta, kas, chat, foto)..."
+            placeholder={t.panduan.search_placeholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -96,7 +98,7 @@ export default function PanduanClient() {
               type="button"
               className="panduan-search-clear"
               onClick={() => setSearchQuery("")}
-              title="Bersihkan Pencarian"
+              title={t.common.close}
             >
               <i className="fa-solid fa-circle-xmark"></i>
             </button>
@@ -206,8 +208,8 @@ export default function PanduanClient() {
       {/* 5. FAQ SECTION */}
       <section className="panduan-faq-section">
         <div className="section-heading-center">
-          <h2>Pertanyaan yang Sering Diajukan (FAQ)</h2>
-          <p>Jawaban cepat untuk pertanyaan umum seputar fitur dan penggunaan portal alumni.</p>
+          <h2>{t.panduan.faq_title}</h2>
+          <p>{t.panduan.faq_subtitle}</p>
         </div>
 
         <div className="faq-list">

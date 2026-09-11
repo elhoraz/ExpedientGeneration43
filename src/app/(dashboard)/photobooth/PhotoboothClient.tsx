@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import html2canvas from "html2canvas";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./photobooth.css";
 
 type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
@@ -113,6 +114,7 @@ function LivePhotoCellVideo({
 }
 
 export default function PhotoboothClient() {
+  const { t, locale } = useLanguage();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -1696,10 +1698,10 @@ export default function PhotoboothClient() {
           <i className="fa-solid fa-camera-retro"></i> Aegis Studio Photobooth
         </div>
         <h1 className="studio-title">
-          Studio Kenangan <span className="gold-accent">Expedient 43</span>
+          {t.photobooth.title}
         </h1>
         <p className="studio-subtitle">
-          Abadikan pose terbaikmu dalam photostrip eksklusif. Edit tata letak frame, hapus & pasang stiker sesukamu, terapkan filter tone, dan coba mode Foto Live bergerak!
+          {t.photobooth.subtitle}
         </p>
 
         {/* Live Photo Mode Switcher */}
@@ -2359,7 +2361,7 @@ export default function PhotoboothClient() {
                   gap: "4px",
                 }}
               >
-                <i className="fa-solid fa-rotate-left"></i> Reset
+                <i className="fa-solid fa-rotate-left"></i> {t.photobooth.reset_btn}
               </button>
             </div>
           </div>
@@ -2822,7 +2824,7 @@ export default function PhotoboothClient() {
                 style={{ background: "linear-gradient(135deg, #00c9ff, #92fe9d)", color: "#05131a" }}
               >
                 <i className="fa-solid fa-video"></i>
-                <span>{isExporting ? "Mengekspor Live (6s)..." : "Unduh Foto Live Bergerak (Video 6s)"}</span>
+                <span>{isExporting ? t.common.loading : t.photobooth.download_live}</span>
               </button>
             )}
 
@@ -2832,7 +2834,7 @@ export default function PhotoboothClient() {
               disabled={isExporting}
             >
               <i className="fa-solid fa-download"></i>
-              <span>{isExporting ? "Memproses..." : "Unduh Photostrip HD (PNG)"}</span>
+              <span>{isExporting ? t.common.loading : t.photobooth.download_strip}</span>
             </button>
 
             <button
@@ -2841,7 +2843,7 @@ export default function PhotoboothClient() {
               disabled={isExporting}
             >
               <i className="fa-brands fa-instagram"></i>
-              <span>Unduh Format IG Story / WA (9:16)</span>
+              <span>{t.photobooth.download_story}</span>
             </button>
           </div>
         </div>

@@ -502,7 +502,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                   gap: "8px"
                 }}
               >
-                <i className="fa-regular fa-id-card"></i> Identitas
+                <i className="fa-regular fa-id-card"></i> {tLang.profil.tab_identity}
               </button>
               <button
                 type="button"
@@ -525,7 +525,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                   gap: "8px"
                 }}
               >
-                <i className="fa-solid fa-sliders"></i> Keamanan &amp; Bahasa
+                <i className="fa-solid fa-sliders"></i> {tLang.profil.tab_security_lang}
               </button>
             </div>
 
@@ -533,7 +533,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                 
                 {/* KOLOM KIRI: EDIT PROFIL */}
                 <div className="premium-panel stagger-item parallax-card">
-                    <h2 className="panel-title"><i className="fa-regular fa-id-card"></i> Identitas Personal</h2>
+                    <h2 className="panel-title"><i className="fa-regular fa-id-card"></i> {tLang.profil.step1}</h2>
                     
                     <form onSubmit={handleProfileSubmit} id="formUpdateProfile">
 
@@ -720,15 +720,15 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     {/* PREFERENSI BAHASA / LANGUAGE PREFERENCE */}
                     <div style={{ marginBottom: "35px", paddingBottom: "25px", borderBottom: "1px solid var(--glass-border)" }}>
                         <h2 className="panel-title" style={{ marginBottom: "8px" }}>
-                            <i className="fa-solid fa-language"></i> Preferensi Bahasa / Language
+                            <i className="fa-solid fa-language"></i> {tLang.profil.lang_preference_title}
                         </h2>
                         <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
-                            Pilih bahasa antarmuka portal. Seluruh menu, teks sistem, dan navigasi akan disesuaikan secara otomatis.
+                            {tLang.profil.lang_preference_desc}
                         </p>
                         <LanguageSwitcher variant="cards" />
                     </div>
 
-                    <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> Akses &amp; Keamanan Biometrik</h2>
+                    <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> {tLang.profil.biometric_title}</h2>
                     
                     <div className="bio-status-box" style={{
                       borderColor: biometricsList.length > 0 ? "rgba(0, 255, 170, 0.3)" : "rgba(212, 175, 55, 0.3)",
@@ -738,16 +738,16 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                           color: biometricsList.length > 0 ? "#00ffaa" : "var(--gold-premium, #d4af37)"
                         }}></i>
                         <div className="bio-status-title" style={{ color: biometricsList.length > 0 ? "#00ffaa" : "var(--gold-premium, #d4af37)" }}>
-                          {biometricsList.length > 0 ? "Biometrik Perangkat Aktif" : "Biometrik Belum Terdaftar"}
+                          {biometricsList.length > 0 ? tLang.profil.biometric_active : tLang.profil.biometric_inactive}
                         </div>
                         <div className="bio-status-desc">
                           {biometricsList.length > 0 
-                            ? `${biometricsList.length} perangkat terdaftar (Apple Face ID / Touch ID / Fingerprint). Anda dapat masuk ke portal secara instan tanpa mengetik sandi.` 
-                            : "Daftarkan sensor biometrik (Face ID, Touch ID, atau Sidik Jari) perangkat ini untuk login instan dalam 1 detik tanpa sandi."}
+                            ? `${biometricsList.length} ${tLang.profil.biometric_active}` 
+                            : tLang.profil.biometric_desc}
                         </div>
                     </div>
 
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", margin: "35px 0 18px 0" }}>Perangkat Terautentikasi (Passkey)</div>
+                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", margin: "35px 0 18px 0" }}>{tLang.profil.biometric_title}</div>
                     
                     {biometricsList.length > 0 ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
@@ -776,10 +776,10 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ color: "#00ffaa", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.5px" }}>
-                              Passkey Biometrik Aktif
+                              {tLang.profil.biometric_active}
                             </div>
                             <div style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginTop: "2px" }}>
-                              {biometricsList.length} perangkat terdaftar untuk login instan tanpa sandi.
+                              {biometricsList.length} perangkat terdaftar
                             </div>
                           </div>
                         </div>
@@ -801,10 +801,10 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                 <i className="fa-solid fa-fingerprint" style={{ color: "var(--gold-premium, #d4af37)", fontSize: "1.1rem" }}></i>
                                 <div>
                                   <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)" }}>
-                                    {bio.device_type === "single_device" ? "Platform Authenticator" : "Kredensial Biometrik"} #{index + 1}
+                                    Passkey #{index + 1}
                                   </div>
                                   <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                                    Terdaftar: {bio.created_at ? new Date(bio.created_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "Aktif"}
+                                    {bio.created_at ? new Date(bio.created_at).toLocaleDateString() : "Aktif"}
                                   </div>
                                 </div>
                               </div>
@@ -825,7 +825,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                   transition: "0.2s"
                                 }}
                               >
-                                {deletingBioId === bio.id ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <><i className="fa-solid fa-trash-can" style={{ marginRight: "4px" }}></i> Hapus</>}
+                                {deletingBioId === bio.id ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <><i className="fa-solid fa-trash-can" style={{ marginRight: "4px" }}></i> {tLang.common.delete || "Hapus"}</>}
                               </button>
                             </div>
                           ))}
@@ -838,9 +838,9 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                           style={{ marginTop: "10px" }}
                         >
                           {registeringBio ? (
-                            <><i className="fa-solid fa-circle-notch fa-spin"></i> Menghubungkan Sensor...</>
+                            <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</>
                           ) : (
-                            <><i className="fa-solid fa-plus" style={{ marginRight: "5px" }}></i> Daftarkan Perangkat Tambahan</>
+                            <><i className="fa-solid fa-plus" style={{ marginRight: "5px" }}></i> {tLang.profil.biometric_btn_add}</>
                           )}
                         </button>
                       </div>
@@ -852,42 +852,42 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                           disabled={registeringBio}
                         >
                           {registeringBio ? (
-                            <><i className="fa-solid fa-circle-notch fa-spin"></i> Menghubungkan Sensor...</>
+                            <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</>
                           ) : (
-                            <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> Autentikasi Perangkat Ini</>
+                            <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> {tLang.profil.biometric_btn_auth}</>
                           )}
                         </button>
                       </div>
                     )}
                     
                     <div id="bioStatus" style={{ marginTop: "20px", fontSize: "0.75rem", color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.6 }}>
-                        Gunakan biometrik bawaan (Touch ID/Face ID/Windows Hello) pada gawai Anda sebagai otentikasi lapis kedua tanpa sandi.
+                        {tLang.profil.biometric_desc}
                     </div>
                     
                     <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid var(--glass-border)", textAlign: "center" }}>
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px" }}>Kartu Tanda Alumni Digital</div>
-                        <Link href="/sovereign" className="cursor-bind" style={{ color: "var(--gold-premium)", textDecoration: "none", fontSize: "0.85rem", display: "inline-block", marginTop: "15px", fontWeight: 600, letterSpacing: "2px" }}><i className="fa-solid fa-id-card" style={{ marginRight: "8px" }}></i> BUKA KARTU ALUMNI 3D (KTA)</Link>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px" }}>{tLang.profil.kta_link}</div>
+                        <Link href="/sovereign" className="cursor-bind" style={{ color: "var(--gold-premium)", textDecoration: "none", fontSize: "0.85rem", display: "inline-block", marginTop: "15px", fontWeight: 600, letterSpacing: "2px" }}><i className="fa-solid fa-id-card" style={{ marginRight: "8px" }}></i> {tLang.profil.kta_link}</Link>
                     </div>
 
                     {/* ========= CHANGE PASSWORD SECTION ========= */}
                     <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid var(--glass-border)" }}>
                         <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "var(--text-primary)", marginBottom: "20px" }}>
                             <i className="fa-solid fa-lock" style={{ marginRight: "8px", color: "var(--gold-premium, #d4af37)" }}></i>
-                            Ubah Kata Sandi
+                            {tLang.profil.change_pw_title}
                         </h3>
                         <form onSubmit={handleChangePassword}>
                             <div className="form-group">
                                 <input type="password" name="new_password" className="form-input" id="inp_new_pw" placeholder=" " required minLength={8} />
-                                <label className="form-label" htmlFor="inp_new_pw">Kata Sandi Baru</label>
+                                <label className="form-label" htmlFor="inp_new_pw">{tLang.profil.new_pw_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
                             <div className="form-group">
                                 <input type="password" name="confirm_password" className="form-input" id="inp_confirm_pw" placeholder=" " required minLength={8} />
-                                <label className="form-label" htmlFor="inp_confirm_pw">Konfirmasi Kata Sandi</label>
+                                <label className="form-label" htmlFor="inp_confirm_pw">{tLang.profil.confirm_pw_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
                             <button type="submit" className="btn-submit cursor-bind" disabled={changingPw} style={{ background: "rgba(212,175,55,0.1)", border: "1px solid var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)" }}>
-                                {changingPw ? <><i className="fa-solid fa-circle-notch fa-spin"></i> Memproses...</> : <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> Perbarui Kata Sandi</>}
+                                {changingPw ? <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</> : <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> {tLang.profil.update_pw_btn}</>}
                             </button>
                         </form>
                     </div>
@@ -896,10 +896,10 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid rgba(239,68,68,0.3)" }}>
                         <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "#ef4444", marginBottom: "10px" }}>
                             <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "8px" }}></i>
-                            Zona Bahaya: Hapus Akun & Data Pribadi
+                            {tLang.profil.danger_zone_title}
                         </h3>
                         <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
-                            Sesuai standar privasi data dan regulasi Google Play Store, tindakan ini akan memusnahkan seluruh profil, data biometrik, kredensial login, dan informasi pribadi Anda secara permanen. Data yang telah dihapus tidak dapat dipulihkan.
+                            {tLang.profil.danger_zone_desc}
                         </p>
                         <p style={{ fontSize: "0.75rem", marginBottom: "20px" }}>
                           <Link href="/delete-account" target="_blank" style={{ color: "#f3ba2f", textDecoration: "underline" }}>
@@ -912,7 +912,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                             onClick={() => setShowDeleteConfirm(true)}
                             style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.5)", color: "#ef4444", padding: "12px 25px", borderRadius: "10px", cursor: "pointer", fontSize: "0.85rem", fontWeight: 600, letterSpacing: "0.5px", width: "100%", transition: "0.3s" }}
                           >
-                            <i className="fa-solid fa-trash-can" style={{ marginRight: "8px" }}></i> Hapus Akun & Data Pribadi Saya
+                            <i className="fa-solid fa-trash-can" style={{ marginRight: "8px" }}></i> {tLang.profil.delete_acc_btn}
                           </button>
                         ) : (
                           <form onSubmit={handleDeleteAccount} style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "16px", padding: "20px", textAlign: "center" }}>

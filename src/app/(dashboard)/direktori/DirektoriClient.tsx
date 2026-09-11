@@ -462,8 +462,8 @@ export default function DirektoriClient({
           ) : (
             <div>
               <i className="fa-solid fa-user-slash empty-icon"></i>
-              <h3>Tidak ada alumni yang sesuai</h3>
-              <p>Coba sesuaikan kata kunci atau bersihkan filter pencarian.</p>
+              <h3>{t.direktori.empty_title}</h3>
+              <p>{t.direktori.empty_desc}</p>
               <button
                 type="button"
                 className="btn-reset-filters"
@@ -474,7 +474,7 @@ export default function DirektoriClient({
                   triggerHaptic(12);
                 }}
               >
-                Reset Semua Filter
+                {t.direktori.reset_filter}
               </button>
             </div>
           )}
@@ -757,7 +757,7 @@ export default function DirektoriClient({
                       title="Masuk sebagai anggota alumni untuk menghubungi kontak"
                     >
                       <i className="fa-solid fa-lock"></i>
-                      <span>WA Terkunci</span>
+                      <span>{t.direktori.wa_locked}</span>
                     </Link>
                   );
                 }
@@ -785,7 +785,7 @@ export default function DirektoriClient({
                     title="Nomor WhatsApp disembunyikan oleh alumni demi privasi"
                   >
                     <i className="fa-solid fa-lock"></i>
-                    <span>WA Privat</span>
+                    <span>{t.direktori.wa_private}</span>
                   </button>
                 );
               })()}
@@ -871,7 +871,7 @@ export default function DirektoriClient({
                   triggerHaptic(8);
                 }}
               >
-                <i className="fa-solid fa-bullseye"></i> Visi & Sosial
+                <i className="fa-solid fa-bullseye"></i> {t.direktori.modal_vision}
               </button>
             </div>
 

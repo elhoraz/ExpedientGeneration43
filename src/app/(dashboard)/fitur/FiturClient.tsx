@@ -3,10 +3,12 @@
 import { useEffect, useRef } from "react";
 import Link from "next/link";
 import gsap from "gsap";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./fitur.css";
 
 export default function FiturClient() {
   const cardsRef = useRef<(HTMLAnchorElement | null)[]>([]);
+  const { t } = useLanguage();
 
   useEffect(() => {
     document.body.classList.add("page-fitur");
@@ -114,8 +116,8 @@ export default function FiturClient() {
     <div className="vault-wrapper">
       <div className="features-dashboard" id="featuresDashboard">
         <div className="dashboard-header">
-          <h1 className="dashboard-title">Menu & Fitur Angkatan</h1>
-          <p className="dashboard-subtitle">Akses Lengkap Layanan Komunitas Alumni Expedient 43</p>
+          <h1 className="dashboard-title">{t.fitur.title}</h1>
+          <p className="dashboard-subtitle">{t.fitur.subtitle}</p>
         </div>
 
         <div className="cinematic-grid">
@@ -124,9 +126,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=2564&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-camera-retro card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Studio Photobooth</h3>
-              <p className="card-desc">Studio photostrip virtual interaktif. Ambil 4-pose klasik, filter vintage, stiker digital, dan simpan photostrip kenangan.</p>
-              <div className="launch-btn">Masuk Studio <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.photobooth_title}</h3>
+              <p className="card-desc">{t.fitur.photobooth_desc}</p>
+              <div className="launch-btn">{t.fitur.photobooth_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -135,9 +137,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-id-card card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Kartu Alumni (KTA 3D)</h3>
-              <p className="card-desc">Kartu Tanda Alumni digital interaktif 3D. Menampilkan foto, data kelulusan, dan QR Code verifikasi resmi.</p>
-              <div className="launch-btn">Lihat Kartu Saya <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.kta_title}</h3>
+              <p className="card-desc">{t.fitur.kta_desc}</p>
+              <div className="launch-btn">{t.fitur.kta_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -146,9 +148,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2670&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-qrcode card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Pindai QR Kontak</h3>
-              <p className="card-desc">Pemindai kamera untuk membaca QR Code kartu tanda alumni kawan angkatan dan langsung menyimpan kontak mereka.</p>
-              <div className="launch-btn">Buka Pemindai <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.scanner_title}</h3>
+              <p className="card-desc">{t.fitur.scanner_desc}</p>
+              <div className="launch-btn">{t.fitur.scanner_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -157,9 +159,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1614064641913-a520f596a247?q=80&w=2574&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-scroll card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Kotak Pesan & Wasiat</h3>
-              <p className="card-desc">Titipkan pesan rahasia, nasihat kehidupan, atau wasiat angkatan yang aman dan dapat dibuka pada waktu tertentu.</p>
-              <div className="launch-btn">Buka Pesan <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.wasiat_title}</h3>
+              <p className="card-desc">{t.fitur.wasiat_desc}</p>
+              <div className="launch-btn">{t.fitur.wasiat_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -168,9 +170,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1579621970795-87facc2f976d?q=80&w=2670&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-hand-holding-dollar card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Kas & Donasi (Baitul Maal)</h3>
-              <p className="card-desc">Pusat iuran kas angkatan, transparansi laporan keuangan, dan sedekah jariyah untuk program sosial alumni.</p>
-              <div className="launch-btn">Lihat Laporan Kas <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.baitul_title}</h3>
+              <p className="card-desc">{t.fitur.baitul_desc}</p>
+              <div className="launch-btn">{t.fitur.baitul_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -179,9 +181,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1594954002661-8f55fc15d7de?q=80&w=2670&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-microphone-lines card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Majlis Kajian & Suara</h3>
-              <p className="card-desc">Ruang obrolan suara dan kajian online. Bertukar kabar, dengarkan tausiyah, dan pererat ukhuwah sesama kawan pondok.</p>
-              <div className="launch-btn">Masuk Ruang Majlis <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.majlis_title}</h3>
+              <p className="card-desc">{t.fitur.majlis_desc}</p>
+              <div className="launch-btn">{t.fitur.majlis_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -190,9 +192,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1556761175-5973dc0f32b7?q=80&w=2532&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-handshake-angle card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Jejaring Karir & Usaha</h3>
-              <p className="card-desc">Jaringan kolaborasi profesional dan bursa kerja halal sesama alumni untuk saling mendukung karir dan bisnis kawan seangkatan.</p>
-              <div className="launch-btn">Buka Jejaring <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.tarbiyah_title}</h3>
+              <p className="card-desc">{t.fitur.tarbiyah_desc}</p>
+              <div className="launch-btn">{t.fitur.tarbiyah_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -212,9 +214,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1542642510-48227b613eec?q=80&w=2670&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-kaaba card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Agenda Acara & Dinding Doa</h3>
-              <p className="card-desc">Jadwal temu kangen, kajian akbar, reuni, serta sarana saling menitipkan doa kebaikan untuk sahabat dan keluarga.</p>
-              <div className="launch-btn">Lihat Dinding Doa <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.multazam_title}</h3>
+              <p className="card-desc">{t.fitur.multazam_desc}</p>
+              <div className="launch-btn">{t.fitur.multazam_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -223,9 +225,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=2574&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-spa card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Ruang Dzikir & Ketenangan</h3>
-              <p className="card-desc">Suasana tenang layar penuh dengan lantunan ayat suci Al-Qur'an, dzikir pagi-petang, dan audio relaksasi alam.</p>
-              <div className="launch-btn">Masuki Ketenangan <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.kontemplasi_title}</h3>
+              <p className="card-desc">{t.fitur.kontemplasi_desc}</p>
+              <div className="launch-btn">{t.fitur.kontemplasi_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -234,9 +236,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=2670&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-star card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Mutiara Hikmah & Nasihat</h3>
-              <p className="card-desc">Buka untaian nasihat bijak dari para kyai, asatidz, dan kata mutiara penyemangat langkah kehidupan hari ini.</p>
-              <div className="launch-btn">Buka Hikmah <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.celestial_title}</h3>
+              <p className="card-desc">{t.fitur.celestial_desc}</p>
+              <div className="launch-btn">{t.fitur.celestial_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -245,7 +247,7 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1606836109968-3e4b37be8079?q=80&w=2574&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-book-open card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Ayat & Refleksi Harian</h3>
+              <h3 className="card-title">Ayat &amp; Refleksi Harian</h3>
               <p className="card-desc">Tadabbur ayat-ayat suci Al-Qur'an dan hadits pilihan harian sebagai pedoman moral dan bekal amal shalih.</p>
               <div className="launch-btn">Resapi Ayat <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
@@ -267,9 +269,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-landmark card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Sejarah & Filosofi Angkatan</h3>
-              <p className="card-desc">Dokumentasi awal perjuangan, sejarah angkatan ke-43 Expedient, dan nilai-nilai Panca Jiwa pondok kita.</p>
-              <div className="launch-btn">Pelajari Sejarah <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.genesis_title}</h3>
+              <p className="card-desc">{t.fitur.genesis_desc}</p>
+              <div className="launch-btn">{t.fitur.genesis_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -278,9 +280,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2672&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-network-wired card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Pencocok Minat & Domisili</h3>
-              <p className="card-desc">Temukan sahabat seangkatan yang bertempat tinggal di kota yang sama atau memiliki bidang profesi yang serupa.</p>
-              <div className="launch-btn">Temukan Kawan <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.fitur.nexus_title}</h3>
+              <p className="card-desc">{t.fitur.nexus_desc}</p>
+              <div className="launch-btn">{t.fitur.nexus_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -289,9 +291,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2670&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-calendar-days card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Jadwal Acara & Reuni</h3>
-              <p className="card-desc">Informasi lengkap agenda reuni, silaturahmi akbar, dan konfirmasi kehadiran (RSVP) sesama alumni.</p>
-              <div className="launch-btn">Lihat Jadwal <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.event.title}</h3>
+              <p className="card-desc">{t.event.subtitle}</p>
+              <div className="launch-btn">{t.fitur.launch_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
 
@@ -311,9 +313,9 @@ export default function FiturClient() {
             <div className="card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=2573&auto=format&fit=crop')" }}></div>
             <i className="fa-solid fa-book-bookmark card-icon"></i>
             <div className="card-content">
-              <h3 className="card-title">Pusat Panduan &amp; Bantuan</h3>
-              <p className="card-desc">Panduan komprehensif seluruh fitur, fungsi tombol, tutorial penggunaan portal, dan tanya jawab alumni.</p>
-              <div className="launch-btn">Buka Panduan <i className="fa-solid fa-arrow-right-long"></i></div>
+              <h3 className="card-title">{t.panduan.title}</h3>
+              <p className="card-desc">{t.panduan.subtitle}</p>
+              <div className="launch-btn">{t.fitur.panduan_btn} <i className="fa-solid fa-arrow-right-long"></i></div>
             </div>
           </Link>
         </div>

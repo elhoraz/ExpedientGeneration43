@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PageGuide } from "@/data/guideData";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "./guide.css";
 
@@ -14,6 +15,7 @@ interface PageGuideModalProps {
 
 export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModalProps) {
   const [activeTab, setActiveTab] = useState<"fungsi" | "cara" | "tombol" | "tips">("fungsi");
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (isOpen) {
@@ -51,8 +53,8 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
             type="button"
             className="guide-modal-close"
             onClick={onClose}
-            title="Tutup Panduan"
-            aria-label="Tutup"
+            title={t.common.close}
+            aria-label={t.common.close}
           >
             <i className="fa-solid fa-xmark"></i>
           </button>
@@ -72,7 +74,7 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
         }}>
           <span style={{ color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
             <i className="fa-solid fa-language" style={{ color: "var(--gold-premium, #d4af37)" }}></i>
-            <span>Bahasa / Language:</span>
+            <span>{t.panduan.language_select_label}</span>
           </span>
           <LanguageSwitcher variant="compact" />
         </div>
@@ -84,28 +86,28 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
             className={`guide-tab-btn ${activeTab === "fungsi" ? "active" : ""}`}
             onClick={() => setActiveTab("fungsi")}
           >
-            <i className="fa-solid fa-circle-info"></i> Fungsi
+            <i className="fa-solid fa-circle-info"></i> {t.panduan.tab_functions}
           </button>
           <button
             type="button"
             className={`guide-tab-btn ${activeTab === "cara" ? "active" : ""}`}
             onClick={() => setActiveTab("cara")}
           >
-            <i className="fa-solid fa-list-check"></i> Cara Pakai
+            <i className="fa-solid fa-list-check"></i> {t.panduan.tab_how_to_use}
           </button>
           <button
             type="button"
             className={`guide-tab-btn ${activeTab === "tombol" ? "active" : ""}`}
             onClick={() => setActiveTab("tombol")}
           >
-            <i className="fa-solid fa-keyboard"></i> Tombol ({guide.controls.length})
+            <i className="fa-solid fa-keyboard"></i> {t.panduan.tab_controls} ({guide.controls.length})
           </button>
           <button
             type="button"
             className={`guide-tab-btn ${activeTab === "tips" ? "active" : ""}`}
             onClick={() => setActiveTab("tips")}
           >
-            <i className="fa-solid fa-lightbulb"></i> Tips
+            <i className="fa-solid fa-lightbulb"></i> {t.panduan.tab_tips}
           </button>
         </div>
 
@@ -186,14 +188,14 @@ export default function PageGuideModal({ guide, isOpen, onClose }: PageGuideModa
             className="btn-all-guides"
             onClick={onClose}
           >
-            <i className="fa-solid fa-book-bookmark"></i> Pusat Panduan Lengkap
+            <i className="fa-solid fa-book-bookmark"></i> {t.panduan.btn_full_guide}
           </Link>
           <button
             type="button"
             className="btn-close-guide"
             onClick={onClose}
           >
-            Mengerti &amp; Tutup
+            {t.panduan.btn_understand_close}
           </button>
         </div>
       </div>
