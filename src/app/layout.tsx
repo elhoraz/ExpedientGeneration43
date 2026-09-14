@@ -40,7 +40,7 @@ const amiri = Amiri({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#030504",
+  themeColor: "#060b14",
   colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
@@ -171,7 +171,7 @@ export default async function RootLayout({
       </head>
       <body className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${amiri.variable}`} suppressHydrationWarning>
         <noscript>
-          <style>{`.film-grain,.cursor-dot,.cursor-ring,#loadingScreen{display:none!important}body{background:#030504;color:#d4af37;font-family:sans-serif}`}</style>
+          <style>{`.film-grain,.cursor-dot,.cursor-ring,#loadingScreen{display:none!important}body{background:#060b14;color:#d4af37;font-family:sans-serif}`}</style>
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px", gap: "20px" }}>
             <Image src="/images/logo-utuh.webp" width={120} height={120} style={{ opacity: 0.8 }} alt="Expedient" />
             <h2 style={{ fontSize: "1.5rem", margin: 0 }}>JavaScript Diperlukan</h2>

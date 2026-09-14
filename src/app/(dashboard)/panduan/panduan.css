@@ -156,7 +156,7 @@
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.25rem 1.75rem;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(0, 255, 136, 0.06));
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(0, 210, 255, 0.08));
   border: 1px solid rgba(212, 175, 55, 0.35);
   border-radius: 20px;
   margin-bottom: 2.5rem;
@@ -200,7 +200,7 @@
   padding: 10px 22px;
   border-radius: 30px;
   background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
-  color: #030504;
+  color: #060b14;
   font-size: 0.85rem;
   font-weight: 700;
   border: none;
@@ -288,9 +288,9 @@
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 8px;
-  background: rgba(0, 255, 136, 0.12);
-  border: 1px solid rgba(0, 255, 136, 0.3);
-  color: #00ff88;
+  background: rgba(0, 200, 83, 0.12);
+  border: 1px solid rgba(0, 200, 83, 0.3);
+  color: #00c853;
 }
 
 .guide-card-title {

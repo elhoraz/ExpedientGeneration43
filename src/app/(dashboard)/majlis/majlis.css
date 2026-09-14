@@ -1,9 +1,9 @@
 .majlis-page-wrapper {
-  --neon-green: #00ff88;
+  --neon-green: #00c853;
   --gold-main: #d4af37;
   --text-primary: #ffffff;
   --text-secondary: #8899a6;
-  --glass-bg: rgba(5, 10, 8, 0.6);
+  --glass-bg: rgba(12, 21, 38, 0.7);
   --glass-border: rgba(212,175,55,0.3);
 
   background-color: transparent;
@@ -136,8 +136,8 @@ body.page-majlis .main-wrapper {
 /* Vote buttons */
 .majlis-page-wrapper .vote-btns { display: flex; gap: 8px; margin-bottom: 8px; }
 .majlis-page-wrapper .btn-vote { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.2s; }
-.majlis-page-wrapper .btn-vote.agree { background: rgba(0,255,136,0.08); color: var(--neon-green); border: 1px solid rgba(0,255,136,0.3); }
-.majlis-page-wrapper .btn-vote.agree:hover { background: rgba(0,255,136,0.2); }
+.majlis-page-wrapper .btn-vote.agree { background: rgba(0,200,83,0.08); color: var(--neon-green); border: 1px solid rgba(0,200,83,0.3); }
+.majlis-page-wrapper .btn-vote.agree:hover { background: rgba(0,200,83,0.2); }
 .majlis-page-wrapper .btn-vote.disagree { background: rgba(255,51,102,0.08); color: #ff3366; border: 1px solid rgba(255,51,102,0.3); }
 .majlis-page-wrapper .btn-vote.disagree:hover { background: rgba(255,51,102,0.2); }
 

@@ -218,12 +218,12 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
   return (
     <>
       <style>{`
-        :root { --enigma-gold: #d4af37; --enigma-dark: #020403; }
+        :root { --enigma-gold: #d4af37; --enigma-dark: #060b14; }
         body { margin: 0; background-color: var(--enigma-dark); user-select: none; font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100dvh; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
             display: flex; align-items: center; gap: 10px;
-            padding: 10px 20px; background: rgba(0,0,0,0.6);
+            padding: 10px 20px; background: rgba(6,11,20,0.7);
             border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
             color: #d4af37; font-size: 11px; font-weight: 600; 
             letter-spacing: 3px; text-decoration: none; text-transform: uppercase;
@@ -233,13 +233,13 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
 
         .enigma-wrapper { position: relative; width: 100%; max-width: 100vw; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; }
         .vault-container { position: relative; width: clamp(280px, 80vw, 450px); aspect-ratio: 1; display: flex; justify-content: center; align-items: center; touch-action: none; }
-        .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.8), inset 0 0 5px var(--enigma-gold); background: radial-gradient(circle at center, #0a0f0c 0%, #030504 100%); display: flex; justify-content: center; align-items: center; cursor: grab; transition: filter 0.3s ease; touch-action: none; }
+        .ring { position: absolute; border-radius: 50%; border: 2px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.8), inset 0 0 5px var(--enigma-gold); background: radial-gradient(circle at center, #0c182b 0%, #060b14 100%); display: flex; justify-content: center; align-items: center; cursor: grab; transition: filter 0.3s ease; touch-action: none; }
         .ring:active { cursor: grabbing; }
         .ring.outer { width: 100%; height: 100%; z-index: 10; }
         .ring.middle { width: 75%; height: 75%; z-index: 20; }
         .ring.inner { width: 50%; height: 50%; z-index: 30; }
 
-        .vault-core { position: absolute; width: 25%; height: 25%; border-radius: 50%; background: #000; z-index: 40; box-shadow: inset 0 0 10px rgba(0,0,0,0.9), 0 0 30px rgba(212,175,55,0.2); border: 2px solid var(--enigma-gold); display: flex; justify-content: center; align-items: center; transition: all 1s ease; }
+        .vault-core { position: absolute; width: 25%; height: 25%; border-radius: 50%; background: #060b14; z-index: 40; box-shadow: inset 0 0 10px rgba(0,0,0,0.9), 0 0 30px rgba(212,175,55,0.2); border: 2px solid var(--enigma-gold); display: flex; justify-content: center; align-items: center; transition: all 1s ease; }
         .core-logo { width: 60%; opacity: 0.1; filter: grayscale(1); transition: all 1s ease; }
 
         .symbol { position: absolute; color: rgba(212,175,55,0.6); font-family: 'Playfair Display', serif; font-weight: 700; font-size: clamp(14px, 4vw, 22px); text-shadow: 0 0 10px rgba(0,0,0,0.8); transform-origin: center center; pointer-events: none; }
@@ -253,12 +253,12 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
         .vault-container.unlocked .vault-core { background: radial-gradient(circle at center, #d4af37 0%, #aa771c 100%); box-shadow: 0 0 100px var(--enigma-gold); transform: scale(1.1); }
         .vault-container.unlocked .core-logo { opacity: 1; filter: grayscale(0) drop-shadow(0 0 15px #fff); }
 
-        .success-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 1.5s ease; }
+        .success-overlay { position: absolute; inset: 0; background: rgba(6,11,20,0.95); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 1.5s ease; }
         .success-overlay.show { opacity: 1; pointer-events: auto; }
         .clearance-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(1.8rem, 6vw, 3.5rem); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
         .secret-quote { font-family: 'Courier New', monospace; color: #fff; font-size: 0.95rem; text-align: center; max-width: 85%; line-height: 1.8; letter-spacing: 2px; transform: translateY(20px); opacity: 0; }
         .btn-return { margin-top: 30px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
-        .btn-return:hover { background: var(--enigma-gold); color: #000; }
+        .btn-return:hover { background: var(--enigma-gold); color: #060b14; }
 
         @media (max-width: 768px) { 
             .btn-back-vault { top: max(14px, calc(env(safe-area-inset-top, 14px) + 6px)); left: max(14px, env(safe-area-inset-left, 14px)); padding: 8px 12px; font-size: 9.5px; }
@@ -289,7 +289,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
           
           {completed ? (
             <>
-              <div style={{ marginTop: '20px', color: '#00ff88', fontWeight: 'bold', letterSpacing: '2px' }}>
+              <div style={{ marginTop: '20px', color: '#00c853', fontWeight: 'bold', letterSpacing: '2px' }}>
                   SIMPUL TELAH TERPECAHKAN.
               </div>
               <div style={{ marginTop: '20px' }}>
@@ -305,7 +305,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
                   <strong>Lapis Dalam:</strong> Yang Maha Esa. (X)<br/>
               </div>
               <div style={{ marginTop: '30px' }}>
-                  <button onClick={handleVerify} className="btn-return" style={{ opacity: 1, transform: 'none', display: 'inline-block', padding: '12px 30px', marginTop: 0, background: btnText === "AKSES DIBERIKAN" ? "#00ff88" : "var(--enigma-gold)", color: '#000', fontWeight: 'bold' }}>{btnText}</button>
+                  <button onClick={handleVerify} className="btn-return" style={{ opacity: 1, transform: 'none', display: 'inline-block', padding: '12px 30px', marginTop: 0, background: btnText === "AKSES DIBERIKAN" ? "#00c853" : "var(--enigma-gold)", color: '#060b14', fontWeight: 'bold' }}>{btnText}</button>
               </div>
               <div id="errorMsg" style={{ marginTop: '15px', color: '#ff3366', fontSize: '0.85rem', letterSpacing: '1px', display: errorMsg ? 'block' : 'none' }}>Kombinasi tidak selaras. Getaran ditolak.</div>
             </>

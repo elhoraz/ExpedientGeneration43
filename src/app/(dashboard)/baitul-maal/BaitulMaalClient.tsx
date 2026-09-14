@@ -763,7 +763,7 @@ export default function BaitulMaalClient({
           </div>
 
           <div className="stat-card">
-            <i className="fa-solid fa-arrow-turn-down stat-icon" style={{ color: "#00ff88" }}></i>
+            <i className="fa-solid fa-arrow-turn-down stat-icon" style={{ color: "#00c853" }}></i>
             <div className="stat-label">{t.baitul_maal.income_label}</div>
             <h2 className="stat-value text-in">{formatRupiah(totalIn)}</h2>
             <div className="stat-sub">
@@ -968,7 +968,7 @@ export default function BaitulMaalClient({
                 className={`filter-tab ${filterType === "IN" ? "active" : ""}`}
                 onClick={() => handleFilterChange("IN")}
               >
-                <i className="fa-solid fa-arrow-down" style={{ color: "#00ff88" }}></i> {t.baitul_maal.filter_in}
+                <i className="fa-solid fa-arrow-down" style={{ color: "#00c853" }}></i> {t.baitul_maal.filter_in}
               </button>
               <button
                 type="button"
@@ -1100,9 +1100,9 @@ export default function BaitulMaalClient({
                           type="button"
                           onClick={() => handleVerifyTx(tx.id, true)}
                           style={{
-                            background: "rgba(0, 255, 136, 0.15)",
-                            border: "1px solid #00ff88",
-                            color: "#00ff88",
+                            background: "rgba(0, 200, 83, 0.15)",
+                            border: "1px solid #00c853",
+                            color: "#00c853",
                             padding: "4px 10px",
                             borderRadius: "6px",
                             fontSize: "0.75rem",

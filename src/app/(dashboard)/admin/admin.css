@@ -21,7 +21,7 @@ body.page-admin .admin-wrapper,
     box-shadow: 0 10px 30px rgba(212,175,55,0.1);
     border-color: rgba(212,175,55,0.4);
 }
-.admin-wrapper .hover-glow-emerald:hover { box-shadow: 0 10px 30px rgba(0, 255, 136, 0.2); border-color: #00ff88; }
+.admin-wrapper .hover-glow-emerald:hover { box-shadow: 0 10px 30px rgba(0, 200, 83, 0.2); border-color: #00c853; }
 .admin-wrapper .hover-glow-gold:hover { box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); border-color: #d4af37; }
 .admin-wrapper .hover-glow-danger:hover { box-shadow: 0 10px 30px rgba(255, 51, 102, 0.2); border-color: #ff3366; }
 .admin-wrapper .hover-glow-cyan:hover { box-shadow: 0 10px 30px rgba(0, 191, 255, 0.2); border-color: #00bfff; }
@@ -49,7 +49,7 @@ body.page-admin .admin-wrapper,
 .admin-wrapper .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
 .admin-wrapper .badge.admin { background: rgba(212,175,55,0.2); color: #d4af37; border: 1px solid #d4af37; }
 .admin-wrapper .badge.member { background: rgba(255,255,255,0.1); color: #ccc; border: 1px solid #555; }
-.admin-wrapper .badge.active { background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid #00ff88; }
+.admin-wrapper .badge.active { background: rgba(0,200,83,0.1); color: #00c853; border: 1px solid #00c853; }
 .admin-wrapper .badge.inactive { background: rgba(255,51,102,0.1); color: #ff3366; border: 1px solid #ff3366; }
 .admin-wrapper .btn-action { 
     background: transparent; 

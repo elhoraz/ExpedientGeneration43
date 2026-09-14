@@ -91,7 +91,7 @@ body.page-direktori .direktori-container,
     background: #ffffff;
     border: 1px solid rgba(212, 175, 55, 0.35);
     box-shadow: 0 15px 35px rgba(212, 175, 55, 0.12);
-    color: #0a110e;
+    color: #0f172a;
 }
 [data-theme="light"] .direktori-container .swiper-slide-active .luminary-card { 
     box-shadow: 0 25px 50px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05); 
@@ -100,16 +100,16 @@ body.page-direktori .direktori-container,
 [data-theme="light"] .direktori-container .search-input {
     background: #ffffff;
     border-color: rgba(212, 175, 55, 0.4);
-    color: #0a110e;
+    color: #0f172a;
     box-shadow: 0 10px 25px rgba(212, 175, 55, 0.1);
 }
-[data-theme="light"] .direktori-container .card-name { color: #0a110e; }
+[data-theme="light"] .direktori-container .card-name { color: #0f172a; }
 [data-theme="light"] .direktori-container .swiper-slide-active .card-name { color: #aa771c; }
-[data-theme="light"] .direktori-container .card-full-name { color: #5d6e66; }
+[data-theme="light"] .direktori-container .card-full-name { color: #475569; }
 [data-theme="light"] .direktori-container .d-label { color: #aa771c; }
-[data-theme="light"] .direktori-container .d-value { color: #0a110e; }
-[data-theme="light"] .direktori-container .card-quote { color: #2d3e36; }
-[data-theme="light"] .direktori-container .agent-serial { color: #7a8b84; }
+[data-theme="light"] .direktori-container .d-value { color: #0f172a; }
+[data-theme="light"] .direktori-container .card-quote { color: #334155; }
+[data-theme="light"] .direktori-container .agent-serial { color: #64748b; }
 
 /* Serial Number (Hidden) */
 .direktori-container .agent-serial { display: none !important; }

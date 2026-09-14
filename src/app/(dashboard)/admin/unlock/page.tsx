@@ -100,7 +100,7 @@ export default function AdminUnlockPage() {
 
           <div className="btn-rack">
             <div className="magnetic-wrap" style={{ width: "100%" }}>
-              <button type="button" className="btn-prime magnetic-btn" onClick={handleBiometric} style={{ width: "100%", background: "linear-gradient(135deg, #00ff88, #008844)", color: "#fff" }}>
+              <button type="button" className="btn-prime magnetic-btn" onClick={handleBiometric} style={{ width: "100%", background: "linear-gradient(135deg, #00c853, #008844)", color: "#fff" }}>
                 <i className="fa-solid fa-fingerprint"></i> Gunakan FaceID / Sidik Jari
               </button>
             </div>

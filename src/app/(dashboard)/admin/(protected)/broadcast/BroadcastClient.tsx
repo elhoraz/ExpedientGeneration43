@@ -146,18 +146,18 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
       </div>
 
       {/* Meta WhatsApp Cloud API Official Status Panel */}
-      <div style={{ background: "linear-gradient(135deg, rgba(0, 255, 136, 0.08), rgba(212, 175, 55, 0.05))", border: "1px solid rgba(0, 255, 136, 0.3)", borderRadius: "16px", padding: "18px 24px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "14px" }}>
+      <div style={{ background: "linear-gradient(135deg, rgba(0, 200, 83, 0.08), rgba(212, 175, 55, 0.05))", border: "1px solid rgba(0, 200, 83, 0.3)", borderRadius: "16px", padding: "18px 24px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               <div style={{ 
                   width: "12px", height: "12px", borderRadius: "50%", flexShrink: 0,
-                  background: "#00ff88", boxShadow: "0 0 12px #00ff88"
+                  background: "#00c853", boxShadow: "0 0 12px #00c853"
               }}></div>
               <div>
                   <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
                       WhatsApp Cloud API Resmi (Primary) · <span style={{ color: "#ffd700", fontFamily: "monospace" }}>+62 851-5177-1289</span>
                   </div>
                   <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "3px" }}>
-                      🛡️ <b>100% Anti-Banned</b> · WABA ID: 2574305923008491 · Status: <span style={{ color: "#00ff88", fontWeight: 600 }}>VERIFIED (Green Rating)</span>
+                      🛡️ <b>100% Anti-Banned</b> · WABA ID: 2574305923008491 · Status: <span style={{ color: "#00c853", fontWeight: 600 }}>VERIFIED (Green Rating)</span>
                   </div>
               </div>
           </div>

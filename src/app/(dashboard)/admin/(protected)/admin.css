@@ -32,7 +32,7 @@ body.page-admin .form-textarea { resize: vertical; min-height: 200px; line-heigh
 .admin-wrapper .form-select,
 body.page-admin .form-select { appearance: none; cursor: pointer; }
 .admin-wrapper .form-select option,
-body.page-admin .form-select option { background: #0a110e; color: #fff; }
+body.page-admin .form-select option { background: #060b14; color: #fff; }
 
 .admin-wrapper .form-row,
 body.page-admin .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -53,7 +53,7 @@ body.page-admin .form-actions { display: flex; gap: 15px; margin-top: 10px; }
 .admin-wrapper .btn-submit-form,
 body.page-admin .btn-submit-form { flex: 1; background: linear-gradient(135deg, rgba(212,175,55,0.3), rgba(212,175,55,0.1)); border: 1px solid rgba(212,175,55,0.5); color: #d4af37; padding: 15px; border-radius: 10px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; font-size: 0.85rem; cursor: pointer; transition: 0.3s; }
 .admin-wrapper .btn-submit-form:hover,
-body.page-admin .btn-submit-form:hover { background: #d4af37; color: #030504; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(212,175,55,0.3); }
+body.page-admin .btn-submit-form:hover { background: #d4af37; color: #060b14; transform: translateY(-2px); box-shadow: 0 10px 25px rgba(212,175,55,0.3); }
 .admin-wrapper .btn-cancel,
 body.page-admin .btn-cancel { padding: 15px 30px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-secondary); border-radius: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; font-size: 0.85rem; text-decoration: none; text-align: center; transition: 0.3s; display: inline-flex; align-items: center; }
 .admin-wrapper .btn-cancel:hover,
@@ -81,12 +81,12 @@ body.page-admin .btn-cancel:hover { border-color: var(--text-primary); color: va
 .admin-wrapper .empty-state { text-align: center; padding: 30px; color: var(--text-secondary); font-size: 0.85rem; }
 
 /* CMS STYLES */
-.admin-wrapper .cms-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); color: #00ff88; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px; text-shadow: 0 0 20px rgba(0, 255, 136, 0.4); }
+.admin-wrapper .cms-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); color: #00c853; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 5px; text-shadow: 0 0 20px rgba(0, 200, 83, 0.4); }
 
 .admin-wrapper .cms-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 .admin-wrapper .cms-tab-btn { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: var(--text-secondary); padding: 10px 20px; border-radius: 8px 8px 0 0; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem; letter-spacing: 1px; text-transform: uppercase; transition: 0.3s; white-space: nowrap; }
-.admin-wrapper .cms-tab-btn:hover { background: rgba(0,255,136,0.1); color: #00ff88; }
-.admin-wrapper .cms-tab-btn.active { background: rgba(0,255,136,0.15); border-color: #00ff88; border-bottom: 2px solid #00ff88; color: #00ff88; font-weight: bold; }
+.admin-wrapper .cms-tab-btn:hover { background: rgba(0,200,83,0.1); color: #00c853; }
+.admin-wrapper .cms-tab-btn.active { background: rgba(0,200,83,0.15); border-color: #00c853; border-bottom: 2px solid #00c853; color: #00c853; font-weight: bold; }
 .admin-wrapper .cms-tab-content { display: none; animation: fadeIn 0.4s ease-out; }
 .admin-wrapper .cms-tab-content.active { display: block; }
 
@@ -98,17 +98,17 @@ body.page-admin .btn-cancel:hover { border-color: var(--text-primary); color: va
 .admin-wrapper .cms-table td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-primary); vertical-align: middle; transition: 0.3s; }
 .admin-wrapper .cms-table tr:hover { background: rgba(255,255,255,0.02); }
 .admin-wrapper .cms-table tr:last-child td { border-bottom: none; }
-.admin-wrapper .cms-table tr.draft-modified { background: rgba(0, 255, 136, 0.05); }
+.admin-wrapper .cms-table tr.draft-modified { background: rgba(0, 200, 83, 0.05); }
 
 .admin-wrapper .key-badge { background: rgba(0,0,0,0.4); padding: 5px 10px; border-radius: 6px; font-family: monospace; color: #d4af37; border: 1px solid rgba(212,175,55,0.2); }
 .admin-wrapper .type-badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px; display: inline-block; }
 .admin-wrapper .type-image { background: rgba(0, 191, 255, 0.1); color: #00bfff; border: 1px solid rgba(0, 191, 255, 0.3); }
 .admin-wrapper .type-html { background: rgba(255, 165, 0, 0.1); color: #ffa500; border: 1px solid rgba(255, 165, 0, 0.3); }
 .admin-wrapper .type-text { background: rgba(255, 255, 255, 0.05); color: #ccc; border: 1px solid rgba(255, 255, 255, 0.1); }
-.admin-wrapper .draft-badge { display:none; font-size: 0.6rem; background:#00ff88; color:#000; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:10px; vertical-align:middle; text-transform:uppercase; letter-spacing:1px; }
+.admin-wrapper .draft-badge { display:none; font-size: 0.6rem; background:#00c853; color:#000; padding:2px 6px; border-radius:10px; font-weight:bold; margin-left:10px; vertical-align:middle; text-transform:uppercase; letter-spacing:1px; }
 
-.admin-wrapper .btn-edit { background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), transparent); border: 1px solid rgba(0, 255, 136, 0.4); color: #00ff88; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.8rem; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
-.admin-wrapper .btn-edit:hover { background: rgba(0, 255, 136, 0.2); box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); color: #00ff88; }
+.admin-wrapper .btn-edit { background: linear-gradient(135deg, rgba(0, 200, 83, 0.1), transparent); border: 1px solid rgba(0, 200, 83, 0.4); color: #00c853; padding: 8px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.8rem; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.admin-wrapper .btn-edit:hover { background: rgba(0, 200, 83, 0.2); box-shadow: 0 0 15px rgba(0, 200, 83, 0.3); color: #00c853; }
 
 .admin-wrapper .btn-danger-sm { background: transparent; border: 1px solid rgba(255, 51, 102, 0.4); color: #ff3366; padding: 6px 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 0.7rem; margin-top:10px; display:inline-block; }
 .admin-wrapper .btn-danger-sm:hover { background: rgba(255, 51, 102, 0.2); }
@@ -192,7 +192,7 @@ body.page-admin .btn-cancel:hover { border-color: var(--text-primary); color: va
 }
 .admin-wrapper .btn-create:hover {
     background: #d4af37;
-    color: #030504;
+    color: #060b14;
     transform: translateY(-3px);
     box-shadow: 0 10px 25px rgba(212,175,55,0.3);
 }
@@ -384,8 +384,8 @@ body.page-admin .btn-cancel:hover { border-color: var(--text-primary); color: va
         transition: border-color 0.3s;
     }
     .admin-wrapper .cms-mobile-card.draft-modified {
-        border-color: rgba(0, 255, 136, 0.5);
-        background: rgba(0, 255, 136, 0.05);
+        border-color: rgba(0, 200, 83, 0.5);
+        background: rgba(0, 200, 83, 0.05);
     }
     .admin-wrapper .cms-mobile-card-header {
         display: flex;

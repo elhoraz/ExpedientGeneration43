@@ -80,7 +80,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", savedTheme === "light" ? "#fcfbf8" : "#030504");
+      metaThemeColor.setAttribute("content", savedTheme === "light" ? "#f8fafc" : "#060b14");
     }
   }, []);
 

@@ -508,7 +508,7 @@ export default function CmsClient({
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "12px" }}>
           <span>Total Kunci CMS: <strong style={{ color: "var(--gold-premium, #d4af37)" }}>{contents.length}</strong></span>
-          <span>Ditemukan: <strong style={{ color: "#00ff88" }}>{totalFilteredCount}</strong></span>
+          <span>Ditemukan: <strong style={{ color: "#00c853" }}>{totalFilteredCount}</strong></span>
         </div>
       </div>
 
@@ -539,9 +539,9 @@ export default function CmsClient({
           onClick={() => setActiveTab('galeri')}
           style={{ flexShrink: 0, padding: "10px 16px", borderRadius: "12px", display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "0.82rem" }}
         >
-          <i className="fa-solid fa-images" style={{ color: activeTab === 'galeri' ? "#000" : "#00ff88" }}></i>
+          <i className="fa-solid fa-images" style={{ color: activeTab === 'galeri' ? "#000" : "#00c853" }}></i>
           <span>Galeri Museum 3D</span>
-          <span style={{ fontSize: "0.68rem", opacity: 0.8, background: activeTab === 'galeri' ? "rgba(0,0,0,0.2)" : "rgba(0,255,136,0.2)", padding: "2px 6px", borderRadius: "10px" }}>
+          <span style={{ fontSize: "0.68rem", opacity: 0.8, background: activeTab === 'galeri' ? "rgba(0,0,0,0.2)" : "rgba(0,200,83,0.2)", padding: "2px 6px", borderRadius: "10px" }}>
             {initialGaleri.length}
           </span>
         </button>
@@ -601,10 +601,10 @@ export default function CmsClient({
                             const displayValue = isDrafted ? draftUpdates[c.id] : c.content_value;
 
                             return (
-                              <tr key={c.id} style={{ background: isDrafted || isNew ? 'rgba(0, 255, 136, 0.05)' : 'transparent' }}>
+                              <tr key={c.id} style={{ background: isDrafted || isNew ? 'rgba(0, 200, 83, 0.05)' : 'transparent' }}>
                                 <td>
                                   <span className="key-badge" style={{ fontSize: "0.78rem" }}>{c.content_key}</span>
-                                  {(isDrafted || isNew) && <span style={{ fontSize: "0.6rem", color: "#00ff88", marginLeft: "6px", fontWeight: 700 }}>*DRAFT</span>}
+                                  {(isDrafted || isNew) && <span style={{ fontSize: "0.6rem", color: "#00c853", marginLeft: "6px", fontWeight: 700 }}>*DRAFT</span>}
                                 </td>
                                 <td>
                                   {c.content_type === "image" ? (
@@ -661,7 +661,7 @@ export default function CmsClient({
                                 ) : (
                                   <span className="type-badge type-text"><i className="fa-solid fa-font"></i> Teks</span>
                                 )}
-                                {(isDrafted || isNew) && <span style={{ fontSize: "0.62rem", color: "#00ff88", fontWeight: 700 }}>*DRAFT</span>}
+                                {(isDrafted || isNew) && <span style={{ fontSize: "0.62rem", color: "#00c853", fontWeight: 700 }}>*DRAFT</span>}
                               </div>
                             </div>
                             <div className="cms-mobile-card-body">
@@ -698,16 +698,16 @@ export default function CmsClient({
         {/* GALERI TAB CONTENT */}
         {activeTab === 'galeri' && (
           <div>
-            <div style={{ background: "rgba(0,255,136,0.05)", border: "1px solid rgba(0,255,136,0.2)", borderRadius: "16px", padding: "18px 24px", marginBottom: "20px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "15px" }}>
+            <div style={{ background: "rgba(0,200,83,0.05)", border: "1px solid rgba(0,200,83,0.2)", borderRadius: "16px", padding: "18px 24px", marginBottom: "20px", display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "15px" }}>
               <div>
-                <h2 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700, color: "#00ff88", display: "flex", alignItems: "center", gap: "10px" }}>
+                <h2 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700, color: "#00c853", display: "flex", alignItems: "center", gap: "10px" }}>
                   <i className="fa-solid fa-images"></i> Galeri Museum 3D
                 </h2>
                 <p style={{ margin: "4px 0 0 0", fontSize: "0.78rem", color: "var(--text-secondary)" }}>
                   Kelola foto kenangan dan arsip visual angkatan yang ditampilkan pada galeri 3D museum
                 </p>
               </div>
-              <button className="btn-add hover-trigger" onClick={handleOpenGaleriAdd} style={{ margin: 0, background: "rgba(0,255,136,0.15)", border: "1px solid rgba(0,255,136,0.4)", color: "#00ff88" }}>
+              <button className="btn-add hover-trigger" onClick={handleOpenGaleriAdd} style={{ margin: 0, background: "rgba(0,200,83,0.15)", border: "1px solid rgba(0,200,83,0.4)", color: "#00c853" }}>
                 <i className="fa-solid fa-plus" style={{ marginRight: "6px" }}></i> Tambah Gambar Galeri Baru
               </button>
             </div>
@@ -911,21 +911,21 @@ export default function CmsClient({
         <div className="cms-modal-overlay active">
           <div className="cms-modal" style={{ maxWidth: "600px" }}>
             <button type="button" className="modal-close" onClick={() => setIsEditingGaleri(false)}><i className="fa-solid fa-xmark"></i></button>
-            <h3 style={{ color: "#00ff88", fontFamily: "'Playfair Display', serif", marginBottom: "15px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <h3 style={{ color: "#00c853", fontFamily: "'Playfair Display', serif", marginBottom: "15px", display: "flex", alignItems: "center", gap: "8px" }}>
               <i className="fa-solid fa-images"></i> {galeriId ? "Edit Gambar Galeri" : "Tambah Gambar Galeri Museum"}
             </h3>
             <form onSubmit={handleSaveGaleri}>
               <div className="form-group">
                 <label className="form-label">Pilih Foto dari Gawai</label>
-                <label style={{ display: 'block', border: '2px dashed rgba(0,255,136,0.3)', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: 'rgba(0,255,136,0.03)', marginBottom: '12px' }}>
-                  <i className="fa-solid fa-image" style={{ fontSize: '2rem', marginBottom: '8px', display: 'block', color: '#00ff88' }}></i>
+                <label style={{ display: 'block', border: '2px dashed rgba(0,200,83,0.3)', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: 'rgba(0,200,83,0.03)', marginBottom: '12px' }}>
+                  <i className="fa-solid fa-image" style={{ fontSize: '2rem', marginBottom: '8px', display: 'block', color: '#00c853' }}></i>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Klik untuk pilih file foto dari perangkat Anda</span>
                   <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>JPG, PNG, WEBP — Maks. 5MB</span>
                   <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGaleriFileChange} />
                 </label>
                 {galeriFilePreview && (
                   <div style={{ marginBottom: '12px', position: 'relative' }}>
-                    <img src={galeriFilePreview} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,255,136,0.3)' }} />
+                    <img src={galeriFilePreview} alt="Preview" style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '10px', border: '1px solid rgba(0,200,83,0.3)' }} />
                   </div>
                 )}
                 <label className="form-label" style={{ fontSize: '0.72rem' }}>Atau masukkan URL gambar secara manual:</label>

@@ -59,10 +59,10 @@ export default function SovereignThreeScene({
 
       const GOLD = "#d4af37";
       const PURE_GOLD = "#ffd700";
-      const DARK_BG = "#050505";
+      const DARK_BG = "#060b14";
 
       const scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x020202, 0.015);
+      scene.fog = new THREE.FogExp2(0x060b14, 0.015);
 
       const isMobile =
         typeof window !== "undefined" &&
@@ -168,13 +168,13 @@ export default function SovereignThreeScene({
 
         const baseGrad = ctx.createLinearGradient(0, 0, size, size);
         if (isDayMode) {
-          baseGrad.addColorStop(0, "#f8f9fa");
+          baseGrad.addColorStop(0, "#f8fafc");
           baseGrad.addColorStop(0.5, "#ffffff");
-          baseGrad.addColorStop(1, "#e9ecef");
+          baseGrad.addColorStop(1, "#f1f5f9");
         } else {
-          baseGrad.addColorStop(0, "#080a0d");
-          baseGrad.addColorStop(0.5, "#030304");
-          baseGrad.addColorStop(1, "#000000");
+          baseGrad.addColorStop(0, "#0c182b");
+          baseGrad.addColorStop(0.5, "#08101d");
+          baseGrad.addColorStop(1, "#060b14");
         }
         ctx.fillStyle = baseGrad;
         ctx.fillRect(0, 0, size, size);
@@ -546,9 +546,9 @@ export default function SovereignThreeScene({
         canvas.height = 640;
         const ctx = canvas.getContext("2d")!;
 
-        ctx.fillStyle = isBump ? "#000000" : "#050505";
+        ctx.fillStyle = isBump ? "#000000" : "#060b14";
         ctx.fillRect(0, 0, 1024, 640);
-        ctx.strokeStyle = isBump ? "#444444" : "#151515";
+        ctx.strokeStyle = isBump ? "#444444" : "#0c182b";
         ctx.lineWidth = 4;
         for (let i = -200; i < 1200; i += 60) {
           ctx.beginPath();

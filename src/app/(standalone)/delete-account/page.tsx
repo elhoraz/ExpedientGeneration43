@@ -10,7 +10,7 @@ export default function DeleteAccountPage() {
   return (
     <div style={{
       minHeight: "100dvh",
-      backgroundColor: "#030504",
+      backgroundColor: "#060b14",
       color: "#e6edf3",
       padding: "2rem 1rem",
       display: "flex",
@@ -21,7 +21,7 @@ export default function DeleteAccountPage() {
       <div style={{
         maxWidth: "680px",
         width: "100%",
-        background: "rgba(18, 24, 20, 0.8)",
+        background: "rgba(12, 21, 38, 0.8)",
         backdropFilter: "blur(16px)",
         border: "1px solid rgba(212, 175, 55, 0.25)",
         borderRadius: "16px",
@@ -115,7 +115,7 @@ export default function DeleteAccountPage() {
                 padding: "0.75rem 1.5rem",
                 borderRadius: "8px",
                 background: "linear-gradient(135deg, #d4af37, #aa820a)",
-                color: "#030504",
+                color: "#060b14",
                 fontWeight: 600,
                 fontSize: "0.9rem",
                 textDecoration: "none"

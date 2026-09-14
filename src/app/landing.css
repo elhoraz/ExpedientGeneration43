@@ -142,7 +142,7 @@
 
 .nav-btn-portal {
   background: linear-gradient(135deg, #d4af37, #c9a029);
-  color: #050706;
+  color: #060b14;
   text-decoration: none;
   padding: 8px 18px;
   border-radius: 999px;
@@ -352,7 +352,7 @@
 
 .btn-primary {
   background: linear-gradient(135deg, #d4af37, #c9a029);
-  color: #030504;
+  color: #060b14;
   padding: 14px 32px;
   border-radius: 12px;
   text-decoration: none;
@@ -1013,9 +1013,9 @@
 .radar-live-dot {
   width: 8px;
   height: 8px;
-  background: #00ff88;
+  background: #00c853;
   border-radius: 50%;
-  box-shadow: 0 0 10px #00ff88;
+  box-shadow: 0 0 10px #00c853;
   animation: pulseLive 2s infinite ease-in-out;
 }
 

@@ -42,7 +42,7 @@ export default function ScannerClient() {
 
   const simulateScan = () => {
     // Simulate successful scan
-    gsap.to(".scanner-frame", { borderColor: "#00ff88", boxShadow: "0 0 50px #00ff88", duration: 0.3 });
+    gsap.to(".scanner-frame", { borderColor: "#00c853", boxShadow: "0 0 50px #00c853", duration: 0.3 });
     setTimeout(() => {
         router.push("/ar-hologram/demo"); // Redirect to holographic AR view
     }, 1000);
@@ -51,8 +51,8 @@ export default function ScannerClient() {
   return (
     <div className="scanner-wrapper">
       <style>{`
-        body { background-color: #000; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
-        .scanner-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; background: #000; }
+        body { background-color: #060b14; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        .scanner-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; background: #060b14; }
         
         .video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.5; }
         

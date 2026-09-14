@@ -12,18 +12,18 @@
     --gold-light: #fff2cd;
     --gold-main: #d4af37;
     --gold-dark: #aa771c;
-    --neon-green: #00ff88;
-    --neon-blue: #00e5ff;
+    --neon-green: #00c853;
+    --neon-blue: #00d2ff;
     --hud-color: var(--gold-main);
 
     position: relative; width: 100%; min-height: 100vh;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 20px; z-index: 10;
     /* Background di-scope ke wrapper, bukan body global */
-    background-color: #010201;
+    background-color: #060b14;
     background-image: 
         radial-gradient(circle at 50% -20%, rgba(212,175,55,0.15) 0%, transparent 50%),
-        linear-gradient(180deg, #050a08 0%, #010201 100%);
+        linear-gradient(180deg, #0c182b 0%, #060b14 100%);
 }
 
 /* ================= FASE 1: GOD-TIER HUD SCANNER ================= */
@@ -90,7 +90,7 @@
 .premium-card {
     position: relative; height: 420px; border-radius: 20px; text-decoration: none; transform-style: preserve-3d;
     box-shadow: 0 25px 50px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.05); 
-    background-color: #050a08;
+    background-color: #060b14;
 }
 
 .premium-card .card-bg {

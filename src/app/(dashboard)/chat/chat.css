@@ -408,7 +408,7 @@
 
 .msg-image-container:hover .msg-image-overlay-hint {
   background: rgba(212, 175, 55, 0.85);
-  color: #030504;
+  color: #060b14;
   font-weight: bold;
 }
 
@@ -535,7 +535,7 @@
   border-radius: 50%;
   background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
   border: none;
-  color: #030504;
+  color: #060b14;
   font-size: 1.05rem;
   display: flex;
   align-items: center;
@@ -655,17 +655,17 @@
 }
 
 :root[data-theme="light"] .inbox-top h4 {
-  color: #0a110e;
+  color: #0f172a;
 }
 
 :root[data-theme="light"] .inbox-preview {
-  color: #5d6e66;
+  color: #475569;
 }
 
 :root[data-theme="light"] .inbox-empty-state {
   background: rgba(255, 255, 255, 0.8);
   border-color: rgba(212, 175, 55, 0.4);
-  color: #5d6e66;
+  color: #475569;
 }
 
 :root[data-theme="light"] .chat-room-header {
@@ -676,29 +676,29 @@
 :root[data-theme="light"] .chat-room-header .back-btn {
   background: rgba(0, 0, 0, 0.04);
   border-color: rgba(0, 0, 0, 0.1);
-  color: #0a110e;
+  color: #0f172a;
 }
 
 :root[data-theme="light"] .chat-room-header .contact-info .contact-fullname {
-  color: #5d6e66;
+  color: #475569;
 }
 
 :root[data-theme="light"] .msg-bubble-wrapper.mine .msg-bubble-content {
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.35), rgba(212, 175, 55, 0.18));
   border: 1px solid rgba(170, 119, 28, 0.4);
-  color: #0a110e;
+  color: #0f172a;
   box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
 }
 
 :root[data-theme="light"] .msg-bubble-wrapper.other .msg-bubble-content {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  color: #0a110e;
+  color: #0f172a;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .msg-time {
-  color: #5d6e66;
+  color: #475569;
 }
 
 :root[data-theme="light"] .chat-input-bar {
@@ -714,13 +714,13 @@
 
 :root[data-theme="light"] .btn-chat-tool:hover {
   background: rgba(212, 175, 55, 0.2);
-  color: #0a110e;
+  color: #0f172a;
 }
 
 :root[data-theme="light"] .chat-text-input {
   background: #ffffff;
   border-color: rgba(0, 0, 0, 0.12);
-  color: #0a110e;
+  color: #0f172a;
 }
 
 :root[data-theme="light"] .chat-text-input::placeholder {
@@ -742,7 +742,7 @@
   background: rgba(255, 255, 255, 0.95);
   border-color: rgba(212, 175, 55, 0.4);
   box-shadow: 0 20px 45px rgba(212, 175, 55, 0.18);
-  color: #0a110e;
+  color: #0f172a;
 }
 
 /* --------------------------------------------------------------------------

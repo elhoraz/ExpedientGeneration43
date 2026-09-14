@@ -12,7 +12,7 @@ export default function GlobalRootError({
       <body
         style={{
           margin: 0,
-          background: "#030504",
+          background: "#060b14",
           color: "#e6edf3",
           fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           display: "flex",
@@ -47,7 +47,7 @@ export default function GlobalRootError({
               borderRadius: "24px",
               border: "1px solid #d4af37",
               background: "#d4af37",
-              color: "#030504",
+              color: "#060b14",
               fontSize: "0.85rem",
               fontWeight: 700,
               cursor: "pointer",

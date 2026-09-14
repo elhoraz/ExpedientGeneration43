@@ -55,7 +55,7 @@ export default function LoadingScreen() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--bg-main, #030504)",
+        background: "var(--bg-main, #060b14)",
         transition: "opacity 0.3s ease-out",
         opacity: isFading ? 0 : 1,
         pointerEvents: isFading ? "none" : "auto",

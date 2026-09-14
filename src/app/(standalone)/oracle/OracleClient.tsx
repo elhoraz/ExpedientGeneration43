@@ -207,7 +207,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       switch(dominantEmotion) {
           case 'happy': 
               maqam = "Tasyakkur (Bersyukur)"; 
-              tintColor = "rgba(0, 255, 136, 0.4)"; 
+              tintColor = "rgba(0, 200, 83, 0.4)"; 
               filterStr = "sepia(0.3) hue-rotate(90deg) brightness(0.9) contrast(1.3)";
               break;
           case 'sad': 
@@ -329,14 +329,14 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       <style>{`
         :root {
             --oracle-gold: #d4af37;
-            --oracle-dark: #020202;
+            --oracle-dark: #060b14;
             --text-secondary: #8b9ba8;
         }
         body.page-oracle { background: var(--oracle-dark); color: #fff; margin: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
             display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px; background: rgba(0,0,0,0.65);
+            padding: 10px 18px; background: rgba(6,11,20,0.75);
             border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
             color: #d4af37; font-size: 11px; font-weight: 600; 
             letter-spacing: 2px; text-decoration: none; text-transform: uppercase;
@@ -346,7 +346,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .btn-time-capsule {
             position: absolute; top: 30px; right: 30px; z-index: 100;
             display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px; background: rgba(0,0,0,0.65);
+            padding: 10px 18px; background: rgba(6,11,20,0.75);
             border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
             color: #d4af37; font-size: 11px; font-weight: 600; 
             letter-spacing: 2px; cursor: pointer; text-transform: uppercase;
@@ -354,7 +354,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         }
         .time-capsule-panel {
             position: absolute; top: 0; right: -420px; width: min(400px, 92vw); height: 100dvh;
-            background: rgba(5,5,5,0.96); border-left: 1px solid var(--oracle-gold);
+            background: rgba(6,11,20,0.96); border-left: 1px solid var(--oracle-gold);
             z-index: 90; padding: 100px 24px 24px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
@@ -368,7 +368,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 20px;
         }
         .capsule-btn {
-            width: 100%; padding: 12px; background: var(--oracle-gold); color: #000;
+            width: 100%; padding: 12px; background: var(--oracle-gold); color: #060b14;
             border: none; border-radius: 8px; font-weight: bold; letter-spacing: 2px; cursor: pointer;
         }
         .oracle-wrapper {
@@ -379,7 +379,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .vision-container {
             position: relative; width: clamp(280px, 86vw, 440px); max-height: 52vh; aspect-ratio: 3/4;
             border: 2px solid rgba(212,175,55,0.3); border-radius: 20px; overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); background: #0a0a0a;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); background: #0c182b;
         }
         .vision-container video, .vision-container canvas {
             width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;
@@ -393,7 +393,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         
         .controls-panel { margin-top: 30px; display: flex; gap: 15px; }
         .btn-initiate { padding: 14px 36px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: 'Inter'; text-transform: uppercase; letter-spacing: 3px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
-        .btn-initiate:hover { background: var(--oracle-gold); color: #000; }
+        .btn-initiate:hover { background: var(--oracle-gold); color: #060b14; }
         .btn-initiate:disabled { opacity: 0.5; pointer-events: none; }
         
         .capsule-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
@@ -407,7 +407,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           backdrop-filter: blur(10px); animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .oracle-insight-paper {
-          background: linear-gradient(145deg, #111, #080808);
+          background: linear-gradient(145deg, #0c182b, #060b14);
           border: 1px solid rgba(212,175,55,0.4); border-radius: 16px;
           padding: 40px; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto;
           box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 40px rgba(212,175,55,0.05);
@@ -425,14 +425,14 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--oracle-gold);
           position: relative; line-height: 1.7; text-align: center;
         }
-        .oi-quote-icon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); color: var(--oracle-gold); background: #080808; padding: 0 15px; font-size: 1.5rem; }
+        .oi-quote-icon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); color: var(--oracle-gold); background: #060b14; padding: 0 15px; font-size: 1.5rem; }
         .oi-close {
           display: block; margin: 40px auto 0; padding: 12px 40px; background: transparent;
           border: 1px solid var(--oracle-gold); color: var(--oracle-gold);
           border-radius: 30px; font-family: 'Inter'; letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;
           cursor: pointer; transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .oi-close:hover { background: var(--oracle-gold); color: #000; box-shadow: 0 0 20px rgba(212,175,55,0.4); transform: translateY(-3px); }
+        .oi-close:hover { background: var(--oracle-gold); color: #060b14; box-shadow: 0 0 20px rgba(212,175,55,0.4); transform: translateY(-3px); }
         
         @media (max-width: 640px) {
           .btn-back-vault {

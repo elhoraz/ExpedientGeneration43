@@ -1071,7 +1071,7 @@ function RegisterFormContent() {
                         border: "none",
                         borderRadius: "20px",
                         padding: "8px 22px",
-                        color: "#0a130e",
+                        color: "#060b14",
                         fontWeight: 800,
                         fontSize: "0.82rem",
                         cursor: "pointer",
@@ -1210,7 +1210,7 @@ function RegisterFormContent() {
 
 export default function RegisterClient() {
   return (
-    <Suspense fallback={<div style={{ width: "100%", minHeight: "100vh", background: "#020406" }}></div>}>
+    <Suspense fallback={<div style={{ width: "100%", minHeight: "100vh", background: "#060b14" }}></div>}>
       <RegisterFormContent />
     </Suspense>
   );

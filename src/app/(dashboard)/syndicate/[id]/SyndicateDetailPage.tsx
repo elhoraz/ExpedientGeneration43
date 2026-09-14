@@ -213,7 +213,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               </span>
             )}
 
-            <span className="microsite-badge-pill" style={{ background: "rgba(0, 255, 136, 0.1)", border: "1px solid rgba(0, 255, 136, 0.3)", color: "#00ff88" }}>
+            <span className="microsite-badge-pill" style={{ background: "rgba(0, 200, 83, 0.1)", border: "1px solid rgba(0, 200, 83, 0.3)", color: "#00c853" }}>
               <i className="fa-solid fa-user-check"></i> Founder: {ownerName}
             </span>
           </div>
@@ -252,7 +252,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               onClick={handleCopyLink}
               className="btn-cta-share"
             >
-              <i className={copiedLink ? "fa-solid fa-check" : "fa-solid fa-link"} style={{ color: copiedLink ? "#00ff88" : "inherit" }}></i>
+              <i className={copiedLink ? "fa-solid fa-check" : "fa-solid fa-link"} style={{ color: copiedLink ? "#00c853" : "inherit" }}></i>
               {copiedLink ? "Link Tersalin!" : "Salin Link"}
             </button>
           </div>
@@ -445,7 +445,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 <h4 style={{ color: "var(--text-primary)", fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
                   {ownerName}
                 </h4>
-                <div style={{ fontSize: "0.8rem", color: "#00ff88", fontFamily: "monospace", marginTop: "2px" }}>
+                <div style={{ fontSize: "0.8rem", color: "#00c853", fontFamily: "monospace", marginTop: "2px" }}>
                   Expedient 43 Alumni
                 </div>
                 {business.profiles?.akun_ig && (

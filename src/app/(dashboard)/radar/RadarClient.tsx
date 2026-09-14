@@ -104,7 +104,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
 
   return (
     <>
-        <div id="radarLoading" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#030504', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'opacity 1.5s ease' }}>
+        <div id="radarLoading" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#060b14', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'opacity 1.5s ease' }}>
             <div className="rl-ring" style={{ width: '80px', height: '80px', border: '2px solid rgba(212,175,55,0.15)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'rlSpin 1s linear infinite', marginBottom: '30px' }}></div>
             <div className="rl-txt" style={{ fontFamily: '"Playfair Display", serif', fontSize: '1.4rem', color: '#d4af37', letterSpacing: '6px', textTransform: 'uppercase', animation: 'rlFade 2s ease-in-out infinite' }}>{t.radar.network_title}</div>
             <div className="rl-sub" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', letterSpacing: '3px', marginTop: '10px' }}>{t.radar.network_sub}</div>

@@ -138,7 +138,7 @@
     pointer-events: none;
 }
 
-.maal-page-wrapper .text-in { color: #00ff88 !important; }
+.maal-page-wrapper .text-in { color: #00c853 !important; }
 .maal-page-wrapper .text-out { color: #ff5555 !important; }
 :root[data-theme="light"] .maal-page-wrapper .text-in { color: #00aa55 !important; }
 :root[data-theme="light"] .maal-page-wrapper .text-out { color: #cc0000 !important; }
@@ -281,7 +281,7 @@
 }
 
 .maal-page-wrapper .icon-gold { background: rgba(212, 175, 55, 0.15); color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.3); }
-.maal-page-wrapper .icon-green { background: rgba(0, 255, 136, 0.15); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.3); }
+.maal-page-wrapper .icon-green { background: rgba(0, 200, 83, 0.15); color: #00c853; border: 1px solid rgba(0, 200, 83, 0.3); }
 .maal-page-wrapper .icon-blue { background: rgba(0, 150, 255, 0.15); color: #0096ff; border: 1px solid rgba(0, 150, 255, 0.3); }
 
 .maal-page-wrapper .campaign-name {
@@ -312,7 +312,7 @@
 }
 
 .maal-page-wrapper .fill-gold { background: linear-gradient(90deg, #d4af37, #f39c12); }
-.maal-page-wrapper .fill-green { background: linear-gradient(90deg, #00ff88, #2ecc71); }
+.maal-page-wrapper .fill-green { background: linear-gradient(90deg, #00c853, #10b981); }
 .maal-page-wrapper .fill-blue { background: linear-gradient(90deg, #0096ff, #3498db); }
 
 .maal-page-wrapper .campaign-meta {
@@ -475,9 +475,9 @@
 }
 
 .maal-page-wrapper .tx-in-bg {
-    background: rgba(0, 255, 136, 0.12);
-    color: #00ff88;
-    border: 1px solid rgba(0, 255, 136, 0.25);
+    background: rgba(0, 200, 83, 0.12);
+    color: #00c853;
+    border: 1px solid rgba(0, 200, 83, 0.25);
 }
 
 .maal-page-wrapper .tx-out-bg {
@@ -493,7 +493,7 @@
 .maal-page-wrapper .tx-title { font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; }
 .maal-page-wrapper .tx-meta { display: flex; gap: 15px; font-size: 0.75rem; color: var(--text-secondary); }
 .maal-page-wrapper .tx-amount { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: bold; text-align: right; white-space: nowrap; }
-.maal-page-wrapper .tx-amount.in { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
+.maal-page-wrapper .tx-amount.in { color: #00c853; text-shadow: 0 0 10px rgba(0, 200, 83, 0.3); }
 .maal-page-wrapper .tx-amount.out { color: #ff5555; text-shadow: 0 0 10px rgba(255, 85, 85, 0.3); }
 :root[data-theme="light"] .maal-page-wrapper .tx-amount.in { color: #00aa55; text-shadow: none; }
 :root[data-theme="light"] .maal-page-wrapper .tx-amount.out { color: #cc0000; text-shadow: none; }
@@ -805,8 +805,8 @@
 }
 
 .zakat-result-card.wajib {
-    background: rgba(0, 255, 136, 0.1);
-    border: 1px solid rgba(0, 255, 136, 0.3);
+    background: rgba(0, 200, 83, 0.1);
+    border: 1px solid rgba(0, 200, 83, 0.3);
 }
 
 .zakat-result-card.belum {
@@ -824,7 +824,7 @@
     font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #00ff88;
+    color: #00c853;
 }
 
 .zakat-result-card.belum .result-badge {

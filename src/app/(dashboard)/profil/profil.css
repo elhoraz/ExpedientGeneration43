@@ -88,7 +88,7 @@
         border-radius: 50%; 
         overflow: hidden;
         z-index: 10; 
-        background: #050505; /* Always dark for camera */
+        background: #060b14; /* Always dark for camera */
     }
 
     .camera-frame::after {
@@ -654,16 +654,16 @@
 
     .wizard-tab-btn.active .step-num {
         background: var(--gold-premium, #d4af37);
-        color: #000;
+        color: #060b14;
     }
 
     .wizard-tab-btn.completed {
-        border-color: rgba(0, 255, 170, 0.3);
+        border-color: rgba(0, 200, 83, 0.3);
     }
 
     .wizard-tab-btn.completed .step-num {
-        background: rgba(0, 255, 170, 0.2);
-        color: #00ffaa;
+        background: rgba(0, 200, 83, 0.2);
+        color: #00c853;
     }
 
     .wizard-tab-line {

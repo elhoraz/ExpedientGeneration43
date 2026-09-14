@@ -16,13 +16,13 @@ import * as THREE from 'three';
 
             const GOLD = '#d4af37';
             const PURE_GOLD = '#ffd700'; 
-            const DARK_BG = '#050505'; 
+            const DARK_BG = '#060b14'; 
 
             const container = document.getElementById('canvas-container');
             const scene = new THREE.Scene();
             
             // FOG
-            scene.fog = new THREE.FogExp2(0x020202, 0.015);
+            scene.fog = new THREE.FogExp2(0x060b14, 0.015);
 
             const isMobile = window.innerWidth < 768;
             const camera = new THREE.PerspectiveCamera(isMobile ? 55 : 45, window.innerWidth / window.innerHeight, 0.1, 200);
@@ -104,12 +104,12 @@ import * as THREE from 'three';
                     }
                 } else {
                     const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size);
-                    grad.addColorStop(0, '#032417');
-                    grad.addColorStop(1, '#010a06'); 
+                    grad.addColorStop(0, '#0c182b');
+                    grad.addColorStop(1, '#060b14'); 
                     ctx.fillStyle = grad; ctx.fillRect(0, 0, size, size);
 
                     ctx.globalAlpha = 0.2;
-                    ctx.strokeStyle = '#084d33'; ctx.lineWidth = 4;
+                    ctx.strokeStyle = '#1a2942'; ctx.lineWidth = 4;
                     for(let i=0; i<50; i++) {
                         ctx.beginPath(); ctx.moveTo(Math.random()*size, 0);
                         for(let j=0; j<8; j++) ctx.lineTo(Math.random()*size, (j+1)*300);
@@ -327,8 +327,8 @@ import * as THREE from 'three';
                 const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 640;
                 const ctx = canvas.getContext('2d');
                 
-                ctx.fillStyle = isBump ? '#000000' : '#050505'; ctx.fillRect(0,0,1024,640);
-                ctx.strokeStyle = isBump ? '#444444' : '#151515'; ctx.lineWidth = 4;
+                ctx.fillStyle = isBump ? '#000000' : '#060b14'; ctx.fillRect(0,0,1024,640);
+                ctx.strokeStyle = isBump ? '#444444' : '#0c182b'; ctx.lineWidth = 4;
                 for(let i=-200; i<1200; i+=60) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i+400, 640); ctx.stroke(); }
 
                 drawRealisticSmartChip(ctx, 100, 50, 100, 80, 10, isBump);
@@ -538,8 +538,8 @@ import * as THREE from 'three';
 
                     // Latar Belakang Gelap Elegan
                     const bgGrad = ctx.createLinearGradient(0, 0, compCanvas.width, compCanvas.height);
-                    bgGrad.addColorStop(0, '#1a1d24');
-                    bgGrad.addColorStop(1, '#050505');
+                    bgGrad.addColorStop(0, '#0c182b');
+                    bgGrad.addColorStop(1, '#060b14');
                     ctx.fillStyle = bgGrad;
                     ctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
 

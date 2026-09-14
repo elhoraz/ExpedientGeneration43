@@ -6,7 +6,7 @@
   min-height: 100vh;
   padding: 120px 5% 80px;
   background: radial-gradient(circle at top right, var(--aurora-3, rgba(212, 175, 55, 0.08)), transparent 45%),
-              radial-gradient(circle at bottom left, var(--aurora-1, rgba(0, 255, 136, 0.05)), transparent 45%);
+              radial-gradient(circle at bottom left, var(--aurora-1, rgba(0, 210, 255, 0.06)), transparent 45%);
   z-index: 1;
   transition: background 0.5s ease;
 }
@@ -129,7 +129,7 @@
 
 .biz-founder-badge {
   font-family: 'Courier New', monospace;
-  color: #00ff88;
+  color: #00c853;
   font-size: 0.7rem;
   letter-spacing: 1px;
 }
@@ -356,7 +356,7 @@
 }
 
 .syndicate-select option {
-  background: var(--bg-main, #030504);
+  background: var(--bg-main, #060b14);
   color: var(--text-primary, #ffffff);
 }
 

@@ -50,12 +50,12 @@ a {
 
 html[data-theme="light"] {
   color-scheme: light !important;
-  background-color: #f0f5f3;
+  background-color: #f8fafc;
 }
 
 html[data-theme="dark"] {
   color-scheme: dark !important;
-  background-color: #010302;
+  background-color: #060b14;
 }
 
 /* Sembunyikan widget navbar & tombol bantuan saat panel disembunyikan (Desktop & Mobile) */
@@ -306,7 +306,7 @@ html[lang="ar"] body {
 :root[data-theme="light"] .lang-widget {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(170, 119, 28, 0.3);
-  color: #0a110e;
+  color: #0f172a;
 }
 
 :root[data-theme="light"] .lang-widget:hover {
@@ -333,7 +333,7 @@ html[lang="ar"] body {
 :root[data-theme="light"] .lang-switcher-btn {
   background: rgba(255, 255, 255, 0.85);
   border-color: rgba(170, 119, 28, 0.3);
-  color: #0a110e;
+  color: #0f172a;
 }
 
 .lang-switcher-btn:hover {

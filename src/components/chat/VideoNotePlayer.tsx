@@ -170,7 +170,7 @@ export default function VideoNotePlayer({ videoUrl }: VideoNotePlayerProps) {
           right: "2px",
           background: isMuted ? "rgba(255, 71, 87, 0.9)" : "var(--gold-main, #d4af37)",
           border: "2px solid #ffffff",
-          color: isMuted ? "#ffffff" : "#030504",
+          color: isMuted ? "#ffffff" : "#060b14",
           width: "36px",
           height: "36px",
           borderRadius: "50%",

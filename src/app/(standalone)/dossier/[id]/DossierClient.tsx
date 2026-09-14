@@ -112,8 +112,8 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
         :root { 
             --pure-gold: #ffd700; 
             --dark-gold: #d4af37; 
-            --bg-noir: #050505; 
-            --glass-bg: rgba(20, 20, 20, 0.7); 
+            --bg-noir: #060b14; 
+            --glass-bg: rgba(12, 21, 38, 0.7); 
             --glass-border: rgba(212, 175, 55, 0.3); 
         }
         
@@ -128,7 +128,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
             align-items: center; 
             min-height: 100vh; 
             overflow-x: hidden; 
-            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 100%);
+            background-image: radial-gradient(circle at 50% 50%, #0c182b 0%, #060b14 100%);
         }
 
         #hacker-loader {
@@ -335,7 +335,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
         }
         .btn-primary:hover {
             background: var(--dark-gold);
-            color: #000;
+            color: #060b14;
             box-shadow: 0 0 20px rgba(212,175,55,0.4);
         }
 
@@ -369,7 +369,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
                   <i className="fa-solid fa-arrow-left"></i> KEMBALI
               </button>
               <div style={{ fontFamily: "'Space Mono'", fontSize: "10px", color: "var(--dark-gold)", letterSpacing: "2px" }}>
-                  ALUMNI TERVERIFIKASI <i className="fa-solid fa-check"></i>
+                  ALUMNI TERVERIFIKASI <i className="fa-solid fa-check" style={{ color: "#00c853" }}></i>
               </div>
           </div>
           

@@ -271,7 +271,7 @@ onDOMReady(() => {
             if (metaThemeColor) metaThemeColor.remove();
             metaThemeColor = document.createElement('meta');
             metaThemeColor.name = "theme-color";
-            metaThemeColor.content = newTheme === 'light' ? '#fcfbf8' : '#030504';
+            metaThemeColor.content = newTheme === 'light' ? '#f8fafc' : '#060b14';
             document.head.appendChild(metaThemeColor);
 
             let appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
@@ -348,7 +348,7 @@ onDOMReady(() => {
         #transit-bar {
             position: fixed; top: 0; left: 0; z-index: 9999999;
             height: 3px; width: 0; opacity: 0; pointer-events: none;
-            background: linear-gradient(90deg, #d4af37, #00ff88, #d4af37);
+            background: linear-gradient(90deg, #d4af37, #00d2ff, #d4af37);
             background-size: 200% auto;
             box-shadow: 0 0 12px rgba(212,175,55,.6);
             transition: width .4s cubic-bezier(.4,0,.2,1), opacity .2s ease;
@@ -636,7 +636,7 @@ if (navigator.serviceWorker) {
                 const icon = el.querySelector('.fa-clock');
                 if (icon) {
                     icon.className = 'fa-solid fa-check-double';
-                    icon.style.color = '#00ff88';
+                    icon.style.color = '#00c853';
                 }
             });
             

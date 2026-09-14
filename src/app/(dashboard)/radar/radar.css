@@ -76,13 +76,13 @@ body.page-radar #mapViz .leaflet-overlay-pane svg path {
 body.page-radar .main-wrapper { overflow:hidden !important; }
 
 /* ===== CINEMATIC LOADING ===== */
-body.page-radar #radarLoading { position:fixed; inset:0; z-index:9999; background:#030504; display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity 1.5s ease; }
+body.page-radar #radarLoading { position:fixed; inset:0; z-index:9999; background:#060b14; display:flex; flex-direction:column; justify-content:center; align-items:center; transition:opacity 1.5s ease; }
 body.page-radar #radarLoading .rl-ring { width:80px; height:80px; border:2px solid rgba(212,175,55,0.15); border-top-color:#d4af37; border-radius:50%; animation:rlSpin 1s linear infinite; margin-bottom:30px; }
 @keyframes rlSpin { to { transform:rotate(360deg); } }
 body.page-radar #radarLoading .rl-txt { font-family:'Playfair Display',serif; font-size:1.4rem; color:#d4af37; letter-spacing:6px; text-transform:uppercase; animation:rlFade 2s ease-in-out infinite; }
 @keyframes rlFade { 0%,100%{opacity:.4} 50%{opacity:1} }
 body.page-radar #radarLoading .rl-sub { font-size:.72rem; color:var(--text-secondary); letter-spacing:3px; margin-top:10px; }
-[data-theme="light"] body.page-radar #radarLoading { background:#f0f5f3; }
+[data-theme="light"] body.page-radar #radarLoading { background:#f8fafc; }
 
 /* ===== STAR FIELD ===== */
 body.page-radar #starField { position:fixed; inset:0; z-index:1; pointer-events:none; }

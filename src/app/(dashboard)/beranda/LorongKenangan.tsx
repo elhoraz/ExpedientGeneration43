@@ -416,7 +416,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                     }}
                   >
                     {/* PHOTO */}
-                    <div style={{ width: "100%", height: `${imgH}px`, overflow: "hidden", borderRadius: "3px", background: "#050706", position: "relative" }}>
+                    <div style={{ width: "100%", height: `${imgH}px`, overflow: "hidden", borderRadius: "3px", background: "#060b14", position: "relative" }}>
                       <img
                         src={imageUrl}
                         alt={g.caption || "Kenangan Museum"}

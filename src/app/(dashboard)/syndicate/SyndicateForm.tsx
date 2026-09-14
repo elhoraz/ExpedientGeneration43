@@ -813,9 +813,9 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                             productImgRef.current?.click();
                           }}
                           style={{
-                            background: prod.foto ? "rgba(0, 255, 136, 0.15)" : "rgba(255, 255, 255, 0.08)",
-                            border: `1px solid ${prod.foto ? "#00ff88" : "var(--glass-border)"}`,
-                            color: prod.foto ? "#00ff88" : "var(--text-primary)",
+                            background: prod.foto ? "rgba(0, 200, 83, 0.15)" : "rgba(255, 255, 255, 0.08)",
+                            border: `1px solid ${prod.foto ? "#00c853" : "var(--glass-border)"}`,
+                            color: prod.foto ? "#00c853" : "var(--text-primary)",
                             padding: "10px 14px",
                             borderRadius: "10px",
                             fontSize: "0.82rem",

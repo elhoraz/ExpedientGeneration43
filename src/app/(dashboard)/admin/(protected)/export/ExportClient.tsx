@@ -98,7 +98,7 @@ export default function ExportClient() {
       
       <div className="admin-header" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "20px", marginBottom: "30px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: "1 1 300px" }}>
-            <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "rgba(0,255,136,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", color: "#00ff88", flexShrink: 0 }}>
+            <div style={{ width: "50px", height: "50px", borderRadius: "50%", background: "rgba(0,200,83,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", color: "#00c853", flexShrink: 0 }}>
                 <i className="fa-solid fa-file-csv"></i>
             </div>
             <div>
@@ -131,7 +131,7 @@ export default function ExportClient() {
                     value={exportType} 
                     onChange={e => setExportType(e.target.value)}
                     style={{ 
-                        width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,255,136,0.3)", color: "var(--text-primary)", 
+                        width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,200,83,0.3)", color: "var(--text-primary)", 
                         padding: "16px", borderRadius: "12px", fontSize: "1rem", outline: "none", cursor: "pointer", transition: "all 0.3s",
                         boxShadow: "inset 0 2px 10px rgba(0,0,0,0.2)"
                     }}
@@ -142,14 +142,14 @@ export default function ExportClient() {
                 </select>
             </div>
 
-            <button type="submit" disabled={isExporting} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg, #00ff88, #00b35f)", border: "none", color: "#000", borderRadius: "12px", fontSize: "1rem", fontWeight: 800, cursor: isExporting ? "not-allowed" : "pointer", letterSpacing: "1px", transition: "all 0.3s", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", opacity: isExporting ? 0.7 : 1, boxShadow: "0 10px 25px rgba(0,255,136,0.3)" }} className="hover-trigger">
+            <button type="submit" disabled={isExporting} style={{ width: "100%", padding: "16px", background: "linear-gradient(135deg, #00c853, #00b35f)", border: "none", color: "#000", borderRadius: "12px", fontSize: "1rem", fontWeight: 800, cursor: isExporting ? "not-allowed" : "pointer", letterSpacing: "1px", transition: "all 0.3s", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", opacity: isExporting ? 0.7 : 1, boxShadow: "0 10px 25px rgba(0,200,83,0.3)" }} className="hover-trigger">
                 {isExporting ? <><i className="fa-solid fa-spinner fa-spin"></i> {t('export_btn_processing', 'MEMPROSES DATA...')}</> : <><i className="fa-solid fa-download"></i> {t('export_btn_submit', 'EXPORT KE CSV')}</>}
             </button>
         </form>
 
         <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "12px", padding: "16px", marginTop: "30px" }}>
             <h4 style={{ margin: "0 0 8px 0", fontSize: "0.8rem", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
-               <i className="fa-solid fa-circle-info" style={{ color: "#00ff88" }}></i> {t('export_info_title', 'Format Ekspor')}
+               <i className="fa-solid fa-circle-info" style={{ color: "#00c853" }}></i> {t('export_info_title', 'Format Ekspor')}
             </h4>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }} dangerouslySetInnerHTML={{__html: t('export_info_desc', 'Sistem akan memformat seluruh <em>nested JSON objects</em> (seperti detail profil di dalam tabel kehadiran) menjadi kolom tunggal agar mudah dibaca di Microsoft Excel atau Google Sheets. Kolom yang berelasi otomatis akan digabungkan.')}}>
             </p>

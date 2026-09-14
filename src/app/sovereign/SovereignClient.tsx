@@ -199,12 +199,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       // Background Luxury Obsidian / Light
       const bgGrad = ctx.createLinearGradient(0, 0, compCanvas.width, compCanvas.height);
       if (isLightMode) {
-        bgGrad.addColorStop(0, "#f8f9fa");
-        bgGrad.addColorStop(1, "#e9ecef");
+        bgGrad.addColorStop(0, "#f8fafc");
+        bgGrad.addColorStop(1, "#f1f5f9");
       } else {
-        bgGrad.addColorStop(0, "#161a22");
-        bgGrad.addColorStop(0.5, "#080a0d");
-        bgGrad.addColorStop(1, "#020202");
+        bgGrad.addColorStop(0, "#0c182b");
+        bgGrad.addColorStop(0.5, "#08101d");
+        bgGrad.addColorStop(1, "#060b14");
       }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
@@ -312,7 +312,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       drawCardPlate(bX, bY, idW, idH, 36);
 
       // Magnetic Stripe
-      ctx.fillStyle = "#050505";
+      ctx.fillStyle = "#060b14";
       ctx.fillRect(bX, bY + 60, idW, 90);
 
       // Directive Text
@@ -391,7 +391,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       const kbY = 900;
       drawCardPlate(kX, kbY, kW, kH, 30);
 
-      ctx.fillStyle = "#050505";
+      ctx.fillStyle = "#060b14";
       ctx.fillRect(kX, kbY + 50, kW, 70);
 
       ctx.textAlign = "left";
@@ -431,7 +431,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       style={{
         width: "100%",
         height: "100dvh",
-        background: isLightMode ? "#f8f9fa" : "#020202",
+        background: isLightMode ? "#f8fafc" : "#060b14",
         overflow: "hidden",
         position: "fixed",
         inset: 0,
@@ -449,7 +449,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           position: "fixed",
           inset: 0,
           zIndex: 99999,
-          background: "#020202",
+          background: "#060b14",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",

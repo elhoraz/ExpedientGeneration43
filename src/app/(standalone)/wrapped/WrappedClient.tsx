@@ -52,7 +52,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
   return (
     <div className="wrapped-wrapper">
       <style>{`
-        body.page-wrapped { margin: 0; overflow: hidden; background: #050505; color: #fff; font-family: 'Inter', sans-serif; }
+        body.page-wrapped { margin: 0; overflow: hidden; background: #060b14; color: #fff; font-family: 'Inter', sans-serif; }
         .wrapped-wrapper { position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100vw; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         
         .progress-bar-container { position: absolute; top: max(16px, calc(env(safe-area-inset-top, 16px) + 6px)); left: max(16px, env(safe-area-inset-left, 16px)); right: max(75px, calc(env(safe-area-inset-right, 16px) + 60px)); display: flex; gap: 5px; z-index: 100; }
@@ -63,10 +63,10 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
         .slide.active { opacity: 1; pointer-events: auto; }
         
         /* Specific slide backgrounds */
-        .slide-0 { background: linear-gradient(135deg, #1a1a1a, #000); }
-        .slide-1 { background: radial-gradient(circle at center, #2c1e05, #000); }
-        .slide-2 { background: linear-gradient(to bottom, #001a11, #000); }
-        .slide-3 { background: radial-gradient(circle at top right, #33001b, #000); }
+        .slide-0 { background: linear-gradient(135deg, #0c182b, #060b14); }
+        .slide-1 { background: radial-gradient(circle at center, #1a2942, #060b14); }
+        .slide-2 { background: linear-gradient(to bottom, #071e22, #060b14); }
+        .slide-3 { background: radial-gradient(circle at top right, #111e38, #060b14); }
 
         .title-huge { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 7vw, 5rem); color: #d4af37; margin: 0 0 20px 0; line-height: 1.1; }
         .subtitle { font-size: clamp(0.9rem, 3vw, 1.3rem); color: #ccc; margin-bottom: 30px; padding: 0 15px; }
@@ -110,7 +110,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
       {/* Slide 2: Top Connect */}
       <div ref={el => { slideRefs.current[2] = el; }} className={`slide slide-2 ${currentSlide === 2 ? 'active' : ''}`}>
           <p className="subtitle anim-text">Anda juga aktif berkomunikasi di Majlis,</p>
-          <h1 className="title-huge anim-text" style={{ color: '#00ff88' }}>{stats.chatCount}</h1>
+          <h1 className="title-huge anim-text" style={{ color: '#00c853' }}>{stats.chatCount}</h1>
           <p className="subtitle anim-text">Pesan telah Anda kirim ke seluruh jaringan.</p>
       </div>
 
@@ -118,7 +118,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
       <div ref={el => { slideRefs.current[3] = el; }} className={`slide slide-3 ${currentSlide === 3 ? 'active' : ''}`}>
           <h1 className="title-huge anim-text">Terima Kasih.</h1>
           <p className="subtitle anim-text">Mari buat kenangan baru di Expedient Generation tahun depan.</p>
-          <Link href="/fitur" className="anim-text btn-action-vault" style={{ marginTop: '30px', padding: '15px 40px', background: '#d4af37', color: '#000', borderRadius: '30px', textDecoration: 'none', fontWeight: 'bold', letterSpacing: '2px', display: 'inline-block' }}>
+          <Link href="/fitur" className="anim-text btn-action-vault" style={{ marginTop: '30px', padding: '15px 40px', background: '#d4af37', color: '#060b14', borderRadius: '30px', textDecoration: 'none', fontWeight: 'bold', letterSpacing: '2px', display: 'inline-block' }}>
               KEMBALI KE VAULT
           </Link>
       </div>

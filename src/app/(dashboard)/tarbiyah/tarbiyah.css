@@ -374,9 +374,9 @@
 }
 
 .tarbiyah-page-wrapper .status-pill-mini.status-Approved {
-  background: rgba(0, 255, 136, 0.15);
-  color: #00ff88;
-  border: 1px solid rgba(0, 255, 136, 0.35);
+  background: rgba(0, 200, 83, 0.15);
+  color: #00c853;
+  border: 1px solid rgba(0, 200, 83, 0.35);
 }
 
 .tarbiyah-page-wrapper .status-pill-mini.status-Rejected {
@@ -458,9 +458,9 @@
 }
 
 .tarbiyah-page-wrapper .status-Approved {
-  background: rgba(0, 255, 136, 0.15);
-  color: #00ff88;
-  border: 1px solid rgba(0, 255, 136, 0.35);
+  background: rgba(0, 200, 83, 0.15);
+  color: #00c853;
+  border: 1px solid rgba(0, 200, 83, 0.35);
 }
 
 .tarbiyah-page-wrapper .status-Rejected {
@@ -507,7 +507,7 @@
 }
 
 .tarbiyah-page-wrapper .border-status-Approved {
-  border-left: 4px solid #00ff88;
+  border-left: 4px solid #00c853;
 }
 
 .tarbiyah-page-wrapper .border-status-Pending {
@@ -597,9 +597,9 @@
 
 .tarbiyah-page-wrapper .btn-approve {
   flex: 1;
-  background: rgba(0, 255, 136, 0.15);
-  border: 1px solid rgba(0, 255, 136, 0.4);
-  color: #00ff88;
+  background: rgba(0, 200, 83, 0.15);
+  border: 1px solid rgba(0, 200, 83, 0.4);
+  color: #00c853;
   padding: 10px;
   border-radius: 10px;
   font-size: 0.78rem;
@@ -615,7 +615,7 @@
 }
 
 .tarbiyah-page-wrapper .btn-approve:hover {
-  background: #00ff88;
+  background: #00c853;
   color: #000;
 }
 
@@ -747,9 +747,9 @@
 }
 
 .tarbiyah-page-wrapper .status-completed {
-  background: rgba(0, 255, 136, 0.12);
-  color: #00ff88;
-  border: 1px solid rgba(0, 255, 136, 0.3);
+  background: rgba(0, 200, 83, 0.12);
+  color: #00c853;
+  border: 1px solid rgba(0, 200, 83, 0.3);
 }
 
 .tarbiyah-page-wrapper .status-upcoming {

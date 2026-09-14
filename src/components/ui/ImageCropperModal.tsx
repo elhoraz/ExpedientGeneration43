@@ -197,7 +197,7 @@ export default function ImageCropperModal({
           style={{
             width: "100%",
             height: "360px",
-            background: "#050505",
+            background: "#060b14",
             borderRadius: "16px",
             overflow: "hidden",
             position: "relative",

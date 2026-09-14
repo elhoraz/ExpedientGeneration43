@@ -11,7 +11,7 @@ export default function OfflinePage() {
     <div style={{
       display: "flex", flexDirection: "column", alignItems: "center", 
       justifyContent: "center", minHeight: "100vh", padding: "40px 20px", 
-      textAlign: "center", background: "#050505", color: "#fff"
+      textAlign: "center", background: "#060b14", color: "#fff"
     }}>
       <i className="fa-solid fa-wifi" style={{ fontSize: "4rem", color: "#888", marginBottom: "20px", opacity: 0.5 }}></i>
       <h1 style={{ fontFamily: "'Playfair Display', serif", color: "#d4af37", marginBottom: "15px", fontSize: "2.5rem" }}>Koneksi Terputus</h1>
@@ -21,7 +21,7 @@ export default function OfflinePage() {
       
       <div style={{ display: "flex", gap: "15px" }}>
         <Link href="/" style={{
-          background: "linear-gradient(135deg, #d4af37, #aa8529)", border: "none", color: "#000",
+          background: "linear-gradient(135deg, #d4af37, #aa8529)", border: "none", color: "#060b14",
           padding: "12px 30px", borderRadius: "30px", fontSize: "0.9rem", fontWeight: 600,
           letterSpacing: "1px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", textDecoration: "none"
         }}>

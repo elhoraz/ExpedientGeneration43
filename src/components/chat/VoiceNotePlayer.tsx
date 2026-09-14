@@ -296,7 +296,7 @@ export default function VoiceNotePlayer({ audioUrl, isMine = false, initialDurat
             ? "linear-gradient(135deg, #d4af37 0%, #aa771c 100%)"
             : "rgba(212, 175, 55, 0.2)",
           border: "1px solid rgba(212, 175, 55, 0.4)",
-          color: isMine ? "#030504" : "var(--gold-main, #d4af37)",
+          color: isMine ? "#060b14" : "var(--gold-main, #d4af37)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

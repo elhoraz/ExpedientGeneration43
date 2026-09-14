@@ -285,7 +285,7 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
               borderRadius: "50%",
               background: "linear-gradient(135deg, #d4af37 0%, #aa771c 100%)",
               border: "3px solid #ffffff",
-              color: "#030504",
+              color: "#060b14",
               fontSize: "1.6rem",
               display: "flex",
               alignItems: "center",

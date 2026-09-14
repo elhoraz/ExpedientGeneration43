@@ -64,9 +64,9 @@ export default async function AdminPage() {
           </div>
         </Link>
         <Link href="/admin/announcements" style={{ textDecoration: "none" }}>
-          <div className="metric-card hover-glow-emerald" style={{ transitionDelay: "0.1s", borderColor: "rgba(0, 255, 136, 0.4)", background: "linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
-            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00ff88" }}><i className="fa-solid fa-bullhorn"></i></div>
-            <div className="metric-label" style={{ color: "#00ff88", fontWeight: "bold" }}>Pengumuman Angkatan</div>
+          <div className="metric-card hover-glow-emerald" style={{ transitionDelay: "0.1s", borderColor: "rgba(0, 200, 83, 0.4)", background: "linear-gradient(135deg, rgba(0, 200, 83, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00c853" }}><i className="fa-solid fa-bullhorn"></i></div>
+            <div className="metric-label" style={{ color: "#00c853", fontWeight: "bold" }}>Pengumuman Angkatan</div>
             <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Publikasikan informasi penting ke semua alumni</div>
           </div>
         </Link>
@@ -78,9 +78,9 @@ export default async function AdminPage() {
           </div>
         </Link>
         <Link href="/admin/broadcast" style={{ textDecoration: "none" }}>
-          <div className="metric-card hover-glow-emerald" style={{ transitionDelay: "0.3s", borderColor: "rgba(0, 255, 136, 0.4)", background: "linear-gradient(135deg, rgba(0, 255, 136, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
-            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00ff88" }}><i className="fa-brands fa-whatsapp"></i></div>
-            <div className="metric-label" style={{ color: "#00ff88", fontWeight: "bold" }}>Siaran WhatsApp</div>
+          <div className="metric-card hover-glow-emerald" style={{ transitionDelay: "0.3s", borderColor: "rgba(0, 200, 83, 0.4)", background: "linear-gradient(135deg, rgba(0, 200, 83, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00c853" }}><i className="fa-brands fa-whatsapp"></i></div>
+            <div className="metric-label" style={{ color: "#00c853", fontWeight: "bold" }}>Siaran WhatsApp</div>
             <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kirim pesan siaran massal ke WhatsApp alumni</div>
           </div>
         </Link>
@@ -133,8 +133,8 @@ export default async function AdminPage() {
               Semua transaksi dan perubahan data di dalam panel ini secara otomatis dicatat dalam buku besar *Activity Logs* yang tidak dapat dihapus, menjamin akuntabilitas penuh bagi para admin pengurus angkatan.
             </p>
             <div style={{ marginTop: "30px", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#00ff88", boxShadow: "0 0 10px #00ff88" }}></div>
-              <span style={{ color: "#00ff88", fontSize: "0.8rem", fontWeight: "bold", letterSpacing: "1px" }}>SYSTEM SECURE</span>
+              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#00c853", boxShadow: "0 0 10px #00c853" }}></div>
+              <span style={{ color: "#00c853", fontSize: "0.8rem", fontWeight: "bold", letterSpacing: "1px" }}>SYSTEM SECURE</span>
             </div>
           </div>
         </div>

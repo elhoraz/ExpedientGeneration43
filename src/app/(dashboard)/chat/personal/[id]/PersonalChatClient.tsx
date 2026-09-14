@@ -814,7 +814,7 @@ export default function PersonalChatClient({
                     background: "linear-gradient(135deg, #f59e0b, #d97706)",
                     border: "none",
                     borderRadius: "8px",
-                    color: "#030504",
+                    color: "#060b14",
                     fontWeight: 600,
                     fontSize: "0.85rem",
                     cursor: "pointer",

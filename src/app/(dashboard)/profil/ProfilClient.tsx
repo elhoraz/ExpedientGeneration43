@@ -734,13 +734,13 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> {tLang.profil.biometric_title}</h2>
                     
                     <div className="bio-status-box" style={{
-                      borderColor: biometricsList.length > 0 ? "rgba(0, 255, 170, 0.3)" : "rgba(212, 175, 55, 0.3)",
-                      background: biometricsList.length > 0 ? "rgba(0, 255, 170, 0.04)" : "rgba(212, 175, 55, 0.04)"
+                      borderColor: biometricsList.length > 0 ? "rgba(0, 200, 83, 0.3)" : "rgba(212, 175, 55, 0.3)",
+                      background: biometricsList.length > 0 ? "rgba(0, 200, 83, 0.04)" : "rgba(212, 175, 55, 0.04)"
                     }}>
                         <i className={`fa-solid ${biometricsList.length > 0 ? "fa-shield-halved" : "fa-fingerprint"}`} style={{
-                          color: biometricsList.length > 0 ? "#00ffaa" : "var(--gold-premium, #d4af37)"
+                          color: biometricsList.length > 0 ? "#00c853" : "var(--gold-premium, #d4af37)"
                         }}></i>
-                        <div className="bio-status-title" style={{ color: biometricsList.length > 0 ? "#00ffaa" : "var(--gold-premium, #d4af37)" }}>
+                        <div className="bio-status-title" style={{ color: biometricsList.length > 0 ? "#00c853" : "var(--gold-premium, #d4af37)" }}>
                           {biometricsList.length > 0 ? tLang.profil.biometric_active : tLang.profil.biometric_inactive}
                         </div>
                         <div className="bio-status-desc">
@@ -755,8 +755,8 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                     {biometricsList.length > 0 ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
                         <div style={{ 
-                          background: "rgba(0, 255, 170, 0.06)", 
-                          border: "1px solid rgba(0, 255, 170, 0.25)", 
+                          background: "rgba(0, 200, 83, 0.06)", 
+                          border: "1px solid rgba(0, 200, 83, 0.25)", 
                           borderRadius: "16px", 
                           padding: "18px 20px",
                           display: "flex",
@@ -767,18 +767,18 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                             width: "42px", 
                             height: "42px", 
                             borderRadius: "12px", 
-                            background: "rgba(0, 255, 170, 0.15)", 
+                            background: "rgba(0, 200, 83, 0.15)", 
                             display: "flex", 
                             alignItems: "center", 
                             justifyContent: "center",
                             fontSize: "1.2rem",
-                            color: "#00ffaa",
+                            color: "#00c853",
                             flexShrink: 0
                           }}>
                             <i className="fa-solid fa-circle-check"></i>
                           </div>
                           <div style={{ flex: 1 }}>
-                            <div style={{ color: "#00ffaa", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.5px" }}>
+                            <div style={{ color: "#00c853", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.5px" }}>
                               {tLang.profil.biometric_active}
                             </div>
                             <div style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginTop: "2px" }}>

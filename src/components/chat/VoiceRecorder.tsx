@@ -180,7 +180,7 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
         style={{
           background: "linear-gradient(135deg, #d4af37 0%, #aa771c 100%)",
           border: "none",
-          color: "#030504",
+          color: "#060b14",
           width: "38px",
           height: "38px",
           borderRadius: "50%",
