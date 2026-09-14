@@ -288,6 +288,29 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
                   </button>
               </div>
 
+              {/* Birthday Automation */}
+              <div style={{ background: "var(--glass-bg)", border: "1px solid rgba(255,215,0,0.25)", borderRadius: "20px", padding: "24px" }}>
+                  <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#ffd700", margin: "0 0 8px 0", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <i className="fa-solid fa-cake-candles"></i> Ucapan Ultah Otomatis
+                  </h2>
+                  <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", margin: "0 0 16px 0" }}>
+                      Kirimkan doa dan ucapan selamat ulang tahun personal ke WhatsApp alumni yang berulang tahun hari ini.
+                  </p>
+                  <button onClick={async () => {
+                      try {
+                          showAlert("Info", "Sedang memproses ucapan ulang tahun hari ini...");
+                          const res = await fetch("/api/admin/broadcast/birthday", { method: "POST" });
+                          const data = await res.json();
+                          fetchStats();
+                          showAlert("Status Ultah", data.message || "Selesai memproses ucapan ulang tahun.");
+                      } catch {
+                          showAlert("Gagal", "Gagal memproses ucapan ulang tahun.");
+                      }
+                  }} style={{ width: "100%", padding: "10px", background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", color: "#ffd700", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer" }} className="hover-trigger">
+                      <i className="fa-solid fa-gift" style={{ marginRight: "6px" }}></i>Trigger Ucapan Ultah Hari Ini
+                  </button>
+              </div>
+
               {/* Cron Info */}
               <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "20px", padding: "24px" }}>
                   <h2 style={{ fontSize: "0.85rem", fontWeight: 700, color: "#d4af37", margin: "0 0 12px 0", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -295,10 +318,10 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
                   </h2>
                   <pre style={{ background: "rgba(0,0,0,0.4)", borderRadius: "8px", padding: "12px", fontSize: "0.65rem", color: "#25d366", overflowX: "auto", margin: 0, lineHeight: 1.8 }}>
 {`# Proses antrian setiap menit
-* * * * * curl -X POST https://expedient.app/api/admin/broadcast/process
+* * * * * curl -X POST https://expedientgeneration.vercel.app/api/admin/broadcast/process
 
-# Ucapan ulang tahun (tiap hari jam 07:00)
-0 7 * * * curl -X POST https://expedient.app/api/admin/broadcast/birthday`}
+# Ucapan ulang tahun harian (tiap hari jam 07:00 UTC)
+0 7 * * * curl "https://expedientgeneration.vercel.app/api/cron/run?run_birthday=true"`}
                   </pre>
               </div>
           </div>

@@ -122,7 +122,16 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
     getAvatarUrl(userProfile.foto_profil, userProfile.nama_panggilan || userProfile.nama_lengkap)
   );
 
-  const shareUrl = `https://wa.me/?text=🎂 Selamat Ulang Tahun ${encodeURIComponent(userProfile.nama_panggilan)}! Lihat ucapannya di: ${encodeURIComponent(typeof window !== "undefined" ? window.location.href : '')}`;
+  let cleanWa = (userProfile.no_whatsapp || "").replace(/\D/g, "");
+  if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.substring(1);
+  else if (cleanWa && !cleanWa.startsWith("62")) cleanWa = "62" + cleanWa;
+
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const directWishUrl = cleanWa
+    ? `https://wa.me/${cleanWa}?text=${encodeURIComponent(`Assalamu'alaikum ${userProfile.nama_panggilan || 'Kawan'}! 🎉\nBarakallahu fii umrik! Selamat ulang tahun ya, semoga senantiasa diberikan keberkahan, kesehatan, dan kelancaran dalam segala hal. Aamiin! 🤲\n\nLihat kartu ucapan angkatan untukmu di sini:\n${currentUrl}`)}`
+    : null;
+
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`🎂 Hari ini sahabat kita *${userProfile.nama_panggilan || userProfile.nama_lengkap}* sedang berulang tahun! Mari kirim doa dan ucapan terbaik untuknya:\n${currentUrl}`)}`;
 
   useEffect(() => {
     document.body.classList.add("page-birthday");
@@ -179,9 +188,11 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
           <h1 className="bday-name bday-heading bday-text bday-anim-el">{userProfile.nama_panggilan}</h1>
 
-          <div className="bday-age bday-body bday-text bday-anim-el">
-              Ke-<strong style={{ fontSize: "1.4em" }}>{age}</strong> Tahun
-          </div>
+          {age > 0 && (
+            <div className="bday-age bday-body bday-text bday-anim-el">
+                Ke-<strong style={{ fontSize: "1.4em" }}>{age}</strong> Tahun
+            </div>
+          )}
 
           <div className="bday-zodiak bday-body bday-text bday-anim-el">
               <span style={{ fontSize: "1.3em" }}>{zodiak.icon}</span> {zodiak.nama}
@@ -197,9 +208,14 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
               Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, dan kebahagiaan di setiap langkahmu. Barakallahu fiik! 🤲
           </p>
 
-          <div className="bday-anim-el">
-              <a href={shareUrl} target="_blank" className="bday-share-btn bday-body">
-                  <i className="fa-brands fa-whatsapp"></i> Kirim Ucapan
+          <div className="bday-anim-el" style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", width: "100%", maxWidth: "340px", margin: "0 auto" }}>
+              {directWishUrl && (
+                <a href={directWishUrl} target="_blank" rel="noopener noreferrer" className="bday-share-btn bday-body" style={{ width: "100%", justifyContent: "center" }}>
+                    <i className="fa-brands fa-whatsapp"></i> Kirim ke WhatsApp {userProfile.nama_panggilan}
+                </a>
+              )}
+              <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="bday-share-btn bday-body" style={{ width: "100%", justifyContent: "center", background: directWishUrl ? "rgba(255,255,255,0.15)" : undefined, borderColor: directWishUrl ? "var(--glass-border)" : undefined }}>
+                  <i className="fa-solid fa-share-nodes"></i> Bagikan ke Grup Angkatan
               </a>
           </div>
         </div>

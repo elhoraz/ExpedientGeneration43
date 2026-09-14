@@ -34,8 +34,11 @@ export default async function BirthdayListPage() {
 
   const birthdayUsers = (allUsers || []).filter(u => {
       if (!u.tanggal_lahir) return false;
-      const bDate = new Date(u.tanggal_lahir);
-      return bDate.getDate() === currentDay && bDate.getMonth() + 1 === currentMonth;
+      const parts = u.tanggal_lahir.split(/[-/]/);
+      if (parts.length < 3) return false;
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+      return month === currentMonth && day === currentDay;
   });
 
   return (

@@ -1,7 +1,9 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,8 +14,12 @@ export async function GET(request: Request) {
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
   const cronSecret = process.env.CRON_SECRET;
 
-  // Verify secret token for cron (No hardcoded fallbacks)
-  const isAuthorized = cronSecret && (queryToken === cronSecret || bearerToken === cronSecret);
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get("expedient_admin_session")?.value;
+  const isAdminSessionValid = adminToken ? await verifySignedAdminSession(adminToken) : false;
+
+  // Verify secret token for cron (Vercel Cron) or authenticated admin session
+  const isAuthorized = (cronSecret && (queryToken === cronSecret || bearerToken === cronSecret)) || isAdminSessionValid;
 
   if (!isAuthorized) {
     return new NextResponse(
@@ -124,20 +130,62 @@ export async function GET(request: Request) {
       if (birthdayUsers.length === 0) {
         output += `  Tidak ada yang berulang tahun hari ini.\n`;
       } else {
-        for (const user of birthdayUsers) {
-          const birthYear = parseInt(user.tanggal_lahir.split('-')[0]);
-          const age = today.getFullYear() - birthYear;
-          const name = user.nama_panggilan || user.nama_lengkap;
-          const text = `Selamat Ulang Tahun yang ke-${age}, ${name}! 🎉\nSemoga panjang umur dan sukses selalu bersama Expedient Generation.`;
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
 
-          // Queue the whatsapp message instead of sending directly to handle failures gracefully
+        for (const user of birthdayUsers) {
+          const parts = user.tanggal_lahir.split(/[-/]/);
+          const birthYear = parseInt(parts[0], 10);
+          const rawAge = today.getFullYear() - birthYear;
+          const isAgeValid = rawAge > 0 && rawAge < 120 && birthYear < today.getFullYear();
+          const name = user.nama_panggilan || user.nama_lengkap;
+
+          // Anti-duplication: Cek apakah hari ini sudah pernah dikirim ucapan ke nomor ini
+          const { data: existingWish } = await supabase
+            .from('whatsapp_queue')
+            .select('id')
+            .eq('no_whatsapp', user.no_whatsapp)
+            .ilike('message', '%Ulang Tahun%')
+            .gte('created_at', startOfDay.toISOString())
+            .maybeSingle();
+
+          if (existingWish) {
+            output += `  [Skip] Ucapan untuk ${name} (${user.no_whatsapp}) sudah terkirim hari ini.\n`;
+            continue;
+          }
+
+          const ageStr = isAgeValid ? ` yang ke-${rawAge}` : "";
+          const bdayLink = `https://expedientgeneration.vercel.app/birthday/${user.id}`;
+          const text = `🎉 *BARAKALLAHU FII UMRIK* 🎉
+
+Selamat Ulang Tahun${ageStr}, Sahabat *${name}*! 🎂✨
+
+Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, keselamatan, dan kesuksesan dunia-akhirat. Teruslah menjadi inspirasi dan kebanggaan keluarga besar *Expedient Generation — 43rd Arrisalah*.
+
+Buka kartu ucapan spesial angkatan untukmu:
+🔗 ${bdayLink}
+
+Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
+
+          // Langsung kirim via Gateway WhatsApp dengan anti-ban delay & direct fallback
+          const sentDirect = await sendWhatsAppMessage(user.no_whatsapp, text);
+
           await supabase.from('whatsapp_queue').insert([{
             no_whatsapp: user.no_whatsapp,
-            message: text
+            message: text,
+            status: sentDirect ? 'sent' : 'failed',
+            error_message: sentDirect ? null : 'Gagal terkirim via provider WhatsApp'
           }]);
-          bdaySent++;
+
+          if (sentDirect) {
+            bdaySent++;
+            output += `  [Sukses] Terkirim langsung ke ${name} (${user.no_whatsapp})\n`;
+          } else {
+            bdayFailed++;
+            output += `  [Gagal] Gagal mengirim ke ${name} (${user.no_whatsapp})\n`;
+          }
         }
-        output += `  Total Dimasukkan Antrian: ${bdaySent}\n`;
+        output += `  Total Terkirim: ${bdaySent} | Gagal: ${bdayFailed}\n`;
       }
     } catch (e: any) {
       output += `  ERROR: ${e.message}\n`;

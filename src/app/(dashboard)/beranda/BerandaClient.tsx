@@ -62,6 +62,18 @@ export default function BerandaClient({
   useEffect(() => {
     document.body.classList.add("page-beranda");
     
+    // Animate birthday toast if celebrants exist today
+    let bdayTimer: NodeJS.Timeout | null = null;
+    if (isLoggedIn && birthdayUsers && birthdayUsers.length > 0) {
+      bdayTimer = setTimeout(() => {
+        const toast = document.getElementById("bdayToast");
+        if (toast) {
+          toast.style.transform = "translateX(-50%) translateY(0)";
+          toast.style.opacity = "1";
+        }
+      }, 2500);
+    }
+    
     const isAr = locale === "ar";
     const isEn = locale === "en";
 
@@ -176,11 +188,12 @@ export default function BerandaClient({
 
     return () => {
       document.body.classList.remove("page-beranda");
+      if (bdayTimer) clearTimeout(bdayTimer);
       if (typeof window !== "undefined") {
         delete (window as any).BERANDA_CMS;
       }
     };
-  }, [t, tLang, locale]);
+  }, [t, tLang, locale, birthdayUsers, isLoggedIn]);
 
   const { showAlert } = useConfirm();
 

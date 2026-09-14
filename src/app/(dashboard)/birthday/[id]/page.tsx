@@ -13,7 +13,7 @@ export default async function BirthdayPage({ params }: { params: Promise<{ id: s
 
   const { data: userProfile, error } = await supabase
     .from("profiles")
-    .select("id, nama_panggilan, tanggal_lahir, foto_profil")
+    .select("id, nama_panggilan, nama_lengkap, tanggal_lahir, foto_profil, no_whatsapp")
     .eq("id", userId)
     .single();
 
@@ -21,12 +21,15 @@ export default async function BirthdayPage({ params }: { params: Promise<{ id: s
     return notFound();
   }
 
-  // Calculate age
-  const birthDate = new Date(userProfile.tanggal_lahir);
+  // Calculate age safely without timezone drift
+  const parts = userProfile.tanggal_lahir.split(/[-/]/);
+  const birthYear = parseInt(parts[0], 10);
+  const birthMonth = parseInt(parts[1], 10);
+  const birthDay = parseInt(parts[2], 10);
   const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+  let age = today.getFullYear() - birthYear;
+  const m = (today.getMonth() + 1) - birthMonth;
+  if (m < 0 || (m === 0 && today.getDate() < birthDay)) {
     age--;
   }
 
