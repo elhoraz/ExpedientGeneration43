@@ -172,8 +172,11 @@ export default function DivineClient() {
 
   return (
     <div className="divine-wrapper">
-      <div style={{ position: 'absolute', top: 30, right: 30, zIndex: 200 }}>
-          <ThemeToggle />
+      <div className="divine-top-nav">
+        <Link href="/fitur" className="btn-back">
+          <i className="fa-solid fa-chevron-left"></i> Kembali
+        </Link>
+        <ThemeToggle />
       </div>
 
       <div className="geo-bg">
@@ -189,8 +192,6 @@ export default function DivineClient() {
       </div>
       <div className="ambient"></div>
       <div id="particleField"></div>
-
-      <Link href="/fitur" className="btn-back"><i className="fa-solid fa-chevron-left"></i> Kembali</Link>
 
       <div className="divine-content">
         <h1 className="page-title" id="pageTitle">Kalam Ilahi</h1>
@@ -211,17 +212,21 @@ export default function DivineClient() {
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
+                    justifyContent: "center",
                     gap: "8px",
-                    padding: "7px 18px",
+                    padding: "8px 18px",
                     borderRadius: "30px",
                     background: isPlayingAudio ? "rgba(212, 175, 55, 0.22)" : "rgba(255, 255, 255, 0.08)",
                     border: isPlayingAudio ? "1px solid #ffd700" : "1px solid rgba(255, 255, 255, 0.18)",
                     color: isPlayingAudio ? "#ffd700" : "rgba(255, 255, 255, 0.85)",
-                    fontSize: "0.82rem",
+                    fontSize: "clamp(0.72rem, 1.8vw, 0.82rem)",
                     fontWeight: 600,
                     cursor: "pointer",
                     transition: "all 0.25s ease",
                     boxShadow: isPlayingAudio ? "0 0 16px rgba(212, 175, 55, 0.3)" : "none",
+                    maxWidth: "100%",
+                    boxSizing: "border-box",
+                    textAlign: "center",
                   }}
                   title={isPlayingAudio ? "Jeda Audio Tilawah" : "Putar Audio Tilawah"}
                 >

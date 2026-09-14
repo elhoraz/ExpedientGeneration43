@@ -136,16 +136,15 @@ export default function CelestialClient() {
 
   return (
     <div className="celestial-wrapper">
-      <div style={{ position: 'absolute', top: 30, right: 30, zIndex: 200 }}>
-          <ThemeToggle />
+      <div className="celestial-top-nav">
+        <Link href="/fitur" className="btn-back">
+          <i className="fa-solid fa-chevron-left"></i> Exit Codex
+        </Link>
+        <ThemeToggle />
       </div>
 
       <div className="ambient"></div>
       <div id="particleField"></div>
-
-      <Link href="/fitur" className="btn-back">
-        <i className="fa-solid fa-chevron-left"></i> Exit Codex
-      </Link>
 
       <div className="codex-wrapper">
         <h1 className="codex-title" id="codexTitle">The Celestial Codex</h1>
