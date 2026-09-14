@@ -449,7 +449,9 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
             backdropFilter: "blur(20px)", border: `1px solid ${toast.type === "error" ? "rgba(255,50,50,0.4)" : "rgba(212,175,55,0.4)"}`,
             borderRadius: "16px", padding: "15px 30px", color: "var(--text-primary)", fontSize: "0.85rem",
             boxShadow: "0 20px 50px rgba(0,0,0,0.5)", display: "flex", alignItems: "center", gap: "10px",
-            animation: "fadeInUp 0.5s ease-out"
+            animation: "fadeInUp 0.5s ease-out",
+            maxWidth: "calc(100vw - 32px)",
+            boxSizing: "border-box"
           }}>
             <i className={`fa-solid ${toast.type === "error" ? "fa-circle-exclamation" : "fa-circle-check"}`} style={{ color: toast.type === "error" ? "#ff5555" : "var(--gold-premium, #d4af37)" }}></i>
             {toast.msg}
@@ -469,11 +471,11 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                 <h1 className="dashboard-title">{locale === 'id' ? t('profil_title', tLang.profil.title) : tLang.profil.title}</h1>
                 <p className="dashboard-subtitle">{locale === 'id' ? t('profil_subtitle', tLang.profil.subtitle) : tLang.profil.subtitle}</p>
                 
-                <div style={{ marginTop: "20px", display: "inline-flex", alignItems: "center", background: "var(--glass-bg)", padding: "8px 20px", borderRadius: "50px", border: "1px solid var(--glass-border)", boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
-                    <div style={{ background: badgeColor, padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold", color: "#fff", textTransform: "uppercase", letterSpacing: "1px", marginRight: "15px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" }}>
+                <div className="profil-prestise-badge">
+                    <div style={{ background: badgeColor, padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold", color: "#fff", textTransform: "uppercase", letterSpacing: "1px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" }}>
                         <i className={badgeIcon} style={{ marginRight: "5px" }}></i> {gelar}
                     </div>
-                    <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: "var(--gold-premium, #d4af37)", fontWeight: "bold" }}>
+                    <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: "var(--gold-premium, #d4af37)", fontWeight: "bold", whiteSpace: "nowrap" }}>
                         {points.toLocaleString()} <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "1px", marginLeft: "3px" }}>PRESTISE</span>
                     </span>
                 </div>
@@ -486,20 +488,9 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                 className={`action-btn ${profileTab === "identitas" ? "active-tab" : ""}`}
                 onClick={() => handleTabChange("identitas")}
                 style={{
-                  flex: 1,
-                  padding: "12px 20px",
-                  borderRadius: "50px",
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
                   background: profileTab === "identitas" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
                   color: profileTab === "identitas" ? "#000" : "var(--text-primary)",
-                  border: "1px solid var(--glass-border)",
-                  transition: "all 0.3s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px"
+                  borderColor: profileTab === "identitas" ? "var(--gold-premium, #d4af37)" : "var(--glass-border)",
                 }}
               >
                 <i className="fa-regular fa-id-card"></i> {tLang.profil.tab_identity}
@@ -509,20 +500,9 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                 className={`action-btn ${profileTab === "keamanan" ? "active-tab" : ""}`}
                 onClick={() => handleTabChange("keamanan")}
                 style={{
-                  flex: 1,
-                  padding: "12px 20px",
-                  borderRadius: "50px",
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
                   background: profileTab === "keamanan" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
                   color: profileTab === "keamanan" ? "#000" : "var(--text-primary)",
-                  border: "1px solid var(--glass-border)",
-                  transition: "all 0.3s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px"
+                  borderColor: profileTab === "keamanan" ? "var(--gold-premium, #d4af37)" : "var(--glass-border)",
                 }}
               >
                 <i className="fa-solid fa-sliders"></i> {tLang.profil.tab_security_lang}
@@ -699,7 +679,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                 </button>
                             ) : <div></div>}
 
-                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <div className="wizard-nav-btn-group">
                                 {wizardStep < 3 && (
                                     <button
                                         type="button"

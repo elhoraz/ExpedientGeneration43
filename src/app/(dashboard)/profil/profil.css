@@ -20,6 +20,7 @@
     .profil-wrapper {
         position: relative; 
         width: 100%; 
+        max-width: 100vw;
         min-height: 100vh;
         display: flex; 
         flex-direction: column; 
@@ -29,6 +30,8 @@
         z-index: 10;
         color: var(--text-primary);
         transition: color 0.5s ease;
+        overflow-x: hidden;
+        box-sizing: border-box;
     }
 
     /* ================= 3. BIOMETRIC GATEWAY (DEPRECATED - REMOVED) ================= */
@@ -159,7 +162,9 @@
 
     .status-display {
         text-align: center;
-        min-width: 320px;
+        max-width: 320px;
+        width: 100%;
+        box-sizing: border-box;
         padding: 20px;
         background: var(--glass-bg);
         backdrop-filter: var(--glass-blur);
@@ -286,7 +291,9 @@
         gap: 40px; 
     }
     @media (max-width: 900px) { 
-        .profil-grid { grid-template-columns: 1fr; } 
+        .profil-grid { grid-template-columns: 1fr; gap: 24px; } 
+        .tilt-container { perspective: none !important; transform-style: flat !important; }
+        .parallax-card { transform: none !important; }
         .profil-grid[data-tab="identitas"] > .premium-panel:nth-of-type(2) { display: none !important; }
         .profil-grid[data-tab="keamanan"] > .premium-panel:nth-of-type(1) { display: none !important; }
     }
@@ -692,20 +699,183 @@
         border-top: 1px solid var(--glass-border);
     }
 
+    .wizard-nav-btn-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .wizard-nav-footer .btn-submit {
+        margin-top: 0;
+        padding: 14px 24px;
+        width: auto;
+        white-space: nowrap;
+    }
+
+    .wizard-nav-footer .action-btn {
+        width: auto;
+        padding: 12px 20px;
+        white-space: nowrap;
+    }
+
+    .profil-prestise-badge {
+        margin-top: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--glass-bg);
+        padding: 8px 20px;
+        border-radius: 50px;
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
     /* MOBILE RESPONSIVENESS */
     @media (max-width: 768px) {
-        .profil-wrapper { padding: 80px 14px 120px; }
-        .premium-panel { padding: 25px 18px; border-radius: 20px; }
-        .photo-upload-wrapper { flex-direction: column; text-align: center; gap: 15px; margin-bottom: 40px; }
+        .profil-wrapper { 
+            padding: 80px 12px 120px; 
+            overflow-x: hidden;
+            max-width: 100vw;
+            box-sizing: border-box;
+        }
+        .control-panel {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        .premium-panel { 
+            padding: 24px 14px; 
+            border-radius: 20px; 
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+        .photo-upload-wrapper { 
+            flex-direction: column; 
+            text-align: center; 
+            gap: 15px; 
+            margin-bottom: 30px; 
+        }
         .magnetic-btn-wrap { margin-left: 0; padding: 0; }
-        .dashboard-title { font-size: 2.2rem; }
-        .dashboard-subtitle { font-size: 0.72rem; letter-spacing: 3px; }
-        .nav-actions { flex-direction: column; gap: 12px; align-items: stretch; margin-bottom: 30px; }
-        .action-btn { justify-content: center; width: 100%; }
-        .retina-container { width: 250px; height: 250px; }
-        .camera-frame { width: 200px; height: 200px; }
-        .form-row { grid-template-columns: 1fr; }
+        .upload-btn-ui { padding: 12px 20px; font-size: 0.75rem; }
+        .dashboard-title { 
+            font-size: clamp(1.8rem, 6.5vw, 2.3rem); 
+            word-break: break-word;
+            letter-spacing: 1px;
+        }
+        .dashboard-subtitle { 
+            font-size: 0.72rem; 
+            letter-spacing: 2px; 
+            word-break: break-word;
+        }
+        .nav-actions { 
+            flex-direction: column; 
+            gap: 10px; 
+            align-items: stretch; 
+            margin-bottom: 25px; 
+            width: 100%;
+        }
+        .nav-actions .action-btn { 
+            justify-content: center; 
+            width: 100%; 
+            padding: 12px 16px;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+        .profil-tabs-nav {
+            max-width: 100%;
+            padding: 0;
+            margin: 15px auto 25px;
+            gap: 8px;
+        }
+        .profil-tabs-nav .action-btn {
+            width: auto !important;
+            flex: 1;
+            min-width: 0;
+            padding: 11px 8px !important;
+            font-size: 0.74rem !important;
+            letter-spacing: 0.5px;
+            gap: 6px;
+            justify-content: center;
+        }
+        .retina-container { width: min(250px, 80vw); height: min(250px, 80vw); }
+        .camera-frame { width: min(200px, 65vw); height: min(200px, 65vw); }
+        .status-display { min-width: 0; width: 100%; max-width: 100%; box-sizing: border-box; }
+        .form-row { grid-template-columns: 1fr; gap: 20px; }
+        .form-group { margin-bottom: 25px; }
+
+        .wizard-stepper-container {
+            padding: 14px 10px;
+            border-radius: 14px;
+        }
+        .wizard-tabs {
+            gap: 4px;
+        }
+        .wizard-tab-btn { 
+            padding: 8px 4px; 
+            min-height: 38px;
+            gap: 4px;
+        }
         .wizard-tab-btn .step-title { display: none; }
-        .wizard-tab-btn { padding: 8px; }
-        .wizard-tab-line { width: 8px; }
+        .wizard-tab-line { width: 6px; }
+
+        .wizard-nav-footer {
+            flex-direction: column-reverse;
+            gap: 10px;
+            align-items: stretch;
+            padding-top: 16px;
+            margin-top: 20px;
+        }
+        .wizard-nav-footer .action-btn {
+            width: 100% !important;
+            justify-content: center !important;
+            padding: 12px 14px !important;
+            font-size: 0.78rem !important;
+            letter-spacing: 1px !important;
+        }
+        .wizard-nav-btn-group {
+            width: 100%;
+            display: flex;
+            gap: 8px;
+        }
+        .wizard-nav-btn-group > * {
+            flex: 1;
+            min-width: 0;
+        }
+        .wizard-nav-footer .btn-submit {
+            margin-top: 0 !important;
+            padding: 12px 14px !important;
+            width: 100% !important;
+            font-size: 0.78rem !important;
+            letter-spacing: 1.5px !important;
+            justify-content: center !important;
+            white-space: normal !important;
+        }
+        .bio-status-box {
+            padding: 24px 16px;
+        }
+        .profil-prestise-badge {
+            flex-wrap: wrap;
+            justify-content: center;
+            border-radius: 20px !important;
+            padding: 8px 14px !important;
+            gap: 8px !important;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .wizard-progress-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+        .wizard-nav-btn-group {
+            flex-direction: column;
+        }
+        .lang-cards-grid {
+            grid-template-columns: 1fr !important;
+        }
     }
