@@ -57,6 +57,7 @@ const surahMap: Record<string, number> = {
 export default function DivineClient() {
   const [activeVerse, setActiveVerse] = useState<any>(null);
   const [showResult, setShowResult] = useState(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -81,9 +82,20 @@ export default function DivineClient() {
     return () => {
         if (audioRef.current) {
             audioRef.current.pause();
+            audioRef.current = null;
         }
+        setIsPlayingAudio(false);
     };
   }, []);
+
+  const toggleAudio = () => {
+    if (!audioRef.current) return;
+    if (audioRef.current.paused) {
+      audioRef.current.play().catch(e => console.log("Audio play error:", e));
+    } else {
+      audioRef.current.pause();
+    }
+  };
 
   const revealVerse = () => {
     const v = DEFAULT_VERSES[Math.floor(Math.random() * DEFAULT_VERSES.length)];
@@ -107,6 +119,7 @@ export default function DivineClient() {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
     }
+    setIsPlayingAudio(false);
     
     const match = v.source.match(/QS\.\s+(.+?):\s+(\d+)/);
     if (match) {
@@ -117,11 +130,25 @@ export default function DivineClient() {
         if (surahNum) {
             const s = String(surahNum).padStart(3, '0');
             const a = String(ayahNum).padStart(3, '0');
-            const audioUrl = `https://audio.qurancdn.com/Alafasy/mp3/${s}${a}.mp3`;
+            const primaryUrl = `https://audio.qurancdn.com/Alafasy/mp3/${s}${a}.mp3`;
+            const fallbackUrl = `https://everyayah.com/data/Alafasy_128kbps/${s}${a}.mp3`;
             
-            audioRef.current = new Audio(audioUrl);
-            audioRef.current.play().catch(e => {
-                console.log("Audio autoplay blocked by browser: " + e);
+            const audio = new Audio(primaryUrl);
+            audio.onplay = () => setIsPlayingAudio(true);
+            audio.onpause = () => setIsPlayingAudio(false);
+            audio.onended = () => setIsPlayingAudio(false);
+            audio.onerror = () => {
+              if (audio.src !== fallbackUrl) {
+                audio.src = fallbackUrl;
+                audio.play().catch(() => {});
+              } else {
+                setIsPlayingAudio(false);
+              }
+            };
+
+            audioRef.current = audio;
+            audio.play().catch(e => {
+                console.log("Audio autoplay note:", e);
             });
         }
     }
@@ -132,6 +159,7 @@ export default function DivineClient() {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
     }
+    setIsPlayingAudio(false);
 
     gsap.set(['#bismillah','#ayatArabic','#divider','#ayatLatin','#ayatMeaning','#ayatSource'], { opacity:0 });
     gsap.set(['#ayatArabic','#ayatLatin','#ayatMeaning'], { y:15 });
@@ -175,6 +203,33 @@ export default function DivineClient() {
             <div className="ayat-latin" id="ayatLatin">{activeVerse ? `"${activeVerse.latin}"` : ""}</div>
             <div className="ayat-meaning" id="ayatMeaning">{activeVerse?.meaning}</div>
             <div className="ayat-source" id="ayatSource">{activeVerse?.source}</div>
+            {activeVerse && (
+              <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
+                <button
+                  type="button"
+                  onClick={toggleAudio}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "7px 18px",
+                    borderRadius: "30px",
+                    background: isPlayingAudio ? "rgba(212, 175, 55, 0.22)" : "rgba(255, 255, 255, 0.08)",
+                    border: isPlayingAudio ? "1px solid #ffd700" : "1px solid rgba(255, 255, 255, 0.18)",
+                    color: isPlayingAudio ? "#ffd700" : "rgba(255, 255, 255, 0.85)",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.25s ease",
+                    boxShadow: isPlayingAudio ? "0 0 16px rgba(212, 175, 55, 0.3)" : "none",
+                  }}
+                  title={isPlayingAudio ? "Jeda Audio Tilawah" : "Putar Audio Tilawah"}
+                >
+                  <i className={isPlayingAudio ? "fa-solid fa-volume-high" : "fa-solid fa-play"}></i>
+                  <span>{isPlayingAudio ? "Memutar Murottal (Misyari Rasyid)" : "Dengarkan Murottal"}</span>
+                </button>
+              </div>
+            )}
         </div>
 
         <button className="btn-reveal" id="btnReveal" style={{ display: showResult ? 'none' : 'inline-block' }} onClick={revealVerse}>

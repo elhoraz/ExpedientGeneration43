@@ -71,6 +71,41 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
   }, []);
 
+  // Auto-recover from ChunkLoadError when a new deployment invalidates cached static chunks
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleChunkError = (event: any) => {
+      const msg = String(
+        event?.message ||
+        event?.reason?.message ||
+        event?.reason ||
+        event ||
+        ""
+      );
+      if (
+        msg.includes("Failed to load chunk") ||
+        msg.includes("ChunkLoadError") ||
+        msg.includes("Loading chunk")
+      ) {
+        const lastReload = sessionStorage.getItem("chunk_reload_retry");
+        const now = Date.now();
+        if (!lastReload || now - Number(lastReload) > 10000) {
+          sessionStorage.setItem("chunk_reload_retry", String(now));
+          window.location.reload();
+        }
+      }
+    };
+
+    window.addEventListener("error", handleChunkError);
+    window.addEventListener("unhandledrejection", handleChunkError);
+
+    return () => {
+      window.removeEventListener("error", handleChunkError);
+      window.removeEventListener("unhandledrejection", handleChunkError);
+    };
+  }, []);
+
 
 
   // 1. Handle theme and meta color

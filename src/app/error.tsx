@@ -13,6 +13,15 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("Global System Error:", error);
+    const msg = String(error?.message || error?.name || "");
+    if (msg.includes("Failed to load chunk") || msg.includes("ChunkLoadError") || msg.includes("Loading chunk")) {
+      const last = sessionStorage.getItem("chunk_reload_retry");
+      const now = Date.now();
+      if (!last || now - Number(last) > 10000) {
+        sessionStorage.setItem("chunk_reload_retry", String(now));
+        window.location.reload();
+      }
+    }
   }, [error]);
 
   return (
