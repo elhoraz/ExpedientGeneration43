@@ -1,26 +1,23 @@
 /*
  * ===================================================
- * fitur.css — Styles for The Sovereign Vault (Fitur Page)
- * Dual-Theme Optimized: Dark (Gold/Obsidian) & Light (Royal Pearl/Gold)
- * Scoped under .vault-wrapper & body.page-fitur
+ * fitur.css — Dual-Experience Sovereign Vault & Mobile Bento Hub
+ * Desktop: The Sovereign 3D Cinematic Vault (> 900px)
+ * Mobile: Smart Bento Widget Hub (<= 900px)
  * ===================================================
  */
 
 body.page-fitur .vault-wrapper,
 .vault-wrapper {
   --gold-main: #d4af37;
+  --gold-light: #ffd700;
   --gold-glow: rgba(212, 175, 55, 0.35);
-  --card-bg-base: linear-gradient(160deg, rgba(12, 18, 15, 0.85) 0%, rgba(3, 6, 5, 0.95) 100%);
-  --card-border: rgba(212, 175, 55, 0.2);
-  --card-border-hover: rgba(212, 175, 55, 0.65);
+  --card-bg-base: linear-gradient(160deg, rgba(14, 22, 18, 0.88) 0%, rgba(5, 9, 7, 0.96) 100%);
+  --card-border: rgba(212, 175, 55, 0.22);
+  --card-border-hover: rgba(212, 175, 55, 0.7);
   --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
-  --card-shadow-hover: 0 25px 55px rgba(0, 0, 0, 0.85), 0 0 30px var(--gold-glow);
-  --card-overlay: linear-gradient(to top, rgba(3, 6, 5, 0.96) 0%, rgba(3, 6, 5, 0.65) 50%, transparent 90%);
+  --card-shadow-hover: 0 25px 55px rgba(0, 0, 0, 0.85), 0 0 35px var(--gold-glow);
   --card-title-color: #ffffff;
   --card-desc-color: #94a3b8;
-  --card-icon-color: rgba(212, 175, 55, 0.4);
-  --card-icon-hover: #d4af37;
-  --launch-btn-color: #d4af37;
   --title-color: #d4af37;
   --subtitle-color: #8899a6;
 
@@ -31,82 +28,156 @@ body.page-fitur .vault-wrapper,
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding: 40px 20px 80px 20px;
+  padding: 40px 20px 100px 20px;
   z-index: 10;
   background: transparent;
+  box-sizing: border-box;
 }
 
-/* ================= MODE SIANG (LIGHT THEME) ================= */
+/* Mode Siang (Light Theme) */
 :root[data-theme="light"] .vault-wrapper,
 [data-theme="light"] .vault-wrapper,
 body.page-fitur[data-theme="light"] .vault-wrapper {
   --gold-main: #aa771c;
+  --gold-light: #c89528;
   --gold-glow: rgba(170, 119, 28, 0.2);
-  --card-bg-base: linear-gradient(160deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 250, 248, 0.98) 100%);
-  --card-border: rgba(170, 119, 28, 0.22);
-  --card-border-hover: rgba(170, 119, 28, 0.65);
-  --card-shadow: 0 15px 35px rgba(0, 20, 15, 0.07);
-  --card-shadow-hover: 0 22px 48px rgba(170, 119, 28, 0.16), 0 4px 15px rgba(0, 0, 0, 0.05);
-  --card-overlay: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0.25) 90%);
+  --card-bg-base: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 248, 246, 0.98) 100%);
+  --card-border: rgba(170, 119, 28, 0.25);
+  --card-border-hover: rgba(170, 119, 28, 0.7);
+  --card-shadow: 0 15px 35px rgba(0, 20, 15, 0.08);
+  --card-shadow-hover: 0 20px 45px rgba(170, 119, 28, 0.18);
   --card-title-color: #0f172a;
   --card-desc-color: #475569;
-  --card-icon-color: rgba(170, 119, 28, 0.35);
-  --card-icon-hover: #aa771c;
-  --launch-btn-color: #aa771c;
   --title-color: #aa771c;
   --subtitle-color: #52606d;
 }
 
-/* ================= DASHBOARD HEADER ================= */
-.vault-wrapper .features-dashboard {
+/* ==========================================================================
+   1. DESKTOP VIEW: THE SOVEREIGN VAULT (> 900PX)
+   ========================================================================== */
+.desktop-vault-view {
   display: flex;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
   flex-direction: column;
   align-items: center;
   z-index: 20;
 }
 
-.vault-wrapper .dashboard-header {
+.desktop-header {
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 35px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.vault-wrapper .dashboard-title {
+.vault-emblem {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid var(--gold-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--gold-main);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.25);
+  margin-bottom: 18px;
+  animation: pulseEmblem 3s infinite ease-in-out;
+}
+
+@keyframes pulseEmblem {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); transform: scale(1); }
+  50% { box-shadow: 0 0 35px rgba(212, 175, 55, 0.4); transform: scale(1.04); }
+}
+
+.desktop-title {
   font-family: 'Playfair Display', serif;
   color: var(--title-color);
-  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
   margin: 0;
   letter-spacing: 4px;
   text-transform: uppercase;
   font-weight: 700;
-  transition: color 0.4s ease;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
-.vault-wrapper .dashboard-subtitle {
+.desktop-subtitle {
   color: var(--subtitle-color);
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   letter-spacing: 4px;
   text-transform: uppercase;
   margin-top: 12px;
   font-weight: 500;
-  transition: color 0.4s ease;
 }
 
-/* ================= CINEMATIC 3D GRID ================= */
-.vault-wrapper .cinematic-grid {
+/* Category Filter Bar */
+.desktop-category-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 45px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 12px;
+  border-radius: 50px;
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.category-pill-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--card-desc-color);
+  padding: 10px 22px;
+  border-radius: 40px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  font-family: inherit;
+}
+
+.category-pill-btn:hover {
+  color: var(--title-color);
+  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.category-pill-btn.active {
+  background: var(--gold-main);
+  color: #060b09;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+}
+
+:root[data-theme="light"] .category-pill-btn.active {
+  color: #ffffff;
+}
+
+/* Cinematic 3D Grid */
+.cinematic-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 32px;
   width: 100%;
   perspective: 1500px;
 }
 
-/* ================= PREMIUM 3D CARD ================= */
-.vault-wrapper .premium-card {
+/* Premium 3D Card */
+.premium-card {
   position: relative;
-  height: 390px;
-  border-radius: 20px;
+  height: 380px;
+  border-radius: 24px;
   text-decoration: none;
   transform-style: preserve-3d;
   background: var(--card-bg-base);
@@ -118,244 +189,646 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   transition: border-color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
               box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1),
               background 0.4s ease;
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
-.vault-wrapper .premium-card:hover {
+.premium-card:hover {
   border-color: var(--card-border-hover);
   box-shadow: var(--card-shadow-hover);
 }
 
-/* CARD BACKGROUND IMAGE & GRADIENT OVERLAY */
-.vault-wrapper .premium-card .card-bg {
+.premium-card .card-bg {
   position: absolute;
-  inset: -15px;
+  inset: -10px;
   background-size: cover;
   background-position: center;
-  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), filter 0.8s ease;
+  filter: grayscale(80%) brightness(0.45);
+  transition: filter 0.8s cubic-bezier(0.25, 1, 0.5, 1),
+              transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
   z-index: 1;
-  filter: grayscale(80%) brightness(0.35);
 }
 
-:root[data-theme="light"] .vault-wrapper .premium-card .card-bg,
-[data-theme="light"] .vault-wrapper .premium-card .card-bg {
-  filter: grayscale(40%) brightness(0.7);
+.premium-card:hover .card-bg {
+  filter: grayscale(0%) brightness(0.65);
+  transform: scale(1.08);
 }
 
-.vault-wrapper .premium-card .card-bg::after {
-  content: '';
+.card-glow-layer {
   position: absolute;
   inset: 0;
-  background: var(--card-overlay);
-  transition: background 0.4s ease;
-}
-
-.vault-wrapper .premium-card:hover .card-bg {
-  transform: scale(1.06);
-  filter: grayscale(10%) brightness(0.55);
-}
-
-:root[data-theme="light"] .vault-wrapper .premium-card:hover .card-bg,
-[data-theme="light"] .vault-wrapper .premium-card:hover .card-bg {
-  filter: grayscale(0%) brightness(0.85);
-}
-
-/* RADIAL ACCENT GLOW ON HOVER */
-.vault-wrapper .premium-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 100%, var(--gold-glow) 0%, transparent 60%);
+  background: linear-gradient(to top, rgba(3, 7, 5, 0.98) 0%, rgba(3, 7, 5, 0.65) 55%, transparent 100%);
   z-index: 2;
-  opacity: 0;
   transition: opacity 0.5s ease;
-  pointer-events: none;
 }
 
-.vault-wrapper .premium-card:hover::before {
-  opacity: 1;
+:root[data-theme="light"] .card-glow-layer {
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.8) 55%, rgba(255, 255, 255, 0.2) 100%);
 }
 
-/* ================= CARD CONTENT ================= */
-.vault-wrapper .card-content {
+.card-badge-tag {
   position: absolute;
-  inset: 0;
-  z-index: 10;
-  padding: 35px 26px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  transform: translateZ(35px);
-  pointer-events: none;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid var(--gold-main);
+  color: var(--gold-light);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
 }
 
-.vault-wrapper .card-icon {
+.premium-card .card-icon {
   position: absolute;
-  top: 26px;
-  right: 26px;
-  font-size: 2rem;
-  color: var(--card-icon-color);
-  transition: color 0.4s ease, transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), filter 0.4s ease;
+  right: 25px;
+  top: 25px;
+  font-size: 2.2rem;
+  color: rgba(212, 175, 55, 0.35);
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
   transform: translateZ(30px);
-  z-index: 12;
+  z-index: 3;
 }
 
-.vault-wrapper .premium-card:hover .card-icon {
-  color: var(--card-icon-hover);
-  transform: translateZ(45px) scale(1.1);
-  filter: drop-shadow(0 0 12px var(--gold-glow));
+.premium-card:hover .card-icon {
+  color: var(--gold-main);
+  transform: translateZ(50px) scale(1.15) rotate(6deg);
+  text-shadow: 0 0 25px var(--gold-glow);
 }
 
-.vault-wrapper .card-title {
+.premium-card .card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px;
+  transform: translateZ(40px);
+  z-index: 4;
+}
+
+.premium-card .card-title {
   font-family: 'Playfair Display', serif;
   color: var(--card-title-color);
-  font-size: 1.55rem;
-  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  margin: 0 0 10px 0;
   font-weight: 600;
-  line-height: 1.25;
-  transform: translateY(16px);
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), color 0.3s ease;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
 }
 
-.vault-wrapper .card-desc {
+.premium-card:hover .card-title {
+  color: var(--title-color);
+}
+
+.premium-card .card-desc {
   color: var(--card-desc-color);
-  font-size: 0.82rem;
-  line-height: 1.55;
-  margin: 0;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease, color 0.3s ease;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.vault-wrapper .launch-btn {
-  margin-top: 16px;
-  font-size: 0.72rem;
-  letter-spacing: 2px;
-  color: var(--launch-btn-color);
-  text-transform: uppercase;
-  opacity: 0;
-  transform: translateY(16px);
-  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease, color 0.3s ease;
-  display: flex;
+.premium-card .launch-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  color: var(--gold-main);
+  font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
 }
 
-.vault-wrapper .premium-card:hover .card-title,
-.vault-wrapper .premium-card:hover .card-desc,
-.vault-wrapper .premium-card:hover .launch-btn {
-  transform: translateY(0);
-  opacity: 1;
+.premium-card:hover .launch-btn {
+  color: #fff;
+  transform: translateX(6px);
 }
 
-/* SPECIAL HIGHLIGHTED CARDS */
-.vault-wrapper .special-nexus-card {
-  border-color: rgba(212, 175, 55, 0.4);
-}
-:root[data-theme="light"] .vault-wrapper .special-nexus-card,
-[data-theme="light"] .vault-wrapper .special-nexus-card {
-  border-color: rgba(170, 119, 28, 0.45);
+:root[data-theme="light"] .premium-card:hover .launch-btn {
+  color: #000;
 }
 
-.vault-wrapper .special-wrapped-card {
-  border-color: rgba(212, 175, 55, 0.5);
-}
-:root[data-theme="light"] .vault-wrapper .special-wrapped-card,
-[data-theme="light"] .vault-wrapper .special-wrapped-card {
-  border-color: rgba(170, 119, 28, 0.55);
+/* ==========================================================================
+   2. MOBILE VIEW: SMART BENTO WIDGET HUB (<= 900PX)
+   ========================================================================== */
+.mobile-widget-hub {
+  display: none; /* default di desktop */
 }
 
-/* ================= MOBILE RESPONSIVENESS ================= */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  /* Sembunyikan Tampilan Desktop di Mobile */
+  .desktop-vault-view {
+    display: none !important;
+  }
+
+  /* Aktifkan Mobile Widget Hub */
+  .mobile-widget-hub {
+    display: flex !important;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding-bottom: calc(40px + env(safe-area-inset-bottom, 20px));
+    box-sizing: border-box;
+  }
+
   body.page-fitur .vault-wrapper,
   .vault-wrapper {
-    padding: 25px 14px calc(125px + env(safe-area-inset-bottom, 20px)) 14px;
-    overflow-x: hidden;
+    padding: 16px 14px 100px 14px;
   }
 
-  .vault-wrapper .dashboard-header {
-    margin-bottom: 24px;
-  }
-
-  .vault-wrapper .dashboard-title {
-    font-size: 1.75rem;
-    letter-spacing: 1.5px;
-  }
-
-  .vault-wrapper .dashboard-subtitle {
-    font-size: 0.72rem;
-    letter-spacing: 1.5px;
-    margin-top: 6px;
-  }
-
-  .vault-wrapper .cinematic-grid {
-    gap: 16px;
-    grid-template-columns: 1fr;
-    perspective: none !important;
-    transform-style: flat !important;
-  }
-
-  .vault-wrapper .premium-card {
-    height: auto;
-    min-height: 270px;
-    transform: none !important;
-    transform-style: flat !important;
-    perspective: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+  /* Base Mobile Bento Card */
+  .mobile-bento-card {
     background: var(--card-bg-base);
-    border-color: rgba(212, 175, 55, 0.35) !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
-    will-change: auto !important;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  /* Hilangkan efek scale/shrink pada sentuhan agar scroll tidak jumping/jitter */
-  .vault-wrapper .premium-card:active {
-    transform: none !important;
-    border-color: #ffd700 !important;
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.25) !important;
-  }
-
-  .vault-wrapper .premium-card .card-bg {
-    inset: 0 !important;
-    transform: none !important;
-    filter: grayscale(0%) brightness(0.68) !important;
-    transition: none !important;
-  }
-
-  :root[data-theme="light"] .vault-wrapper .premium-card .card-bg,
-  [data-theme="light"] .vault-wrapper .premium-card .card-bg {
-    filter: grayscale(0%) brightness(0.85) !important;
-  }
-
-  .vault-wrapper .card-content {
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: var(--card-shadow);
+    text-decoration: none;
+    color: var(--card-title-color);
+    display: block;
     position: relative;
-    padding: 24px 18px;
-    transform: none !important;
-    pointer-events: auto;
+    overflow: hidden;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
   }
 
-  /* Reveal text elements by default on mobile */
-  .vault-wrapper .card-title,
-  .vault-wrapper .card-desc,
-  .vault-wrapper .launch-btn {
-    transform: none !important;
-    opacity: 1 !important;
-    transition: none !important;
+  .mobile-bento-card:active {
+    transform: scale(0.985);
+    border-color: var(--gold-main);
   }
 
-  .vault-wrapper .card-title {
+  /* WIDGET 1: PROFIL & KTA DIGITAL */
+  .widget-profile-card {
+    padding: 20px;
+    background: linear-gradient(145deg, rgba(212, 175, 55, 0.08) 0%, rgba(10, 16, 12, 0.95) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+  }
+
+  :root[data-theme="light"] .widget-profile-card {
+    background: linear-gradient(145deg, rgba(170, 119, 28, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
+  }
+
+  .widget-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 18px;
+  }
+
+  .widget-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gold-main);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    flex-shrink: 0;
+  }
+
+  .widget-profile-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .widget-greeting {
+    font-size: 0.72rem;
+    color: var(--card-desc-color);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .widget-user-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--card-title-color);
+    margin: 2px 0 6px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .widget-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .widget-gelar-badge {
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 3px 9px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .widget-points-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--card-border);
+    color: var(--gold-main);
+    font-family: monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+  }
+
+  .widget-profile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+  }
+
+  .widget-action-btn {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.2s;
+  }
+
+  .widget-action-btn.primary {
+    background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+    color: #060b09;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
+  }
+
+  .widget-action-btn.secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    color: var(--card-title-color);
+  }
+
+  .widget-action-btn.tertiary {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--card-border);
+    color: var(--card-desc-color);
+    padding: 10px 14px;
+  }
+
+  /* BENTO 2-COLUMN ROW */
+  .mobile-bento-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* WIDGET 2 & 3: KAS & ULANG TAHUN */
+  .widget-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .widget-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .widget-card-icon.kas {
+    background: rgba(37, 211, 102, 0.15);
+    color: #25d366;
+  }
+
+  .widget-card-icon.bday {
+    background: rgba(255, 215, 0, 0.15);
+    color: #ffd700;
+  }
+
+  .widget-status-pill {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .widget-status-pill.paid {
+    background: rgba(37, 211, 102, 0.15);
+    color: #25d366;
+    border: 1px solid rgba(37, 211, 102, 0.3);
+  }
+
+  .widget-status-pill.unpaid {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-main);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+  }
+
+  .widget-status-pill.bday-active {
+    background: rgba(255, 215, 0, 0.18);
+    color: #ffd700;
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    animation: pulseBday 2s infinite ease-in-out;
+  }
+
+  .widget-status-pill.bday-soon {
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--card-desc-color);
+    border: 1px solid var(--card-border);
+  }
+
+  @keyframes pulseBday {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .widget-kas-amount {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: var(--card-title-color);
+    font-family: monospace;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+  }
+
+  .widget-bday-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--card-title-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+  }
+
+  .widget-card-label {
+    font-size: 0.72rem;
+    color: var(--card-desc-color);
+    line-height: 1.3;
+  }
+
+  .widget-card-footer-link {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--gold-main);
+    font-weight: 600;
+  }
+
+  .widget-card-footer-link.bday {
+    color: #25d366;
+  }
+
+  /* WIDGET 4: EVENT TERDEKAT */
+  .widget-event-card {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(10, 16, 12, 0.95) 100%);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .widget-event-badge-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .widget-event-countdown {
+    background: #3b82f6;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
+  }
+
+  .widget-event-tag {
+    font-size: 0.68rem;
+    color: var(--card-desc-color);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .widget-event-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--card-title-color);
+    margin: 0 0 8px 0;
+  }
+
+  .widget-event-meta {
+    display: flex;
+    gap: 14px;
+    font-size: 0.74rem;
+    color: var(--card-desc-color);
+    flex-wrap: wrap;
+  }
+
+  .widget-event-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* WIDGET 5 & 6: BUBBLE ROW (CHAT & PHOTOBOOTH) */
+  .widget-action-bubble {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .bubble-icon-wrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .bubble-icon-wrap.chat {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+  }
+
+  .bubble-icon-wrap.photobooth {
+    background: rgba(244, 63, 94, 0.15);
+    color: #f43f5e;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+  }
+
+  .bubble-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .bubble-text h4 {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--card-title-color);
+  }
+
+  .bubble-text p {
+    margin: 2px 0 0 0;
+    font-size: 0.68rem;
+    color: var(--card-desc-color);
+  }
+
+  .bubble-chevron {
+    color: var(--card-desc-color);
+    font-size: 0.75rem;
+  }
+
+  /* WIDGET 7: QUICK SEARCH CARD */
+  .widget-search-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px 8px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+  }
+
+  .search-icon {
+    color: var(--gold-main);
+    font-size: 0.95rem;
+  }
+
+  .search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--card-title-color);
+    font-size: 0.82rem;
+    font-family: inherit;
+  }
+
+  .search-input::placeholder {
+    color: var(--card-desc-color);
+  }
+
+  .search-btn {
+    background: var(--gold-main);
+    color: #060b09;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* MINI APP DRAWER (SEMUA FITUR ANGKATAN) */
+  .mobile-apps-section {
+    margin-top: 10px;
+    background: var(--card-bg-base);
+    border: 1px solid var(--card-border);
+    border-radius: 22px;
+    padding: 18px 14px 22px;
+  }
+
+  .mobile-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding: 0 4px;
+  }
+
+  .mobile-section-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gold-main);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .mobile-section-counter {
+    font-size: 0.7rem;
+    color: var(--card-desc-color);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+  }
+
+  .mobile-app-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 8px;
+  }
+
+  .mobile-app-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    gap: 6px;
+    transition: transform 0.2s;
+  }
+
+  .mobile-app-item:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-app-icon-badge {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1.3rem;
-    margin-top: 36px;
+    border: 1px solid transparent;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s;
   }
 
-  .vault-wrapper .card-icon {
-    right: 18px;
-    top: 18px;
-    font-size: 1.5rem;
-    transform: none !important;
+  .mobile-app-name {
+    font-size: 0.68rem;
+    color: var(--card-title-color);
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 68px;
   }
 }
