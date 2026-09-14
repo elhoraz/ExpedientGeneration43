@@ -1,0 +1,9 @@
+# Exclude Android build & project files from Vercel deployments
+android/
+*.apk
+*.aab
+
+# Exclude local test and scratch files
+tests/
+scripts/
+*.log
