@@ -64,7 +64,6 @@ function RegisterFormContent() {
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpError, setOtpError] = useState<string | null>(null);
   const [isSubmittingForm, setIsSubmittingForm] = useState(false);
-  const [directOtpCode, setDirectOtpCode] = useState<string>("");
 
   useEffect(() => {
     if (otpCooldown > 0) {
@@ -295,7 +294,6 @@ function RegisterFormContent() {
 
       setRegisteredEmail(data.email || "");
       setRegisteredWa(data.no_whatsapp || "");
-      if (data.otp) setDirectOtpCode(String(data.otp));
       setIsOtpModalOpen(true);
       setOtpStep("choose_channel");
     } catch (err: any) {
@@ -335,10 +333,6 @@ function RegisterFormContent() {
         else if (data.error && typeof data.error.message === "string") errMessage = data.error.message;
         else if (typeof data.message === "string") errMessage = data.message;
         throw new Error(errMessage);
-      }
-
-      if (data.otp) {
-        setDirectOtpCode(String(data.otp));
       }
 
       const finalChannel = (data.channel as "gmail" | "whatsapp") || channel;
@@ -992,97 +986,11 @@ function RegisterFormContent() {
                 )}
 
                 {selectedChannel === "whatsapp" && (
-                  <div className="otp-email-hint" style={{ borderColor: "rgba(37, 211, 102, 0.4)", background: "rgba(37, 211, 102, 0.08)", display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-                      <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", fontSize: "1.2rem", marginTop: "2px" }}></i>
-                      <span>
-                        Sesuai kebijakan resmi Meta WhatsApp, nomor yang belum pernah kontak perlu mengirim pesan terlebih dahulu ke Bot WA agar pesan dapat masuk:
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "4px" }}>
-                      <a
-                        href="https://wa.me/6285151771289?text=Halo%20Bot%20Expedient,%20minta%20kode%20OTP"
-                        target="_blank"
-                        rel="noreferrer"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "7px 13px",
-                          borderRadius: "8px",
-                          background: "#25d366",
-                          color: "#000",
-                          fontWeight: 700,
-                          fontSize: "0.8rem",
-                          textDecoration: "none",
-                        }}
-                      >
-                        <i className="fa-brands fa-whatsapp"></i> Chat Bot WA (+62 851-5177-1289)
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleSendOtp("gmail")}
-                        disabled={isSendingOtp}
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "7px 13px",
-                          borderRadius: "8px",
-                          background: "rgba(212, 175, 55, 0.15)",
-                          border: "1px solid rgba(212, 175, 55, 0.5)",
-                          color: "#ffd700",
-                          fontWeight: 700,
-                          fontSize: "0.8rem",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <i className="fa-solid fa-envelope"></i> Kirim ke Gmail Saja
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {directOtpCode && (
-                  <div style={{
-                    margin: "0 0 20px",
-                    padding: "16px 20px",
-                    background: "linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(20, 30, 25, 0.9) 100%)",
-                    border: "2px solid #ffd700",
-                    borderRadius: "14px",
-                    textAlign: "center",
-                    boxShadow: "0 0 25px rgba(212, 175, 55, 0.25)"
-                  }}>
-                    <div style={{ fontSize: "0.72rem", letterSpacing: "2.5px", textTransform: "uppercase", color: "#ffd700", fontWeight: 800, marginBottom: "4px" }}>
-                      ⚡ KODE VERIFIKASI RESMI ANDA
-                    </div>
-                    <div style={{ fontFamily: "monospace", fontSize: "2.4rem", fontWeight: 900, letterSpacing: "10px", color: "#ffffff", textShadow: "0 0 15px rgba(255, 215, 0, 0.7)", paddingLeft: "10px", margin: "6px 0 10px" }}>
-                      {directOtpCode}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const digits = directOtpCode.split("");
-                        setOtpDigits(digits);
-                        handleVerifyOtpWithDigits(digits);
-                      }}
-                      style={{
-                        background: "linear-gradient(135deg, #ffd700 0%, #d4af37 100%)",
-                        border: "none",
-                        borderRadius: "20px",
-                        padding: "8px 22px",
-                        color: "#060b14",
-                        fontWeight: 800,
-                        fontSize: "0.82rem",
-                        cursor: "pointer",
-                        boxShadow: "0 4px 15px rgba(212, 175, 55, 0.4)",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "8px"
-                      }}
-                    >
-                      <i className="fa-solid fa-bolt"></i> Pasang Kode & Aktifkan Seketika
-                    </button>
+                  <div className="otp-email-hint">
+                    <i className="fa-brands fa-whatsapp" style={{ color: "#25d366" }}></i>
+                    <span>
+                      Kode OTP 6 digit telah dikirimkan ke nomor WhatsApp Anda. Silakan periksa pesan masuk di aplikasi WhatsApp Anda.
+                    </span>
                   </div>
                 )}
 

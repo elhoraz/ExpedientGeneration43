@@ -1,7 +1,7 @@
 /**
  * lib/whatsapp.ts
  * High-Reliability WhatsApp Gateway with Strict Anti-Ban Architecture.
- * Primary: Fonnte (Direct WhatsApp Web Gateway - Connected: 62895326383590).
+ * Primary: Fonnte (Direct WhatsApp Web Gateway - Connected: 6289675010185).
  * Secondary: Meta WhatsApp Cloud API (Fallback).
  */
 

@@ -334,36 +334,17 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
         status: "sent",
       });
 
-      // Selalu kirim salinan otomatis ke Gmail secara paralel agar pengguna PASTI menerima kode tanpa terhambat aturan 24-jam Meta WhatsApp!
-      try {
-        sendEmail({
-          to: email,
-          subject: `[${otp}] Kode Verifikasi Akun Expedient Generation`,
-          body: `Halo ${namaPengguna}, berikut kode OTP verifikasi akun Anda: ${otp}. Berlaku selama 24 jam.`,
-          html: emailHtml,
-        }).catch((e) => console.error("[SEND-OTP] Parallel email backup error:", e));
-      } catch {
-        // non-blocking
-      }
-
       // Mask phone number for security in response (e.g. 0812****789)
       const cleanNum = noWa.replace(/\D/g, "");
       const masked = cleanNum.length > 6 
         ? cleanNum.substring(0, 4) + "****" + cleanNum.substring(cleanNum.length - 3)
         : cleanNum;
 
-      const [userPart, domainPart] = email.split("@");
-      const maskedEmail = userPart.length > 2 
-        ? userPart.substring(0, 2) + "***@" + domainPart 
-        : email;
-
       return NextResponse.json({
         success: true,
         channel: "whatsapp",
         target: masked,
-        backupEmail: maskedEmail,
-        otp: otp,
-        message: `Kode OTP 6 digit telah dikirim ke WhatsApp (${masked}) dan salinannya juga tersedia di Gmail Anda (${maskedEmail})!`,
+        message: `Kode OTP 6 digit berhasil dikirim ke WhatsApp Anda (${masked})!`,
       });
     }
 
@@ -482,7 +463,6 @@ Silakan masukkan 6 digit angka di atas pada formulir portal untuk menyelesaikan 
       success: true,
       channel: "gmail",
       target: maskedEmail,
-      otp: otp,
       message: `Kode verifikasi 6 digit berhasil dikirim ke Gmail Anda (${maskedEmail})!`,
     });
   } catch (err: any) {
