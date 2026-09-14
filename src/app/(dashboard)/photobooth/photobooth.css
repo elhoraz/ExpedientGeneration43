@@ -1264,8 +1264,45 @@
   z-index: 10;
 }
 
-.photo-cell:hover .cell-retake-btn {
+.cell-download-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  color: #ffd700;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+  z-index: 10;
+}
+
+.cell-download-btn:hover {
+  transform: scale(1.15);
+  background: #d4af37;
+  color: #000;
+}
+
+.photo-cell:hover .cell-retake-btn,
+.photo-cell:hover .cell-download-btn {
   opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .cell-retake-btn,
+  .cell-download-btn {
+    opacity: 0.95 !important;
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
 }
 
 

@@ -830,7 +830,7 @@ export default function PhotoboothClient() {
   };
 
   // ── Bulletproof Native 2D Canvas Fallback Renderer ──
-  // Renders photostrip directly to canvas in ~10ms without html2canvas, eliminating any possibility of crash
+  // Renders photostrip directly to canvas in ~10ms without html2canvas, eliminating any possibility of crash or tainted canvas
   const renderPhotostripNative = async (scale: number = 2): Promise<HTMLCanvasElement> => {
     const stripEl = stripRef.current;
     const stripRect = stripEl ? stripEl.getBoundingClientRect() : { width: 270, height: 1000 };
@@ -872,6 +872,96 @@ export default function PhotoboothClient() {
       borderCol = "#00f0ff";
       textCol = "#00f0ff";
       subCol = "#ff007f";
+    } else if (theme === "gingham") {
+      bg = "#fbf7f0";
+      borderCol = "#8b7355";
+      textCol = "#5c4033";
+      subCol = "#8b7355";
+    } else if (theme === "cobalt") {
+      bg = "#0b192c";
+      borderCol = "#1e3e62";
+      textCol = "#f1f6f9";
+      subCol = "#9ba4b5";
+    } else if (theme === "doily") {
+      bg = "#1f1d1a";
+      borderCol = "#faebd7";
+      textCol = "#faebd7";
+      subCol = "#d5c4a8";
+    } else if (theme === "portra") {
+      bg = "#181715";
+      borderCol = "#c89d5c";
+      textCol = "#e6c387";
+      subCol = "#9e8b75";
+    } else if (theme === "instagram") {
+      bg = "#ffffff";
+      borderCol = "#e5e5e5";
+      textCol = "#262626";
+      subCol = "#8e8e8e";
+    } else if (theme === "luggage") {
+      bg = "#2b261f";
+      borderCol = "#c5a059";
+      textCol = "#e8d8b9";
+      subCol = "#a8987b";
+    } else if (theme === "spiral") {
+      bg = "#1e1e24";
+      borderCol = "#faebd7";
+      textCol = "#ffffff";
+      subCol = "#cccccc";
+    } else if (theme === "ticket") {
+      bg = "#fdfbf7";
+      borderCol = "#8b0000";
+      textCol = "#8b0000";
+      subCol = "#555555";
+    } else if (theme === "receipt") {
+      bg = "#f5f5f0";
+      borderCol = "#222222";
+      textCol = "#111111";
+      subCol = "#444444";
+    } else if (theme === "scrapbook") {
+      bg = "#2a2228";
+      borderCol = "#e8b4b8";
+      textCol = "#ffe4e8";
+      subCol = "#c59b9f";
+    } else if (theme === "doodle") {
+      bg = "#fceade";
+      borderCol = "#0a1f5c";
+      textCol = "#0a1f5c";
+      subCol = "#223366";
+    } else if (theme === "mihrab") {
+      bg = "#0c1a14";
+      borderCol = "#ffd700";
+      textCol = "#ffd700";
+      subCol = "#c4b59d";
+    } else if (theme === "parchment") {
+      bg = "#f4ebd9";
+      borderCol = "#8b5a2b";
+      textCol = "#4a2e12";
+      subCol = "#7a5028";
+    } else if (theme === "ocean") {
+      bg = "#071626";
+      borderCol = "#00b4d8";
+      textCol = "#caf0f8";
+      subCol = "#90e0ef";
+    } else if (theme === "velvet") {
+      bg = "#1c0b19";
+      borderCol = "#d4af37";
+      textCol = "#f7d6e0";
+      subCol = "#c08081";
+    } else if (theme === "y2k") {
+      bg = "#ff007f";
+      borderCol = "#00ffff";
+      textCol = "#ffff00";
+      subCol = "#ffffff";
+    } else if (theme === "botanical") {
+      bg = "#122018";
+      borderCol = "#52b788";
+      textCol = "#d8f3dc";
+      subCol = "#95d5b2";
+    } else if (theme === "monolith") {
+      bg = "#000000";
+      borderCol = "#222222";
+      textCol = "#ffffff";
+      subCol = "#777777";
     } else if (theme === "custom" && customBgColor) {
       bg = customBgColor;
     }
@@ -944,7 +1034,15 @@ export default function PhotoboothClient() {
                 sh = iw / sAspect;
                 sy = (ih - sh) / 2;
               }
+
+              // Apply current filter to canvas if supported
+              const filterStyle = getFilterStyle();
+              if (filterStyle && filterStyle !== "none" && typeof ctx.filter !== "undefined") {
+                ctx.filter = filterStyle;
+              }
+
               ctx.drawImage(img, sx, sy, sw, sh, slotX, slotY, slotW, slotH);
+              ctx.filter = "none";
             }
             resolveImg();
           };
@@ -1018,13 +1116,144 @@ export default function PhotoboothClient() {
     return canvas;
   };
 
+  // Helper to wrap photostrip in 9:16 Instagram Story Canvas
+  const wrapCanvasInStory = (sourceCanvas: HTMLCanvasElement): HTMLCanvasElement => {
+    const storyCanvas = document.createElement("canvas");
+    const targetWidth = 1080;
+    const targetHeight = 1920;
+    storyCanvas.width = targetWidth;
+    storyCanvas.height = targetHeight;
+    const ctx = storyCanvas.getContext("2d");
+    if (!ctx) return sourceCanvas;
+
+    const gradient = ctx.createRadialGradient(
+      targetWidth / 2,
+      targetHeight / 2,
+      100,
+      targetWidth / 2,
+      targetHeight / 2,
+      targetHeight / 1.2
+    );
+    gradient.addColorStop(0, "#15151a");
+    gradient.addColorStop(1, "#050507");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, targetWidth, targetHeight);
+
+    ctx.shadowColor = "rgba(212, 175, 55, 0.35)";
+    ctx.shadowBlur = 60;
+
+    const scaleFactor = (targetHeight * 0.78) / sourceCanvas.height;
+    const stripW = sourceCanvas.width * scaleFactor;
+    const stripH = sourceCanvas.height * scaleFactor;
+    const stripX = (targetWidth - stripW) / 2;
+    const stripY = (targetHeight - stripH) / 2;
+
+    ctx.drawImage(sourceCanvas, stripX, stripY, stripW, stripH);
+
+    ctx.shadowBlur = 0;
+    ctx.font = "bold 28px 'Inter', sans-serif";
+    ctx.fillStyle = "#d4af37";
+    ctx.textAlign = "center";
+    ctx.fillText("EXPEDIENT GENERATION 43RD ARRISALAH", targetWidth / 2, 90);
+
+    ctx.font = "18px 'Inter', sans-serif";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.fillText("The Official Photostrip Archive", targetWidth / 2, 125);
+
+    return storyCanvas;
+  };
+
+  // Universal Direct Download Helper (Rock-solid across Mobile Safari, Android Chrome & Desktop)
+  const triggerDirectDownload = (blobOrDataUrl: Blob | string, filename: string) => {
+    try {
+      let url: string;
+      let shouldRevoke = false;
+
+      if (typeof blobOrDataUrl === "string") {
+        url = blobOrDataUrl;
+      } else {
+        url = URL.createObjectURL(blobOrDataUrl);
+        shouldRevoke = true;
+      }
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.style.position = "fixed";
+      a.style.left = "-9999px";
+      a.style.opacity = "0";
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(() => {
+        if (document.body.contains(a)) document.body.removeChild(a);
+        if (shouldRevoke) {
+          // Keep blob URL alive for 60s so mobile browser downloads have ample time to complete
+          setTimeout(() => {
+            try { URL.revokeObjectURL(url); } catch {}
+          }, 60000);
+        }
+      }, 400);
+    } catch (err) {
+      console.error("Direct download error:", err);
+      if (typeof blobOrDataUrl === "string") {
+        window.open(blobOrDataUrl, "_blank");
+      }
+    }
+  };
+
+  // Download Single Photo (Foto Biasa Satuan)
+  const handleDownloadSinglePhoto = (index: number) => {
+    const item = photos[index];
+    if (!item?.image) return;
+    triggerHaptic(25);
+    const filename = `Expedient_Foto_${index + 1}_${Date.now()}.jpg`;
+    triggerDirectDownload(item.image, filename);
+  };
+
+  // Download All Individual Still Photos (Semua Foto Biasa)
+  const handleDownloadAllSinglePhotos = () => {
+    triggerHaptic(30);
+    const filled = photos
+      .slice(0, totalSlots)
+      .map((p, idx) => ({ p, idx }))
+      .filter(({ p }) => p && p.image);
+
+    if (filled.length === 0) {
+      alert("Belum ada foto yang diambil.");
+      return;
+    }
+
+    filled.forEach(({ p, idx }, i) => {
+      setTimeout(() => {
+        if (p?.image) {
+          const filename = `Expedient_Foto_${idx + 1}_${Date.now()}.jpg`;
+          triggerDirectDownload(p.image, filename);
+        }
+      }, i * 350);
+    });
+  };
+
   // Sanitize photo cells in cloned DOM for reliable, high-fidelity export
   const sanitizeClonedCellsForExport = (clonedDoc: Document) => {
     // Strip foreign stylesheets that cause cross-origin SecurityError
     clonedDoc.querySelectorAll<HTMLLinkElement>("link[rel='stylesheet']").forEach((link) => {
       const href = link.href || "";
-      if (href.includes("leaflet") || href.includes("swiper") || href.includes("cropper")) {
+      if (
+        href.includes("leaflet") ||
+        href.includes("swiper") ||
+        href.includes("cropper") ||
+        href.includes("cdnjs") ||
+        href.includes("font-awesome")
+      ) {
         link.remove();
+      }
+    });
+
+    // Remove cross-origin @import rules to avoid tainted canvas SecurityError
+    clonedDoc.querySelectorAll("style").forEach((style) => {
+      if (style.innerHTML && style.innerHTML.includes("@import")) {
+        style.innerHTML = style.innerHTML.replace(/@import\s+url\([^)]+\);?/gi, "");
       }
     });
 
@@ -1045,7 +1274,7 @@ export default function PhotoboothClient() {
 
       cell
         .querySelectorAll<HTMLElement>(
-          ".cell-retake-btn, .live-badge-indicator, .photo-cell-placeholder"
+          ".cell-retake-btn, .cell-download-btn, .live-badge-indicator, .photo-cell-placeholder"
         )
         .forEach((el) => {
           el.style.display = "none";
@@ -1068,7 +1297,7 @@ export default function PhotoboothClient() {
     });
   };
 
-  // Export Photostrip to PNG or Story
+  // Export Photostrip to PNG or Story (Rock-solid Direct Download)
   const handleDownloadStrip = async (mode: "strip" | "story") => {
     if (!stripRef.current) return;
     setIsExporting(true);
@@ -1084,149 +1313,140 @@ export default function PhotoboothClient() {
           /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
       const exportScale = isMobile ? 2 : 3;
 
-      let canvas: HTMLCanvasElement;
+      let canvas: HTMLCanvasElement | null = null;
 
-      // Primary attempt: html2canvas for 1:1 CSS theme styles
+      // Primary attempt: html2canvas with strict 3.5s timeout & sanitization
       try {
-        canvas = await html2canvas(stripRef.current, {
+        const h2cPromise = html2canvas(stripRef.current, {
           scale: exportScale,
           useCORS: true,
           allowTaint: false,
           backgroundColor: null,
           logging: false,
+          imageTimeout: 3000,
           scrollX: 0,
           scrollY: 0,
           onclone: (clonedDoc) => {
             sanitizeClonedCellsForExport(clonedDoc);
           },
         });
+
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("html2canvas timeout")), 3500)
+        );
+
+        canvas = await Promise.race([h2cPromise, timeoutPromise]);
       } catch (h2cError) {
-        console.warn("html2canvas export error, using native canvas fallback:", h2cError);
+        console.warn("html2canvas export error or timeout, using native canvas fallback:", h2cError);
+      }
+
+      // If html2canvas failed or timed out, use bulletproof native renderer
+      if (!canvas) {
         canvas = await renderPhotostripNative(exportScale);
       }
 
       let finalCanvas = canvas;
-
-      // If Story Mode (9:16), pad canvas onto 9:16 background
       if (mode === "story") {
-        const storyCanvas = document.createElement("canvas");
-        const targetWidth = 1080;
-        const targetHeight = 1920;
-        storyCanvas.width = targetWidth;
-        storyCanvas.height = targetHeight;
-        const ctx = storyCanvas.getContext("2d");
-        if (ctx) {
-          const gradient = ctx.createRadialGradient(
-            targetWidth / 2,
-            targetHeight / 2,
-            100,
-            targetWidth / 2,
-            targetHeight / 2,
-            targetHeight / 1.2
-          );
-          gradient.addColorStop(0, "#15151a");
-          gradient.addColorStop(1, "#050507");
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, 0, targetWidth, targetHeight);
+        finalCanvas = wrapCanvasInStory(canvas);
+      }
 
-          ctx.shadowColor = "rgba(212, 175, 55, 0.35)";
-          ctx.shadowBlur = 60;
+      const filename = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
 
-          const scaleFactor = (targetHeight * 0.78) / canvas.height;
-          const stripW = canvas.width * scaleFactor;
-          const stripH = canvas.height * scaleFactor;
-          const stripX = (targetWidth - stripW) / 2;
-          const stripY = (targetHeight - stripH) / 2;
+      // Try exporting via toBlob
+      let blob: Blob | null = null;
+      try {
+        blob = await new Promise<Blob | null>((resolve) => {
+          finalCanvas.toBlob((b) => resolve(b), "image/png");
+        });
+      } catch (toBlobErr) {
+        console.warn("toBlob threw SecurityError (tainted), re-rendering native canvas:", toBlobErr);
+      }
 
-          ctx.drawImage(canvas, stripX, stripY, stripW, stripH);
-
-          ctx.shadowBlur = 0;
-          ctx.font = "bold 28px 'Inter', sans-serif";
-          ctx.fillStyle = "#d4af37";
-          ctx.textAlign = "center";
-          ctx.fillText("EXPEDIENT GENERATION 43RD ARRISALAH", targetWidth / 2, 90);
-
-          ctx.font = "18px 'Inter', sans-serif";
-          ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-          ctx.fillText("The Official Photostrip Archive", targetWidth / 2, 125);
-
-          finalCanvas = storyCanvas;
+      // If toBlob failed or was tainted, guaranteed fallback via native canvas
+      if (!blob) {
+        try {
+          const freshCanvas = await renderPhotostripNative(exportScale);
+          const freshFinal = mode === "story" ? wrapCanvasInStory(freshCanvas) : freshCanvas;
+          blob = await new Promise<Blob | null>((resolve) => {
+            freshFinal.toBlob((b) => resolve(b), "image/png");
+          });
+          if (!blob) {
+            const dataUrl = freshFinal.toDataURL("image/png");
+            triggerDirectDownload(dataUrl, filename);
+            triggerHaptic(50);
+            return;
+          }
+        } catch (nativeErr) {
+          console.error("Native canvas export error:", nativeErr);
         }
       }
 
-      // Export file via blob or dataURL
-      const filename = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
-
-      await new Promise<void>((resolve, reject) => {
-        try {
-          finalCanvas.toBlob(async (blob) => {
-            if (!blob) {
-              // Data URL fallback if toBlob returned null
-              const dataUrl = finalCanvas.toDataURL("image/png");
-              const a = document.createElement("a");
-              a.href = dataUrl;
-              a.download = filename;
-              document.body.appendChild(a);
-              a.click();
-              setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 100);
-              resolve();
-              return;
-            }
-
-            let sharedSuccessfully = false;
-            if (
-              typeof navigator !== "undefined" &&
-              typeof File !== "undefined" &&
-              navigator.canShare
-            ) {
-              try {
-                const file = new File([blob], filename, { type: "image/png" });
-                if (navigator.canShare({ files: [file] })) {
-                  await navigator.share({
-                    files: [file],
-                    title: "Expedient Photostrip HD",
-                    text: "Photostrip Kenangan Alumni Expedient 43!",
-                  });
-                  sharedSuccessfully = true;
-                }
-              } catch (shareErr: any) {
-                if (shareErr?.name === "AbortError") {
-                  sharedSuccessfully = true;
-                }
-              }
-            }
-
-            if (!sharedSuccessfully) {
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = filename;
-              document.body.appendChild(a);
-              a.click();
-              setTimeout(() => {
-                if (document.body.contains(a)) document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              }, 100);
-            }
-
-            triggerHaptic(50);
-            resolve();
-          }, "image/png");
-        } catch (blobErr) {
-          // If toBlob throws, use direct dataURL
-          const dataUrl = finalCanvas.toDataURL("image/png");
-          const a = document.createElement("a");
-          a.href = dataUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          setTimeout(() => { if (document.body.contains(a)) document.body.removeChild(a); }, 100);
-          resolve();
-        }
-      });
+      if (blob) {
+        triggerDirectDownload(blob, filename);
+        triggerHaptic(50);
+      } else {
+        const dataUrl = finalCanvas.toDataURL("image/png");
+        triggerDirectDownload(dataUrl, filename);
+        triggerHaptic(50);
+      }
     } catch (error: any) {
       console.error("Export error:", error);
-      alert(`Gagal mengekspor foto strip. Silakan coba lagi.`);
+      alert("Gagal mengekspor foto strip secara langsung. Mencoba unduhan darurat...");
+      try {
+        const emergencyCanvas = await renderPhotostripNative(2);
+        const dataUrl = emergencyCanvas.toDataURL("image/png");
+        triggerDirectDownload(dataUrl, `Expedient_Photostrip_Backup_${Date.now()}.png`);
+      } catch {}
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Dedicated Share Action (Uses OS Share Sheet only when user explicitly clicks Share)
+  const handleShareStrip = async () => {
+    if (!stripRef.current) return;
+    setIsExporting(true);
+    triggerHaptic(30);
+
+    try {
+      const isMobile =
+        typeof window !== "undefined" &&
+        (window.innerWidth < 768 ||
+          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+      const exportScale = isMobile ? 2 : 3;
+
+      let canvas: HTMLCanvasElement;
+      try {
+        canvas = await renderPhotostripNative(exportScale);
+      } catch {
+        canvas = await html2canvas(stripRef.current, { scale: exportScale });
+      }
+
+      const filename = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob((b) => resolve(b), "image/png");
+      });
+
+      if (blob && typeof navigator !== "undefined" && typeof File !== "undefined" && navigator.canShare) {
+        const file = new File([blob], filename, { type: "image/png" });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "Expedient Photostrip HD",
+            text: "Photostrip Kenangan Alumni Expedient 43!",
+          });
+          return;
+        }
+      }
+
+      // If share sheet not available, fallback to download
+      if (blob) {
+        triggerDirectDownload(blob, filename);
+      }
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        console.warn("Share error:", err);
+      }
     } finally {
       setIsExporting(false);
     }
@@ -1650,16 +1870,9 @@ export default function PhotoboothClient() {
             }
           }
 
-          // Fallback direct download
+          // Direct download via helper
           if (!sharedSuccessfully) {
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-              if (document.body.contains(a)) document.body.removeChild(a);
-            }, 100);
+            triggerDirectDownload(blob, filename);
           }
 
           triggerHaptic(50);
@@ -2546,6 +2759,18 @@ export default function PhotoboothClient() {
                           </div>
                         )}
 
+                        {/* Download Single Still Photo Button */}
+                        <button
+                          className="cell-download-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadSinglePhoto(idx);
+                          }}
+                          title="Unduh Foto Biasa Ini (Satuan)"
+                        >
+                          <i className="fa-solid fa-download"></i>
+                        </button>
+
                         {/* Retake Button */}
                         <button
                           className="cell-retake-btn"
@@ -2829,12 +3054,12 @@ export default function PhotoboothClient() {
             )}
 
             <button
-              className="btn-export-primary"
+              className={isLiveMode ? "btn-export-secondary" : "btn-export-primary"}
               onClick={() => handleDownloadStrip("strip")}
               disabled={isExporting}
             >
               <i className="fa-solid fa-download"></i>
-              <span>{isExporting ? t.common.loading : t.photobooth.download_strip}</span>
+              <span>{isExporting ? t.common.loading : (isLiveMode ? "Unduh Foto Biasa (PNG)" : t.photobooth.download_strip)}</span>
             </button>
 
             <button
@@ -2844,6 +3069,26 @@ export default function PhotoboothClient() {
             >
               <i className="fa-brands fa-instagram"></i>
               <span>{t.photobooth.download_story}</span>
+            </button>
+
+            <button
+              className="btn-export-secondary"
+              onClick={handleDownloadAllSinglePhotos}
+              disabled={isExporting}
+              title="Unduh semua file foto asli per pose tanpa bingkai"
+            >
+              <i className="fa-solid fa-images"></i>
+              <span>Unduh Foto Biasa Satuan (Semua Pose)</span>
+            </button>
+
+            <button
+              className="btn-export-secondary"
+              onClick={handleShareStrip}
+              disabled={isExporting}
+              title="Bagikan foto strip ke WhatsApp, Instagram, dll"
+            >
+              <i className="fa-solid fa-share-nodes"></i>
+              <span>Bagikan (Share)</span>
             </button>
           </div>
         </div>
