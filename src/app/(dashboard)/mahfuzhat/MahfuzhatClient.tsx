@@ -151,57 +151,82 @@ export default function MahfuzhatClient() {
     }
   }, [getAudioCtx]);
 
-  // Robust Text-To-Speech with instant chime and Latin fallback if Arabic voice missing
-  const speakArabic = useCallback((arabicText: string, latinText?: string) => {
-    // 1. Always play harmonious chime so there is immediate, guaranteed audio feedback
-    playSound("correct");
+  // Active HTML5 Audio stream reference
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    if ("speechSynthesis" in window) {
+  const stopActiveAudio = useCallback(() => {
+    if (activeAudioRef.current) {
       try {
-        window.speechSynthesis.cancel();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+        activeAudioRef.current.src = "";
+      } catch {
+        // ignore
+      }
+      activeAudioRef.current = null;
+    }
+  }, []);
+
+  // Pronunciation via High-Fidelity Arabic Audio Stream (with browser TTS fallback)
+  const speakArabic = useCallback(
+    (arabicText: string, latinText?: string) => {
+      // 1. Always play harmonious chime so there is immediate, guaranteed audio feedback
+      playSound("correct");
+
+      // 2. Stop any existing audio or speech
+      stopActiveAudio();
+      if ("speechSynthesis" in window) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch {
+          // ignore
         }
+      }
 
-        const voices = window.speechSynthesis.getVoices();
-        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
-        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
+      showToast(`Melafalkan: ${latinText || arabicText} 🔊`);
 
-        let utteranceText = arabicText;
-        let lang = "ar-SA";
+      // 3. Play authentic native Arabic audio stream
+      try {
+        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(arabicText)}&lang=ar`;
+        const audio = new Audio(audioUrl);
+        activeAudioRef.current = audio;
 
-        // Fallback to Latin transliteration if OS lacks Arabic TTS voice
-        if (!arabicVoice && latinText) {
-          utteranceText = latinText;
-          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
-        }
-
-        const utterance = new SpeechSynthesisUtterance(utteranceText);
-        utterance.lang = lang;
-        if (arabicVoice) {
-          utterance.voice = arabicVoice;
-        } else if (idVoice) {
-          utterance.voice = idVoice;
-        }
-        utterance.rate = 0.85;
-
-        utterance.onerror = () => {
-          playSound("correct");
+        audio.onerror = () => {
+          // Fallback to browser SpeechSynthesis
+          if ("speechSynthesis" in window) {
+            try {
+              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+              const utterance = new SpeechSynthesisUtterance(latinText || arabicText);
+              utterance.lang = "id-ID";
+              utterance.rate = 0.85;
+              window.speechSynthesis.speak(utterance);
+            } catch (err) {
+              console.warn("Fallback speech error:", err);
+            }
+          }
         };
 
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
-        }, 50);
-
-        showToast(`Melafalkan: ${latinText || arabicText} 🔊`);
-        return;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            if ("speechSynthesis" in window) {
+              try {
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                const utterance = new SpeechSynthesisUtterance(latinText || arabicText);
+                utterance.lang = "id-ID";
+                window.speechSynthesis.speak(utterance);
+              } catch {
+                // ignore
+              }
+            }
+          });
+        }
       } catch (e) {
-        console.warn("Speech synthesis error:", e);
+        console.warn("Audio recitation error:", e);
       }
-    }
-
-    showToast("Audio synthesizer aktif 🔊");
-  }, [playSound]);
+    },
+    [playSound, stopActiveAudio]
+  );
 
   // Copy to Clipboard
   const copyMahfuzhat = (item: MahfuzhatItem) => {

@@ -147,53 +147,81 @@ export default function MatsuratClient() {
     }
   }, [soundEnabled, getAudioCtx]);
 
-  // Recite Dzikir via Web Speech API with Latin fallback & instant chime
-  const speakDzikir = useCallback((item: MatsuratItem) => {
-    playClickSound();
+  // Active HTML5 Audio stream reference
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    const arabicText = time === "petang" && item.arabicPetang ? item.arabicPetang : item.arabicPagi;
-    const latinText = time === "petang" && item.latinPetang ? item.latinPetang : item.latinPagi;
-
-    if ("speechSynthesis" in window) {
+  const stopActiveAudio = useCallback(() => {
+    if (activeAudioRef.current) {
       try {
-        window.speechSynthesis.cancel();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-
-        const voices = window.speechSynthesis.getVoices();
-        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
-        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
-
-        let utteranceText = arabicText;
-        let lang = "ar-SA";
-
-        if (!arabicVoice) {
-          utteranceText = latinText;
-          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
-        }
-
-        const utterance = new SpeechSynthesisUtterance(utteranceText);
-        utterance.lang = lang;
-        if (arabicVoice) {
-          utterance.voice = arabicVoice;
-        } else if (idVoice) {
-          utterance.voice = idVoice;
-        }
-        utterance.rate = 0.85;
-
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
-        }, 50);
-
-        setCopiedToast(true);
-        setTimeout(() => setCopiedToast(false), 2000);
-        return;
-      } catch (err) {
-        console.warn("Speech synthesis error:", err);
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+        activeAudioRef.current.src = "";
+      } catch {
+        // ignore
       }
+      activeAudioRef.current = null;
     }
-  }, [playClickSound, time]);
+  }, []);
+
+  // Recite Dzikir via High-Fidelity Arabic Audio Stream (with browser TTS fallback)
+  const speakDzikir = useCallback(
+    (item: MatsuratItem) => {
+      playClickSound();
+      stopActiveAudio();
+      if ("speechSynthesis" in window) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch {
+          // ignore
+        }
+      }
+
+      const arabicText = time === "petang" && item.arabicPetang ? item.arabicPetang : item.arabicPagi;
+      const latinText = time === "petang" && item.latinPetang ? item.latinPetang : item.latinPagi;
+
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 2200);
+
+      try {
+        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(arabicText)}&lang=ar`;
+        const audio = new Audio(audioUrl);
+        activeAudioRef.current = audio;
+
+        audio.onerror = () => {
+          if ("speechSynthesis" in window) {
+            try {
+              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+              const utterance = new SpeechSynthesisUtterance(latinText);
+              utterance.lang = "id-ID";
+              utterance.rate = 0.85;
+              window.speechSynthesis.speak(utterance);
+            } catch {
+              // ignore
+            }
+          }
+        };
+
+        const p = audio.play();
+        if (p !== undefined) {
+          p.catch(() => {
+            if ("speechSynthesis" in window) {
+              try {
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                const utterance = new SpeechSynthesisUtterance(latinText);
+                utterance.lang = "id-ID";
+                window.speechSynthesis.speak(utterance);
+              } catch {
+                // ignore
+              }
+            }
+          });
+        }
+      } catch {
+        // ignore
+      }
+    },
+    [playClickSound, stopActiveAudio, time]
+  );
 
   const triggerHaptic = useCallback(
     (pattern: number | number[]) => {

@@ -372,45 +372,73 @@ export default function SirahClient() {
     });
   }, [selectedPhase, searchQuery]);
 
-  // Audio Speech Narration with ambient chime & safe unpaused queue
+  // Active HTML5 Audio stream reference
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopActiveAudio = useCallback(() => {
+    if (activeAudioRef.current) {
+      try {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+        activeAudioRef.current.src = "";
+      } catch {
+        // ignore
+      }
+      activeAudioRef.current = null;
+    }
+  }, []);
+
+  // Audio Speech Narration with stream proxy & browser fallback
   const speakNarrative = (event: SirahEvent) => {
     playAmbientChime();
-
+    stopActiveAudio();
     if ("speechSynthesis" in window) {
       try {
         window.speechSynthesis.cancel();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-
-        const text = `${event.title}. ${event.summary}. Pelajaran Kepemimpinan: ${event.leadership.title}. ${event.leadership.lesson}`;
-        const utterance = new SpeechSynthesisUtterance(text);
-
-        const voices = window.speechSynthesis.getVoices();
-        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
-        if (idVoice) {
-          utterance.voice = idVoice;
-          utterance.lang = idVoice.lang;
-        } else {
-          utterance.lang = "id-ID";
-        }
-        utterance.rate = 0.92;
-
-        utterance.onerror = () => {
-          playAmbientChime();
-        };
-
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
-        }, 50);
-
-        showToast("Memutar narasi sirah nabawiyah 🔊");
-        return;
-      } catch (err) {
-        console.warn("Narration speech error:", err);
+      } catch {
+        // ignore
       }
     }
-    showToast("Audio synthesizer aktif 🔊");
+
+    showToast("Memutar narasi sirah nabawiyah 🔊");
+
+    try {
+      const narrativeText = `${event.title}. ${event.summary}. Pelajaran Kepemimpinan: ${event.leadership.title}. ${event.leadership.lesson}`;
+      const audioUrl = `/api/audio/tts?text=${encodeURIComponent(narrativeText)}&lang=id`;
+      const audio = new Audio(audioUrl);
+      activeAudioRef.current = audio;
+
+      audio.onerror = () => {
+        if ("speechSynthesis" in window) {
+          try {
+            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+            const utterance = new SpeechSynthesisUtterance(narrativeText);
+            utterance.lang = "id-ID";
+            window.speechSynthesis.speak(utterance);
+          } catch {
+            // ignore
+          }
+        }
+      };
+
+      const p = audio.play();
+      if (p !== undefined) {
+        p.catch(() => {
+          if ("speechSynthesis" in window) {
+            try {
+              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+              const utterance = new SpeechSynthesisUtterance(narrativeText);
+              utterance.lang = "id-ID";
+              window.speechSynthesis.speak(utterance);
+            } catch {
+              // ignore
+            }
+          }
+        });
+      }
+    } catch {
+      // ignore
+    }
   };
 
   // --------------------------------------------------------------------------

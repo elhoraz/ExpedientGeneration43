@@ -143,59 +143,86 @@ export default function AsmaulHusnaClient() {
     }
   }, [soundEnabled, getAudioCtx]);
 
-  // Pronunciation via Web Speech API with Latin fallback & instant chime
-  const speakAsma = useCallback((item: AsmaulHusnaItem, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
+  // Active HTML5 Audio stream reference
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    // 1. Always trigger crystal click sound as immediate feedback
-    playClickSound();
-
-    if ("speechSynthesis" in window) {
+  const stopActiveAudio = useCallback(() => {
+    if (activeAudioRef.current) {
       try {
-        window.speechSynthesis.cancel();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+        activeAudioRef.current.src = "";
+      } catch {
+        // ignore
+      }
+      activeAudioRef.current = null;
+    }
+  }, []);
+
+  // Pronunciation via High-Fidelity Arabic Audio Stream (with browser TTS fallback)
+  const speakAsma = useCallback(
+    (item: AsmaulHusnaItem, e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
+
+      // 1. Always trigger crystal click sound as immediate tactile feedback
+      playClickSound();
+
+      // 2. Stop any previous audio and speech
+      stopActiveAudio();
+      if ("speechSynthesis" in window) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch {
+          // ignore
         }
+      }
 
-        const voices = window.speechSynthesis.getVoices();
-        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
-        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
+      showToast(`Melafalkan: Ya ${item.latin} 🔊`);
 
-        let utteranceText = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
-        let lang = "ar-SA";
+      // 3. Play authentic native Arabic audio stream from server proxy
+      try {
+        const textToRecite = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
+        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(textToRecite)}&lang=ar`;
+        const audio = new Audio(audioUrl);
+        activeAudioRef.current = audio;
 
-        // Fallback to Latin if device lacks Arabic voice pack
-        if (!arabicVoice) {
-          utteranceText = `Ya ${item.latin}`;
-          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
-        }
-
-        const utterance = new SpeechSynthesisUtterance(utteranceText);
-        utterance.lang = lang;
-        if (arabicVoice) {
-          utterance.voice = arabicVoice;
-        } else if (idVoice) {
-          utterance.voice = idVoice;
-        }
-        utterance.rate = 0.85;
-
-        utterance.onerror = () => {
-          playClickSound();
+        audio.onerror = () => {
+          // Fallback to browser SpeechSynthesis if network issue
+          if ("speechSynthesis" in window) {
+            try {
+              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+              const utterance = new SpeechSynthesisUtterance(`Ya ${item.latin}`);
+              utterance.lang = "id-ID";
+              utterance.rate = 0.85;
+              window.speechSynthesis.speak(utterance);
+            } catch (err) {
+              console.warn("Fallback speech error:", err);
+            }
+          }
         };
 
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
-        }, 50);
-
-        showToast(`Melafalkan: Ya ${item.latin} 🔊`);
-        return;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Autoplay restriction or decode fallback
+            if ("speechSynthesis" in window) {
+              try {
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                const utterance = new SpeechSynthesisUtterance(`Ya ${item.latin}`);
+                utterance.lang = "id-ID";
+                window.speechSynthesis.speak(utterance);
+              } catch {
+                // ignore
+              }
+            }
+          });
+        }
       } catch (err) {
-        console.warn("Speech synthesis error:", err);
+        console.warn("Audio recitation error:", err);
       }
-    }
-
-    showToast(`Dzikir: Ya ${item.latin} 🔊`);
-  }, [playClickSound]);
+    },
+    [playClickSound, stopActiveAudio]
+  );
 
   // Tasbih Tap Handler
   const handleTasbihTap = () => {
@@ -234,7 +261,14 @@ export default function AsmaulHusnaClient() {
 
   const pauseSequentialPlay = () => {
     setIsPlaying(false);
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    stopActiveAudio();
+    if ("speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
+    }
     if (playTimerRef.current) clearTimeout(playTimerRef.current);
   };
 
@@ -249,67 +283,61 @@ export default function AsmaulHusnaClient() {
     const currentItem = ASMAUL_HUSNA_DATA[index];
     setCurrentPlayIndex(index);
     playClickSound();
+    stopActiveAudio();
 
     if ("speechSynthesis" in window) {
       try {
         window.speechSynthesis.cancel();
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
-        }
-
-        const voices = window.speechSynthesis.getVoices();
-        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
-        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
-
-        let utteranceText = currentItem.arabic;
-        let lang = "ar-SA";
-
-        if (!arabicVoice) {
-          utteranceText = `Ya ${currentItem.latin}`;
-          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
-        }
-
-        const utterance = new SpeechSynthesisUtterance(utteranceText);
-        utterance.lang = lang;
-        if (arabicVoice) {
-          utterance.voice = arabicVoice;
-        } else if (idVoice) {
-          utterance.voice = idVoice;
-        }
-        utterance.rate = 0.85;
-
-        let hasAdvanced = false;
-        const advance = () => {
-          if (hasAdvanced) return;
-          hasAdvanced = true;
-          playTimerRef.current = setTimeout(() => {
-            playNextSequential(index + 1);
-          }, 1100);
-        };
-
-        utterance.onend = advance;
-        utterance.onerror = advance;
-
-        setTimeout(() => {
-          window.speechSynthesis.speak(utterance);
-        }, 50);
-        return;
-      } catch (err) {
-        console.warn("Player speech error:", err);
+      } catch {
+        // ignore
       }
     }
 
-    playTimerRef.current = setTimeout(() => {
-      playNextSequential(index + 1);
-    }, 2200);
+    try {
+      const audioUrl = `/api/audio/tts?text=${encodeURIComponent(currentItem.arabic)}&lang=ar`;
+      const audio = new Audio(audioUrl);
+      activeAudioRef.current = audio;
+
+      let advanced = false;
+      const advance = () => {
+        if (advanced) return;
+        advanced = true;
+        playTimerRef.current = setTimeout(() => {
+          playNextSequential(index + 1);
+        }, 900);
+      };
+
+      audio.onended = advance;
+      audio.onerror = () => {
+        advance();
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          advance();
+        });
+      }
+    } catch {
+      playTimerRef.current = setTimeout(() => {
+        playNextSequential(index + 1);
+      }, 1500);
+    }
   };
 
   useEffect(() => {
     return () => {
+      stopActiveAudio();
       if (playTimerRef.current) clearTimeout(playTimerRef.current);
-      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      if ("speechSynthesis" in window) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch {
+          // ignore
+        }
+      }
     };
-  }, []);
+  }, [stopActiveAudio]);
 
   // Filtered List
   const filteredList = useMemo(() => {
