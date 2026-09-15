@@ -186,7 +186,7 @@ export default function MatsuratClient() {
       const arabicText = time === "petang" && item.arabicPetang ? item.arabicPetang : item.arabicPagi;
 
       try {
-        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(arabicText)}&lang=ar`;
+        const audioUrl = `/api/audio/tts?type=matsurat&id=${encodeURIComponent(item.id)}&text=${encodeURIComponent(arabicText)}&lang=ar`;
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
 

@@ -188,7 +188,7 @@ export default function AsmaulHusnaClient() {
 
       try {
         const spokenText = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
-        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(spokenText)}&lang=ar`;
+        const audioUrl = `/api/audio/tts?type=asma&id=${item.number}&text=${encodeURIComponent(spokenText)}&lang=ar`;
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
 
@@ -266,7 +266,7 @@ export default function AsmaulHusnaClient() {
 
     try {
       const spokenText = `يا ${currentItem.arabic.replace(/^ال/, "")}، ${currentItem.arabic}`;
-      const audioUrl = `/api/audio/tts?text=${encodeURIComponent(spokenText)}&lang=ar`;
+      const audioUrl = `/api/audio/tts?type=asma&id=${currentItem.number}&text=${encodeURIComponent(spokenText)}&lang=ar`;
       const audio = new Audio(audioUrl);
       activeAudioRef.current = audio;
 
