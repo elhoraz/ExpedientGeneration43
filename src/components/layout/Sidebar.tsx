@@ -82,6 +82,7 @@ export default function Sidebar() {
   const fiturPages = [
     "/fitur",
     "/matsurat",
+    "/mahfuzhat",
     "/tasbih",
     "/kiblat",
     "/khatam",

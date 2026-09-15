@@ -1,0 +1,1136 @@
+/* ==========================================================================
+   mahfuzhat.css - Mahfuzhat & Hikmah Santri Interaktif
+   Expedient Generation 43 - Luxury Obsidian Gold & Royal Ivory Porcelain
+   ========================================================================== */
+
+.mahfuzhat-page-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: max(85px, calc(env(safe-area-inset-top, 20px) + 65px)) 16px 85px 16px;
+    color: var(--text-primary, #f8fafc);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Ambient Background Glow */
+.mahfuzhat-bg-ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at 50% 12%, rgba(212, 175, 55, 0.09) 0%, transparent 60%),
+                radial-gradient(circle at 85% 65%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 15% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 55%);
+}
+
+.mahfuzhat-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   Header Section
+   -------------------------------------------------------------------------- */
+.mahfuzhat-header {
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.mahfuzhat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 20px;
+    color: var(--gold-main, #d4af37);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.mahfuzhat-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4.5vw, 2.7rem);
+    color: var(--gold-main, #d4af37);
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin: 0;
+    text-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+}
+
+.mahfuzhat-subtitle {
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    color: var(--text-secondary, #94a3b8);
+    max-width: 580px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Navigation Tabs (Perpustakaan, Kuis Sambung, Mutiara Hari Ini)
+   -------------------------------------------------------------------------- */
+.mahfuzhat-tabs-nav {
+    display: flex;
+    background: rgba(12, 18, 30, 0.8);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 35px;
+    padding: 4px;
+    gap: 4px;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.mahfuzhat-tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.mahfuzhat-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: transparent;
+    border: none;
+    border-radius: 25px;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mahfuzhat-tab-btn:hover {
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.08);
+}
+
+.mahfuzhat-tab-btn.active {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Tab 1: Perpustakaan Mahfuzhat
+   -------------------------------------------------------------------------- */
+.library-controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.library-search-bar {
+    position: relative;
+    width: 100%;
+}
+
+.library-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 42px 12px 42px;
+    background: rgba(12, 18, 30, 0.7);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.library-search-input:focus {
+    border-color: var(--gold-main, #d4af37);
+    box-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+}
+
+.library-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold-main, #d4af37);
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.library-search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.library-categories {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.library-categories::-webkit-scrollbar {
+    display: none;
+}
+
+.cat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(20, 27, 45, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    border-radius: 20px;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.cat-chip:hover {
+    color: var(--gold-main, #d4af37);
+    border-color: rgba(212, 175, 55, 0.4);
+}
+
+.cat-chip.active {
+    background: rgba(212, 175, 55, 0.18);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+    font-weight: 600;
+}
+
+/* Mahfuzhat Grid */
+.mahfuzhat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 18px;
+    width: 100%;
+}
+
+@media (max-width: 640px) {
+    .mahfuzhat-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Individual Mahfuzhat Card */
+.mahfuzhat-card {
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.85) 0%, rgba(10, 15, 26, 0.9) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.mahfuzhat-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 14px 40px rgba(212, 175, 55, 0.15);
+}
+
+.mahfuzhat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.mahfuzhat-number-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 3px 10px;
+    border-radius: 12px;
+}
+
+.mahfuzhat-cat-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
+/* Arabic Text Area */
+.mahfuzhat-arabic-box {
+    background: radial-gradient(circle at center, rgba(212, 175, 55, 0.08) 0%, rgba(0, 0, 0, 0.25) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    border-radius: 14px;
+    padding: 16px 14px;
+    text-align: center;
+    position: relative;
+}
+
+.mahfuzhat-arabic-text {
+    font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', serif;
+    font-size: clamp(1.4rem, 3.2vw, 1.85rem);
+    line-height: 2.1;
+    direction: rtl;
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+    margin: 0;
+}
+
+.mahfuzhat-latin {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--gold-main, #d4af37);
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.mahfuzhat-translation {
+    font-size: 0.88rem;
+    color: #e2e8f0;
+    line-height: 1.5;
+    text-align: center;
+    padding: 0 4px;
+}
+
+/* Syarah / Insight Accordion */
+.mahfuzhat-syarah-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(212, 175, 55, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    border-radius: 10px;
+    color: var(--gold-main, #d4af37);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mahfuzhat-syarah-toggle:hover {
+    background: rgba(212, 175, 55, 0.12);
+}
+
+.mahfuzhat-syarah-body {
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    animation: fadeIn 0.25s ease;
+}
+
+/* Card Action Footer */
+.mahfuzhat-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 10px;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.76rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.card-action-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+.card-action-btn.primary {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(170, 119, 28, 0.25) 100%);
+    color: var(--gold-main, #d4af37);
+    border-color: rgba(212, 175, 55, 0.45);
+}
+
+.card-action-btn.primary:hover {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Tab 2: Kuis Sambung Mahfuzhat (Game)
+   -------------------------------------------------------------------------- */
+.quiz-container {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Welcome Card */
+.quiz-welcome-card {
+    width: 100%;
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.9) 0%, rgba(10, 15, 26, 0.95) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 24px;
+    padding: 32px 24px;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.quiz-welcome-icon {
+    font-size: 3.5rem;
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+.quiz-welcome-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3.5vw, 2.1rem);
+    color: var(--gold-main, #d4af37);
+    margin: 0;
+}
+
+.quiz-welcome-desc {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    max-width: 480px;
+    margin: 0;
+}
+
+.quiz-rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 440px;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-sizing: border-box;
+    font-size: 0.82rem;
+    color: #94a3b8;
+}
+
+.quiz-start-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 36px;
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.4);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.quiz-start-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.6);
+}
+
+/* Active Game Screen */
+.quiz-active-card {
+    width: 100%;
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.95) 0%, rgba(10, 15, 26, 0.95) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 24px;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.quiz-hud-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.hud-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.12);
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.hud-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 14px;
+    transition: all 0.3s ease;
+}
+
+.hud-timer.normal {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.hud-timer.warning {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    animation: pulseTimer 0.6s infinite alternate;
+}
+
+@keyframes pulseTimer {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.06); }
+}
+
+/* Timer Bar Progress */
+.quiz-timer-line {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.quiz-timer-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #d4af37, #38bdf8);
+    transition: width 1s linear;
+}
+
+.quiz-timer-fill.warning {
+    background: linear-gradient(90deg, #ef4444, #f97316);
+}
+
+/* Question Banner */
+.quiz-prompt-box {
+    background: radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, rgba(0, 0, 0, 0.4) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    padding: 24px 16px;
+    text-align: center;
+}
+
+.quiz-prompt-arabic {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: clamp(1.8rem, 4.5vw, 2.5rem);
+    line-height: 2;
+    direction: rtl;
+    color: #ffffff;
+    margin: 0;
+    text-shadow: 0 0 16px rgba(212, 175, 55, 0.3);
+}
+
+.quiz-prompt-hint {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-top: 8px;
+}
+
+/* Options Grid */
+.quiz-options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+}
+
+@media (max-width: 500px) {
+    .quiz-options-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.quiz-opt-btn {
+    background: rgba(20, 27, 45, 0.7);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 14px;
+    padding: 16px 14px;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.quiz-opt-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.4rem;
+    direction: rtl;
+    color: #ffffff;
+}
+
+.quiz-opt-btn:hover:not(:disabled) {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: var(--gold-main, #d4af37);
+    transform: translateY(-2px);
+}
+
+.quiz-opt-btn.correct {
+    background: rgba(16, 185, 129, 0.25) !important;
+    border-color: #10b981 !important;
+    color: #10b981 !important;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
+.quiz-opt-btn.wrong {
+    background: rgba(239, 68, 68, 0.25) !important;
+    border-color: #ef4444 !important;
+    color: #ef4444 !important;
+    animation: shakeWrong 0.4s ease;
+}
+
+@keyframes shakeWrong {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+}
+
+/* Explanation / Next Area */
+.quiz-feedback-box {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+    animation: fadeIn 0.2s ease;
+}
+
+.quiz-next-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    font-size: 0.95rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(212, 175, 55, 0.35);
+    transition: all 0.2s ease;
+}
+
+.quiz-next-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(212, 175, 55, 0.5);
+}
+
+/* Result / Syahadah Screen */
+.quiz-result-card {
+    width: 100%;
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.95) 0%, rgba(10, 15, 26, 0.98) 100%);
+    border: 2px solid rgba(212, 175, 55, 0.45);
+    border-radius: 24px;
+    padding: 32px 24px;
+    box-sizing: border-box;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.result-badge-icon {
+    font-size: 4rem;
+}
+
+.result-rank-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.4rem, 3.2vw, 1.9rem);
+    color: var(--gold-main, #d4af37);
+    margin: 0;
+}
+
+.result-rank-desc {
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    max-width: 440px;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.result-score-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 16px 24px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 360px;
+    box-sizing: border-box;
+}
+
+.score-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.score-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--gold-main, #d4af37);
+}
+
+.score-label {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.result-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   Tab 3: Mutiara Hari Ini (Featured Hero)
+   -------------------------------------------------------------------------- */
+.daily-featured-card {
+    width: 100%;
+    max-width: 720px;
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.92) 0%, rgba(10, 15, 26, 0.98) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 24px;
+    padding: 32px 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.daily-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    background: rgba(212, 175, 55, 0.15);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 20px;
+    color: var(--gold-main, #d4af37);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.daily-arabic {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    line-height: 2.2;
+    direction: rtl;
+    color: #ffffff;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}
+
+.daily-latin {
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--gold-main, #d4af37);
+}
+
+.daily-trans {
+    font-size: 1.05rem;
+    color: #e2e8f0;
+    max-width: 520px;
+    line-height: 1.6;
+}
+
+.daily-syarah-box {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 16px;
+    padding: 18px 20px;
+    text-align: left;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.daily-syarah-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gold-main, #d4af37);
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.daily-syarah-text {
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Modal & Story Card Generator
+   -------------------------------------------------------------------------- */
+.story-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    animation: fadeIn 0.2s ease;
+}
+
+.story-modal-content {
+    background: #0f172a;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 24px;
+    padding: 20px;
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    scrollbar-width: thin;
+}
+
+.story-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.story-modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.story-modal-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+/* Story Preview Box (9:16 Aspect) */
+.story-preview-container {
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 9 / 16;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000000;
+}
+
+.story-preview-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+.story-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.story-theme-selector {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    width: 100%;
+}
+
+.theme-chip-btn {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    transition: all 0.2s ease;
+}
+
+.theme-chip-btn.active {
+    background: var(--gold-main, #d4af37);
+    color: #0b0f19;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Animations & Toast
+   -------------------------------------------------------------------------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.mahfuzhat-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--gold-main, #d4af37);
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    animation: fadeIn 0.25s ease;
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Light Mode Theme Adaptation
+   -------------------------------------------------------------------------- */
+:root[data-theme="light"] .mahfuzhat-page-wrapper {
+    color: #1e293b;
+}
+
+:root[data-theme="light"] .mahfuzhat-tabs-nav {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(170, 119, 28, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .mahfuzhat-tab-btn {
+    color: #475569;
+}
+
+:root[data-theme="light"] .mahfuzhat-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.25);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .mahfuzhat-card:hover {
+    border-color: #aa771c;
+    box-shadow: 0 10px 25px rgba(170, 119, 28, 0.15);
+}
+
+:root[data-theme="light"] .mahfuzhat-arabic-box {
+    background: #f8fafc;
+    border-color: rgba(170, 119, 28, 0.2);
+}
+
+:root[data-theme="light"] .mahfuzhat-arabic-text {
+    color: #0f172a;
+    text-shadow: none;
+}
+
+:root[data-theme="light"] .mahfuzhat-latin {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .mahfuzhat-translation {
+    color: #334155;
+}
+
+:root[data-theme="light"] .library-search-input {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .cat-chip {
+    background: #f1f5f9;
+    border-color: rgba(170, 119, 28, 0.2);
+    color: #475569;
+}
+
+:root[data-theme="light"] .cat-chip.active {
+    background: rgba(170, 119, 28, 0.15);
+    color: #aa771c;
+    border-color: #aa771c;
+}
+
+:root[data-theme="light"] .quiz-welcome-card,
+:root[data-theme="light"] .quiz-active-card,
+:root[data-theme="light"] .quiz-result-card,
+:root[data-theme="light"] .daily-featured-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .quiz-welcome-desc,
+:root[data-theme="light"] .quiz-prompt-hint,
+:root[data-theme="light"] .result-rank-desc,
+:root[data-theme="light"] .daily-trans {
+    color: #475569;
+}
+
+:root[data-theme="light"] .quiz-prompt-arabic,
+:root[data-theme="light"] .daily-arabic {
+    color: #0f172a;
+    text-shadow: none;
+}
+
+:root[data-theme="light"] .quiz-prompt-box {
+    background: #f8fafc;
+    border-color: rgba(170, 119, 28, 0.2);
+}
+
+:root[data-theme="light"] .quiz-opt-btn {
+    background: #f8fafc;
+    border-color: rgba(170, 119, 28, 0.2);
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .quiz-opt-arabic {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .quiz-rules-list,
+:root[data-theme="light"] .quiz-feedback-box,
+:root[data-theme="light"] .daily-syarah-box {
+    background: #f8fafc;
+    border-color: rgba(170, 119, 28, 0.2);
+    color: #334155;
+}
+
+:root[data-theme="light"] .card-action-btn {
+    background: #f1f5f9;
+    border-color: rgba(170, 119, 28, 0.2);
+    color: #334155;
+}
+
+:root[data-theme="light"] .mahfuzhat-syarah-toggle {
+    background: rgba(170, 119, 28, 0.08);
+    border-color: rgba(170, 119, 28, 0.2);
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .mahfuzhat-syarah-body {
+    background: #f8fafc;
+    color: #334155;
+}
