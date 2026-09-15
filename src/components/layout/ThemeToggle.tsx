@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [isSpinning, setIsSpinning] = useState(false);
   const { t } = useLanguage();
 
   useEffect(() => {
@@ -12,19 +14,22 @@ export default function ThemeToggle() {
     setTheme(savedTheme);
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
-    localStorage.setItem("expedient_theme", nextTheme);
+    setIsSpinning(true);
+    setTimeout(() => setIsSpinning(false), 550);
+
+    executeThemeTransition(nextTheme, e);
   };
 
   return (
     <button 
-      className="theme-widget hover-trigger" 
+      className={`theme-widget hover-trigger ${isSpinning ? "theme-spinning" : ""}`}
       id="btnTheme" 
       title={t.common.theme_toggle} 
       onClick={toggleTheme}
+      aria-label={t.common.theme_toggle}
       suppressHydrationWarning
     >
       <div className="icon-orb">

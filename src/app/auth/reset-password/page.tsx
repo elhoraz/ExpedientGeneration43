@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
+import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
 import "../../login/login.css";
 
 export default function ResetPasswordPage() {
@@ -26,12 +27,11 @@ export default function ResetPasswordPage() {
     document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (e?: React.MouseEvent) => {
     if (navigator.vibrate) navigator.vibrate(50);
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
-    localStorage.setItem("expedient_theme", nextTheme);
+    executeThemeTransition(nextTheme, e);
   };
 
   const showToast = (title: string, message: string, isError: boolean) => {

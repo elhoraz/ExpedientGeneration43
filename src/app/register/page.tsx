@@ -8,6 +8,7 @@ import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
+import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
 import "./register.css";
 
 function RegisterFormContent() {
@@ -128,11 +129,10 @@ function RegisterFormContent() {
     }, 1000);
   };
 
-  const toggleTheme = () => {
+  const toggleTheme = (e?: React.MouseEvent) => {
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
-    localStorage.setItem("expedient_theme", nextTheme);
+    executeThemeTransition(nextTheme, e);
   };
 
   // Helper to compress any image data URL directly to a lightweight Base64 JPEG (max 800px, ~50-90KB)

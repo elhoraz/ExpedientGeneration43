@@ -48,6 +48,23 @@ a {
   }
 }
 
+/* ========================================================
+   VIEW TRANSITION API (CIRCULAR RIPPLE THEME REVEAL)
+   ======================================================== */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 999999;
+}
+
 html[data-theme="light"] {
   color-scheme: light !important;
   background-color: #f8fafc;
@@ -56,6 +73,12 @@ html[data-theme="light"] {
 html[data-theme="dark"] {
   color-scheme: dark !important;
   background-color: #060b14;
+}
+
+html,
+body {
+  transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Sembunyikan widget navbar & tombol bantuan saat panel disembunyikan (Desktop & Mobile) */

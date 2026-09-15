@@ -6,6 +6,7 @@ import Link from "next/link";
 import { getAvatarUrl } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
 
 const SovereignThreeScene = dynamic(() => import("./SovereignThreeScene"), {
   ssr: false,
@@ -108,10 +109,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
     };
   }, []);
 
-  // Update root attribute saat ganti tema
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", isLightMode ? "light" : "dark");
-  }, [isLightMode]);
+  // Update root attribute & handle transition saat ganti tema
+  const handleToggleTheme = (e: React.MouseEvent) => {
+    const nextMode = !isLightMode;
+    setIsLightMode(nextMode);
+    executeThemeTransition(nextMode ? "light" : "dark", e);
+  };
 
   // Handler memilih mode dari modal atau switcher
   const handleSelectMode = (mode: "lite" | "3d") => {
@@ -533,7 +536,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
             )}
 
             <button
-              onClick={() => setIsLightMode(!isLightMode)}
+              onClick={handleToggleTheme}
               id="btnThemeToggle"
               title="Ganti Tema Siang/Malam"
               aria-label="Ganti Tema"

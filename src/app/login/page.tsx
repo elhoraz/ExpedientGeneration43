@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
 import "./login.css";
 
 function LoginContent() {
@@ -71,13 +72,12 @@ function LoginContent() {
     }, 1000);
   };
 
-  const toggleTheme = () => {
+  const toggleTheme = (e?: React.MouseEvent) => {
     if (navigator.vibrate) navigator.vibrate(50);
     triggerLogoExplosion();
     const nextTheme = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
-    localStorage.setItem("expedient_theme", nextTheme);
+    executeThemeTransition(nextTheme, e);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
