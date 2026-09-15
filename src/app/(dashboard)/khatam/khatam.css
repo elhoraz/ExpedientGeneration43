@@ -714,3 +714,196 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   LIGHT MODE ADAPTATION (:root[data-theme="light"] / [data-theme="light"])
+   Royal Ivory & Polished Emerald-Gold Aesthetic
+   ========================================================================== */
+:root[data-theme="light"] .khatam-page-wrapper,
+[data-theme="light"] .khatam-page-wrapper {
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --gold-main: #aa771c;
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .khatam-bg-ambient,
+[data-theme="light"] .khatam-bg-ambient {
+    background: radial-gradient(circle at 50% 15%, rgba(170, 119, 28, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 85% 85%, rgba(43, 185, 124, 0.06) 0%, transparent 50%);
+}
+
+:root[data-theme="light"] .btn-khatam-back,
+[data-theme="light"] .btn-khatam-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    color: #aa771c;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .btn-khatam-back:hover,
+[data-theme="light"] .btn-khatam-back:hover {
+    border-color: #aa771c;
+    box-shadow: 0 4px 15px rgba(170, 119, 28, 0.2);
+}
+
+:root[data-theme="light"] .khatam-badge-sup,
+[data-theme="light"] .khatam-badge-sup {
+    background: rgba(170, 119, 28, 0.1);
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .khatam-title,
+[data-theme="light"] .khatam-title {
+    color: #aa771c;
+    text-shadow: 0 0 20px rgba(170, 119, 28, 0.15);
+}
+
+:root[data-theme="light"] .khatam-subtitle,
+[data-theme="light"] .khatam-subtitle {
+    color: #475569;
+}
+
+:root[data-theme="light"] .khatam-hero-card,
+[data-theme="light"] .khatam-hero-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(170, 119, 28, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .stat-box,
+[data-theme="light"] .stat-box {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(170, 119, 28, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-theme="light"] .stat-val,
+[data-theme="light"] .stat-val {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .stat-lbl,
+[data-theme="light"] .stat-lbl {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .btn-khatam-quick,
+[data-theme="light"] .btn-khatam-quick {
+    background: linear-gradient(135deg, #aa771c 0%, #8c5d0f 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(170, 119, 28, 0.3);
+}
+
+:root[data-theme="light"] .btn-khatam-doa-modal,
+[data-theme="light"] .btn-khatam-doa-modal {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    color: #aa771c;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .juz-filter-chip,
+[data-theme="light"] .juz-filter-chip {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #475569;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-theme="light"] .juz-filter-chip.active,
+[data-theme="light"] .juz-filter-chip.active {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #d97706;
+    color: #78350f;
+    font-weight: 700;
+}
+
+:root[data-theme="light"] .juz-card,
+[data-theme="light"] .juz-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .juz-card:hover,
+[data-theme="light"] .juz-card:hover {
+    border-color: rgba(170, 119, 28, 0.5);
+    box-shadow: 0 12px 30px rgba(170, 119, 28, 0.12);
+}
+
+:root[data-theme="light"] .juz-arabic-num,
+[data-theme="light"] .juz-arabic-num {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .juz-latin-num,
+[data-theme="light"] .juz-latin-num {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .juz-surah-range,
+[data-theme="light"] .juz-surah-range {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .juz-reader-name,
+[data-theme="light"] .juz-reader-name {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .juz-card.available .juz-status-pill,
+[data-theme="light"] .juz-card.available .juz-status-pill {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #64748b;
+}
+
+:root[data-theme="light"] .juz-card.reading,
+[data-theme="light"] .juz-card.reading {
+    background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%) !important;
+    border-color: #d97706 !important;
+}
+
+:root[data-theme="light"] .juz-card.completed,
+[data-theme="light"] .juz-card.completed {
+    background: linear-gradient(145deg, #ecfdf5 0%, #d1fae5 100%) !important;
+    border-color: #10b981 !important;
+}
+
+:root[data-theme="light"] .btn-juz-claim,
+[data-theme="light"] .btn-juz-claim {
+    background: rgba(170, 119, 28, 0.1);
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .btn-juz-claim:hover,
+[data-theme="light"] .btn-juz-claim:hover {
+    background: #aa771c;
+    color: #ffffff;
+}
+
+:root[data-theme="light"] .doa-modal-card,
+[data-theme="light"] .doa-modal-card {
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(170, 119, 28, 0.3);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .doa-arabic,
+[data-theme="light"] .doa-arabic {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .doa-latin,
+[data-theme="light"] .doa-latin {
+    color: #475569;
+}
+
+:root[data-theme="light"] .doa-meaning,
+[data-theme="light"] .doa-meaning {
+    color: #1e293b;
+}
+

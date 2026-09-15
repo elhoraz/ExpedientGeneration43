@@ -444,3 +444,222 @@
         font-size: 0.75rem;
     }
 }
+
+/* ==========================================================================
+   LIGHT MODE ADAPTATION (:root[data-theme="light"] / [data-theme="light"])
+   Royal Ivory Porcelain & Polished Golden Beads
+   ========================================================================== */
+:root[data-theme="light"] .tasbih-page-wrapper,
+[data-theme="light"] .tasbih-page-wrapper {
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --gold-main: #aa771c;
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .tasbih-bg-ambient,
+[data-theme="light"] .tasbih-bg-ambient {
+    background: radial-gradient(circle at 50% 25%, rgba(170, 119, 28, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(43, 185, 124, 0.06) 0%, transparent 55%);
+}
+
+:root[data-theme="light"] .btn-tasbih-back,
+[data-theme="light"] .btn-tasbih-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    color: #aa771c;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .btn-tasbih-back:hover,
+[data-theme="light"] .btn-tasbih-back:hover {
+    border-color: #aa771c;
+    box-shadow: 0 4px 15px rgba(170, 119, 28, 0.2);
+}
+
+:root[data-theme="light"] .tasbih-badge-sup,
+[data-theme="light"] .tasbih-badge-sup {
+    background: rgba(170, 119, 28, 0.1);
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .tasbih-title,
+[data-theme="light"] .tasbih-title {
+    color: #aa771c;
+    text-shadow: 0 0 20px rgba(170, 119, 28, 0.15);
+}
+
+:root[data-theme="light"] .dzikir-pill,
+[data-theme="light"] .dzikir-pill {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #475569;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-theme="light"] .dzikir-pill:hover,
+[data-theme="light"] .dzikir-pill:hover {
+    color: #0f172a;
+    border-color: rgba(170, 119, 28, 0.4);
+}
+
+:root[data-theme="light"] .dzikir-pill.active,
+[data-theme="light"] .dzikir-pill.active {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-color: #d97706;
+    color: #78350f;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(217, 119, 6, 0.2);
+}
+
+:root[data-theme="light"] .tasbih-recite-card,
+[data-theme="light"] .tasbih-recite-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(170, 119, 28, 0.25);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .recite-arabic,
+[data-theme="light"] .recite-arabic {
+    color: #aa771c;
+    filter: drop-shadow(0 0 8px rgba(170, 119, 28, 0.2));
+}
+
+:root[data-theme="light"] .recite-latin,
+[data-theme="light"] .recite-latin {
+    color: #475569;
+    font-weight: 500;
+}
+
+:root[data-theme="light"] .recite-meaning,
+[data-theme="light"] .recite-meaning {
+    color: #1e293b;
+}
+
+:root[data-theme="light"] .target-pill,
+[data-theme="light"] .target-pill {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #475569;
+}
+
+:root[data-theme="light"] .target-pill.active,
+[data-theme="light"] .target-pill.active {
+    background: #aa771c;
+    color: #ffffff;
+    border-color: #aa771c;
+    box-shadow: 0 2px 8px rgba(170, 119, 28, 0.3);
+}
+
+:root[data-theme="light"] .btn-toggle-round,
+[data-theme="light"] .btn-toggle-round {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #64748b;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .btn-toggle-round.active,
+[data-theme="light"] .btn-toggle-round.active {
+    background: #fef3c7;
+    border-color: #d97706;
+    color: #b45309;
+}
+
+:root[data-theme="light"] .bead-orbit-ring,
+[data-theme="light"] .bead-orbit-ring {
+    border-color: rgba(170, 119, 28, 0.35);
+    box-shadow: 0 0 25px rgba(170, 119, 28, 0.08);
+}
+
+:root[data-theme="light"] .bead-particle,
+[data-theme="light"] .bead-particle {
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #f59e0b 45%, #b45309 100%);
+    box-shadow: 0 2px 8px rgba(180, 83, 9, 0.4);
+}
+
+:root[data-theme="light"] .bead-particle.active,
+[data-theme="light"] .bead-particle.active {
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #10b981 50%, #065f46 100%);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+}
+
+/* Light Mode Dial (Ivory Porcelain Dial with Antique Brass Rim) */
+:root[data-theme="light"] .tasbih-tap-dial,
+[data-theme="light"] .tasbih-tap-dial {
+    background: radial-gradient(circle at center, #ffffff 0%, #fbf9f4 65%, #f1e9dc 100%);
+    border: 4px solid #b8860b;
+    box-shadow: 0 20px 45px rgba(170, 119, 28, 0.2),
+                inset 0 0 30px rgba(184, 134, 11, 0.15),
+                0 0 20px rgba(184, 134, 11, 0.12);
+}
+
+:root[data-theme="light"] .tasbih-tap-dial:active,
+[data-theme="light"] .tasbih-tap-dial:active {
+    transform: scale(0.96);
+    box-shadow: 0 8px 25px rgba(170, 119, 28, 0.3),
+                inset 0 0 35px rgba(184, 134, 11, 0.25);
+}
+
+:root[data-theme="light"] .tasbih-tap-dial.milestone-flash,
+[data-theme="light"] .tasbih-tap-dial.milestone-flash {
+    animation: flashGoldLight 0.6s ease;
+}
+
+@keyframes flashGoldLight {
+    0% { border-color: #d97706; box-shadow: 0 0 50px rgba(217, 119, 6, 0.7); }
+    100% { border-color: #b8860b; }
+}
+
+:root[data-theme="light"] .counter-num,
+[data-theme="light"] .counter-num {
+    color: #1e293b;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .counter-target-lbl,
+[data-theme="light"] .counter-target-lbl {
+    color: #aa771c;
+    font-weight: 700;
+}
+
+:root[data-theme="light"] .counter-round-lbl,
+[data-theme="light"] .counter-round-lbl {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .counter-tap-hint,
+[data-theme="light"] .counter-tap-hint {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+:root[data-theme="light"] .btn-tasbih-action,
+[data-theme="light"] .btn-tasbih-action {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .btn-tasbih-action:hover,
+[data-theme="light"] .btn-tasbih-action:hover {
+    border-color: #aa771c;
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .btn-tasbih-action.danger:hover,
+[data-theme="light"] .btn-tasbih-action.danger:hover {
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+:root[data-theme="light"] .tasbih-total-badge,
+[data-theme="light"] .tasbih-total-badge {
+    background: #fef3c7;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    color: #92400e;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
+}
+

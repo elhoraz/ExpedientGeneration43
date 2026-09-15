@@ -651,3 +651,297 @@
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ==========================================================================
+   LIGHT MODE ADAPTATION (:root[data-theme="light"] / [data-theme="light"])
+   Royal Ivory & Antique Brass Aesthetic
+   ========================================================================== */
+:root[data-theme="light"] .kiblat-page-wrapper,
+[data-theme="light"] .kiblat-page-wrapper {
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --gold-main: #aa771c;
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .kiblat-bg-ambient,
+[data-theme="light"] .kiblat-bg-ambient {
+    background: radial-gradient(circle at 50% 10%, rgba(170, 119, 28, 0.08) 0%, transparent 65%),
+                radial-gradient(circle at 80% 80%, rgba(43, 185, 124, 0.06) 0%, transparent 60%);
+}
+
+:root[data-theme="light"] .btn-kiblat-back,
+[data-theme="light"] .btn-kiblat-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    color: #aa771c;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .btn-kiblat-back:hover,
+[data-theme="light"] .btn-kiblat-back:hover {
+    border-color: #aa771c;
+    box-shadow: 0 4px 15px rgba(170, 119, 28, 0.2);
+}
+
+:root[data-theme="light"] .kiblat-badge-sup,
+[data-theme="light"] .kiblat-badge-sup {
+    background: rgba(170, 119, 28, 0.1);
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .kiblat-title,
+[data-theme="light"] .kiblat-title {
+    color: #aa771c;
+    text-shadow: 0 0 20px rgba(170, 119, 28, 0.15);
+}
+
+:root[data-theme="light"] .kiblat-subtitle,
+[data-theme="light"] .kiblat-subtitle {
+    color: #475569;
+}
+
+:root[data-theme="light"] .kiblat-location-bar,
+[data-theme="light"] .kiblat-location-bar {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(170, 119, 28, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .location-icon-badge,
+[data-theme="light"] .location-icon-badge {
+    background: rgba(170, 119, 28, 0.12);
+    border-color: #aa771c;
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .location-text h4,
+[data-theme="light"] .location-text h4 {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .location-text p,
+[data-theme="light"] .location-text p {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .city-select,
+[data-theme="light"] .city-select {
+    background: #ffffff;
+    border: 1px solid rgba(170, 119, 28, 0.35);
+    color: #0f172a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-theme="light"] .city-select option,
+[data-theme="light"] .city-select option {
+    background: #ffffff;
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .btn-gps,
+[data-theme="light"] .btn-gps {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #059669;
+}
+
+:root[data-theme="light"] .btn-gps:hover,
+[data-theme="light"] .btn-gps:hover {
+    background: #059669;
+    color: #ffffff;
+}
+
+/* Light Mode Astrolabe Rim (Royal Ivory & Antique Brass) */
+:root[data-theme="light"] .astrolabe-rim,
+[data-theme="light"] .astrolabe-rim {
+    background: radial-gradient(circle at center, #ffffff 0%, #fcfaf5 60%, #f1e9dc 100%);
+    border: 6px solid #b8860b;
+    box-shadow: 0 15px 45px rgba(170, 119, 28, 0.18),
+                inset 0 0 35px rgba(184, 134, 11, 0.15),
+                0 0 25px rgba(184, 134, 11, 0.12);
+}
+
+:root[data-theme="light"] .astrolabe-rim.aligned,
+[data-theme="light"] .astrolabe-rim.aligned {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 50px rgba(16, 185, 129, 0.4),
+                inset 0 0 40px rgba(16, 185, 129, 0.2),
+                0 0 25px rgba(184, 134, 11, 0.2) !important;
+}
+
+:root[data-theme="light"] .astrolabe-ring-pattern,
+[data-theme="light"] .astrolabe-ring-pattern {
+    border-color: rgba(170, 119, 28, 0.35);
+}
+
+:root[data-theme="light"] .astrolabe-ring-pattern::before,
+[data-theme="light"] .astrolabe-ring-pattern::before {
+    border-color: rgba(170, 119, 28, 0.22);
+}
+
+:root[data-theme="light"] .astrolabe-ring-pattern::after,
+[data-theme="light"] .astrolabe-ring-pattern::after {
+    border-color: rgba(170, 119, 28, 0.25);
+}
+
+:root[data-theme="light"] .astrolabe-cardinal,
+[data-theme="light"] .astrolabe-cardinal {
+    color: #8c5d0f;
+}
+
+:root[data-theme="light"] .cardinal-n,
+[data-theme="light"] .cardinal-n {
+    color: #dc2626;
+}
+
+:root[data-theme="light"] .qibla-kaaba-icon,
+[data-theme="light"] .qibla-kaaba-icon {
+    color: #aa771c;
+    filter: drop-shadow(0 0 8px rgba(170, 119, 28, 0.5));
+}
+
+:root[data-theme="light"] .qibla-tag,
+[data-theme="light"] .qibla-tag {
+    background: #aa771c;
+    color: #ffffff;
+}
+
+:root[data-theme="light"] .astrolabe-center-core,
+[data-theme="light"] .astrolabe-center-core {
+    background: radial-gradient(circle, #fff9c4 0%, #d4af37 60%, #996515 100%);
+    border-color: #b8860b;
+    color: #3e2723;
+    box-shadow: 0 0 15px rgba(184, 134, 11, 0.6);
+}
+
+:root[data-theme="light"] .astrolabe-needle-line,
+[data-theme="light"] .astrolabe-needle-line {
+    background: linear-gradient(180deg, #b8860b 0%, rgba(184, 134, 11, 0.3) 100%);
+    box-shadow: 0 0 6px rgba(184, 134, 11, 0.5);
+}
+
+:root[data-theme="light"] .kiblat-aligned-badge.searching,
+[data-theme="light"] .kiblat-aligned-badge.searching {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #475569;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .kiblat-aligned-badge.locked,
+[data-theme="light"] .kiblat-aligned-badge.locked {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: #10b981;
+    color: #059669;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+:root[data-theme="light"] .kiblat-readout-box,
+[data-theme="light"] .kiblat-readout-box {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(170, 119, 28, 0.25);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .kiblat-readout-val,
+[data-theme="light"] .kiblat-readout-val {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .kiblat-readout-lbl,
+[data-theme="light"] .kiblat-readout-lbl {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .kiblat-sim-box,
+[data-theme="light"] .kiblat-sim-box {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+:root[data-theme="light"] .kiblat-sim-box label,
+[data-theme="light"] .kiblat-sim-box label {
+    color: #475569;
+}
+
+:root[data-theme="light"] .prayer-section-title,
+[data-theme="light"] .prayer-section-title {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .next-prayer-banner,
+[data-theme="light"] .next-prayer-banner {
+    background: linear-gradient(135deg, rgba(236, 253, 245, 0.95) 0%, rgba(254, 252, 232, 0.95) 100%);
+    border: 1px solid rgba(170, 119, 28, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .next-prayer-lbl,
+[data-theme="light"] .next-prayer-lbl {
+    color: #059669;
+}
+
+:root[data-theme="light"] .next-prayer-name,
+[data-theme="light"] .next-prayer-name {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .next-prayer-name small,
+[data-theme="light"] .next-prayer-name small {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .timer-countdown,
+[data-theme="light"] .timer-countdown {
+    color: #065f46;
+    text-shadow: 0 0 10px rgba(6, 95, 70, 0.15);
+}
+
+:root[data-theme="light"] .prayer-card,
+[data-theme="light"] .prayer-card {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+:root[data-theme="light"] .prayer-card:hover,
+[data-theme="light"] .prayer-card:hover {
+    border-color: rgba(170, 119, 28, 0.5);
+    box-shadow: 0 12px 30px rgba(170, 119, 28, 0.12);
+}
+
+:root[data-theme="light"] .prayer-card-arabic,
+[data-theme="light"] .prayer-card-arabic {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .prayer-card-name,
+[data-theme="light"] .prayer-card-name {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .prayer-card-time,
+[data-theme="light"] .prayer-card-time {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .prayer-card.is-active-prayer,
+[data-theme="light"] .prayer-card.is-active-prayer {
+    background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%) !important;
+    border: 1.5px solid #d97706 !important;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.2) !important;
+}
+
+:root[data-theme="light"] .prayer-card.is-active-prayer .prayer-card-name,
+[data-theme="light"] .prayer-card.is-active-prayer .prayer-card-name {
+    color: #92400e;
+}
+
+:root[data-theme="light"] .prayer-card.is-active-prayer .prayer-card-time,
+[data-theme="light"] .prayer-card.is-active-prayer .prayer-card-time {
+    color: #78350f;
+}
+
