@@ -52,23 +52,6 @@ const QURAN_AUDIO_MAP: Record<string, string | string[]> = {
 };
 
 /**
- * 2. Authentic Dzikir & Supplications with 100% Exact Card Text Match
- * Verified clean audio files from Hisn al-Muslim without editorial commentary/footnotes
- */
-const DZIKIR_AUDIO_MAP: Record<string, string> = {
-  sayyidul_istighfar: "http://www.hisnmuslim.com/audio/ar/79.mp3",
-  doa_afiyah: "http://www.hisnmuslim.com/audio/ar/82.mp3",
-  hasbiyallah: "http://www.hisnmuslim.com/audio/ar/83.mp3",
-  bismillahilladzi: "http://www.hisnmuslim.com/audio/ar/86.mp3",
-  ridha_iman: "http://www.hisnmuslim.com/audio/ar/87.mp3",
-  tasbih_makhluk: "http://www.hisnmuslim.com/audio/ar/94.mp3",
-  a_udzu_bikalimatillah: "http://www.hisnmuslim.com/audio/ar/97.mp3",
-  shalawat_nabi: "http://www.hisnmuslim.com/audio/ar/98.mp3",
-  doa_bebas_hutang: "http://www.hisnmuslim.com/audio/ar/137.mp3",
-  doa_syirik: "http://www.hisnmuslim.com/audio/ar/203.mp3",
-};
-
-/**
  * Fetch a single audio URL into a Buffer with timeout
  */
 async function fetchAudioBuffer(url: string, timeoutMs: number = 15000): Promise<Buffer | null> {
@@ -311,24 +294,7 @@ export async function GET(request: NextRequest) {
           });
         }
       }
-
-      // 2C. Clean Hadith Supplications with Exact Matching Audio (No Footnotes)
-      const dzikirTarget = DZIKIR_AUDIO_MAP[id];
-      if (dzikirTarget) {
-        const buffer = await fetchAudioBuffer(dzikirTarget, 3500);
-        if (buffer && buffer.length > 0) {
-          audioCache.set(cacheKey, buffer);
-          return new NextResponse(buffer as unknown as BodyInit, {
-            status: 200,
-            headers: {
-              "Content-Type": "audio/mpeg",
-              "Cache-Control": "public, max-age=2592000, s-maxage=31536000, immutable",
-              "Content-Length": buffer.length.toString(),
-            },
-          });
-        }
-      }
-      // If item has no static match (e.g. time-varying supplications), fall through to synthesizeText!
+      // If item is a supplication/dzikir (non-Quran), fall through to exact card text synthesis!
     }
 
     // --------------------------------------------------------------------------
