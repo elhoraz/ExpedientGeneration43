@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import Link from "next/link";
 import {
   ASMAUL_HUSNA_DATA,
   ASMA_CATEGORIES,
@@ -179,10 +180,9 @@ export default function AsmaulHusnaClient() {
 
       showToast(`Melafalkan: Ya ${item.latin} 🔊`);
 
-      // 3. Play authentic native Arabic audio stream from server proxy
+      // 3. Play authentic native Arabic audio stream from Qari
       try {
-        const textToRecite = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
-        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(textToRecite)}&lang=ar`;
+        const audioUrl = `/api/audio/tts?type=asma&id=${item.number}`;
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
 
@@ -294,7 +294,7 @@ export default function AsmaulHusnaClient() {
     }
 
     try {
-      const audioUrl = `/api/audio/tts?text=${encodeURIComponent(currentItem.arabic)}&lang=ar`;
+      const audioUrl = `/api/audio/tts?type=asma&id=${currentItem.number}`;
       const audio = new Audio(audioUrl);
       activeAudioRef.current = audio;
 
@@ -601,6 +601,13 @@ export default function AsmaulHusnaClient() {
       </svg>
 
       <div className="asma-container">
+        {/* Top Back Action */}
+        <div className="asma-top-actions">
+          <Link href="/fitur" className="btn-back">
+            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+          </Link>
+        </div>
+
         {/* Header */}
         <header className="asma-header">
           <div className="asma-badge">

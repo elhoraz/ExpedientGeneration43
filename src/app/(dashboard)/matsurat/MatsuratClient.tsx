@@ -183,7 +183,19 @@ export default function MatsuratClient() {
       setTimeout(() => setCopiedToast(false), 2200);
 
       try {
-        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(arabicText)}&lang=ar`;
+        let audioUrl = `/api/audio/tts?text=${encodeURIComponent(arabicText)}&lang=ar`;
+        if (item.id === "ayat_kursi") {
+          audioUrl = `/api/audio/tts?type=quran&ayah=002255`;
+        } else if (item.id === "ikhlas") {
+          audioUrl = `/api/audio/tts?type=quran&ayah=112001`;
+        } else if (item.id === "falaq") {
+          audioUrl = `/api/audio/tts?type=quran&ayah=113001`;
+        } else if (item.id === "nas") {
+          audioUrl = `/api/audio/tts?type=quran&ayah=114001`;
+        } else if (item.id === "fatihah") {
+          audioUrl = `/api/audio/tts?type=quran&ayah=001001`;
+        }
+
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
 
@@ -369,6 +381,13 @@ export default function MatsuratClient() {
       <div className="matsurat-bg-ambient"></div>
 
       <div className="matsurat-container">
+        {/* Top Back Action */}
+        <div className="matsurat-top-actions">
+          <Link href="/fitur" className="btn-back">
+            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+          </Link>
+        </div>
+
         {/* Header Title & Badge */}
         <div className="matsurat-header">
           <div className="matsurat-title-badge">

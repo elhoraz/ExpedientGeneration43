@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import Link from "next/link";
 import {
   SIRAH_PLACES,
   SIRAH_ROUTES,
@@ -696,6 +697,13 @@ export default function SirahClient() {
       <div className="sirah-bg-ambient" />
 
       <div className="sirah-container">
+        {/* Top Action / Back Button */}
+        <div className="sirah-top-actions">
+          <Link href="/fitur" className="btn-back">
+            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+          </Link>
+        </div>
+
         {/* Header */}
         <header className="sirah-header">
           <div className="sirah-badge">

@@ -33,12 +33,45 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 980px;
+    max-width: 1280px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 22px;
     box-sizing: border-box;
+}
+
+.sirah-top-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.08);
+    color: var(--gold-main, #d4af37);
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    padding: 10px 20px;
+    border-radius: 9999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.55);
+    transform: translateX(-4px);
+    color: #ffd700;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
 }
 
 /* --------------------------------------------------------------------------
@@ -748,4 +781,82 @@
 :root[data-theme="light"] .leadership-modern-box {
     background: #fef3c7;
     color: #78350f;
+}
+
+:root[data-theme="light"] .btn-back {
+    background: rgba(170, 119, 28, 0.08);
+    color: #854d0e;
+    border-color: rgba(170, 119, 28, 0.35);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .btn-back:hover {
+    background: rgba(170, 119, 28, 0.16);
+    color: #713f12;
+}
+
+/* ==========================================================================
+   Responsive adjustments for Mobile & Tablet
+   ========================================================================== */
+@media (max-width: 768px) {
+    .sirah-page-wrapper {
+        padding: max(75px, calc(env(safe-area-inset-top, 20px) + 55px)) 12px 90px 12px;
+    }
+
+    .sirah-title {
+        font-size: 1.85rem;
+    }
+
+    .sirah-subtitle {
+        font-size: 0.82rem;
+    }
+
+    .sirah-map-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sirah-canvas-wrapper {
+        height: 380px;
+    }
+
+    .sirah-events-timeline {
+        padding-left: 14px;
+    }
+
+    .sirah-modal-box {
+        max-height: calc(100dvh - 36px);
+        padding: 18px 14px;
+        border-radius: 20px;
+    }
+
+    .sirah-modal-footer-actions {
+        justify-content: stretch;
+    }
+
+    .sirah-modal-footer-actions .sirah-action-btn {
+        flex: 1 1 120px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .sirah-page-wrapper {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .sirah-canvas-wrapper {
+        height: 310px;
+    }
+
+    .sirah-tab-btn {
+        padding: 7px 12px;
+        font-size: 0.78rem;
+    }
+
+    .btn-back {
+        padding: 8px 14px;
+        font-size: 0.78rem;
+    }
 }

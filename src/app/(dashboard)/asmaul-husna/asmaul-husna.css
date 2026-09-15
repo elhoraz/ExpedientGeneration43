@@ -33,12 +33,45 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 960px;
+    max-width: 1320px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 22px;
     box-sizing: border-box;
+}
+
+.asma-top-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.08);
+    color: var(--gold-main, #d4af37);
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    padding: 10px 20px;
+    border-radius: 9999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.55);
+    transform: translateX(-4px);
+    color: #ffd700;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
 }
 
 /* --------------------------------------------------------------------------
@@ -896,3 +929,114 @@
 :root[data-theme="light"] .tasbih-counter-number {
     color: #0f172a;
 }
+
+:root[data-theme="light"] .btn-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .btn-back:hover {
+    background: #fdf8eb;
+    border-color: #aa771c;
+    color: #78350f;
+}
+
+/* ==========================================================================
+   Comprehensive Mobile & Desktop Responsive Overhaul
+   ========================================================================== */
+@media (max-width: 768px) {
+    .asma-page-wrapper {
+        padding: max(72px, calc(env(safe-area-inset-top, 16px) + 52px)) 12px 90px 12px;
+    }
+
+    .asma-container {
+        gap: 16px;
+    }
+
+    .btn-back {
+        padding: 8px 15px;
+        font-size: 0.78rem;
+    }
+
+    .asma-title {
+        font-size: 1.85rem;
+    }
+
+    .asma-subtitle {
+        font-size: 0.82rem;
+    }
+
+    .asma-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .asma-jewel-card {
+        padding: 14px 10px;
+        border-radius: 16px;
+    }
+
+    .asma-arabic-display {
+        font-size: clamp(1.6rem, 5.5vw, 2.2rem);
+        margin: 6px 0;
+    }
+
+    .asma-latin-title {
+        font-size: 0.92rem;
+    }
+
+    .asma-meaning-text {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 2;
+    }
+
+    .asma-modal-box {
+        max-width: 95vw;
+        max-height: calc(100dvh - 36px);
+        padding: 18px 14px;
+        gap: 12px;
+    }
+
+    .asma-modal-arabic {
+        font-size: 2.3rem;
+        line-height: 1.8;
+    }
+
+    .asma-modal-latin {
+        font-size: 1.1rem;
+    }
+
+    .asma-modal-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .modal-action-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 16px;
+    }
+
+    .tasbih-dial-container {
+        width: 190px;
+        height: 190px;
+    }
+
+    .tasbih-inner-button {
+        width: 155px;
+        height: 155px;
+    }
+
+    .tasbih-counter-number {
+        font-size: 2.6rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .asma-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

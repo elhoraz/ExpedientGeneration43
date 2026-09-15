@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import Link from "next/link";
 import {
   MAFHUZHAT_DATA,
   MAFHUZHAT_CATEGORIES,
@@ -604,6 +605,13 @@ export default function MahfuzhatClient() {
       <div className="mahfuzhat-bg-ambient" />
 
       <div className="mahfuzhat-container">
+        {/* Top Back Action */}
+        <div className="mahfuzhat-top-actions">
+          <Link href="/fitur" className="btn-back">
+            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+          </Link>
+        </div>
+
         {/* Header */}
         <header className="mahfuzhat-header">
           <div className="mahfuzhat-badge">

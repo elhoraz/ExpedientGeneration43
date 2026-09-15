@@ -33,12 +33,45 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 820px;
+    max-width: 1200px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
     box-sizing: border-box;
+}
+
+.matsurat-top-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.08);
+    color: var(--gold-main, #d4af37);
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    padding: 10px 20px;
+    border-radius: 9999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.55);
+    transform: translateX(-4px);
+    color: #ffd700;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
 }
 
 /* Header Section */
@@ -746,14 +779,34 @@
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .matsurat-page-wrapper {
-        padding-top: max(75px, calc(env(safe-area-inset-top, 16px) + 55px));
+        padding-top: max(72px, calc(env(safe-area-inset-top, 16px) + 52px));
         padding-bottom: max(60px, calc(env(safe-area-inset-bottom, 16px) + 40px));
         padding-left: 12px;
         padding-right: 12px;
     }
 
+    .btn-back {
+        padding: 8px 15px;
+        font-size: 0.78rem;
+    }
+
+    .matsurat-title {
+        font-size: 2rem;
+    }
+
+    .matsurat-subtitle {
+        font-size: 0.82rem;
+    }
+
     .matsurat-toolbar {
         padding: 10px 12px;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .matsurat-toolbar-row {
+        width: 100%;
+        justify-content: space-between;
     }
 
     .matsurat-focus-card {
@@ -781,3 +834,17 @@
         font-size: 0.74rem;
     }
 }
+
+:root[data-theme="light"] .btn-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .btn-back:hover {
+    background: #fdf8eb;
+    border-color: #aa771c;
+    color: #78350f;
+}
+

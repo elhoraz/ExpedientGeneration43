@@ -33,12 +33,45 @@
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 900px;
+    max-width: 1260px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 22px;
     box-sizing: border-box;
+}
+
+.mahfuzhat-top-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(212, 175, 55, 0.08);
+    color: var(--gold-main, #d4af37);
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    padding: 10px 20px;
+    border-radius: 9999px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-back:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: rgba(212, 175, 55, 0.55);
+    transform: translateX(-4px);
+    color: #ffd700;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
 }
 
 /* --------------------------------------------------------------------------
@@ -1134,3 +1167,91 @@
     background: #f8fafc;
     color: #334155;
 }
+
+:root[data-theme="light"] .btn-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .btn-back:hover {
+    background: #fdf8eb;
+    border-color: #aa771c;
+    color: #78350f;
+}
+
+/* ==========================================================================
+   Comprehensive Mobile & Desktop Responsive Overhaul
+   ========================================================================== */
+@media (max-width: 768px) {
+    .mahfuzhat-page-wrapper {
+        padding: max(72px, calc(env(safe-area-inset-top, 16px) + 52px)) 12px 85px 12px;
+    }
+
+    .mahfuzhat-container {
+        gap: 16px;
+    }
+
+    .btn-back {
+        padding: 8px 15px;
+        font-size: 0.78rem;
+    }
+
+    .mahfuzhat-title {
+        font-size: 1.85rem;
+    }
+
+    .mahfuzhat-subtitle {
+        font-size: 0.82rem;
+    }
+
+    .mahfuzhat-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .mahfuzhat-card {
+        padding: 18px 14px;
+        border-radius: 18px;
+    }
+
+    .mahfuzhat-card-arabic {
+        font-size: 1.8rem;
+        line-height: 1.8;
+    }
+
+    .mahfuzhat-card-latin {
+        font-size: 0.95rem;
+    }
+
+    .card-actions-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .card-action-btn {
+        flex: 1 1 auto;
+        min-width: 44px;
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 0.76rem;
+    }
+
+    .quiz-options-list {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .quiz-option-btn {
+        padding: 14px 16px;
+        min-height: 52px;
+    }
+
+    .story-modal-box {
+        max-width: 95vw;
+        max-height: calc(100dvh - 36px);
+        padding: 18px 14px;
+    }
+}
+
