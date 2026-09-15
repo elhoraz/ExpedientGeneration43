@@ -35,32 +35,14 @@ const QURAN_AUDIO_MAP: Record<string, string | string[]> = {
     "https://verses.quran.com/Alafasy/mp3/002286.mp3",
   ],
 
-  // Surah Al-Ikhlas (1-4) - Alafasy
-  ikhlas: [
-    "https://verses.quran.com/Alafasy/mp3/112001.mp3",
-    "https://verses.quran.com/Alafasy/mp3/112002.mp3",
-    "https://verses.quran.com/Alafasy/mp3/112003.mp3",
-    "https://verses.quran.com/Alafasy/mp3/112004.mp3",
-  ],
+  // Surah Al-Ikhlas (1-4) - Full Tartil Alafasy with Bismillah
+  ikhlas: "https://server8.mp3quran.net/afs/112.mp3",
 
-  // Surah Al-Falaq (1-5) - Alafasy
-  falaq: [
-    "https://verses.quran.com/Alafasy/mp3/113001.mp3",
-    "https://verses.quran.com/Alafasy/mp3/113002.mp3",
-    "https://verses.quran.com/Alafasy/mp3/113003.mp3",
-    "https://verses.quran.com/Alafasy/mp3/113004.mp3",
-    "https://verses.quran.com/Alafasy/mp3/113005.mp3",
-  ],
+  // Surah Al-Falaq (1-5) - Full Tartil Alafasy with Bismillah
+  falaq: "https://server8.mp3quran.net/afs/113.mp3",
 
-  // Surah An-Nas (1-6) - Alafasy
-  nas: [
-    "https://verses.quran.com/Alafasy/mp3/114001.mp3",
-    "https://verses.quran.com/Alafasy/mp3/114002.mp3",
-    "https://verses.quran.com/Alafasy/mp3/114003.mp3",
-    "https://verses.quran.com/Alafasy/mp3/114004.mp3",
-    "https://verses.quran.com/Alafasy/mp3/114005.mp3",
-    "https://verses.quran.com/Alafasy/mp3/114006.mp3",
-  ],
+  // Surah An-Nas (1-6) - Full Tartil Alafasy with Bismillah
+  nas: "https://server8.mp3quran.net/afs/114.mp3",
 
   // Doa Rabithah Bagian Ayat Al-Qur'an (QS. Ali 'Imran: 26-27) - Alafasy
   doa_rabithah: [
@@ -79,10 +61,7 @@ const DZIKIR_AUDIO_MAP: Record<string, string> = {
   hasbiyallah: "http://www.hisnmuslim.com/audio/ar/83.mp3",
   bismillahilladzi: "http://www.hisnmuslim.com/audio/ar/86.mp3",
   ridha_iman: "http://www.hisnmuslim.com/audio/ar/87.mp3",
-  tasbih_100: "http://www.hisnmuslim.com/audio/ar/91.mp3",
-  tahlil_10: "http://www.hisnmuslim.com/audio/ar/92.mp3",
   tasbih_makhluk: "http://www.hisnmuslim.com/audio/ar/94.mp3",
-  istighfar_100: "http://www.hisnmuslim.com/audio/ar/96.mp3",
   a_udzu_bikalimatillah: "http://www.hisnmuslim.com/audio/ar/97.mp3",
   shalawat_nabi: "http://www.hisnmuslim.com/audio/ar/98.mp3",
   doa_bebas_hutang: "http://www.hisnmuslim.com/audio/ar/137.mp3",
@@ -264,7 +243,46 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      // 2A. Quranic Verses (Syaikh Mishary Rashid Alafasy) with Sacred Tajwid
+      // 2A. Doa Rabithah: Quranic Verses (Alafasy) + Rabithah Supplication (Complete Playback)
+      if (id === "doa_rabithah") {
+        const quranUrls = [
+          "https://verses.quran.com/Alafasy/mp3/003026.mp3",
+          "https://verses.quran.com/Alafasy/mp3/003027.mp3",
+        ];
+        const quranBuffers: Buffer[] = [];
+        for (const u of quranUrls) {
+          const b = await fetchAudioBuffer(u);
+          if (b) quranBuffers.push(b);
+        }
+
+        // Extract paragraph 2 (the Rabithah brotherhood supplication)
+        let suppBuffer: Buffer | null = null;
+        if (text) {
+          const parts = text.split(/\n\n+/);
+          const suppText = parts.length > 1 ? parts.slice(1).join(" ") : "";
+          if (suppText.trim()) {
+            suppBuffer = await synthesizeChunkedTts(suppText.trim(), lang);
+          }
+        }
+
+        const combined: Buffer[] = [...quranBuffers];
+        if (suppBuffer) combined.push(suppBuffer);
+
+        if (combined.length > 0) {
+          const finalBuffer = Buffer.concat(combined);
+          audioCache.set(cacheKey, finalBuffer);
+          return new NextResponse(finalBuffer as unknown as BodyInit, {
+            status: 200,
+            headers: {
+              "Content-Type": "audio/mpeg",
+              "Cache-Control": "public, max-age=2592000, s-maxage=31536000, immutable",
+              "Content-Length": finalBuffer.length.toString(),
+            },
+          });
+        }
+      }
+
+      // 2B. Quranic Verses (Syaikh Mishary Rashid Alafasy) with Sacred Tajwid
       const quranTarget = QURAN_AUDIO_MAP[id];
       if (quranTarget) {
         let finalBuffer: Buffer | null = null;
@@ -294,10 +312,10 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // 2B. Clean Hadith Supplications with Exact Matching Audio (No Footnotes)
+      // 2C. Clean Hadith Supplications with Exact Matching Audio (No Footnotes)
       const dzikirTarget = DZIKIR_AUDIO_MAP[id];
       if (dzikirTarget) {
-        const buffer = await fetchAudioBuffer(dzikirTarget, 4000);
+        const buffer = await fetchAudioBuffer(dzikirTarget, 3500);
         if (buffer && buffer.length > 0) {
           audioCache.set(cacheKey, buffer);
           return new NextResponse(buffer as unknown as BodyInit, {
