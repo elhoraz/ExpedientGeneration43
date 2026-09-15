@@ -239,6 +239,17 @@ export default function FiturClient({
       btnText: t.fitur.celestial_btn,
     },
     {
+      id: "khatam",
+      category: "spiritual",
+      title: "Khatam Bersama Real-Time",
+      desc: "Papan pembagian 30 Juz Al-Qur'an terintegrasi. Klaim juz, catat progres tadarus, dan raih berkah khataman angkatan.",
+      href: "/khatam",
+      icon: "fa-book-quran",
+      bg: "https://images.unsplash.com/photo-1584281722572-c284fc5fcefa?q=80&w=2670&auto=format&fit=crop",
+      btnText: "Buka Khataman",
+      badge: "Live Tracker",
+    },
+    {
       id: "divine",
       category: "spiritual",
       title: "Ayat & Refleksi Harian",
@@ -320,6 +331,7 @@ export default function FiturClient({
     { href: "/tarbiyah", name: "Karir", icon: "fa-handshake-angle", color: "#06b6d4", bg: "rgba(6,182,212,0.18)" },
     { href: "/oracle", name: "Oracle", icon: "fa-camera", color: "#8b5cf6", bg: "rgba(139,92,246,0.18)" },
     { href: "/multazam", name: "Dinding Doa", icon: "fa-kaaba", color: "#d97706", bg: "rgba(217,119,6,0.18)" },
+    { href: "/khatam", name: "Khatam", icon: "fa-book-quran", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
     { href: "/kontemplasi", name: "Dzikir", icon: "fa-spa", color: "#14b8a6", bg: "rgba(20,184,166,0.18)" },
     { href: "/celestial", name: "Hikmah", icon: "fa-star", color: "#facc15", bg: "rgba(250,204,21,0.18)" },
     { href: "/divine", name: "Ayat Suci", icon: "fa-book-open", color: "#22c55e", bg: "rgba(34,197,94,0.18)" },
@@ -580,6 +592,43 @@ export default function FiturClient({
             <i className="fa-solid fa-chevron-right bubble-chevron"></i>
           </Link>
         </div>
+
+        {/* WIDGET: KHATAM BERSAMA REAL-TIME */}
+        <Link
+          href="/khatam"
+          className="mobile-bento-card widget-event-card"
+          style={{
+            background: "linear-gradient(135deg, rgba(27,94,32,0.2) 0%, rgba(212,175,55,0.12) 100%)",
+            borderColor: "rgba(212,175,55,0.35)",
+          }}
+        >
+          <div className="widget-event-badge-row">
+            <span
+              className="widget-event-countdown"
+              style={{
+                background: "rgba(212,175,55,0.2)",
+                color: "#ffd700",
+                borderColor: "rgba(212,175,55,0.4)",
+              }}
+            >
+              <i className="fa-solid fa-book-quran"></i> One Member One Juz
+            </span>
+            <span className="widget-event-tag" style={{ color: "#2bb97c" }}>Live Tracker</span>
+          </div>
+          <h3 className="widget-event-title" style={{ color: "var(--gold-main)" }}>
+            Khatam Bersama Angkatan 43
+          </h3>
+          <div className="widget-event-meta" style={{ justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+              <i className="fa-solid fa-circle-check" style={{ color: "#2bb97c", marginRight: "6px" }}></i>
+              Ambil & Selesaikan Juz Anda
+            </span>
+            <div className="widget-card-footer-link" style={{ marginTop: 0, color: "var(--gold-main)" }}>
+              <span>Buka Papan</span>
+              <i className="fa-solid fa-arrow-right"></i>
+            </div>
+          </div>
+        </Link>
 
         {/* WIDGET 7: QUICK SEARCH ALUMNI */}
         <form onSubmit={handleSearchSubmit} className="mobile-bento-card widget-search-card">

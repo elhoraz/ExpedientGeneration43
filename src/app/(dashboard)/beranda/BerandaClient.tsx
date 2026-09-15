@@ -301,6 +301,58 @@ export default function BerandaClient({
               </div>
           </section>
 
+          {/* SECTION: KHATAM BERSAMA TRACKER */}
+          <section className="hall-section" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+              <div className="glass-panel reveal-up" style={{
+                  padding: 'clamp(24px, 4vw, 36px)',
+                  borderRadius: '24px',
+                  background: 'linear-gradient(135deg, rgba(27, 94, 32, 0.15) 0%, rgba(10, 15, 25, 0.7) 100%)',
+                  border: '1px solid rgba(212, 175, 55, 0.35)',
+                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                  maxWidth: '1000px',
+                  margin: '0 auto',
+                  position: 'relative',
+                  overflow: 'hidden',
+              }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{
+                              width: '46px',
+                              height: '46px',
+                              borderRadius: '12px',
+                              background: 'rgba(212, 175, 55, 0.15)',
+                              border: '1px solid var(--gold-main)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: 'var(--gold-main)',
+                              fontSize: '1.2rem',
+                          }}>
+                              <i className="fa-solid fa-book-quran"></i>
+                          </div>
+                          <div>
+                              <div style={{ fontSize: '0.72rem', letterSpacing: '2px', color: 'var(--gold-main)', textTransform: 'uppercase', fontWeight: 700 }}>
+                                  Sinergi Spiritual
+                              </div>
+                              <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'var(--text-primary)' }}>
+                                  Khatam Bersama Real-Time
+                              </h3>
+                          </div>
+                      </div>
+                      <Link href="/khatam" className="btn-stamp" style={{ padding: '8px 20px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                          <span>Buka Papan 30 Juz</span>
+                          <i className="fa-solid fa-arrow-right"></i>
+                      </Link>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                      Gerakan One Member One Juz — Mari bersama-sama menuntaskan 30 Juz Al-Qur&apos;an secara serentak demi keberkahan dan kejayaan keluarga besar Expedient Generation 43.
+                  </p>
+              </div>
+          </section>
+
           <section className="hall-section">
               <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_gallery_title', tLang.beranda.galeri_title) : tLang.beranda.galeri_title}</h2>
               <LorongKenangan galeri={galeri} />
