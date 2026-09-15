@@ -50,6 +50,10 @@ export function executeThemeTransition(
     Math.max(y, window.innerHeight - y)
   );
 
+  const isMobile = window.innerWidth <= 768;
+  const isLite = document.documentElement.getAttribute("data-perf") === "lite";
+  const animDuration = isLite ? 280 : isMobile ? 360 : 460;
+
   try {
     const transition = (document as Document & { startViewTransition: (cb: () => void) => { ready: Promise<void> } }).startViewTransition(() => {
       applyTheme();
@@ -66,7 +70,7 @@ export function executeThemeTransition(
             ],
           },
           {
-            duration: 480,
+            duration: animDuration,
             easing: "cubic-bezier(0.16, 1, 0.3, 1)",
             pseudoElement: "::view-transition-new(root)",
           }

@@ -210,8 +210,7 @@ body.sidebar-closed .main-wrapper { left: 0; }
 .chat-widget,
 .content-canvas,
 .dashboard-container {
-    transition: background 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-                background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
