@@ -1,0 +1,751 @@
+/* ==========================================================================
+   sirah.css - Sirah Nabawiyah & Peta Jejak Islam 3D
+   Expedient Generation 43 - Ancient Manuscript & Obsidian Gold Cartography
+   ========================================================================== */
+
+.sirah-page-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: max(85px, calc(env(safe-area-inset-top, 20px) + 65px)) 16px 95px 16px;
+    color: var(--text-primary, #f8fafc);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Ambient Islamic Cartography Glow */
+.sirah-bg-ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at 50% 12%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 15% 55%, rgba(180, 83, 9, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 75%, rgba(16, 185, 129, 0.07) 0%, transparent 55%);
+}
+
+.sirah-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 980px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   Header Section
+   -------------------------------------------------------------------------- */
+.sirah-header {
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.sirah-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 18px;
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 20px;
+    color: var(--gold-main, #d4af37);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.sirah-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4.8vw, 2.8rem);
+    color: var(--gold-main, #d4af37);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+    text-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+}
+
+.sirah-subtitle {
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    color: var(--text-secondary, #94a3b8);
+    max-width: 640px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   View Switcher Tabs (Peta Interaktif, Linimasa Sejarah, Pelajaran Kepemimpinan)
+   -------------------------------------------------------------------------- */
+.sirah-tabs-nav {
+    display: flex;
+    background: rgba(12, 18, 30, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 35px;
+    padding: 4px;
+    gap: 4px;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.sirah-tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.sirah-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: transparent;
+    border: none;
+    border-radius: 25px;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sirah-tab-btn:hover {
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.08);
+}
+
+.sirah-tab-btn.active {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Interactive Canvas Cartography Map
+   -------------------------------------------------------------------------- */
+.sirah-map-card {
+    width: 100%;
+    background: linear-gradient(145deg, rgba(14, 20, 32, 0.95) 0%, rgba(8, 12, 20, 0.98) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 24px;
+    padding: 16px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.55);
+    position: relative;
+    overflow: hidden;
+}
+
+.sirah-map-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+.route-selector-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.route-selector-group::-webkit-scrollbar {
+    display: none;
+}
+
+.route-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 16px;
+    color: #94a3b8;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.route-chip:hover {
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+.route-chip.active {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+/* Map Canvas Container */
+.sirah-canvas-wrapper {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #080c14;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    cursor: grab;
+    touch-action: none;
+}
+
+.sirah-canvas-wrapper:active {
+    cursor: grabbing;
+}
+
+.sirah-main-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Floating Map Controls */
+.map-float-controls {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 10;
+}
+
+.map-control-btn {
+    width: 38px;
+    height: 38px;
+    background: rgba(12, 18, 30, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 10px;
+    color: #ffffff;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s ease;
+}
+
+.map-control-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+.map-compass-hud {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(12, 18, 30, 0.75);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 12px;
+    padding: 6px 12px;
+    font-size: 0.74rem;
+    color: var(--gold-main, #d4af37);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+}
+
+/* Floating Selected Place Card */
+.map-selected-place-card {
+    position: absolute;
+    left: 14px;
+    bottom: 14px;
+    max-width: 320px;
+    background: rgba(12, 18, 30, 0.92);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 16px;
+    padding: 14px;
+    box-sizing: border-box;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    animation: fadeIn 0.2s ease;
+}
+
+@media (max-width: 540px) {
+    .map-selected-place-card {
+        right: 14px;
+        max-width: none;
+    }
+}
+
+.place-card-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    margin: 0;
+}
+
+.place-card-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.1rem;
+    direction: rtl;
+    color: #ffffff;
+    margin: 0;
+}
+
+.place-card-desc {
+    font-size: 0.78rem;
+    color: #cbd5e1;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Timeline Section
+   -------------------------------------------------------------------------- */
+.sirah-timeline-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.timeline-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.timeline-filter-chip {
+    padding: 6px 14px;
+    background: rgba(20, 27, 45, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 18px;
+    color: #94a3b8;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.timeline-filter-chip:hover {
+    color: var(--gold-main, #d4af37);
+    border-color: rgba(212, 175, 55, 0.4);
+}
+
+.timeline-filter-chip.active {
+    background: rgba(212, 175, 55, 0.18);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+/* Timeline Cards List */
+.timeline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    position: relative;
+    padding-left: 24px;
+    box-sizing: border-box;
+}
+
+.timeline-list::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background: linear-gradient(180deg, #d4af37 0%, rgba(212, 175, 55, 0.2) 100%);
+}
+
+.timeline-item-node {
+    position: relative;
+    width: 100%;
+}
+
+.timeline-node-pin {
+    position: absolute;
+    left: -20px;
+    top: 20px;
+    width: 10px;
+    height: 10px;
+    background: var(--gold-main, #d4af37);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.8);
+}
+
+.sirah-event-card {
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.88) 0%, rgba(10, 15, 26, 0.94) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 18px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.sirah-event-card:hover {
+    transform: translateX(4px);
+    border-color: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 12px 35px rgba(212, 175, 55, 0.15);
+}
+
+.event-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.event-date-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 3px 10px;
+    border-radius: 10px;
+}
+
+.event-phase-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+}
+
+.event-phase-tag.makkah {
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.event-phase-tag.madinah {
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.event-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: #ffffff;
+    margin: 0;
+}
+
+.event-card-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.2rem;
+    direction: rtl;
+    color: var(--gold-main, #d4af37);
+    margin: 0;
+}
+
+.event-card-summary {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Leadership Highlight Pill on Card */
+.event-leadership-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    color: var(--gold-main, #d4af37);
+    margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Modal / Detail Sheet: Peristiwa & Hikmah Kepemimpinan
+   -------------------------------------------------------------------------- */
+.sirah-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    animation: fadeIn 0.2s ease;
+}
+
+.sirah-modal-box {
+    background: linear-gradient(145deg, #0d1525 0%, #070b13 100%);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    scrollbar-width: thin;
+}
+
+.sirah-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.sirah-modal-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.sirah-modal-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 1.8rem;
+    direction: rtl;
+    color: var(--gold-main, #d4af37);
+    margin: 0;
+}
+
+.sirah-modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* Detailed Narrative Box */
+.sirah-story-box {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    border-radius: 14px;
+    padding: 16px;
+    font-size: 0.88rem;
+    color: #e2e8f0;
+    line-height: 1.6;
+}
+
+/* Leadership Highlight Section */
+.sirah-leadership-card {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(180, 83, 9, 0.08) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.leadership-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gold-main, #d4af37);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.leadership-lesson {
+    font-size: 0.84rem;
+    color: #cbd5e1;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.leadership-modern-box {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    color: #f8fafc;
+    line-height: 1.5;
+    border-left: 3px solid var(--gold-main, #d4af37);
+}
+
+.sirah-modal-footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.sirah-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 10px;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.sirah-action-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+.sirah-action-btn.primary {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    border: none;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Animations & Toast
+   -------------------------------------------------------------------------- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sirah-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--gold-main, #d4af37);
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    animation: fadeIn 0.25s ease;
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Light Mode Theme (:root[data-theme="light"])
+   -------------------------------------------------------------------------- */
+:root[data-theme="light"] .sirah-page-wrapper {
+    color: #1e293b;
+}
+
+:root[data-theme="light"] .sirah-tabs-nav {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(170, 119, 28, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .sirah-tab-btn {
+    color: #475569;
+}
+
+:root[data-theme="light"] .sirah-map-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .sirah-canvas-wrapper {
+    background: #f8fafc;
+    border-color: rgba(170, 119, 28, 0.25);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .sirah-event-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.25);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .event-card-title {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .event-card-arabic {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .event-card-summary {
+    color: #475569;
+}
+
+:root[data-theme="light"] .sirah-modal-box {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .sirah-modal-title {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .sirah-story-box {
+    background: #f8fafc;
+    border-color: rgba(170, 119, 28, 0.2);
+    color: #334155;
+}
+
+:root[data-theme="light"] .sirah-leadership-card {
+    background: #fffbeb;
+    border-color: rgba(170, 119, 28, 0.3);
+}
+
+:root[data-theme="light"] .leadership-lesson {
+    color: #475569;
+}
+
+:root[data-theme="light"] .leadership-modern-box {
+    background: #fef3c7;
+    color: #78350f;
+}
