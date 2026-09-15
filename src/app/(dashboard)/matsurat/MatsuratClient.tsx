@@ -73,61 +73,67 @@ export default function MatsuratClient() {
     [time, type]
   );
 
-  // Sound Synthesizer via Web Audio API
-  const playClickSound = useCallback(() => {
-    if (!soundEnabled) return;
+  // Persistent Web Audio context with auto-resume
+  const getAudioCtx = useCallback(() => {
     try {
       if (!audioCtxRef.current) {
         const AudioCtxClass =
           window.AudioContext ||
           (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        audioCtxRef.current = new AudioCtxClass();
+        if (AudioCtxClass) {
+          audioCtxRef.current = new AudioCtxClass();
+        }
       }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === "suspended") {
-        ctx.resume();
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume();
       }
+      return audioCtxRef.current;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Sound Synthesizer via Web Audio API: Rich wooden bead resonance
+  const playClickSound = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.04);
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(520, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.05);
 
-      gain.gain.setValueAtTime(0.12, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start();
-      osc.stop(ctx.currentTime + 0.04);
+      osc.stop(ctx.currentTime + 0.055);
     } catch (e) {
       console.log("Audio notice:", e);
     }
-  }, [soundEnabled]);
+  }, [soundEnabled, getAudioCtx]);
 
   const playCompleteChime = useCallback(() => {
     if (!soundEnabled) return;
     try {
-      if (!audioCtxRef.current) {
-        const AudioCtxClass =
-          window.AudioContext ||
-          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        audioCtxRef.current = new AudioCtxClass();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === "suspended") ctx.resume();
+      const ctx = getAudioCtx();
+      if (!ctx) return;
 
       const notes = [523.25, 659.25, 783.99, 1046.5]; // C chord chime
       notes.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = "triangle";
+        osc.type = "sine";
         osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.07);
 
-        gain.gain.setValueAtTime(0.15, ctx.currentTime + idx * 0.07);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime + idx * 0.07);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.07 + 0.35);
 
         osc.connect(gain);
@@ -139,7 +145,55 @@ export default function MatsuratClient() {
     } catch (e) {
       console.log("Audio chime notice:", e);
     }
-  }, [soundEnabled]);
+  }, [soundEnabled, getAudioCtx]);
+
+  // Recite Dzikir via Web Speech API with Latin fallback & instant chime
+  const speakDzikir = useCallback((item: MatsuratItem) => {
+    playClickSound();
+
+    const arabicText = time === "petang" && item.arabicPetang ? item.arabicPetang : item.arabicPagi;
+    const latinText = time === "petang" && item.latinPetang ? item.latinPetang : item.latinPagi;
+
+    if ("speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
+        const voices = window.speechSynthesis.getVoices();
+        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
+        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
+
+        let utteranceText = arabicText;
+        let lang = "ar-SA";
+
+        if (!arabicVoice) {
+          utteranceText = latinText;
+          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
+        }
+
+        const utterance = new SpeechSynthesisUtterance(utteranceText);
+        utterance.lang = lang;
+        if (arabicVoice) {
+          utterance.voice = arabicVoice;
+        } else if (idVoice) {
+          utterance.voice = idVoice;
+        }
+        utterance.rate = 0.85;
+
+        setTimeout(() => {
+          window.speechSynthesis.speak(utterance);
+        }, 50);
+
+        setCopiedToast(true);
+        setTimeout(() => setCopiedToast(false), 2000);
+        return;
+      } catch (err) {
+        console.warn("Speech synthesis error:", err);
+      }
+    }
+  }, [playClickSound, time]);
 
   const triggerHaptic = useCallback(
     (pattern: number | number[]) => {
@@ -527,6 +581,14 @@ export default function MatsuratClient() {
                 <button
                   type="button"
                   className="btn-reset-counter"
+                  onClick={() => speakDzikir(currentItem)}
+                  title="Lafalkan doa (Audio)"
+                >
+                  <i className="fa-solid fa-volume-high"></i>
+                </button>
+                <button
+                  type="button"
+                  className="btn-reset-counter"
                   onClick={handleResetCurrent}
                   title="Reset hitungan doa ini"
                 >
@@ -618,6 +680,16 @@ export default function MatsuratClient() {
                             <i className="fa-solid fa-plus"></i> {itemCnt} / {item.targetCount}x
                           </>
                         )}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn-pref-icon"
+                        style={{ width: "30px", height: "30px", fontSize: "0.75rem" }}
+                        onClick={() => speakDzikir(item)}
+                        title="Lafalkan Doa (Audio)"
+                      >
+                        <i className="fa-solid fa-volume-high"></i>
                       </button>
 
                       <button

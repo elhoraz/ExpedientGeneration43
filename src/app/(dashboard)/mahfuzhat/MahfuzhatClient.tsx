@@ -79,12 +79,31 @@ export default function MahfuzhatClient() {
     }, 2800);
   };
 
+  // Persistent Audio Context for guaranteed mobile & desktop audio
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getAudioCtx = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          audioCtxRef.current = new AudioCtx();
+        }
+      }
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume();
+      }
+      return audioCtxRef.current;
+    } catch {
+      return null;
+    }
+  }, []);
+
   // Sound Synthesizer (Web Audio API)
   const playSound = useCallback((type: "correct" | "wrong" | "finish") => {
     try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
+      const ctx = getAudioCtx();
+      if (!ctx) return;
 
       if (type === "correct") {
         const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
@@ -130,22 +149,59 @@ export default function MahfuzhatClient() {
     } catch {
       // Audio not permitted or unsupported
     }
-  }, []);
+  }, [getAudioCtx]);
 
-  // Text-To-Speech Pronunciation
-  const speakArabic = (text: string) => {
+  // Robust Text-To-Speech with instant chime and Latin fallback if Arabic voice missing
+  const speakArabic = useCallback((arabicText: string, latinText?: string) => {
+    // 1. Always play harmonious chime so there is immediate, guaranteed audio feedback
+    playSound("correct");
+
     if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "ar-SA";
-      utterance.rate = 0.85;
-      window.speechSynthesis.speak(utterance);
-      showToast("Memutar pelafalan mahfuzhat 🔊");
-    } else {
-      playSound("correct");
-      showToast("Audio synthesizer aktif");
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
+        const voices = window.speechSynthesis.getVoices();
+        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
+        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
+
+        let utteranceText = arabicText;
+        let lang = "ar-SA";
+
+        // Fallback to Latin transliteration if OS lacks Arabic TTS voice
+        if (!arabicVoice && latinText) {
+          utteranceText = latinText;
+          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
+        }
+
+        const utterance = new SpeechSynthesisUtterance(utteranceText);
+        utterance.lang = lang;
+        if (arabicVoice) {
+          utterance.voice = arabicVoice;
+        } else if (idVoice) {
+          utterance.voice = idVoice;
+        }
+        utterance.rate = 0.85;
+
+        utterance.onerror = () => {
+          playSound("correct");
+        };
+
+        setTimeout(() => {
+          window.speechSynthesis.speak(utterance);
+        }, 50);
+
+        showToast(`Melafalkan: ${latinText || arabicText} 🔊`);
+        return;
+      } catch (e) {
+        console.warn("Speech synthesis error:", e);
+      }
     }
-  };
+
+    showToast("Audio synthesizer aktif 🔊");
+  }, [playSound]);
 
   // Copy to Clipboard
   const copyMahfuzhat = (item: MahfuzhatItem) => {
@@ -671,7 +727,7 @@ export default function MahfuzhatClient() {
                       <button
                         type="button"
                         className="card-action-btn"
-                        onClick={() => speakArabic(item.arabic)}
+                        onClick={() => speakArabic(item.arabic, item.latin)}
                         title="Dengarkan pelafalan bahasa Arab"
                       >
                         <span>🔊</span>
@@ -925,7 +981,7 @@ export default function MahfuzhatClient() {
               <button
                 type="button"
                 className="card-action-btn"
-                onClick={() => speakArabic(dailyFeatured.arabic)}
+                onClick={() => speakArabic(dailyFeatured.arabic, dailyFeatured.latin)}
                 style={{ padding: "10px 18px" }}
               >
                 <span>🔊</span>

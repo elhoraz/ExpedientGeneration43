@@ -48,6 +48,70 @@ export default function SirahClient() {
     }, 2800);
   };
 
+  // Persistent Audio Context for ambient gong & chimes
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getAudioCtx = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        const AudioCtx =
+          window.AudioContext ||
+          (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          audioCtxRef.current = new AudioCtx();
+        }
+      }
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume();
+      }
+      return audioCtxRef.current;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const playAmbientChime = useCallback(() => {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const notes = [440, 554.37, 659.25]; // A4, C#5, E5 (meditative harmony)
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime + idx * 0.08);
+        osc.stop(ctx.currentTime + idx * 0.08 + 0.4);
+      });
+    } catch {
+      // ignore
+    }
+  }, [getAudioCtx]);
+
+  const playPinClick = useCallback(() => {
+    try {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(293.66, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.05);
+    } catch {
+      // ignore
+    }
+  }, [getAudioCtx]);
+
   // --------------------------------------------------------------------------
   // 2.5D Canvas Cartography Renderer
   // --------------------------------------------------------------------------
@@ -308,19 +372,45 @@ export default function SirahClient() {
     });
   }, [selectedPhase, searchQuery]);
 
-  // Audio Speech Narration
+  // Audio Speech Narration with ambient chime & safe unpaused queue
   const speakNarrative = (event: SirahEvent) => {
+    playAmbientChime();
+
     if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const text = `${event.title}. ${event.summary}. Pelajaran Kepemimpinan: ${event.leadership.title}. ${event.leadership.lesson}`;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "id-ID";
-      utterance.rate = 0.9;
-      window.speechSynthesis.speak(utterance);
-      showToast("Memutar narasi peristiwa 🔊");
-    } else {
-      showToast("Audio narasi tidak didukung");
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
+        const text = `${event.title}. ${event.summary}. Pelajaran Kepemimpinan: ${event.leadership.title}. ${event.leadership.lesson}`;
+        const utterance = new SpeechSynthesisUtterance(text);
+
+        const voices = window.speechSynthesis.getVoices();
+        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
+        if (idVoice) {
+          utterance.voice = idVoice;
+          utterance.lang = idVoice.lang;
+        } else {
+          utterance.lang = "id-ID";
+        }
+        utterance.rate = 0.92;
+
+        utterance.onerror = () => {
+          playAmbientChime();
+        };
+
+        setTimeout(() => {
+          window.speechSynthesis.speak(utterance);
+        }, 50);
+
+        showToast("Memutar narasi sirah nabawiyah 🔊");
+        return;
+      } catch (err) {
+        console.warn("Narration speech error:", err);
+      }
     }
+    showToast("Audio synthesizer aktif 🔊");
   };
 
   // --------------------------------------------------------------------------
@@ -789,7 +879,7 @@ export default function SirahClient() {
                 return (
                   <div key={ev.id} className="timeline-item-node">
                     <div className="timeline-node-pin" />
-                    <article className="sirah-event-card" onClick={() => setSelectedEvent(ev)}>
+                    <article className="sirah-event-card" onClick={() => { playPinClick(); setSelectedEvent(ev); }}>
                       <div className="event-card-header">
                         <span className="event-date-badge">{ev.dateString}</span>
                         <span className={`event-phase-tag ${ev.phase}`}>
@@ -834,7 +924,7 @@ export default function SirahClient() {
                 key={ev.id}
                 className="sirah-leadership-card"
                 style={{ cursor: "pointer" }}
-                onClick={() => setSelectedEvent(ev)}
+                onClick={() => { playPinClick(); setSelectedEvent(ev); }}
               >
                 <div className="leadership-header">
                   <span>⚡</span>

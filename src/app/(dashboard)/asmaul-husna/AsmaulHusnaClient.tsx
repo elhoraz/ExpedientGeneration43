@@ -73,13 +73,33 @@ export default function AsmaulHusnaClient() {
     }, 2800);
   };
 
-  // Web Audio Synthesizer
+  // Persistent Audio Context for guaranteed mobile & desktop audio
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const getAudioCtx = useCallback(() => {
+    try {
+      if (!audioCtxRef.current) {
+        const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+        if (AudioCtx) {
+          audioCtxRef.current = new AudioCtx();
+        }
+      }
+      if (audioCtxRef.current && audioCtxRef.current.state === "suspended") {
+        audioCtxRef.current.resume();
+      }
+      return audioCtxRef.current;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Web Audio Synthesizer: Crystal bead click
   const playClickSound = useCallback(() => {
     if (!soundEnabled) return;
     try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -87,7 +107,7 @@ export default function AsmaulHusnaClient() {
       osc.frequency.setValueAtTime(800, ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.05);
 
-      gain.gain.setValueAtTime(0.06, ctx.currentTime);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
 
       osc.connect(gain);
@@ -97,21 +117,21 @@ export default function AsmaulHusnaClient() {
     } catch {
       // ignore
     }
-  }, [soundEnabled]);
+  }, [soundEnabled, getAudioCtx]);
 
   const playFinishFanfare = useCallback(() => {
     if (!soundEnabled) return;
     try {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+
       const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
       notes.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
         osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.08, ctx.currentTime + idx * 0.08);
+        gain.gain.setValueAtTime(0.09, ctx.currentTime + idx * 0.08);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.35);
         osc.connect(gain);
         gain.connect(ctx.destination);
@@ -121,22 +141,60 @@ export default function AsmaulHusnaClient() {
     } catch {
       // ignore
     }
-  }, [soundEnabled]);
+  }, [soundEnabled, getAudioCtx]);
 
-  // Pronunciation via Web Speech API
+  // Pronunciation via Web Speech API with Latin fallback & instant chime
   const speakAsma = useCallback((item: AsmaulHusnaItem, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+
+    // 1. Always trigger crystal click sound as immediate feedback
+    playClickSound();
+
     if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const textToSpeak = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
-      const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      utterance.lang = "ar-SA";
-      utterance.rate = 0.85;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      playClickSound();
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+
+        const voices = window.speechSynthesis.getVoices();
+        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
+        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
+
+        let utteranceText = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
+        let lang = "ar-SA";
+
+        // Fallback to Latin if device lacks Arabic voice pack
+        if (!arabicVoice) {
+          utteranceText = `Ya ${item.latin}`;
+          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
+        }
+
+        const utterance = new SpeechSynthesisUtterance(utteranceText);
+        utterance.lang = lang;
+        if (arabicVoice) {
+          utterance.voice = arabicVoice;
+        } else if (idVoice) {
+          utterance.voice = idVoice;
+        }
+        utterance.rate = 0.85;
+
+        utterance.onerror = () => {
+          playClickSound();
+        };
+
+        setTimeout(() => {
+          window.speechSynthesis.speak(utterance);
+        }, 50);
+
+        showToast(`Melafalkan: Ya ${item.latin} 🔊`);
+        return;
+      } catch (err) {
+        console.warn("Speech synthesis error:", err);
+      }
     }
-    showToast(`Melantunkan: ${item.latin} 🔊`);
+
+    showToast(`Dzikir: Ya ${item.latin} 🔊`);
   }, [playClickSound]);
 
   // Tasbih Tap Handler
@@ -190,32 +248,60 @@ export default function AsmaulHusnaClient() {
 
     const currentItem = ASMAUL_HUSNA_DATA[index];
     setCurrentPlayIndex(index);
+    playClickSound();
 
     if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(currentItem.arabic);
-      utterance.lang = "ar-SA";
-      utterance.rate = 0.8;
+      try {
+        window.speechSynthesis.cancel();
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
 
-      utterance.onend = () => {
-        playTimerRef.current = setTimeout(() => {
-          playNextSequential(index + 1);
-        }, 1200);
-      };
+        const voices = window.speechSynthesis.getVoices();
+        const arabicVoice = voices.find((v) => v.lang.toLowerCase().startsWith("ar"));
+        const idVoice = voices.find((v) => v.lang.toLowerCase().startsWith("id"));
 
-      utterance.onerror = () => {
-        playTimerRef.current = setTimeout(() => {
-          playNextSequential(index + 1);
-        }, 2000);
-      };
+        let utteranceText = currentItem.arabic;
+        let lang = "ar-SA";
 
-      window.speechSynthesis.speak(utterance);
-    } else {
-      playClickSound();
-      playTimerRef.current = setTimeout(() => {
-        playNextSequential(index + 1);
-      }, 2500);
+        if (!arabicVoice) {
+          utteranceText = `Ya ${currentItem.latin}`;
+          lang = idVoice ? idVoice.lang : (voices[0]?.lang || "id-ID");
+        }
+
+        const utterance = new SpeechSynthesisUtterance(utteranceText);
+        utterance.lang = lang;
+        if (arabicVoice) {
+          utterance.voice = arabicVoice;
+        } else if (idVoice) {
+          utterance.voice = idVoice;
+        }
+        utterance.rate = 0.85;
+
+        let hasAdvanced = false;
+        const advance = () => {
+          if (hasAdvanced) return;
+          hasAdvanced = true;
+          playTimerRef.current = setTimeout(() => {
+            playNextSequential(index + 1);
+          }, 1100);
+        };
+
+        utterance.onend = advance;
+        utterance.onerror = advance;
+
+        setTimeout(() => {
+          window.speechSynthesis.speak(utterance);
+        }, 50);
+        return;
+      } catch (err) {
+        console.warn("Player speech error:", err);
+      }
     }
+
+    playTimerRef.current = setTimeout(() => {
+      playNextSequential(index + 1);
+    }, 2200);
   };
 
   useEffect(() => {
