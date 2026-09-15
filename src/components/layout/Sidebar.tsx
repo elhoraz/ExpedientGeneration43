@@ -83,6 +83,7 @@ export default function Sidebar() {
     "/fitur",
     "/matsurat",
     "/mahfuzhat",
+    "/asmaul-husna",
     "/tasbih",
     "/kiblat",
     "/khatam",

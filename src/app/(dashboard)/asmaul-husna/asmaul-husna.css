@@ -1,0 +1,898 @@
+/* ==========================================================================
+   asmaul-husna.css - 99 Asmaul Husna Interaktif & Tadabbur
+   Expedient Generation 43 - Jeweled Obsidian Gold & Royal Ivory Porcelain
+   ========================================================================== */
+
+.asma-page-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    padding: max(85px, calc(env(safe-area-inset-top, 20px) + 65px)) 16px 95px 16px;
+    color: var(--text-primary, #f8fafc);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Ambient Radial Glow */
+.asma-bg-ambient {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at 50% 10%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 10% 45%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.06) 0%, transparent 55%);
+}
+
+.asma-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------
+   Header Section
+   -------------------------------------------------------------------------- */
+.asma-header {
+    text-align: center;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.asma-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 18px;
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid rgba(212, 175, 55, 0.38);
+    border-radius: 20px;
+    color: var(--gold-main, #d4af37);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.asma-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.1rem, 4.8vw, 2.9rem);
+    color: var(--gold-main, #d4af37);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0;
+    text-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+}
+
+.asma-subtitle {
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    color: var(--text-secondary, #94a3b8);
+    max-width: 620px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Tabs Navigation (Galeri 99, Mode Tasbih, Muroja'ah Audio)
+   -------------------------------------------------------------------------- */
+.asma-tabs-nav {
+    display: flex;
+    background: rgba(12, 18, 30, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 35px;
+    padding: 4px;
+    gap: 4px;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.asma-tabs-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.asma-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: transparent;
+    border: none;
+    border-radius: 25px;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.asma-tab-btn:hover {
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.08);
+}
+
+.asma-tab-btn.active {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Controls (Search & Filter Chips)
+   -------------------------------------------------------------------------- */
+.asma-controls {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.asma-search-bar {
+    position: relative;
+    width: 100%;
+}
+
+.asma-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 42px 12px 42px;
+    background: rgba(12, 18, 30, 0.7);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 14px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.asma-search-input:focus {
+    border-color: var(--gold-main, #d4af37);
+    box-shadow: 0 0 16px rgba(212, 175, 55, 0.25);
+}
+
+.asma-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold-main, #d4af37);
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.asma-search-clear {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.asma-categories {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.asma-categories::-webkit-scrollbar {
+    display: none;
+}
+
+.asma-cat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(20, 27, 45, 0.6);
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    border-radius: 20px;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.asma-cat-chip:hover {
+    color: var(--gold-main, #d4af37);
+    border-color: rgba(212, 175, 55, 0.4);
+}
+
+.asma-cat-chip.active {
+    background: rgba(212, 175, 55, 0.18);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+    font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Jeweled 99 Asma Cards Grid
+   -------------------------------------------------------------------------- */
+.asma-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .asma-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 380px) {
+    .asma-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Individual Asma Card */
+.asma-jewel-card {
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.85) 0%, rgba(10, 15, 26, 0.92) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 18px;
+    padding: 18px 14px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.asma-jewel-card:hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: rgba(212, 175, 55, 0.55);
+    box-shadow: 0 14px 35px rgba(212, 175, 55, 0.18);
+}
+
+.asma-jewel-card.active-playback {
+    border-color: #10b981;
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+    animation: activeGlow 1.5s infinite alternate;
+}
+
+@keyframes activeGlow {
+    from { transform: scale(1.01); }
+    to { transform: scale(1.03); }
+}
+
+.asma-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.asma-num-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.asma-fav-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.95rem;
+    cursor: pointer;
+    padding: 2px;
+    transition: all 0.2s ease;
+}
+
+.asma-fav-btn.favorited {
+    color: #f59e0b;
+}
+
+/* Calligraphy Display */
+.asma-arabic-display {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: clamp(1.8rem, 4vw, 2.3rem);
+    line-height: 1.8;
+    direction: rtl;
+    color: #ffffff;
+    text-shadow: 0 0 16px rgba(212, 175, 55, 0.3);
+    margin: 4px 0;
+    text-align: center;
+}
+
+.asma-latin-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    text-align: center;
+    margin: 0;
+}
+
+.asma-meaning-text {
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Micro Action Buttons in Card */
+.asma-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.asma-mini-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 0.72rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.asma-mini-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+.asma-mini-btn.dzikir {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(170, 119, 28, 0.25) 100%);
+    color: var(--gold-main, #d4af37);
+    border-color: rgba(212, 175, 55, 0.45);
+    font-weight: 600;
+}
+
+.asma-mini-btn.dzikir:hover {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+}
+
+/* --------------------------------------------------------------------------
+   Modal Tadabbur & Detail Lembar
+   -------------------------------------------------------------------------- */
+.asma-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+    animation: fadeIn 0.2s ease;
+}
+
+.asma-modal-box {
+    background: linear-gradient(145deg, #0d1424 0%, #080c16 100%);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 540px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    scrollbar-width: thin;
+}
+
+.asma-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.asma-modal-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.asma-modal-arabic {
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    font-size: clamp(2.4rem, 6vw, 3.4rem);
+    line-height: 2;
+    direction: rtl;
+    color: #ffffff;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+    margin: 0;
+    text-align: center;
+}
+
+.asma-modal-latin {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    margin: 0;
+}
+
+.asma-modal-trans {
+    font-size: 0.95rem;
+    color: #e2e8f0;
+    text-align: center;
+    margin: 0;
+}
+
+.asma-quran-ref-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 14px;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-radius: 12px;
+    color: #34d399;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.asma-section-box {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 14px;
+    padding: 14px 16px;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.asma-section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.asma-section-desc {
+    font-size: 0.86rem;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.asma-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Mode Dzikir Tasbih Asma Terpilih
+   -------------------------------------------------------------------------- */
+.tasbih-mode-wrapper {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.tasbih-card {
+    width: 100%;
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.94) 0%, rgba(10, 15, 26, 0.98) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 28px;
+    padding: 28px 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.tasbih-selector-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+}
+
+.tasbih-select-input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 12px;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+/* Target Presets */
+.tasbih-presets {
+    display: flex;
+    gap: 6px;
+}
+
+.preset-chip {
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 14px;
+    color: #94a3b8;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preset-chip.active {
+    background: var(--gold-main, #d4af37);
+    color: #0b0f19;
+    font-weight: 700;
+}
+
+/* Big Dial Tap Area */
+.tasbih-dial-container {
+    position: relative;
+    width: 230px;
+    height: 230px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tasbih-dial-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.tasbih-track {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.08);
+    stroke-width: 8;
+}
+
+.tasbih-progress {
+    fill: none;
+    stroke: url(#goldGradient);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.15s ease;
+}
+
+.tasbih-inner-button {
+    width: 190px;
+    height: 190px;
+    background: radial-gradient(circle at center, #172338 0%, #0a0f1b 100%);
+    border: 2px solid rgba(212, 175, 55, 0.4);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 25px rgba(212, 175, 55, 0.15);
+    transition: all 0.1s ease;
+}
+
+.tasbih-dial-container:active .tasbih-inner-button {
+    transform: scale(0.96);
+    box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3), inset 0 0 35px rgba(212, 175, 55, 0.3);
+}
+
+.tasbih-counter-number {
+    font-size: 3.2rem;
+    font-weight: 800;
+    color: #ffffff;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.tasbih-target-label {
+    font-size: 0.74rem;
+    color: var(--gold-main, #d4af37);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+/* Tasbih Controls */
+.tasbih-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.tasbih-tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 12px;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tasbih-tool-btn:hover {
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-main, #d4af37);
+    border-color: var(--gold-main, #d4af37);
+}
+
+/* --------------------------------------------------------------------------
+   Sequential Murattal Player Card
+   -------------------------------------------------------------------------- */
+.murattal-player-card {
+    width: 100%;
+    max-width: 680px;
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.95) 0%, rgba(10, 15, 26, 0.98) 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 24px;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.player-track-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.player-big-arabic {
+    font-family: 'Amiri', serif;
+    font-size: 3rem;
+    direction: rtl;
+    color: #ffffff;
+    margin: 0;
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}
+
+.player-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.player-round-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.player-round-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: var(--gold-main, #d4af37);
+    color: var(--gold-main, #d4af37);
+}
+
+.player-round-btn.play {
+    width: 58px;
+    height: 58px;
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #0b0f19;
+    font-size: 1.4rem;
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+}
+
+.player-round-btn.play:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 25px rgba(212, 175, 55, 0.6);
+}
+
+/* --------------------------------------------------------------------------
+   Toast Notification
+   -------------------------------------------------------------------------- */
+.asma-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: var(--gold-main, #d4af37);
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    animation: fadeIn 0.25s ease;
+    pointer-events: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --------------------------------------------------------------------------
+   Light Theme Support (:root[data-theme="light"])
+   -------------------------------------------------------------------------- */
+:root[data-theme="light"] .asma-page-wrapper {
+    color: #1e293b;
+}
+
+:root[data-theme="light"] .asma-tabs-nav {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(170, 119, 28, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .asma-tab-btn {
+    color: #475569;
+}
+
+:root[data-theme="light"] .asma-search-input {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .asma-cat-chip {
+    background: #f1f5f9;
+    border-color: rgba(170, 119, 28, 0.2);
+    color: #475569;
+}
+
+:root[data-theme="light"] .asma-cat-chip.active {
+    background: rgba(170, 119, 28, 0.15);
+    color: #aa771c;
+    border-color: #aa771c;
+}
+
+:root[data-theme="light"] .asma-jewel-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.25);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .asma-jewel-card:hover {
+    border-color: #aa771c;
+    box-shadow: 0 10px 25px rgba(170, 119, 28, 0.15);
+}
+
+:root[data-theme="light"] .asma-arabic-display {
+    color: #0f172a;
+    text-shadow: none;
+}
+
+:root[data-theme="light"] .asma-latin-title {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .asma-meaning-text {
+    color: #475569;
+}
+
+:root[data-theme="light"] .asma-modal-box,
+:root[data-theme="light"] .tasbih-card,
+:root[data-theme="light"] .murattal-player-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .asma-modal-arabic,
+:root[data-theme="light"] .player-big-arabic {
+    color: #0f172a;
+    text-shadow: none;
+}
+
+:root[data-theme="light"] .asma-modal-trans {
+    color: #334155;
+}
+
+:root[data-theme="light"] .asma-section-box {
+    background: #f8fafc;
+    border-color: rgba(170, 119, 28, 0.2);
+}
+
+:root[data-theme="light"] .asma-section-desc {
+    color: #334155;
+}
+
+:root[data-theme="light"] .tasbih-inner-button {
+    background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
+    border-color: rgba(170, 119, 28, 0.4);
+}
+
+:root[data-theme="light"] .tasbih-counter-number {
+    color: #0f172a;
+}
