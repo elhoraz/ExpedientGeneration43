@@ -15,6 +15,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/register',
     '/kontemplasi',
     '/baitul-maal',
+    '/asmaul-husna',
+    '/matsurat',
+    '/mahfuzhat',
+    '/sirah',
   ];
 
   return routes.map((route) => ({
