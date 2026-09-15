@@ -1426,7 +1426,457 @@ body.page-direktori .direktori-container,
 [data-theme="light"] .field-value {
     color: #0f172a;
 }
-[data-theme="light"] .sheet-quote {
+/* ==========================================================================
+   DEWAN GURU & ASATIDZ (YEARBOOK ARCHIVE EDITION) STYLING
+   ========================================================================== */
+
+/* 1. Main Directory Switcher Tabs (Alumni vs Dewan Guru) */
+.direktori-main-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 0 auto 24px auto;
+    padding: 6px;
+    background: rgba(12, 18, 15, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    max-width: 520px;
+    width: 92%;
+    position: relative;
+    z-index: 40;
+}
+
+.main-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 40px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary, #94a3b8);
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+}
+
+.main-tab-btn:hover {
+    color: #ffffff;
+}
+
+.main-tab-btn.active {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #060b14;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 2. Asatidz Section Header */
+.asatidz-section-header {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto 30px auto;
+    padding: 0 20px;
+}
+
+.asatidz-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(212, 175, 55, 0.12);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #d4af37;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.asatidz-header-title {
+    font-family: var(--font-playfair, 'Playfair Display', serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+    color: var(--text-primary, #ffffff);
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.asatidz-header-desc {
+    font-size: 0.92rem;
+    color: var(--text-secondary, #94a3b8);
+    line-height: 1.6;
+}
+
+/* 3. Asatidz Grid */
+.asatidz-grid-container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 20px;
+    margin: 0 auto;
+}
+
+.asatidz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 24px;
+}
+
+/* 4. Asatidz Card (Royal Archival Gold) */
+.asatidz-card {
+    background: var(--bg-secondary, rgba(12, 18, 15, 0.92));
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 20px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.asatidz-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(212, 175, 55, 0.55);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), 0 0 25px rgba(212, 175, 55, 0.15);
+}
+
+/* Portrait Crop Frame */
+.asatidz-frame-outer {
+    position: relative;
+    width: 140px;
+    height: 175px; /* Aspect ratio 4:5 classic yearbook photo cut */
+    margin-bottom: 18px;
+    border-radius: 14px;
+    padding: 4px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.6) 0%, rgba(212, 175, 55, 0.15) 50%, rgba(212, 175, 55, 0.5) 100%);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+    transition: transform 0.35s ease;
+}
+
+.asatidz-card:hover .asatidz-frame-outer {
+    transform: scale(1.03);
+}
+
+.asatidz-frame-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    background: #0d1511;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.asatidz-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    transition: transform 0.5s ease;
+}
+
+.asatidz-card:hover .asatidz-img {
+    transform: scale(1.05);
+}
+
+/* Fallback Monogram Avatar if image hasn't been uploaded yet */
+.asatidz-fallback-avatar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, rgba(212, 175, 55, 0.15) 0%, rgba(10, 15, 12, 0.95) 80%);
+    color: #d4af37;
+}
+
+.asatidz-fallback-icon {
+    font-size: 2.2rem;
+    margin-bottom: 4px;
+    opacity: 0.85;
+}
+
+.asatidz-fallback-initials {
+    font-family: var(--font-playfair, 'Playfair Display', serif);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* Category Badge */
+.asatidz-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.badge-pimpinan {
+    background: rgba(212, 175, 55, 0.15);
+    color: #ffd700;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.badge-walikelas {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+}
+
+.badge-guru {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.asatidz-name {
+    font-family: var(--font-playfair, 'Playfair Display', serif);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary, #ffffff);
+    margin-bottom: 4px;
+    line-height: 1.35;
+}
+
+.asatidz-role {
+    font-size: 0.82rem;
+    color: var(--gold-main, #d4af37);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.asatidz-subject {
+    font-size: 0.78rem;
+    color: var(--text-secondary, #94a3b8);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.asatidz-quote-preview {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--text-secondary, #cbd5e1);
+    line-height: 1.45;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    width: 100%;
+}
+
+/* Rahimahullah Ribbon */
+.asatidz-rahimahullah-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-top: 6px;
+}
+
+/* 5. Asatidz Detail Modal */
+.asatidz-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 10005;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeInModal 0.25s ease-out forwards;
+}
+
+.asatidz-modal-card {
+    background: var(--bg-secondary, #0c1410);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 28px;
+    width: 100%;
+    max-width: 500px;
+    padding: 32px 28px;
+    position: relative;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(212, 175, 55, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: scaleInModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleInModal {
+    from { transform: scale(0.92) translateY(20px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.asatidz-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-secondary, #cbd5e1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.asatidz-modal-close:hover {
+    background: rgba(212, 175, 55, 0.2);
+    color: #ffd700;
+}
+
+.asatidz-modal-frame {
+    width: 160px;
+    height: 200px;
+    border-radius: 16px;
+    padding: 5px;
+    background: linear-gradient(135deg, #d4af37, #b8860b);
+    margin-bottom: 20px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+}
+
+.asatidz-modal-quote-box {
+    background: rgba(212, 175, 55, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    width: 100%;
+    position: relative;
+}
+
+.asatidz-modal-quote-text {
+    font-family: var(--font-playfair, 'Playfair Display', serif);
+    font-size: 0.98rem;
+    font-style: italic;
+    color: var(--text-primary, #ffffff);
+    line-height: 1.6;
+}
+
+/* 6. Hadiahkan Al-Fatihah Button */
+.btn-fatihah-guru {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%);
+    border: 1px solid #d4af37;
+    border-radius: 50px;
+    color: #ffd700;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn-fatihah-guru:hover {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+    color: #060b14;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4);
+}
+
+.btn-fatihah-guru:active {
+    transform: scale(0.97);
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] .direktori-main-tabs {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
+}
+
+[data-theme="light"] .main-tab-btn {
+    color: #64748b;
+}
+
+[data-theme="light"] .main-tab-btn.active {
+    background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+    color: #ffffff;
+}
+
+[data-theme="light"] .asatidz-card {
+    background: #ffffff;
+    border-color: rgba(212, 175, 55, 0.35);
+    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.12);
+}
+
+[data-theme="light"] .asatidz-name {
+    color: #0f172a;
+}
+
+[data-theme="light"] .asatidz-role {
+    color: #aa771c;
+}
+
+[data-theme="light"] .asatidz-quote-preview {
+    color: #475569;
+    border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .asatidz-modal-card {
+    background: #ffffff;
+    border-color: rgba(212, 175, 55, 0.5);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="light"] .asatidz-modal-quote-box {
+    background: rgba(212, 175, 55, 0.08);
+    border-color: rgba(212, 175, 55, 0.3);
+}
+
+[data-theme="light"] .asatidz-modal-quote-text {
     color: #1e293b;
 }
+
 

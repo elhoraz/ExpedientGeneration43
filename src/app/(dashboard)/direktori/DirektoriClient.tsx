@@ -12,6 +12,7 @@ import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import { getGelar, getGelarIcon, getBadgeColor } from "@/lib/gamification";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { ASATIDZ_ITEMS, AsatidzItem, AsatidzCategory } from "@/lib/data/asatidzData";
 import "./direktori.css";
 
 interface ProfileItem {
@@ -58,6 +59,13 @@ export default function DirektoriClient({
   const [classFilter, setClassFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name_asc" | "name_desc" | "points" | "recent">("name_asc");
   const [viewMode, setViewMode] = useState<"grid" | "coverflow" | "list">("grid");
+
+  // Main Switcher: Alumni vs Asatidz
+  const [mainTab, setMainTab] = useState<"alumni" | "asatidz">("alumni");
+  const [asatidzCategory, setAsatidzCategory] = useState<"all" | "pimpinan" | "walikelas" | "guru">("all");
+  const [selectedAsatidz, setSelectedAsatidz] = useState<AsatidzItem | null>(null);
+  const [fatihahCounts, setFatihahCounts] = useState<{ [id: string]: number }>({});
+  const [fatihahToast, setFatihahToast] = useState<{ [id: string]: boolean }>({});
 
   // Selected user for Mobile Bottom Sheet / Modal Detail
   const [selectedUser, setSelectedUser] = useState<ProfileItem | null>(null);
@@ -218,6 +226,52 @@ export default function DirektoriClient({
     return result;
   }, [alumni, search, genderFilter, classFilter, sortBy]);
 
+  // Load and persist Asatidz Al-Fatihah gift counts
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("expedient_asatidz_fatihah");
+      if (saved) {
+        setFatihahCounts(JSON.parse(saved));
+      }
+    } catch {}
+  }, []);
+
+  const handleGiftFatihah = (asatidzId: string) => {
+    triggerHaptic(30);
+    setFatihahCounts((prev) => {
+      const nextVal = (prev[asatidzId] || 0) + 1;
+      const updated = { ...prev, [asatidzId]: nextVal };
+      try {
+        localStorage.setItem("expedient_asatidz_fatihah", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    setFatihahToast((prev) => ({ ...prev, [asatidzId]: true }));
+    setTimeout(() => {
+      setFatihahToast((prev) => ({ ...prev, [asatidzId]: false }));
+    }, 2800);
+  };
+
+  // Filtered Asatidz by category and search
+  const filteredAsatidz = useMemo(() => {
+    return ASATIDZ_ITEMS.filter((item) => {
+      if (asatidzCategory !== "all" && item.category !== asatidzCategory) {
+        return false;
+      }
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const matchesName = item.name.toLowerCase().includes(q);
+        const matchesRole = item.role.toLowerCase().includes(q);
+        const matchesSubject = item.subject?.toLowerCase().includes(q) || false;
+        const matchesQuote = item.quote?.toLowerCase().includes(q) || false;
+        const matchesClass = item.classAssigned?.toLowerCase().includes(q) || false;
+        return matchesName || matchesRole || matchesSubject || matchesQuote || matchesClass;
+      }
+      return true;
+    });
+  }, [asatidzCategory, search]);
+
   // Init Swiper if Coverflow mode is selected
   useEffect(() => {
     if (viewMode !== "coverflow") return;
@@ -311,8 +365,39 @@ export default function DirektoriClient({
     <div className="direktori-container">
       <div className="ethereal-glow"></div>
 
-      {/* ================= STICKY SEARCH & FILTER CONTROL DECK ================= */}
-      <div className="direktori-control-deck">
+      {/* ================= MAIN DIRECTORY SWITCHER TABS ================= */}
+      <div className="direktori-main-tabs">
+        <button
+          type="button"
+          className={`main-tab-btn ${mainTab === "alumni" ? "active" : ""}`}
+          onClick={() => {
+            setMainTab("alumni");
+            setSearch("");
+            triggerHaptic(10);
+          }}
+        >
+          <i className="fa-solid fa-graduation-cap"></i>
+          <span>Alumni Angkatan 43</span>
+        </button>
+        <button
+          type="button"
+          className={`main-tab-btn ${mainTab === "asatidz" ? "active" : ""}`}
+          onClick={() => {
+            setMainTab("asatidz");
+            setSearch("");
+            triggerHaptic(10);
+          }}
+        >
+          <i className="fa-solid fa-landmark"></i>
+          <span>Dewan Guru & Asatidz</span>
+        </button>
+      </div>
+
+      {/* ================= ALUMNI SECTION ================= */}
+      {mainTab === "alumni" && (
+        <>
+          {/* ================= STICKY SEARCH & FILTER CONTROL DECK ================= */}
+          <div className="direktori-control-deck">
         {/* Search Input Bar */}
         <div className="search-pill-wrapper">
           <i className="fa-solid fa-magnifying-glass search-pill-icon"></i>
@@ -684,6 +769,223 @@ export default function DirektoriClient({
           )}
         </>
       )}
+        </>
+      )}
+
+      {/* ================= 2. DEWAN GURU & ASATIDZ SECTION ================= */}
+      {mainTab === "asatidz" && (
+        <div className="asatidz-wrapper" style={{ width: "100%" }}>
+          {/* Section Header */}
+          <div className="asatidz-section-header">
+            <div className="asatidz-header-badge">
+              <i className="fa-solid fa-book-bookmark"></i>
+              <span>Arsip Kehormatan Buku Tahunan</span>
+            </div>
+            <h2 className="asatidz-header-title">Diwan Asatidz & Masyayikh</h2>
+            <p className="asatidz-header-desc">
+              Untaian doa, petuah bijak, dan jejak bimbingan para guru mulia pembimbing angkatan Expedient 43.
+            </p>
+          </div>
+
+          {/* Search & Category Filter Deck for Asatidz */}
+          <div className="direktori-control-deck" style={{ marginBottom: "32px" }}>
+            {/* Search Input Bar */}
+            <div className="search-pill-wrapper">
+              <i className="fa-solid fa-magnifying-glass search-pill-icon"></i>
+              <input
+                type="text"
+                className="search-pill-input"
+                placeholder="Cari nama guru, amanah, atau pelajaran..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  type="button"
+                  className="search-pill-clear"
+                  onClick={() => setSearch("")}
+                  title="Hapus pencarian"
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              )}
+            </div>
+
+            {/* Category Filter Chips */}
+            <div className="filter-chips-scroll">
+              <button
+                type="button"
+                className={`chip-item ${asatidzCategory === "all" ? "active" : ""}`}
+                onClick={() => {
+                  setAsatidzCategory("all");
+                  triggerHaptic(10);
+                }}
+              >
+                <i className="fa-solid fa-layer-group"></i> Semua ({ASATIDZ_ITEMS.length})
+              </button>
+              <button
+                type="button"
+                className={`chip-item ${asatidzCategory === "pimpinan" ? "active" : ""}`}
+                onClick={() => {
+                  setAsatidzCategory("pimpinan");
+                  triggerHaptic(10);
+                }}
+              >
+                <i className="fa-solid fa-crown" style={{ color: "#ffd700" }}></i> Pimpinan Pondok
+              </button>
+              <button
+                type="button"
+                className={`chip-item ${asatidzCategory === "walikelas" ? "active" : ""}`}
+                onClick={() => {
+                  setAsatidzCategory("walikelas");
+                  triggerHaptic(10);
+                }}
+              >
+                <i className="fa-solid fa-graduation-cap" style={{ color: "#38bdf8" }}></i> Wali Kelas
+              </button>
+              <button
+                type="button"
+                className={`chip-item ${asatidzCategory === "guru" ? "active" : ""}`}
+                onClick={() => {
+                  setAsatidzCategory("guru");
+                  triggerHaptic(10);
+                }}
+              >
+                <i className="fa-solid fa-chalkboard-user" style={{ color: "#34d399" }}></i> Dewan Pengajar
+              </button>
+            </div>
+          </div>
+
+          {/* Asatidz Grid Listing */}
+          <div className="asatidz-grid-container">
+            {filteredAsatidz.length === 0 ? (
+              <div className="empty-direktori-state">
+                <i className="fa-solid fa-chalkboard-user empty-icon"></i>
+                <h3>Guru Tidak Ditemukan</h3>
+                <p>Tidak ada data asatidz yang cocok dengan kata kunci &quot;{search}&quot;.</p>
+                <button
+                  type="button"
+                  className="btn-reset-filters"
+                  onClick={() => {
+                    setSearch("");
+                    setAsatidzCategory("all");
+                    triggerHaptic(10);
+                  }}
+                >
+                  Reset Filter
+                </button>
+              </div>
+            ) : (
+              <div className="asatidz-grid">
+                {filteredAsatidz.map((item) => {
+                  const fatihahCount = fatihahCounts[item.id] || 0;
+                  return (
+                    <div
+                      key={item.id}
+                      className="asatidz-card cursor-bind"
+                      onClick={() => {
+                        setSelectedAsatidz(item);
+                        triggerHaptic(15);
+                      }}
+                    >
+                      {/* Portrait Yearbook Crop Frame */}
+                      <div className="asatidz-frame-outer">
+                        <div className="asatidz-frame-inner">
+                          {item.photoUrl ? (
+                            <img
+                              src={item.photoUrl}
+                              alt={item.name}
+                              className="asatidz-img"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                                const fallback = e.currentTarget.nextElementSibling;
+                                if (fallback) (fallback as HTMLElement).style.display = "flex";
+                              }}
+                            />
+                          ) : null}
+                          <div
+                            className="asatidz-fallback-avatar"
+                            style={{ display: item.photoUrl ? "none" : "flex" }}
+                          >
+                            <i className="fa-solid fa-user-tie asatidz-fallback-icon"></i>
+                            <span className="asatidz-fallback-initials">
+                              {item.titleHonorific || "USTADZ"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Badge Category */}
+                      <div
+                        className={`asatidz-badge ${
+                          item.category === "pimpinan"
+                            ? "badge-pimpinan"
+                            : item.category === "walikelas"
+                            ? "badge-walikelas"
+                            : "badge-guru"
+                        }`}
+                      >
+                        {item.category === "pimpinan" && <i className="fa-solid fa-crown"></i>}
+                        {item.category === "walikelas" && <i className="fa-solid fa-certificate"></i>}
+                        {item.category === "guru" && <i className="fa-solid fa-book-open"></i>}
+                        <span>
+                          {item.category === "pimpinan"
+                            ? "Pimpinan"
+                            : item.category === "walikelas"
+                            ? item.classAssigned || "Wali Kelas"
+                            : "Dewan Guru"}
+                        </span>
+                      </div>
+
+                      {/* Name */}
+                      <h3 className="asatidz-name">{item.name}</h3>
+
+                      {/* Role & Subject */}
+                      <div className="asatidz-role">{item.role}</div>
+                      {item.subject && (
+                        <div className="asatidz-subject">
+                          <i className="fa-solid fa-book"></i> {item.subject}
+                        </div>
+                      )}
+
+                      {/* Rahimahullah Indicator */}
+                      {item.isRahimahullah && (
+                        <div className="asatidz-rahimahullah-chip">
+                          <i className="fa-solid fa-hands-praying"></i> Rahimahullah
+                        </div>
+                      )}
+
+                      {/* Quote Preview from Yearbook */}
+                      {item.quote && (
+                        <div className="asatidz-quote-preview">
+                          &ldquo;{item.quote}&rdquo;
+                        </div>
+                      )}
+
+                      {/* Fatihah Counter Indicator */}
+                      {fatihahCount > 0 && (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            fontSize: "0.75rem",
+                            color: "#ffd700",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px",
+                          }}
+                        >
+                          <i className="fa-solid fa-heart" style={{ color: "#f43f5e" }}></i>
+                          <span>{fatihahCount} Al-Fatihah dihadiahkan</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ================= NATIVE DRAGGABLE BOTTOM SHEET / MODAL DETAIL ================= */}
       {selectedUser && (
@@ -1049,6 +1351,143 @@ export default function DirektoriClient({
                 {locale === "ar" ? "إغلاق" : locale === "en" ? "Close" : "Tutup"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ASATIDZ DETAIL MODAL ================= */}
+      {selectedAsatidz && (
+        <div
+          className="asatidz-modal-overlay"
+          onClick={() => setSelectedAsatidz(null)}
+        >
+          <div
+            className="asatidz-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="asatidz-modal-close"
+              onClick={() => setSelectedAsatidz(null)}
+              aria-label="Tutup Detail Guru"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+
+            {/* Yearbook Portrait in Modal */}
+            <div className="asatidz-frame-outer asatidz-modal-frame">
+              <div className="asatidz-frame-inner">
+                {selectedAsatidz.photoUrl ? (
+                  <img
+                    src={selectedAsatidz.photoUrl}
+                    alt={selectedAsatidz.name}
+                    className="asatidz-img"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      const fallback = e.currentTarget.nextElementSibling;
+                      if (fallback) (fallback as HTMLElement).style.display = "flex";
+                    }}
+                  />
+                ) : null}
+                <div
+                  className="asatidz-fallback-avatar"
+                  style={{ display: selectedAsatidz.photoUrl ? "none" : "flex" }}
+                >
+                  <i className="fa-solid fa-user-tie asatidz-fallback-icon"></i>
+                  <span className="asatidz-fallback-initials">
+                    {selectedAsatidz.titleHonorific || "USTADZ"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Badge */}
+            <div
+              className={`asatidz-badge ${
+                selectedAsatidz.category === "pimpinan"
+                  ? "badge-pimpinan"
+                  : selectedAsatidz.category === "walikelas"
+                  ? "badge-walikelas"
+                  : "badge-guru"
+              }`}
+            >
+              <span>{selectedAsatidz.role}</span>
+            </div>
+
+            <h3 className="asatidz-name" style={{ fontSize: "1.4rem", margin: "6px 0 2px" }}>
+              {selectedAsatidz.name}
+            </h3>
+
+            {selectedAsatidz.subject && (
+              <div className="asatidz-subject" style={{ fontSize: "0.88rem", marginTop: "4px" }}>
+                <i className="fa-solid fa-book"></i> {selectedAsatidz.subject}
+              </div>
+            )}
+
+            {/* Full Quote Box from Yearbook */}
+            {selectedAsatidz.quote && (
+              <div className="asatidz-modal-quote-box">
+                <i
+                  className="fa-solid fa-quote-left"
+                  style={{
+                    color: "rgba(212, 175, 55, 0.4)",
+                    fontSize: "1.2rem",
+                    display: "block",
+                    marginBottom: "8px",
+                  }}
+                ></i>
+                <p className="asatidz-modal-quote-text">
+                  &ldquo;{selectedAsatidz.quote}&rdquo;
+                </p>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    color: "#d4af37",
+                    marginTop: "10px",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  — Buku Tahunan Expedient 43
+                </div>
+              </div>
+            )}
+
+            {/* Interactive Hadiahkan Al-Fatihah */}
+            <button
+              type="button"
+              className="btn-fatihah-guru"
+              onClick={() => handleGiftFatihah(selectedAsatidz.id)}
+            >
+              <i className="fa-solid fa-hands-praying"></i>
+              <span>Hadiahkan Al-Fatihah & Doa</span>
+              <span
+                style={{
+                  background: "rgba(0,0,0,0.3)",
+                  padding: "2px 8px",
+                  borderRadius: "12px",
+                  fontSize: "0.8rem",
+                  marginLeft: "4px",
+                }}
+              >
+                {fatihahCounts[selectedAsatidz.id] || 0}
+              </span>
+            </button>
+
+            {/* Temporary Toast confirmation */}
+            {fatihahToast[selectedAsatidz.id] && (
+              <div
+                style={{
+                  marginTop: "12px",
+                  fontSize: "0.82rem",
+                  color: "#34d399",
+                  fontWeight: 600,
+                  animation: "fadeInModal 0.2s ease-out",
+                }}
+              >
+                <i className="fa-solid fa-check-circle"></i> Al-Fatihah terkirim. Semoga berkah untuk beliau 🤲
+              </div>
+            )}
           </div>
         </div>
       )}
