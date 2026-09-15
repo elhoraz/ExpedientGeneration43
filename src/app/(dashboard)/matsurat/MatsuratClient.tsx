@@ -183,8 +183,10 @@ export default function MatsuratClient() {
       setCopiedToast(true);
       setTimeout(() => setCopiedToast(false), 2200);
 
+      const arabicText = time === "petang" && item.arabicPetang ? item.arabicPetang : item.arabicPagi;
+
       try {
-        const audioUrl = `/api/audio/tts?type=matsurat&id=${encodeURIComponent(item.id)}`;
+        const audioUrl = `/api/audio/tts?text=${encodeURIComponent(arabicText)}&lang=ar`;
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
 
@@ -204,7 +206,7 @@ export default function MatsuratClient() {
         console.warn("Audio recitation initialization error:", err);
       }
     },
-    [playClickSound, stopActiveAudio]
+    [playClickSound, stopActiveAudio, time]
   );
 
   const triggerHaptic = useCallback(
