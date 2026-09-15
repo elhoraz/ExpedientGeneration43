@@ -31,7 +31,7 @@ export default function SovereignThreeScene({
 
   // ---------------------------------------------------------------------------
   // THREE.JS 3D STUDIO RUNNER
-  // KALIBRASI UV: flipY=true, repeat.set(1,1)
+  // KALIBRASI UV: flipY=true, center=(0.5,0.5), rotation=Math.PI
   // ---------------------------------------------------------------------------
   useEffect(() => {
     let cleanupFn: (() => void) | null = null;
@@ -651,6 +651,8 @@ export default function SovereignThreeScene({
         texture.flipY = true;
         texture.wrapS = THREE.ClampToEdgeWrapping;
         texture.wrapT = THREE.ClampToEdgeWrapping;
+        texture.center.set(0.5, 0.5);
+        texture.rotation = Math.PI;
         texture.repeat.set(1, 1);
         texture.generateMipmaps = true;
         texture.minFilter = THREE.LinearMipmapLinearFilter;
