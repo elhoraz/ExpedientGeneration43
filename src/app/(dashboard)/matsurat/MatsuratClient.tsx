@@ -153,86 +153,58 @@ export default function MatsuratClient() {
   const stopActiveAudio = useCallback(() => {
     if (activeAudioRef.current) {
       try {
-        activeAudioRef.current.pause();
-        activeAudioRef.current.currentTime = 0;
-        activeAudioRef.current.src = "";
+        const audio = activeAudioRef.current;
+        (audio as any)._aborted = true;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
       } catch {
         // ignore
       }
       activeAudioRef.current = null;
     }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
-  // Recite Dzikir via High-Fidelity Arabic Audio Stream (with browser TTS fallback)
+  // Recite Dzikir via Authentic Human Qari / Hisn al-Muslim Audio Stream with Tajwid
   const speakDzikir = useCallback(
     (item: MatsuratItem) => {
       playClickSound();
       stopActiveAudio();
-      if ("speechSynthesis" in window) {
-        try {
-          window.speechSynthesis.cancel();
-        } catch {
-          // ignore
-        }
-      }
-
-      const arabicText = time === "petang" && item.arabicPetang ? item.arabicPetang : item.arabicPagi;
-      const latinText = time === "petang" && item.latinPetang ? item.latinPetang : item.latinPagi;
 
       setCopiedToast(true);
       setTimeout(() => setCopiedToast(false), 2200);
 
       try {
-        let audioUrl = `/api/audio/tts?text=${encodeURIComponent(arabicText)}&lang=ar`;
-        if (item.id === "ayat_kursi") {
-          audioUrl = `/api/audio/tts?type=quran&ayah=002255`;
-        } else if (item.id === "ikhlas") {
-          audioUrl = `/api/audio/tts?type=quran&ayah=112001`;
-        } else if (item.id === "falaq") {
-          audioUrl = `/api/audio/tts?type=quran&ayah=113001`;
-        } else if (item.id === "nas") {
-          audioUrl = `/api/audio/tts?type=quran&ayah=114001`;
-        } else if (item.id === "fatihah") {
-          audioUrl = `/api/audio/tts?type=quran&ayah=001001`;
-        }
-
+        const audioUrl = `/api/audio/tts?type=matsurat&id=${encodeURIComponent(item.id)}`;
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
 
         audio.onerror = () => {
-          if ("speechSynthesis" in window) {
-            try {
-              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-              const utterance = new SpeechSynthesisUtterance(latinText);
-              utterance.lang = "id-ID";
-              utterance.rate = 0.85;
-              window.speechSynthesis.speak(utterance);
-            } catch {
-              // ignore
-            }
-          }
+          if ((audio as any)._aborted) return;
+          console.warn(`Audio playback error for item: ${item.id}`);
         };
 
         const p = audio.play();
         if (p !== undefined) {
-          p.catch(() => {
-            if ("speechSynthesis" in window) {
-              try {
-                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-                const utterance = new SpeechSynthesisUtterance(latinText);
-                utterance.lang = "id-ID";
-                window.speechSynthesis.speak(utterance);
-              } catch {
-                // ignore
-              }
-            }
+          p.catch((err) => {
+            if ((audio as any)._aborted) return;
+            console.warn(`Audio play promise rejected for item: ${item.id}`, err);
           });
         }
-      } catch {
-        // ignore
+      } catch (err) {
+        console.warn("Audio recitation initialization error:", err);
       }
     },
-    [playClickSound, stopActiveAudio, time]
+    [playClickSound, stopActiveAudio]
   );
 
   const triggerHaptic = useCallback(

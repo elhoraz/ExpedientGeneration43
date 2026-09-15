@@ -148,73 +148,59 @@ export default function AsmaulHusnaClient() {
   const activeAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const stopActiveAudio = useCallback(() => {
+    if (playTimerRef.current) {
+      clearTimeout(playTimerRef.current);
+      playTimerRef.current = null;
+    }
     if (activeAudioRef.current) {
       try {
-        activeAudioRef.current.pause();
-        activeAudioRef.current.currentTime = 0;
-        activeAudioRef.current.src = "";
+        const audio = activeAudioRef.current;
+        (audio as any)._aborted = true;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
       } catch {
         // ignore
       }
       activeAudioRef.current = null;
     }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
-  // Pronunciation via High-Fidelity Arabic Audio Stream (with browser TTS fallback)
+  // Pronunciation via High-Fidelity Arabic Audio Stream from Qari
   const speakAsma = useCallback(
     (item: AsmaulHusnaItem, e?: React.MouseEvent) => {
       if (e) e.stopPropagation();
 
-      // 1. Always trigger crystal click sound as immediate tactile feedback
+      setIsPlaying(false);
       playClickSound();
-
-      // 2. Stop any previous audio and speech
       stopActiveAudio();
-      if ("speechSynthesis" in window) {
-        try {
-          window.speechSynthesis.cancel();
-        } catch {
-          // ignore
-        }
-      }
 
       showToast(`Melafalkan: Ya ${item.latin} 🔊`);
 
-      // 3. Play authentic native Arabic audio stream from Qari
       try {
         const audioUrl = `/api/audio/tts?type=asma&id=${item.number}`;
         const audio = new Audio(audioUrl);
         activeAudioRef.current = audio;
 
         audio.onerror = () => {
-          // Fallback to browser SpeechSynthesis if network issue
-          if ("speechSynthesis" in window) {
-            try {
-              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-              const utterance = new SpeechSynthesisUtterance(`Ya ${item.latin}`);
-              utterance.lang = "id-ID";
-              utterance.rate = 0.85;
-              window.speechSynthesis.speak(utterance);
-            } catch (err) {
-              console.warn("Fallback speech error:", err);
-            }
-          }
+          if ((audio as any)._aborted) return;
+          console.warn(`Asma audio playback error for #${item.number}`);
         };
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            // Autoplay restriction or decode fallback
-            if ("speechSynthesis" in window) {
-              try {
-                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-                const utterance = new SpeechSynthesisUtterance(`Ya ${item.latin}`);
-                utterance.lang = "id-ID";
-                window.speechSynthesis.speak(utterance);
-              } catch {
-                // ignore
-              }
-            }
+          playPromise.catch((err) => {
+            if ((audio as any)._aborted) return;
+            console.warn(`Asma play promise error for #${item.number}:`, err);
           });
         }
       } catch (err) {
@@ -262,14 +248,6 @@ export default function AsmaulHusnaClient() {
   const pauseSequentialPlay = () => {
     setIsPlaying(false);
     stopActiveAudio();
-    if ("speechSynthesis" in window) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch {
-        // ignore
-      }
-    }
-    if (playTimerRef.current) clearTimeout(playTimerRef.current);
   };
 
   const playNextSequential = (index: number) => {
@@ -285,14 +263,6 @@ export default function AsmaulHusnaClient() {
     playClickSound();
     stopActiveAudio();
 
-    if ("speechSynthesis" in window) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch {
-        // ignore
-      }
-    }
-
     try {
       const audioUrl = `/api/audio/tts?type=asma&id=${currentItem.number}`;
       const audio = new Audio(audioUrl);
@@ -300,7 +270,7 @@ export default function AsmaulHusnaClient() {
 
       let advanced = false;
       const advance = () => {
-        if (advanced) return;
+        if (advanced || (audio as any)._aborted) return;
         advanced = true;
         playTimerRef.current = setTimeout(() => {
           playNextSequential(index + 1);
@@ -309,12 +279,14 @@ export default function AsmaulHusnaClient() {
 
       audio.onended = advance;
       audio.onerror = () => {
+        if ((audio as any)._aborted) return;
         advance();
       };
 
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
+          if ((audio as any)._aborted) return;
           advance();
         });
       }

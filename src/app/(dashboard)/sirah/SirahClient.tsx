@@ -379,27 +379,31 @@ export default function SirahClient() {
   const stopActiveAudio = useCallback(() => {
     if (activeAudioRef.current) {
       try {
-        activeAudioRef.current.pause();
-        activeAudioRef.current.currentTime = 0;
-        activeAudioRef.current.src = "";
+        const audio = activeAudioRef.current;
+        (audio as any)._aborted = true;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
       } catch {
         // ignore
       }
       activeAudioRef.current = null;
     }
-  }, []);
-
-  // Audio Speech Narration with stream proxy & browser fallback
-  const speakNarrative = (event: SirahEvent) => {
-    playAmbientChime();
-    stopActiveAudio();
-    if ("speechSynthesis" in window) {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
       try {
         window.speechSynthesis.cancel();
       } catch {
         // ignore
       }
     }
+  }, []);
+
+  // Audio Speech Narration with stream proxy & clean abortion
+  const speakNarrative = (event: SirahEvent) => {
+    playAmbientChime();
+    stopActiveAudio();
 
     showToast("Memutar narasi sirah nabawiyah 🔊");
 
@@ -410,31 +414,15 @@ export default function SirahClient() {
       activeAudioRef.current = audio;
 
       audio.onerror = () => {
-        if ("speechSynthesis" in window) {
-          try {
-            if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-            const utterance = new SpeechSynthesisUtterance(narrativeText);
-            utterance.lang = "id-ID";
-            window.speechSynthesis.speak(utterance);
-          } catch {
-            // ignore
-          }
-        }
+        if ((audio as any)._aborted) return;
+        console.warn("Sirah audio stream error");
       };
 
       const p = audio.play();
       if (p !== undefined) {
-        p.catch(() => {
-          if ("speechSynthesis" in window) {
-            try {
-              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-              const utterance = new SpeechSynthesisUtterance(narrativeText);
-              utterance.lang = "id-ID";
-              window.speechSynthesis.speak(utterance);
-            } catch {
-              // ignore
-            }
-          }
+        p.catch((err) => {
+          if ((audio as any)._aborted) return;
+          console.warn("Sirah narration play error:", err);
         });
       }
     } catch {

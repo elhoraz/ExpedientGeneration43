@@ -158,17 +158,28 @@ export default function MahfuzhatClient() {
   const stopActiveAudio = useCallback(() => {
     if (activeAudioRef.current) {
       try {
-        activeAudioRef.current.pause();
-        activeAudioRef.current.currentTime = 0;
-        activeAudioRef.current.src = "";
+        const audio = activeAudioRef.current;
+        (audio as any)._aborted = true;
+        audio.onended = null;
+        audio.onerror = null;
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
       } catch {
         // ignore
       }
       activeAudioRef.current = null;
     }
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {
+        // ignore
+      }
+    }
   }, []);
 
-  // Pronunciation via High-Fidelity Arabic Audio Stream (with browser TTS fallback)
+  // Pronunciation via High-Fidelity Arabic Audio Stream
   const speakArabic = useCallback(
     (arabicText: string, latinText?: string) => {
       // 1. Always play harmonious chime so there is immediate, guaranteed audio feedback
@@ -176,13 +187,6 @@ export default function MahfuzhatClient() {
 
       // 2. Stop any existing audio or speech
       stopActiveAudio();
-      if ("speechSynthesis" in window) {
-        try {
-          window.speechSynthesis.cancel();
-        } catch {
-          // ignore
-        }
-      }
 
       showToast(`Melafalkan: ${latinText || arabicText} 🔊`);
 
@@ -193,33 +197,15 @@ export default function MahfuzhatClient() {
         activeAudioRef.current = audio;
 
         audio.onerror = () => {
-          // Fallback to browser SpeechSynthesis
-          if ("speechSynthesis" in window) {
-            try {
-              if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-              const utterance = new SpeechSynthesisUtterance(latinText || arabicText);
-              utterance.lang = "id-ID";
-              utterance.rate = 0.85;
-              window.speechSynthesis.speak(utterance);
-            } catch (err) {
-              console.warn("Fallback speech error:", err);
-            }
-          }
+          if ((audio as any)._aborted) return;
+          console.warn("Mahfuzhat audio playback error");
         };
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            if ("speechSynthesis" in window) {
-              try {
-                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-                const utterance = new SpeechSynthesisUtterance(latinText || arabicText);
-                utterance.lang = "id-ID";
-                window.speechSynthesis.speak(utterance);
-              } catch {
-                // ignore
-              }
-            }
+          playPromise.catch((err) => {
+            if ((audio as any)._aborted) return;
+            console.warn("Mahfuzhat audio play promise error:", err);
           });
         }
       } catch (e) {
