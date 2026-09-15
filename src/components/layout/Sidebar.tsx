@@ -79,7 +79,26 @@ export default function Sidebar() {
   ];
 
   // Fitur sub-pages for active state detection
-  const fiturPages = ["/fitur", "/photobooth", "/oracle", "/enigma", "/genesis", "/celestial", "/majlis", "/tarbiyah", "/baitul-maal", "/wasiat", "/multazam", "/kontemplasi", "/divine", "/nexus"];
+  const fiturPages = [
+    "/fitur",
+    "/matsurat",
+    "/tasbih",
+    "/kiblat",
+    "/khatam",
+    "/photobooth",
+    "/oracle",
+    "/enigma",
+    "/genesis",
+    "/celestial",
+    "/majlis",
+    "/tarbiyah",
+    "/baitul-maal",
+    "/wasiat",
+    "/multazam",
+    "/kontemplasi",
+    "/divine",
+    "/nexus",
+  ];
 
   const isActive = (href: string) => {
     if (href === "/") {

@@ -282,6 +282,17 @@ export default function FiturClient({
       btnText: "Resapi Ayat",
     },
     {
+      id: "matsurat",
+      category: "spiritual",
+      title: "Al-Ma’tsurat Dzikir Pagi & Petang",
+      desc: "Untaian doa pelindung fajar dan senja Rasulullah SAW dengan penghitung haptic tasbih interaktif, audio tilawah, dan doa Rabithah ukhuwah.",
+      href: "/matsurat",
+      icon: "fa-hands-praying",
+      bg: "https://images.unsplash.com/photo-1507692049790-de58290a4334?q=80&w=2670&auto=format&fit=crop",
+      btnText: "Buka Al-Ma’tsurat",
+      badge: "Amalan Harian",
+    },
+    {
       id: "enigma",
       category: "explore",
       title: "Catatan Kenangan Pribadi",
