@@ -21,6 +21,7 @@ export interface AsatidzItem {
   isRahimahullah?: boolean; // Tanda pita rahmatullah jika telah berpulang
   isFounder?: boolean;    // Penanda khusus pendiri pondok pesantren
   isSuccessor?: boolean;  // Penanda putra & penerus pendiri pondok
+  isMotherHeadmaster?: boolean; // Penanda Ibu Pengasuh / Pimpinan Pondok Putri
   wasiat?: string[];      // Wasiat / Pesan Nasihat
   collageUrl?: string;    // Foto kolase kenangan / scan naskah tulisan tangan
   notes?: string;
@@ -89,6 +90,30 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
       "Indah rasanya kalau kita seperti yang digambarkan ayat tersebut: tidak ragu-ragu, tidak takut, dan juga tidak sedih, karena Allah sudah memberi kabar gembira untuk mereka yang tetap di jalan-Nya, yaitu Surga.",
       "Semoga Allah memberi petunjuk untuk kita semua, dan semoga kita tumbuh dan berproses bersama ini menjadi suatu kenangan dan pelajaran yang indah.",
       "— Akhukum Fillah: Muhammad Azharullah (Headmaster of Arrisalah Islamic International College)"
+    ],
+  },
+  {
+    id: "pimpinan_indriatin",
+    name: "Al-Ustadzah Indriatin, S.Pd.I",
+    titleHonorific: "Ustadzah",
+    role: "Headmaster of Woman's Arrisalah (Istri Pimpinan Pondok)",
+    category: "pimpinan",
+    subject: "Tarbiyah Nisa'iyyah & Kepemimpinan Putri",
+    photoUrl: "/uploads/asatidz/ustdz-indriatin.webp",
+    quote: "Jagalah Sholatmu, Jagalah Ilmumu, Jagalah Akhlaqmu. Orang sepintar apapun kalau tidak punya akhlaq & adab yang baik, maka tak guna di masyarakat.",
+    isRahimahullah: false,
+    isMotherHeadmaster: true,
+    collageUrl: "/uploads/asatidz/pesan-ustdz-indriatin.webp",
+    notes: "Headmaster of Woman's Arrisalah Islamic International College — Istri K.H. Muhammad Azharullah, Lc.",
+    wasiat: [
+      "Pesan Kasih Ibu Pengasuh (Teruntuk Anak-anakku Alumni 2024–2025):",
+      "Tak terasa waktu begitu cepat, hingga kalian telah menyelesaikan belajar di pondok ini. Meski secara dhohir kita akan jarang bertemu, tetapi do'a kami akan selalu menyertai kalian, seperti do'a seorang ibu kepada anak-anaknya.",
+      "Anakku... Dunia ini sudah terlalu tua untuk ditempati. Akhir zaman sudah mendekati atau mungkin sedang kita lalui. Nasehat & harapan kami:",
+      "1. Jagalah Sholatmu — Jangan pernah meninggalkan sholat baik dalam keadaan suka maupun duka, lapang ataupun sempit. (إِنَّ الصَّلَاةَ تَنْهَىٰ عَنِ الْفَحْشَاءِ وَالْمُنكَرِ)",
+      "2. Jagalah Ilmumu — Jangan pernah lelah atau bosan dalam belajar. Belajarlah sepanjang hayat, sebanyak-banyaknya, seluas-luasnya dimanapun & kapanpun. Tapi ingat! Kalau sudah dapat ilmu harus diajarkan. (خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ)",
+      "3. Jagalah Akhlaqmu — Orang sepintar apapun kalau tidak punya akhlaq & adab yang baik, maka tak guna di masyarakat. (خَيْرُ النَّاسِ أَحْسَنُهُمْ خُلُقًا وَأَنْفَعُهُمْ لِلنَّاسِ)",
+      "أُوصِيكُمْ وَإِيَّايَ نَفْسِي، وَاللهُ أَعْلَمُ بِالصَّوَابِ",
+      "— Ustadzah Indriatin (Headmaster of Woman's Arrisalah Islamic International College)"
     ],
   },
   {
@@ -500,17 +525,6 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
   // 5. DEWAN USTADZAT & PENGAJAR PUTRI (Arsip Buku Tahunan)
   // ============================================================================
   // Halaman 1 Putri
-  {
-    id: "ustdz_indriatin",
-    name: "Ustadzah Indriatin",
-    titleHonorific: "Ustadzah",
-    role: "Guru Tahfidzul Qur'an",
-    category: "ustadzah",
-    subject: "Tahfidzul Qur'an (تحفيظ القرآن)",
-    photoUrl: "/uploads/asatidz/ustdz-indriatin.webp",
-    quote: "Menghafal Al-Qur'an adalah menanam cahaya ketenangan di dalam relung jiwa dan sanubari.",
-    isRahimahullah: false,
-  },
   {
     id: "ustdz_heni_ernawati",
     name: "Ustadzah Heni Ernawati",

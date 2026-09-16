@@ -256,8 +256,14 @@ export default function DirektoriClient({
   // Filtered Asatidz by category and search
   const filteredAsatidz = useMemo(() => {
     return ASATIDZ_ITEMS.filter((item) => {
-      if (asatidzCategory !== "all" && item.category !== asatidzCategory) {
-        return false;
+      if (asatidzCategory !== "all") {
+        if (asatidzCategory === "ustadzah") {
+          if (item.category !== "ustadzah" && !item.isMotherHeadmaster) {
+            return false;
+          }
+        } else if (item.category !== asatidzCategory) {
+          return false;
+        }
       }
       if (search.trim()) {
         const q = search.toLowerCase();
@@ -902,7 +908,7 @@ export default function DirektoriClient({
                   return (
                     <div
                       key={item.id}
-                      className={`asatidz-card cursor-bind ${item.isFounder ? "founder-card" : ""} ${item.isSuccessor ? "successor-card" : ""}`}
+                      className={`asatidz-card cursor-bind ${item.isFounder ? "founder-card" : ""} ${item.isSuccessor ? "successor-card" : ""} ${item.isMotherHeadmaster ? "mother-card" : ""}`}
                       onClick={() => {
                         setSelectedAsatidz(item);
                         triggerHaptic(15);
@@ -916,6 +922,11 @@ export default function DirektoriClient({
                       {item.isSuccessor && (
                         <div className="asatidz-successor-ribbon">
                           <i className="fa-solid fa-certificate"></i> Penerus Pendiri
+                        </div>
+                      )}
+                      {item.isMotherHeadmaster && (
+                        <div className="asatidz-mother-ribbon">
+                          <i className="fa-solid fa-heart"></i> Pimpinan Putri
                         </div>
                       )}
                       {/* Portrait Yearbook Crop Frame */}
@@ -1502,25 +1513,51 @@ export default function DirektoriClient({
               <div className="founder-wasiat-section">
                 <div className="founder-wasiat-header">
                   <span>
-                    <i className={selectedAsatidz.isFounder ? "fa-solid fa-scroll" : "fa-solid fa-feather-pointed"}></i>{" "}
-                    {selectedAsatidz.isFounder ? "20 Wasiat & Falsafah Hidup" : "Pesan Nasihat Keistiqomahan"}
+                    <i
+                      className={
+                        selectedAsatidz.isFounder
+                          ? "fa-solid fa-scroll"
+                          : selectedAsatidz.isMotherHeadmaster
+                          ? "fa-solid fa-heart"
+                          : "fa-solid fa-feather-pointed"
+                      }
+                    ></i>{" "}
+                    {selectedAsatidz.isFounder
+                      ? "20 Wasiat & Falsafah Hidup"
+                      : selectedAsatidz.isMotherHeadmaster
+                      ? "Pesan Kasih 3 Nasihat Mulia"
+                      : "Pesan Nasihat Keistiqomahan"}
                   </span>
                   <span
                     style={{
                       fontSize: "0.75rem",
                       opacity: 0.9,
-                      color: selectedAsatidz.isFounder ? "#d4af37" : "#38bdf8",
+                      color: selectedAsatidz.isFounder
+                        ? "#d4af37"
+                        : selectedAsatidz.isMotherHeadmaster
+                        ? "#f472b6"
+                        : "#38bdf8",
                       fontWeight: 600,
                     }}
                   >
-                    {selectedAsatidz.isFounder ? "Pendiri Arrisalah" : "Putra & Penerus Pendiri"}
+                    {selectedAsatidz.isFounder
+                      ? "Pendiri Arrisalah"
+                      : selectedAsatidz.isMotherHeadmaster
+                      ? "Pimpinan Putri & Istri Pimpinan"
+                      : "Putra & Penerus Pendiri"}
                   </span>
                 </div>
                 <div className="founder-wasiat-list">
                   {selectedAsatidz.wasiat.map((w, idx) => (
                     <div
                       key={idx}
-                      className={`founder-wasiat-item ${selectedAsatidz.isSuccessor ? "successor-wasiat-item" : ""}`}
+                      className={`founder-wasiat-item ${
+                        selectedAsatidz.isSuccessor
+                          ? "successor-wasiat-item"
+                          : selectedAsatidz.isMotherHeadmaster
+                          ? "mother-wasiat-item"
+                          : ""
+                      }`}
                     >
                       {w}
                     </div>
@@ -1537,12 +1574,20 @@ export default function DirektoriClient({
                   <span>
                     {selectedAsatidz.isFounder
                       ? "Dokumentasi Kenangan (Terima Kasih Kyaiku)"
+                      : selectedAsatidz.isMotherHeadmaster
+                      ? "Naskah Nasihat Tulisan Tangan Ustadzah Indriatin"
                       : "Naskah Asli Tulisan Tangan Buku Tahunan"}
                   </span>
                 </div>
                 <img
                   src={selectedAsatidz.collageUrl}
-                  alt={selectedAsatidz.isFounder ? "Kenangan Terima Kasih Kyaiku" : "Naskah Pesan KH Muhammad Azharullah"}
+                  alt={
+                    selectedAsatidz.isFounder
+                      ? "Kenangan Terima Kasih Kyaiku"
+                      : selectedAsatidz.isMotherHeadmaster
+                      ? "Naskah Nasihat Ustadzah Indriatin"
+                      : "Naskah Pesan KH Muhammad Azharullah"
+                  }
                   className="founder-collage-img"
                 />
               </div>

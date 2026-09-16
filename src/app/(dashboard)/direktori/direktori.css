@@ -1713,6 +1713,30 @@ body.page-direktori .direktori-container,
     margin-bottom: 8px;
 }
 
+/* Mother Headmaster (Istri Pimpinan Pondok / Pimpinan Putri) Styling */
+.asatidz-card.mother-card {
+    border-color: rgba(244, 114, 182, 0.7);
+    background: radial-gradient(circle at top, rgba(244, 114, 182, 0.16) 0%, rgba(26, 12, 22, 0.96) 80%);
+    box-shadow: 0 10px 35px rgba(244, 114, 182, 0.22);
+    transform: scale(1.015);
+}
+
+.asatidz-mother-ribbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #f472b6, #ec4899);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(244, 114, 182, 0.4);
+    margin-bottom: 8px;
+}
+
 .founder-wasiat-section {
     margin-top: 18px;
     text-align: left;
@@ -1754,6 +1778,11 @@ body.page-direktori .direktori-container,
 .founder-wasiat-item.successor-wasiat-item {
     border-left: 3px solid #38bdf8;
     background: rgba(56, 189, 248, 0.05);
+}
+
+.founder-wasiat-item.mother-wasiat-item {
+    border-left: 3px solid #f472b6;
+    background: rgba(244, 114, 182, 0.05);
 }
 
 .founder-collage-box {
