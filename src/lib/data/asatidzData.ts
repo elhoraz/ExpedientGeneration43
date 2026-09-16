@@ -161,6 +161,39 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
       "— Al-Ustadz Shoiman L.H. (Student Directure of Arrisalah Islamic International College)"
     ],
   },
+  {
+    id: "pimpinan_winardi",
+    name: "Al-Ustadz Winardi Yusuf",
+    titleHonorific: "Al-Ustadz",
+    role: "Direktur Pengasuhan Putri (Woman's Affairs Director)",
+    category: "pimpinan",
+    subject: "An-Nahwu & Kepengasuhan Putri",
+    photoUrl: "/uploads/asatidz/ust-winardi-yusuf.webp",
+    quote: "Perjuangan itu bukan proses penderitaan menuju tujuan, tapi proses memantaskan diri untuk meraih tujuan. Ambil hikmah di tiap kesulitan yang ada.",
+    isRahimahullah: false,
+    collageUrl: "/uploads/asatidz/pesan-ust-winardi.webp",
+    notes: "Woman's Affairs Directure of Arrisalah Islamic International College",
+    wasiat: [
+      "Untaian Mutiara Hikmah Direktur Kepengasuhan Putri:",
+      "Ambil hikmah di tiap kesulitan yang ada:",
+      "1. Masalah adalah sebuah anugerah di mana kita bisa mendapatkan hikmah dan memberikan inspirasi untuk bertindak.",
+      "2. Perjuangan adalah sesuatu yang dibutuhkan dalam hidup. Jika Tuhan membiarkan hidup tanpa hambatan dan perjuangan, itu mungkin akan melumpuhkan kita, karena kita akan senantiasa sombong dengan segala kemudahan, hingga akhirnya jatuh dan kalah.",
+      "3. Musibah yang membuatmu kembali kepada Allah lebih baik dari nikmat yang membuatmu lupa kepada Allah.",
+      "4. Sesulit apapun masalah yang kita hadapi saat ini, ia bukan sesuatu yang harus dihindari, tetapi harus diselesaikan.",
+      "5. Bukanlah kesabaran jika masih mempunyai batas, dan bukanlah keikhlasan jika masih merasakan sakit.",
+      "6. Nikmat sehat akan terasa jika kita pernah sakit. Nikmat harta akan terasa jika kita pernah susah, dan nikmat hidup akan terasa jika kita pernah mendapatkan musibah. Musibah adalah awal dari kenikmatan hidup. Bahagianya hidup dengan manisnya iman dan menjadikan Allah sebagai tujuan hidup.",
+      "7. Jika hati telah diberikan sepenuh pasrah, maka yang tersisa hanya takdir di ujung kisah.",
+      "8. Tetaplah berwibawa. Tak angkuh dan tak jumawa. Meski terkadang diri harus kecewa, sebab ia tengah dididik untuk jadi istimewa.",
+      "9. Hal-hal yang baik datang untuk mereka yang menunggu. Tapi hal yang lebih baik lagi datang kepada mereka yang bergerak untuk mendapatkannya.",
+      "10. Ketika dalam sebuah perjuangan terdapat tantangan yang besar, berarti keberhasilan yang menanti juga lebih besar.",
+      "11. Saat Anda melakukan sesuatu dan gagal, Anda mendapatkan hikmah. Jika tidak melakukan apa-apa artinya Anda kalah oleh rasa takut.",
+      "12. Banyak orang yang tidak bertindak karena takut gagal, padahal tidak bertindak adalah kegagalan yang jelas sudah terjadi.",
+      "13. Kehidupan adalah serangkaian pelajaran yang harus dialami untuk dimengerti.",
+      "14. Sakit dalam perjuangan itu hanya sementara, namun jika menyerah, rasa sakit itu akan terasa selamanya.",
+      "15. Perjuangan itu bukan proses penderitaan menuju tujuan, tapi proses memantaskan diri untuk meraih tujuan.",
+      "— Al-Ustadz Winardi Yusuf (Woman's Affairs Directure of Arrisalah Islamic International College)"
+    ],
+  },
 
   // ============================================================================
   // 2. WALI KELAS & PEMBIMBING ANGKATAN EXPEDIENT 43
@@ -387,17 +420,6 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
   },
 
   // Halaman 3
-  {
-    id: "guru_winardi_yusuf",
-    name: "Al-Ustadz Winardi Yusuf",
-    titleHonorific: "Al-Ustadz",
-    role: "Guru An-Nahwu",
-    category: "guru",
-    subject: "An-Nahwu",
-    photoUrl: "/uploads/asatidz/ust-winardi-yusuf.webp",
-    quote: "Nahwu adalah penjaga lisan dan akal budi dari kekeliruan dalam memahami kalam suci Al-Qur'an.",
-    isRahimahullah: false,
-  },
   {
     id: "guru_nur_kholis",
     name: "Al-Ustadz Nur Kholis",

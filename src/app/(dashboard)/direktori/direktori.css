@@ -1790,6 +1790,11 @@ body.page-direktori .direktori-container,
     background: rgba(16, 185, 129, 0.05);
 }
 
+.founder-wasiat-item.winardi-wasiat-item {
+    border-left: 3px solid #a855f7;
+    background: rgba(168, 85, 247, 0.05);
+}
+
 .founder-collage-box {
     margin-top: 16px;
     width: 100%;
