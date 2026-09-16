@@ -6,7 +6,7 @@
  * Foto disimpan di folder: /uploads/asatidz/[nama-file]
  */
 
-export type AsatidzCategory = "pimpinan" | "walikelas" | "guru" | "ustadzah" | "tutor";
+export type AsatidzCategory = "pimpinan" | "guru" | "ustadzah" | "tutor";
 
 export interface AsatidzItem {
   id: string;
@@ -117,18 +117,6 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
     ],
   },
   {
-    id: "pimpinan_1",
-    name: "K.H. Muhammad Chozin, S.Ag.",
-    titleHonorific: "K.H.",
-    role: "Pimpinan Pondok Pesantren",
-    category: "pimpinan",
-    subject: "Tarbiyah Islamiyah & Tauhid",
-    photoUrl: "/uploads/asatidz/kh_chozin.webp",
-    quote: "Jadilah kader umat yang senantiasa ikhlas berjuang, berdikari di atas kaki sendiri, dan tidak menggantungkan hidup kepada selain Allah SWT.",
-    isRahimahullah: false,
-    notes: "Pengasuh Pondok Modern Arrisalah",
-  },
-  {
     id: "pimpinan_saroni",
     name: "Al-Ustadz Sa'roni, Lc.",
     titleHonorific: "Al-Ustadz",
@@ -201,58 +189,6 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
       "15. Perjuangan itu bukan proses penderitaan menuju tujuan, tapi proses memantaskan diri untuk meraih tujuan.",
       "— Al-Ustadz Winardi Yusuf (Woman's Affairs Directure of Arrisalah Islamic International College)"
     ],
-  },
-
-  // ============================================================================
-  // 2. WALI KELAS & PEMBIMBING ANGKATAN EXPEDIENT 43
-  // ============================================================================
-  {
-    id: "wali_6a",
-    name: "Ustadz Abdullah Shodiq, S.Pd.I.",
-    titleHonorific: "Ustadz",
-    role: "Wali Kelas 6A",
-    category: "walikelas",
-    classAssigned: "6A",
-    subject: "Bahasa Arab & Balaghah",
-    photoUrl: "/uploads/asatidz/ust_shodiq.webp",
-    quote: "Setiap tetes keringat perjuangan kalian di kelas ini kelak akan menjadi saksi keberhasilan dakwah kalian di masyarakat luas.",
-    isRahimahullah: false,
-  },
-  {
-    id: "wali_6b",
-    name: "Ustadz M. Rizky Maulana, S.H.",
-    titleHonorific: "Ustadz",
-    role: "Wali Kelas 6B",
-    category: "walikelas",
-    classAssigned: "6B",
-    subject: "Fiqih Muamalah & Perbandingan Madzhab",
-    photoUrl: "/uploads/asatidz/ust_rizky.webp",
-    quote: "Ilmu tanpa amal laksana pohon tanpa buah. Amalkan ilmumu walau hanya satu huruf.",
-    isRahimahullah: false,
-  },
-  {
-    id: "wali_6c",
-    name: "Ustadzah Siti Fatimah, S.Pd.",
-    titleHonorific: "Ustadzah",
-    role: "Wali Kelas 6C",
-    category: "walikelas",
-    classAssigned: "6C",
-    subject: "Ulumul Qur'an & Hadits",
-    photoUrl: "/uploads/asatidz/ust_fatimah.webp",
-    quote: "Jadilah wanita shalihah penyejuk umat, kokoh dalam aqidah dan anggun dalam budi pekerti.",
-    isRahimahullah: false,
-  },
-  {
-    id: "wali_6d",
-    name: "Ustadzah Nurul Hidayati, M.A.",
-    titleHonorific: "Ustadzah",
-    role: "Wali Kelas 6D",
-    category: "walikelas",
-    classAssigned: "6D",
-    subject: "Bahasa Inggris & Public Speaking",
-    photoUrl: "/uploads/asatidz/ust_nurul.webp",
-    quote: "Dunia menanti kontribusi nyata kalian. Bicara dengan hikmah, melangkah dengan keyakinan.",
-    isRahimahullah: false,
   },
 
   // ============================================================================

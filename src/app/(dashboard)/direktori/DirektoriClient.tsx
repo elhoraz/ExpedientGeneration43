@@ -62,8 +62,19 @@ export default function DirektoriClient({
 
   // Main Switcher: Alumni vs Asatidz
   const [mainTab, setMainTab] = useState<"alumni" | "asatidz">("alumni");
-  const [asatidzCategory, setAsatidzCategory] = useState<"all" | "pimpinan" | "walikelas" | "guru" | "ustadzah" | "tutor">("all");
+  const [asatidzCategory, setAsatidzCategory] = useState<"all" | "pimpinan" | "guru" | "tutor" | "ustadzah">("all");
   const [selectedAsatidz, setSelectedAsatidz] = useState<AsatidzItem | null>(null);
+
+  // Dynamic real count calculation for Asatidz categories
+  const asatidzCounts = useMemo(() => {
+    return {
+      all: ASATIDZ_ITEMS.length,
+      pimpinan: ASATIDZ_ITEMS.filter((i) => i.category === "pimpinan").length,
+      guru: ASATIDZ_ITEMS.filter((i) => i.category === "guru").length,
+      tutor: ASATIDZ_ITEMS.filter((i) => i.category === "tutor").length,
+      ustadzah: ASATIDZ_ITEMS.filter((i) => i.category === "ustadzah" || i.isMotherHeadmaster).length,
+    };
+  }, []);
   const [fatihahCounts, setFatihahCounts] = useState<{ [id: string]: number }>({});
   const [fatihahToast, setFatihahToast] = useState<{ [id: string]: boolean }>({});
 
@@ -371,10 +382,26 @@ export default function DirektoriClient({
     <div className="direktori-container">
       <div className="ethereal-glow"></div>
 
+      {/* ================= HERO ARCHIVE HEADER ================= */}
+      <div className="direktori-hero-header">
+        <div className="direktori-hero-badge">
+          <i className="fa-solid fa-compass"></i>
+          <span>Arsip Digital Resmi Expedient 43</span>
+        </div>
+        <h1 className="direktori-hero-title">
+          The Sacred Archive <span className="gold-text">Expedient 43</span>
+        </h1>
+        <p className="direktori-hero-desc">
+          Menjaga jejak perjuangan, menyambung tali silaturahmi alumni, dan mengenang untaian petuah bimbingan para guru mulia.
+        </p>
+      </div>
+
       {/* ================= MAIN DIRECTORY SWITCHER TABS ================= */}
-      <div className="direktori-main-tabs">
+      <div className="direktori-main-tabs" role="tablist" aria-label="Kategori Direktori">
         <button
           type="button"
+          role="tab"
+          aria-selected={mainTab === "alumni"}
           className={`main-tab-btn ${mainTab === "alumni" ? "active" : ""}`}
           onClick={() => {
             setMainTab("alumni");
@@ -383,10 +410,13 @@ export default function DirektoriClient({
           }}
         >
           <i className="fa-solid fa-graduation-cap"></i>
-          <span>Alumni Angkatan 43</span>
+          <span className="tab-title">Alumni Angkatan 43</span>
+          <span className="tab-pill-count">{alumni.length}</span>
         </button>
         <button
           type="button"
+          role="tab"
+          aria-selected={mainTab === "asatidz"}
           className={`main-tab-btn ${mainTab === "asatidz" ? "active" : ""}`}
           onClick={() => {
             setMainTab("asatidz");
@@ -395,7 +425,8 @@ export default function DirektoriClient({
           }}
         >
           <i className="fa-solid fa-landmark"></i>
-          <span>Dewan Guru & Asatidz</span>
+          <span className="tab-title">Dewan Guru & Asatidz</span>
+          <span className="tab-pill-count">{ASATIDZ_ITEMS.length}</span>
         </button>
       </div>
 
@@ -827,57 +858,47 @@ export default function DirektoriClient({
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-layer-group"></i> Semua ({ASATIDZ_ITEMS.length})
+                <i className="fa-solid fa-layer-group"></i> Semua ({asatidzCounts.all})
               </button>
               <button
                 type="button"
-                className={`chip-item ${asatidzCategory === "pimpinan" ? "active" : ""}`}
+                className={`chip-item chip-pimpinan ${asatidzCategory === "pimpinan" ? "active" : ""}`}
                 onClick={() => {
                   setAsatidzCategory("pimpinan");
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-crown" style={{ color: "#ffd700" }}></i> Pimpinan Pondok
+                <i className="fa-solid fa-crown" style={{ color: "#ffd700" }}></i> Pimpinan Pondok ({asatidzCounts.pimpinan})
               </button>
               <button
                 type="button"
-                className={`chip-item ${asatidzCategory === "walikelas" ? "active" : ""}`}
-                onClick={() => {
-                  setAsatidzCategory("walikelas");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-graduation-cap" style={{ color: "#38bdf8" }}></i> Wali Kelas
-              </button>
-              <button
-                type="button"
-                className={`chip-item ${asatidzCategory === "guru" ? "active" : ""}`}
+                className={`chip-item chip-putra ${asatidzCategory === "guru" ? "active" : ""}`}
                 onClick={() => {
                   setAsatidzCategory("guru");
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-person" style={{ color: "#34d399" }}></i> Asatidz (Putra)
+                <i className="fa-solid fa-person" style={{ color: "#34d399" }}></i> Asatidz Putra ({asatidzCounts.guru})
               </button>
               <button
                 type="button"
-                className={`chip-item ${asatidzCategory === "ustadzah" ? "active" : ""}`}
-                onClick={() => {
-                  setAsatidzCategory("ustadzah");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-person-dress" style={{ color: "#fb7185" }}></i> Ustadzat (Putri)
-              </button>
-              <button
-                type="button"
-                className={`chip-item ${asatidzCategory === "tutor" ? "active" : ""}`}
+                className={`chip-item chip-tutor ${asatidzCategory === "tutor" ? "active" : ""}`}
                 onClick={() => {
                   setAsatidzCategory("tutor");
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-user-graduate" style={{ color: "#c084fc" }}></i> Tutor Angkatan
+                <i className="fa-solid fa-graduation-cap" style={{ color: "#c084fc" }}></i> Tutor ({asatidzCounts.tutor})
+              </button>
+              <button
+                type="button"
+                className={`chip-item chip-putri ${asatidzCategory === "ustadzah" ? "active" : ""}`}
+                onClick={() => {
+                  setAsatidzCategory("ustadzah");
+                  triggerHaptic(10);
+                }}
+              >
+                <i className="fa-solid fa-person-dress" style={{ color: "#fb7185" }}></i> Ustadzat Putri ({asatidzCounts.ustadzah})
               </button>
             </div>
           </div>
@@ -961,9 +982,7 @@ export default function DirektoriClient({
                         className={`asatidz-badge ${
                           item.category === "pimpinan"
                             ? "badge-pimpinan"
-                            : item.category === "walikelas"
-                            ? "badge-walikelas"
-                            : item.category === "ustadzah"
+                            : item.category === "ustadzah" || item.isMotherHeadmaster
                             ? "badge-ustadzah"
                             : item.category === "tutor"
                             ? "badge-tutor"
@@ -971,16 +990,13 @@ export default function DirektoriClient({
                         }`}
                       >
                         {item.category === "pimpinan" && <i className="fa-solid fa-crown"></i>}
-                        {item.category === "walikelas" && <i className="fa-solid fa-certificate"></i>}
                         {item.category === "guru" && <i className="fa-solid fa-person"></i>}
-                        {item.category === "ustadzah" && <i className="fa-solid fa-person-dress"></i>}
-                        {item.category === "tutor" && <i className="fa-solid fa-user-graduate"></i>}
+                        {item.category === "tutor" && <i className="fa-solid fa-graduation-cap"></i>}
+                        {(item.category === "ustadzah" || item.isMotherHeadmaster) && <i className="fa-solid fa-person-dress"></i>}
                         <span>
                           {item.category === "pimpinan"
                             ? "Pimpinan"
-                            : item.category === "walikelas"
-                            ? item.classAssigned || "Wali Kelas"
-                            : item.category === "ustadzah"
+                            : item.category === "ustadzah" || item.isMotherHeadmaster
                             ? "Ustadzah"
                             : item.category === "tutor"
                             ? "Tutor"
@@ -1457,9 +1473,7 @@ export default function DirektoriClient({
               className={`asatidz-badge ${
                 selectedAsatidz.category === "pimpinan"
                   ? "badge-pimpinan"
-                  : selectedAsatidz.category === "walikelas"
-                  ? "badge-walikelas"
-                  : selectedAsatidz.category === "ustadzah"
+                  : selectedAsatidz.category === "ustadzah" || selectedAsatidz.isMotherHeadmaster
                   ? "badge-ustadzah"
                   : selectedAsatidz.category === "tutor"
                   ? "badge-tutor"
