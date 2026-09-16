@@ -1523,6 +1523,8 @@ export default function DirektoriClient({
                           ? "fa-solid fa-compass"
                           : selectedAsatidz.id === "pimpinan_winardi"
                           ? "fa-solid fa-lightbulb"
+                          : selectedAsatidz.id === "pimpinan_saroni"
+                          ? "fa-solid fa-mosque"
                           : "fa-solid fa-feather-pointed"
                       }
                     ></i>{" "}
@@ -1534,6 +1536,8 @@ export default function DirektoriClient({
                       ? "Pesan Nasihat Direktur Pengasuhan"
                       : selectedAsatidz.id === "pimpinan_winardi"
                       ? "Untaian Mutiara Hikmah Direktur Keputrian"
+                      : selectedAsatidz.id === "pimpinan_saroni"
+                      ? "Pesan Mutiara Direktur KMI"
                       : "Pesan Nasihat Keistiqomahan"}
                   </span>
                   <span
@@ -1548,6 +1552,8 @@ export default function DirektoriClient({
                         ? "#10b981"
                         : selectedAsatidz.id === "pimpinan_winardi"
                         ? "#a855f7"
+                        : selectedAsatidz.id === "pimpinan_saroni"
+                        ? "#0284c7"
                         : "#38bdf8",
                       fontWeight: 600,
                     }}
@@ -1560,6 +1566,8 @@ export default function DirektoriClient({
                       ? "Direktur Pengasuhan Santri"
                       : selectedAsatidz.id === "pimpinan_winardi"
                       ? "Direktur Pengasuhan Putri"
+                      : selectedAsatidz.id === "pimpinan_saroni"
+                      ? "Direktur KMI Arrisalah"
                       : "Putra & Penerus Pendiri"}
                   </span>
                 </div>
@@ -1576,6 +1584,8 @@ export default function DirektoriClient({
                           ? "shoiman-wasiat-item"
                           : selectedAsatidz.id === "pimpinan_winardi"
                           ? "winardi-wasiat-item"
+                          : selectedAsatidz.id === "pimpinan_saroni"
+                          ? "saroni-wasiat-item"
                           : ""
                       }`}
                     >
@@ -1600,6 +1610,8 @@ export default function DirektoriClient({
                       ? "Naskah Nasihat Direktur Pengasuhan Santri"
                       : selectedAsatidz.id === "pimpinan_winardi"
                       ? "Naskah Mutiara Hikmah Ustadz Winardi Yusuf"
+                      : selectedAsatidz.id === "pimpinan_saroni"
+                      ? "Naskah Pesan Direktur KMI Al-Ustadz Sa'roni, Lc."
                       : "Naskah Asli Tulisan Tangan Buku Tahunan"}
                   </span>
                 </div>
@@ -1614,6 +1626,8 @@ export default function DirektoriClient({
                       ? "Naskah Nasihat Ustadz Shoiman Lukmanul Hakim"
                       : selectedAsatidz.id === "pimpinan_winardi"
                       ? "Naskah Mutiara Hikmah Ustadz Winardi Yusuf"
+                      : selectedAsatidz.id === "pimpinan_saroni"
+                      ? "Naskah Pesan Direktur KMI Al-Ustadz Sa'roni, Lc."
                       : "Naskah Pesan KH Muhammad Azharullah"
                   }
                   className="founder-collage-img"
