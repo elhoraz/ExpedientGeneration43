@@ -62,7 +62,7 @@ export default function DirektoriClient({
 
   // Main Switcher: Alumni vs Asatidz
   const [mainTab, setMainTab] = useState<"alumni" | "asatidz">("alumni");
-  const [asatidzCategory, setAsatidzCategory] = useState<"all" | "pimpinan" | "walikelas" | "guru" | "tutor">("all");
+  const [asatidzCategory, setAsatidzCategory] = useState<"all" | "pimpinan" | "walikelas" | "guru" | "ustadzah" | "tutor">("all");
   const [selectedAsatidz, setSelectedAsatidz] = useState<AsatidzItem | null>(null);
   const [fatihahCounts, setFatihahCounts] = useState<{ [id: string]: number }>({});
   const [fatihahToast, setFatihahToast] = useState<{ [id: string]: boolean }>({});
@@ -851,7 +851,17 @@ export default function DirektoriClient({
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-chalkboard-user" style={{ color: "#34d399" }}></i> Dewan Pengajar
+                <i className="fa-solid fa-person" style={{ color: "#34d399" }}></i> Asatidz (Putra)
+              </button>
+              <button
+                type="button"
+                className={`chip-item ${asatidzCategory === "ustadzah" ? "active" : ""}`}
+                onClick={() => {
+                  setAsatidzCategory("ustadzah");
+                  triggerHaptic(10);
+                }}
+              >
+                <i className="fa-solid fa-person-dress" style={{ color: "#fb7185" }}></i> Ustadzat (Putri)
               </button>
               <button
                 type="button"
@@ -932,6 +942,8 @@ export default function DirektoriClient({
                             ? "badge-pimpinan"
                             : item.category === "walikelas"
                             ? "badge-walikelas"
+                            : item.category === "ustadzah"
+                            ? "badge-ustadzah"
                             : item.category === "tutor"
                             ? "badge-tutor"
                             : "badge-guru"
@@ -939,16 +951,19 @@ export default function DirektoriClient({
                       >
                         {item.category === "pimpinan" && <i className="fa-solid fa-crown"></i>}
                         {item.category === "walikelas" && <i className="fa-solid fa-certificate"></i>}
-                        {item.category === "guru" && <i className="fa-solid fa-book-open"></i>}
+                        {item.category === "guru" && <i className="fa-solid fa-person"></i>}
+                        {item.category === "ustadzah" && <i className="fa-solid fa-person-dress"></i>}
                         {item.category === "tutor" && <i className="fa-solid fa-user-graduate"></i>}
                         <span>
                           {item.category === "pimpinan"
                             ? "Pimpinan"
                             : item.category === "walikelas"
                             ? item.classAssigned || "Wali Kelas"
+                            : item.category === "ustadzah"
+                            ? "Ustadzah"
                             : item.category === "tutor"
                             ? "Tutor"
-                            : "Dewan Guru"}
+                            : "Asatidz"}
                         </span>
                       </div>
 
@@ -1423,6 +1438,8 @@ export default function DirektoriClient({
                   ? "badge-pimpinan"
                   : selectedAsatidz.category === "walikelas"
                   ? "badge-walikelas"
+                  : selectedAsatidz.category === "ustadzah"
+                  ? "badge-ustadzah"
                   : selectedAsatidz.category === "tutor"
                   ? "badge-tutor"
                   : "badge-guru"
