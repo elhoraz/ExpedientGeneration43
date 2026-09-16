@@ -1785,6 +1785,11 @@ body.page-direktori .direktori-container,
     background: rgba(244, 114, 182, 0.05);
 }
 
+.founder-wasiat-item.shoiman-wasiat-item {
+    border-left: 3px solid #10b981;
+    background: rgba(16, 185, 129, 0.05);
+}
+
 .founder-collage-box {
     margin-top: 16px;
     width: 100%;
