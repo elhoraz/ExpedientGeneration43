@@ -19,13 +19,52 @@ export interface AsatidzItem {
   photoUrl?: string;      // Contoh: "/uploads/asatidz/guru_1.webp"
   quote?: string;         // Pesan/Petuah Mutiara dari Buku Tahunan
   isRahimahullah?: boolean; // Tanda pita rahmatullah jika telah berpulang
+  isFounder?: boolean;    // Penanda khusus pendiri pondok pesantren
+  wasiat?: string[];      // 20 Wasiat/Falsafah Hidup Pendiri
+  collageUrl?: string;    // Foto kolase kenangan historis
   notes?: string;
 }
 
 export const ASATIDZ_ITEMS: AsatidzItem[] = [
   // ============================================================================
-  // 1. PIMPINAN & MASYAYIKH PONDOK
+  // 1. PENDIRI & PIMPINAN PONDOK PESANTREN
   // ============================================================================
+  {
+    id: "pendiri_1",
+    name: "Al-Ustadz Drs. K.H. Muhammad Ma'shum Yusuf",
+    titleHonorific: "K.H.",
+    role: "Pendiri Pondok Modern Arrisalah (Founder)",
+    category: "pimpinan",
+    subject: "Falsafah Hidup & Jiwa Pondok",
+    photoUrl: "/uploads/asatidz/kh-mashum-yusuf.webp",
+    quote: "Harga dirimu sebesar perjuanganmu. Jangan malu berangkat dari yang kecil dan sederhana, sebab besar perkara bermula dari yang kecil, maka kecil harus baik.",
+    isRahimahullah: true,
+    isFounder: true,
+    collageUrl: "/uploads/asatidz/collage-terima-kasih-kyaiku.webp",
+    notes: "Establisher of Arrisalah Islamic International College",
+    wasiat: [
+      "1. Yang menjamin kehidupan hanyalah Allah SWT. Capailah sesuatu dengan petunjuk dan Sunnah-Nya.",
+      "2. Utamakan lapangan perjuangan! Insyaallah lapangan kerja akan melimpah.",
+      "3. Harga dirimu sebesar perjuanganmu.",
+      "4. Jangan malu berangkat dari yang kecil dan sederhana, sebab besar perkara bermula dari yang kecil, maka kecil harus baik.",
+      "5. Mutiara yang tak tertandingi adalah: Petunjuk Allah, akal pikiran dan daya kreatifitas, maka gunakanlah sebaik mungkin dalam dunia kenyataan.",
+      "6. Setiap orang adalah berharga asal dirinya tak bernoda.",
+      "7. Tujuan Hidup adalah akhirat, Dunia hanya sambilan.",
+      "8. Belum cukup menjadi orang baik sebelum menanam kebaikan.",
+      "9. Biasakan selalu sembahyang berjamaah tepat waktu dan selalu siap sebelum datang panggilan.",
+      "10. Hiduplah yang bersemangat, mulai dari cita-cita yang luhur capailah semaksimal mungkin.",
+      "11. Berusahalah untuk menolong dan jangan untuk ditolong! Yakinlah, bahwa Allah Maha penolong.",
+      "12. Tiga perkara dambaan insan, kalau tidak hati-hati dapat menjerumuskan: Kebebasan, keenakan dan kosong tanpa kegiatan.",
+      "13. Kenangan hidup adalah perjuangan, bekal hidup akhirat adalah jariyah.",
+      "14. Kegagalan dan kesulitan hidup adalah pengalaman, dan guru terbaik menuju keberhasilan. Maka pelajarilah!",
+      "15. Hidup karena bernyawa, tandanya hidup adalah bergerak, tandanya bergerak adalah adanya perubahan, hidup tanpa perubahan adalah mati dalam kehidupan.",
+      "16. Tidak ada istilah kalah atau rugi dalam berjuang.",
+      "17. Barang siapa berani memaksa diri untuk bisa dan berusaha mustahil takkan berhasil.",
+      "18. Lulus dalam ujian bahagia dalam kehidupan dan mulia akhir hayatnya hanya bisa dicapai lewat jalan yang diridhai Allah. Jangan dengan cara jalan pintas.",
+      "19. Dunia itu nyata, akhirat itu bukan spekulasi. Hiduplah dengan keyakinan yang kuat dan berpikirlah positif.",
+      "20. Setiap orang adalah saudara kita di dunia, ambillah yang baik, jauhilah yang buruk, kawan yang beriman adalah sahabat karib dunia akhirat."
+    ],
+  },
   {
     id: "pimpinan_1",
     name: "K.H. Muhammad Chozin, S.Ag.",

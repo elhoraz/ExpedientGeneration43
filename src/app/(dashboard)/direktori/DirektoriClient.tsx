@@ -902,12 +902,17 @@ export default function DirektoriClient({
                   return (
                     <div
                       key={item.id}
-                      className="asatidz-card cursor-bind"
+                      className={`asatidz-card cursor-bind ${item.isFounder ? "founder-card" : ""}`}
                       onClick={() => {
                         setSelectedAsatidz(item);
                         triggerHaptic(15);
                       }}
                     >
+                      {item.isFounder && (
+                        <div className="asatidz-founder-ribbon">
+                          <i className="fa-solid fa-crown"></i> Pendiri Pondok
+                        </div>
+                      )}
                       {/* Portrait Yearbook Crop Frame */}
                       <div className="asatidz-frame-outer">
                         <div className="asatidz-frame-inner">
@@ -1484,6 +1489,34 @@ export default function DirektoriClient({
                 >
                   — Buku Tahunan Expedient 43
                 </div>
+              </div>
+            )}
+
+            {/* 20 Wasiat Pendiri (Khusus K.H. Muhammad Ma'shum Yusuf) */}
+            {selectedAsatidz.isFounder && selectedAsatidz.wasiat && (
+              <div className="founder-wasiat-section">
+                <div className="founder-wasiat-header">
+                  <span><i className="fa-solid fa-scroll"></i> 20 Wasiat &amp; Falsafah Hidup</span>
+                  <span style={{ fontSize: "0.75rem", opacity: 0.8, color: "#d4af37" }}>Pendiri Arrisalah</span>
+                </div>
+                <div className="founder-wasiat-list">
+                  {selectedAsatidz.wasiat.map((w, idx) => (
+                    <div key={idx} className="founder-wasiat-item">
+                      {w}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Collage Kenangan (Terima Kasih Kyaiku) */}
+            {selectedAsatidz.collageUrl && (
+              <div className="founder-collage-box">
+                <img
+                  src={selectedAsatidz.collageUrl}
+                  alt="Kenangan Terima Kasih Kyaiku"
+                  className="founder-collage-img"
+                />
               </div>
             )}
 
