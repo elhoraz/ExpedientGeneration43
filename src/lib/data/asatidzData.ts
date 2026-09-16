@@ -20,8 +20,9 @@ export interface AsatidzItem {
   quote?: string;         // Pesan/Petuah Mutiara dari Buku Tahunan
   isRahimahullah?: boolean; // Tanda pita rahmatullah jika telah berpulang
   isFounder?: boolean;    // Penanda khusus pendiri pondok pesantren
-  wasiat?: string[];      // 20 Wasiat/Falsafah Hidup Pendiri
-  collageUrl?: string;    // Foto kolase kenangan historis
+  isSuccessor?: boolean;  // Penanda putra & penerus pendiri pondok
+  wasiat?: string[];      // Wasiat / Pesan Nasihat
+  collageUrl?: string;    // Foto kolase kenangan / scan naskah tulisan tangan
   notes?: string;
 }
 
@@ -63,6 +64,31 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
       "18. Lulus dalam ujian bahagia dalam kehidupan dan mulia akhir hayatnya hanya bisa dicapai lewat jalan yang diridhai Allah. Jangan dengan cara jalan pintas.",
       "19. Dunia itu nyata, akhirat itu bukan spekulasi. Hiduplah dengan keyakinan yang kuat dan berpikirlah positif.",
       "20. Setiap orang adalah saudara kita di dunia, ambillah yang baik, jauhilah yang buruk, kawan yang beriman adalah sahabat karib dunia akhirat."
+    ],
+  },
+  {
+    id: "penerus_azharullah",
+    name: "Al-Ustadz K.H. Muhammad Azharullah, Lc.",
+    titleHonorific: "K.H.",
+    role: "Pimpinan Pondok / Headmaster (Putra & Penerus Pendiri)",
+    category: "pimpinan",
+    subject: "At-Tauhid & Kepemimpinan Pondok",
+    photoUrl: "/uploads/asatidz/kh-azharullah.webp",
+    quote: "Mintalah keistiqomahan agar kamu senantiasa berada di jalan-Nya dan berakhir juga di dalam agama-Nya. Tidak ragu-ragu, tidak takut, dan tidak sedih, karena Allah sudah memberi kabar gembira bagi mereka yang istiqomah.",
+    isRahimahullah: false,
+    isSuccessor: true,
+    collageUrl: "/uploads/asatidz/pesan-kh-azharullah.webp",
+    notes: "Headmaster of Arrisalah Islamic International College — Putra & Penerus Pendiri Drs. K.H. Muhammad Ma'shum Yusuf",
+    wasiat: [
+      "Pesan & Nasihat Pimpinan (Tertanggal 18 Januari 2015):",
+      "Sudah jauh proses pendidikan yang kalian tempuh, tentu akan banyak kesan yang terlukis dalam ingatan.",
+      "Bila kamu sudah dididik, dinasehati, memahami, memikirkan tentang Iman kepada Allah, kewajiban segala peribadatan hanya kepada-Nya dan tentang Iman kepada Rasulullah shallallahu 'alaihi wa sallam dengan segala ajaran yang beliau bawa...",
+      "Maka setelah itu mintalah keistiqomahan agar kamu senantiasa berada di jalan-Nya dan berakhir juga di dalam agama-Nya.",
+      "Sebagaimana firman Allah SWT: 'إِنَّ الَّذِينَ قَالُوا رَبُّنَا اللَّهُ ثُمَّ اسْتَقَامُوا تَتَنَزَّلُ عَلَيْهِمُ الْمَلَائِكَةُ أَلَّا تَخَافُوا وَلَا تَحْزَنُوا وَأَبْشِرُوا بِالْجَنَّةِ الَّتِي كُنْتُمْ تُوعَدُونَ' (QS. Fussilat: 30)",
+      "Dan firman-Nya: 'إِنَّ الَّذِينَ قَالُوا رَبُّنَا اللَّهُ ثُمَّ اسْتَقَامُوا فَلَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ' (QS. Al-Ahqaf: 13)",
+      "Indah rasanya kalau kita seperti yang digambarkan ayat tersebut: tidak ragu-ragu, tidak takut, dan juga tidak sedih, karena Allah sudah memberi kabar gembira untuk mereka yang tetap di jalan-Nya, yaitu Surga.",
+      "Semoga Allah memberi petunjuk untuk kita semua, dan semoga kita tumbuh dan berproses bersama ini menjadi suatu kenangan dan pelajaran yang indah.",
+      "— Akhukum Fillah: Muhammad Azharullah (Headmaster of Arrisalah Islamic International College)"
     ],
   },
   {
@@ -356,17 +382,6 @@ export const ASATIDZ_ITEMS: AsatidzItem[] = [
     subject: "Al-Fara'id",
     photoUrl: "/uploads/asatidz/ust-nur-kholis.webp",
     quote: "Ilmu fara'id adalah syariat pembagi keadilan waris yang wajib dijaga dengan ketelitian dan integritas.",
-    isRahimahullah: false,
-  },
-  {
-    id: "guru_azharullah",
-    name: "Al-Ustadz M. Azharullah",
-    titleHonorific: "Al-Ustadz",
-    role: "Guru At-Tauhid",
-    category: "guru",
-    subject: "At-Tauhid",
-    photoUrl: "/uploads/asatidz/ust-azharullah.webp",
-    quote: "Tauhid yang murni adalah benteng keimanan terkokoh dalam menghadapi badai pergolakan zaman.",
     isRahimahullah: false,
   },
 

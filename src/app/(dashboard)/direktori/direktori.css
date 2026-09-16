@@ -1689,6 +1689,30 @@ body.page-direktori .direktori-container,
     margin-bottom: 8px;
 }
 
+/* Successor (Penerus & Putra Pendiri) Styling */
+.asatidz-card.successor-card {
+    border-color: rgba(56, 189, 248, 0.7);
+    background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16) 0%, rgba(10, 20, 28, 0.96) 80%);
+    box-shadow: 0 10px 35px rgba(56, 189, 248, 0.22);
+    transform: scale(1.015);
+}
+
+.asatidz-successor-ribbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #38bdf8, #0284c7);
+    color: #031525;
+    box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
+    margin-bottom: 8px;
+}
+
 .founder-wasiat-section {
     margin-top: 18px;
     text-align: left;
@@ -1727,6 +1751,11 @@ body.page-direktori .direktori-container,
     border-left: 3px solid #ffd700;
 }
 
+.founder-wasiat-item.successor-wasiat-item {
+    border-left: 3px solid #38bdf8;
+    background: rgba(56, 189, 248, 0.05);
+}
+
 .founder-collage-box {
     margin-top: 16px;
     width: 100%;
@@ -1734,6 +1763,18 @@ body.page-direktori .direktori-container,
     overflow: hidden;
     border: 1px solid rgba(212, 175, 55, 0.4);
     box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.founder-collage-header {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.45);
+    font-size: 0.75rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .founder-collage-img {

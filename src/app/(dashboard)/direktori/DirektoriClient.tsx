@@ -902,7 +902,7 @@ export default function DirektoriClient({
                   return (
                     <div
                       key={item.id}
-                      className={`asatidz-card cursor-bind ${item.isFounder ? "founder-card" : ""}`}
+                      className={`asatidz-card cursor-bind ${item.isFounder ? "founder-card" : ""} ${item.isSuccessor ? "successor-card" : ""}`}
                       onClick={() => {
                         setSelectedAsatidz(item);
                         triggerHaptic(15);
@@ -911,6 +911,11 @@ export default function DirektoriClient({
                       {item.isFounder && (
                         <div className="asatidz-founder-ribbon">
                           <i className="fa-solid fa-crown"></i> Pendiri Pondok
+                        </div>
+                      )}
+                      {item.isSuccessor && (
+                        <div className="asatidz-successor-ribbon">
+                          <i className="fa-solid fa-certificate"></i> Penerus Pendiri
                         </div>
                       )}
                       {/* Portrait Yearbook Crop Frame */}
@@ -1492,16 +1497,31 @@ export default function DirektoriClient({
               </div>
             )}
 
-            {/* 20 Wasiat Pendiri (Khusus K.H. Muhammad Ma'shum Yusuf) */}
-            {selectedAsatidz.isFounder && selectedAsatidz.wasiat && (
+            {/* Wasiat & Nasihat Pendiri / Penerus */}
+            {selectedAsatidz.wasiat && (
               <div className="founder-wasiat-section">
                 <div className="founder-wasiat-header">
-                  <span><i className="fa-solid fa-scroll"></i> 20 Wasiat &amp; Falsafah Hidup</span>
-                  <span style={{ fontSize: "0.75rem", opacity: 0.8, color: "#d4af37" }}>Pendiri Arrisalah</span>
+                  <span>
+                    <i className={selectedAsatidz.isFounder ? "fa-solid fa-scroll" : "fa-solid fa-feather-pointed"}></i>{" "}
+                    {selectedAsatidz.isFounder ? "20 Wasiat & Falsafah Hidup" : "Pesan Nasihat Keistiqomahan"}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      opacity: 0.9,
+                      color: selectedAsatidz.isFounder ? "#d4af37" : "#38bdf8",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {selectedAsatidz.isFounder ? "Pendiri Arrisalah" : "Putra & Penerus Pendiri"}
+                  </span>
                 </div>
                 <div className="founder-wasiat-list">
                   {selectedAsatidz.wasiat.map((w, idx) => (
-                    <div key={idx} className="founder-wasiat-item">
+                    <div
+                      key={idx}
+                      className={`founder-wasiat-item ${selectedAsatidz.isSuccessor ? "successor-wasiat-item" : ""}`}
+                    >
                       {w}
                     </div>
                   ))}
@@ -1509,12 +1529,20 @@ export default function DirektoriClient({
               </div>
             )}
 
-            {/* Collage Kenangan (Terima Kasih Kyaiku) */}
+            {/* Collage Kenangan / Naskah Asli Buku Tahunan */}
             {selectedAsatidz.collageUrl && (
               <div className="founder-collage-box">
+                <div className="founder-collage-header">
+                  <i className="fa-solid fa-image"></i>
+                  <span>
+                    {selectedAsatidz.isFounder
+                      ? "Dokumentasi Kenangan (Terima Kasih Kyaiku)"
+                      : "Naskah Asli Tulisan Tangan Buku Tahunan"}
+                  </span>
+                </div>
                 <img
                   src={selectedAsatidz.collageUrl}
-                  alt="Kenangan Terima Kasih Kyaiku"
+                  alt={selectedAsatidz.isFounder ? "Kenangan Terima Kasih Kyaiku" : "Naskah Pesan KH Muhammad Azharullah"}
                   className="founder-collage-img"
                 />
               </div>
