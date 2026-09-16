@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
+import { convertImageToWebp } from "@/lib/image/convertToWebp";
 
 /**
  * Memverifikasi hak akses admin melalui signed session HMAC atau role Supabase
@@ -107,11 +108,15 @@ export async function uploadImageToStorage(
 
   const supabase = createAdminClient();
 
-  const ext = file.name.split(".").pop() || "jpg";
-  const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-
   const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  const rawBuffer = Buffer.from(arrayBuffer);
+
+  // Otomatis konversi file gambar ke WebP
+  const converted = await convertImageToWebp(rawBuffer, file.type);
+  const finalBuffer = converted.buffer;
+  const finalContentType = converted.contentType;
+  const ext = converted.isConverted ? "webp" : (file.name.split(".").pop() || "webp");
+  const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
 
   // Pastikan bucket target ada
   try {
@@ -124,8 +129,8 @@ export async function uploadImageToStorage(
 
   let { error } = await supabase.storage
     .from(bucket)
-    .upload(fileName, buffer, {
-      contentType: file.type || "image/jpeg",
+    .upload(fileName, finalBuffer, {
+      contentType: finalContentType,
       upsert: true,
     });
 
@@ -133,8 +138,8 @@ export async function uploadImageToStorage(
     bucket = "profile-photos";
     const fb = await supabase.storage
       .from(bucket)
-      .upload(fileName, buffer, {
-        contentType: file.type || "image/jpeg",
+      .upload(fileName, finalBuffer, {
+        contentType: finalContentType,
         upsert: true,
       });
     error = fb.error;

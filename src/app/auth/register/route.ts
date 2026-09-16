@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { getRequestOrigin } from "@/lib/url";
+import { convertImageToWebp } from "@/lib/image/convertToWebp";
 
 export async function POST(request: Request) {
   const origin = getRequestOrigin(request);
@@ -145,17 +146,17 @@ export async function POST(request: Request) {
         const base64Data = foto_profil_base64.substring(commaIndex + 1);
         const buffer = Buffer.from(base64Data, "base64");
 
-        // Safe MIME and extension extraction
         const mimeMatch = header.match(/data:image\/([a-zA-Z0-9+.-]+)/);
-        let ext = mimeMatch ? mimeMatch[1].toLowerCase() : "jpg";
-        if (ext === "jpeg") ext = "jpg";
-        const contentType = mimeMatch ? `image/${mimeMatch[1]}` : "image/jpeg";
-        const fileName = `${data.user.id}_${Date.now()}.${ext}`;
+        const rawMime = mimeMatch ? `image/${mimeMatch[1]}` : "image/jpeg";
+
+        // Otomatis konversi ke WebP
+        const converted = await convertImageToWebp(buffer, rawMime);
+        const fileName = `${data.user.id}_${Date.now()}.webp`;
 
         const { error: uploadError } = await adminSupabase.storage
           .from("profile-photos")
-          .upload(fileName, buffer, {
-            contentType,
+          .upload(fileName, converted.buffer, {
+            contentType: "image/webp",
             upsert: true,
           });
 
@@ -180,15 +181,16 @@ export async function POST(request: Request) {
           const fileObj = rawFile as File;
           const arrayBuffer = await fileObj.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
-          const rawExt = (fileObj.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-          const ext = rawExt === "jpeg" ? "jpg" : (rawExt || "jpg");
+
+          // Otomatis konversi ke WebP
+          const converted = await convertImageToWebp(buffer, fileObj.type);
+          const ext = converted.isConverted ? "webp" : (fileObj.name.split(".").pop() || "webp");
           const fileName = `${data.user.id}_${Date.now()}.${ext}`;
-          const contentType = fileObj.type || `image/${ext}`;
 
           const { error: uploadError } = await adminSupabase.storage
             .from("profile-photos")
-            .upload(fileName, buffer, {
-              contentType,
+            .upload(fileName, converted.buffer, {
+              contentType: converted.contentType,
               upsert: true,
             });
 

@@ -161,22 +161,24 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
 
     setUploadingImage(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `lounge/${userId}_${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "chat");
 
-      const { error: uploadError } = await supabase.storage
-        .from("chat-attachments")
-        .upload(fileName, file);
+      const uploadRes = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-      if (uploadError) throw uploadError;
+      if (!uploadRes.ok) {
+        const errJson = await uploadRes.json().catch(() => ({}));
+        throw new Error(errJson.error || "Gagal mengunggah gambar.");
+      }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("chat-attachments")
-        .getPublicUrl(fileName);
-
-      await handleSendMessage(undefined, { imageUrl: publicUrl, messageType: "image" });
-    } catch (error) {
-      await showAlert("Gagal", "Gagal mengunggah gambar.");
+      const uploadData = await uploadRes.json();
+      await handleSendMessage(undefined, { imageUrl: uploadData.url, messageType: "image" });
+    } catch (error: any) {
+      await showAlert("Gagal", error?.message || "Gagal mengunggah gambar.");
       console.error(error);
     } finally {
       setUploadingImage(false);

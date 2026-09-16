@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
+import { convertImageToWebp } from "@/lib/image/convertToWebp";
 
 async function getAdminContext() {
   const cookieStore = await cookies();
@@ -73,11 +74,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Tidak ada file yang dipilih untuk diunggah." }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop() || "jpg";
-    const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const rawBuffer = Buffer.from(arrayBuffer);
+
+    // Otomatis konversi file gambar ke WebP
+    const converted = await convertImageToWebp(rawBuffer, file.type);
+    const finalBuffer = converted.buffer;
+    const finalContentType = converted.contentType;
+    const finalExt = converted.isConverted ? "webp" : (file.name.split(".").pop() || "webp");
+    const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${finalExt}`;
 
     // Pastikan bucket target ada, jika belum coba buat bucket publik
     try {
@@ -93,8 +98,8 @@ export async function POST(request: Request) {
     // Upload menggunakan Service Role client (Bypass RLS)
     let { error: uploadError } = await auth.adminSupabase.storage
       .from(bucket)
-      .upload(fileName, buffer, {
-        contentType: file.type || "image/jpeg",
+      .upload(fileName, finalBuffer, {
+        contentType: finalContentType,
         upsert: true,
       });
 
@@ -104,8 +109,8 @@ export async function POST(request: Request) {
       bucket = "profile-photos";
       const fallbackResult = await auth.adminSupabase.storage
         .from(bucket)
-        .upload(fileName, buffer, {
-          contentType: file.type || "image/jpeg",
+        .upload(fileName, finalBuffer, {
+          contentType: finalContentType,
           upsert: true,
         });
       uploadError = fallbackResult.error;

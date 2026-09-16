@@ -13,8 +13,8 @@ export async function compressImageFile(
     return file;
   }
 
-  // If already very small (< 400 KB), return original
-  if (file.size < 400 * 1024) {
+  // If already WebP and very small (< 400 KB), return as-is
+  if (file.type === "image/webp" && file.size < 400 * 1024) {
     return file;
   }
 
@@ -53,8 +53,7 @@ export async function compressImageFile(
 
         canvas.toBlob(
           (blob) => {
-            if (!blob || blob.size >= file.size) {
-              // If compression didn't reduce size, keep original
+            if (!blob) {
               return resolve(file);
             }
 

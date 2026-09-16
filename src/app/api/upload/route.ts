@@ -3,6 +3,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join, extname } from 'path';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { convertImageToWebp } from '@/lib/image/convertToWebp';
 
 const ALLOWED_FOLDERS = ['gallery', 'profiles', 'chat', 'feed', 'documents', 'bisnis'];
 
@@ -64,15 +65,22 @@ export async function POST(req: Request) {
     }
 
     const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const rawBuffer = Buffer.from(bytes);
 
-    // 5. Generate secure, unique filename
+    // 5. Otomatis konversi gambar pengguna menjadi WebP
+    const converted = await convertImageToWebp(rawBuffer, file.type);
+    const finalBuffer = converted.buffer;
+    const finalContentType = converted.contentType;
+
+    // 6. Generate secure, unique filename
     const originalExt = extname(file.name).toLowerCase().replace(/[^a-z0-9.]/g, '');
-    const safeExt = originalExt || (file.type.startsWith('image/') ? '.webp' : '.dat');
+    const safeExt = converted.isConverted
+      ? '.webp'
+      : (originalExt || (file.type.startsWith('image/') ? '.webp' : '.dat'));
     const uniqueSuffix = `${Date.now()}_${Math.round(Math.random() * 1e9)}`;
     const sanitizedFilename = `${user.id.slice(0, 8)}_${uniqueSuffix}${safeExt}`;
 
-    // 6. Prefer Supabase Cloud Storage (Permanent, Vercel-Compatible, Global CDN)
+    // 7. Prefer Supabase Cloud Storage (Permanent, Vercel-Compatible, Global CDN)
     const bucketMapping: Record<string, string> = {
       profiles: 'profile-photos',
       bisnis: 'bisnis',
@@ -88,8 +96,8 @@ export async function POST(req: Request) {
 
       const { error: storageError } = await adminSupabase.storage
         .from(bucketName)
-        .upload(sanitizedFilename, buffer, {
-          contentType: file.type || 'image/webp',
+        .upload(sanitizedFilename, finalBuffer, {
+          contentType: finalContentType,
           upsert: true,
         });
 
@@ -110,13 +118,13 @@ export async function POST(req: Request) {
       console.warn('Supabase storage execution error:', storageErr);
     }
 
-    // 7. Secondary Fallback: Local filesystem (ONLY allowed in local dev environments)
+    // 8. Secondary Fallback: Local filesystem (ONLY allowed in local dev environments)
     if (process.env.NODE_ENV === 'development') {
       try {
         const uploadDir = join(process.cwd(), 'public', 'uploads', folderInput);
         await mkdir(uploadDir, { recursive: true });
         const filePath = join(uploadDir, sanitizedFilename);
-        await writeFile(filePath, buffer);
+        await writeFile(filePath, finalBuffer);
 
         return NextResponse.json({
           success: true,
