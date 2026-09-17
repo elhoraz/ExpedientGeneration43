@@ -24,6 +24,22 @@ import {
 } from "@/lib/data/alhufazData";
 import "./quran.css";
 
+const QARI_EVERYAYAH_MAP: Record<string, string> = {
+  "05": "Alafasy_128kbps",
+  "03": "Abdurrahmaan_As-Sudais_192kbps",
+  "01": "Abdullaah_3awwaad_Al-Juhaynee_128kbps",
+  "06": "Yasser_Ad-Dussary_128kbps",
+  "02": "Ghamadi_40kbps",
+  "04": "Minshawy_Murattal_128kbps",
+};
+
+function getEveryAyahUrl(surahNum: number, ayahNum: number, qariId: string = "05"): string {
+  const folder = QARI_EVERYAYAH_MAP[qariId] || "Alafasy_128kbps";
+  const sStr = String(surahNum).padStart(3, "0");
+  const aStr = String(ayahNum).padStart(3, "0");
+  return `https://everyayah.com/data/${folder}/${sStr}${aStr}.mp3`;
+}
+
 interface LastReadState {
   surahNumber: number;
   surahName: string;
@@ -360,32 +376,71 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     setCurrentPlayingAyah(null);
   };
 
-  const playVerseAudio = (audioUrl: string, ayahNum: number) => {
+  const playVerseAudio = (audioUrl: string, ayahNum: number, surahNum?: number) => {
     triggerHaptic(10);
     if (!audioRef.current) {
       audioRef.current = new Audio();
     }
     const audio = audioRef.current;
-    audio.src = audioUrl;
-    audio.play().then(() => {
-      setIsPlaying(true);
-      setCurrentPlayingAyah(ayahNum);
-    }).catch(() => {
-      showToast("Gagal memutar audio murottal");
-      setIsPlaying(false);
-    });
+
+    // Multi-candidate CORS-resilient fallback URLs
+    const candidates: string[] = [];
+    if (surahNum && ayahNum) {
+      candidates.push(getEveryAyahUrl(surahNum, ayahNum, selectedQari));
+      if (selectedQari !== "05") {
+        candidates.push(getEveryAyahUrl(surahNum, ayahNum, "05"));
+      }
+      candidates.push(
+        `https://verses.quran.com/Alafasy/mp3/${String(surahNum).padStart(3, "0")}${String(ayahNum).padStart(3, "0")}.mp3`
+      );
+    }
+    if (audioUrl && !candidates.includes(audioUrl)) {
+      candidates.push(audioUrl);
+    }
+
+    let candidateIdx = 0;
+
+    const tryPlay = () => {
+      if (candidateIdx >= candidates.length) {
+        showToast("Gagal memutar audio murottal");
+        setIsPlaying(false);
+        setCurrentPlayingAyah(null);
+        return;
+      }
+
+      const currentTarget = candidates[candidateIdx];
+      audio.src = currentTarget;
+      audio
+        .play()
+        .then(() => {
+          setIsPlaying(true);
+          setCurrentPlayingAyah(ayahNum);
+        })
+        .catch((err) => {
+          console.warn(`Audio playback failed for ${currentTarget}:`, err);
+          candidateIdx++;
+          tryPlay();
+        });
+    };
 
     audio.onended = () => {
       setIsPlaying(false);
       setCurrentPlayingAyah(null);
     };
+
+    audio.onerror = () => {
+      candidateIdx++;
+      tryPlay();
+    };
+
+    tryPlay();
   };
 
   const playBlockVerses = (block: PageHufazBlock) => {
     triggerHaptic(12);
     if (block.ayahs.length === 0) return;
     showToast(`Memutar murottal ${block.config.name} (Ayat ${block.startAyat} - ${block.endAyat})`);
-    playVerseAudio(block.ayahs[0].audioUrl, block.ayahs[0].verseNumber);
+    playVerseAudio(block.ayahs[0].audioUrl, block.ayahs[0].verseNumber, block.ayahs[0].surahNumber);
   };
 
   // Jump handlers
@@ -887,69 +942,69 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                     {/* ============================================================== */}
                     <div className={`sheet-center-mushaf ${mobileCordobaTab === "mushaf" ? "show-mobile" : ""}`}>
                       <div className="mushaf-golden-frame">
-                        {pageBlocks.map((b) => {
-                          const isClosed = !!closedBlocks[b.blockId];
-
-                          return (
-                            <div
-                              key={`block-center-${b.blockId}`}
-                              className={`sheet-color-band band-${b.blockId}`}
-                              style={{ backgroundColor: b.config.lightBg }}
-                            >
-                              {/* Subtle floating eye button for 20m memorization test */}
-                              <div className="band-floating-controls">
+                        {/* 1. Baris Cepat Kontrol Tutup/Buka & Murottal 5 Blok */}
+                        <div className="mushaf-quick-blocks-bar">
+                          {pageBlocks.map((b) => {
+                            const isClosed = !!closedBlocks[b.blockId];
+                            return (
+                              <div key={`quick-b-${b.blockId}`} className={`quick-block-pill band-${b.blockId}`}>
                                 <button
                                   type="button"
-                                  className={`band-toggle-tutup-btn ${isClosed ? "is-closed" : ""}`}
+                                  className={`quick-pill-toggle ${isClosed ? "is-closed" : ""}`}
                                   onClick={() => toggleBlockClosure(b.blockId)}
-                                  title={isClosed ? "Buka teks Arab" : "Tutup teks Arab untuk uji hafalan 20 menit"}
+                                  title={isClosed ? `Buka Teks ${b.config.name}` : `Tutup Teks ${b.config.name} (Uji Hafalan 20 Menit)`}
                                 >
                                   <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
-                                  <span>{isClosed ? "BUKA" : "TUTUP"}</span>
+                                  <span>{b.config.name} ({b.startAyat}-{b.endAyat})</span>
                                 </button>
                                 <button
                                   type="button"
-                                  className="band-audio-btn"
+                                  className="quick-pill-audio"
                                   onClick={() => playBlockVerses(b)}
-                                  title="Putar murottal ayat blok ini"
+                                  title={`Putar murottal ${b.config.name}`}
                                 >
                                   <i className="fa-solid fa-volume-high"></i>
                                 </button>
                               </div>
+                            );
+                          })}
+                        </div>
 
-                              {/* Arabic Quranic Verses in this Block */}
-                              {isClosed ? (
-                                <div
-                                  className="band-blind-cover"
-                                  onClick={() => toggleBlockClosure(b.blockId)}
+                        {/* 2. Teks Al-Qur'an Sambung 15 Baris Autentik (1 Baris Bisa 2 Warna Berbeda) */}
+                        <div className="mushaf-continuous-text-flow" dir="rtl">
+                          {pageBlocks.map((b) => {
+                            const isClosed = !!closedBlocks[b.blockId];
+                            return b.ayahs.map((v) => {
+                              const isCurrentAudio = currentPlayingAyah === v.verseNumber;
+                              return (
+                                <span
+                                  key={v.verseKey}
+                                  className={`hufaz-verse-flow-span band-${b.blockId} ${isClosed ? "is-blind-closed" : ""} ${isCurrentAudio ? "highlight-audio" : ""}`}
+                                  onClick={() => {
+                                    if (isClosed) {
+                                      toggleBlockClosure(b.blockId);
+                                    } else {
+                                      playVerseAudio(v.audioUrl, v.verseNumber, v.surahNumber);
+                                    }
+                                  }}
+                                  title={
+                                    isClosed
+                                      ? `Ayat ${v.verseNumber} (Teks ${b.config.name} ditutup - klik untuk membuka)`
+                                      : `Ayat ${v.verseNumber} (Klik untuk dengar audio murottal)`
+                                  }
                                 >
-                                  <div className="blind-cover-card">
-                                    <i className="fa-solid fa-eye-slash"></i>
-                                    <strong>Teks {b.config.name} Ditutup</strong>
-                                    <span>Sesi Menghafal 20 Menit (Ketuk untuk Buka & Cek)</span>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="band-arabic-text" dir="rtl">
-                                  {b.ayahs.map((v) => (
-                                    <span
-                                      key={v.verseKey}
-                                      className={`verse-span ${currentPlayingAyah === v.verseNumber ? "highlight-audio" : ""}`}
-                                      onClick={() => playVerseAudio(v.audioUrl, v.verseNumber)}
-                                      title={`Ayat ${v.verseNumber} (Klik dengar murottal)`}
-                                    >
-                                      {v.textUthmani}{" "}
-                                      <span className="verse-golden-ayah-marker">
-                                        <span className="ayah-symbol">۝</span>
-                                        <span className="ayah-num">{v.verseNumber}</span>
-                                      </span>{" "}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                                  <span className="verse-text-content">{v.textUthmani}</span>
+                                  {" "}
+                                  <span className="verse-golden-ayah-marker" contentEditable={false}>
+                                    <span className="ayah-symbol">۝</span>
+                                    <span className="ayah-num">{v.verseNumber}</span>
+                                  </span>
+                                  {" "}
+                                </span>
+                              );
+                            });
+                          })}
+                        </div>
                       </div>
 
                       {/* Frame Bottom Navigation / Indicator */}
@@ -1447,10 +1502,11 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                   <div className="ayah-action-buttons">
                     <button
                       type="button"
-                      className="ayah-action-btn"
-                      onClick={() => playVerseAudio(ayah.audio[selectedQari], ayah.nomorAyat)}
+                      className={`ayah-action-btn ${currentPlayingAyah === ayah.nomorAyat && isPlaying ? "playing-btn" : ""}`}
+                      onClick={() => playVerseAudio(ayah.audio[selectedQari], ayah.nomorAyat, selectedSurah.nomor)}
+                      title="Dengar Murottal"
                     >
-                      <i className="fa-solid fa-play"></i>
+                      <i className={`fa-solid ${currentPlayingAyah === ayah.nomorAyat && isPlaying ? "fa-pause" : "fa-play"}`}></i>
                     </button>
                   </div>
                 </div>
@@ -1467,6 +1523,58 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* STICKY FLOATING AUDIO PLAYER BAR (FOR BOTH CORDOBA & TILAWAH) */}
+      {currentPlayingAyah !== null && (
+        <div className="quran-floating-audio-bar">
+          <div className="audio-bar-content">
+            <div className="audio-meta">
+              <div className="audio-wave-anim">
+                <span className="wave-bar"></span>
+                <span className="wave-bar"></span>
+                <span className="wave-bar"></span>
+              </div>
+              <div className="audio-text-info">
+                <span className="audio-surah-title">
+                  {selectedSurah ? `${selectedSurah.namaLatin} : Ayat ${currentPlayingAyah}` : `Ayat ${currentPlayingAyah}`}
+                </span>
+                <span className="audio-qari-name">
+                  {QARI_LIST.find((q) => q.id === selectedQari)?.name || "Misyari Rasyid Al-Afasi"}
+                </span>
+              </div>
+            </div>
+
+            <div className="audio-controls-group">
+              <button
+                type="button"
+                className="audio-play-pause-btn"
+                onClick={() => {
+                  if (audioRef.current) {
+                    if (isPlaying) {
+                      audioRef.current.pause();
+                      setIsPlaying(false);
+                    } else {
+                      audioRef.current.play();
+                      setIsPlaying(true);
+                    }
+                  }
+                }}
+                title={isPlaying ? "Jeda Audio" : "Lanjutkan Audio"}
+              >
+                <i className={`fa-solid ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
+              </button>
+              <button
+                type="button"
+                className="audio-stop-btn"
+                onClick={stopAudio}
+                title="Hentikan Audio"
+              >
+                <i className="fa-solid fa-stop"></i>
+              </button>
+            </div>
           </div>
         </div>
       )}

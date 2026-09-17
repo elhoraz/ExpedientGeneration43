@@ -62,7 +62,7 @@ export async function GET(
         surahArabic: surahMeta?.nama || "",
         textUthmani: v.text_uthmani,
         translationIndo: cleanTranslation,
-        audioUrl: `https://cdn.equran.id/audio-partial/Misyari-Rasyid-Al-Afasi/${surahStr}${ayahStr}.mp3`,
+        audioUrl: `https://everyayah.com/data/Alafasy_128kbps/${surahStr}${ayahStr}.mp3`,
         keywordArab,
         juzNumber: v.juz_number,
         pageNumber: v.page_number,
