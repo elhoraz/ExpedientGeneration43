@@ -161,3 +161,78 @@ export const JUZ_START_PAGES: Record<number, number> = {
   11: 202, 12: 222, 13: 242, 14: 262, 15: 282, 16: 302, 17: 322, 18: 342, 19: 362, 20: 382,
   21: 402, 22: 422, 23: 442, 24: 462, 25: 482, 26: 502, 27: 522, 28: 542, 29: 562, 30: 582,
 };
+
+export interface AlhufazPageSpecialMeta {
+  pageNumber: number;
+  guideTopTitle: string;
+  nextPageGuideText: string;
+  blockKeywords: { [blockId: number]: string[] };
+  motivasiQuote: string;
+  motivasiAuthor: string;
+  temaAyatItems: { title: string; desc: string }[];
+  terjemahSubTitle?: string;
+  footnotes: string[];
+}
+
+export const ALHUFAZ_PAGE_SPECIAL_DATA: Record<number, AlhufazPageSpecialMeta> = {
+  6: {
+    pageNumber: 6,
+    guideTopTitle: "2. Al-Baqarah: 30 - 37",
+    nextPageGuideText: "كَلِمَاتٍ فَتَابَ عَلَيْهِ",
+    blockKeywords: {
+      1: ["وَإِذْ قَالَ", "وَعَلَّمَ آدَمَ"],
+      2: ["قَالُوا سُبْحَانَكَ"],
+      3: ["قَالَ يَا آدَمُ", "وَإِذْ قُلْنَا لِلْمَلَائِكَةِ"],
+      4: ["وَقُلْنَا يَا آدَمُ"],
+      5: ["فَأَزَلَّهُمَا الشَّيْطَانُ", "فَتَلَقَّىٰ آدَمُ"],
+    },
+    motivasiQuote: "Betapa dengan pertolongan Allah SWT, kita mampu menghafal Al-Qur'an, maka serahkanlah diri kita selalu kepada-Nya.",
+    motivasiAuthor: "H. Abdul Aziz Abdur Rauf, Al-Hafiz",
+    temaAyatItems: [
+      {
+        title: "Al-Baqarah, 30-34",
+        desc: "Mengisahkan Adam sebagai khalifah di muka bumi, dialog Allah dengan malaikat dan iblis, dan keutamaan ilmu pengetahuan Adam atas malaikat.",
+      },
+      {
+        title: "Al-Baqarah, 35",
+        desc: "Perintah Allah Swt kepada Adam dengan istrinya untuk mendiami surga.",
+      },
+      {
+        title: "Al-Baqarah, 36-37",
+        desc: "Godaan iblis dan diturunkannya Adam dan Hawa dengan membekalkan taubat kepada Adam serta penerimaan taubat oleh Allah SWT.",
+      },
+    ],
+    terjemahSubTitle: "Penetapan Manusia Sebagai Khalifah di Bumi",
+    footnotes: [
+      "(1) Khalifah bermakna pengganti, pemimpin, atau penguasa di muka bumi untuk menegakkan syariat Allah SWT.",
+      "(2) Bersujud dalam ayat ini bukan untuk menyembah Adam, melainkan sebagai bentuk penghormatan dan ketaatan atas perintah Allah SWT.",
+    ],
+  },
+};
+
+export function getAlhufazPageMeta(pageNum: number, verses: PageVerseItem[], juzNum: number): AlhufazPageSpecialMeta {
+  if (ALHUFAZ_PAGE_SPECIAL_DATA[pageNum]) {
+    return ALHUFAZ_PAGE_SPECIAL_DATA[pageNum];
+  }
+  const first = verses && verses.length > 0 ? verses[0] : null;
+  const last = verses && verses.length > 0 ? verses[verses.length - 1] : null;
+  const guideTopTitle = first ? `${first.surahNumber}. ${first.surahName}: ${first.verseNumber} - ${last?.verseNumber || first.verseNumber}` : `Halaman ${pageNum}`;
+
+  return {
+    pageNumber: pageNum,
+    guideTopTitle,
+    nextPageGuideText: "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
+    blockKeywords: {},
+    motivasiQuote: ALHUFAZ_MOTIVASI_LIST[(pageNum - 1) % ALHUFAZ_MOTIVASI_LIST.length] || ALHUFAZ_MOTIVASI_LIST[0],
+    motivasiAuthor: "H. Abdul Aziz Abdur Rauf, Al-Hafiz",
+    temaAyatItems: [
+      {
+        title: guideTopTitle,
+        desc: `Kandungan ayat-ayat suci Al-Qur'an pada halaman ${pageNum} Juz ${juzNum} membimbing tauhid, pemahaman syariat, dan ketakwaan hamba kepada Allah SWT.`,
+      },
+    ],
+    footnotes: [
+      "(1) Terjemahan resmi bersumber dari Departemen Agama / Kementerian Agama Republik Indonesia.",
+    ],
+  };
+}

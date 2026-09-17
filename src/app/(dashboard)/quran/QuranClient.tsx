@@ -19,6 +19,8 @@ import {
   partitionPageInto5Blocks,
   SURAH_START_PAGES,
   JUZ_START_PAGES,
+  getAlhufazPageMeta,
+  AlhufazPageSpecialMeta,
 } from "@/lib/data/alhufazData";
 import "./quran.css";
 
@@ -56,12 +58,18 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
   const [errorPage, setErrorPage] = useState<string | null>(null);
 
+  // Sub-view: "mushaf" (1:1 physical sheet) vs "poster" (poster diagram with arrows)
+  const [cordobaSubView, setCordobaSubView] = useState<"mushaf" | "poster">("mushaf");
+  const [showOriginalModal, setShowOriginalModal] = useState<boolean>(false);
+
   // Closed / Tutup Blocks for 20m memorization test
   const [closedBlocks, setClosedBlocks] = useState<{ [blockId: number]: boolean }>({});
   const [pageTikrar, setPageTikrar] = useState<{ [key: string]: number }>({});
   const [murajaahChecks, setMurajaahChecks] = useState<{ [key: string]: boolean }>({});
   const [blockBacaUlangChecks, setBlockBacaUlangChecks] = useState<{ [key: string]: boolean }>({});
   const [blockMenghafalChecks, setBlockMenghafalChecks] = useState<{ [key: string]: boolean }>({});
+  const [bacaUlangBubbles, setBacaUlangBubbles] = useState<{ [key: string]: boolean }>({});
+  const [menghafalBubbles, setMenghafalBubbles] = useState<{ [key: string]: boolean }>({});
 
   // Mobile column active tab in Cordoba mode
   const [mobileCordobaTab, setMobileCordobaTab] = useState<"mushaf" | "kontrol" | "panduan">("mushaf");
@@ -156,6 +164,12 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
 
       const savedMenghafal = localStorage.getItem("expedient_cordoba_menghafal");
       if (savedMenghafal) setBlockMenghafalChecks(JSON.parse(savedMenghafal));
+
+      const savedBacaBubbles = localStorage.getItem("expedient_cordoba_baca_bubbles");
+      if (savedBacaBubbles) setBacaUlangBubbles(JSON.parse(savedBacaBubbles));
+
+      const savedHafalBubbles = localStorage.getItem("expedient_cordoba_hafal_bubbles");
+      if (savedHafalBubbles) setMenghafalBubbles(JSON.parse(savedHafalBubbles));
     } catch (e) {
       console.warn("Error reading Quran preferences from localStorage:", e);
     }
@@ -254,6 +268,50 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       return updated;
     });
   };
+
+  const toggleBacaBubble = (blockId: number, bubbleIdx: number) => {
+    triggerHaptic(8);
+    const key = `p${cordobaPage}-b${blockId}-baca-${bubbleIdx}`;
+    setBacaUlangBubbles((prev) => {
+      const updated = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem("expedient_cordoba_baca_bubbles", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const toggleHafalBubble = (blockId: number, bubbleIdx: number) => {
+    triggerHaptic(8);
+    const key = `p${cordobaPage}-b${blockId}-hafal-${bubbleIdx}`;
+    setMenghafalBubbles((prev) => {
+      const updated = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem("expedient_cordoba_hafal_bubbles", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  // Special Page Metadata (Page 6 exact matching or dynamic for all pages)
+  const pageMeta = useMemo(() => {
+    return getAlhufazPageMeta(cordobaPage, pageData?.verses || [], pageData?.juzNumber || 1);
+  }, [pageData, cordobaPage]);
+
+  // Translation 3 Columns
+  const { col1Verses, col2Verses, col3Verses } = useMemo(() => {
+    if (!pageData?.verses || pageData.verses.length === 0) {
+      return { col1Verses: [], col2Verses: [], col3Verses: [] };
+    }
+    const total = pageData.verses.length;
+    const size1 = Math.ceil(total / 3);
+    const size2 = Math.ceil((total - size1) / 2);
+    return {
+      col1Verses: pageData.verses.slice(0, size1),
+      col2Verses: pageData.verses.slice(size1, size1 + size2),
+      col3Verses: pageData.verses.slice(size1 + size2),
+    };
+  }, [pageData]);
 
   // Timer Control
   const toggleTimer = () => {
@@ -580,6 +638,47 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
             </div>
           </div>
 
+          {/* Subview Selector Bar */}
+          <div className="cordoba-subview-panel">
+            <div className="subview-toggle-group">
+              <button
+                type="button"
+                className={`subview-toggle-btn ${cordobaSubView === "mushaf" ? "active" : ""}`}
+                onClick={() => {
+                  triggerHaptic(10);
+                  setCordobaSubView("mushaf");
+                }}
+              >
+                <i className="fa-solid fa-book-open"></i>
+                <span>Lembaran Cetak 1:1 (Persis Buku Fisik)</span>
+              </button>
+
+              <button
+                type="button"
+                className={`subview-toggle-btn ${cordobaSubView === "poster" ? "active" : ""}`}
+                onClick={() => {
+                  triggerHaptic(10);
+                  setCordobaSubView("poster");
+                }}
+              >
+                <i className="fa-solid fa-diagram-project"></i>
+                <span>Poster Anatomi & Panduan (Sesuai Brosur)</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="subview-photo-btn"
+              onClick={() => {
+                triggerHaptic(12);
+                setShowOriginalModal(true);
+              }}
+            >
+              <i className="fa-solid fa-image"></i>
+              <span>Lihat Foto Brosur Asli Al-Hufaz</span>
+            </button>
+          </div>
+
           {/* Mobile Tab Switcher for Cordoba columns on small screens */}
           <div className="cordoba-mobile-column-tabs">
             <button
@@ -632,304 +731,458 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
 
           {/* THE AUTHENTIC CORDOBA PRINTED MUSHAF SHEET */}
           {!loadingPage && pageData && (
-            <div className="cordoba-mushaf-sheet">
-              {/* Top Ornate Header */}
-              <div className="mushaf-page-top-header">
-                <div className="header-juz-badge">
-                  <span>JUZ {pageData.juzNumber}</span>
-                </div>
-
-                <div className="header-surah-title">
-                  <h2>{pageData.headerTitle}</h2>
-                </div>
-
-                <div className="header-method-badge">
-                  <i className="fa-solid fa-clock"></i>
-                  <span>Metode 5 Jam Hafal 1 Halaman</span>
-                </div>
-              </div>
-
-              {/* THREE-COLUMN BODY (MARGIN KIRI, MUSHAF TENGAH, MARGIN KANAN) */}
-              <div className="mushaf-page-body-grid">
-                {/* ============================================================== */}
-                {/* 1. MARGIN KIRI: KOTAK KONTROL, KATA KUNCI & TABEL MURAJA'AH    */}
-                {/* ============================================================== */}
-                <div className={`mushaf-left-margin ${mobileCordobaTab === "kontrol" ? "show-mobile" : ""}`}>
-                  <div className="left-margin-header">
-                    <i className="fa-solid fa-list-check"></i>
-                    <span>KOTAK KONTROL HAFALAN</span>
+            <div className={`cordoba-display-wrapper ${cordobaSubView === "poster" ? "in-poster-mode" : ""}`}>
+              {/* If in Poster Mode: Show Top Floating Callout Badges */}
+              {cordobaSubView === "poster" && (
+                <div className="poster-top-callouts-bar">
+                  <div className="poster-callout-pill pill-kontrol">
+                    <span className="callout-pill-title">Kotak Kontrol</span>
+                    <span className="callout-pill-desc">Kotak Kontrol Panduan Menghafal yang terdapat pada setiap blok warna.</span>
+                    <i className="fa-solid fa-arrow-down-long callout-arrow-down"></i>
                   </div>
 
-                  {/* 5 Block Control Boxes */}
-                  <div className="block-control-boxes-list">
-                    {pageBlocks.map((b) => {
-                      const bacaUlangChecked = !!blockBacaUlangChecks[`p${cordobaPage}-b${b.blockId}`];
-                      const menghafalChecked = !!blockMenghafalChecks[`p${cordobaPage}-b${b.blockId}`];
-
-                      return (
-                        <div
-                          key={`ctrl-box-${b.blockId}`}
-                          className="block-control-card"
-                          style={{ borderColor: b.config.borderColor }}
-                        >
-                          <div
-                            className="ctrl-card-title"
-                            style={{ backgroundColor: b.config.badgeBg, color: b.config.colorHex }}
-                          >
-                            <span>{b.config.name} (1 Jam)</span>
-                          </div>
-
-                          <div className="ctrl-checkboxes">
-                            <label className="ctrl-check-item">
-                              <input
-                                type="checkbox"
-                                checked={bacaUlangChecked}
-                                onChange={() => toggleBlockBacaUlang(b.blockId)}
-                              />
-                              <span>Baca Ulang (40m)</span>
-                            </label>
-                            <label className="ctrl-check-item">
-                              <input
-                                type="checkbox"
-                                checked={menghafalChecked}
-                                onChange={() => toggleBlockMenghafal(b.blockId)}
-                              />
-                              <span>Menghafal (20m)</span>
-                            </label>
-                          </div>
-
-                          {/* Kata Kunci Awal Ayat (Printed Bold Vertically) */}
-                          <div className="ctrl-keywords-section">
-                            <span className="keywords-label">Awal Ayat:</span>
-                            <div className="keywords-tags">
-                              {b.keywords.map((kw, i) => (
-                                <span key={i} className="keyword-arabic-badge" dir="rtl">
-                                  {kw}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="poster-callout-pill pill-motivasi">
+                    <span className="callout-pill-title">Motivasi</span>
+                    <span className="callout-pill-desc">Motivasi pada setiap halaman dari Pakar dan Pengajar Tahfiz Al-Qur'an H. Abdul Aziz Abdur Rauf, Al-Hafiz</span>
+                    <i className="fa-solid fa-arrow-down-long callout-arrow-down"></i>
                   </div>
 
-                  {/* TABEL MURAJA'AH 5X SEHARI DALAM 1 PEKAN */}
-                  <div className="murajaah-table-card">
-                    <div className="murajaah-card-title">
-                      <i className="fa-solid fa-calendar-check"></i>
-                      <span>TABEL MURAJA'AH (5x Sehari)</span>
+                  <div className="poster-callout-pill pill-tema">
+                    <span className="callout-pill-title">Tema Ayat</span>
+                    <span className="callout-pill-desc">Tema ayat secara ringkas untuk membantu memahami ayat-ayat yang sedang di hafal pada setiap halaman.</span>
+                    <i className="fa-solid fa-arrow-down-long callout-arrow-down"></i>
+                  </div>
+                </div>
+              )}
+
+              <div className="poster-layout-row">
+                {/* 1:1 AUTHENTIC PRINTED SHEET */}
+                <div className="cordoba-mushaf-sheet">
+                  {/* Top Ornate Arabesque Ribbon */}
+                  <div className="mushaf-sheet-top-bar">
+                    <div className="ornate-wing-left"></div>
+                    <div className="ornate-title-cartouche">
+                      <h2>{pageMeta.guideTopTitle}</h2>
                     </div>
+                    <div className="ornate-wing-right"></div>
+                    <div className="ornate-method-pill">
+                      <span>Metode 5 Jam 1 Halaman</span>
+                    </div>
+                  </div>
 
-                    <div className="murajaah-grid">
-                      <div className="murajaah-row header-row">
-                        <span className="waktu-header">Waktu</span>
-                        <span>Sen</span>
-                        <span>Sel</span>
-                        <span>Rab</span>
-                        <span>Kam</span>
-                        <span>Jum</span>
-                        <span>Sab</span>
-                        <span>Ahad</span>
+                  {/* THREE-COLUMN BODY (MARGIN KIRI, MUSHAF TENGAH, MARGIN KANAN) */}
+                  <div className="sheet-columns-layout">
+                    {/* ============================================================== */}
+                    {/* 1. MARGIN KIRI: KOTAK KONTROL, KATA KUNCI & TABEL MURAJA'AH    */}
+                    {/* ============================================================== */}
+                    <div className={`sheet-left-margin ${mobileCordobaTab === "kontrol" ? "show-mobile" : ""}`}>
+                      <div className="sheet-left-blocks">
+                        {pageBlocks.map((b) => {
+                          const keywords = pageMeta.blockKeywords[b.blockId] || b.keywords;
+
+                          return (
+                            <div key={`left-b-${b.blockId}`} className="sheet-left-block-card">
+                              <div className="left-block-head">
+                                <span className="left-block-num-square">
+                                  {b.blockId}
+                                </span>
+                                <span className="left-block-pill-title">
+                                  {b.config.name} (1 Jam)
+                                </span>
+                              </div>
+
+                              <div className="left-block-checklist-row">
+                                <span className="chk-label">Baca Ulang (40 Mnt)</span>
+                                <div className="chk-bubbles">
+                                  {[1, 2, 3, 4].map((idx) => {
+                                    const k = `p${cordobaPage}-b${b.blockId}-baca-${idx}`;
+                                    const chk = !!bacaUlangBubbles[k];
+                                    return (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        className={`chk-bubble ${chk ? "checked" : ""}`}
+                                        onClick={() => toggleBacaBubble(b.blockId, idx)}
+                                        title={`Pengulangan bacaan ke-${idx}`}
+                                      >
+                                        {chk ? "✓" : ""}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              <div className="left-block-checklist-row">
+                                <span className="chk-label">Menghafal* (20 Mnt)</span>
+                                <div className="chk-bubbles">
+                                  {[1, 2, 3, 4].map((idx) => {
+                                    const k = `p${cordobaPage}-b${b.blockId}-hafal-${idx}`;
+                                    const chk = !!menghafalBubbles[k];
+                                    return (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        className={`chk-bubble ${chk ? "checked" : ""}`}
+                                        onClick={() => toggleHafalBubble(b.blockId, idx)}
+                                        title={`Sesi menghafal ke-${idx}`}
+                                      >
+                                        {chk ? "✓" : ""}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* Kata Kunci Awal Ayat (Bold Green Arabic Script) */}
+                              <div className="left-block-keywords" dir="rtl">
+                                {keywords.join(" - ")}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
 
-                      {["Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya"].map((waktu) => (
-                        <div key={waktu} className="murajaah-row">
-                          <span className="waktu-col">{waktu}</span>
-                          {["sen", "sel", "rab", "kam", "jum", "sab", "ahd"].map((hari) => {
-                            const key = `p${cordobaPage}-${waktu}-${hari}`;
-                            const isChecked = !!murajaahChecks[key];
-                            return (
-                              <button
-                                key={hari}
-                                type="button"
-                                className={`murajaah-check-box ${isChecked ? "checked" : ""}`}
-                                onClick={() => toggleMurajaahCheck(key)}
-                              >
-                                {isChecked && <i className="fa-solid fa-check"></i>}
-                              </button>
-                            );
-                          })}
+                      {/* TABEL MURAJA'AH (5X SEHARI DALAM 1 PEKAN) */}
+                      <div className="sheet-murajaah-box">
+                        <div className="murajaah-box-header">
+                          <span className="murajaah-title">Tabel Muraja'ah</span>
+                          <span className="murajaah-sub">Mengingat kembali ayat yang telah dihafal</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
 
-                {/* ============================================================== */}
-                {/* 2. TENGAH: LEMBARAN MUSHAF ASLI 5 BLOK WARNA CORDOBA           */}
-                {/* ============================================================== */}
-                <div className={`mushaf-center-content ${mobileCordobaTab === "mushaf" ? "show-mobile" : ""}`}>
-                  <div className="mushaf-ornate-inner-border">
-                    {pageBlocks.map((b) => {
-                      const isClosed = !!closedBlocks[b.blockId];
-
-                      return (
-                        <div
-                          key={`mushaf-block-${b.blockId}`}
-                          className="mushaf-color-block"
-                          style={{
-                            backgroundColor: b.config.lightBg,
-                            borderLeftColor: b.config.borderColor,
-                          }}
-                        >
-                          {/* Block Quick Control Header */}
-                          <div className="mushaf-block-quick-bar">
-                            <div className="block-tag-left">
-                              <span
-                                className="block-pill-indicator"
-                                style={{ backgroundColor: b.config.colorHex }}
-                              >
-                                {b.blockId}
-                              </span>
-                              <span className="block-color-name">
-                                {b.config.name} • Ayat {b.startAyat} - {b.endAyat}
-                              </span>
-                            </div>
-
-                            <div className="block-actions-right">
-                              {/* TUTUP / BUKA BUTTON (Sesuai Panah Gambar: Menghafal Tutup-Buka) */}
-                              <button
-                                type="button"
-                                className={`block-tutup-buka-btn ${isClosed ? "closed" : ""}`}
-                                onClick={() => toggleBlockClosure(b.blockId)}
-                                title="Tutup teks Arab saat sesi menghafal 20 menit"
-                              >
-                                <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
-                                <span>{isClosed ? "BUKA BLOK" : "TUTUP BLOK"}</span>
-                              </button>
-
-                              {/* Play Block Audio */}
-                              <button
-                                type="button"
-                                className="block-murottal-btn"
-                                onClick={() => playBlockVerses(b)}
-                                title="Putar Murottal Ayat dalam Blok ini"
-                              >
-                                <i className="fa-solid fa-play"></i>
-                              </button>
-                            </div>
+                        <div className="murajaah-grid-compact">
+                          <div className="murajaah-col-headers">
+                            <span className="col-empty">Waktu</span>
+                            <span>Subuh</span>
+                            <span>Dzuhur</span>
+                            <span>Ashar</span>
+                            <span>Maghrib</span>
+                            <span>Isya</span>
                           </div>
 
-                          {/* Arabic Quranic Verses in this Block */}
-                          <div className="block-verses-content">
-                            {isClosed ? (
-                              <div
-                                className="block-blind-shield"
-                                onClick={() => toggleBlockClosure(b.blockId)}
-                              >
-                                <i className="fa-solid fa-eye-slash shield-icon"></i>
-                                <span className="shield-title">
-                                  Teks {b.config.name} Ditutup
-                                </span>
-                                <span className="shield-desc">
-                                  Sedang dalam sesi menghafal 20 menit. Ketuk untuk membuka dan memeriksa hafalan.
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="block-arabic-flow" dir="rtl">
-                                {b.ayahs.map((v) => (
-                                  <span
-                                    key={v.verseKey}
-                                    className={`arabic-ayah-span ${
-                                      currentPlayingAyah === v.verseNumber ? "playing-highlight" : ""
-                                    }`}
-                                    onClick={() => playVerseAudio(v.audioUrl, v.verseNumber)}
-                                    title={`Ayat ${v.verseNumber} (Klik untuk dengar audio)`}
+                          {["sen", "sel", "rab", "kam", "jum", "sab", "ahd"].map((hari, dIdx) => (
+                            <div key={hari} className="murajaah-grid-row">
+                              <span className="row-day">{["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahad"][dIdx]}</span>
+                              {["Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya"].map((waktu) => {
+                                const key = `p${cordobaPage}-${waktu}-${hari}`;
+                                const isChecked = !!murajaahChecks[key];
+                                return (
+                                  <button
+                                    key={waktu}
+                                    type="button"
+                                    className={`murajaah-bubble ${isChecked ? "checked" : ""}`}
+                                    onClick={() => toggleMurajaahCheck(key)}
                                   >
-                                    {v.textUthmani}{" "}
-                                    <span className="cordoba-verse-marker">
-                                      ۝<span className="marker-digit">{v.verseNumber}</span>
-                                    </span>{" "}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                                    {isChecked ? "✓" : ""}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ))}
                         </div>
-                      );
-                    })}
+                      </div>
+                    </div>
+
+                    {/* ============================================================== */}
+                    {/* 2. TENGAH: LEMBARAN MUSHAF ASLI 5 BLOK WARNA CONTINUOUS        */}
+                    {/* ============================================================== */}
+                    <div className={`sheet-center-mushaf ${mobileCordobaTab === "mushaf" ? "show-mobile" : ""}`}>
+                      <div className="mushaf-golden-frame">
+                        {pageBlocks.map((b) => {
+                          const isClosed = !!closedBlocks[b.blockId];
+
+                          return (
+                            <div
+                              key={`block-center-${b.blockId}`}
+                              className={`sheet-color-band band-${b.blockId}`}
+                              style={{ backgroundColor: b.config.lightBg }}
+                            >
+                              {/* Subtle floating eye button for 20m memorization test */}
+                              <div className="band-floating-controls">
+                                <button
+                                  type="button"
+                                  className={`band-toggle-tutup-btn ${isClosed ? "is-closed" : ""}`}
+                                  onClick={() => toggleBlockClosure(b.blockId)}
+                                  title={isClosed ? "Buka teks Arab" : "Tutup teks Arab untuk uji hafalan 20 menit"}
+                                >
+                                  <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
+                                  <span>{isClosed ? "BUKA" : "TUTUP"}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="band-audio-btn"
+                                  onClick={() => playBlockVerses(b)}
+                                  title="Putar murottal ayat blok ini"
+                                >
+                                  <i className="fa-solid fa-volume-high"></i>
+                                </button>
+                              </div>
+
+                              {/* Arabic Quranic Verses in this Block */}
+                              {isClosed ? (
+                                <div
+                                  className="band-blind-cover"
+                                  onClick={() => toggleBlockClosure(b.blockId)}
+                                >
+                                  <div className="blind-cover-card">
+                                    <i className="fa-solid fa-eye-slash"></i>
+                                    <strong>Teks {b.config.name} Ditutup</strong>
+                                    <span>Sesi Menghafal 20 Menit (Ketuk untuk Buka & Cek)</span>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="band-arabic-text" dir="rtl">
+                                  {b.ayahs.map((v) => (
+                                    <span
+                                      key={v.verseKey}
+                                      className={`verse-span ${currentPlayingAyah === v.verseNumber ? "highlight-audio" : ""}`}
+                                      onClick={() => playVerseAudio(v.audioUrl, v.verseNumber)}
+                                      title={`Ayat ${v.verseNumber} (Klik dengar murottal)`}
+                                    >
+                                      {v.textUthmani}{" "}
+                                      <span className="verse-golden-ayah-marker">
+                                        <span className="ayah-symbol">۝</span>
+                                        <span className="ayah-num">{v.verseNumber}</span>
+                                      </span>{" "}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Frame Bottom Navigation / Indicator */}
+                      <div className="mushaf-frame-bottom-bar">
+                        <div className="bottom-left-guide-text" dir="rtl">
+                          {pageMeta.nextPageGuideText}
+                        </div>
+                        <div className="bottom-center-cartouche">
+                          <span className="cartouche-juz">Juz {pageData.juzNumber}</span>
+                          <span className="cartouche-divider">•</span>
+                          <span className="cartouche-page">Hal. {cordobaPage}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ============================================================== */}
+                    {/* 3. MARGIN KANAN: PANDUAN, MOTIVASI, & TEMA AYAT                */}
+                    {/* ============================================================== */}
+                    <div className={`sheet-right-margin ${mobileCordobaTab === "panduan" ? "show-mobile" : ""}`}>
+                      {/* Box 1: Metode 5 Jam 1 Halaman */}
+                      <div className="sheet-right-card metode-card">
+                        <div className="right-card-header blue-header">
+                          <span>Metode 5 Jam 1 Halaman</span>
+                        </div>
+                        <ol className="metode-numbered-list">
+                          <li><strong>Syarat Utama:</strong> FOKUS, IKHLAS, DAN TIDAK PEGANG HANDPHONE</li>
+                          <li><strong>Mengulang bacaan</strong> blok kuning 40 menit, kemudian <strong>menghafalkannya</strong> 20 menit (fokus mushaf). Buka mushaf jika lupa.</li>
+                          <li><strong>Lakukan hal yang sama</strong> untuk blok berikutnya sampai terhafal seluruhnya.</li>
+                          <li><strong>Muraja'ah (mengulang)</strong> hafalan 5 kali sehari dalam seminggu. Gunakan tabel kontrol untuk memonitoring.</li>
+                        </ol>
+                      </div>
+
+                      {/* Box 2: Motivasi */}
+                      <div className="sheet-right-card motivasi-card">
+                        <div className="right-card-header red-header">
+                          <span>Motivasi</span>
+                        </div>
+                        <p className="motivasi-body-text">
+                          "{pageMeta.motivasiQuote}"
+                        </p>
+                        <div className="motivasi-author-text">
+                          - {pageMeta.motivasiAuthor}
+                        </div>
+                      </div>
+
+                      {/* Box 3: Tema Ayat */}
+                      <div className="sheet-right-card tema-card">
+                        <div className="right-card-header green-header">
+                          <span>Tema Ayat</span>
+                        </div>
+                        <div className="tema-items-list">
+                          {pageMeta.temaAyatItems.map((item, idx) => (
+                            <div key={idx} className="tema-sub-item">
+                              <strong className="tema-item-title">{item.title}:</strong>
+                              <p className="tema-item-desc">{item.desc}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ============================================================== */}
+                  {/* 4. FOOTER: KOLOM TERJEMAH KEMENAG RI & CATATAN KAKI            */}
+                  {/* ============================================================== */}
+                  <div className="sheet-terjemah-section">
+                    <div className="terjemah-green-ribbon">
+                      <span className="ribbon-title">TERJEMAH</span>
+                      <span className="ribbon-sub">Terjemah Kementerian Agama RI</span>
+                    </div>
+
+                    <div className="terjemah-three-columns">
+                      {/* Column 1 */}
+                      <div className="terjemah-col">
+                        {pageMeta.terjemahSubTitle && (
+                          <h4 className="terjemah-col-subheading">{pageMeta.terjemahSubTitle}</h4>
+                        )}
+                        {col1Verses.map((v) => (
+                          <p key={`col1-${v.verseKey}`} className="terjemah-verse-para">
+                            <strong className="terjemah-verse-bold">{v.verseNumber}.</strong> {v.translationIndo}
+                          </p>
+                        ))}
+                      </div>
+
+                      {/* Column 2 */}
+                      <div className="terjemah-col">
+                        {col2Verses.map((v) => (
+                          <p key={`col2-${v.verseKey}`} className="terjemah-verse-para">
+                            <strong className="terjemah-verse-bold">{v.verseNumber}.</strong> {v.translationIndo}
+                          </p>
+                        ))}
+                      </div>
+
+                      {/* Column 3 */}
+                      <div className="terjemah-col">
+                        {col3Verses.map((v) => (
+                          <p key={`col3-${v.verseKey}`} className="terjemah-verse-para">
+                            <strong className="terjemah-verse-bold">{v.verseNumber}.</strong> {v.translationIndo}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Footnotes / Catatan Kaki */}
+                    {pageMeta.footnotes && pageMeta.footnotes.length > 0 && (
+                      <div className="terjemah-footnotes">
+                        {pageMeta.footnotes.map((fn, idx) => (
+                          <span key={idx} className="footnote-item">{fn}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Bottom Watermark Bar */}
+                    <div className="sheet-bottom-watermark-bar">
+                      <div className="watermark-badge-left">
+                        <span className="page-box">{cordobaPage}</span>
+                        <span className="brand-name">AL-HUFAZ CORDOBA</span>
+                      </div>
+                      <div className="watermark-center">
+                        <span>Metode 5 Jam 1 Halaman • Penerbit Cordoba</span>
+                      </div>
+                      <div className="watermark-right">
+                        <span>Expedient Generation 43 Digital Replica</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* ============================================================== */}
-                {/* 3. MARGIN KANAN: PANDUAN, MOTIVASI, & TEMA AYAT                */}
-                {/* ============================================================== */}
-                <div className={`mushaf-right-margin ${mobileCordobaTab === "panduan" ? "show-mobile" : ""}`}>
-                  {/* Panduan 5 Jam 1 Halaman */}
-                  <div className="panduan-card">
-                    <div className="panduan-header">
-                      <i className="fa-solid fa-graduation-cap"></i>
-                      <span>METODE 5 JAM 1 HALAMAN</span>
-                    </div>
-                    <ol className="panduan-list">
-                      <li>
-                        <strong>Syarat Utama:</strong> FOKUS, IKHLAS, DAN TIDAK MEMEGANG HANDPHONE.
-                      </li>
-                      <li>
-                        <strong>Membaca Ulang:</strong> Baca berulang ayat di blok warna selama <strong>40 Menit</strong>.
-                      </li>
-                      <li>
-                        <strong>Menghafal (TUTUP-BUKA):</strong> Hafalkan dengan menutup mushaf selama <strong>20 Menit</strong>. Buka mushaf jika ragu untuk cek hafalan.
-                      </li>
-                      <li>
-                        <strong>Muraja'ah:</strong> Ulangi 5 kali sehari dalam sepekan di setiap waktu shalat.
-                      </li>
-                    </ol>
-                  </div>
+                {/* If in Poster Mode: Show Right Floating Panel with 5 Red Arrows */}
+                {cordobaSubView === "poster" && (
+                  <div className="poster-right-sidebar">
+                    <div className="poster-arrows-stack">
+                      <div className="poster-arrow-block arrow-kuning">
+                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
+                        <span className="arrow-block-tag">BLOK KUNING DIBACA 1 JAM</span>
+                      </div>
 
-                  {/* Kotak Motivasi Al-Hafiz */}
-                  <div className="motivasi-card">
-                    <div className="motivasi-header">
-                      <i className="fa-solid fa-feather-pointed"></i>
-                      <span>MOTIVASI AL-HAFIZ</span>
-                    </div>
-                    <div className="motivasi-author">
-                      H. Abdul Aziz Abdur Rauf, Lc., Al-Hafiz
-                    </div>
-                    <p className="motivasi-quote">"{currentMotivasi}"</p>
-                  </div>
+                      <div className="poster-arrow-block arrow-hijau">
+                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
+                        <span className="arrow-block-tag">BLOK HIJAU DIBACA 1 JAM</span>
+                      </div>
 
-                  {/* Tema Ayat */}
-                  <div className="tema-ayat-card">
-                    <div className="tema-header">
-                      <i className="fa-solid fa-lightbulb"></i>
-                      <span>TEMA AYAT HALAMAN INI</span>
+                      <div className="poster-arrow-block arrow-biru">
+                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
+                        <span className="arrow-block-tag">BLOK BIRU DIBACA 1 JAM</span>
+                      </div>
+
+                      <div className="poster-arrow-block arrow-pink">
+                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
+                        <span className="arrow-block-tag">BLOK PINK DIBACA 1 JAM</span>
+                      </div>
+
+                      <div className="poster-arrow-block arrow-krem">
+                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
+                        <span className="arrow-block-tag">BLOK KREM DIBACA 1 JAM</span>
+                      </div>
                     </div>
-                    <div className="tema-content">
-                      <h4>{pageData.primarySurah.name}: {pageData.verses[0].verseNumber} - {pageData.verses[pageData.verses.length - 1].verseNumber}</h4>
-                      <p>
-                        Ayat-ayat pada halaman ini mengandung petunjuk agung seputar {pageData.primarySurah.name} ({pageData.primarySurah.arti}), mengokohkan tauhid, risalah kenabian, serta tadabbur hukum dan hikmah kehidupan.
-                      </p>
+
+                    <div className="poster-orange-guide-card">
+                      <div className="guide-card-point">
+                        <i className="fa-solid fa-circle-check"></i>
+                        <p>
+                          <strong>Membaca ulang</strong> ayat-ayat yang di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>40 Menit</strong>.
+                        </p>
+                      </div>
+
+                      <div className="guide-card-point">
+                        <i className="fa-solid fa-circle-check"></i>
+                        <p>
+                          <strong>Menghafal (dengan TUTUP-BUKA)</strong> ayat-ayat yang di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>20 Menit</strong>.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* ============================================================== */}
-              {/* 4. FOOTER: KOLOM TERJEMAH KEMENAG RI & NOMOR HALAMAN           */}
-              {/* ============================================================== */}
-              <div className="mushaf-page-footer">
-                <div className="footer-terjemah-header">
-                  <i className="fa-solid fa-book-open"></i>
-                  <span>TERJEMAH RESMI KEMENTERIAN AGAMA RI (HALAMAN {cordobaPage})</span>
+              {/* If in Poster Mode: Show Bottom Callouts */}
+              {cordobaSubView === "poster" && (
+                <div className="poster-bottom-callouts-bar">
+                  <div className="poster-callout-pill pill-murajaah">
+                    <i className="fa-solid fa-arrow-up-long callout-arrow-up"></i>
+                    <span className="callout-pill-title">Tabel Muraja'ah</span>
+                    <span className="callout-pill-desc">Tabel Muraja'ah 5 x sehari dalam 1 pekan</span>
+                  </div>
+
+                  <div className="poster-callout-pill pill-terjemah">
+                    <i className="fa-solid fa-arrow-up-long callout-arrow-up"></i>
+                    <span className="callout-pill-title">Terjemah</span>
+                    <span className="callout-pill-desc">Terjemah Kementerian Agama RI</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* LIGHTBOX MODAL: LIHAT FOTO BROSUR ASLI */}
+          {showOriginalModal && (
+            <div className="photo-lightbox-backdrop" onClick={() => setShowOriginalModal(false)}>
+              <div className="photo-lightbox-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="lightbox-modal-header">
+                  <div className="lightbox-modal-title">
+                    <i className="fa-solid fa-image"></i>
+                    <span>Foto Brosur Asli Mushaf Al-Hufaz Cordoba</span>
+                  </div>
+                  <button
+                    type="button"
+                    className="lightbox-close-btn"
+                    onClick={() => setShowOriginalModal(false)}
+                  >
+                    <i className="fa-solid fa-xmark"></i>
+                  </button>
                 </div>
 
-                <div className="footer-terjemah-grid">
-                  {pageData.verses.map((v) => (
-                    <div key={`trans-${v.verseKey}`} className="terjemah-col-item">
-                      <span className="terjemah-ayah-badge">
-                        [{v.verseNumber}]
-                      </span>
-                      <span className="terjemah-text-body">
-                        {v.translationIndo}
-                      </span>
-                    </div>
-                  ))}
+                <div className="lightbox-modal-body">
+                  <img
+                    src="/images/quran/mushaf-alhufaz-cordoba-asli.png"
+                    alt="Diagram Mushaf Al-Hufaz Cordoba Asli"
+                    className="lightbox-img"
+                  />
                 </div>
 
-                <div className="mushaf-page-bottom-number">
-                  <span className="page-num-circle">{cordobaPage}</span>
+                <div className="lightbox-modal-footer">
+                  <p>
+                    Diagram Resmi Mushaf Al-Qur'an Al-Hufaz (Penerbit Cordoba) - Metode 5 Jam Hafal 1 Halaman.
+                  </p>
+                  <button
+                    type="button"
+                    className="lightbox-action-btn"
+                    onClick={() => setShowOriginalModal(false)}
+                  >
+                    Tutup Tampilan
+                  </button>
                 </div>
               </div>
             </div>

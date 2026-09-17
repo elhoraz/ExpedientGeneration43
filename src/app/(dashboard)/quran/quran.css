@@ -340,690 +340,942 @@
 }
 
 /* ===================================================
-   4. THE AUTHENTIC CORDOBA PRINTED MUSHAF SHEET
+   4. REPLIKA AUTENTIK LEMBARAN MUSHAF AL-HUFAZ CORDOBA
    =================================================== */
 
-.cordoba-mushaf-sheet {
-  background: #fdfbf7; /* Authentic printed Quran paper tint */
-  color: #1a1a1a;
-  border-radius: 20px;
-  padding: 24px 20px;
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(212, 175, 55, 0.08);
-  border: 4px double #b8860b;
-  position: relative;
-  overflow: hidden;
-}
-
-[data-theme="dark"] .cordoba-mushaf-sheet {
-  background: #0d151d;
-  color: #e2e8f0;
-  border-color: rgba(212, 175, 55, 0.5);
-  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), inset 0 0 50px rgba(0, 0, 0, 0.5);
-}
-
-/* Sheet Top Header */
-.mushaf-page-top-header {
+/* Subview Selector Bar */
+.cordoba-subview-panel {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 14px;
-  margin-bottom: 16px;
-  border-bottom: 2px solid #b8860b;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  backdrop-filter: blur(12px);
 }
 
-.header-juz-badge {
-  padding: 4px 14px;
-  border-radius: 6px;
-  background: #b8860b;
-  color: #ffffff;
+.subview-toggle-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.subview-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5e1;
   font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 1px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.header-surah-title h2 {
-  font-family: var(--font-playfair, serif);
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin: 0;
-  color: #854d0e;
-  letter-spacing: -0.3px;
-}
-
-[data-theme="dark"] .header-surah-title h2 {
+.subview-toggle-btn:hover {
+  background: rgba(212, 175, 55, 0.2);
   color: #ffd700;
 }
 
-.header-method-badge {
+.subview-toggle-btn.active {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  border-color: #34d399;
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+.subview-photo-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: rgba(212, 175, 55, 0.15);
+  color: #fef08a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.subview-photo-btn:hover {
+  background: #d4af37;
+  color: #060b14;
+}
+
+/* Wrapper */
+.cordoba-display-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.poster-layout-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* THE AUTHENTIC PRINTED SHEET — LOCKED TO CLEAN WHITE PAPER */
+.cordoba-mushaf-sheet {
+  flex: 1;
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 2.5px solid #84cc16 !important; /* Authentic green frame border as in photo */
+  border-radius: 18px !important;
+  padding: 16px 18px !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35) !important;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Sheet Top Ribbon */
+.mushaf-sheet-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #ca8a04;
+  position: relative;
+}
+
+.ornate-title-cartouche {
+  flex: 1;
+  text-align: center;
+}
+
+.ornate-title-cartouche h2 {
+  font-family: var(--font-playfair, 'Georgia', serif);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #854d0e;
+  margin: 0;
+  letter-spacing: -0.3px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.ornate-method-pill {
+  display: inline-flex;
+  align-items: center;
   padding: 4px 12px;
   border-radius: 20px;
-  background: rgba(184, 134, 11, 0.12);
-  border: 1px solid rgba(184, 134, 11, 0.4);
-  color: #854d0e;
-  font-size: 0.78rem;
-  font-weight: 700;
+  background: #1e3a8a;
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
 }
 
-[data-theme="dark"] .header-method-badge {
-  color: #fef08a;
-  background: rgba(212, 175, 55, 0.15);
-}
-
-/* Three Column Body Grid */
-.mushaf-page-body-grid {
+/* Three Column Body Layout */
+.sheet-columns-layout {
   display: grid;
-  grid-template-columns: 240px 1fr 240px;
-  gap: 16px;
-  margin-bottom: 20px;
+  grid-template-columns: 210px 1fr 210px;
+  gap: 12px;
   align-items: stretch;
 }
 
-/* ==============================================================
-   4A. MARGIN KIRI: KOTAK KONTROL & TABEL MURAJA'AH
-   ============================================================== */
-.mushaf-left-margin {
+/* 4A. MARGIN KIRI: KOTAK KONTROL & TABEL MURAJA'AH */
+.sheet-left-margin {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
-.left-margin-header {
+.sheet-left-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sheet-left-block-card {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  padding: 6px 8px;
+}
+
+.left-block-head {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #854d0e;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid rgba(184, 134, 11, 0.3);
+  margin-bottom: 4px;
 }
 
-[data-theme="dark"] .left-margin-header {
-  color: #ffd700;
-}
-
-.block-control-boxes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.block-control-card {
-  border: 1.5px solid;
-  border-radius: 10px;
-  background: #ffffff;
-  padding: 8px 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="dark"] .block-control-card {
-  background: rgba(15, 23, 42, 0.85);
-}
-
-.ctrl-card-title {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  margin-bottom: 6px;
-  display: inline-block;
-}
-
-.ctrl-checkboxes {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 6px;
-}
-
-.ctrl-check-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.ctrl-check-item input[type="checkbox"] {
-  cursor: pointer;
-  accent-color: #10b981;
-}
-
-.ctrl-keywords-section {
-  padding-top: 4px;
-  border-top: 1px dashed rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="dark"] .ctrl-keywords-section {
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-.keywords-label {
-  font-size: 0.65rem;
-  color: #64748b;
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.keywords-tags {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.keyword-arabic-badge {
-  font-family: var(--font-amiri), 'Amiri', serif;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #047857;
-  direction: rtl;
-  text-align: right;
-  line-height: 1.3;
-}
-
-[data-theme="dark"] .keyword-arabic-badge {
-  color: #34d399;
-}
-
-/* Tabel Muraja'ah */
-.murajaah-table-card {
-  border: 1.5px solid #10b981;
-  border-radius: 10px;
-  background: #ffffff;
-  padding: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="dark"] .murajaah-table-card {
-  background: rgba(15, 23, 42, 0.85);
-  border-color: rgba(52, 211, 153, 0.5);
-}
-
-.murajaah-card-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: #065f46;
-  margin-bottom: 6px;
-}
-
-[data-theme="dark"] .murajaah-card-title {
-  color: #34d399;
-}
-
-.murajaah-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.murajaah-row {
-  display: grid;
-  grid-template-columns: 44px repeat(7, 1fr);
-  gap: 2px;
-  align-items: center;
-  text-align: center;
-  font-size: 0.65rem;
-}
-
-.murajaah-row.header-row {
-  font-weight: 700;
-  color: #64748b;
-}
-
-.waktu-col {
-  text-align: left;
-  font-weight: 700;
-  color: #475569;
-}
-
-[data-theme="dark"] .waktu-col {
-  color: #94a3b8;
-}
-
-.murajaah-check-box {
+.left-block-num-square {
   width: 18px;
   height: 18px;
-  margin: 0 auto;
-  border-radius: 4px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  font-size: 0.6rem;
+  border-radius: 3px;
+}
+
+.left-block-pill-title {
+  background: #1e3a8a;
   color: #ffffff;
-  transition: all 0.15s ease;
-}
-
-.murajaah-check-box.checked {
-  background: #10b981;
-  border-color: #059669;
-}
-
-/* ==============================================================
-   4B. TENGAH: LEMBARAN MUSHAF ASLI 5 BLOK WARNA CORDOBA
-   ============================================================== */
-.mushaf-center-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.mushaf-ornate-inner-border {
-  border: 2px solid #b8860b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
   border-radius: 12px;
-  overflow: hidden;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
 }
 
-[data-theme="dark"] .mushaf-ornate-inner-border {
-  background: #0a0f16;
-  border-color: rgba(212, 175, 55, 0.4);
-}
-
-.mushaf-color-block {
-  padding: 16px 20px;
-  border-left: 6px solid;
-  border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
-  transition: all 0.25s ease;
-  position: relative;
-}
-
-[data-theme="dark"] .mushaf-color-block {
-  border-bottom-color: rgba(255, 255, 255, 0.1);
-  background: rgba(15, 23, 42, 0.4) !important;
-}
-
-.mushaf-color-block:last-child {
-  border-bottom: none;
-}
-
-.mushaf-block-quick-bar {
+.left-block-checklist-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  gap: 4px;
+  margin: 3px 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #334155;
 }
 
-.block-tag-left {
+.chk-bubbles {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  gap: 3px;
 }
 
-.block-pill-indicator {
-  width: 22px;
-  height: 22px;
+.chk-bubble {
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
-  color: #ffffff;
+  border: 1.5px solid #16a34a;
+  background: #ffffff;
+  color: #16a34a;
+  font-size: 0.62rem;
+  font-weight: 800;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
-  font-weight: 800;
+  padding: 0;
+  transition: all 0.15s ease;
 }
 
-.block-color-name {
-  font-size: 0.8rem;
+.chk-bubble.checked {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.left-block-keywords {
+  font-family: var(--font-amiri), serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #059669;
+  text-align: right;
+  direction: rtl;
+  line-height: 1.25;
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+/* Tabel Muraja'ah */
+.sheet-murajaah-box {
+  border: 1.5px solid #10b981;
+  border-radius: 8px;
+  background: #f0fdf4;
+  padding: 6px;
+  margin-top: 4px;
+}
+
+.murajaah-box-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 4px;
+}
+
+.murajaah-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  text-transform: uppercase;
+}
+
+.murajaah-sub {
+  font-size: 0.58rem;
+  color: #047857;
+  font-style: italic;
+}
+
+.murajaah-grid-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.murajaah-col-headers {
+  display: grid;
+  grid-template-columns: 32px repeat(5, 1fr);
+  gap: 2px;
+  text-align: center;
+  font-size: 0.6rem;
   font-weight: 700;
   color: #475569;
 }
 
-[data-theme="dark"] .block-color-name {
-  color: #cbd5e1;
-}
-
-.block-actions-right {
-  display: flex;
+.murajaah-grid-row {
+  display: grid;
+  grid-template-columns: 32px repeat(5, 1fr);
+  gap: 2px;
   align-items: center;
-  gap: 8px;
+  text-align: center;
 }
 
-/* TUTUP / BUKA BUTTON (Sesuai Panah Gambar) */
-.block-tutup-buka-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid #b8860b;
-  background: #ffffff;
-  color: #854d0e;
-  font-size: 0.74rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+.row-day {
+  text-align: left;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #334155;
 }
 
-.block-tutup-buka-btn:hover {
-  background: #fef08a;
-  transform: translateY(-1px);
-}
-
-.block-tutup-buka-btn.closed {
-  background: #f43f5e;
-  border-color: #e11d48;
-  color: #ffffff;
-}
-
-.block-murottal-btn {
-  width: 26px;
-  height: 26px;
+.murajaah-bubble {
+  width: 15px;
+  height: 15px;
+  margin: 0 auto;
   border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid #94a3b8;
   background: #ffffff;
-  color: #10b981;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.55rem;
+  color: #16a34a;
   cursor: pointer;
+  padding: 0;
 }
 
-[data-theme="dark"] .block-tutup-buka-btn {
-  background: rgba(15, 23, 42, 0.9);
-  color: #ffd700;
+.murajaah-bubble.checked {
+  background: #16a34a;
+  border-color: #15803d;
+  color: #ffffff;
+  font-weight: 800;
 }
 
-[data-theme="dark"] .block-murottal-btn {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: rgba(255, 255, 255, 0.2);
+/* 4B. TENGAH: LEMBARAN MUSHAF ASLI 5 BLOK WARNA CONTINUOUS */
+.sheet-center-mushaf {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Arabic Flow */
-.block-arabic-flow {
+.mushaf-golden-frame {
+  border: 3.5px double #ca8a04;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: inset 0 0 10px rgba(202, 138, 4, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-color-band {
+  padding: 14px 18px;
+  position: relative;
+  border-bottom: 1px dashed rgba(202, 138, 4, 0.35);
+  transition: all 0.2s ease;
+}
+
+.sheet-color-band:last-child {
+  border-bottom: none;
+}
+
+/* 5 PASTEL BANDS MATCHING PHOTO EXACTLY */
+.band-1 { background: #FFF9C4 !important; } /* Kuning / Pastel Gold */
+.band-2 { background: #DCFCE7 !important; } /* Hijau / Pastel Emerald */
+.band-3 { background: #E0F2FE !important; } /* Biru / Pastel Sky */
+.band-4 { background: #FCE7F3 !important; } /* Pink / Pastel Rose */
+.band-5 { background: #FFEDD5 !important; } /* Krem / Pastel Amber */
+
+.band-floating-controls {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 5;
+}
+
+.band-toggle-tutup-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(133, 77, 14, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  color: #854d0e;
+  font-size: 0.66rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+
+.band-toggle-tutup-btn:hover {
+  background: #ffffff;
+  border-color: #854d0e;
+}
+
+.band-toggle-tutup-btn.is-closed {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #b91c1c;
+}
+
+.band-audio-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(133, 77, 14, 0.4);
+  background: rgba(255, 255, 255, 0.9);
+  color: #059669;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.band-arabic-text {
   direction: rtl;
   text-align: justify;
   text-justify: inter-word;
-  line-height: 2.5;
+  line-height: 2.35;
+  font-family: var(--font-amiri), 'Amiri Quran', 'Traditional Arabic', serif;
+  font-size: 1.7rem;
+  color: #0f172a;
 }
 
-.arabic-ayah-span {
-  font-family: var(--font-amiri), 'Amiri', 'Traditional Arabic', serif;
-  font-size: 1.55rem;
-  color: #0f172a;
+.verse-span {
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 1px 3px;
   border-radius: 4px;
   transition: background 0.15s ease;
 }
 
-[data-theme="dark"] .arabic-ayah-span {
-  color: #ffffff;
+.verse-span:hover {
+  background: rgba(202, 138, 4, 0.18);
 }
 
-.arabic-ayah-span:hover {
-  background: rgba(212, 175, 55, 0.2);
+.verse-span.highlight-audio {
+  background: #fde047 !important;
+  color: #000000 !important;
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.8);
 }
 
-.arabic-ayah-span.playing-highlight {
-  background: #ffd700 !important;
-  color: #060b14 !important;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-}
-
-.cordoba-verse-marker {
-  font-family: var(--font-amiri), serif;
-  color: #ca8a04;
-  margin: 0 4px;
-  font-size: 1.15em;
-  position: relative;
+.verse-golden-ayah-marker {
   display: inline-block;
+  position: relative;
+  margin: 0 3px;
+  vertical-align: middle;
 }
 
-.marker-digit {
-  font-size: 0.65em;
-  font-weight: 700;
+.ayah-symbol {
+  font-size: 1.15em;
+  color: #ca8a04;
+}
+
+.ayah-num {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.52em;
+  font-weight: 800;
   color: #854d0e;
+  font-family: var(--font-inter), sans-serif;
 }
 
-[data-theme="dark"] .marker-digit {
-  color: #fef08a;
-}
-
-/* Closed Blind Shield */
-.block-blind-shield {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 30px 16px;
-  border-radius: 12px;
-  background: rgba(244, 63, 94, 0.08);
-  border: 1px dashed #f43f5e;
-  text-align: center;
+/* Blind Cover */
+.band-blind-cover {
+  padding: 26px 16px;
+  border: 2px dashed #dc2626;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
   cursor: pointer;
+  text-align: center;
   transition: all 0.2s ease;
 }
 
-.block-blind-shield:hover {
-  background: rgba(244, 63, 94, 0.15);
+.blind-cover-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #dc2626;
 }
 
-.shield-icon {
-  font-size: 1.6rem;
-  color: #f43f5e;
-  margin-bottom: 6px;
+.blind-cover-card i {
+  font-size: 1.5rem;
 }
 
-.shield-title {
-  font-size: 0.92rem;
-  font-weight: 800;
-  color: #e11d48;
-  margin-bottom: 2px;
+.blind-cover-card strong {
+  font-size: 0.88rem;
 }
 
-.shield-desc {
-  font-size: 0.78rem;
+.blind-cover-card span {
+  font-size: 0.74rem;
   color: #64748b;
 }
 
-/* ==============================================================
-   4C. MARGIN KANAN: PANDUAN, MOTIVASI, & TEMA AYAT
-   ============================================================== */
-.mushaf-right-margin {
+/* Frame Bottom Navigation */
+.mushaf-frame-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 12px;
+  background: #fffdf9;
+  border-top: 1px solid #ca8a04;
+  font-size: 0.8rem;
+  color: #854d0e;
+}
+
+.bottom-left-guide-text {
+  font-family: var(--font-amiri), serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+.bottom-center-cartouche {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  border: 1px solid #ca8a04;
+  background: #fef9c3;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+/* 4C. MARGIN KANAN: METODE, MOTIVASI & TEMA AYAT */
+.sheet-right-margin {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sheet-right-card {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.right-card-header {
+  padding: 4px 10px;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+
+.right-card-header.blue-header { background: #1e3a8a; }
+.right-card-header.red-header { background: #dc2626; }
+.right-card-header.green-header { background: #15803d; }
+
+.metode-numbered-list {
+  margin: 0;
+  padding: 6px 10px 6px 22px;
+  font-size: 0.65rem;
+  line-height: 1.45;
+  color: #334155;
+}
+
+.metode-numbered-list li {
+  margin-bottom: 3px;
+}
+
+.motivasi-body-text {
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: #1e293b;
+  margin: 6px 8px 3px 8px;
+  font-weight: 600;
+}
+
+.motivasi-author-text {
+  font-size: 0.62rem;
+  color: #047857;
+  font-weight: 700;
+  margin: 0 8px 6px 8px;
+  text-align: right;
+}
+
+.tema-items-list {
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tema-sub-item {
+  font-size: 0.64rem;
+  line-height: 1.35;
+  color: #334155;
+}
+
+.tema-item-title {
+  color: #065f46;
+}
+
+.tema-item-desc {
+  margin: 1px 0 0 0;
+}
+
+/* 4D. FOOTER: TERJEMAH KEMENAG RI (3 COLUMNS) */
+.sheet-terjemah-section {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 2px solid #15803d;
+}
+
+.terjemah-green-ribbon {
+  background: #15803d;
+  color: #ffffff;
+  padding: 4px 14px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ribbon-title {
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.ribbon-sub {
+  font-size: 0.68rem;
+  opacity: 0.9;
+}
+
+.terjemah-three-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.terjemah-col-subheading {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #065f46;
+  margin: 0 0 5px 0;
+  border-bottom: 1px solid #10b981;
+  padding-bottom: 2px;
+}
+
+.terjemah-verse-para {
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+  text-align: justify;
+}
+
+.terjemah-verse-bold {
+  color: #047857;
+}
+
+.terjemah-footnotes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  font-size: 0.62rem;
+  color: #64748b;
+}
+
+.sheet-bottom-watermark-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.watermark-badge-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.page-box {
+  width: 22px;
+  height: 22px;
+  background: #15803d;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border-radius: 4px;
+}
+
+.brand-name {
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+/* ===================================================
+   4E. POSTER ANATOMI VIEW (SESUAI BROSUR FOTO)
+   =================================================== */
+
+.poster-top-callouts-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.poster-callout-pill {
+  background: #ffffff;
+  border: 1.5px solid #22c55e;
+  border-radius: 12px;
+  padding: 8px 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.callout-pill-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #15803d;
+  margin-bottom: 2px;
+}
+
+.callout-pill-desc {
+  font-size: 0.65rem;
+  line-height: 1.35;
+  color: #334155;
+}
+
+.callout-arrow-down {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #dc2626;
+  font-size: 1.15rem;
+}
+
+.poster-right-sidebar {
+  width: 240px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.panduan-card,
-.motivasi-card,
-.tema-ayat-card {
-  border: 1.5px solid;
-  border-radius: 10px;
-  background: #ffffff;
-  padding: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.poster-arrows-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-[data-theme="dark"] .panduan-card,
-[data-theme="dark"] .motivasi-card,
-[data-theme="dark"] .tema-ayat-card {
-  background: rgba(15, 23, 42, 0.85);
-}
-
-.panduan-card {
-  border-color: #0ea5e9;
-}
-
-.panduan-header {
+.poster-arrow-block {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 20px;
   font-weight: 800;
-  color: #0284c7;
-  margin-bottom: 8px;
-}
-
-.panduan-list {
-  margin: 0;
-  padding-left: 16px;
   font-size: 0.72rem;
-  line-height: 1.5;
-  color: #475569;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
-[data-theme="dark"] .panduan-list {
-  color: #cbd5e1;
+.arrow-icon {
+  font-size: 1.1rem;
+  color: #dc2626;
+  filter: drop-shadow(0 0 2px #ffffff);
 }
 
-.motivasi-card {
-  border-color: #b8860b;
-}
+.arrow-kuning { background: linear-gradient(135deg, #ca8a04, #a16207); }
+.arrow-hijau { background: linear-gradient(135deg, #16a34a, #15803d); }
+.arrow-biru { background: linear-gradient(135deg, #0284c7, #0369a1); }
+.arrow-pink { background: linear-gradient(135deg, #e11d48, #be123c); }
+.arrow-krem { background: linear-gradient(135deg, #ea580c, #c2410c); }
 
-.motivasi-header {
+.poster-orange-guide-card {
+  background: #fff7ed;
+  border: 2px solid #ea580c;
+  border-radius: 14px;
+  padding: 12px;
   display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: #854d0e;
-  margin-bottom: 4px;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.15);
 }
 
-[data-theme="dark"] .motivasi-header {
-  color: #ffd700;
+.guide-card-point {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
 }
 
-.motivasi-author {
+.guide-card-point i {
+  color: #ea580c;
+  font-size: 0.9rem;
+  margin-top: 2px;
+}
+
+.guide-card-point p {
   font-size: 0.68rem;
-  color: #64748b;
-  font-style: italic;
-  margin-bottom: 6px;
-}
-
-.motivasi-quote {
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: #1e293b;
-  margin: 0;
-  font-weight: 600;
-}
-
-[data-theme="dark"] .motivasi-quote {
-  color: #e2e8f0;
-}
-
-.tema-ayat-card {
-  border-color: #10b981;
-}
-
-.tema-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  color: #059669;
-  margin-bottom: 6px;
-}
-
-.tema-content h4 {
-  font-size: 0.78rem;
-  font-weight: 700;
-  margin: 0 0 4px 0;
-  color: #065f46;
-}
-
-[data-theme="dark"] .tema-content h4 {
-  color: #34d399;
-}
-
-.tema-content p {
-  font-size: 0.72rem;
-  line-height: 1.5;
-  color: #475569;
+  line-height: 1.45;
+  color: #9a3412;
   margin: 0;
 }
 
-[data-theme="dark"] .tema-content p {
-  color: #cbd5e1;
-}
-
-/* ==============================================================
-   4D. FOOTER: TERJEMAH RESMI KEMENAG RI & NOMOR HALAMAN
-   ============================================================= */
-.mushaf-page-footer {
-  padding-top: 16px;
-  border-top: 2px solid #b8860b;
-}
-
-.footer-terjemah-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #854d0e;
-  margin-bottom: 10px;
-}
-
-[data-theme="dark"] .footer-terjemah-header {
-  color: #ffd700;
-}
-
-.footer-terjemah-grid {
+.poster-bottom-callouts-bar {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 8px 16px;
-  margin-bottom: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 10px;
 }
 
-.terjemah-col-item {
-  font-size: 0.75rem;
-  line-height: 1.55;
-  color: #334155;
+.callout-arrow-up {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #dc2626;
+  font-size: 1.15rem;
 }
 
-[data-theme="dark"] .terjemah-col-item {
-  color: #cbd5e1;
-}
+/* ===================================================
+   4F. LIGHTBOX MODAL: LIHAT FOTO ASLI BROSUR
+   =================================================== */
 
-.terjemah-ayah-badge {
-  font-weight: 800;
-  color: #b8860b;
-  margin-right: 4px;
-}
-
-[data-theme="dark"] .terjemah-ayah-badge {
-  color: #ffd700;
-}
-
-.mushaf-page-bottom-number {
-  text-align: center;
-}
-
-.page-num-circle {
-  display: inline-flex;
+.photo-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 99999;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid #b8860b;
-  font-weight: 800;
-  font-size: 0.85rem;
-  color: #854d0e;
+  padding: 20px;
+  animation: fadeIn 0.25s ease;
 }
 
-[data-theme="dark"] .page-num-circle {
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.photo-lightbox-modal {
+  background: #ffffff;
+  border-radius: 18px;
+  max-width: 580px;
+  width: 100%;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lightbox-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.lightbox-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
   color: #ffd700;
-  border-color: #ffd700;
+}
+
+.lightbox-close-btn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.lightbox-close-btn:hover {
+  color: #ffffff;
+}
+
+.lightbox-modal-body {
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.lightbox-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.lightbox-modal-footer {
+  padding: 12px 18px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lightbox-modal-footer p {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.lightbox-action-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #1e3a8a;
+  color: #ffffff;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 /* ===================================================
@@ -1031,7 +1283,20 @@
    =================================================== */
 
 @media (max-width: 1024px) {
-  .mushaf-page-body-grid {
+  .poster-layout-row {
+    flex-direction: column;
+  }
+
+  .poster-right-sidebar {
+    width: 100%;
+  }
+
+  .poster-arrows-stack {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sheet-columns-layout {
     grid-template-columns: 1fr;
   }
 
@@ -1039,15 +1304,15 @@
     display: flex;
   }
 
-  .mushaf-left-margin,
-  .mushaf-right-margin,
-  .mushaf-center-content {
+  .sheet-left-margin,
+  .sheet-right-margin,
+  .sheet-center-mushaf {
     display: none;
   }
 
-  .mushaf-left-margin.show-mobile,
-  .mushaf-right-margin.show-mobile,
-  .mushaf-center-content.show-mobile {
+  .sheet-left-margin.show-mobile,
+  .sheet-right-margin.show-mobile,
+  .sheet-center-mushaf.show-mobile {
     display: flex;
   }
 
@@ -1071,27 +1336,51 @@
     width: 100%;
   }
 
-  .arabic-ayah-span {
-    font-size: 1.35rem;
-    line-height: 2.3;
+  .band-arabic-text {
+    font-size: 1.45rem;
+    line-height: 2.2;
+  }
+
+  .terjemah-three-columns {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .poster-top-callouts-bar,
+  .poster-bottom-callouts-bar {
+    grid-template-columns: 1fr;
+  }
+
+  .callout-arrow-down,
+  .callout-arrow-up {
+    display: none;
   }
 }
 
 @media (max-width: 640px) {
   .cordoba-mushaf-sheet {
-    padding: 16px 12px;
-    border-width: 2px;
+    padding: 12px 10px !important;
+    border-width: 2px !important;
   }
 
-  .header-surah-title h2 {
-    font-size: 1rem;
+  .ornate-title-cartouche h2 {
+    font-size: 1.05rem;
   }
 
   .btn-label-mobile {
     display: none;
   }
 
-  .mushaf-color-block {
-    padding: 12px 10px;
+  .sheet-color-band {
+    padding: 10px 8px;
+  }
+
+  .band-arabic-text {
+    font-size: 1.3rem;
+  }
+
+  .poster-arrows-stack {
+    grid-template-columns: 1fr;
   }
 }
+
