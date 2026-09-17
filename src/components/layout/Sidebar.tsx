@@ -81,6 +81,7 @@ export default function Sidebar() {
   // Fitur sub-pages for active state detection
   const fiturPages = [
     "/fitur",
+    "/quran",
     "/matsurat",
     "/mahfuzhat",
     "/asmaul-husna",
