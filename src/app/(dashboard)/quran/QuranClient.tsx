@@ -29,6 +29,17 @@ interface BookmarkItem {
   addedAt: number;
 }
 
+export interface HufazBlock {
+  blockIndex: number; // 0 to 4
+  colorKey: "gold" | "cyan" | "emerald" | "rose" | "amber";
+  colorName: string;
+  colorHex: string;
+  bgClass: string;
+  startAyat: number;
+  endAyat: number;
+  ayahs: QuranAyatItem[];
+}
+
 export default function QuranClient({ currentUserId }: { currentUserId: string }) {
   // Navigation & View States
   const [activeTab, setActiveTab] = useState<"surah" | "juz">("surah");
@@ -37,6 +48,16 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   const [selectedSurah, setSelectedSurah] = useState<QuranSurahDetail | null>(null);
   const [loadingSurah, setLoadingSurah] = useState(false);
   const [errorSurah, setErrorSurah] = useState<string | null>(null);
+
+  // Reader Mode: Tilawah vs Hafalan Al-Hufaz
+  const [readerMode, setReaderMode] = useState<"tilawah" | "hufaz">("tilawah");
+
+  // Al-Hufaz Hafalan States
+  const [hufazTestMode, setHufazTestMode] = useState<"full" | "keywords" | "hidden">("full");
+  const [revealedAyahs, setRevealedAyahs] = useState<{ [ayahNum: number]: boolean }>({});
+  const [tikrarCounts, setTikrarCounts] = useState<{ [key: string]: number }>({});
+  const [mutqinAyahs, setMutqinAyahs] = useState<{ [key: string]: boolean }>({});
+  const [activePlayingBlock, setActivePlayingBlock] = useState<number | null>(null);
 
   // Reader Settings
   const [fontSize, setFontSize] = useState<"sm" | "md" | "lg" | "xl">("md");
@@ -104,6 +125,21 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       if (savedQari && QARI_LIST.some((q) => q.id === savedQari)) {
         setSelectedQari(savedQari);
       }
+
+      const savedTikrar = localStorage.getItem("expedient_quran_tikrar");
+      if (savedTikrar) {
+        setTikrarCounts(JSON.parse(savedTikrar));
+      }
+
+      const savedMutqin = localStorage.getItem("expedient_quran_mutqin");
+      if (savedMutqin) {
+        setMutqinAyahs(JSON.parse(savedMutqin));
+      }
+
+      const savedReaderMode = localStorage.getItem("expedient_quran_reader_mode");
+      if (savedReaderMode === "tilawah" || savedReaderMode === "hufaz") {
+        setReaderMode(savedReaderMode);
+      }
     } catch (e) {
       console.warn("Error reading Quran preferences from localStorage:", e);
     }
@@ -117,12 +153,19 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     } catch {}
   };
 
+  const handleSetReaderMode = (mode: "tilawah" | "hufaz") => {
+    triggerHaptic(12);
+    setReaderMode(mode);
+    try {
+      localStorage.setItem("expedient_quran_reader_mode", mode);
+    } catch {}
+  };
+
   const handleSetQari = (qariId: string) => {
     setSelectedQari(qariId);
     try {
       localStorage.setItem("expedient_quran_qari", qariId);
     } catch {}
-    // If playing, switch audio source smoothly
     if (isPlaying && currentPlayingAyah !== null && selectedSurah) {
       const ayah = selectedSurah.ayat.find((a) => a.nomorAyat === currentPlayingAyah);
       if (ayah && ayah.audio[qariId]) {
@@ -150,12 +193,78 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     return list;
   }, [searchQuery, revelationFilter]);
 
+  // Al-Hufaz 5-Block Mathematical Calculation
+  const hufazBlocks = useMemo<HufazBlock[]>(() => {
+    if (!selectedSurah || !selectedSurah.ayat || selectedSurah.ayat.length === 0) return [];
+    const total = selectedSurah.ayat.length;
+    const numBlocks = Math.min(5, total);
+    const blockSize = Math.ceil(total / numBlocks);
+
+    const blockConfigs: Array<{
+      colorKey: "gold" | "cyan" | "emerald" | "rose" | "amber";
+      colorName: string;
+      colorHex: string;
+      bgClass: string;
+    }> = [
+      { colorKey: "gold", colorName: "Kuning Emas", colorHex: "#eab308", bgClass: "blok-gold" },
+      { colorKey: "cyan", colorName: "Biru Langit", colorHex: "#0ea5e9", bgClass: "blok-cyan" },
+      { colorKey: "emerald", colorName: "Hijau Zamrud", colorHex: "#10b981", bgClass: "blok-emerald" },
+      { colorKey: "rose", colorName: "Merah Mawar", colorHex: "#f43f5e", bgClass: "blok-rose" },
+      { colorKey: "amber", colorName: "Oranye Jingga", colorHex: "#f97316", bgClass: "blok-amber" },
+    ];
+
+    const blocks: HufazBlock[] = [];
+    for (let i = 0; i < numBlocks; i++) {
+      const startIndex = i * blockSize;
+      const endIndex = Math.min((i + 1) * blockSize, total);
+      if (startIndex < total) {
+        const slice = selectedSurah.ayat.slice(startIndex, endIndex);
+        blocks.push({
+          blockIndex: i,
+          ...blockConfigs[i % blockConfigs.length],
+          startAyat: slice[0].nomorAyat,
+          endAyat: slice[slice.length - 1].nomorAyat,
+          ayahs: slice,
+        });
+      }
+    }
+    return blocks;
+  }, [selectedSurah]);
+
+  // Overall Mutqin Statistics for Current Surah
+  const surahMutqinStats = useMemo(() => {
+    if (!selectedSurah) return { total: 0, mutqinCount: 0, percentage: 0 };
+    const total = selectedSurah.jumlahAyat;
+    let count = 0;
+    for (let a = 1; a <= total; a++) {
+      const key = `${selectedSurah.nomor}-${a}`;
+      if (mutqinAyahs[key]) count++;
+    }
+    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+    return { total, mutqinCount: count, percentage: pct };
+  }, [selectedSurah, mutqinAyahs]);
+
+  // Helper to split keywords (initial 2 words) for Al-Hufaz keyword mode
+  const getAyahKeywords = (teksArab: string) => {
+    const words = teksArab.trim().split(/\s+/);
+    if (words.length <= 2) return words.join(" ");
+    return words.slice(0, 2).join(" ");
+  };
+
+  const getAyahRemaining = (teksArab: string) => {
+    const words = teksArab.trim().split(/\s+/);
+    if (words.length <= 2) return "";
+    return words.slice(2).join(" ");
+  };
+
   // Open Surah Detail
   const openSurah = async (surahNumber: number, targetAyahNumber?: number) => {
     triggerHaptic(15);
     setLoadingSurah(true);
     setErrorSurah(null);
     stopAudio();
+    setActivePlayingBlock(null);
+    setRevealedAyahs({});
 
     try {
       const res = await fetch(`/api/quran/surat/${surahNumber}`);
@@ -202,6 +311,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     stopAudio();
     setSelectedSurah(null);
     setTafsirData(null);
+    setActivePlayingBlock(null);
   };
 
   // Audio Controls
@@ -212,9 +322,10 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     }
     setIsPlaying(false);
     setCurrentPlayingAyah(null);
+    setActivePlayingBlock(null);
   };
 
-  const playAyahAudio = (ayahNumber: number, qariId = selectedQari) => {
+  const playAyahAudio = (ayahNumber: number, qariId = selectedQari, targetBlockIndex?: number) => {
     if (!selectedSurah) return;
     const ayah = selectedSurah.ayat.find((a) => a.nomorAyat === ayahNumber);
     if (!ayah || !ayah.audio || !ayah.audio[qariId]) {
@@ -234,6 +345,9 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     audio.play().then(() => {
       setIsPlaying(true);
       setCurrentPlayingAyah(ayahNumber);
+      if (typeof targetBlockIndex === "number") {
+        setActivePlayingBlock(targetBlockIndex);
+      }
 
       // Auto-scroll to active ayah
       const el = document.getElementById(`ayah-${ayahNumber}`);
@@ -247,18 +361,41 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     });
 
     audio.onended = () => {
-      if (autoPlayNext && selectedSurah) {
-        const nextAyahNum = ayahNumber + 1;
-        if (nextAyahNum <= selectedSurah.jumlahAyat) {
-          playAyahAudio(nextAyahNum, qariId);
+      if (selectedSurah) {
+        // If playing inside a specific Hufaz Block
+        if (activePlayingBlock !== null && hufazBlocks[activePlayingBlock]) {
+          const currentBlock = hufazBlocks[activePlayingBlock];
+          const nextAyahNum = ayahNumber + 1;
+          if (nextAyahNum <= currentBlock.endAyat) {
+            playAyahAudio(nextAyahNum, qariId, activePlayingBlock);
+          } else {
+            stopAudio();
+            showToast(`Selesai memutar Blok ${activePlayingBlock + 1} (${currentBlock.colorName})`);
+          }
+          return;
+        }
+
+        // Normal continuous autoplay
+        if (autoPlayNext) {
+          const nextAyahNum = ayahNumber + 1;
+          if (nextAyahNum <= selectedSurah.jumlahAyat) {
+            playAyahAudio(nextAyahNum, qariId);
+          } else {
+            stopAudio();
+            showToast(`Selesai membaca Surah ${selectedSurah.namaLatin}`);
+          }
         } else {
           stopAudio();
-          showToast(`Selesai membaca Surah ${selectedSurah.namaLatin}`);
         }
-      } else {
-        stopAudio();
       }
     };
+  };
+
+  const playBlockAudio = (block: HufazBlock) => {
+    triggerHaptic(12);
+    setActivePlayingBlock(block.blockIndex);
+    showToast(`Memutar audio Murottal Blok ${block.blockIndex + 1} (${block.colorName})`);
+    playAyahAudio(block.startAyat, selectedQari, block.blockIndex);
   };
 
   const togglePlayCurrent = () => {
@@ -334,6 +471,50 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     );
   };
 
+  // Al-Hufaz Tikrar Click (1-5 repetitions)
+  const handleTikrarClick = (surahNum: number, ayahNum: number, targetCount: number) => {
+    triggerHaptic(12);
+    const key = `${surahNum}-${ayahNum}`;
+    const current = tikrarCounts[key] || 0;
+    const nextCount = current === targetCount ? targetCount - 1 : targetCount;
+    const updated = { ...tikrarCounts, [key]: nextCount };
+    setTikrarCounts(updated);
+    try {
+      localStorage.setItem("expedient_quran_tikrar", JSON.stringify(updated));
+    } catch {}
+
+    if (nextCount === 5) {
+      showToast(`Maa syaa Allah! Target 5x Pengulangan (Tikrar) selesai untuk Ayat ${ayahNum}! 🌟`);
+      triggerHaptic(25);
+    }
+  };
+
+  // Al-Hufaz Mutqin Toggle
+  const toggleMutqin = (surahNum: number, ayahNum: number) => {
+    triggerHaptic(15);
+    const key = `${surahNum}-${ayahNum}`;
+    const current = !!mutqinAyahs[key];
+    const updated = { ...mutqinAyahs, [key]: !current };
+    setMutqinAyahs(updated);
+    try {
+      localStorage.setItem("expedient_quran_mutqin", JSON.stringify(updated));
+    } catch {}
+    if (!current) {
+      showToast(`Alhamdulillah! Ayat ${ayahNum} ditandai Mutqin (Lancar) 🎯`);
+    } else {
+      showToast(`Ayat ${ayahNum} ditandai perlu muroja'ah`);
+    }
+  };
+
+  // Al-Hufaz Toggle Reveal Single Ayah
+  const toggleRevealAyah = (ayahNum: number) => {
+    triggerHaptic(10);
+    setRevealedAyahs((prev) => ({
+      ...prev,
+      [ayahNum]: !prev[ayahNum],
+    }));
+  };
+
   // Copy Ayah to Clipboard
   const copyAyah = (ayah: QuranAyatItem) => {
     if (!selectedSurah) return;
@@ -397,7 +578,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
               Al-Qur'an <span className="gold-text">Al-Karim</span>
             </h1>
             <p className="quran-hero-desc">
-              Pedoman hidup, penyejuk kalbu, dan pelita peradaban. Baca dan tadabburi 30 Juz & 114 Surah kalamullah dengan tilawah murottal syahdu.
+              Pedoman hidup, penyejuk kalbu, dan pelita peradaban. Baca, tadabburi, dan hafalkan kalamullah dengan metode 5 Blok Warna Al-Hufaz Cordoba.
             </p>
 
             {/* Quick Actions Header: Bookmarks & Last Read */}
@@ -608,7 +789,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
         </div>
       )}
 
-      {/* VIEW 2: SURAH READER MODE */}
+      {/* VIEW 2: SURAH READER MODE (Tilawah & Hafalan Al-Hufaz) */}
       {selectedSurah && (
         <div className="quran-reader-view">
           {/* Sticky Reader Top Bar */}
@@ -656,6 +837,97 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
               )}
             </div>
           </div>
+
+          {/* MAIN MODE SWITCHER: TILAWAH VS HAFALAN AL-HUFAZ */}
+          <div className="reader-mode-tabs-container">
+            <button
+              type="button"
+              className={`reader-mode-tab ${readerMode === "tilawah" ? "active" : ""}`}
+              onClick={() => handleSetReaderMode("tilawah")}
+            >
+              <i className="fa-solid fa-book-open"></i>
+              <span>Mode Tilawah & Tafsir</span>
+            </button>
+            <button
+              type="button"
+              className={`reader-mode-tab hufaz-mode-btn ${readerMode === "hufaz" ? "active" : ""}`}
+              onClick={() => handleSetReaderMode("hufaz")}
+            >
+              <i className="fa-solid fa-palette"></i>
+              <span>Hafalan Al-Hufaz</span>
+              <span className="hufaz-pill-badge">5 Blok Warna</span>
+            </button>
+          </div>
+
+          {/* AL-HUFAZ BANNER & CONTROLS (Only in Hafalan Mode) */}
+          {readerMode === "hufaz" && (
+            <div className="hufaz-dashboard-card">
+              <div className="hufaz-dashboard-header">
+                <div className="hufaz-badge-title">
+                  <i className="fa-solid fa-brain"></i>
+                  <span>Metode Hafalan Al-Qur'an Al-Hufaz (Cordoba)</span>
+                </div>
+                <div className="hufaz-stat-badge">
+                  <span>Mutqin: {surahMutqinStats.mutqinCount} / {surahMutqinStats.total} Ayat ({surahMutqinStats.percentage}%)</span>
+                </div>
+              </div>
+
+              <p className="hufaz-desc">
+                Hafalkan bertahap menggunakan **5 Blok Warna visual**. Ulangi setiap ayat/blok minimal **5x (Tikrar)** sampai lancar (Mutqin), lalu sambungkan ke blok berikutnya.
+              </p>
+
+              {/* Mutqin Progress Bar */}
+              <div className="hufaz-progress-track">
+                <div
+                  className="hufaz-progress-fill"
+                  style={{ width: `${surahMutqinStats.percentage}%` }}
+                ></div>
+              </div>
+
+              {/* Test / Blind Mode Controls */}
+              <div className="hufaz-test-control-bar">
+                <span className="control-label">Mode Uji Hafalan:</span>
+                <div className="test-btn-group">
+                  <button
+                    type="button"
+                    className={`test-mode-btn ${hufazTestMode === "full" ? "active" : ""}`}
+                    onClick={() => {
+                      triggerHaptic(8);
+                      setHufazTestMode("full");
+                      setRevealedAyahs({});
+                    }}
+                  >
+                    <i className="fa-solid fa-eye"></i>
+                    <span>Tampil Penuh</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`test-mode-btn ${hufazTestMode === "keywords" ? "active" : ""}`}
+                    onClick={() => {
+                      triggerHaptic(8);
+                      setHufazTestMode("keywords");
+                      setRevealedAyahs({});
+                    }}
+                  >
+                    <i className="fa-solid fa-key"></i>
+                    <span>Kata Kunci Awal</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`test-mode-btn ${hufazTestMode === "hidden" ? "active" : ""}`}
+                    onClick={() => {
+                      triggerHaptic(8);
+                      setHufazTestMode("hidden");
+                      setRevealedAyahs({});
+                    }}
+                  >
+                    <i className="fa-solid fa-eye-slash"></i>
+                    <span>Tutup Ayat (Uji Ingatan)</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Reader Sub-Control Bar: Settings */}
           <div className="reader-settings-bar">
@@ -714,24 +986,26 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                 <span>Terjemahan</span>
               </button>
 
-              <button
-                type="button"
-                className={`toggle-pill mushaf-toggle ${isMushafMode ? "active" : ""}`}
-                onClick={() => {
-                  const next = !isMushafMode;
-                  setIsMushafMode(next);
-                  if (next) {
-                    setShowLatin(false);
-                    setShowTranslation(false);
-                  } else {
-                    setShowLatin(true);
-                    setShowTranslation(true);
-                  }
-                }}
-              >
-                <i className="fa-solid fa-quran"></i>
-                <span>Mode Mushaf</span>
-              </button>
+              {readerMode === "tilawah" && (
+                <button
+                  type="button"
+                  className={`toggle-pill mushaf-toggle ${isMushafMode ? "active" : ""}`}
+                  onClick={() => {
+                    const next = !isMushafMode;
+                    setIsMushafMode(next);
+                    if (next) {
+                      setShowLatin(false);
+                      setShowTranslation(false);
+                    } else {
+                      setShowLatin(true);
+                      setShowTranslation(true);
+                    }
+                  }}
+                >
+                  <i className="fa-solid fa-quran"></i>
+                  <span>Mode Mushaf</span>
+                </button>
+              )}
             </div>
 
             {/* Qari Selector */}
@@ -761,7 +1035,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                 "{selectedSurah.arti}" • {selectedSurah.tempatTurun === "Mekah" ? "Makkiyyah" : "Madaniyyah"} • {selectedSurah.jumlahAyat} Ayat
               </p>
 
-              {/* Bismillah (Except Surah At-Taubah #9 & Al-Fatihah #1 which already has bismillah as verse 1) */}
+              {/* Bismillah (Except Surah At-Taubah #9 & Al-Fatihah #1) */}
               {selectedSurah.nomor !== 9 && selectedSurah.nomor !== 1 && (
                 <div className="bismillah-ornament">
                   <span className="bismillah-text">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</span>
@@ -770,100 +1044,304 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
             </div>
           </div>
 
-          {/* Verses Container */}
-          <div className={`verses-container font-${fontSize} ${isMushafMode ? "mushaf-layout" : ""}`}>
-            {selectedSurah.ayat.map((ayah) => {
-              const isPlayingThis = currentPlayingAyah === ayah.nomorAyat;
-              const bookmarked = isBookmarked(ayah.nomorAyat);
+          {/* VERSES DISPLAY: MODE TILAWAH (Standard) */}
+          {readerMode === "tilawah" && (
+            <div className={`verses-container font-${fontSize} ${isMushafMode ? "mushaf-layout" : ""}`}>
+              {selectedSurah.ayat.map((ayah) => {
+                const isPlayingThis = currentPlayingAyah === ayah.nomorAyat;
+                const bookmarked = isBookmarked(ayah.nomorAyat);
 
-              return (
-                <div
-                  key={ayah.nomorAyat}
-                  id={`ayah-${ayah.nomorAyat}`}
-                  className={`ayah-card ${isPlayingThis ? "active-playing" : ""}`}
-                >
-                  {/* Ayah Meta Action Header */}
-                  <div className="ayah-header">
-                    <div className="ayah-number-badge">
-                      <span>{selectedSurah.nomor}:{ayah.nomorAyat}</span>
+                return (
+                  <div
+                    key={ayah.nomorAyat}
+                    id={`ayah-${ayah.nomorAyat}`}
+                    className={`ayah-card ${isPlayingThis ? "active-playing" : ""}`}
+                  >
+                    {/* Ayah Meta Action Header */}
+                    <div className="ayah-header">
+                      <div className="ayah-number-badge">
+                        <span>{selectedSurah.nomor}:{ayah.nomorAyat}</span>
+                      </div>
+
+                      <div className="ayah-action-buttons">
+                        {/* Play Ayah Audio */}
+                        <button
+                          type="button"
+                          className={`ayah-action-btn ${isPlayingThis ? "playing-btn" : ""}`}
+                          title={isPlayingThis ? "Hentikan Audio" : "Dengarkan Ayat Ini"}
+                          onClick={() => {
+                            if (isPlayingThis) {
+                              stopAudio();
+                            } else {
+                              playAyahAudio(ayah.nomorAyat);
+                            }
+                          }}
+                        >
+                          <i className={`fa-solid ${isPlayingThis ? "fa-pause" : "fa-play"}`}></i>
+                        </button>
+
+                        {/* Tafsir Modal Button */}
+                        <button
+                          type="button"
+                          className="ayah-action-btn"
+                          title="Buka Tafsir Ringkas Kemenag"
+                          onClick={() => openTafsir(ayah.nomorAyat)}
+                        >
+                          <i className="fa-solid fa-book-bookmark"></i>
+                        </button>
+
+                        {/* Bookmark Button */}
+                        <button
+                          type="button"
+                          className={`ayah-action-btn ${bookmarked ? "bookmarked-btn" : ""}`}
+                          title={bookmarked ? "Hapus dari Bookmark" : "Simpan ke Bookmark"}
+                          onClick={() => toggleBookmark(ayah)}
+                        >
+                          <i className={`${bookmarked ? "fa-solid" : "fa-regular"} fa-star`}></i>
+                        </button>
+
+                        {/* Copy Button */}
+                        <button
+                          type="button"
+                          className="ayah-action-btn"
+                          title="Salin Ayat & Terjemahan"
+                          onClick={() => copyAyah(ayah)}
+                        >
+                          <i className="fa-solid fa-copy"></i>
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="ayah-action-buttons">
-                      {/* Play Ayah Audio */}
-                      <button
-                        type="button"
-                        className={`ayah-action-btn ${isPlayingThis ? "playing-btn" : ""}`}
-                        title={isPlayingThis ? "Hentikan Audio" : "Dengarkan Ayat Ini"}
-                        onClick={() => {
-                          if (isPlayingThis) {
-                            stopAudio();
-                          } else {
-                            playAyahAudio(ayah.nomorAyat);
-                          }
-                        }}
-                      >
-                        <i className={`fa-solid ${isPlayingThis ? "fa-pause" : "fa-play"}`}></i>
-                      </button>
+                    {/* Arabic Text */}
+                    <div className="ayah-arabic-wrapper">
+                      <p className="ayah-arabic-text" dir="rtl">
+                        {ayah.teksArab}
+                        <span className="ayah-end-symbol">
+                          ۝<span className="ayah-end-num">{ayah.nomorAyat}</span>
+                        </span>
+                      </p>
+                    </div>
 
-                      {/* Tafsir Modal Button */}
-                      <button
-                        type="button"
-                        className="ayah-action-btn"
-                        title="Buka Tafsir Ringkas Kemenag"
-                        onClick={() => openTafsir(ayah.nomorAyat)}
-                      >
-                        <i className="fa-solid fa-book-bookmark"></i>
-                      </button>
+                    {/* Latin Transliteration */}
+                    {showLatin && !isMushafMode && (
+                      <div className="ayah-latin-wrapper">
+                        <p className="ayah-latin-text">{ayah.teksLatin}</p>
+                      </div>
+                    )}
 
-                      {/* Bookmark Button */}
-                      <button
-                        type="button"
-                        className={`ayah-action-btn ${bookmarked ? "bookmarked-btn" : ""}`}
-                        title={bookmarked ? "Hapus dari Bookmark" : "Simpan ke Bookmark"}
-                        onClick={() => toggleBookmark(ayah)}
-                      >
-                        <i className={`${bookmarked ? "fa-solid" : "fa-regular"} fa-star`}></i>
-                      </button>
+                    {/* Indonesian Translation */}
+                    {showTranslation && !isMushafMode && (
+                      <div className="ayah-translation-wrapper">
+                        <p className="ayah-translation-text">{ayah.teksIndonesia}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-                      {/* Copy Button */}
-                      <button
-                        type="button"
-                        className="ayah-action-btn"
-                        title="Salin Ayat & Terjemahan"
-                        onClick={() => copyAyah(ayah)}
-                      >
-                        <i className="fa-solid fa-copy"></i>
-                      </button>
+          {/* VERSES DISPLAY: MODE HAFALAN AL-HUFAZ (5 BLOK WARNA CORDOBA) */}
+          {readerMode === "hufaz" && (
+            <div className={`hufaz-blocks-container font-${fontSize}`}>
+              {hufazBlocks.map((block) => {
+                const isBlockPlaying = activePlayingBlock === block.blockIndex && isPlaying;
+
+                return (
+                  <div
+                    key={`block-${block.blockIndex}`}
+                    className={`hufaz-block-wrapper ${block.bgClass}`}
+                  >
+                    {/* Block Header Banner */}
+                    <div className="hufaz-block-header">
+                      <div className="block-meta-left">
+                        <div
+                          className="block-indicator-badge"
+                          style={{ borderColor: block.colorHex, color: block.colorHex }}
+                        >
+                          <i className="fa-solid fa-cube"></i>
+                          <span>BLOK {block.blockIndex + 1}</span>
+                        </div>
+                        <h3 className="block-title">
+                          Ayat {block.startAyat} – {block.endAyat}
+                        </h3>
+                        <span className="block-color-label" style={{ color: block.colorHex }}>
+                          ({block.colorName})
+                        </span>
+                      </div>
+
+                      <div className="block-meta-right">
+                        <button
+                          type="button"
+                          className={`play-block-btn ${isBlockPlaying ? "active" : ""}`}
+                          onClick={() => {
+                            if (isBlockPlaying) {
+                              stopAudio();
+                            } else {
+                              playBlockAudio(block);
+                            }
+                          }}
+                        >
+                          <i className={`fa-solid ${isBlockPlaying ? "fa-pause" : "fa-play"}`}></i>
+                          <span>{isBlockPlaying ? "Jeda Blok" : "Putar Murottal Blok Ini"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Block Verses List */}
+                    <div className="block-ayahs-list">
+                      {block.ayahs.map((ayah) => {
+                        const isPlayingThis = currentPlayingAyah === ayah.nomorAyat;
+                        const tikrarKey = `${selectedSurah.nomor}-${ayah.nomorAyat}`;
+                        const currentTikrar = tikrarCounts[tikrarKey] || 0;
+                        const isMutqin = !!mutqinAyahs[tikrarKey];
+                        const isRevealed = !!revealedAyahs[ayah.nomorAyat];
+
+                        const keywords = getAyahKeywords(ayah.teksArab);
+                        const remaining = getAyahRemaining(ayah.teksArab);
+
+                        return (
+                          <div
+                            key={`hufaz-ayah-${ayah.nomorAyat}`}
+                            id={`ayah-${ayah.nomorAyat}`}
+                            className={`hufaz-ayah-card ${isPlayingThis ? "active-playing" : ""} ${
+                              isMutqin ? "ayah-mutqin" : ""
+                            }`}
+                          >
+                            {/* Card Top: Number, Tikrar Checklist, and Mutqin toggle */}
+                            <div className="hufaz-ayah-top-row">
+                              <div className="hufaz-num-mutqin">
+                                <span className="hufaz-ayah-number">
+                                  Ayat {ayah.nomorAyat}
+                                </span>
+                                <button
+                                  type="button"
+                                  className={`mutqin-badge-btn ${isMutqin ? "mutqin" : ""}`}
+                                  onClick={() => toggleMutqin(selectedSurah.nomor, ayah.nomorAyat)}
+                                  title="Tandai status kelancaran hafalan"
+                                >
+                                  <i className={`fa-solid ${isMutqin ? "fa-circle-check" : "fa-circle"}`}></i>
+                                  <span>{isMutqin ? "Mutqin (Lancar)" : "Belum Mutqin"}</span>
+                                </button>
+                              </div>
+
+                              {/* 5x Tikrar Checkbox Group */}
+                              <div className="tikrar-control-group">
+                                <span className="tikrar-label">Tikrar (5x):</span>
+                                <div className="tikrar-pills">
+                                  {[1, 2, 3, 4, 5].map((num) => (
+                                    <button
+                                      key={num}
+                                      type="button"
+                                      className={`tikrar-pill-btn ${currentTikrar >= num ? "checked" : ""}`}
+                                      onClick={() =>
+                                        handleTikrarClick(selectedSurah.nomor, ayah.nomorAyat, num)
+                                      }
+                                      title={`Repetisi ke-${num}`}
+                                    >
+                                      {currentTikrar >= num ? <i className="fa-solid fa-check"></i> : num}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Arabic Content with Al-Hufaz Blind Test Modes */}
+                            <div
+                              className="hufaz-arabic-container"
+                              onClick={() => {
+                                if (hufazTestMode !== "full") {
+                                  toggleRevealAyah(ayah.nomorAyat);
+                                }
+                              }}
+                            >
+                              {/* MODE 1: TAMPIL PENUH ATAU SUDAH DI-REVEAL */}
+                              {(hufazTestMode === "full" || isRevealed) && (
+                                <p className="hufaz-arabic-text" dir="rtl">
+                                  {ayah.teksArab}
+                                  <span className="ayah-end-symbol">
+                                    ۝<span className="ayah-end-num">{ayah.nomorAyat}</span>
+                                  </span>
+                                </p>
+                              )}
+
+                              {/* MODE 2: KATA KUNCI AWAL AYAT (Sisanya Disamarkan) */}
+                              {hufazTestMode === "keywords" && !isRevealed && (
+                                <div className="hufaz-keywords-box">
+                                  <p className="hufaz-arabic-text" dir="rtl">
+                                    <span className="keyword-highlight">{keywords}</span>
+                                    <span className="blurred-text"> {remaining || "..."}</span>
+                                    <span className="ayah-end-symbol">
+                                      ۝<span className="ayah-end-num">{ayah.nomorAyat}</span>
+                                    </span>
+                                  </p>
+                                  <div className="peek-hint">
+                                    <i className="fa-solid fa-hand-pointer"></i>
+                                    <span>Ketuk untuk membuka seluruh ayat</span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* MODE 3: TUTUP TOTAL (UJI HAFALAN) */}
+                              {hufazTestMode === "hidden" && !isRevealed && (
+                                <div className="hufaz-blind-shield">
+                                  <i className="fa-solid fa-eye-slash shield-icon"></i>
+                                  <span className="shield-text">Ayat {ayah.nomorAyat} Tertutup</span>
+                                  <span className="shield-sub">Uji ingatan Anda, lalu ketuk di sini untuk memeriksa</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Translation & Latin in Hufaz mode */}
+                            {showLatin && (
+                              <div className="hufaz-latin-text">{ayah.teksLatin}</div>
+                            )}
+
+                            {showTranslation && (
+                              <div className="hufaz-trans-text">"{ayah.teksIndonesia}"</div>
+                            )}
+
+                            {/* Card Footer: Quick Actions (Play single, Tafsir, Copy) */}
+                            <div className="hufaz-card-actions">
+                              <button
+                                type="button"
+                                className={`hufaz-mini-action ${isPlayingThis ? "active" : ""}`}
+                                onClick={() => {
+                                  if (isPlayingThis) stopAudio();
+                                  else playAyahAudio(ayah.nomorAyat);
+                                }}
+                              >
+                                <i className={`fa-solid ${isPlayingThis ? "fa-pause" : "fa-play"}`}></i>
+                                <span>{isPlayingThis ? "Hentikan" : "Dengarkan"}</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="hufaz-mini-action"
+                                onClick={() => openTafsir(ayah.nomorAyat)}
+                              >
+                                <i className="fa-solid fa-book-bookmark"></i>
+                                <span>Tafsir</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="hufaz-mini-action"
+                                onClick={() => copyAyah(ayah)}
+                              >
+                                <i className="fa-solid fa-copy"></i>
+                                <span>Salin</span>
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-
-                  {/* Arabic Text */}
-                  <div className="ayah-arabic-wrapper">
-                    <p className="ayah-arabic-text" dir="rtl">
-                      {ayah.teksArab}
-                      <span className="ayah-end-symbol">
-                        ۝<span className="ayah-end-num">{ayah.nomorAyat}</span>
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* Latin Transliteration */}
-                  {showLatin && !isMushafMode && (
-                    <div className="ayah-latin-wrapper">
-                      <p className="ayah-latin-text">{ayah.teksLatin}</p>
-                    </div>
-                  )}
-
-                  {/* Indonesian Translation */}
-                  {showTranslation && !isMushafMode && (
-                    <div className="ayah-translation-wrapper">
-                      <p className="ayah-translation-text">{ayah.teksIndonesia}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* Surah Navigation Footer */}
           <div className="reader-footer-nav">
@@ -911,6 +1389,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
               <div className="audio-text-info">
                 <span className="audio-surah-title">
                   {selectedSurah.namaLatin} : Ayat {currentPlayingAyah}
+                  {activePlayingBlock !== null && ` (Blok ${activePlayingBlock + 1})`}
                 </span>
                 <span className="audio-qari-name">
                   {QARI_LIST.find((q) => q.id === selectedQari)?.name || "Qari"}
