@@ -101,12 +101,21 @@ export interface MushafWordItem {
   surahNumber: number;
   lineNumber: number;
   audioUrl?: string;
+  blockId?: number;
+  tajweedType?: "mad" | "ghunnah" | "ikhfa" | "qalqalah";
 }
 
 export interface MushafLineItem {
   lineNumber: number;
-  blockId: number; // 1 to 5
+  blockId?: number; // Primary or fallback block
   words: MushafWordItem[];
+}
+
+export interface MushafLineSegment {
+  blockId: number;
+  verseNumber: number;
+  words: MushafWordItem[];
+  flexRatio: number;
 }
 
 export interface PageHufazBlock {
@@ -119,259 +128,299 @@ export interface PageHufazBlock {
   keywords: string[];
 }
 
+/**
+ * Memecah baris menjadi segmen-segmen blok warna (misal Baris 9 memuat akhir Blok 3 dan awal Blok 4)
+ * Ini memastikan transisi warna terjadi tepat di batas AYAT, bukan per baris penuh!
+ */
+export function getLineSegments(line: MushafLineItem): MushafLineSegment[] {
+  if (!line || !line.words || line.words.length === 0) return [];
+
+  const segments: MushafLineSegment[] = [];
+  let currentBlockId = line.words[0].blockId ?? line.blockId ?? 1;
+  let currentVerse = line.words[0].verseNumber;
+  let currentWords: MushafWordItem[] = [];
+
+  for (const word of line.words) {
+    const wordBlockId = word.blockId ?? line.blockId ?? 1;
+    if (wordBlockId === currentBlockId) {
+      currentWords.push(word);
+    } else {
+      if (currentWords.length > 0) {
+        segments.push({
+          blockId: currentBlockId,
+          verseNumber: currentVerse,
+          words: currentWords,
+          flexRatio: Math.max(1, currentWords.length),
+        });
+      }
+      currentBlockId = wordBlockId;
+      currentVerse = word.verseNumber;
+      currentWords = [word];
+    }
+  }
+
+  if (currentWords.length > 0) {
+    segments.push({
+      blockId: currentBlockId,
+      verseNumber: currentVerse,
+      words: currentWords,
+      flexRatio: Math.max(1, currentWords.length),
+    });
+  }
+
+  return segments;
+}
+
 // 15 lines data exact from Al-Hufaz Cordoba Mushaf for Page 6 (Standar Mushaf Al-Qur'an Indonesia)
 export const PAGE_6_DEFAULT_LINES: MushafLineItem[] = [
-  // Blok 1 (Kuning): Lines 1, 2, 3
+  // Blok 1 (Kuning): Ayat 30 (Baris 1, 2, 3)
   {
     lineNumber: 1,
     blockId: 1,
     words: [
-      { id: 1, text: "وَإِذْ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 2, text: "قَالَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 3, text: "رَبُّكَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 4, text: "لِلْمَلَائِكَةِ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 5, text: "إِنِّي", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 6, text: "جَاعِلٌ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 7, text: "فِي", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 8, text: "الْأَرْضِ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
-      { id: 9, text: "خَلِيفَةً ۖ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1 },
+      { id: 1, text: "وَإِذْ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1 },
+      { id: 2, text: "قَالَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1 },
+      { id: 3, text: "رَبُّكَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1 },
+      { id: 4, text: "لِلْمَلَائِكَةِ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1, tajweedType: "mad" },
+      { id: 5, text: "إِنِّي", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1, tajweedType: "ghunnah" },
+      { id: 6, text: "جَاعِلٌ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1 },
+      { id: 7, text: "فِي", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1 },
+      { id: 8, text: "الْأَرْضِ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1 },
+      { id: 9, text: "خَلِيفَةً ۖ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 1, blockId: 1 },
     ],
   },
   {
     lineNumber: 2,
     blockId: 1,
     words: [
-      { id: 10, text: "قَالُوا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 11, text: "أَتَجْعَلُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 12, text: "فِيهَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 13, text: "مَنْ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 14, text: "يُفْسِدُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 15, text: "فِيهَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 16, text: "وَيَسْفِكُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 17, text: "الدِّمَاءَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
-      { id: 18, text: "وَنَحْنُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2 },
+      { id: 10, text: "قَالُوا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1 },
+      { id: 11, text: "أَتَجْعَلُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1, tajweedType: "qalqalah" },
+      { id: 12, text: "فِيهَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1 },
+      { id: 13, text: "مَنْ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1 },
+      { id: 14, text: "يُفْسِدُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1 },
+      { id: 15, text: "فِيهَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1 },
+      { id: 16, text: "وَيَسْفِكُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1 },
+      { id: 17, text: "الدِّمَاءَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1, tajweedType: "mad" },
+      { id: 18, text: "وَنَحْنُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 2, blockId: 1 },
     ],
   },
   {
     lineNumber: 3,
     blockId: 1,
     words: [
-      { id: 19, text: "نُسَبِّحُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 20, text: "بِحَمْدِكَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 21, text: "وَنُقَدِّسُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 22, text: "لَكَ ۖ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 23, text: "قَالَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 24, text: "إِنِّي", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 25, text: "أَعْلَمُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 26, text: "مَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 27, text: "لَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 28, text: "تَعْلَمُونَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
-      { id: 29, text: "٣٠", charType: "end", verseNumber: 30, surahNumber: 2, lineNumber: 3 },
+      { id: 19, text: "نُسَبِّحُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 20, text: "بِحَمْدِكَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 21, text: "وَنُقَدِّسُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 22, text: "لَكَ ۖ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 23, text: "قَالَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 24, text: "إِنِّي", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1, tajweedType: "ghunnah" },
+      { id: 25, text: "أَعْلَمُ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 26, text: "مَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 27, text: "لَا", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 28, text: "تَعْلَمُونَ", charType: "word", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
+      { id: 29, text: "٣٠", charType: "end", verseNumber: 30, surahNumber: 2, lineNumber: 3, blockId: 1 },
     ],
   },
-  // Blok 2 (Hijau): Lines 4, 5, 6
+  // Blok 2 (Hijau): Ayat 31 - 32 (Baris 4, 5, 6)
   {
     lineNumber: 4,
     blockId: 2,
     words: [
-      { id: 30, text: "وَعَلَّمَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
-      { id: 31, text: "آدَمَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
-      { id: 32, text: "الْأَسْمَاءَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
-      { id: 33, text: "كُلَّهَا", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
-      { id: 34, text: "ثُمَّ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
-      { id: 35, text: "عَرَضَهُمْ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
-      { id: 36, text: "عَلَى", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
-      { id: 37, text: "الْمَلَائِكَةِ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4 },
+      { id: 30, text: "وَعَلَّمَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2 },
+      { id: 31, text: "آدَمَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2 },
+      { id: 32, text: "الْأَسْمَاءَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2, tajweedType: "mad" },
+      { id: 33, text: "كُلَّهَا", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2 },
+      { id: 34, text: "ثُمَّ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2, tajweedType: "ghunnah" },
+      { id: 35, text: "عَرَضَهُمْ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2 },
+      { id: 36, text: "عَلَى", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2 },
+      { id: 37, text: "الْمَلَائِكَةِ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 4, blockId: 2, tajweedType: "mad" },
     ],
   },
   {
     lineNumber: 5,
     blockId: 2,
     words: [
-      { id: 38, text: "فَقَالَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 39, text: "أَنْبِئُونِي", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 40, text: "بِأَسْمَاءِ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 41, text: "هَٰؤُلَاءِ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 42, text: "إِنْ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 43, text: "كُنْتُمْ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 44, text: "صَادِقِينَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 45, text: "٣١", charType: "end", verseNumber: 31, surahNumber: 2, lineNumber: 5 },
-      { id: 46, text: "قَالُوا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 5 },
+      { id: 38, text: "فَقَالَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2 },
+      { id: 39, text: "أَنْبِئُونِي", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2, tajweedType: "ikhfa" },
+      { id: 40, text: "بِأَسْمَاءِ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2, tajweedType: "mad" },
+      { id: 41, text: "هَٰؤُلَاءِ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2, tajweedType: "mad" },
+      { id: 42, text: "إِنْ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2, tajweedType: "ikhfa" },
+      { id: 43, text: "كُنْتُمْ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2, tajweedType: "ikhfa" },
+      { id: 44, text: "صَادِقِينَ", charType: "word", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2 },
+      { id: 45, text: "٣١", charType: "end", verseNumber: 31, surahNumber: 2, lineNumber: 5, blockId: 2 },
+      { id: 46, text: "قَالُوا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 5, blockId: 2 },
     ],
   },
   {
     lineNumber: 6,
     blockId: 2,
     words: [
-      { id: 47, text: "سُبْحَانَكَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 48, text: "لَا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 49, text: "عِلْمَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 50, text: "لَنَا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 51, text: "إِلَّا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 52, text: "مَا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 53, text: "عَلَّمْتَنَا ۖ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 54, text: "إِنَّكَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 55, text: "أَنْتَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 56, text: "الْعَلِيمُ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 57, text: "الْحَكِيمُ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
-      { id: 58, text: "٣٢", charType: "end", verseNumber: 32, surahNumber: 2, lineNumber: 6 },
+      { id: 47, text: "سُبْحَانَكَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2, tajweedType: "qalqalah" },
+      { id: 48, text: "لَا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 49, text: "عِلْمَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 50, text: "لَنَا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 51, text: "إِلَّا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 52, text: "مَا", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 53, text: "عَلَّمْتَنَا ۖ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 54, text: "إِنَّكَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2, tajweedType: "ghunnah" },
+      { id: 55, text: "أَنْتَ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2, tajweedType: "ikhfa" },
+      { id: 56, text: "الْعَلِيمُ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 57, text: "الْحَكِيمُ", charType: "word", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
+      { id: 58, text: "٣٢", charType: "end", verseNumber: 32, surahNumber: 2, lineNumber: 6, blockId: 2 },
     ],
   },
-  // Blok 3 (Biru): Lines 7, 8, 9
+  // Blok 3 (Biru): Ayat 33 (Baris 7, 8, dan Baris 9 sampai ۝٣٣)
   {
     lineNumber: 7,
     blockId: 3,
     words: [
-      { id: 59, text: "قَالَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
-      { id: 60, text: "يَا آدَمُ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
-      { id: 61, text: "أَنْبِئْهُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
-      { id: 62, text: "بِأَسْمَائِهِمْ ۖ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
-      { id: 63, text: "فَلَمَّا", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
-      { id: 64, text: "أَنْبَأَهُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
-      { id: 65, text: "بِأَسْمَائِهِمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
-      { id: 66, text: "قَالَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7 },
+      { id: 59, text: "قَالَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3 },
+      { id: 60, text: "يَا آدَمُ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3, tajweedType: "mad" },
+      { id: 61, text: "أَنْبِئْهُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3, tajweedType: "ikhfa" },
+      { id: 62, text: "بِأَسْمَائِهِمْ ۖ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3, tajweedType: "mad" },
+      { id: 63, text: "فَلَمَّا", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3, tajweedType: "ghunnah" },
+      { id: 64, text: "أَنْبَأَهُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3, tajweedType: "ikhfa" },
+      { id: 65, text: "بِأَسْمَائِهِمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3, tajweedType: "mad" },
+      { id: 66, text: "قَالَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 7, blockId: 3 },
     ],
   },
   {
     lineNumber: 8,
     blockId: 3,
     words: [
-      { id: 67, text: "أَلَمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 68, text: "أَقُلْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 69, text: "لَكُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 70, text: "إِنِّي", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 71, text: "أَعْلَمُ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 72, text: "غَيْبَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 73, text: "السَّمَاوَاتِ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 74, text: "وَالْأَرْضِ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 75, text: "وَأَعْلَمُ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
-      { id: 76, text: "مَا", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8 },
+      { id: 67, text: "أَلَمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 68, text: "أَقُلْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 69, text: "لَكُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 70, text: "إِنِّي", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3, tajweedType: "ghunnah" },
+      { id: 71, text: "أَعْلَمُ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 72, text: "غَيْبَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 73, text: "السَّمَاوَاتِ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 74, text: "وَالْأَرْضِ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 75, text: "وَأَعْلَمُ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
+      { id: 76, text: "مَا", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 8, blockId: 3 },
     ],
   },
   {
     lineNumber: 9,
-    blockId: 3,
+    blockId: 3, // Fallback block
     words: [
-      { id: 77, text: "تُبْدُونَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9 },
-      { id: 78, text: "وَمَا", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9 },
-      { id: 79, text: "كُنْتُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9 },
-      { id: 80, text: "تَكْتُمُونَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9 },
-      { id: 81, text: "٣٣", charType: "end", verseNumber: 33, surahNumber: 2, lineNumber: 9 },
-      { id: 82, text: "وَإِذْ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9 },
-      { id: 83, text: "قُلْنَا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9 },
-      { id: 84, text: "لِلْمَلَائِكَةِ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9 },
-      { id: 85, text: "اسْجُدُوا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9 },
+      // Akhir Ayat 33 -> Blok 3 (Biru)
+      { id: 77, text: "تُبْدُونَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9, blockId: 3 },
+      { id: 78, text: "وَمَا", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9, blockId: 3 },
+      { id: 79, text: "كُنْتُمْ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9, blockId: 3, tajweedType: "ikhfa" },
+      { id: 80, text: "تَكْتُمُونَ", charType: "word", verseNumber: 33, surahNumber: 2, lineNumber: 9, blockId: 3 },
+      { id: 81, text: "٣٣", charType: "end", verseNumber: 33, surahNumber: 2, lineNumber: 9, blockId: 3 },
+      // Awal Ayat 34 -> Blok 4 (Pink) tepat di baris yang sama!
+      { id: 82, text: "وَإِذْ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9, blockId: 4 },
+      { id: 83, text: "قُلْنَا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9, blockId: 4 },
+      { id: 84, text: "لِلْمَلَائِكَةِ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9, blockId: 4, tajweedType: "mad" },
+      { id: 85, text: "اسْجُدُوا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 9, blockId: 4 },
     ],
   },
-  // Blok 4 (Pink): Lines 10, 11, 12
+  // Blok 4 (Pink): Ayat 34 - 35 (Baris 10, 11, 12)
   {
     lineNumber: 10,
     blockId: 4,
     words: [
-      { id: 86, text: "لِآدَمَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 87, text: "فَسَجَدُوا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 88, text: "إِلَّا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 89, text: "إِبْلِيسَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 90, text: "أَبَىٰ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 91, text: "وَاسْتَكْبَرَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 92, text: "وَكَانَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 93, text: "مِنَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 94, text: "الْكَافِرِينَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
-      { id: 95, text: "٣٤", charType: "end", verseNumber: 34, surahNumber: 2, lineNumber: 10 },
+      { id: 86, text: "لِآدَمَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 87, text: "فَسَجَدُوا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 88, text: "إِلَّا", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 89, text: "إِبْلِيسَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4, tajweedType: "qalqalah" },
+      { id: 90, text: "أَبَىٰ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 91, text: "وَاسْتَكْبَرَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 92, text: "وَكَانَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 93, text: "مِنَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 94, text: "الْكَافِرِينَ", charType: "word", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
+      { id: 95, text: "٣٤", charType: "end", verseNumber: 34, surahNumber: 2, lineNumber: 10, blockId: 4 },
     ],
   },
   {
     lineNumber: 11,
     blockId: 4,
     words: [
-      { id: 96, text: "وَقُلْنَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 97, text: "يَا آدَمُ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 98, text: "اسْكُنْ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 99, text: "أَنْتَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 100, text: "وَزَوْجُكَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 101, text: "الْجَنَّةَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 102, text: "وَكُلَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 103, text: "مِنْهَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
-      { id: 104, text: "رَغَدًا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11 },
+      { id: 96, text: "وَقُلْنَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4 },
+      { id: 97, text: "يَا آدَمُ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4, tajweedType: "mad" },
+      { id: 98, text: "اسْكُنْ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4 },
+      { id: 99, text: "أَنْتَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4, tajweedType: "ikhfa" },
+      { id: 100, text: "وَزَوْجُكَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4 },
+      { id: 101, text: "الْجَنَّةَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4, tajweedType: "ghunnah" },
+      { id: 102, text: "وَكُلَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4 },
+      { id: 103, text: "مِنْهَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4 },
+      { id: 104, text: "رَغَدًا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 11, blockId: 4 },
     ],
   },
   {
     lineNumber: 12,
     blockId: 4,
     words: [
-      { id: 105, text: "حَيْثُ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 106, text: "شِئْتُمَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 107, text: "وَلَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 108, text: "تَقْرَبَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 109, text: "هَٰذِهِ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 110, text: "الشَّجَرَةَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 111, text: "فَتَكُونَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 112, text: "مِنَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 113, text: "الظَّالِمِينَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
-      { id: 114, text: "٣٥", charType: "end", verseNumber: 35, surahNumber: 2, lineNumber: 12 },
+      { id: 105, text: "حَيْثُ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 106, text: "شِئْتُمَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 107, text: "وَلَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 108, text: "تَقْرَبَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4, tajweedType: "qalqalah" },
+      { id: 109, text: "هَٰذِهِ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 110, text: "الشَّجَرَةَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 111, text: "فَتَكُونَا", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 112, text: "مِنَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 113, text: "الظَّالِمِينَ", charType: "word", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
+      { id: 114, text: "٣٥", charType: "end", verseNumber: 35, surahNumber: 2, lineNumber: 12, blockId: 4 },
     ],
   },
-  // Blok 5 (Krem): Lines 13, 14, 15
+  // Blok 5 (Krem): Ayat 36 - 37 (Baris 13, 14, 15)
   {
     lineNumber: 13,
     blockId: 5,
     words: [
-      { id: 115, text: "فَأَزَلَّهُمَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 116, text: "الشَّيْطَانُ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 117, text: "عَنْهَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 118, text: "فَأَخْرَجَهُمَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 119, text: "مِمَّا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 120, text: "كَانَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 121, text: "فِيهِ ۖ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 122, text: "وَقُلْنَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
-      { id: 123, text: "اهْبِطُوا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13 },
+      { id: 115, text: "فَأَزَلَّهُمَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
+      { id: 116, text: "الشَّيْطَانُ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
+      { id: 117, text: "عَنْهَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
+      { id: 118, text: "فَأَخْرَجَهُمَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
+      { id: 119, text: "مِمَّا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5, tajweedType: "ghunnah" },
+      { id: 120, text: "كَانَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
+      { id: 121, text: "فِيهِ ۖ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
+      { id: 122, text: "وَقُلْنَا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
+      { id: 123, text: "اهْبِطُوا", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 13, blockId: 5 },
     ],
   },
   {
     lineNumber: 14,
     blockId: 5,
     words: [
-      { id: 124, text: "بَعْضُكُمْ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 125, text: "لِبَعْضٍ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 126, text: "عَدُوٌّ ۖ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 127, text: "وَلَكُمْ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 128, text: "فِي", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 129, text: "الْأَرْضِ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 130, text: "مُسْتَقَرٌّ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 131, text: "وَمَتَاعٌ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 132, text: "إِلَىٰ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 133, text: "حِينٍ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
-      { id: 134, text: "٣٦", charType: "end", verseNumber: 36, surahNumber: 2, lineNumber: 14 },
+      { id: 124, text: "بَعْضُكُمْ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 125, text: "لِبَعْضٍ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 126, text: "عَدُوٌّ ۖ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5, tajweedType: "ghunnah" },
+      { id: 127, text: "وَلَكُمْ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 128, text: "فِي", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 129, text: "الْأَرْضِ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 130, text: "مُسْتَقَرٌّ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 131, text: "وَمَتَاعٌ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 132, text: "إِلَىٰ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 133, text: "حِينٍ", charType: "word", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
+      { id: 134, text: "٣٦", charType: "end", verseNumber: 36, surahNumber: 2, lineNumber: 14, blockId: 5 },
     ],
   },
   {
     lineNumber: 15,
     blockId: 5,
     words: [
-      { id: 135, text: "فَتَلَقَّىٰ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 136, text: "آدَمُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 137, text: "مِنْ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 138, text: "رَبِّهِ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 139, text: "كَلِمَاتٍ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 140, text: "فَتَابَ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 141, text: "عَلَيْهِ ۚ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 142, text: "إِنَّهُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 143, text: "هُوَ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 144, text: "التَّوَّابُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 145, text: "الرَّحِيمُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
-      { id: 146, text: "٣٧", charType: "end", verseNumber: 37, surahNumber: 2, lineNumber: 15 },
+      { id: 135, text: "فَتَلَقَّىٰ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 136, text: "آدَمُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 137, text: "مِنْ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5, tajweedType: "ikhfa" },
+      { id: 138, text: "رَبِّهِ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 139, text: "كَلِمَاتٍ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 140, text: "فَتَابَ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 141, text: "عَلَيْهِ ۚ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 142, text: "إِنَّهُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5, tajweedType: "ghunnah" },
+      { id: 143, text: "هُوَ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 144, text: "التَّوَّابُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 145, text: "الرَّحِيمُ", charType: "word", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
+      { id: 146, text: "٣٧", charType: "end", verseNumber: 37, surahNumber: 2, lineNumber: 15, blockId: 5 },
     ],
   },
 ];
 
 /**
- * Mengelompokkan 15 baris ke dalam 5 Blok Warna Al-Hufaz Cordoba
- * Masing-masing blok memiliki tepat 3 baris:
- * Blok 1 = Baris 1, 2, 3
- * Blok 2 = Baris 4, 5, 6
- * Blok 3 = Baris 7, 8, 9
- * Blok 4 = Baris 10, 11, 12
- * Blok 5 = Baris 13, 14, 15
+ * Mengelompokkan ayat-ayat halaman ke dalam 5 Blok Warna Al-Hufaz Cordoba
+ * Berdasarkan batas ayat riil (bukan batas garis kaku)
  */
 export function partition15LinesInto5Blocks(
   lines: MushafLineItem[],
@@ -381,21 +430,28 @@ export function partition15LinesInto5Blocks(
   const blocks: PageHufazBlock[] = [];
 
   for (let b = 1; b <= 5; b++) {
-    const blockLines = safeLines.filter((l) => l.blockId === b);
-    // Find verse numbers covered in this block
+    // Cari semua ayat yang memiliki kata-kata berlabel blockId === b
     const verseNumbers = new Set<number>();
-    blockLines.forEach((l) => l.words.forEach((w) => verseNumbers.add(w.verseNumber)));
-    const blockAyahs = verses.filter((v) => verseNumbers.has(v.verseNumber));
+    safeLines.forEach((l) => {
+      l.words.forEach((w) => {
+        const wBlock = w.blockId ?? l.blockId ?? 1;
+        if (wBlock === b) {
+          verseNumbers.add(w.verseNumber);
+        }
+      });
+    });
 
-    const startAyat = blockAyahs.length > 0 ? blockAyahs[0].verseNumber : b;
-    const endAyat = blockAyahs.length > 0 ? blockAyahs[blockAyahs.length - 1].verseNumber : startAyat;
+    const blockAyahs = verses.filter((v) => verseNumbers.has(v.verseNumber));
+    const sortedVerseNums = Array.from(verseNumbers).sort((a, b) => a - b);
+    const startAyat = sortedVerseNums.length > 0 ? sortedVerseNums[0] : (blockAyahs[0]?.verseNumber || b);
+    const endAyat = sortedVerseNums.length > 0 ? sortedVerseNums[sortedVerseNums.length - 1] : (blockAyahs[blockAyahs.length - 1]?.verseNumber || startAyat);
     const keywords = blockAyahs.map((v) => v.keywordArab);
 
     blocks.push({
       blockId: b,
       config: ALHUFAZ_COLOR_BLOCKS[(b - 1) % ALHUFAZ_COLOR_BLOCKS.length],
       ayahs: blockAyahs.length > 0 ? blockAyahs : (verses.slice(0, 1) || []),
-      lines: blockLines,
+      lines: safeLines.filter((l) => l.words.some((w) => (w.blockId ?? l.blockId ?? 1) === b)),
       startAyat,
       endAyat,
       keywords,

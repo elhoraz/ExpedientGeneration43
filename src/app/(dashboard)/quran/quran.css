@@ -1,5 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;600;700&display=swap');
 
+@font-face {
+  font-family: 'LPMQ Isep Misbah';
+  src: url('/fonts/LPMQIsepMisbah.woff2') format('woff2'),
+       url('/fonts/LPMQIsepMisbah.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ===================================================
    AL-QUR'AN DIGITAL & REPLIKA MUSHAF AL-HUFAZ CORDOBA
    Expedient Generation 43 — Official Digital Archive
@@ -868,6 +877,41 @@
   font-size: 0.74rem;
   font-weight: 800;
 }
+
+.bottom-tajweed-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.tajweed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.tajweed-badge.mad { color: #dc2626; }
+.tajweed-badge.ghunnah { color: #e11d48; }
+.tajweed-badge.ikhfa { color: #15803d; }
+.tajweed-badge.qalqalah { color: #0284c7; }
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot-mad { background: #dc2626; }
+.dot-ghunnah { background: #e11d48; }
+.dot-ikhfa { background: #15803d; }
+.dot-qalqalah { background: #0284c7; }
 
 /* 4C. MARGIN KANAN: METODE, MOTIVASI & TEMA AYAT */
 .sheet-right-margin {
@@ -3974,6 +4018,396 @@
   50% {
     transform: scale(1.1);
     box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+  }
+}
+
+/* ===================================================
+   15. AUTENTIK MUSHAF AL-HUFAZ CORDOBA (15 BARIS & 5 BLOK WARNA AYAT)
+   Khot: LPMQ Isep Misbah (Standar Kementerian Agama RI)
+   =================================================== */
+
+/* Font Selector Classes */
+.font-lpmq {
+  font-family: 'LPMQ Isep Misbah', 'Noto Naskh Arabic', 'Amiri', serif !important;
+}
+
+.font-noto {
+  font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
+}
+
+.font-amiri {
+  font-family: 'Amiri', 'Noto Naskh Arabic', serif !important;
+}
+
+.font-scheherazade {
+  font-family: 'Scheherazade New', 'Amiri', serif !important;
+}
+
+/* Quick Blocks Control Bar & Actions */
+.mushaf-quick-blocks-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: #fdfbf7;
+  border-bottom: 2px solid #ca8a04;
+}
+
+.quick-blocks-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-block-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.quick-block-pill.active-playing-pill {
+  box-shadow: 0 0 0 2px #10b981;
+  animation: pulseAudio 1.5s infinite;
+}
+
+.quick-pill-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 14px;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-pill-toggle:hover {
+  background: #ffffff;
+}
+
+.quick-pill-toggle.is-closed {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.quick-pill-audio {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.85);
+  color: #059669;
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-pill-audio:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.quick-blocks-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Zoom Controls */
+.mushaf-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(202, 138, 4, 0.4);
+  border-radius: 12px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.zoom-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: none;
+  background: #ffffff;
+  color: #854d0e;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  transition: all 0.15s ease;
+}
+
+.zoom-btn:hover {
+  background: #fef08a;
+}
+
+.zoom-val-btn {
+  padding: 2px 6px;
+  border: none;
+  background: transparent;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #854d0e;
+  cursor: pointer;
+}
+
+/* Font Switcher */
+.mushaf-font-cycle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(202, 138, 4, 0.4);
+  background: #ffffff;
+  color: #854d0e;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mushaf-font-cycle-btn:hover {
+  background: #fef9c3;
+}
+
+.quick-play-page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #10b981, #047857);
+  color: #ffffff;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+/* ===================================================
+   15 BARIS MUSHAF & PEMBAGIAN BLOK WARNA BERBASIS AYAT
+   =================================================== */
+.mushaf-15lines-wrapper {
+  width: 100%;
+  background: #ffffff;
+  overflow-x: auto;
+  padding: 4px 0;
+  box-sizing: border-box;
+}
+
+.mushaf-15-line {
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  width: 100%;
+  min-height: calc(48px * var(--mushaf-zoom, 1));
+  border-bottom: 1px solid rgba(202, 138, 4, 0.25); /* Garis per baris seperti mushaf fisik */
+  box-sizing: border-box;
+  position: relative;
+  direction: rtl;
+}
+
+.mushaf-15-line:last-child {
+  border-bottom: none;
+}
+
+/* Segmen Warna di dalam Baris: Mengikuti Ayat, BUKAN Seluruh Garis */
+.mushaf-line-segment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Justifikasi kata merata ke tepi */
+  padding: 0 8px;
+  box-sizing: border-box;
+  min-height: 100%;
+  position: relative;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mushaf-line-segment.highlight-active-segment {
+  box-shadow: inset 0 0 0 2px #10b981;
+}
+
+/* 5 Warna Blok Pastel Al-Hufaz Cordoba */
+.mushaf-line-segment.band-1,
+.quick-block-pill.band-1 {
+  background-color: #FFF9C4 !important; /* Blok 1: Kuning */
+}
+
+.mushaf-line-segment.band-2,
+.quick-block-pill.band-2 {
+  background-color: #DCFCE7 !important; /* Blok 2: Hijau */
+}
+
+.mushaf-line-segment.band-3,
+.quick-block-pill.band-3 {
+  background-color: #E0F2FE !important; /* Blok 3: Biru */
+}
+
+.mushaf-line-segment.band-4,
+.quick-block-pill.band-4 {
+  background-color: #FCE7F3 !important; /* Blok 4: Pink */
+}
+
+.mushaf-line-segment.band-5,
+.quick-block-pill.band-5 {
+  background-color: #FFEDD5 !important; /* Blok 5: Krem */
+}
+
+/* Kata & Kaligrafi */
+.mushaf-word-item {
+  font-family: inherit;
+  font-size: calc(1.42rem * var(--mushaf-zoom, 1));
+  line-height: calc(2.25 * var(--mushaf-zoom, 1));
+  color: #0f172a;
+  cursor: pointer;
+  padding: 0 3px;
+  border-radius: 4px;
+  display: inline-block;
+  transition: all 0.15s ease;
+  user-select: text;
+  white-space: nowrap;
+}
+
+.mushaf-word-item:hover {
+  background: rgba(202, 138, 4, 0.2);
+  transform: translateY(-1px);
+}
+
+.mushaf-word-item.active-audio-word {
+  background: #fde047 !important;
+  color: #000000 !important;
+  box-shadow: 0 0 10px rgba(253, 224, 71, 0.85);
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+/* Tanda Akhir Ayat (Lingkaran Emas Edisi Al-Hufaz) */
+.mushaf-end-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin: 0 4px;
+  cursor: pointer;
+  color: #ca8a04;
+  user-select: none;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.mushaf-end-marker:hover {
+  transform: scale(1.15);
+}
+
+.end-marker-symbol {
+  font-size: calc(1.45em * var(--mushaf-zoom, 1));
+  line-height: 1;
+  color: #ca8a04;
+}
+
+.end-marker-num {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.5em;
+  font-weight: 800;
+  color: #713f12;
+  font-family: var(--font-inter), sans-serif;
+  line-height: 1;
+}
+
+.mushaf-end-marker.active-audio-marker {
+  color: #16a34a;
+  filter: drop-shadow(0 0 6px rgba(22, 163, 74, 0.8));
+}
+
+/* Tajweed Color Rules (Sesuai Pedoman Tajwid Warna Al-Hufaz Cordoba) */
+.tajweed-mad {
+  color: #dc2626 !important; /* Merah untuk Mad */
+}
+
+.tajweed-ghunnah {
+  color: #e11d48 !important; /* Merah Muda / Magenta untuk Ghunnah */
+}
+
+.tajweed-ikhfa {
+  color: #15803d !important; /* Hijau untuk Ikhfa & Iqlab */
+}
+
+.tajweed-qalqalah {
+  color: #0284c7 !important; /* Biru Langit untuk Qalqalah */
+}
+
+/* Masking Uji Hafalan (Tutup 20 Menit) */
+.segment-blind-mask {
+  width: 100%;
+  min-height: calc(44px * var(--mushaf-zoom, 1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(248, 250, 252, 0.96),
+    rgba(248, 250, 252, 0.96) 10px,
+    rgba(241, 245, 249, 0.96) 10px,
+    rgba(241, 245, 249, 0.96) 20px
+  );
+  border: 1.5px dashed #dc2626;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 4px 12px;
+  margin: 2px 0;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.segment-blind-mask:hover {
+  background: rgba(254, 226, 226, 0.95);
+  border-color: #b91c1c;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mushaf-15-line {
+    min-height: calc(40px * var(--mushaf-zoom, 1));
+  }
+
+  .mushaf-word-item {
+    font-size: calc(1.12rem * var(--mushaf-zoom, 1));
+    line-height: calc(2.05 * var(--mushaf-zoom, 1));
+    padding: 0 1.5px;
+  }
+
+  .mushaf-line-segment {
+    padding: 0 4px;
+  }
+
+  .segment-blind-mask {
+    font-size: 0.65rem;
+    padding: 2px 6px;
   }
 }
 

@@ -18,6 +18,8 @@ import {
   PageHufazBlock,
   MushafWordItem,
   MushafLineItem,
+  MushafLineSegment,
+  getLineSegments,
   PAGE_6_DEFAULT_LINES,
   partition15LinesInto5Blocks,
   partitionPageInto5Blocks,
@@ -99,9 +101,9 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   const [cordobaSubView, setCordobaSubView] = useState<"mushaf" | "poster">("mushaf");
   const [showOriginalModal, setShowOriginalModal] = useState<boolean>(false);
 
-  // Mushaf Zoom & Font states for authentic 15-line view
+  // Mushaf Zoom & Font states for authentic 15-line view (Default: LPMQ Isep Misbah Standar Kemenag)
   const [mushafZoom, setMushafZoom] = useState<number>(100); // 70% to 180%
-  const [mushafFont, setMushafFont] = useState<"noto" | "amiri" | "scheherazade">("noto");
+  const [mushafFont, setMushafFont] = useState<"lpmq" | "noto" | "amiri" | "scheherazade">("lpmq");
 
   // Closed / Tutup Blocks for 20m memorization test
   const [closedBlocks, setClosedBlocks] = useState<{ [blockId: number]: boolean }>({});
@@ -232,7 +234,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       if (savedZoom) setMushafZoom(parseInt(savedZoom, 10) || 100);
 
       const savedFont = localStorage.getItem("expedient_mushaf_font");
-      if (savedFont && ["noto", "amiri", "scheherazade"].includes(savedFont)) {
+      if (savedFont && ["lpmq", "noto", "amiri", "scheherazade"].includes(savedFont)) {
         setMushafFont(savedFont as any);
       }
     } catch (e) {
@@ -288,6 +290,28 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     return partitionPageInto5Blocks(verses);
   }, [pageData, cordobaPage]);
 
+  // 15 Baris data untuk lembaran mushaf
+  const pageLines = useMemo<MushafLineItem[]>(() => {
+    if (cordobaPage === 6) {
+      return PAGE_6_DEFAULT_LINES;
+    }
+    if (pageData?.lines && pageData.lines.length > 0) {
+      return pageData.lines.map((line) => ({
+        ...line,
+        words: line.words.map((w) => {
+          const matchingBlock = pageBlocks.find(
+            (b) => w.verseNumber >= b.startAyat && w.verseNumber <= b.endAyat
+          );
+          return {
+            ...w,
+            blockId: matchingBlock ? matchingBlock.blockId : (line.blockId || 1),
+          };
+        }),
+      }));
+    }
+    return [];
+  }, [cordobaPage, pageData, pageBlocks]);
+
   // Toggle TUTUP / BUKA for a color block
   const toggleBlockClosure = (blockId: number) => {
     triggerHaptic(15);
@@ -299,6 +323,62 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
         showToast(`Blok ${blockId} dibuka untuk memeriksa hafalan`);
       }
       return { ...prev, [blockId]: nextState };
+    });
+  };
+
+  // Zoom In / Zoom Out / Reset Controls
+  const handleZoomIn = () => {
+    triggerHaptic(8);
+    setMushafZoom((prev) => {
+      const next = Math.min(180, prev + 10);
+      try {
+        localStorage.setItem("expedient_mushaf_zoom", next.toString());
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleZoomOut = () => {
+    triggerHaptic(8);
+    setMushafZoom((prev) => {
+      const next = Math.max(70, prev - 10);
+      try {
+        localStorage.setItem("expedient_mushaf_zoom", next.toString());
+      } catch {}
+      return next;
+    });
+  };
+
+  const handleZoomReset = () => {
+    triggerHaptic(10);
+    setMushafZoom(100);
+    try {
+      localStorage.setItem("expedient_mushaf_zoom", "100");
+    } catch {}
+    showToast("Ukuran tampilan direset ke 100%");
+  };
+
+  // Khot Calligraphy Font Switcher (Default: LPMQ Isep Misbah Standar Kemenag)
+  const handleCycleFont = () => {
+    triggerHaptic(8);
+    setMushafFont((prev) => {
+      let next: "lpmq" | "noto" | "amiri" | "scheherazade" = "lpmq";
+      if (prev === "lpmq") next = "amiri";
+      else if (prev === "amiri") next = "scheherazade";
+      else if (prev === "scheherazade") next = "noto";
+      else next = "lpmq";
+
+      try {
+        localStorage.setItem("expedient_mushaf_font", next);
+      } catch {}
+      const fontLabels: Record<string, string> = {
+        lpmq: "LPMQ Standar Indonesia (Kemenag)",
+        amiri: "Amiri Klasik",
+        scheherazade: "Scheherazade New",
+        noto: "Noto Naskh Modern",
+      };
+      showToast(`Font diganti ke: ${fontLabels[next]}`);
+      return next;
     });
   };
 
@@ -357,48 +437,6 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       col3Verses: pageData.verses.slice(size1 + size2),
     };
   }, [pageData]);
-
-  // Zoom & Font Handlers for 15-Line Mushaf
-  const handleZoomIn = () => {
-    triggerHaptic(8);
-    setMushafZoom((prev) => {
-      const next = Math.min(180, prev + 10);
-      try { localStorage.setItem("expedient_mushaf_zoom", String(next)); } catch {}
-      return next;
-    });
-  };
-
-  const handleZoomOut = () => {
-    triggerHaptic(8);
-    setMushafZoom((prev) => {
-      const next = Math.max(70, prev - 10);
-      try { localStorage.setItem("expedient_mushaf_zoom", String(next)); } catch {}
-      return next;
-    });
-  };
-
-  const handleZoomReset = () => {
-    triggerHaptic(10);
-    setMushafZoom(100);
-    try { localStorage.setItem("expedient_mushaf_zoom", "100"); } catch {}
-  };
-
-  const handleCycleFont = () => {
-    triggerHaptic(10);
-    setMushafFont((prev) => {
-      const order: ("noto" | "amiri" | "scheherazade")[] = ["noto", "amiri", "scheherazade"];
-      const nextIdx = (order.indexOf(prev) + 1) % order.length;
-      const next = order[nextIdx];
-      try { localStorage.setItem("expedient_mushaf_font", next); } catch {}
-      const fontNames = {
-        noto: "Noto Naskh Arabic (Standar Kemenag RI)",
-        amiri: "Amiri (Khot Klasik)",
-        scheherazade: "Scheherazade New (Jelas & Nyaman)",
-      };
-      showToast(`Font: ${fontNames[next]}`);
-      return next;
-    });
-  };
 
   // Timer Control
   const toggleTimer = () => {
@@ -1262,10 +1300,10 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                               type="button"
                               className="mushaf-font-cycle-btn"
                               onClick={handleCycleFont}
-                              title="Ganti Font Khot Kaligrafi (Kemenag / Amiri / Scheherazade)"
+                              title="Ganti Font Khot Kaligrafi (LPMQ Standar Kemenag / Amiri / Scheherazade)"
                             >
                               <i className="fa-solid fa-font"></i>
-                              <span>Khot: {mushafFont === "noto" ? "Kemenag" : mushafFont === "amiri" ? "Amiri" : "Scheherazade"}</span>
+                              <span>Khot: {mushafFont === "lpmq" ? "Kemenag (LPMQ)" : mushafFont === "noto" ? "Noto Naskh" : mushafFont === "amiri" ? "Amiri" : "Scheherazade"}</span>
                             </button>
 
                             <button
@@ -1280,112 +1318,132 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                           </div>
                         </div>
 
-                        {/* 2. Teks Mushaf Al-Hufaz Autentik: 15 Baris & 5 Blok Warna Solid Nempel Atas-Bawah */}
+                        {/* 2. Teks Mushaf Al-Hufaz Autentik: 15 Baris Bergaris dengan Transisi Warna Per Blok Ayat */}
                         <div
                           className={`mushaf-15lines-wrapper font-${mushafFont}`}
                           style={{ "--mushaf-zoom": mushafZoom / 100 } as React.CSSProperties}
                         >
-                          {pageBlocks.map((b) => {
-                            const isClosed = !!closedBlocks[b.blockId];
-                            const isCurrentPlayingBlock = currentPlayingBlockId === b.blockId;
-                            const blockLines = b.lines && b.lines.length > 0 ? b.lines : [];
+                          {pageLines.length > 0 ? (
+                            pageLines.map((line) => {
+                              const segments = getLineSegments(line);
+                              return (
+                                <div key={`mline-${line.lineNumber}`} className="mushaf-15-line" dir="rtl">
+                                  {segments.map((segment, sIdx) => {
+                                    const isClosed = !!closedBlocks[segment.blockId];
+                                    const isCurrentPlayingSegment = currentPlayingBlockId === segment.blockId;
 
-                            return (
-                              <div
-                                key={`block-${b.blockId}`}
-                                className={`mushaf-color-band band-${b.blockId} ${isClosed ? "is-closed" : ""} ${isCurrentPlayingBlock ? "highlight-active-band" : ""}`}
-                              >
-                                {blockLines.length > 0 ? (
-                                  blockLines.map((line) => (
-                                    <div key={`line-${line.lineNumber}`} className="mushaf-15-line" dir="rtl">
-                                      {line.words.map((w, wIdx) => {
-                                        if (w.charType === "end") {
-                                          const isAudioActive = currentPlayingAyah === w.verseNumber;
-                                          return (
-                                            <span
-                                              key={`w-${line.lineNumber}-${wIdx}`}
-                                              className={`mushaf-end-marker ${isAudioActive ? "active-audio-marker" : ""}`}
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (isClosed) {
-                                                  toggleBlockClosure(b.blockId);
-                                                } else {
-                                                  playSingleAyahAudio(w.verseNumber, w.surahNumber, b.blockId);
-                                                }
-                                              }}
-                                              title={`Akhir Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
-                                            >
-                                              <span className="end-marker-symbol">۝</span>
-                                              <span className="end-marker-num">{toArabicNumerals(w.verseNumber)}</span>
-                                            </span>
-                                          );
-                                        }
-
-                                        const isAudioActive = currentPlayingAyah === w.verseNumber;
-                                        return (
-                                          <span
-                                            key={`w-${line.lineNumber}-${wIdx}`}
-                                            className={`mushaf-word-item ${isAudioActive ? "active-audio-word" : ""}`}
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              if (isClosed) {
-                                                toggleBlockClosure(b.blockId);
-                                              } else {
-                                                playSingleAyahAudio(w.verseNumber, w.surahNumber, b.blockId);
-                                              }
-                                            }}
-                                            title={`Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
-                                          >
-                                            {w.text}
-                                          </span>
-                                        );
-                                      })}
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div className="mushaf-fallback-ayahs-flow" dir="rtl">
-                                    {b.ayahs.map((v) => (
-                                      <span
-                                        key={v.verseKey}
-                                        className="mushaf-word-item"
-                                        onClick={() => playSingleAyahAudio(v.verseNumber, v.surahNumber, b.blockId)}
+                                    return (
+                                      <div
+                                        key={`seg-${line.lineNumber}-${sIdx}`}
+                                        className={`mushaf-line-segment band-${segment.blockId} ${isClosed ? "is-closed" : ""} ${isCurrentPlayingSegment ? "highlight-active-segment" : ""}`}
+                                        style={{ flex: segment.flexRatio }}
                                       >
-                                        {v.textUthmani}{" "}
-                                        <span className="mushaf-end-marker">
-                                          <span className="end-marker-symbol">۝</span>
-                                          <span className="end-marker-num">{toArabicNumerals(v.verseNumber)}</span>
-                                        </span>{" "}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
+                                        {isClosed ? (
+                                          <div
+                                            className="segment-blind-mask"
+                                            onClick={() => toggleBlockClosure(segment.blockId)}
+                                            title={`Klik untuk membuka hafalan Blok ${segment.blockId}`}
+                                          >
+                                            <i className="fa-solid fa-eye-slash"></i>
+                                            <span>Blok {segment.blockId} Ditutup (Uji Hafalan)</span>
+                                          </div>
+                                        ) : (
+                                          segment.words.map((w, wIdx) => {
+                                            if (w.charType === "end") {
+                                              const isAudioActive = currentPlayingAyah === w.verseNumber;
+                                              return (
+                                                <span
+                                                  key={`w-${line.lineNumber}-${sIdx}-${wIdx}`}
+                                                  className={`mushaf-end-marker ${isAudioActive ? "active-audio-marker" : ""}`}
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    playSingleAyahAudio(w.verseNumber, w.surahNumber, segment.blockId);
+                                                  }}
+                                                  title={`Akhir Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
+                                                >
+                                                  <span className="end-marker-symbol">۝</span>
+                                                  <span className="end-marker-num">{toArabicNumerals(w.verseNumber)}</span>
+                                                </span>
+                                              );
+                                            }
 
-                                {isClosed && (
-                                  <div className="mushaf-band-blind-overlay">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleBlockClosure(b.blockId)}
-                                      className="blind-reveal-btn"
-                                    >
-                                      <i className="fa-solid fa-eye"></i> Buka Teks {b.config.name}
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                                            const isAudioActive = currentPlayingAyah === w.verseNumber;
+                                            const tajweedClass = w.tajweedType ? `tajweed-${w.tajweedType}` : "";
+
+                                            return (
+                                              <span
+                                                key={`w-${line.lineNumber}-${sIdx}-${wIdx}`}
+                                                className={`mushaf-word-item ${tajweedClass} ${isAudioActive ? "active-audio-word" : ""}`}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  playSingleAyahAudio(w.verseNumber, w.surahNumber, segment.blockId);
+                                                }}
+                                                title={`Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
+                                              >
+                                                {w.text}
+                                              </span>
+                                            );
+                                          })
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })
+                          ) : (
+                            pageBlocks.map((b) => {
+                              const isClosed = !!closedBlocks[b.blockId];
+                              return (
+                                <div key={`fb-block-${b.blockId}`} className={`mushaf-color-band band-${b.blockId} ${isClosed ? "is-closed" : ""}`} dir="rtl">
+                                  {isClosed ? (
+                                    <div className="band-blind-cover" onClick={() => toggleBlockClosure(b.blockId)}>
+                                      <div className="blind-cover-card">
+                                        <i className="fa-solid fa-eye-slash"></i>
+                                        <strong>{b.config.name} Ditutup (Uji Hafalan 20 Menit)</strong>
+                                        <span>Klik di sini untuk membuka kembali teks</span>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="mushaf-fallback-ayahs-flow">
+                                      {b.ayahs.map((v) => (
+                                        <span
+                                          key={v.verseKey}
+                                          className={`verse-span ${currentPlayingAyah === v.verseNumber ? "highlight-audio" : ""}`}
+                                          onClick={() => playSingleAyahAudio(v.verseNumber, v.surahNumber, b.blockId)}
+                                        >
+                                          {v.textUthmani}{" "}
+                                          <span className="verse-golden-ayah-marker">
+                                            <span className="ayah-symbol">۝</span>
+                                            <span className="ayah-num">{toArabicNumerals(v.verseNumber)}</span>
+                                          </span>{" "}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })
+                          )}
                         </div>
                       </div>
 
                       {/* Frame Bottom Navigation / Indicator */}
                       <div className="mushaf-frame-bottom-bar">
-                        <div className="bottom-left-guide-text" dir="rtl">
-                          {pageMeta.nextPageGuideText}
+                        <div className="bottom-left-guide-text" dir="rtl" title="Kata Awal Halaman Berikutnya">
+                          <span className="guide-label" style={{ fontSize: "0.72rem", color: "#64748b" }}>Lanjutan: </span>
+                          <span>{pageMeta.nextPageGuideText}</span>
                         </div>
                         <div className="bottom-center-cartouche">
                           <span className="cartouche-juz">Juz {pageData.juzNumber}</span>
                           <span className="cartouche-divider">•</span>
                           <span className="cartouche-page">Hal. {cordobaPage}</span>
+                        </div>
+                        <div className="bottom-tajweed-legend" title="Pedoman Warna Tajwid Mushaf Al-Hufaz">
+                          <span className="tajweed-badge mad"><span className="dot dot-mad"></span> Mad</span>
+                          <span className="tajweed-badge ghunnah"><span className="dot dot-ghunnah"></span> Ghunnah</span>
+                          <span className="tajweed-badge ikhfa"><span className="dot dot-ikhfa"></span> Ikhfa</span>
+                          <span className="tajweed-badge qalqalah"><span className="dot dot-qalqalah"></span> Qalqalah</span>
                         </div>
                       </div>
                     </div>
