@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700;1,400&family=Scheherazade+New:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;600;700&display=swap');
 
 /* ===================================================
    AL-QUR'AN DIGITAL & REPLIKA MUSHAF AL-HUFAZ CORDOBA
@@ -1358,6 +1358,108 @@
   transform: scale(1.15);
 }
 
+.quick-blocks-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Mushaf Zoom Controls */
+.mushaf-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 20px;
+  padding: 2px 4px;
+  gap: 2px;
+}
+
+[data-theme="dark"] .mushaf-zoom-controls {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.zoom-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  color: #334155;
+  transition: all 0.15s ease;
+}
+
+[data-theme="dark"] .zoom-btn {
+  color: #cbd5e1;
+}
+
+.zoom-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+  transform: scale(1.08);
+}
+
+[data-theme="dark"] .zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.zoom-val-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.74rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  color: #0f172a;
+  cursor: pointer;
+  border-radius: 6px;
+  min-width: 40px;
+  text-align: center;
+}
+
+[data-theme="dark"] .zoom-val-btn {
+  color: #f1f5f9;
+}
+
+.zoom-val-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Font Selector Button */
+.mushaf-font-cycle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .mushaf-font-cycle-btn {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
+}
+
+.mushaf-font-cycle-btn:hover {
+  border-color: #10b981;
+  color: #059669;
+}
+
 /* ===================================================
    AUTENTIK AL-HUFAZ: 15 BARIS & 5 BLOK WARNA FULL COLOUR
    (5 Blok Warna Solid Nempel Atas Bawah Tanpa Jeda)
@@ -1371,8 +1473,24 @@
   padding: 0;
   background: transparent;
   border-radius: 0;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
   box-sizing: border-box;
+}
+
+/* Khot Typography Options */
+.mushaf-15lines-wrapper.font-noto {
+  font-family: 'Noto Naskh Arabic', 'Scheherazade New', 'Amiri', serif;
+}
+
+.mushaf-15lines-wrapper.font-amiri {
+  font-family: 'Amiri', 'Scheherazade New', serif;
+}
+
+.mushaf-15lines-wrapper.font-scheherazade {
+  font-family: 'Scheherazade New', 'Noto Naskh Arabic', serif;
 }
 
 /* 5 Solid Color Bands - Nempel Atas Bawah TANPA Jeda Putih! */
@@ -1381,12 +1499,11 @@
   flex-direction: column;
   justify-content: space-evenly;
   margin: 0 !important;
-  padding: 8px 18px;
+  padding: 0 10px;
   width: 100%;
   box-sizing: border-box;
   position: relative;
   transition: background-color 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
-  min-height: 88px;
   border: none !important;
 }
 
@@ -1449,33 +1566,42 @@
   box-shadow: inset 0 0 12px rgba(22, 163, 74, 0.35);
 }
 
-/* 15 Baris Tepat (Satu Baris Tidak Akan Pernah Pecah / Wrap) */
+/* 15 Baris Tepat dengan Garis Guideline per Baris Sesuai Mushaf Asli */
 .mushaf-15-line {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-width: calc(100% * max(1, var(--mushaf-zoom, 1)));
   width: 100%;
   direction: rtl;
   white-space: nowrap;
-  font-family: 'Amiri Quran', 'Scheherazade New', var(--font-amiri), serif;
-  font-size: clamp(0.82rem, 1.88vw, 1.62rem);
-  line-height: 2.15;
-  padding: 1px 0;
+  font-family: inherit;
+  font-size: calc(clamp(1.22rem, 2.1vw, 2.15rem) * var(--mushaf-zoom, 1));
+  line-height: calc(2.45 * var(--mushaf-zoom, 1));
+  min-height: calc(48px * var(--mushaf-zoom, 1));
+  padding: calc(3px * var(--mushaf-zoom, 1)) 4px;
   box-sizing: border-box;
   user-select: none;
+  /* Garis horizontal per baris (Authentic Ruled Lines) */
+  border-bottom: 1.5px solid rgba(133, 77, 14, 0.22);
+}
+
+[data-theme="dark"] .mushaf-15-line {
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.22);
 }
 
 /* Kata per Kata dalam Mushaf */
 .mushaf-word-item {
   display: inline-block;
   cursor: pointer;
-  padding: 0 1px;
-  transition: transform 0.12s ease, color 0.15s ease, text-shadow 0.15s ease;
+  padding: 0 calc(2px * var(--mushaf-zoom, 1));
+  font-weight: 500;
+  transition: transform 0.12s ease, color 0.15s ease, background-color 0.15s ease;
 }
 
 .mushaf-word-item:hover {
-  opacity: 0.82;
-  transform: scale(1.04);
+  opacity: 0.85;
+  transform: scale(1.05);
 }
 
 /* Tanda Akhir Ayat ۝٣٠ Tradisional */
@@ -1485,7 +1611,7 @@
   justify-content: center;
   position: relative;
   cursor: pointer;
-  margin: 0 3px;
+  margin: 0 calc(3px * var(--mushaf-zoom, 1));
   transition: transform 0.15s ease;
 }
 
@@ -1495,16 +1621,16 @@
 
 .mushaf-end-marker .end-marker-symbol {
   color: #d97706;
-  font-size: 1.28em;
+  font-size: calc(1.32em * var(--mushaf-zoom, 1));
   line-height: 1;
 }
 
 .mushaf-end-marker .end-marker-num {
   position: absolute;
-  font-size: 0.52em;
+  font-size: calc(0.5em * var(--mushaf-zoom, 1));
   font-weight: 800;
   color: #92400e;
-  font-family: sans-serif, var(--font-amiri);
+  font-family: inherit;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

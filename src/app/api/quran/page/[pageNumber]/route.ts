@@ -36,6 +36,15 @@ export async function GET(
       );
     }
 
+    // Helper to sanitize Medina ligature artifacts for clean Indonesian Naskh rendering
+    const cleanKhot = (str: string): string => {
+      if (!str) return "";
+      return str
+        .replace(/ـ+/g, "") // remove tatweel / kashida that breaks web font baselines
+        .replace(/\u06DF|\u06E0|\u06E2/g, "") // remove problematic small circular symbols
+        .normalize("NFC");
+    };
+
     // Process & normalize verses
     const verses = rawVerses.map((v: any) => {
       const surahNum = v.chapter_id;
@@ -47,7 +56,8 @@ export async function GET(
 
       // Extract 2-3 initial words as the keyword (kata kunci awal ayat)
       const words = (v.text_uthmani || "").trim().split(/\s+/);
-      const keywordArab = words.slice(0, Math.min(3, words.length)).join(" ");
+      const rawKeyword = words.slice(0, Math.min(3, words.length)).join(" ");
+      const keywordArab = cleanKhot(rawKeyword);
 
       // Clean translation text (remove footnotes markup like <sup foot_note=...>)
       let cleanTranslation = v.translations?.[0]?.text || "";
@@ -60,7 +70,7 @@ export async function GET(
         surahNumber: surahNum,
         surahName: surahMeta?.namaLatin || `Surah ${surahNum}`,
         surahArabic: surahMeta?.nama || "",
-        textUthmani: v.text_uthmani,
+        textUthmani: cleanKhot(v.text_uthmani),
         translationIndo: cleanTranslation,
         audioUrl: `https://everyayah.com/data/Alafasy_128kbps/${surahStr}${ayahStr}.mp3`,
         keywordArab,
@@ -79,9 +89,10 @@ export async function GET(
       (v.words || []).forEach((w: any) => {
         const lineNum = w.line_number || 1;
         if (!lineMap[lineNum]) lineMap[lineNum] = [];
+        const rawText = w.text_uthmani || w.text || "";
         lineMap[lineNum].push({
           id: w.id,
-          text: w.text_uthmani || w.text,
+          text: cleanKhot(rawText),
           charType: w.char_type_name || "word",
           verseNumber: v.verse_number,
           surahNumber: v.chapter_id,

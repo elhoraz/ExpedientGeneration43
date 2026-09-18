@@ -99,6 +99,10 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   const [cordobaSubView, setCordobaSubView] = useState<"mushaf" | "poster">("mushaf");
   const [showOriginalModal, setShowOriginalModal] = useState<boolean>(false);
 
+  // Mushaf Zoom & Font states for authentic 15-line view
+  const [mushafZoom, setMushafZoom] = useState<number>(100); // 70% to 180%
+  const [mushafFont, setMushafFont] = useState<"noto" | "amiri" | "scheherazade">("noto");
+
   // Closed / Tutup Blocks for 20m memorization test
   const [closedBlocks, setClosedBlocks] = useState<{ [blockId: number]: boolean }>({});
   const [pageTikrar, setPageTikrar] = useState<{ [key: string]: number }>({});
@@ -223,6 +227,14 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
 
       const savedHafalBubbles = localStorage.getItem("expedient_cordoba_hafal_bubbles");
       if (savedHafalBubbles) setMenghafalBubbles(JSON.parse(savedHafalBubbles));
+
+      const savedZoom = localStorage.getItem("expedient_mushaf_zoom");
+      if (savedZoom) setMushafZoom(parseInt(savedZoom, 10) || 100);
+
+      const savedFont = localStorage.getItem("expedient_mushaf_font");
+      if (savedFont && ["noto", "amiri", "scheherazade"].includes(savedFont)) {
+        setMushafFont(savedFont as any);
+      }
     } catch (e) {
       console.warn("Error reading Quran preferences from localStorage:", e);
     }
@@ -345,6 +357,48 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       col3Verses: pageData.verses.slice(size1 + size2),
     };
   }, [pageData]);
+
+  // Zoom & Font Handlers for 15-Line Mushaf
+  const handleZoomIn = () => {
+    triggerHaptic(8);
+    setMushafZoom((prev) => {
+      const next = Math.min(180, prev + 10);
+      try { localStorage.setItem("expedient_mushaf_zoom", String(next)); } catch {}
+      return next;
+    });
+  };
+
+  const handleZoomOut = () => {
+    triggerHaptic(8);
+    setMushafZoom((prev) => {
+      const next = Math.max(70, prev - 10);
+      try { localStorage.setItem("expedient_mushaf_zoom", String(next)); } catch {}
+      return next;
+    });
+  };
+
+  const handleZoomReset = () => {
+    triggerHaptic(10);
+    setMushafZoom(100);
+    try { localStorage.setItem("expedient_mushaf_zoom", "100"); } catch {}
+  };
+
+  const handleCycleFont = () => {
+    triggerHaptic(10);
+    setMushafFont((prev) => {
+      const order: ("noto" | "amiri" | "scheherazade")[] = ["noto", "amiri", "scheherazade"];
+      const nextIdx = (order.indexOf(prev) + 1) % order.length;
+      const next = order[nextIdx];
+      try { localStorage.setItem("expedient_mushaf_font", next); } catch {}
+      const fontNames = {
+        noto: "Noto Naskh Arabic (Standar Kemenag RI)",
+        amiri: "Amiri (Khot Klasik)",
+        scheherazade: "Scheherazade New (Jelas & Nyaman)",
+      };
+      showToast(`Font: ${fontNames[next]}`);
+      return next;
+    });
+  };
 
   // Timer Control
   const toggleTimer = () => {
@@ -1175,6 +1229,45 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                           </div>
 
                           <div className="quick-blocks-actions">
+                            {/* Zoom In / Zoom Out Controls */}
+                            <div className="mushaf-zoom-controls">
+                              <button
+                                type="button"
+                                className="zoom-btn"
+                                onClick={handleZoomOut}
+                                title="Perkecil Ukuran Tulisan (Zoom Out)"
+                              >
+                                <i className="fa-solid fa-magnifying-glass-minus"></i>
+                              </button>
+                              <button
+                                type="button"
+                                className="zoom-val-btn"
+                                onClick={handleZoomReset}
+                                title="Klik untuk reset zoom ke 100%"
+                              >
+                                <span>{mushafZoom}%</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="zoom-btn"
+                                onClick={handleZoomIn}
+                                title="Perbesar Ukuran Tulisan (Zoom In)"
+                              >
+                                <i className="fa-solid fa-magnifying-glass-plus"></i>
+                              </button>
+                            </div>
+
+                            {/* Khot Font Toggle */}
+                            <button
+                              type="button"
+                              className="mushaf-font-cycle-btn"
+                              onClick={handleCycleFont}
+                              title="Ganti Font Khot Kaligrafi (Kemenag / Amiri / Scheherazade)"
+                            >
+                              <i className="fa-solid fa-font"></i>
+                              <span>Khot: {mushafFont === "noto" ? "Kemenag" : mushafFont === "amiri" ? "Amiri" : "Scheherazade"}</span>
+                            </button>
+
                             <button
                               type="button"
                               className="quick-play-page-btn"
@@ -1188,7 +1281,10 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                         </div>
 
                         {/* 2. Teks Mushaf Al-Hufaz Autentik: 15 Baris & 5 Blok Warna Solid Nempel Atas-Bawah */}
-                        <div className="mushaf-15lines-wrapper">
+                        <div
+                          className={`mushaf-15lines-wrapper font-${mushafFont}`}
+                          style={{ "--mushaf-zoom": mushafZoom / 100 } as React.CSSProperties}
+                        >
                           {pageBlocks.map((b) => {
                             const isClosed = !!closedBlocks[b.blockId];
                             const isCurrentPlayingBlock = currentPlayingBlockId === b.blockId;
