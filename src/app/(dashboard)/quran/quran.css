@@ -2,9 +2,12 @@
 
 @font-face {
   font-family: 'LPMQ Isep Misbah';
-  src: url('/fonts/LPMQIsepMisbah.woff2') format('woff2'),
+  src: local('LPMQ Isep Misbah'),
+       local('LPMQ'),
+       url('/fonts/lpmq.ttf') format('truetype'),
+       url('/fonts/LPMQIsepMisbah.woff2') format('woff2'),
        url('/fonts/LPMQIsepMisbah.woff') format('woff');
-  font-weight: 400;
+  font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
@@ -1628,7 +1631,7 @@
   width: 100%;
   direction: rtl;
   white-space: nowrap;
-  font-family: 'Noto Naskh Arabic', var(--font-amiri), 'Scheherazade New', serif;
+  font-family: inherit;
   font-size: calc(clamp(0.85rem, 1.8vw, 1.45rem) * var(--mushaf-zoom, 1));
   font-weight: 700;
   color: #0a0f1d;
@@ -4026,20 +4029,44 @@
    Khot: LPMQ Isep Misbah (Standar Kementerian Agama RI)
    =================================================== */
 
-/* Font Selector Classes */
-.font-lpmq {
+/* Font Selector Classes — Direct targeting on wrapper, lines, words, and markers */
+.font-lpmq,
+.font-lpmq .mushaf-15-line,
+.font-lpmq .mushaf-line-segment,
+.font-lpmq .mushaf-word-item,
+.font-lpmq .verse-span,
+.font-lpmq .band-arabic-text,
+.font-lpmq .mushaf-fallback-ayahs-flow {
   font-family: 'LPMQ Isep Misbah', 'Noto Naskh Arabic', 'Amiri', serif !important;
 }
 
-.font-noto {
+.font-noto,
+.font-noto .mushaf-15-line,
+.font-noto .mushaf-line-segment,
+.font-noto .mushaf-word-item,
+.font-noto .verse-span,
+.font-noto .band-arabic-text,
+.font-noto .mushaf-fallback-ayahs-flow {
   font-family: 'Noto Naskh Arabic', 'Amiri', serif !important;
 }
 
-.font-amiri {
+.font-amiri,
+.font-amiri .mushaf-15-line,
+.font-amiri .mushaf-line-segment,
+.font-amiri .mushaf-word-item,
+.font-amiri .verse-span,
+.font-amiri .band-arabic-text,
+.font-amiri .mushaf-fallback-ayahs-flow {
   font-family: 'Amiri', 'Noto Naskh Arabic', serif !important;
 }
 
-.font-scheherazade {
+.font-scheherazade,
+.font-scheherazade .mushaf-15-line,
+.font-scheherazade .mushaf-line-segment,
+.font-scheherazade .mushaf-word-item,
+.font-scheherazade .verse-span,
+.font-scheherazade .band-arabic-text,
+.font-scheherazade .mushaf-fallback-ayahs-flow {
   font-family: 'Scheherazade New', 'Amiri', serif !important;
 }
 
@@ -4410,4 +4437,457 @@
     padding: 2px 6px;
   }
 }
+
+/* ===================================================
+   DARK MODE COMPREHENSIVE CONTRAST FIXES (MUSHAF AL-HUFAZ)
+   Ensures 100% legibility, rich golden accents & clear colors
+   =================================================== */
+
+[data-theme="dark"] .cordoba-mushaf-sheet {
+  background: #090f1d !important;
+  color: #f8fafc !important;
+  border: 2.5px solid #ca8a04 !important;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.75), 0 0 30px rgba(202, 138, 4, 0.12) !important;
+}
+
+[data-theme="dark"] .mushaf-sheet-top-bar {
+  border-bottom-color: rgba(202, 138, 4, 0.4);
+}
+
+[data-theme="dark"] .ornate-title-cartouche h2 {
+  color: #fef08a !important;
+  text-shadow: 0 0 14px rgba(254, 240, 138, 0.25);
+}
+
+[data-theme="dark"] .ornate-method-pill {
+  background: #1e3a8a !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+[data-theme="dark"] .top-badge-right,
+[data-theme="dark"] .top-badge-left {
+  background: #0f172a !important;
+  border: 1px solid rgba(202, 138, 4, 0.4) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .top-badge-right strong,
+[data-theme="dark"] .top-badge-left strong {
+  color: #fef08a !important;
+}
+
+/* Frame & 15-Baris Center Mushaf */
+[data-theme="dark"] .mushaf-golden-frame {
+  background: #0d1526 !important;
+  border-color: #ca8a04 !important;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.65);
+}
+
+[data-theme="dark"] .mushaf-15lines-wrapper {
+  background: #0d1526 !important;
+}
+
+[data-theme="dark"] .mushaf-15-line {
+  border-bottom: 1px solid rgba(202, 138, 4, 0.3) !important;
+  color: #ffffff !important;
+}
+
+/* 5 Segmen Warna Ayat dalam Dark Mode (Elegant High-Contrast Tint) */
+[data-theme="dark"] .mushaf-line-segment.band-1,
+[data-theme="dark"] .quick-block-pill.band-1 {
+  background-color: rgba(234, 179, 8, 0.22) !important;
+  border-color: rgba(234, 179, 8, 0.6) !important;
+  color: #fef08a !important;
+}
+
+[data-theme="dark"] .mushaf-line-segment.band-2,
+[data-theme="dark"] .quick-block-pill.band-2 {
+  background-color: rgba(34, 197, 94, 0.22) !important;
+  border-color: rgba(34, 197, 94, 0.6) !important;
+  color: #bbf7d0 !important;
+}
+
+[data-theme="dark"] .mushaf-line-segment.band-3,
+[data-theme="dark"] .quick-block-pill.band-3 {
+  background-color: rgba(56, 189, 248, 0.22) !important;
+  border-color: rgba(56, 189, 248, 0.6) !important;
+  color: #bae6fd !important;
+}
+
+[data-theme="dark"] .mushaf-line-segment.band-4,
+[data-theme="dark"] .quick-block-pill.band-4 {
+  background-color: rgba(244, 63, 94, 0.22) !important;
+  border-color: rgba(244, 63, 94, 0.6) !important;
+  color: #fbcfe8 !important;
+}
+
+[data-theme="dark"] .mushaf-line-segment.band-5,
+[data-theme="dark"] .quick-block-pill.band-5 {
+  background-color: rgba(249, 115, 22, 0.22) !important;
+  border-color: rgba(249, 115, 22, 0.6) !important;
+  color: #fed7aa !important;
+}
+
+/* Words & Kaligrafi Arab */
+[data-theme="dark"] .mushaf-word-item {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .mushaf-word-item:hover {
+  background: rgba(202, 138, 4, 0.35);
+}
+
+[data-theme="dark"] .mushaf-word-item.active-audio-word {
+  background: #fde047 !important;
+  color: #000000 !important;
+  font-weight: 800;
+  box-shadow: 0 0 14px rgba(253, 224, 71, 0.95);
+}
+
+/* Tajweed Colors in Dark Mode */
+[data-theme="dark"] .tajweed-mad {
+  color: #fb7185 !important;
+  text-shadow: 0 0 3px rgba(251, 113, 133, 0.4);
+}
+
+[data-theme="dark"] .tajweed-ghunnah {
+  color: #f472b6 !important;
+  text-shadow: 0 0 3px rgba(244, 114, 182, 0.4);
+}
+
+[data-theme="dark"] .tajweed-ikhfa {
+  color: #4ade80 !important;
+  text-shadow: 0 0 3px rgba(74, 222, 128, 0.4);
+}
+
+[data-theme="dark"] .tajweed-qalqalah {
+  color: #38bdf8 !important;
+  text-shadow: 0 0 3px rgba(56, 189, 248, 0.4);
+}
+
+/* Akhir Ayat Emas */
+[data-theme="dark"] .mushaf-end-marker {
+  color: #eab308 !important;
+}
+
+[data-theme="dark"] .end-marker-symbol {
+  color: #eab308 !important;
+}
+
+[data-theme="dark"] .end-marker-num {
+  color: #fef08a !important;
+}
+
+[data-theme="dark"] .mushaf-end-marker.active-audio-marker {
+  color: #22c55e !important;
+  filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.95));
+}
+
+/* Uji Hafalan Masking (Blind Mask) */
+[data-theme="dark"] .segment-blind-mask {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(30, 41, 59, 0.96),
+    rgba(30, 41, 59, 0.96) 10px,
+    rgba(15, 23, 42, 0.96) 10px,
+    rgba(15, 23, 42, 0.96) 20px
+  );
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .segment-blind-mask:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: #f87171;
+}
+
+/* Quick Bar & Zoom Controls */
+[data-theme="dark"] .mushaf-quick-blocks-bar {
+  background: #0f172a !important;
+  border-bottom-color: rgba(202, 138, 4, 0.45) !important;
+}
+
+[data-theme="dark"] .quick-pill-toggle {
+  background: rgba(15, 23, 42, 0.85) !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .quick-pill-toggle:hover {
+  background: #1e293b !important;
+}
+
+[data-theme="dark"] .quick-pill-toggle.is-closed {
+  background: #7f1d1d !important;
+  color: #fca5a5 !important;
+}
+
+[data-theme="dark"] .quick-pill-audio {
+  background: rgba(15, 23, 42, 0.85) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .quick-pill-audio:hover {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .mushaf-zoom-controls {
+  background: #0f172a !important;
+  border-color: rgba(202, 138, 4, 0.4) !important;
+}
+
+[data-theme="dark"] .zoom-btn {
+  background: #1e293b !important;
+  color: #fef08a !important;
+}
+
+[data-theme="dark"] .zoom-btn:hover {
+  background: #ca8a04 !important;
+  color: #090e17 !important;
+}
+
+[data-theme="dark"] .zoom-val-btn {
+  color: #fef08a !important;
+}
+
+[data-theme="dark"] .mushaf-font-cycle-btn {
+  background: #1e293b !important;
+  border-color: rgba(202, 138, 4, 0.5) !important;
+  color: #fef08a !important;
+}
+
+[data-theme="dark"] .mushaf-font-cycle-btn:hover {
+  background: #ca8a04 !important;
+  color: #090e17 !important;
+}
+
+/* Margin Kiri: Kotak Kontrol & Murajaah */
+[data-theme="dark"] .sheet-left-block-card {
+  background: #0f172a !important;
+  border-color: rgba(202, 138, 4, 0.35) !important;
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .left-block-subtitle {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .left-block-checklist-row {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .chk-bubble {
+  background: #1e293b !important;
+  border-color: #22c55e !important;
+  color: #22c55e !important;
+}
+
+[data-theme="dark"] .chk-bubble.checked {
+  background: #22c55e !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .left-block-action-btn {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .left-block-action-btn.audio-btn {
+  background: rgba(34, 197, 94, 0.2) !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .left-block-action-btn.eye-btn {
+  background: #1e293b !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .left-block-keywords {
+  color: #34d399 !important;
+  border-top-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-theme="dark"] .sheet-murajaah-box {
+  background: #0f172a !important;
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+[data-theme="dark"] .murajaah-title {
+  color: #93c5fd !important;
+}
+
+[data-theme="dark"] .murajaah-sub {
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] .murajaah-col-headers {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .row-day {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .murajaah-bubble {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .murajaah-bubble.checked {
+  background: #16a34a !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+}
+
+/* Margin Kanan: Metode, Motivasi & Tema Cards */
+[data-theme="dark"] .sheet-right-card,
+[data-theme="dark"] .metode-card,
+[data-theme="dark"] .motivasi-card,
+[data-theme="dark"] .tema-card {
+  background: #0f172a !important;
+  border-color: rgba(202, 138, 4, 0.35) !important;
+}
+
+[data-theme="dark"] .metode-numbered-list {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .metode-numbered-list li {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .motivasi-body-text {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .motivasi-author-text {
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] .tema-items-list {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .tema-sub-item {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .tema-item-title {
+  color: #fde047 !important;
+}
+
+[data-theme="dark"] .tema-item-desc {
+  color: #e2e8f0 !important;
+}
+
+/* Bottom Frame Navigation & Tajweed Legend */
+[data-theme="dark"] .mushaf-frame-bottom-bar {
+  background: #0f172a !important;
+  border-top-color: rgba(202, 138, 4, 0.4) !important;
+  color: #fef08a !important;
+}
+
+[data-theme="dark"] .bottom-left-guide-text {
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] .bottom-center-cartouche {
+  background: #1e293b !important;
+  border-color: rgba(202, 138, 4, 0.5) !important;
+  color: #fef08a !important;
+}
+
+[data-theme="dark"] .bottom-tajweed-legend {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .tajweed-badge {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Terjemah Section & Footnotes */
+[data-theme="dark"] .sheet-terjemah-section {
+  border-top-color: rgba(202, 138, 4, 0.4) !important;
+}
+
+[data-theme="dark"] .terjemah-green-ribbon {
+  background: #064e3b !important;
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+}
+
+[data-theme="dark"] .terjemah-three-columns {
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .terjemah-col-subheading {
+  color: #34d399 !important;
+  border-bottom-color: rgba(52, 211, 153, 0.4) !important;
+}
+
+[data-theme="dark"] .terjemah-verse-para {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .terjemah-verse-bold {
+  color: #34d399 !important;
+}
+
+[data-theme="dark"] .terjemah-footnotes {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .terjemah-footnotes-box {
+  color: #94a3b8 !important;
+  border-top-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .sheet-bottom-watermark-bar {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .page-box {
+  background: #10b981 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .sheet-bottom-branding {
+  color: #94a3b8 !important;
+}
+
+/* Fallback Ayahs Flow in Dark Mode */
+[data-theme="dark"] .mushaf-fallback-ayahs-flow {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .verse-span {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .verse-golden-ayah-marker .ayah-symbol {
+  color: #eab308 !important;
+}
+
+[data-theme="dark"] .verse-golden-ayah-marker .ayah-num {
+  color: #fef08a !important;
+}
+
+/* Control Panel & Selects in Dark Mode */
+[data-theme="dark"] .cordoba-control-panel {
+  background: rgba(15, 23, 42, 0.9) !important;
+  border-color: rgba(202, 138, 4, 0.4) !important;
+}
+
+[data-theme="dark"] .cordoba-select,
+[data-theme="dark"] .juz-select {
+  background: #1e293b !important;
+  border-color: rgba(202, 138, 4, 0.4) !important;
+  color: #f8fafc !important;
+}
+
 

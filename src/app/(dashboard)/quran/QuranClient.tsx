@@ -1073,7 +1073,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
 
               <div className="poster-layout-row">
                 {/* 1:1 AUTHENTIC PRINTED SHEET */}
-                <div className="cordoba-mushaf-sheet">
+                <div className={`cordoba-mushaf-sheet font-${mushafFont}`}>
                   {/* Top Ornate Arabesque Ribbon */}
                   <div className="mushaf-sheet-top-bar">
                     <div className="ornate-wing-left">
@@ -1231,7 +1231,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                     {/* ============================================================== */}
                     {/* 2. TENGAH: LEMBARAN MUSHAF ASLI 5 BLOK WARNA CONTINUOUS        */}
                     {/* ============================================================== */}
-                    <div className={`sheet-center-mushaf ${mobileCordobaTab === "mushaf" ? "show-mobile" : ""}`}>
+                    <div className={`sheet-center-mushaf font-${mushafFont} ${mobileCordobaTab === "mushaf" ? "show-mobile" : ""}`}>
                       <div className="mushaf-golden-frame">
                         {/* 1. Baris Cepat Kontrol Tutup/Buka & Murottal 5 Blok */}
                         <div className="mushaf-quick-blocks-bar">
