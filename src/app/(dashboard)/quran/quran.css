@@ -5134,4 +5134,114 @@
   color: #ca8a04 !important;
 }
 
+/* ============================================================== */
+/* INTEGRATED KHATAMAN BERSAMA (ONE MEMBER ONE JUZ) IN QURAN HUB  */
+/* ============================================================== */
 
+.top-mushaf-tab .khatam-live-pill {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.mushaf-khatam-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.95), rgba(4, 120, 87, 0.95));
+  border: 1.5px solid #10b981;
+  border-radius: 12px;
+  color: #ffffff;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+  animation: fadeIn 0.3s ease;
+}
+
+.mushaf-khatam-ribbon.status-completed {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border-color: #ca8a04;
+}
+
+.mushaf-khatam-ribbon .ribbon-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mushaf-khatam-ribbon .ribbon-info i {
+  color: #fef08a;
+  font-size: 1.1rem;
+}
+
+.mushaf-khatam-ribbon .btn-ribbon-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mushaf-khatam-ribbon .btn-ribbon-complete:hover {
+  background: #059669;
+  transform: scale(1.03);
+}
+
+.btn-juz-read-mushaf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #ca8a04;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 6px;
+}
+
+.btn-juz-read-mushaf:hover {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: #eab308;
+  color: #a16207;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-juz-read-mushaf {
+  color: #fef08a;
+  background: rgba(202, 138, 4, 0.2);
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+[data-theme="dark"] .btn-juz-read-mushaf:hover {
+  background: rgba(202, 138, 4, 0.35);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .mushaf-khatam-ribbon {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .mushaf-khatam-ribbon .btn-ribbon-complete {
+    width: 100%;
+    justify-content: center;
+  }
+}

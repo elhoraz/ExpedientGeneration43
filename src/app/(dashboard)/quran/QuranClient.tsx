@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   QURAN_SURAHS,
   JUZ_LIST,
@@ -29,6 +30,13 @@ import {
   AlhufazPageSpecialMeta,
 } from "@/lib/data/alhufazData";
 import "./quran.css";
+import "@/app/(dashboard)/khatam/khatam.css";
+
+const ARABIC_NUMS = [
+  "", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "١٠",
+  "١١", "١٢", "١٣", "١٤", "١٥", "١٦", "١٧", "١٨", "١٩", "٢٠",
+  "٢١", "٢٢", "٢٣", "٢٤", "٢٥", "٢٦", "٢٧", "٢٨", "٢٩", "٣٠"
+];
 
 const QARI_EVERYAYAH_MAP: Record<string, string> = {
   "05": "Alafasy_128kbps",
@@ -78,14 +86,37 @@ interface AudioQueueItem {
   blockId?: number;
 }
 
-export default function QuranClient({ currentUserId }: { currentUserId: string }) {
-  // Main Top-Level Mode: "cordoba" (Authentic Mushaf Page Layout) vs "surahList" (List of Surahs)
-  const [mainDisplayMode, setMainDisplayMode] = useState<"cordoba" | "surahList">("cordoba");
+interface QuranClientProps {
+  currentUserId: string;
+  currentUser?: {
+    id: string;
+    name: string;
+    avatar: string | null;
+  };
+  initialTab?: "cordoba" | "surahList" | "khataman";
+  initialPage?: number;
+  initialJuz?: number;
+}
+
+export default function QuranClient({
+  currentUserId,
+  currentUser = { id: currentUserId, name: "Sahabat 43", avatar: null },
+  initialTab = "cordoba",
+  initialPage,
+  initialJuz,
+}: QuranClientProps) {
+  // Main Top-Level Mode: "cordoba" (Authentic Mushaf Page Layout) vs "surahList" (List of Surahs) vs "khataman" (One Member One Juz)
+  const [mainDisplayMode, setMainDisplayMode] = useState<"cordoba" | "surahList" | "khataman">(initialTab);
 
   // ==========================================
   // CORDOBA MUSHAF PER-PAGE STATES
   // ==========================================
-  const [cordobaPage, setCordobaPage] = useState<number>(6); // Default to Page 6 (as in user reference photo)
+  const initialCordobaPage = initialPage
+    ? initialPage
+    : initialJuz && JUZ_START_PAGES[initialJuz]
+    ? JUZ_START_PAGES[initialJuz]
+    : 6;
+  const [cordobaPage, setCordobaPage] = useState<number>(initialCordobaPage);
   const [pageData, setPageData] = useState<{
     pageNumber: number;
     juzNumber: number;
@@ -177,7 +208,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     }, 2800);
   };
 
-  const triggerHaptic = useCallback((ms = 12) => {
+  const triggerHaptic = useCallback((ms: number | number[] = 12) => {
     if (typeof window !== "undefined" && "vibrate" in navigator) {
       try {
         navigator.vibrate(ms);
@@ -207,11 +238,13 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       const savedFontSize = localStorage.getItem("expedient_quran_font_size");
       if (savedFontSize) setFontSize(savedFontSize as any);
 
-      const savedPage = localStorage.getItem("expedient_cordoba_page");
-      if (savedPage) {
-        const parsed = parseInt(savedPage, 10);
-        if (!isNaN(parsed) && parsed >= 1 && parsed <= 604) {
-          setCordobaPage(parsed);
+      if (!initialPage && !initialJuz) {
+        const savedPage = localStorage.getItem("expedient_cordoba_page");
+        if (savedPage) {
+          const parsed = parseInt(savedPage, 10);
+          if (!isNaN(parsed) && parsed >= 1 && parsed <= 604) {
+            setCordobaPage(parsed);
+          }
         }
       }
 
@@ -840,6 +873,135 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     return list;
   }, [searchQuery, revelationFilter]);
 
+  // ==========================================
+  // INTEGRATED KHATAMAN 30 JUZ STATES & HANDLERS
+  // ==========================================
+  const [khatamSession, setKhatamSession] = useState<any>(null);
+  const [khatamAllocations, setKhatamAllocations] = useState<any[]>([]);
+  const [khatamFilter, setKhatamFilter] = useState<"all" | "available" | "my" | "completed">("all");
+  const [khatamLoadingJuz, setKhatamLoadingJuz] = useState<number | null>(null);
+  const [showKhatamDoaModal, setShowKhatamDoaModal] = useState<boolean>(false);
+  const [khatamFetching, setKhatamFetching] = useState<boolean>(false);
+
+  // Khatam Statistics
+  const khatamCompletedCount = useMemo(
+    () => khatamAllocations.filter((a) => a.status === "completed").length,
+    [khatamAllocations]
+  );
+  const khatamReadingCount = useMemo(
+    () => khatamAllocations.filter((a) => a.status === "reading").length,
+    [khatamAllocations]
+  );
+  const khatamAvailableCount = useMemo(
+    () => khatamAllocations.filter((a) => a.status === "available").length,
+    [khatamAllocations]
+  );
+  const khatamProgressPercent = useMemo(
+    () => Math.round((khatamCompletedCount / 30) * 100),
+    [khatamCompletedCount]
+  );
+
+  const loadKhatamData = useCallback(async () => {
+    setKhatamFetching(true);
+    try {
+      const res = await fetch("/api/khatam");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.session) setKhatamSession(data.session);
+        if (data.allocations) setKhatamAllocations(data.allocations);
+      }
+    } catch (e) {
+      console.error("Failed to load khatam data:", e);
+    } finally {
+      setKhatamFetching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadKhatamData();
+  }, [loadKhatamData]);
+
+  const handleKhatamAction = async (action: "claim" | "complete" | "unclaim", juzNumber: number) => {
+    setKhatamLoadingJuz(juzNumber);
+    triggerHaptic(action === "complete" ? [30, 50, 40] : 30);
+
+    try {
+      const res = await fetch("/api/khatam", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action,
+          juz_number: juzNumber,
+          user_name: currentUser.name,
+          user_avatar: currentUser.avatar,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || "Gagal memproses aksi khataman.");
+        return;
+      }
+
+      if (data.allocations) {
+        setKhatamAllocations(data.allocations);
+      }
+      if (data.session) {
+        setKhatamSession(data.session);
+      }
+
+      if (action === "claim") {
+        showToast(`Alhamdulillah! Anda telah mengambil Juz ${juzNumber}. Selamat membaca.`);
+      } else if (action === "complete") {
+        showToast(`Masya Allah! Juz ${juzNumber} selesai dibaca. +25 Poin Prestise ditambahkan.`);
+        if (data.allocations?.filter((a: any) => a.status === "completed").length === 30) {
+          setShowKhatamDoaModal(true);
+        }
+      } else if (action === "unclaim") {
+        showToast(`Klaim Juz ${juzNumber} telah dibatalkan.`);
+      }
+    } catch (e) {
+      console.error("Khatam action error:", e);
+      showToast("Terjadi kendala jaringan.");
+    } finally {
+      setKhatamLoadingJuz(null);
+    }
+  };
+
+  const handleKhatamQuickClaim = () => {
+    const firstAvailable = khatamAllocations.find((a) => a.status === "available");
+    if (!firstAvailable) {
+      showToast("Semua Juz sudah diambil sahabat angkatan!");
+      return;
+    }
+    handleKhatamAction("claim", firstAvailable.juz_number);
+  };
+
+  const handleOpenJuzInMushaf = (juzNumber: number) => {
+    triggerHaptic(15);
+    const targetPage = JUZ_START_PAGES[juzNumber] || 1;
+    loadCordobaPage(targetPage);
+    setMainDisplayMode("cordoba");
+    closeSurahReader();
+    showToast(`Membuka Juz ${juzNumber} (Halaman ${targetPage}) di Mushaf Al-Hufaz`);
+  };
+
+  const filteredKhatamAllocations = useMemo(() => {
+    return khatamAllocations.filter((item) => {
+      if (khatamFilter === "available") return item.status === "available";
+      if (khatamFilter === "completed") return item.status === "completed";
+      if (khatamFilter === "my") return item.user_id === currentUser.id;
+      return true;
+    });
+  }, [khatamAllocations, khatamFilter, currentUser.id]);
+
+  // Current page's Juz allocation (for active ribbon inside Mushaf)
+  const currentJuzAllocation = useMemo(() => {
+    const juzNum = pageData?.juzNumber;
+    if (!juzNum) return null;
+    return khatamAllocations.find((a) => a.juz_number === juzNum) || null;
+  }, [pageData?.juzNumber, khatamAllocations]);
+
   return (
     <div className="quran-page-root">
       {/* Toast Notification */}
@@ -850,7 +1012,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
         </div>
       )}
 
-      {/* TOP VIEW SWITCHER: MUSHAF AL-HUFAZ CORDOBA VS DAFTAR SURAH */}
+      {/* TOP VIEW SWITCHER: MUSHAF AL-HUFAZ CORDOBA VS DAFTAR SURAH VS KHATAMAN 30 JUZ */}
       <div className="top-mushaf-switcher-container">
         <button
           type="button"
@@ -862,7 +1024,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
           }}
         >
           <i className="fa-solid fa-book-quran"></i>
-          <span>Mushaf Al-Hufaz Cordoba (Halaman 5 Blok)</span>
+          <span>Mushaf Al-Hufaz</span>
           <span className="live-pill">Metode 5 Jam</span>
         </button>
 
@@ -875,7 +1037,23 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
           }}
         >
           <i className="fa-solid fa-list-ul"></i>
-          <span>Daftar 114 Surah & Tilawah</span>
+          <span>Daftar 114 Surah</span>
+        </button>
+
+        <button
+          type="button"
+          className={`top-mushaf-tab ${mainDisplayMode === "khataman" ? "active" : ""}`}
+          onClick={() => {
+            triggerHaptic(12);
+            setMainDisplayMode("khataman");
+            closeSurahReader();
+          }}
+        >
+          <i className="fa-solid fa-kaaba"></i>
+          <span>Khataman 30 Juz</span>
+          <span className="live-pill khatam-live-pill">
+            {khatamCompletedCount}/30 Selesai
+          </span>
         </button>
       </div>
 
@@ -884,6 +1062,53 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       {/* ========================================================================= */}
       {mainDisplayMode === "cordoba" && (
         <div className="cordoba-master-container">
+          {/* Active Khataman Live Ribbon for the Current Juz */}
+          {currentJuzAllocation && (
+            <div className={`mushaf-khatam-ribbon ${currentJuzAllocation.status === "completed" ? "status-completed" : ""}`}>
+              <div className="ribbon-info">
+                <i className={`fa-solid ${currentJuzAllocation.status === "completed" ? "fa-circle-check" : "fa-kaaba"}`}></i>
+                <span>
+                  {currentJuzAllocation.user_id === currentUser.id ? (
+                    currentJuzAllocation.status === "completed" ? (
+                      <>Masya Allah! Anda telah mengkhatamkan <strong>Juz {pageData?.juzNumber}</strong> pada sesi khataman angkatan ini (+25 Prestise).</>
+                    ) : (
+                      <>Anda sedang membaca <strong>Juz {pageData?.juzNumber}</strong> untuk Khataman Bersama Angkatan 43!</>
+                    )
+                  ) : currentJuzAllocation.status === "available" ? (
+                    <><strong>Juz {pageData?.juzNumber}</strong> masih kosong di Khataman Angkatan. Ingin membaca dan mengklaimnya?</>
+                  ) : (
+                    <><strong>Juz {pageData?.juzNumber}</strong> dialokasikan untuk <strong>{currentJuzAllocation.user_name || "Sahabat 43"}</strong> ({currentJuzAllocation.status === "completed" ? "Sudah Khatam" : "Sedang Ditadarus"}).</>
+                  )}
+                </span>
+              </div>
+
+              {currentJuzAllocation.user_id === currentUser.id && currentJuzAllocation.status === "reading" && (
+                <button
+                  type="button"
+                  className="btn-ribbon-complete"
+                  disabled={khatamLoadingJuz === currentJuzAllocation.juz_number}
+                  onClick={() => handleKhatamAction("complete", currentJuzAllocation.juz_number)}
+                >
+                  <i className="fa-solid fa-check"></i>
+                  {khatamLoadingJuz === currentJuzAllocation.juz_number ? "Menyimpan..." : "Tandai Juz Selesai (+25 Poin)"}
+                </button>
+              )}
+
+              {currentJuzAllocation.status === "available" && (
+                <button
+                  type="button"
+                  className="btn-ribbon-complete"
+                  style={{ background: "#ca8a04" }}
+                  disabled={khatamLoadingJuz === currentJuzAllocation.juz_number}
+                  onClick={() => handleKhatamAction("claim", currentJuzAllocation.juz_number)}
+                >
+                  <i className="fa-solid fa-hand-holding-heart"></i>
+                  {khatamLoadingJuz === currentJuzAllocation.juz_number ? "Memproses..." : "Klaim Juz Ini"}
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Top Page Control Bar */}
           <div className="cordoba-control-panel">
             {/* Page Navigation Left / Right */}
@@ -2240,6 +2465,304 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
             </div>
           )}
         </>
+      )}
+
+      {/* ========================================================================= */}
+      {/* VIEW 3: KHATAMAN BERSAMA 30 JUZ (ONE MEMBER ONE JUZ REAL-TIME)            */}
+      {/* ========================================================================= */}
+      {mainDisplayMode === "khataman" && (
+        <div className="khatam-page-wrapper" style={{ padding: 0, minHeight: "auto" }}>
+          <div className="khatam-container" style={{ maxWidth: "1380px", margin: "0 auto", padding: 0 }}>
+            {/* Header Box */}
+            <div className="khatam-header-box">
+              <div className="khatam-badge-sup">
+                <i className="fa-solid fa-kaaba"></i> Protokol Spiritual Angkatan
+              </div>
+              <h1 className="khatam-title">Khatam Bersama Real-Time</h1>
+              <p className="khatam-subtitle">
+                One Member One Juz — Sinergi 30 Juz Al-Qur&apos;an secara serentak terintegrasi langsung dengan Mushaf Al-Hufaz untuk keberkahan keluarga besar Expedient Generation 43.
+              </p>
+            </div>
+
+            {/* Hero Progress Card */}
+            <div className="khatam-hero-card">
+              <div className="khatam-stats-row">
+                <div className="khatam-stat-item">
+                  <span className="khatam-stat-label">Sesi Khataman</span>
+                  <span style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gold-main)" }}>
+                    {khatamSession?.title || "Khataman Pekanan Angkatan 43"}
+                  </span>
+                </div>
+
+                <div className="khatam-stat-item">
+                  <span className="khatam-stat-label">Progres Khatam</span>
+                  <div className="khatam-stat-value">
+                    <span>{khatamCompletedCount}</span>
+                    <span className="khatam-stat-total">/ 30 Juz ({khatamProgressPercent}%)</span>
+                  </div>
+                </div>
+
+                <div className="khatam-stat-item">
+                  <span className="khatam-stat-label">Status Alokasi</span>
+                  <div style={{ display: "flex", gap: "10px", fontSize: "0.82rem", fontWeight: 600 }}>
+                    <span style={{ color: "#2bb97c" }}>{khatamCompletedCount} Selesai</span>
+                    <span style={{ color: "#ffb300" }}>• {khatamReadingCount} Dibaca</span>
+                    <span style={{ color: "var(--text-secondary)" }}>• {khatamAvailableCount} Kosong</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="khatam-progress-wrapper">
+                <div className="khatam-progress-meta">
+                  <span>
+                    {khatamCompletedCount === 30
+                      ? "🎉 30/30 Juz Selesai — Khatam Bersama Berhasil!"
+                      : `${30 - khatamCompletedCount} Juz Menuju Khatam`}
+                  </span>
+                  <span style={{ fontWeight: 700, color: "var(--gold-main)" }}>{khatamProgressPercent}%</span>
+                </div>
+                <div className="khatam-progress-track">
+                  <div
+                    className="khatam-progress-bar"
+                    style={{ width: `${Math.max(khatamProgressPercent, khatamCompletedCount > 0 ? 5 : 0)}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="khatam-hero-actions">
+                {khatamAvailableCount > 0 && (
+                  <button type="button" className="btn-khatam-quick" onClick={handleKhatamQuickClaim}>
+                    <i className="fa-solid fa-bolt-lightning"></i> Ambil Juz Acak
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="btn-khatam-doa-modal"
+                  onClick={() => setShowKhatamDoaModal(true)}
+                >
+                  <i className="fa-solid fa-book-quran"></i> Doa Khatam Al-Qur&apos;an
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-khatam-doa-modal"
+                  style={{ background: "rgba(16, 185, 129, 0.15)", borderColor: "#10b981", color: "#34d399" }}
+                  onClick={() => {
+                    setMainDisplayMode("cordoba");
+                    showToast("Membuka Mushaf Al-Hufaz 15 Baris");
+                  }}
+                >
+                  <i className="fa-solid fa-book-open"></i> Buka Mushaf Al-Hufaz
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="khatam-filter-bar">
+              <button
+                type="button"
+                className={`khatam-filter-btn ${khatamFilter === "all" ? "active" : ""}`}
+                onClick={() => setKhatamFilter("all")}
+              >
+                Semua Juz (30)
+              </button>
+              <button
+                type="button"
+                className={`khatam-filter-btn ${khatamFilter === "available" ? "active" : ""}`}
+                onClick={() => setKhatamFilter("available")}
+              >
+                Tersedia ({khatamAvailableCount})
+              </button>
+              <button
+                type="button"
+                className={`khatam-filter-btn ${khatamFilter === "my" ? "active" : ""}`}
+                onClick={() => setKhatamFilter("my")}
+              >
+                Juz Saya ({khatamAllocations.filter((a) => a.user_id === currentUser.id).length})
+              </button>
+              <button
+                type="button"
+                className={`khatam-filter-btn ${khatamFilter === "completed" ? "active" : ""}`}
+                onClick={() => setKhatamFilter("completed")}
+              >
+                Selesai ({khatamCompletedCount})
+              </button>
+            </div>
+
+            {/* 30 Juz Grid */}
+            <div className="khatam-grid">
+              {filteredKhatamAllocations.map((item) => {
+                const isMyJuz = item.user_id === currentUser.id;
+                const isBusy = khatamLoadingJuz === item.juz_number;
+
+                return (
+                  <div
+                    key={item.juz_number}
+                    className={`juz-card status-${item.status} ${isMyJuz ? "is-my-juz" : ""}`}
+                  >
+                    {/* Header: Numeral & Status */}
+                    <div className="juz-card-header">
+                      <div className="juz-number-badge">
+                        <span className="juz-arabic-num">{ARABIC_NUMS[item.juz_number]}</span>
+                        <span className="juz-latin-num">Juz {item.juz_number}</span>
+                      </div>
+                      <span className="juz-status-pill">
+                        {item.status === "available" && "Tersedia"}
+                        {item.status === "reading" && "Dibaca"}
+                        {item.status === "completed" && "Selesai"}
+                      </span>
+                    </div>
+
+                    {/* Surah Range */}
+                    <div className="juz-surah-range">
+                      <i className="fa-regular fa-bookmark" style={{ color: "var(--gold-main)", marginRight: "5px" }}></i>
+                      {item.surah_range}
+                    </div>
+
+                    {/* Reader Info */}
+                    {item.status !== "available" ? (
+                      <div className="juz-reader-box">
+                        {item.user_avatar ? (
+                          <Image
+                            src={item.user_avatar}
+                            alt={item.user_name || "Pembaca"}
+                            width={26}
+                            height={26}
+                            className="juz-reader-avatar"
+                          />
+                        ) : (
+                          <div className="juz-reader-fallback">
+                            {(item.user_name || "A")[0].toUpperCase()}
+                          </div>
+                        )}
+                        <span className="juz-reader-name">
+                          {isMyJuz ? "Anda" : item.user_name || "Sahabat 43"}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="juz-reader-box" style={{ opacity: 0.5 }}>
+                        <span style={{ fontSize: "0.72rem", fontStyle: "italic" }}>
+                          Belum ada pembaca
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="juz-card-actions">
+                      {item.status === "available" && (
+                        <button
+                          type="button"
+                          disabled={isBusy}
+                          className="btn-juz-claim"
+                          onClick={() => handleKhatamAction("claim", item.juz_number)}
+                        >
+                          <i className="fa-solid fa-hand-holding-heart"></i>
+                          {isBusy ? "Memproses..." : "Klaim Juz"}
+                        </button>
+                      )}
+
+                      {item.status === "reading" && isMyJuz && (
+                        <>
+                          <button
+                            type="button"
+                            disabled={isBusy}
+                            className="btn-juz-complete"
+                            onClick={() => handleKhatamAction("complete", item.juz_number)}
+                          >
+                            <i className="fa-solid fa-check"></i>
+                            {isBusy ? "Menyimpan..." : "Tandai Selesai"}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isBusy}
+                            className="btn-juz-unclaim"
+                            onClick={() => handleKhatamAction("unclaim", item.juz_number)}
+                          >
+                            Batalkan Klaim
+                          </button>
+                        </>
+                      )}
+
+                      {item.status === "reading" && !isMyJuz && (
+                        <div style={{ textAlign: "center", fontSize: "0.72rem", color: "#ffb300", padding: "6px 0" }}>
+                          <i className="fa-solid fa-hourglass-half" style={{ marginRight: "4px" }}></i>
+                          Sedang Ditadarus
+                        </div>
+                      )}
+
+                      {item.status === "completed" && (
+                        <div className="juz-completed-stamp">
+                          <i className="fa-solid fa-circle-check"></i>
+                          Khatam
+                        </div>
+                      )}
+
+                      {/* Direct 1-Click Jump to Authentic Mushaf */}
+                      <button
+                        type="button"
+                        className="btn-juz-read-mushaf"
+                        onClick={() => handleOpenJuzInMushaf(item.juz_number)}
+                        title={`Buka Juz ${item.juz_number} langsung di Mushaf Al-Hufaz 15 Baris`}
+                      >
+                        <i className="fa-solid fa-book-open"></i>
+                        <span>Baca di Mushaf (Hal. {JUZ_START_PAGES[item.juz_number] || 1})</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Doa Khatam Al-Qur'an Modal */}
+      {showKhatamDoaModal && (
+        <div className="khatam-modal-backdrop" onClick={() => setShowKhatamDoaModal(false)}>
+          <div className="khatam-modal-box" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="btn-modal-close"
+              onClick={() => setShowKhatamDoaModal(false)}
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+
+            <div className="modal-header-text">
+              <div className="khatam-badge-sup" style={{ margin: "0 auto" }}>
+                <i className="fa-solid fa-star-and-crescent"></i> Doa Mustajab
+              </div>
+              <h2>Doa Khatam Al-Qur&apos;an</h2>
+              <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", margin: 0 }}>
+                اللَّهُمَّ ارْحَمْنَا بِالقُرْءَانِ
+              </p>
+            </div>
+
+            <div className="modal-doa-content">
+              <div className="doa-arabic">
+                اللَّهُمَّ ارْحَمْنِي بِالْقُرْآنِ وَاجْعَلْهُ لِي إِمَامًا وَنُورًا وَهُدًى وَرَحْمَةً، اللَّهُمَّ ذَكِّرْنِي مِنْهُ مَا نَسِيتُ وَعَلِّمْنِي مِنْهُ مَا جَهِلْتُ وَارْزُقْنِي تِلَاوَتَهُ آنَاءَ اللَّيْلِ وَأَطْرَافَ النَّهَارِ وَاجْعَلْهُ لِي حُجَّةً يَا رَبَّ الْعَالَمِينَ
+              </div>
+              <div className="doa-latin">
+                &ldquo;Allāhummarhamnā bil-qur&apos;ān, waj&apos;alhu lanā imāman wa nūran wa hudan wa rahmah. Allāhumma żakkirnā minhu mā nasīnā, wa &apos;allimnā minhu mā jahilnā, warzuqnā tilāwatahu ānā&apos;al-layli wa aṭrāfan-nahār, waj&apos;alhu lanā hujjatan yā rabbal-&apos;ālamīn.&rdquo;
+              </div>
+              <div className="doa-meaning">
+                &ldquo;Ya Allah, rahmatilah kami dengan Al-Qur&apos;an. Jadikanlah ia bagi kami sebagai panutan, cahaya, petunjuk, dan rahmat. Ya Allah, ingatkanlah kami dari apa yang kami lupakan darinya, ajarkanlah kami apa yang belum kami ketahui darinya, anugerahilah kami kemampuan membacanya di sepanjang malam dan siang hari, serta jadikanlah ia sebagai pembela kami, wahai Tuhan semesta alam.&rdquo;
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="btn-khatam-quick"
+              style={{ width: "100%", justifyContent: "center" }}
+              onClick={() => setShowKhatamDoaModal(false)}
+            >
+              Aamiin Ya Rabbal &apos;Alamin
+            </button>
+          </div>
+        </div>
       )}
 
       {/* ========================================================================= */}

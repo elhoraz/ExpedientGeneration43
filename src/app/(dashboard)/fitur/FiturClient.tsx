@@ -243,7 +243,7 @@ export default function FiturClient({
       category: "spiritual",
       title: "Khatam Bersama Real-Time",
       desc: "Papan pembagian 30 Juz Al-Qur'an terintegrasi. Klaim juz, catat progres tadarus, dan raih berkah khataman angkatan.",
-      href: "/khatam",
+      href: "/quran?tab=khataman",
       icon: "fa-book-quran",
       bg: "https://images.unsplash.com/photo-1584281722572-c284fc5fcefa?q=80&w=2670&auto=format&fit=crop",
       btnText: "Buka Khataman",
@@ -409,7 +409,7 @@ export default function FiturClient({
     { href: "/oracle", name: "Oracle", icon: "fa-camera", color: "#8b5cf6", bg: "rgba(139,92,246,0.18)" },
     { href: "/multazam", name: "Dinding Doa", icon: "fa-kaaba", color: "#d97706", bg: "rgba(217,119,6,0.18)" },
     { href: "/quran", name: "Al-Qur'an", icon: "fa-quran", color: "#10b981", bg: "rgba(16,185,129,0.22)" },
-    { href: "/khatam", name: "Khatam", icon: "fa-book-quran", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
+    { href: "/quran?tab=khataman", name: "Khatam", icon: "fa-book-quran", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
     { href: "/kiblat", name: "Kiblat", icon: "fa-compass", color: "#ffd700", bg: "rgba(212,175,55,0.2)" },
     { href: "/tasbih", name: "Tasbih", icon: "fa-gem", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
     { href: "/kontemplasi", name: "Dzikir", icon: "fa-spa", color: "#14b8a6", bg: "rgba(20,184,166,0.18)" },
@@ -679,7 +679,7 @@ export default function FiturClient({
 
         {/* WIDGET: KHATAM BERSAMA REAL-TIME */}
         <Link
-          href="/khatam"
+          href="/quran?tab=khataman"
           className="mobile-bento-card widget-event-card"
           style={{
             background: "linear-gradient(135deg, rgba(27,94,32,0.2) 0%, rgba(212,175,55,0.12) 100%)",

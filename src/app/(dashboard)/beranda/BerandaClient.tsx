@@ -342,7 +342,7 @@ export default function BerandaClient({
                               </h3>
                           </div>
                       </div>
-                      <Link href="/khatam" className="btn-stamp" style={{ padding: '8px 20px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                      <Link href="/quran?tab=khataman" className="btn-stamp" style={{ padding: '8px 20px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                           <span>Buka Papan 30 Juz</span>
                           <i className="fa-solid fa-arrow-right"></i>
                       </Link>
