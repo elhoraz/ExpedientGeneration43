@@ -1290,11 +1290,10 @@
 
 .mushaf-quick-blocks-bar {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  flex-wrap: wrap;
-  padding: 8px 12px;
+  gap: 8px;
+  padding: 8px 10px;
   background: #f8fafc;
   border-bottom: 2px solid #ca8a04;
 }
@@ -1302,6 +1301,15 @@
 [data-theme="dark"] .mushaf-quick-blocks-bar {
   background: #0f172a;
   border-bottom-color: rgba(202, 138, 4, 0.4);
+}
+
+.quick-blocks-pills-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .quick-block-pill {
@@ -1361,8 +1369,10 @@
 .quick-blocks-actions {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 /* Mushaf Zoom Controls */
@@ -1570,18 +1580,19 @@
 .mushaf-15-line {
   display: flex;
   justify-content: center;
+  justify-content: safe center;
   align-items: center;
-  gap: calc(clamp(4px, 1.3vw, 10px) * var(--mushaf-zoom, 1));
+  gap: calc(clamp(2.5px, 0.8vw, 8px) * var(--mushaf-zoom, 1));
   min-width: calc(100% * max(1, var(--mushaf-zoom, 1)));
   width: 100%;
   direction: rtl;
   white-space: nowrap;
   font-family: inherit;
-  font-size: calc(clamp(1.48rem, 4.4vw, 2.35rem) * var(--mushaf-zoom, 1));
+  font-size: calc(clamp(0.85rem, 1.8vw, 1.65rem) * var(--mushaf-zoom, 1));
   font-weight: 700;
-  line-height: calc(1.85 * var(--mushaf-zoom, 1));
-  min-height: calc(44px * var(--mushaf-zoom, 1));
-  padding: calc(3px * var(--mushaf-zoom, 1)) 4px;
+  line-height: calc(1.9 * var(--mushaf-zoom, 1));
+  min-height: calc(38px * var(--mushaf-zoom, 1));
+  padding: calc(2px * var(--mushaf-zoom, 1)) 3px;
   box-sizing: border-box;
   user-select: none;
   /* Garis horizontal per baris (Authentic Ruled Lines) */
@@ -3104,9 +3115,34 @@
 }
 
 @media (max-width: 640px) {
+  .quran-page-root {
+    padding: 10px 4px 80px 4px !important;
+  }
+
+  .cordoba-control-panel {
+    margin-top: 14px !important;
+  }
+
   .cordoba-mushaf-sheet {
-    padding: 12px 10px !important;
+    padding: 6px 3px !important;
     border-width: 2px !important;
+    border-radius: 10px !important;
+  }
+
+  .mushaf-golden-frame {
+    border-width: 2px !important;
+    border-radius: 4px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .mushaf-15lines-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .ornate-title-cartouche h2 {
@@ -3131,33 +3167,42 @@
 
   .mushaf-color-band {
     padding: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .mushaf-15-line {
     display: flex !important;
     justify-content: center !important;
+    justify-content: safe center !important;
     align-items: center !important;
-    gap: calc(clamp(3px, 1.4vw, 8px) * var(--mushaf-zoom, 1)) !important;
-    font-size: calc(clamp(1.42rem, 4.6vw, 2.25rem) * var(--mushaf-zoom, 1)) !important;
+    gap: calc(clamp(1.5px, 0.65vw, 5px) * var(--mushaf-zoom, 1)) !important;
+    font-size: calc(clamp(0.74rem, 2.38vw, 1.08rem) * var(--mushaf-zoom, 1)) !important;
     font-weight: 700 !important;
     line-height: calc(1.8 * var(--mushaf-zoom, 1)) !important;
-    min-height: calc(42px * var(--mushaf-zoom, 1)) !important;
-    padding: calc(2px * var(--mushaf-zoom, 1)) 2px !important;
+    min-height: calc(34px * var(--mushaf-zoom, 1)) !important;
+    padding: calc(2px * var(--mushaf-zoom, 1)) 1px !important;
     border-bottom: 1.5px solid rgba(133, 77, 14, 0.35) !important;
     white-space: nowrap !important;
+    box-sizing: border-box !important;
+  }
+
+  .mushaf-word-item {
+    padding: 0 0.5px !important;
+    font-weight: 700 !important;
   }
 
   .mushaf-end-marker {
-    margin: 0 1.5px !important;
+    margin: 0 calc(1.5px * var(--mushaf-zoom, 1)) !important;
+  }
+
+  .mushaf-end-marker .end-marker-symbol {
+    font-size: calc(1.15em * var(--mushaf-zoom, 1)) !important;
   }
 
   .sheet-center-mushaf {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-
-  .mushaf-golden-frame {
-    min-width: 310px;
   }
 }
 
