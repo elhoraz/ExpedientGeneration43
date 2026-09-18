@@ -296,18 +296,37 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       return PAGE_6_DEFAULT_LINES;
     }
     if (pageData?.lines && pageData.lines.length > 0) {
-      return pageData.lines.map((line) => ({
-        ...line,
-        words: line.words.map((w) => {
-          const matchingBlock = pageBlocks.find(
-            (b) => w.verseNumber >= b.startAyat && w.verseNumber <= b.endAyat
-          );
-          return {
-            ...w,
-            blockId: matchingBlock ? matchingBlock.blockId : (line.blockId || 1),
-          };
-        }),
-      }));
+      const totalVerses = pageData?.verses?.length || 0;
+      return pageData.lines.map((line) => {
+        if (line.isSurahHeader || line.isBismillah) {
+          return line;
+        }
+        return {
+          ...line,
+          words: line.words.map((w) => {
+            let assignedBlockId = w.blockId ?? line.blockId ?? 1;
+            if (totalVerses >= 5 && pageBlocks.length > 0) {
+              const matchingBlock = pageBlocks.find((b) =>
+                b.ayahs.some(
+                  (a) => a.surahNumber === w.surahNumber && a.verseNumber === w.verseNumber
+                )
+              );
+              if (matchingBlock) {
+                assignedBlockId = matchingBlock.blockId;
+              }
+            } else {
+              assignedBlockId = Math.min(
+                5,
+                Math.max(1, Math.ceil((w.lineNumber || line.lineNumber || 1) / 3))
+              );
+            }
+            return {
+              ...w,
+              blockId: assignedBlockId,
+            };
+          }),
+        };
+      });
     }
     return [];
   }, [cordobaPage, pageData, pageBlocks]);
@@ -602,10 +621,19 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   // Play a single verse directly when a word or verse marker is clicked in the 15-line mushaf
   const playSingleAyahAudio = (verseNum: number, surahNum?: number, blockId?: number) => {
     triggerHaptic(10);
-    const targetVerse = pageData?.verses?.find((v) => v.verseNumber === verseNum);
+    const targetVerse = pageData?.verses?.find((v) =>
+      surahNum ? v.surahNumber === surahNum && v.verseNumber === verseNum : v.verseNumber === verseNum
+    );
     const finalSurah = surahNum || targetVerse?.surahNumber || 2;
     const url = targetVerse?.audioUrl || getEveryAyahUrl(finalSurah, verseNum, selectedQari);
     playVerseAudio(url, verseNum, finalSurah, blockId);
+  };
+
+  // Play Basmalah audio
+  const playBasmalahAudio = () => {
+    triggerHaptic(10);
+    playVerseAudio("https://everyayah.com/data/Alafasy_128kbps/001001.mp3", 1, 1);
+    showToast("Memutar Basmalah");
   };
 
   // Play ALL verses of a color block in continuous sequence
@@ -1110,7 +1138,11 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                                     {b.blockId}
                                   </span>
                                   <span className="left-block-pill-title">
-                                    {b.config.name} (1 Jam)
+                                    {b.ayahs && b.ayahs.length > 0 && b.ayahs[0].surahName
+                                      ? b.ayahs[0].surahNumber !== b.ayahs[b.ayahs.length - 1].surahNumber
+                                        ? `${b.ayahs[0].surahName} ${b.startAyat} - ${b.ayahs[b.ayahs.length - 1].surahName} ${b.endAyat}`
+                                        : `${b.ayahs[0].surahName}: ${b.startAyat}${b.endAyat !== b.startAyat ? ` - ${b.endAyat}` : ""}`
+                                      : `${b.config.name} (Ayat ${b.startAyat} - ${b.endAyat})`}
                                   </span>
                                 </div>
                                 <div className="left-block-actions">
@@ -1134,7 +1166,9 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                               </div>
 
                               <div className="left-block-subtitle">
-                                Menghafal 1 jam dibagi 2 sesi: 40 mnt & 20 mnt
+                                {b.ayahs && b.ayahs.length > 0
+                                  ? `${b.config.name} • ${b.ayahs.length} Ayat (Sesi 40m & 20m)`
+                                  : "Menghafal 1 jam dibagi 2 sesi: 40 mnt & 20 mnt"}
                               </div>
 
                               <div className="left-block-checklist-row">
@@ -1325,6 +1359,61 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                         >
                           {pageLines.length > 0 ? (
                             pageLines.map((line) => {
+                              // 1. Baris Pembatas Kepala Surat (Surah Header Banner)
+                              if (line.isSurahHeader && line.surahData) {
+                                return (
+                                  <div key={`mline-${line.lineNumber}`} className="mushaf-15-line surah-header-line" dir="rtl">
+                                    <div className="surah-header-banner">
+                                      <div className="surah-banner-wing wing-right">
+                                        <span className="banner-sub-pill">
+                                          {line.surahData.tempatTurun === "Mekah" ? "مَكِّيَّةٌ" : "مَدَنِيَّةٌ"}
+                                        </span>
+                                      </div>
+                                      <div className="surah-banner-title-box">
+                                        <span className="surah-banner-ornament-left">۞</span>
+                                        <h3 className="surah-banner-arabic-title">
+                                          سُورَةُ {line.surahData.nameArabic}
+                                        </h3>
+                                        <span className="surah-banner-ornament-right">۞</span>
+                                      </div>
+                                      <div className="surah-banner-wing wing-left">
+                                        <span className="banner-sub-pill">
+                                          {toArabicNumerals(line.surahData.jumlahAyat)} آيَةً
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              // 2. Baris Basmalah
+                              if (line.isBismillah) {
+                                return (
+                                  <div key={`mline-${line.lineNumber}`} className="mushaf-15-line bismillah-line" dir="rtl">
+                                    <div className="mushaf-bismillah-banner">
+                                      <span
+                                        className="bismillah-calligraphy"
+                                        onClick={playBasmalahAudio}
+                                        title="Bismillaahir-Rahmaanir-Rahiim (Klik untuk dengar audio)"
+                                      >
+                                        بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              // 3. Baris Kosong Ornamen Penutup Halaman
+                              if (!line.words || line.words.length === 0) {
+                                return (
+                                  <div key={`mline-${line.lineNumber}`} className="mushaf-15-line empty-decorative-line" dir="rtl">
+                                    <div className="empty-line-ornament">
+                                      <span>۞ ۞ ۞</span>
+                                    </div>
+                                  </div>
+                                );
+                              }
+
                               const segments = getLineSegments(line);
                               return (
                                 <div key={`mline-${line.lineNumber}`} className="mushaf-15-line" dir="rtl">

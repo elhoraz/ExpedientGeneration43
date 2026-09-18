@@ -108,6 +108,15 @@ export interface MushafWordItem {
 export interface MushafLineItem {
   lineNumber: number;
   blockId?: number; // Primary or fallback block
+  isSurahHeader?: boolean;
+  isBismillah?: boolean;
+  surahData?: {
+    number: number;
+    name: string;
+    nameArabic: string;
+    tempatTurun: string;
+    jumlahAyat: number;
+  };
   words: MushafWordItem[];
 }
 
@@ -125,6 +134,9 @@ export interface PageHufazBlock {
   lines?: MushafLineItem[];
   startAyat: number;
   endAyat: number;
+  surahNumber?: number;
+  surahName?: string;
+  isLineBased?: boolean;
   keywords: string[];
 }
 
@@ -419,83 +431,72 @@ export const PAGE_6_DEFAULT_LINES: MushafLineItem[] = [
 ];
 
 /**
- * Mengelompokkan ayat-ayat halaman ke dalam 5 Blok Warna Al-Hufaz Cordoba
- * Berdasarkan batas ayat riil (bukan batas garis kaku)
+ * Membagi ayat-ayat pada satu halaman secara seimbang dan konsisten ke dalam 5 Blok Warna Al-Hufaz
+ * Menjamin 5 blok (Kuning, Hijau, Biru, Pink, Krem) selalu terbentuk sempurna tanpa ada blok yang hilang (0 kata).
  */
-export function partition15LinesInto5Blocks(
-  lines: MushafLineItem[],
-  verses: PageVerseItem[]
-): PageHufazBlock[] {
-  const safeLines = lines && lines.length > 0 ? lines : PAGE_6_DEFAULT_LINES;
+export function partitionPageInto5Blocks(verses: PageVerseItem[]): PageHufazBlock[] {
+  if (!verses || verses.length === 0) return [];
   const blocks: PageHufazBlock[] = [];
 
-  for (let b = 1; b <= 5; b++) {
-    // Cari semua ayat yang memiliki kata-kata berlabel blockId === b
-    const verseNumbers = new Set<number>();
-    safeLines.forEach((l) => {
-      l.words.forEach((w) => {
-        const wBlock = w.blockId ?? l.blockId ?? 1;
-        if (wBlock === b) {
-          verseNumbers.add(w.verseNumber);
-        }
+  if (verses.length >= 5) {
+    const total = verses.length;
+    const baseSize = Math.floor(total / 5);
+    let remainder = total % 5;
+    let currentIndex = 0;
+
+    for (let b = 0; b < 5; b++) {
+      const take = baseSize + (remainder > 0 ? 1 : 0);
+      if (remainder > 0) remainder--;
+
+      const blockVerses = verses.slice(currentIndex, currentIndex + take);
+      currentIndex += take;
+
+      const firstV = blockVerses[0] || verses[0];
+      const lastV = blockVerses[blockVerses.length - 1] || firstV;
+
+      blocks.push({
+        blockId: b + 1,
+        config: ALHUFAZ_COLOR_BLOCKS[b % ALHUFAZ_COLOR_BLOCKS.length],
+        ayahs: blockVerses,
+        startAyat: firstV.verseNumber,
+        endAyat: lastV.verseNumber,
+        surahNumber: firstV.surahNumber,
+        surahName: firstV.surahName,
+        keywords: blockVerses.map((v) => v.keywordArab),
       });
-    });
-
-    const blockAyahs = verses.filter((v) => verseNumbers.has(v.verseNumber));
-    const sortedVerseNums = Array.from(verseNumbers).sort((a, b) => a - b);
-    const startAyat = sortedVerseNums.length > 0 ? sortedVerseNums[0] : (blockAyahs[0]?.verseNumber || b);
-    const endAyat = sortedVerseNums.length > 0 ? sortedVerseNums[sortedVerseNums.length - 1] : (blockAyahs[blockAyahs.length - 1]?.verseNumber || startAyat);
-    const keywords = blockAyahs.map((v) => v.keywordArab);
-
-    blocks.push({
-      blockId: b,
-      config: ALHUFAZ_COLOR_BLOCKS[(b - 1) % ALHUFAZ_COLOR_BLOCKS.length],
-      ayahs: blockAyahs.length > 0 ? blockAyahs : (verses.slice(0, 1) || []),
-      lines: safeLines.filter((l) => l.words.some((w) => (w.blockId ?? l.blockId ?? 1) === b)),
-      startAyat,
-      endAyat,
-      keywords,
-    });
+    }
+  } else {
+    // Jika halaman memiliki kurang dari 5 ayat (misal 1 ayat panjang atau 2-4 ayat):
+    // Tetap sediakan 5 Blok Al-Hufaz (3 baris per blok: 1..3, 4..6, 7..9, 10..12, 13..15)
+    for (let b = 0; b < 5; b++) {
+      const firstV = verses[0];
+      const lastV = verses[verses.length - 1] || firstV;
+      blocks.push({
+        blockId: b + 1,
+        config: ALHUFAZ_COLOR_BLOCKS[b % ALHUFAZ_COLOR_BLOCKS.length],
+        ayahs: verses,
+        startAyat: firstV.verseNumber,
+        endAyat: lastV.verseNumber,
+        surahNumber: firstV.surahNumber,
+        surahName: firstV.surahName,
+        keywords: verses.map((v) => v.keywordArab),
+        isLineBased: true,
+      });
+    }
   }
 
   return blocks;
 }
 
 /**
- * Fallback: Membagi ayat-ayat pada satu halaman secara proporsional ke dalam 5 Blok Warna
+ * Mengelompokkan ayat-ayat halaman ke dalam 5 Blok Warna Al-Hufaz Cordoba
+ * Menjamin pembagian 5 blok tidak pernah menghasilkan blok kosong (misal Biru hilang).
  */
-export function partitionPageInto5Blocks(verses: PageVerseItem[]): PageHufazBlock[] {
-  if (!verses || verses.length === 0) return [];
-  const total = verses.length;
-  const numBlocks = Math.min(5, total);
-
-  // Hitung pembagian seimbang (misal 8 ayat -> 2, 1, 2, 1, 2)
-  const baseSize = Math.floor(total / numBlocks);
-  let remainder = total % numBlocks;
-
-  const blocks: PageHufazBlock[] = [];
-  let currentIndex = 0;
-
-  for (let b = 0; b < numBlocks; b++) {
-    const take = baseSize + (remainder > 0 ? 1 : 0);
-    if (remainder > 0) remainder--;
-
-    const blockVerses = verses.slice(currentIndex, currentIndex + take);
-    currentIndex += take;
-
-    if (blockVerses.length > 0) {
-      blocks.push({
-        blockId: b + 1,
-        config: ALHUFAZ_COLOR_BLOCKS[b % ALHUFAZ_COLOR_BLOCKS.length],
-        ayahs: blockVerses,
-        startAyat: blockVerses[0].verseNumber,
-        endAyat: blockVerses[blockVerses.length - 1].verseNumber,
-        keywords: blockVerses.map((v) => v.keywordArab),
-      });
-    }
-  }
-
-  return blocks;
+export function partition15LinesInto5Blocks(
+  lines: MushafLineItem[],
+  verses: PageVerseItem[]
+): PageHufazBlock[] {
+  return partitionPageInto5Blocks(verses);
 }
 
 // Start page map for 114 Surahs

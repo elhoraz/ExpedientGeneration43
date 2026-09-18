@@ -115,6 +115,51 @@ export async function GET(
       }
     }
 
+    // Detect Surah Headers & Bismillah lines for every surah start on this page
+    const surahStarts: { surahNum: number; v1Line: number }[] = [];
+    rawVerses.forEach((v: any) => {
+      if (v.verse_number === 1) {
+        const v1Line = Math.min(...(v.words || []).map((w: any) => w.line_number || 1));
+        surahStarts.push({ surahNum: v.chapter_id, v1Line });
+      }
+    });
+
+    const headerMap: Record<number, any> = {};
+    const bismillahMap: Record<number, number> = {};
+
+    surahStarts.forEach(({ surahNum, v1Line }) => {
+      const sMeta = QURAN_SURAHS.find((s) => s.nomor === surahNum);
+      const surahData = {
+        number: surahNum,
+        name: sMeta?.namaLatin || `Surah ${surahNum}`,
+        nameArabic: sMeta?.nama || "",
+        tempatTurun: sMeta?.tempatTurun || "Mekah",
+        jumlahAyat: sMeta?.jumlahAyat || 0,
+      };
+
+      if (surahNum === 9) {
+        // Surah 9 (At-Taubah) does not have Basmalah
+        if (v1Line >= 2 && lineMap[v1Line - 1]?.length === 0) {
+          headerMap[v1Line - 1] = surahData;
+        } else if (v1Line === 1 && lineMap[1]?.length === 0) {
+          headerMap[1] = surahData;
+        }
+      } else if (surahNum === 1) {
+        // Surah 1 (Al-Fatihah): Verse 1 is Basmalah, Line 1 is Surah Header
+        if (lineMap[1]?.length === 0) {
+          headerMap[1] = surahData;
+        }
+      } else {
+        // Standard surahs (2..8, 10..114)
+        if (v1Line >= 3 && lineMap[v1Line - 2]?.length === 0 && lineMap[v1Line - 1]?.length === 0) {
+          headerMap[v1Line - 2] = surahData;
+          bismillahMap[v1Line - 1] = surahNum;
+        } else if (v1Line >= 2 && lineMap[v1Line - 1]?.length === 0) {
+          headerMap[v1Line - 1] = surahData;
+        }
+      }
+    });
+
     // Build the 15 lines array with corresponding blockId (1..5)
     const lines = [];
     for (let i = 1; i <= 15; i++) {
@@ -122,6 +167,9 @@ export async function GET(
       lines.push({
         lineNumber: i,
         blockId,
+        isSurahHeader: !!headerMap[i],
+        surahData: headerMap[i] || null,
+        isBismillah: !!bismillahMap[i],
         words: lineMap[i] || [],
       });
     }
