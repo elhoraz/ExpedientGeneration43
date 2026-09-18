@@ -276,10 +276,10 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   // Page Partition into 5 Colors (15 Baris Autentik Medina Mushaf)
   const pageBlocks = useMemo<PageHufazBlock[]>(() => {
     const rawLines =
-      pageData?.lines && pageData.lines.length > 0
-        ? pageData.lines
-        : cordobaPage === 6
+      cordobaPage === 6
         ? PAGE_6_DEFAULT_LINES
+        : pageData?.lines && pageData.lines.length > 0
+        ? pageData.lines
         : [];
     const verses = pageData?.verses || [];
     if (rawLines.length > 0) {

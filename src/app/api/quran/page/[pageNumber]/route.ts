@@ -40,8 +40,13 @@ export async function GET(
     const cleanKhot = (str: string): string => {
       if (!str) return "";
       return str
+        .replace(/ٱ/g, "ا") // Alif wasla -> standard Alif
+        .replace(/ءَادَمَ/g, "آدَمَ")
+        .replace(/يَـٰٓـَٔادَمُ|يَـَٰٔادَمُ/g, "يَا آدَمُ")
+        .replace(/ـٰ/g, "ا") // dagger alif after tatweel -> alif
         .replace(/ـ+/g, "") // remove tatweel / kashida that breaks web font baselines
-        .replace(/\u06DF|\u06E0|\u06E2/g, "") // remove problematic small circular symbols
+        .replace(/[\u06DF\u06E0\u06E2\u06E3\u06E5\u06E6\u06EA\u06EB\u06EC]/g, "") // remove problematic Medina glyph markers
+        .replace(/ۢ/g, "نْ") // small high mim
         .normalize("NFC");
     };
 

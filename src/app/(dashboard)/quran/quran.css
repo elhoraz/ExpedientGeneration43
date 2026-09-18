@@ -1499,7 +1499,7 @@
   flex-direction: column;
   justify-content: space-evenly;
   margin: 0 !important;
-  padding: 0 10px;
+  padding: 0 !important;
   width: 100%;
   box-sizing: border-box;
   position: relative;
@@ -1569,34 +1569,42 @@
 /* 15 Baris Tepat dengan Garis Guideline per Baris Sesuai Mushaf Asli */
 .mushaf-15-line {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: calc(clamp(4px, 1.3vw, 10px) * var(--mushaf-zoom, 1));
   min-width: calc(100% * max(1, var(--mushaf-zoom, 1)));
   width: 100%;
   direction: rtl;
   white-space: nowrap;
   font-family: inherit;
-  font-size: calc(clamp(1.22rem, 2.1vw, 2.15rem) * var(--mushaf-zoom, 1));
-  line-height: calc(2.45 * var(--mushaf-zoom, 1));
-  min-height: calc(48px * var(--mushaf-zoom, 1));
+  font-size: calc(clamp(1.48rem, 4.4vw, 2.35rem) * var(--mushaf-zoom, 1));
+  font-weight: 700;
+  line-height: calc(1.85 * var(--mushaf-zoom, 1));
+  min-height: calc(44px * var(--mushaf-zoom, 1));
   padding: calc(3px * var(--mushaf-zoom, 1)) 4px;
   box-sizing: border-box;
   user-select: none;
   /* Garis horizontal per baris (Authentic Ruled Lines) */
-  border-bottom: 1.5px solid rgba(133, 77, 14, 0.22);
+  border-bottom: 1.5px solid rgba(133, 77, 14, 0.32);
 }
 
 [data-theme="dark"] .mushaf-15-line {
-  border-bottom: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.28);
 }
 
 /* Kata per Kata dalam Mushaf */
 .mushaf-word-item {
   display: inline-block;
   cursor: pointer;
-  padding: 0 calc(2px * var(--mushaf-zoom, 1));
-  font-weight: 500;
+  padding: 0 1px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0;
   transition: transform 0.12s ease, color 0.15s ease, background-color 0.15s ease;
+}
+
+[data-theme="dark"] .mushaf-word-item {
+  color: #f8fafc;
 }
 
 .mushaf-word-item:hover {
@@ -3122,13 +3130,20 @@
   }
 
   .mushaf-color-band {
-    padding: 5px 8px !important;
-    min-height: 64px !important;
+    padding: 0 !important;
   }
 
   .mushaf-15-line {
-    font-size: clamp(0.68rem, 2.7vw, 1.05rem) !important;
-    line-height: 1.95 !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: calc(clamp(3px, 1.4vw, 8px) * var(--mushaf-zoom, 1)) !important;
+    font-size: calc(clamp(1.42rem, 4.6vw, 2.25rem) * var(--mushaf-zoom, 1)) !important;
+    font-weight: 700 !important;
+    line-height: calc(1.8 * var(--mushaf-zoom, 1)) !important;
+    min-height: calc(42px * var(--mushaf-zoom, 1)) !important;
+    padding: calc(2px * var(--mushaf-zoom, 1)) 2px !important;
+    border-bottom: 1.5px solid rgba(133, 77, 14, 0.35) !important;
     white-space: nowrap !important;
   }
 
