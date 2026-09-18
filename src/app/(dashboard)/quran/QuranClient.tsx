@@ -40,6 +40,14 @@ function getEveryAyahUrl(surahNum: number, ayahNum: number, qariId: string = "05
   return `https://everyayah.com/data/${folder}/${sStr}${aStr}.mp3`;
 }
 
+function toArabicNumerals(num: number): string {
+  const arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+  return String(num)
+    .split("")
+    .map((d) => arabicDigits[parseInt(d, 10)] || d)
+    .join("");
+}
+
 interface LastReadState {
   surahNumber: number;
   surahName: string;
@@ -54,6 +62,14 @@ interface BookmarkItem {
   teksArab: string;
   teksIndonesia: string;
   addedAt: number;
+}
+
+interface AudioQueueItem {
+  url: string;
+  ayah: number;
+  surah: number;
+  label?: string;
+  blockId?: number;
 }
 
 export default function QuranClient({ currentUserId }: { currentUserId: string }) {
@@ -112,12 +128,20 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   const [showTranslation, setShowTranslation] = useState(true);
   const [isMushafMode, setIsMushafMode] = useState(false);
 
-  // Audio Player States
+  // Audio Player States & Queue System
   const [selectedQari, setSelectedQari] = useState<string>("05"); // Default: Misyari Rasyid
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentPlayingAyah, setCurrentPlayingAyah] = useState<number | null>(null);
   const [autoPlayNext, setAutoPlayNext] = useState(true);
+  const [audioQueue, setAudioQueue] = useState<AudioQueueItem[]>([]);
+  const [queueIndex, setQueueIndex] = useState<number>(0);
+  const [isLoopingQueue, setIsLoopingQueue] = useState<boolean>(false);
+  const [currentPlayingBlockId, setCurrentPlayingBlockId] = useState<number | null>(null);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioQueueRef = useRef<AudioQueueItem[]>([]);
+  const queueIndexRef = useRef<number>(0);
+  const isLoopingRef = useRef<boolean>(false);
 
   // Bookmarks & Last Read States
   const [lastRead, setLastRead] = useState<LastReadState | null>(null);
@@ -150,7 +174,14 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     }
   }, []);
 
-  // Initialize from LocalStorage
+  // Format MM:SS for Timer
+  const formatTimerDisplay = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // Load preferences from localStorage on mount
   useEffect(() => {
     try {
       const savedLastRead = localStorage.getItem("expedient_quran_last_read");
@@ -159,10 +190,11 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       const savedBookmarks = localStorage.getItem("expedient_quran_bookmarks");
       if (savedBookmarks) setBookmarks(JSON.parse(savedBookmarks));
 
+      const savedQari = localStorage.getItem("expedient_quran_qari");
+      if (savedQari) setSelectedQari(savedQari);
+
       const savedFontSize = localStorage.getItem("expedient_quran_font_size");
-      if (savedFontSize && ["sm", "md", "lg", "xl"].includes(savedFontSize)) {
-        setFontSize(savedFontSize as any);
-      }
+      if (savedFontSize) setFontSize(savedFontSize as any);
 
       const savedPage = localStorage.getItem("expedient_cordoba_page");
       if (savedPage) {
@@ -230,11 +262,6 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     return partitionPageInto5Blocks(pageData.verses);
   }, [pageData]);
 
-  // Random / rotating motivasi based on page number
-  const currentMotivasi = useMemo(() => {
-    return ALHUFAZ_MOTIVASI_LIST[(cordobaPage - 1) % ALHUFAZ_MOTIVASI_LIST.length];
-  }, [cordobaPage]);
-
   // Toggle TUTUP / BUKA for a color block
   const toggleBlockClosure = (blockId: number) => {
     triggerHaptic(15);
@@ -256,30 +283,6 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       const updated = { ...prev, [key]: !prev[key] };
       try {
         localStorage.setItem("expedient_cordoba_murajaah", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-  };
-
-  const toggleBlockBacaUlang = (blockId: number) => {
-    triggerHaptic(10);
-    const key = `p${cordobaPage}-b${blockId}`;
-    setBlockBacaUlangChecks((prev) => {
-      const updated = { ...prev, [key]: !prev[key] };
-      try {
-        localStorage.setItem("expedient_cordoba_baca_ulang", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-  };
-
-  const toggleBlockMenghafal = (blockId: number) => {
-    triggerHaptic(10);
-    const key = `p${cordobaPage}-b${blockId}`;
-    setBlockMenghafalChecks((prev) => {
-      const updated = { ...prev, [key]: !prev[key] };
-      try {
-        localStorage.setItem("expedient_cordoba_menghafal", JSON.stringify(updated));
       } catch {}
       return updated;
     });
@@ -358,53 +361,81 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     setIsTimerRunning(false);
     setTimerTargetMinutes(mins);
     setTimerSecondsLeft(mins * 60);
+    showToast(`Timer diatur: ${mins} Menit (${mins === 40 ? "Baca Ulang" : "Menghafal Tutup-Buka"})`);
   };
 
-  const formatTimerDisplay = (totalSecs: number) => {
-    const mins = Math.floor(totalSecs / 60);
-    const secs = totalSecs % 60;
-    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-  };
+  // ==========================================
+  // RESILIENT MULTI-TRACK AUDIO PLAYBACK ENGINE
+  // ==========================================
 
-  // Audio Playback
   const stopAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+    audioQueueRef.current = [];
+    setAudioQueue([]);
     setIsPlaying(false);
     setCurrentPlayingAyah(null);
+    setCurrentPlayingBlockId(null);
   };
 
-  const playVerseAudio = (audioUrl: string, ayahNum: number, surahNum?: number) => {
-    triggerHaptic(10);
+  const playQueueItemAtIndex = (index: number) => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
     }
     const audio = audioRef.current;
+    const queue = audioQueueRef.current;
+
+    if (index < 0 || index >= queue.length) {
+      if (isLoopingRef.current && queue.length > 0) {
+        queueIndexRef.current = 0;
+        setQueueIndex(0);
+        playQueueItemAtIndex(0);
+        return;
+      }
+      setIsPlaying(false);
+      setCurrentPlayingAyah(null);
+      setCurrentPlayingBlockId(null);
+      return;
+    }
+
+    queueIndexRef.current = index;
+    setQueueIndex(index);
+
+    const item = queue[index];
+    setCurrentPlayingAyah(item.ayah);
+    setCurrentPlayingBlockId(item.blockId || null);
 
     // Multi-candidate CORS-resilient fallback URLs
     const candidates: string[] = [];
-    if (surahNum && ayahNum) {
-      candidates.push(getEveryAyahUrl(surahNum, ayahNum, selectedQari));
+    if (item.surah && item.ayah) {
+      candidates.push(getEveryAyahUrl(item.surah, item.ayah, selectedQari));
       if (selectedQari !== "05") {
-        candidates.push(getEveryAyahUrl(surahNum, ayahNum, "05"));
+        candidates.push(getEveryAyahUrl(item.surah, item.ayah, "05"));
       }
       candidates.push(
-        `https://verses.quran.com/Alafasy/mp3/${String(surahNum).padStart(3, "0")}${String(ayahNum).padStart(3, "0")}.mp3`
+        `https://verses.quran.com/Alafasy/mp3/${String(item.surah).padStart(3, "0")}${String(item.ayah).padStart(3, "0")}.mp3`
       );
     }
-    if (audioUrl && !candidates.includes(audioUrl)) {
-      candidates.push(audioUrl);
+    if (item.url && !candidates.includes(item.url)) {
+      candidates.push(item.url);
     }
 
     let candidateIdx = 0;
 
     const tryPlay = () => {
       if (candidateIdx >= candidates.length) {
-        showToast("Gagal memutar audio murottal");
-        setIsPlaying(false);
-        setCurrentPlayingAyah(null);
+        console.warn("All audio candidates failed for", item);
+        const next = queueIndexRef.current + 1;
+        if (next < queue.length) {
+          playQueueItemAtIndex(next);
+        } else {
+          showToast("Gagal memutar audio ayat ini");
+          setIsPlaying(false);
+          setCurrentPlayingAyah(null);
+          setCurrentPlayingBlockId(null);
+        }
         return;
       }
 
@@ -414,18 +445,27 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
         .play()
         .then(() => {
           setIsPlaying(true);
-          setCurrentPlayingAyah(ayahNum);
         })
         .catch((err) => {
-          console.warn(`Audio playback failed for ${currentTarget}:`, err);
+          console.warn(`Audio playback attempt ${candidateIdx + 1} failed for ${currentTarget}:`, err);
           candidateIdx++;
           tryPlay();
         });
     };
 
     audio.onended = () => {
-      setIsPlaying(false);
-      setCurrentPlayingAyah(null);
+      const q = audioQueueRef.current;
+      const nextIdx = queueIndexRef.current + 1;
+      if (nextIdx < q.length) {
+        playQueueItemAtIndex(nextIdx);
+      } else if (isLoopingRef.current && q.length > 0) {
+        showToast("🔁 Mengulang murottal blok...");
+        playQueueItemAtIndex(0);
+      } else {
+        setIsPlaying(false);
+        setCurrentPlayingAyah(null);
+        setCurrentPlayingBlockId(null);
+      }
     };
 
     audio.onerror = () => {
@@ -436,11 +476,100 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     tryPlay();
   };
 
+  // Play a single verse directly
+  const playVerseAudio = (audioUrl: string, ayahNum: number, surahNum?: number, blockId?: number) => {
+    triggerHaptic(10);
+    const item: AudioQueueItem = {
+      url: audioUrl,
+      ayah: ayahNum,
+      surah: surahNum || 1,
+      blockId,
+      label: surahNum ? `Surah ${surahNum} : Ayat ${ayahNum}` : `Ayat ${ayahNum}`,
+    };
+
+    audioQueueRef.current = [item];
+    setAudioQueue([item]);
+    setCurrentPlayingBlockId(blockId || null);
+    playQueueItemAtIndex(0);
+  };
+
+  // Play ALL verses of a color block in continuous sequence
   const playBlockVerses = (block: PageHufazBlock) => {
     triggerHaptic(12);
     if (block.ayahs.length === 0) return;
-    showToast(`Memutar murottal ${block.config.name} (Ayat ${block.startAyat} - ${block.endAyat})`);
-    playVerseAudio(block.ayahs[0].audioUrl, block.ayahs[0].verseNumber, block.ayahs[0].surahNumber);
+
+    const items: AudioQueueItem[] = block.ayahs.map((v, i) => ({
+      url: v.audioUrl,
+      ayah: v.verseNumber,
+      surah: v.surahNumber,
+      blockId: block.blockId,
+      label: `${block.config.name} (Ayat ${v.verseNumber}) [${i + 1}/${block.ayahs.length}]`,
+    }));
+
+    audioQueueRef.current = items;
+    setAudioQueue(items);
+    setCurrentPlayingBlockId(block.blockId);
+    showToast(`Memutar murottal ${block.config.name} (${block.ayahs.length} Ayat berurutan)`);
+    playQueueItemAtIndex(0);
+  };
+
+  // Play entire page sequentially (all 5 blocks)
+  const playEntirePage = () => {
+    triggerHaptic(15);
+    if (!pageData?.verses || pageData.verses.length === 0) return;
+
+    const items: AudioQueueItem[] = pageData.verses.map((v, i) => ({
+      url: v.audioUrl,
+      ayah: v.verseNumber,
+      surah: v.surahNumber,
+      label: `Halaman ${cordobaPage} : Ayat ${v.verseNumber} (${i + 1}/${pageData.verses.length})`,
+    }));
+
+    audioQueueRef.current = items;
+    setAudioQueue(items);
+    setCurrentPlayingBlockId(null);
+    showToast(`Memutar murottal 1 halaman penuh (${items.length} Ayat berurutan)`);
+    playQueueItemAtIndex(0);
+  };
+
+  // Click on a verse in continuous mushaf: start playing from that verse to end of block
+  const handleVerseClickInMushaf = (block: PageHufazBlock, verse: PageVerseItem) => {
+    triggerHaptic(10);
+    const startIdx = block.ayahs.findIndex((v) => v.verseNumber === verse.verseNumber);
+    const ayahsToPlay = startIdx >= 0 ? block.ayahs.slice(startIdx) : [verse];
+
+    const items: AudioQueueItem[] = ayahsToPlay.map((v) => ({
+      url: v.audioUrl,
+      ayah: v.verseNumber,
+      surah: v.surahNumber,
+      blockId: block.blockId,
+      label: `${block.config.name} (Ayat ${v.verseNumber})`,
+    }));
+
+    audioQueueRef.current = items;
+    setAudioQueue(items);
+    setCurrentPlayingBlockId(block.blockId);
+    playQueueItemAtIndex(0);
+  };
+
+  // Play in Mode Tilawah: from this ayah onwards
+  const playTilawahAyah = (ayahNum: number) => {
+    triggerHaptic(10);
+    if (!selectedSurah) return;
+    const startIdx = selectedSurah.ayat.findIndex((a) => a.nomorAyat === ayahNum);
+    const ayahsToPlay = autoPlayNext ? selectedSurah.ayat.slice(startIdx) : [selectedSurah.ayat[startIdx]];
+
+    const items: AudioQueueItem[] = ayahsToPlay.map((a) => ({
+      url: a.audio[selectedQari] || "",
+      ayah: a.nomorAyat,
+      surah: selectedSurah.nomor,
+      label: `${selectedSurah.namaLatin} : Ayat ${a.nomorAyat}`,
+    }));
+
+    audioQueueRef.current = items;
+    setAudioQueue(items);
+    setCurrentPlayingBlockId(null);
+    playQueueItemAtIndex(0);
   };
 
   // Jump handlers
@@ -454,7 +583,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     loadCordobaPage(page);
   };
 
-  // Open Surah in standard reader mode (if user clicks)
+  // Open Surah in standard reader mode
   const openSurah = async (surahNumber: number, targetAyahNumber?: number) => {
     triggerHaptic(15);
     setLoadingSurah(true);
@@ -494,6 +623,57 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     triggerHaptic(12);
     stopAudio();
     setSelectedSurah(null);
+  };
+
+  // Open Tafsir Modal
+  const openTafsirModal = async (ayahNumber: number) => {
+    if (!selectedSurah) return;
+    triggerHaptic(10);
+    setSelectedAyahTafsir(ayahNumber);
+    setShowTafsirModal(true);
+    setLoadingTafsir(true);
+    try {
+      const res = await fetch(`/api/quran/tafsir/${selectedSurah.nomor}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setTafsirData(json.data);
+      }
+    } catch (e) {
+      console.warn("Fetch tafsir error:", e);
+    } finally {
+      setLoadingTafsir(false);
+    }
+  };
+
+  // Bookmark Toggle
+  const toggleBookmark = (ayah: QuranAyatItem) => {
+    if (!selectedSurah) return;
+    triggerHaptic(10);
+    const exists = bookmarks.some(
+      (b) => b.surahNumber === selectedSurah.nomor && b.ayahNumber === ayah.nomorAyat
+    );
+    let updated: BookmarkItem[];
+    if (exists) {
+      updated = bookmarks.filter(
+        (b) => !(b.surahNumber === selectedSurah.nomor && b.ayahNumber === ayah.nomorAyat)
+      );
+      showToast(`Bookmark Ayat ${ayah.nomorAyat} dihapus`);
+    } else {
+      const newItem: BookmarkItem = {
+        surahNumber: selectedSurah.nomor,
+        surahName: selectedSurah.namaLatin,
+        ayahNumber: ayah.nomorAyat,
+        teksArab: ayah.teksArab,
+        teksIndonesia: ayah.teksIndonesia,
+        addedAt: Date.now(),
+      };
+      updated = [newItem, ...bookmarks];
+      showToast(`Ayat ${ayah.nomorAyat} disimpan ke Bookmark`);
+    }
+    setBookmarks(updated);
+    try {
+      localStorage.setItem("expedient_quran_bookmarks", JSON.stringify(updated));
+    } catch {}
   };
 
   // Filtered Surahs
@@ -565,72 +745,40 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
             <div className="cordoba-nav-group">
               <button
                 type="button"
-                className="cordoba-page-nav-btn"
-                onClick={() => {
-                  if (cordobaPage > 1) loadCordobaPage(cordobaPage - 1);
-                }}
-                disabled={cordobaPage <= 1 || loadingPage}
+                className="cordoba-page-btn"
+                onClick={() => cordobaPage > 1 && loadCordobaPage(cordobaPage - 1)}
+                disabled={cordobaPage <= 1}
                 title="Halaman Sebelumnya"
               >
                 <i className="fa-solid fa-chevron-left"></i>
-                <span className="btn-label-mobile">Hal Sebelumnya</span>
+                <span className="btn-label">Sebelumnya</span>
               </button>
 
-              {/* Page Number Quick Selector */}
-              <div className="cordoba-page-input-wrapper">
-                <span className="page-label">Halaman</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="604"
-                  className="cordoba-page-input"
-                  value={cordobaPage}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value, 10);
-                    if (!isNaN(val) && val >= 1 && val <= 604) {
-                      setCordobaPage(val);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      loadCordobaPage(cordobaPage);
-                    }
-                  }}
-                />
+              <div className="cordoba-page-indicator">
+                <span className="page-lbl">HALAMAN</span>
+                <span className="page-val">{cordobaPage}</span>
                 <span className="page-total">/ 604</span>
-                <button
-                  type="button"
-                  className="page-go-btn"
-                  onClick={() => loadCordobaPage(cordobaPage)}
-                  disabled={loadingPage}
-                >
-                  Buka
-                </button>
               </div>
 
               <button
                 type="button"
-                className="cordoba-page-nav-btn"
-                onClick={() => {
-                  if (cordobaPage < 604) loadCordobaPage(cordobaPage + 1);
-                }}
-                disabled={cordobaPage >= 604 || loadingPage}
+                className="cordoba-page-btn"
+                onClick={() => cordobaPage < 604 && loadCordobaPage(cordobaPage + 1)}
+                disabled={cordobaPage >= 604}
                 title="Halaman Selanjutnya"
               >
-                <span className="btn-label-mobile">Hal Selanjutnya</span>
+                <span className="btn-label">Selanjutnya</span>
                 <i className="fa-solid fa-chevron-right"></i>
               </button>
             </div>
 
-            {/* Quick Jumps: Surah & Juz Dropdowns */}
+            {/* Quick Jumper Dropdowns */}
             <div className="cordoba-jump-group">
-              {/* Surah Jump */}
               <select
                 className="cordoba-select"
+                value={pageData?.primarySurah?.number || 2}
                 onChange={(e) => handleJumpSurah(parseInt(e.target.value, 10))}
-                defaultValue=""
               >
-                <option value="" disabled>Lompat ke Surah...</option>
                 {QURAN_SURAHS.map((s) => (
                   <option key={s.nomor} value={s.nomor}>
                     {s.nomor}. {s.namaLatin} ({s.nama})
@@ -638,13 +786,11 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                 ))}
               </select>
 
-              {/* Juz Jump */}
               <select
-                className="cordoba-select"
+                className="cordoba-select juz-select"
+                value={pageData?.juzNumber || 1}
                 onChange={(e) => handleJumpJuz(parseInt(e.target.value, 10))}
-                defaultValue=""
               >
-                <option value="" disabled>Lompat ke Juz...</option>
                 {Array.from({ length: 30 }, (_, i) => i + 1).map((j) => (
                   <option key={j} value={j}>
                     Juz {j} (Hal. {JUZ_START_PAGES[j]})
@@ -716,7 +862,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                   setCordobaSubView("poster");
                 }}
               >
-                <i className="fa-solid fa-diagram-project"></i>
+                <i className="fa-solid fa-chalkboard-user"></i>
                 <span>Poster Anatomi & Panduan (Sesuai Brosur)</span>
               </button>
             </div>
@@ -815,11 +961,12 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                 <div className="cordoba-mushaf-sheet">
                   {/* Top Ornate Arabesque Ribbon */}
                   <div className="mushaf-sheet-top-bar">
-                    <div className="ornate-wing-left"></div>
+                    <div className="ornate-wing-left">
+                      <span className="left-kemenag-badge">Kemenag RI</span>
+                    </div>
                     <div className="ornate-title-cartouche">
                       <h2>{pageMeta.guideTopTitle}</h2>
                     </div>
-                    <div className="ornate-wing-right"></div>
                     <div className="ornate-method-pill">
                       <span>Metode 5 Jam 1 Halaman</span>
                     </div>
@@ -834,16 +981,45 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                       <div className="sheet-left-blocks">
                         {pageBlocks.map((b) => {
                           const keywords = pageMeta.blockKeywords[b.blockId] || b.keywords;
+                          const isClosed = !!closedBlocks[b.blockId];
+                          const isCurrentBlockPlaying = currentPlayingBlockId === b.blockId;
 
                           return (
-                            <div key={`left-b-${b.blockId}`} className="sheet-left-block-card">
+                            <div
+                              key={`left-b-${b.blockId}`}
+                              className={`sheet-left-block-card ${isCurrentBlockPlaying ? "active-playing-card" : ""}`}
+                            >
                               <div className="left-block-head">
-                                <span className="left-block-num-square">
-                                  {b.blockId}
-                                </span>
-                                <span className="left-block-pill-title">
-                                  {b.config.name} (1 Jam)
-                                </span>
+                                <div className="left-block-badge-group">
+                                  <span className="left-block-num-square">
+                                    {b.blockId}
+                                  </span>
+                                  <span className="left-block-pill-title">
+                                    {b.config.name} (1 Jam)
+                                  </span>
+                                </div>
+                                <div className="left-block-actions">
+                                  <button
+                                    type="button"
+                                    className={`left-block-action-btn audio-btn ${isCurrentBlockPlaying && isPlaying ? "is-playing" : ""}`}
+                                    onClick={() => playBlockVerses(b)}
+                                    title={`Putar semua ayat berurutan di ${b.config.name} (Ayat ${b.startAyat}-${b.endAyat})`}
+                                  >
+                                    <i className={`fa-solid ${isCurrentBlockPlaying && isPlaying ? "fa-pause" : "fa-volume-high"}`}></i>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={`left-block-action-btn eye-btn ${isClosed ? "is-closed" : ""}`}
+                                    onClick={() => toggleBlockClosure(b.blockId)}
+                                    title={isClosed ? "Buka teks Arab" : "Tutup teks Arab untuk tes hafalan 20 menit"}
+                                  >
+                                    <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="left-block-subtitle">
+                                Menghafal 1 jam dibagi 2 sesi: 40 mnt & 20 mnt
                               </div>
 
                               <div className="left-block-checklist-row">
@@ -944,30 +1120,48 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                       <div className="mushaf-golden-frame">
                         {/* 1. Baris Cepat Kontrol Tutup/Buka & Murottal 5 Blok */}
                         <div className="mushaf-quick-blocks-bar">
-                          {pageBlocks.map((b) => {
-                            const isClosed = !!closedBlocks[b.blockId];
-                            return (
-                              <div key={`quick-b-${b.blockId}`} className={`quick-block-pill band-${b.blockId}`}>
-                                <button
-                                  type="button"
-                                  className={`quick-pill-toggle ${isClosed ? "is-closed" : ""}`}
-                                  onClick={() => toggleBlockClosure(b.blockId)}
-                                  title={isClosed ? `Buka Teks ${b.config.name}` : `Tutup Teks ${b.config.name} (Uji Hafalan 20 Menit)`}
+                          <div className="quick-blocks-pills-row">
+                            {pageBlocks.map((b) => {
+                              const isClosed = !!closedBlocks[b.blockId];
+                              const isCurrentBlockPlaying = currentPlayingBlockId === b.blockId;
+                              return (
+                                <div
+                                  key={`quick-b-${b.blockId}`}
+                                  className={`quick-block-pill band-${b.blockId} ${isCurrentBlockPlaying ? "active-playing-pill" : ""}`}
                                 >
-                                  <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
-                                  <span>{b.config.name} ({b.startAyat}-{b.endAyat})</span>
-                                </button>
-                                <button
-                                  type="button"
-                                  className="quick-pill-audio"
-                                  onClick={() => playBlockVerses(b)}
-                                  title={`Putar murottal ${b.config.name}`}
-                                >
-                                  <i className="fa-solid fa-volume-high"></i>
-                                </button>
-                              </div>
-                            );
-                          })}
+                                  <button
+                                    type="button"
+                                    className={`quick-pill-toggle ${isClosed ? "is-closed" : ""}`}
+                                    onClick={() => toggleBlockClosure(b.blockId)}
+                                    title={isClosed ? `Buka Teks ${b.config.name}` : `Tutup Teks ${b.config.name} (Uji Hafalan)`}
+                                  >
+                                    <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
+                                    <span>{b.config.name} ({b.startAyat}-{b.endAyat})</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="quick-pill-audio"
+                                    onClick={() => playBlockVerses(b)}
+                                    title={`Putar semua ayat berurutan di ${b.config.name}`}
+                                  >
+                                    <i className={`fa-solid ${isCurrentBlockPlaying && isPlaying ? "fa-pause" : "fa-volume-high"}`}></i>
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <div className="quick-blocks-actions">
+                            <button
+                              type="button"
+                              className="quick-play-page-btn"
+                              onClick={playEntirePage}
+                              title="Putar murottal 1 halaman penuh (Ayat 30-37 bersambung)"
+                            >
+                              <i className="fa-solid fa-play"></i>
+                              <span>Putar 1 Halaman Penuh</span>
+                            </button>
+                          </div>
                         </div>
 
                         {/* 2. Teks Al-Qur'an Sambung 15 Baris Autentik (1 Baris Bisa 2 Warna Berbeda) */}
@@ -984,7 +1178,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                                     if (isClosed) {
                                       toggleBlockClosure(b.blockId);
                                     } else {
-                                      playVerseAudio(v.audioUrl, v.verseNumber, v.surahNumber);
+                                      handleVerseClickInMushaf(b, v);
                                     }
                                   }}
                                   title={
@@ -997,7 +1191,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                                   {" "}
                                   <span className="verse-golden-ayah-marker" contentEditable={false}>
                                     <span className="ayah-symbol">۝</span>
-                                    <span className="ayah-num">{v.verseNumber}</span>
+                                    <span className="ayah-num">{toArabicNumerals(v.verseNumber)}</span>
                                   </span>
                                   {" "}
                                 </span>
@@ -1030,10 +1224,10 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                           <span>Metode 5 Jam 1 Halaman</span>
                         </div>
                         <ol className="metode-numbered-list">
-                          <li><strong>Syarat Utama:</strong> FOKUS, IKHLAS, DAN TIDAK PEGANG HANDPHONE</li>
-                          <li><strong>Mengulang bacaan</strong> blok kuning 40 menit, kemudian <strong>menghafalkannya</strong> 20 menit (fokus mushaf). Buka mushaf jika lupa.</li>
-                          <li><strong>Lakukan hal yang sama</strong> untuk blok berikutnya sampai terhafal seluruhnya.</li>
-                          <li><strong>Muraja'ah (mengulang)</strong> hafalan 5 kali sehari dalam seminggu. Gunakan tabel kontrol untuk memonitoring.</li>
+                          <li><strong>Syarat Utama:</strong> FOKUS, IKHLAS, DAN TIDAK PULANG KAMPUNG/ONLINE.</li>
+                          <li><strong>Menghafal berurutan:</strong> Mulai blok 1 (kuning) 40 menit membaca berulang, kemudian hafalkan tutup-buka 20 menit (fokus mushaf). Buka mushaf jika lupa dan ulangi 3x.</li>
+                          <li><strong>Setelah lancar,</strong> lanjutkan blok 2 (hijau) sampai blok 5 (krem).</li>
+                          <li><strong>Muraja'ah (mengulang)</strong> hafalan 5 kali sehari dalam seminggu. Gunakan tabel kontrol untuk monitoring.</li>
                         </ol>
                       </div>
 
@@ -1076,58 +1270,58 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                       <span className="ribbon-sub">Terjemah Kementerian Agama RI</span>
                     </div>
 
+                    {pageMeta.terjemahSubTitle && (
+                      <div className="terjemah-editorial-subtitle">
+                        <h4>{pageMeta.terjemahSubTitle}</h4>
+                      </div>
+                    )}
+
                     <div className="terjemah-three-columns">
                       {/* Column 1 */}
                       <div className="terjemah-col">
-                        {pageMeta.terjemahSubTitle && (
-                          <h4 className="terjemah-col-subheading">{pageMeta.terjemahSubTitle}</h4>
-                        )}
                         {col1Verses.map((v) => (
-                          <p key={`col1-${v.verseKey}`} className="terjemah-verse-para">
-                            <strong className="terjemah-verse-bold">{v.verseNumber}.</strong> {v.translationIndo}
-                          </p>
+                          <div key={v.verseKey} className="terjemah-verse-entry">
+                            <span className="t-ayah-num">({v.verseNumber})</span>
+                            <span className="t-ayah-text">{v.translationIndo}</span>
+                          </div>
                         ))}
                       </div>
 
                       {/* Column 2 */}
                       <div className="terjemah-col">
                         {col2Verses.map((v) => (
-                          <p key={`col2-${v.verseKey}`} className="terjemah-verse-para">
-                            <strong className="terjemah-verse-bold">{v.verseNumber}.</strong> {v.translationIndo}
-                          </p>
+                          <div key={v.verseKey} className="terjemah-verse-entry">
+                            <span className="t-ayah-num">({v.verseNumber})</span>
+                            <span className="t-ayah-text">{v.translationIndo}</span>
+                          </div>
                         ))}
                       </div>
 
                       {/* Column 3 */}
                       <div className="terjemah-col">
                         {col3Verses.map((v) => (
-                          <p key={`col3-${v.verseKey}`} className="terjemah-verse-para">
-                            <strong className="terjemah-verse-bold">{v.verseNumber}.</strong> {v.translationIndo}
-                          </p>
+                          <div key={v.verseKey} className="terjemah-verse-entry">
+                            <span className="t-ayah-num">({v.verseNumber})</span>
+                            <span className="t-ayah-text">{v.translationIndo}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
 
-                    {/* Footnotes / Catatan Kaki */}
+                    {/* Footnotes box */}
                     {pageMeta.footnotes && pageMeta.footnotes.length > 0 && (
-                      <div className="terjemah-footnotes">
+                      <div className="terjemah-footnotes-box">
                         {pageMeta.footnotes.map((fn, idx) => (
-                          <span key={idx} className="footnote-item">{fn}</span>
+                          <p key={idx} className="footnote-item">{fn}</p>
                         ))}
                       </div>
                     )}
 
-                    {/* Bottom Watermark Bar */}
-                    <div className="sheet-bottom-watermark-bar">
-                      <div className="watermark-badge-left">
-                        <span className="page-box">{cordobaPage}</span>
-                        <span className="brand-name">AL-HUFAZ CORDOBA</span>
-                      </div>
-                      <div className="watermark-center">
-                        <span>Metode 5 Jam 1 Halaman • Penerbit Cordoba</span>
-                      </div>
-                      <div className="watermark-right">
-                        <span>Expedient Generation 43 Digital Replica</span>
+                    {/* Sheet Bottom Branding */}
+                    <div className="sheet-bottom-branding">
+                      <div className="cordoba-brand-badge">
+                        <span className="badge-page-num">{cordobaPage}</span>
+                        <span className="badge-brand-title">AL-HUFAZ CORDOBA</span>
                       </div>
                     </div>
                   </div>
@@ -1137,100 +1331,118 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                 {cordobaSubView === "poster" && (
                   <div className="poster-right-sidebar">
                     <div className="poster-arrows-stack">
-                      <div className="poster-arrow-block arrow-kuning">
-                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
-                        <span className="arrow-block-tag">BLOK KUNING DIBACA 1 JAM</span>
+                      <div className="poster-arrow-card arrow-kuning">
+                        <div className="arrow-badge-box">
+                          <i className="fa-solid fa-arrow-left-long"></i>
+                        </div>
+                        <div className="arrow-text-box">
+                          <strong>BLOK KUNING</strong>
+                          <span>DIBACA 1 JAM</span>
+                        </div>
                       </div>
 
-                      <div className="poster-arrow-block arrow-hijau">
-                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
-                        <span className="arrow-block-tag">BLOK HIJAU DIBACA 1 JAM</span>
+                      <div className="poster-arrow-card arrow-hijau">
+                        <div className="arrow-badge-box">
+                          <i className="fa-solid fa-arrow-left-long"></i>
+                        </div>
+                        <div className="arrow-text-box">
+                          <strong>BLOK HIJAU</strong>
+                          <span>DIBACA 1 JAM</span>
+                        </div>
                       </div>
 
-                      <div className="poster-arrow-block arrow-biru">
-                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
-                        <span className="arrow-block-tag">BLOK BIRU DIBACA 1 JAM</span>
+                      <div className="poster-arrow-card arrow-biru">
+                        <div className="arrow-badge-box">
+                          <i className="fa-solid fa-arrow-left-long"></i>
+                        </div>
+                        <div className="arrow-text-box">
+                          <strong>BLOK BIRU</strong>
+                          <span>DIBACA 1 JAM</span>
+                        </div>
                       </div>
 
-                      <div className="poster-arrow-block arrow-pink">
-                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
-                        <span className="arrow-block-tag">BLOK PINK DIBACA 1 JAM</span>
+                      <div className="poster-arrow-card arrow-pink">
+                        <div className="arrow-badge-box">
+                          <i className="fa-solid fa-arrow-left-long"></i>
+                        </div>
+                        <div className="arrow-text-box">
+                          <strong>BLOK PINK</strong>
+                          <span>DIBACA 1 JAM</span>
+                        </div>
                       </div>
 
-                      <div className="poster-arrow-block arrow-krem">
-                        <i className="fa-solid fa-arrow-left-long arrow-icon"></i>
-                        <span className="arrow-block-tag">BLOK KREM DIBACA 1 JAM</span>
+                      <div className="poster-arrow-card arrow-krem">
+                        <div className="arrow-badge-box">
+                          <i className="fa-solid fa-arrow-left-long"></i>
+                        </div>
+                        <div className="arrow-text-box">
+                          <strong>BLOK KREM</strong>
+                          <span>DIBACA 1 JAM</span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="poster-orange-guide-card">
-                      <div className="guide-card-point">
-                        <i className="fa-solid fa-circle-check"></i>
+                    <div className="poster-guide-explainer">
+                      <div className="explainer-bullet">
+                        <i className="fa-solid fa-stopwatch"></i>
                         <p>
-                          <strong>Membaca ulang</strong> ayat-ayat yang di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>40 Menit</strong>.
+                          <strong>Membaca Ulang:</strong> Ayat-ayat yang ada di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>40 Menit</strong>.
                         </p>
                       </div>
-
-                      <div className="guide-card-point">
-                        <i className="fa-solid fa-circle-check"></i>
+                      <div className="explainer-bullet">
+                        <i className="fa-solid fa-eye-slash"></i>
                         <p>
-                          <strong>Menghafal (dengan TUTUP-BUKA)</strong> ayat-ayat yang di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>20 Menit</strong>.
+                          <strong>Menghafal (dengan TUTUP-BUKA):</strong> Ayat-ayat yang di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>20 Menit</strong>.
                         </p>
+                      </div>
+                    </div>
+
+                    <div className="poster-bottom-callouts">
+                      <div className="poster-callout-pill pill-murajaah">
+                        <span className="callout-pill-title">Tabel Muraja'ah</span>
+                        <span className="callout-pill-desc">Tabel Muraja'ah 5x sehari dalam 1 pekan</span>
+                        <i className="fa-solid fa-arrow-left-long callout-arrow-left"></i>
+                      </div>
+
+                      <div className="poster-callout-pill pill-terjemah">
+                        <span className="callout-pill-title">Terjemah</span>
+                        <span className="callout-pill-desc">Terjemah Kementerian Agama RI</span>
+                        <i className="fa-solid fa-arrow-left-long callout-arrow-left"></i>
                       </div>
                     </div>
                   </div>
                 )}
               </div>
-
-              {/* If in Poster Mode: Show Bottom Callouts */}
-              {cordobaSubView === "poster" && (
-                <div className="poster-bottom-callouts-bar">
-                  <div className="poster-callout-pill pill-murajaah">
-                    <i className="fa-solid fa-arrow-up-long callout-arrow-up"></i>
-                    <span className="callout-pill-title">Tabel Muraja'ah</span>
-                    <span className="callout-pill-desc">Tabel Muraja'ah 5 x sehari dalam 1 pekan</span>
-                  </div>
-
-                  <div className="poster-callout-pill pill-terjemah">
-                    <i className="fa-solid fa-arrow-up-long callout-arrow-up"></i>
-                    <span className="callout-pill-title">Terjemah</span>
-                    <span className="callout-pill-desc">Terjemah Kementerian Agama RI</span>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {/* LIGHTBOX MODAL: LIHAT FOTO BROSUR ASLI */}
+          {/* LIGHTBOX MODAL: LIHAT FOTO ASLI BROSUR */}
           {showOriginalModal && (
-            <div className="photo-lightbox-backdrop" onClick={() => setShowOriginalModal(false)}>
-              <div className="photo-lightbox-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="lightbox-modal-header">
-                  <div className="lightbox-modal-title">
+            <div className="original-photo-modal-overlay" onClick={() => setShowOriginalModal(false)}>
+              <div className="original-photo-modal-card" onClick={(e) => e.stopPropagation()}>
+                <div className="original-modal-header">
+                  <div className="header-title-group">
                     <i className="fa-solid fa-image"></i>
-                    <span>Foto Brosur Asli Mushaf Al-Hufaz Cordoba</span>
+                    <h3>Foto Brosur Cetak Asli Mushaf Al-Hufaz Cordoba</h3>
                   </div>
                   <button
                     type="button"
-                    className="lightbox-close-btn"
+                    className="modal-close-btn"
                     onClick={() => setShowOriginalModal(false)}
+                    title="Tutup Popup"
                   >
                     <i className="fa-solid fa-xmark"></i>
                   </button>
                 </div>
-
-                <div className="lightbox-modal-body">
+                <div className="original-modal-body">
                   <img
                     src="/images/quran/mushaf-alhufaz-cordoba-asli.png"
-                    alt="Diagram Mushaf Al-Hufaz Cordoba Asli"
-                    className="lightbox-img"
+                    alt="Foto Asli Mushaf Al-Hufaz Cordoba"
+                    className="original-brochure-img"
                   />
                 </div>
-
-                <div className="lightbox-modal-footer">
-                  <p>
-                    Diagram Resmi Mushaf Al-Qur'an Al-Hufaz (Penerbit Cordoba) - Metode 5 Jam Hafal 1 Halaman.
-                  </p>
+                <div className="original-modal-footer">
+                  <p>Arsip Referensi Autentik Brosur Promosi & Panduan Mushaf Tahfiz Cordoba 5 Jam 1 Halaman.</p>
                   <button
                     type="button"
                     className="lightbox-action-btn"
@@ -1249,285 +1461,457 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
       {/* VIEW 2: DAFTAR 114 SURAH & TILAWAH STANDAR                                */}
       {/* ========================================================================= */}
       {mainDisplayMode === "surahList" && (
-        <div className="quran-catalog-view">
-          {/* Hero Header */}
-          <div className="quran-hero-banner">
-            <div className="quran-hero-badge">
-              <i className="fa-solid fa-quran"></i>
-              <span>Mushaf Digital Kemenag RI</span>
+        <>
+          {/* Loading Indicator when opening a Surah */}
+          {loadingSurah && (
+            <div className="quran-loading-overlay">
+              <div className="quran-loading-card">
+                <i className="fa-solid fa-circle-notch fa-spin"></i>
+                <span className="loading-title">Membuka Surah Al-Qur'an...</span>
+                <span className="loading-desc">Memuat ayat, transliterasi Latin, dan murottal resmi</span>
+              </div>
             </div>
-            <h1 className="quran-hero-title">
-              Al-Qur'an <span className="gold-text">Al-Karim</span>
-            </h1>
-            <p className="quran-hero-desc">
-              Katalog 114 Surah lengkap dengan audio murottal 6 Qari, transliterasi Latin, dan terjemahan resmi Kemenag RI.
-            </p>
+          )}
 
-            {/* Quick Actions Header: Bookmarks & Last Read */}
-            <div className="quran-quick-bar">
-              {lastRead && (
-                <button
-                  type="button"
-                  className="last-read-pill"
-                  onClick={() => openSurah(lastRead.surahNumber, lastRead.ayahNumber)}
-                >
-                  <div className="last-read-icon">
-                    <i className="fa-solid fa-bookmark"></i>
-                  </div>
-                  <div className="last-read-info">
-                    <span className="last-read-label">Terakhir Dibaca</span>
-                    <span className="last-read-target">
-                      Surah {lastRead.surahName} : Ayat {lastRead.ayahNumber}
-                    </span>
-                  </div>
-                  <i className="fa-solid fa-arrow-right last-read-arrow"></i>
-                </button>
-              )}
+          {/* SURAH CATALOG (DISPLAYED ONLY WHEN NO SURAH IS SELECTED) */}
+          {!selectedSurah ? (
+            <div className="quran-catalog-view">
+              {/* Hero Header */}
+              <div className="quran-hero-banner">
+                <div className="quran-hero-badge">
+                  <i className="fa-solid fa-quran"></i>
+                  <span>Mushaf Digital Kemenag RI</span>
+                </div>
+                <h1 className="quran-hero-title">
+                  Al-Qur'an <span className="gold-text">Al-Karim</span>
+                </h1>
+                <p className="quran-hero-desc">
+                  Katalog 114 Surah lengkap dengan audio murottal 6 Qari, transliterasi Latin, dan terjemahan resmi Kemenag RI.
+                </p>
 
-              <button
-                type="button"
-                className="quran-action-btn"
-                onClick={() => {
-                  triggerHaptic(10);
-                  setShowBookmarksModal(true);
-                }}
-              >
-                <i className="fa-solid fa-star"></i>
-                <span>Bookmark Saya ({bookmarks.length})</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Controls Deck: Tabs, Search, & Filters */}
-          <div className="quran-control-deck">
-            {/* Segmented Switcher Tab */}
-            <div className="quran-tabs-container">
-              <button
-                type="button"
-                className={`quran-tab-btn ${activeTab === "surah" ? "active" : ""}`}
-                onClick={() => {
-                  setActiveTab("surah");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-book-open"></i>
-                <span>Daftar Surah (114)</span>
-              </button>
-              <button
-                type="button"
-                className={`quran-tab-btn ${activeTab === "juz" ? "active" : ""}`}
-                onClick={() => {
-                  setActiveTab("juz");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-layer-group"></i>
-                <span>30 Juz</span>
-              </button>
-            </div>
-
-            {/* Search & Filter Bar */}
-            {activeTab === "surah" && (
-              <div className="quran-filter-bar">
-                <div className="quran-search-wrapper">
-                  <i className="fa-solid fa-magnifying-glass search-icon"></i>
-                  <input
-                    type="text"
-                    className="quran-search-input"
-                    placeholder="Cari nama surah, arti, atau nomor (misal: Yasin, Kahf, 36)..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  {searchQuery && (
+                {/* Quick Actions Header: Bookmarks & Last Read */}
+                <div className="quran-quick-bar">
+                  {lastRead && (
                     <button
                       type="button"
-                      className="search-clear-btn"
-                      onClick={() => setSearchQuery("")}
+                      className="last-read-pill"
+                      onClick={() => openSurah(lastRead.surahNumber, lastRead.ayahNumber)}
                     >
-                      <i className="fa-solid fa-xmark"></i>
+                      <div className="last-read-icon">
+                        <i className="fa-solid fa-bookmark"></i>
+                      </div>
+                      <div className="last-read-info">
+                        <span className="last-read-label">Terakhir Dibaca</span>
+                        <span className="last-read-target">
+                          Surah {lastRead.surahName} : Ayat {lastRead.ayahNumber}
+                        </span>
+                      </div>
+                      <i className="fa-solid fa-arrow-right last-read-arrow"></i>
                     </button>
                   )}
-                </div>
 
-                <div className="quran-chips-group">
                   <button
                     type="button"
-                    className={`filter-chip ${revelationFilter === "all" ? "active" : ""}`}
+                    className="quran-action-btn"
                     onClick={() => {
-                      setRevelationFilter("all");
-                      triggerHaptic(8);
+                      triggerHaptic(10);
+                      setShowBookmarksModal(true);
                     }}
                   >
-                    Semua ({QURAN_SURAHS.length})
-                  </button>
-                  <button
-                    type="button"
-                    className={`filter-chip chip-mekah ${revelationFilter === "Mekah" ? "active" : ""}`}
-                    onClick={() => {
-                      setRevelationFilter("Mekah");
-                      triggerHaptic(8);
-                    }}
-                  >
-                    <i className="fa-solid fa-kaaba"></i> Makkiyyah (86)
-                  </button>
-                  <button
-                    type="button"
-                    className={`filter-chip chip-madinah ${revelationFilter === "Madinah" ? "active" : ""}`}
-                    onClick={() => {
-                      setRevelationFilter("Madinah");
-                      triggerHaptic(8);
-                    }}
-                  >
-                    <i className="fa-solid fa-mosque"></i> Madaniyyah (28)
+                    <i className="fa-solid fa-star"></i>
+                    <span>Bookmark Saya ({bookmarks.length})</span>
                   </button>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* SURAH GRID LISTING */}
-          {activeTab === "surah" && (
-            <div className="quran-surah-grid">
-              {filteredSurahs.map((surah) => (
-                <div
-                  key={surah.nomor}
-                  className="surah-card"
-                  onClick={() => openSurah(surah.nomor)}
-                >
-                  <div className="surah-card-header">
-                    <div className="surah-number-badge">
-                      <span className="surah-num">{surah.nomor}</span>
-                    </div>
-                    <div className="surah-arabic-title">{surah.nama}</div>
-                  </div>
-
-                  <div className="surah-card-body">
-                    <h3 className="surah-latin-name">{surah.namaLatin}</h3>
-                    <p className="surah-meaning">{surah.arti}</p>
-                  </div>
-
-                  <div className="surah-card-footer">
-                    <span className={`revelation-tag ${surah.tempatTurun.toLowerCase()}`}>
-                      {surah.tempatTurun === "Mekah" ? "Makkiyyah" : "Madaniyyah"}
-                    </span>
-                    <span className="verses-count">
-                      <i className="fa-solid fa-lines-leaning"></i> {surah.jumlahAyat} Ayat
-                    </span>
-                  </div>
+              {/* Controls Deck: Tabs, Search, & Filters */}
+              <div className="quran-control-deck">
+                {/* Segmented Switcher Tab */}
+                <div className="quran-tabs-container">
+                  <button
+                    type="button"
+                    className={`quran-tab-btn ${activeTab === "surah" ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveTab("surah");
+                      triggerHaptic(10);
+                    }}
+                  >
+                    <i className="fa-solid fa-book-open"></i>
+                    <span>Daftar Surah (114)</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`quran-tab-btn ${activeTab === "juz" ? "active" : ""}`}
+                    onClick={() => {
+                      setActiveTab("juz");
+                      triggerHaptic(10);
+                    }}
+                  >
+                    <i className="fa-solid fa-layer-group"></i>
+                    <span>30 Juz</span>
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {/* 30 JUZ GRID LISTING */}
-          {activeTab === "juz" && (
-            <div className="quran-juz-grid">
-              {JUZ_LIST.map((juz) => (
-                <div
-                  key={juz.juz}
-                  className="juz-card"
-                  onClick={() => handleJumpJuz(juz.juz)}
-                >
-                  <div className="juz-card-top">
-                    <div className="juz-badge">
-                      <span>Juz {juz.juz}</span>
+                {/* Search & Filter Bar */}
+                {activeTab === "surah" && (
+                  <div className="quran-filter-bar">
+                    <div className="quran-search-wrapper">
+                      <i className="fa-solid fa-magnifying-glass search-icon"></i>
+                      <input
+                        type="text"
+                        className="quran-search-input"
+                        placeholder="Cari nama surah, arti, atau nomor (misal: Yasin, Kahf, 36)..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          className="search-clear-btn"
+                          onClick={() => setSearchQuery("")}
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      )}
                     </div>
-                    <div className="juz-icon">
-                      <i className="fa-solid fa-book-quran"></i>
+
+                    <div className="quran-chips-group">
+                      <button
+                        type="button"
+                        className={`filter-chip ${revelationFilter === "all" ? "active" : ""}`}
+                        onClick={() => {
+                          setRevelationFilter("all");
+                          triggerHaptic(8);
+                        }}
+                      >
+                        Semua ({QURAN_SURAHS.length})
+                      </button>
+                      <button
+                        type="button"
+                        className={`filter-chip chip-mekah ${revelationFilter === "Mekah" ? "active" : ""}`}
+                        onClick={() => {
+                          setRevelationFilter("Mekah");
+                          triggerHaptic(8);
+                        }}
+                      >
+                        <i className="fa-solid fa-kaaba"></i> Makkiyyah (86)
+                      </button>
+                      <button
+                        type="button"
+                        className={`filter-chip chip-madinah ${revelationFilter === "Madinah" ? "active" : ""}`}
+                        onClick={() => {
+                          setRevelationFilter("Madinah");
+                          triggerHaptic(8);
+                        }}
+                      >
+                        <i className="fa-solid fa-mosque"></i> Madaniyyah (28)
+                      </button>
                     </div>
                   </div>
+                )}
+              </div>
 
-                  <h3 className="juz-title">Juz {juz.juz}</h3>
-                  <p className="juz-range">{juz.name}</p>
-
-                  <div className="juz-card-action">
-                    <span>Buka di Mushaf Al-Hufaz</span>
-                    <i className="fa-solid fa-circle-play"></i>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* SURAH READER VIEW (IF OPENED FROM SURAH LIST) */}
-      {selectedSurah && (
-        <div className="quran-reader-view">
-          <div className="reader-top-bar">
-            <button
-              type="button"
-              className="back-btn"
-              onClick={closeSurahReader}
-              title="Kembali ke Daftar Surah"
-            >
-              <i className="fa-solid fa-arrow-left"></i>
-              <span className="back-text">Kembali</span>
-            </button>
-
-            <div className="reader-center-info">
-              <span className="reader-surah-name">{selectedSurah.namaLatin}</span>
-              <span className="reader-surah-meta">
-                {selectedSurah.nama} • {selectedSurah.jumlahAyat} Ayat
-              </span>
-            </div>
-
-            <button
-              type="button"
-              className="nav-surah-btn cordoba-jump-btn"
-              onClick={() => {
-                const page = SURAH_START_PAGES[selectedSurah.nomor] || 1;
-                setCordobaPage(page);
-                setMainDisplayMode("cordoba");
-              }}
-              title="Buka di Mushaf 5 Blok Al-Hufaz"
-            >
-              <i className="fa-solid fa-book-quran"></i>
-              <span>Mode Al-Hufaz</span>
-            </button>
-          </div>
-
-          {/* Verses Container */}
-          <div className={`verses-container font-${fontSize}`}>
-            {selectedSurah.ayat.map((ayah) => (
-              <div
-                key={ayah.nomorAyat}
-                id={`ayah-${ayah.nomorAyat}`}
-                className="ayah-card"
-              >
-                <div className="ayah-header">
-                  <div className="ayah-number-badge">
-                    <span>{selectedSurah.nomor}:{ayah.nomorAyat}</span>
-                  </div>
-                  <div className="ayah-action-buttons">
-                    <button
-                      type="button"
-                      className={`ayah-action-btn ${currentPlayingAyah === ayah.nomorAyat && isPlaying ? "playing-btn" : ""}`}
-                      onClick={() => playVerseAudio(ayah.audio[selectedQari], ayah.nomorAyat, selectedSurah.nomor)}
-                      title="Dengar Murottal"
+              {/* SURAH GRID LISTING */}
+              {activeTab === "surah" && (
+                <div className="quran-surah-grid">
+                  {filteredSurahs.map((surah) => (
+                    <div
+                      key={surah.nomor}
+                      className="surah-card"
+                      onClick={() => openSurah(surah.nomor)}
                     >
-                      <i className={`fa-solid ${currentPlayingAyah === ayah.nomorAyat && isPlaying ? "fa-pause" : "fa-play"}`}></i>
-                    </button>
+                      <div className="surah-card-header">
+                        <div className="surah-number-badge">
+                          <span className="surah-num">{surah.nomor}</span>
+                        </div>
+                        <div className="surah-arabic-title">{surah.nama}</div>
+                      </div>
+
+                      <div className="surah-card-body">
+                        <h3 className="surah-latin-name">{surah.namaLatin}</h3>
+                        <p className="surah-meaning">{surah.arti}</p>
+                      </div>
+
+                      <div className="surah-card-footer">
+                        <span className={`revelation-tag ${surah.tempatTurun.toLowerCase()}`}>
+                          {surah.tempatTurun === "Mekah" ? "Makkiyyah" : "Madaniyyah"}
+                        </span>
+                        <span className="verses-count">
+                          <i className="fa-solid fa-lines-leaning"></i> {surah.jumlahAyat} Ayat
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 30 JUZ GRID LISTING */}
+              {activeTab === "juz" && (
+                <div className="quran-juz-grid">
+                  {JUZ_LIST.map((juz) => (
+                    <div
+                      key={juz.juz}
+                      className="juz-card"
+                      onClick={() => handleJumpJuz(juz.juz)}
+                    >
+                      <div className="juz-card-top">
+                        <div className="juz-badge">
+                          <span>Juz {juz.juz}</span>
+                        </div>
+                        <div className="juz-icon">
+                          <i className="fa-solid fa-book-quran"></i>
+                        </div>
+                      </div>
+
+                      <h3 className="juz-title">Juz {juz.juz}</h3>
+                      <p className="juz-range">{juz.name}</p>
+
+                      <div className="juz-card-action">
+                        <span>Buka di Mushaf Al-Hufaz</span>
+                        <i className="fa-solid fa-circle-play"></i>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* SURAH READER VIEW (DISPLAYED DIRECTLY AT THE TOP WHEN A SURAH IS CLICKED) */
+            <div className="quran-reader-view">
+              {/* Sticky Top Reader Bar */}
+              <div className="reader-top-bar">
+                <button
+                  type="button"
+                  className="back-btn"
+                  onClick={closeSurahReader}
+                  title="Kembali ke Daftar Surah"
+                >
+                  <i className="fa-solid fa-arrow-left"></i>
+                  <span className="back-text">Kembali ke Daftar</span>
+                </button>
+
+                <div className="reader-center-info">
+                  <span className="reader-surah-name">{selectedSurah.namaLatin}</span>
+                  <span className="reader-surah-meta">
+                    {selectedSurah.nama} • {selectedSurah.jumlahAyat} Ayat • {selectedSurah.tempatTurun}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className="nav-surah-btn cordoba-jump-btn"
+                  onClick={() => {
+                    const page = SURAH_START_PAGES[selectedSurah.nomor] || 1;
+                    setCordobaPage(page);
+                    setMainDisplayMode("cordoba");
+                  }}
+                  title="Buka di Mushaf 5 Blok Al-Hufaz"
+                >
+                  <i className="fa-solid fa-book-quran"></i>
+                  <span>Buka di Al-Hufaz</span>
+                </button>
+              </div>
+
+              {/* Surah Ornate Header Banner */}
+              <div className="surah-ornate-banner">
+                <span className="banner-surah-number">SURAH KE-{selectedSurah.nomor}</span>
+                <h1 className="banner-arabic-name">{selectedSurah.nama}</h1>
+                <h2 className="banner-latin-name">{selectedSurah.namaLatin}</h2>
+                <p className="banner-meaning">"{selectedSurah.arti}" • {selectedSurah.jumlahAyat} Ayat • {selectedSurah.tempatTurun}</p>
+
+                {/* Bismillah Banner (except Surah 9 At-Taubah & Surah 1 Al-Fatihah where Bismillah is ayah 1) */}
+                {selectedSurah.nomor !== 9 && selectedSurah.nomor !== 1 && (
+                  <div className="bismillah-ornament">
+                    <span className="bismillah-text">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Reader Settings & Audio Bar */}
+              <div className="reader-settings-bar">
+                <div className="setting-group">
+                  <span className="setting-label">Ukuran Font:</span>
+                  <div className="btn-group-pill">
+                    {(["sm", "md", "lg", "xl"] as const).map((sz) => (
+                      <button
+                        key={sz}
+                        type="button"
+                        className={`size-btn ${fontSize === sz ? "active" : ""}`}
+                        onClick={() => {
+                          setFontSize(sz);
+                          try {
+                            localStorage.setItem("expedient_quran_font_size", sz);
+                          } catch {}
+                        }}
+                      >
+                        {sz.toUpperCase()}
+                      </button>
+                    ))}
                   </div>
                 </div>
-                <div className="ayah-arabic-wrapper">
-                  <p className="ayah-arabic-text" dir="rtl">
-                    {ayah.teksArab}
-                    <span className="ayah-end-symbol">
-                      ۝<span className="ayah-end-num">{ayah.nomorAyat}</span>
-                    </span>
-                  </p>
+
+                <div className="setting-group">
+                  <button
+                    type="button"
+                    className={`toggle-pill ${showLatin ? "active" : ""}`}
+                    onClick={() => setShowLatin(!showLatin)}
+                  >
+                    <i className="fa-solid fa-font"></i> Latin
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`toggle-pill ${showTranslation ? "active" : ""}`}
+                    onClick={() => setShowTranslation(!showTranslation)}
+                  >
+                    <i className="fa-solid fa-language"></i> Arti
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`toggle-pill ${autoPlayNext ? "active" : ""}`}
+                    onClick={() => {
+                      const next = !autoPlayNext;
+                      setAutoPlayNext(next);
+                      showToast(next ? "Otomatis lanjut ayat berikutnya (ON)" : "Otomatis lanjut (OFF)");
+                    }}
+                    title="Putar otomatis ayat selanjutnya saat ayat saat ini selesai"
+                  >
+                    <i className="fa-solid fa-forward-step"></i> Auto-Next
+                  </button>
                 </div>
-                <div className="ayah-translation-wrapper">
-                  <p className="ayah-translation-text">{ayah.teksIndonesia}</p>
+
+                <div className="setting-group">
+                  <select
+                    className="qari-select"
+                    value={selectedQari}
+                    onChange={(e) => {
+                      setSelectedQari(e.target.value);
+                      try {
+                        localStorage.setItem("expedient_quran_qari", e.target.value);
+                      } catch {}
+                    }}
+                  >
+                    {QARI_LIST.map((q) => (
+                      <option key={q.id} value={q.id}>
+                        {q.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+
+              {/* Verses List */}
+              <div className={`verses-container font-${fontSize}`}>
+                {selectedSurah.ayat.map((ayah) => {
+                  const isCurrentPlaying = currentPlayingAyah === ayah.nomorAyat;
+                  const isBookmarked = bookmarks.some(
+                    (b) => b.surahNumber === selectedSurah.nomor && b.ayahNumber === ayah.nomorAyat
+                  );
+
+                  return (
+                    <div
+                      key={ayah.nomorAyat}
+                      id={`ayah-${ayah.nomorAyat}`}
+                      className={`ayah-card ${isCurrentPlaying ? "active-playing" : ""}`}
+                    >
+                      <div className="ayah-header">
+                        <div className="ayah-number-badge">
+                          <span>{selectedSurah.nomor}:{ayah.nomorAyat}</span>
+                        </div>
+                        <div className="ayah-action-buttons">
+                          <button
+                            type="button"
+                            className={`ayah-action-btn ${isCurrentPlaying && isPlaying ? "playing-btn" : ""}`}
+                            onClick={() => playTilawahAyah(ayah.nomorAyat)}
+                            title="Dengar Murottal (Lanjut terus ke ayat berikutnya)"
+                          >
+                            <i className={`fa-solid ${isCurrentPlaying && isPlaying ? "fa-pause" : "fa-play"}`}></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            className={`ayah-action-btn ${isBookmarked ? "bookmarked-btn" : ""}`}
+                            onClick={() => toggleBookmark(ayah)}
+                            title={isBookmarked ? "Hapus dari Bookmark" : "Simpan Bookmark"}
+                          >
+                            <i className={`fa-${isBookmarked ? "solid" : "regular"} fa-star`}></i>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="ayah-action-btn tafsir-btn"
+                            onClick={() => openTafsirModal(ayah.nomorAyat)}
+                            title="Baca Tafsir Ayat"
+                          >
+                            <i className="fa-solid fa-book-open-reader"></i>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="ayah-arabic-wrapper">
+                        <p className="ayah-arabic-text" dir="rtl">
+                          {ayah.teksArab}
+                          <span className="ayah-end-symbol">
+                            ۝<span className="ayah-end-num">{toArabicNumerals(ayah.nomorAyat)}</span>
+                          </span>
+                        </p>
+                      </div>
+
+                      {showLatin && ayah.teksLatin && (
+                        <div className="ayah-latin-wrapper">
+                          <p className="ayah-latin-text">{ayah.teksLatin}</p>
+                        </div>
+                      )}
+
+                      {showTranslation && (
+                        <div className="ayah-translation-wrapper">
+                          <p className="ayah-translation-text">{ayah.teksIndonesia}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Reader Footer Navigation */}
+              <div className="reader-footer-nav">
+                {selectedSurah.suratSebelumnya ? (
+                  <button
+                    type="button"
+                    className="footer-nav-btn prev"
+                    onClick={() => openSurah(selectedSurah.suratSebelumnya ? selectedSurah.suratSebelumnya.nomor : 1)}
+                  >
+                    <i className="fa-solid fa-arrow-left"></i>
+                    <div>
+                      <span className="footer-nav-subtitle">Surah Sebelumnya</span>
+                      <span className="footer-nav-title">{selectedSurah.suratSebelumnya.namaLatin}</span>
+                    </div>
+                  </button>
+                ) : <div />}
+
+                {selectedSurah.suratSelanjutnya && (
+                  <button
+                    type="button"
+                    className="footer-nav-btn next"
+                    onClick={() => openSurah(selectedSurah.suratSelanjutnya ? selectedSurah.suratSelanjutnya.nomor : 114)}
+                  >
+                    <div>
+                      <span className="footer-nav-subtitle">Surah Selanjutnya</span>
+                      <span className="footer-nav-title">{selectedSurah.suratSelanjutnya.namaLatin}</span>
+                    </div>
+                    <i className="fa-solid fa-arrow-right"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* STICKY FLOATING AUDIO PLAYER BAR (FOR BOTH CORDOBA & TILAWAH) */}
+      {/* ========================================================================= */}
+      {/* GLOBAL STICKY FLOATING AUDIO PLAYER BAR                                   */}
+      {/* ========================================================================= */}
       {currentPlayingAyah !== null && (
         <div className="quran-floating-audio-bar">
           <div className="audio-bar-content">
@@ -1539,7 +1923,16 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
               </div>
               <div className="audio-text-info">
                 <span className="audio-surah-title">
-                  {selectedSurah ? `${selectedSurah.namaLatin} : Ayat ${currentPlayingAyah}` : `Ayat ${currentPlayingAyah}`}
+                  {audioQueue.length > 0 && audioQueue[queueIndex]?.label
+                    ? audioQueue[queueIndex].label
+                    : selectedSurah
+                    ? `${selectedSurah.namaLatin} : Ayat ${currentPlayingAyah}`
+                    : `Ayat ${currentPlayingAyah}`}
+                  {audioQueue.length > 1 && (
+                    <span className="audio-track-counter">
+                      {" "}[${queueIndex + 1}/${audioQueue.length}]
+                    </span>
+                  )}
                 </span>
                 <span className="audio-qari-name">
                   {QARI_LIST.find((q) => q.id === selectedQari)?.name || "Misyari Rasyid Al-Afasi"}
@@ -1548,9 +1941,21 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
             </div>
 
             <div className="audio-controls-group">
+              {audioQueue.length > 1 && (
+                <button
+                  type="button"
+                  className="audio-btn prev-btn"
+                  onClick={() => queueIndex > 0 && playQueueItemAtIndex(queueIndex - 1)}
+                  disabled={queueIndex <= 0}
+                  title="Ayat Sebelumnya"
+                >
+                  <i className="fa-solid fa-backward-step"></i>
+                </button>
+              )}
+
               <button
                 type="button"
-                className="audio-play-pause-btn"
+                className="audio-btn play-main-btn"
                 onClick={() => {
                   if (audioRef.current) {
                     if (isPlaying) {
@@ -1566,14 +1971,160 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
               >
                 <i className={`fa-solid ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
               </button>
+
+              {audioQueue.length > 1 && (
+                <button
+                  type="button"
+                  className="audio-btn next-btn"
+                  onClick={() => queueIndex + 1 < audioQueue.length && playQueueItemAtIndex(queueIndex + 1)}
+                  disabled={queueIndex + 1 >= audioQueue.length}
+                  title="Ayat Berikutnya"
+                >
+                  <i className="fa-solid fa-forward-step"></i>
+                </button>
+              )}
+
               <button
                 type="button"
-                className="audio-stop-btn"
+                className={`audio-btn loop-btn ${isLoopingQueue ? "active-loop" : ""}`}
+                onClick={() => {
+                  const next = !isLoopingQueue;
+                  isLoopingRef.current = next;
+                  setIsLoopingQueue(next);
+                  showToast(next ? "🔁 Loop Murottal Aktif (Akan mengulang terus)" : "➡️ Loop Murottal Nonaktif");
+                }}
+                title={isLoopingQueue ? "Ulangi Terus (Aktif)" : "Ulangi Terus (Nonaktif)"}
+              >
+                <i className="fa-solid fa-repeat"></i>
+              </button>
+
+              <button
+                type="button"
+                className="audio-btn close-audio-btn"
                 onClick={stopAudio}
                 title="Hentikan Audio"
               >
-                <i className="fa-solid fa-stop"></i>
+                <i className="fa-solid fa-xmark"></i>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAFSIR MODAL */}
+      {showTafsirModal && (
+        <div className="quran-modal-overlay" onClick={() => setShowTafsirModal(false)}>
+          <div className="quran-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="quran-modal-header">
+              <div className="modal-title-group">
+                <i className="fa-solid fa-book-open-reader"></i>
+                <h3>Tafsir Ringkas Kemenag RI</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setShowTafsirModal(false)}
+                title="Tutup Modal"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div className="quran-modal-body">
+              {loadingTafsir ? (
+                <div className="modal-loading-state">
+                  <i className="fa-solid fa-spinner fa-spin"></i>
+                  <p>Memuat tafsir ayat...</p>
+                </div>
+              ) : (
+                <>
+                  {selectedAyahTafsir && selectedSurah && (
+                    <div className="tafsir-ayah-box">
+                      <div className="tafsir-arabic" dir="rtl">
+                        {selectedSurah.ayat.find((a) => a.nomorAyat === selectedAyahTafsir)?.teksArab}
+                      </div>
+                      <div className="tafsir-indo">
+                        "{selectedSurah.ayat.find((a) => a.nomorAyat === selectedAyahTafsir)?.teksIndonesia}"
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="tafsir-explanation">
+                    <h4>Penjelasan Tafsir Resmi:</h4>
+                    <p>
+                      {tafsirData?.tafsir?.find((t: any) => t.ayat === selectedAyahTafsir)?.teks ||
+                        "Tafsir resmi Kemenag RI untuk ayat ini sedang diproses."}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BOOKMARKS MODAL */}
+      {showBookmarksModal && (
+        <div className="quran-modal-overlay" onClick={() => setShowBookmarksModal(false)}>
+          <div className="quran-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="quran-modal-header">
+              <div className="modal-title-group">
+                <i className="fa-solid fa-star gold-icon"></i>
+                <h3>Bookmark & Ayat Favorit</h3>
+              </div>
+              <button
+                type="button"
+                className="modal-close-btn"
+                onClick={() => setShowBookmarksModal(false)}
+                title="Tutup Modal"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div className="quran-modal-body">
+              {bookmarks.length === 0 ? (
+                <div className="modal-empty-bookmarks">
+                  <i className="fa-regular fa-bookmark empty-icon"></i>
+                  <p>Belum ada ayat yang ditandai</p>
+                  <span>Ketuk ikon bintang pada ayat saat membaca untuk menyimpannya di sini.</span>
+                </div>
+              ) : (
+                <div className="bookmarks-list">
+                  {bookmarks.map((b, idx) => (
+                    <div
+                      key={idx}
+                      className="bookmark-item-card"
+                      onClick={() => {
+                        setShowBookmarksModal(false);
+                        openSurah(b.surahNumber, b.ayahNumber);
+                      }}
+                    >
+                      <div className="bookmark-item-top">
+                        <span className="bookmark-surah-tag">
+                          Surah {b.surahName} : Ayat {b.ayahNumber}
+                        </span>
+                        <button
+                          type="button"
+                          className="bookmark-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const updated = bookmarks.filter((_, i) => i !== idx);
+                            setBookmarks(updated);
+                            try {
+                              localStorage.setItem("expedient_quran_bookmarks", JSON.stringify(updated));
+                            } catch {}
+                            showToast("Bookmark dihapus");
+                          }}
+                          title="Hapus bookmark"
+                        >
+                          <i className="fa-solid fa-trash-can"></i>
+                        </button>
+                      </div>
+                      <p className="bookmark-arabic" dir="rtl">{b.teksArab}</p>
+                      <p className="bookmark-translation">{b.teksIndonesia}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
