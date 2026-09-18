@@ -91,6 +91,7 @@ export interface PageVerseItem {
   keywordArab: string;
   juzNumber: number;
   pageNumber: number;
+  tajweedHtml?: string;
 }
 
 export interface MushafWordItem {
@@ -102,7 +103,8 @@ export interface MushafWordItem {
   lineNumber: number;
   audioUrl?: string;
   blockId?: number;
-  tajweedType?: "mad" | "ghunnah" | "ikhfa" | "qalqalah";
+  tajweedType?: "mad" | "ghunnah" | "ikhfa" | "qalqalah" | "idgham";
+  tajweedHtml?: string;
 }
 
 export interface MushafLineItem {

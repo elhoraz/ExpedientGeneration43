@@ -16,8 +16,8 @@ export async function GET(
       );
     }
 
-    // Fetch verses by page from api.quran.com with Indonesian Kemenag translation and word-level line_numbers
-    const apiUrl = `https://api.quran.com/api/v4/verses/by_page/${pageNum}?language=id&words=true&word_fields=text_uthmani,location,line_number,char_type_name&translations=33&fields=text_uthmani,chapter_id,verse_number,juz_number`;
+    // Fetch verses by page from api.quran.com with Indonesian Kemenag translation, tajweed markup, and word-level line_numbers
+    const apiUrl = `https://api.quran.com/api/v4/verses/by_page/${pageNum}?language=id&words=true&word_fields=text_uthmani,text_uthmani_tajweed,location,line_number,char_type_name&translations=33&fields=text_uthmani,chapter_id,verse_number,juz_number`;
     const res = await fetch(apiUrl, {
       next: { revalidate: 86400 }, // Cache 24 jam di Next.js server
     });
@@ -50,6 +50,36 @@ export async function GET(
         .normalize("NFC");
     };
 
+    // Helper to format tajweed rule tags into semantically styled span elements (Standar Mushaf Al-Hufaz Cordoba & Kemenag)
+    const formatTajweedHtml = (
+      rawTajweed: string,
+      fallbackText: string
+    ): { html: string; tajweedType?: "mad" | "ghunnah" | "ikhfa" | "qalqalah" | "idgham" } => {
+      if (!rawTajweed || !rawTajweed.includes("<rule")) {
+        return { html: fallbackText };
+      }
+
+      let dominantType: "mad" | "ghunnah" | "ikhfa" | "qalqalah" | "idgham" | undefined;
+      if (/madda_/.test(rawTajweed)) dominantType = "mad";
+      else if (/ghunnah|idgham_ghunnah|idgham_shafawi/.test(rawTajweed)) dominantType = "ghunnah";
+      else if (/ikhafa|iqlab/.test(rawTajweed)) dominantType = "ikhfa";
+      else if (/qalaqah/.test(rawTajweed)) dominantType = "qalqalah";
+      else if (/idgham_wo_ghunnah|idgham_mutajanisayn/.test(rawTajweed)) dominantType = "idgham";
+
+      let html = rawTajweed
+        .replace(/<rule class=(?:madda_normal|madda_obligatory_mottasel|madda_obligatory_monfasel|madda_permissible|madda_necessary)>/g, '<span class="tj-mad" title="Hukum Mad (Dibaca Panjang)">')
+        .replace(/<rule class=(?:ghunnah|idgham_ghunnah|idgham_shafawi)>/g, '<span class="tj-ghunnah" title="Hukum Ghunnah (Dengung 2 Harakat)">')
+        .replace(/<rule class=(?:ikhafa|ikhafa_shafawi|iqlab)>/g, '<span class="tj-ikhfa" title="Hukum Ikhfa / Iqlab (Samar / Ditukar)">')
+        .replace(/<rule class=qalaqah>/g, '<span class="tj-qalqalah" title="Hukum Qalqalah (Memantul)">')
+        .replace(/<rule class=(?:idgham_wo_ghunnah|idgham_mutajanisayn)>/g, '<span class="tj-idgham" title="Hukum Idgham (Melebur)">')
+        .replace(/<rule class=(?:ham_wasl|slnt|laam_shamsiyah)>/g, '<span class="tj-wasl" title="Hamzah Wasl / Tidak Dibaca">')
+        .replace(/<rule class=custom-alef-maksora>/g, '<span class="tj-alef">')
+        .replace(/<rule class=[a-zA-Z0-9_-]+>/g, '<span>')
+        .replace(/<\/rule>/g, '</span>');
+
+      return { html, tajweedType: dominantType };
+    };
+
     // Process & normalize verses
     const verses = rawVerses.map((v: any) => {
       const surahNum = v.chapter_id;
@@ -68,6 +98,11 @@ export async function GET(
       let cleanTranslation = v.translations?.[0]?.text || "";
       cleanTranslation = cleanTranslation.replace(/<sup[^>]*>.*?<\/sup>/gi, "");
 
+      const verseTajweedHtml = (v.words || [])
+        .filter((w: any) => w.char_type_name === "word")
+        .map((w: any) => formatTajweedHtml(w.text_uthmani_tajweed || "", cleanKhot(w.text_uthmani || w.text || "")).html)
+        .join(" ");
+
       return {
         id: v.id,
         verseKey: v.verse_key,
@@ -79,6 +114,7 @@ export async function GET(
         translationIndo: cleanTranslation,
         audioUrl: `https://everyayah.com/data/Alafasy_128kbps/${surahStr}${ayahStr}.mp3`,
         keywordArab,
+        tajweedHtml: verseTajweedHtml,
         juzNumber: v.juz_number,
         pageNumber: v.page_number,
       };
@@ -95,9 +131,14 @@ export async function GET(
         const lineNum = w.line_number || 1;
         if (!lineMap[lineNum]) lineMap[lineNum] = [];
         const rawText = w.text_uthmani || w.text || "";
+        const rawTajweed = w.text_uthmani_tajweed || "";
+        const tajweedResult = formatTajweedHtml(rawTajweed, cleanKhot(rawText));
+
         lineMap[lineNum].push({
           id: w.id,
           text: cleanKhot(rawText),
+          tajweedHtml: tajweedResult.html,
+          tajweedType: tajweedResult.tajweedType,
           charType: w.char_type_name || "word",
           verseNumber: v.verse_number,
           surahNumber: v.chapter_id,

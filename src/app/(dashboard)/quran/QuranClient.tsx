@@ -278,7 +278,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
   // Page Partition into 5 Colors (15 Baris Autentik Medina Mushaf)
   const pageBlocks = useMemo<PageHufazBlock[]>(() => {
     const rawLines =
-      cordobaPage === 6
+      cordobaPage === 6 && (!pageData?.lines || pageData.lines.length === 0)
         ? PAGE_6_DEFAULT_LINES
         : pageData?.lines && pageData.lines.length > 0
         ? pageData.lines
@@ -292,7 +292,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
 
   // 15 Baris data untuk lembaran mushaf
   const pageLines = useMemo<MushafLineItem[]>(() => {
-    if (cordobaPage === 6) {
+    if (cordobaPage === 6 && (!pageData?.lines || pageData.lines.length === 0)) {
       return PAGE_6_DEFAULT_LINES;
     }
     if (pageData?.lines && pageData.lines.length > 0) {
@@ -323,6 +323,8 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
             return {
               ...w,
               blockId: assignedBlockId,
+              tajweedHtml: w.tajweedHtml,
+              tajweedType: w.tajweedType,
             };
           }),
         };
@@ -1467,9 +1469,16 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                                                   e.stopPropagation();
                                                   playSingleAyahAudio(w.verseNumber, w.surahNumber, segment.blockId);
                                                 }}
-                                                title={`Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
+                                                title={w.tajweedType ? `Ayat ${w.verseNumber} (${w.tajweedType.toUpperCase()}) — Klik untuk dengar audio` : `Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
                                               >
-                                                {w.text}
+                                                {w.tajweedHtml ? (
+                                                  <span
+                                                    className="mushaf-word-inner"
+                                                    dangerouslySetInnerHTML={{ __html: w.tajweedHtml }}
+                                                  />
+                                                ) : (
+                                                  w.text
+                                                )}
                                               </span>
                                             );
                                           })
@@ -1528,11 +1537,12 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                           <span className="cartouche-divider">•</span>
                           <span className="cartouche-page">Hal. {cordobaPage}</span>
                         </div>
-                        <div className="bottom-tajweed-legend" title="Pedoman Warna Tajwid Mushaf Al-Hufaz">
+                        <div className="bottom-tajweed-legend" title="Pedoman Warna Tajwid Mushaf Al-Hufaz Cordoba & Standar Kemenag">
                           <span className="tajweed-badge mad"><span className="dot dot-mad"></span> Mad</span>
                           <span className="tajweed-badge ghunnah"><span className="dot dot-ghunnah"></span> Ghunnah</span>
-                          <span className="tajweed-badge ikhfa"><span className="dot dot-ikhfa"></span> Ikhfa</span>
+                          <span className="tajweed-badge ikhfa"><span className="dot dot-ikhfa"></span> Ikhfa &amp; Iqlab</span>
                           <span className="tajweed-badge qalqalah"><span className="dot dot-qalqalah"></span> Qalqalah</span>
+                          <span className="tajweed-badge idgham"><span className="dot dot-idgham"></span> Idgham</span>
                         </div>
                       </div>
                     </div>

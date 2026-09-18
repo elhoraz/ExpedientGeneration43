@@ -903,6 +903,7 @@
 .tajweed-badge.ghunnah { color: #e11d48; }
 .tajweed-badge.ikhfa { color: #15803d; }
 .tajweed-badge.qalqalah { color: #0284c7; }
+.tajweed-badge.idgham { color: #ea580c; }
 
 .dot {
   width: 7px;
@@ -915,6 +916,7 @@
 .dot-ghunnah { background: #e11d48; }
 .dot-ikhfa { background: #15803d; }
 .dot-qalqalah { background: #0284c7; }
+.dot-idgham { background: #ea580c; }
 
 /* 4C. MARGIN KANAN: METODE, MOTIVASI & TEMA AYAT */
 .sheet-right-margin {
@@ -4487,21 +4489,68 @@
   filter: drop-shadow(0 0 6px rgba(22, 163, 74, 0.8));
 }
 
-/* Tajweed Color Rules (Sesuai Pedoman Tajwid Warna Al-Hufaz Cordoba) */
+/* ============================================================== */
+/* TAJWEED WARNA AUTENTIK (STANDAR MUSHAF AL-HUFAZ & KEMENAG RI)  */
+/* ============================================================== */
+
+/* Letter-level tajweed spans */
+.mushaf-word-inner {
+  display: inline;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  white-space: nowrap;
+}
+
+.mushaf-word-inner span {
+  display: inline;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  transition: color 0.15s ease;
+}
+
+/* 1. MAD (MERAH / RED) — Mad Thabi'i, Wajib Muttasil, Jaiz Munfasil, Lazim */
+.tj-mad,
 .tajweed-mad {
-  color: #dc2626 !important; /* Merah untuk Mad */
+  color: #dc2626 !important;
+  font-weight: 700;
 }
 
+/* 2. GHUNNAH (MERAH MUDA / MAGENTA / ROSE) — Nun & Mim Tasydid, Idgham Bighunnah */
+.tj-ghunnah,
 .tajweed-ghunnah {
-  color: #e11d48 !important; /* Merah Muda / Magenta untuk Ghunnah */
+  color: #e11d48 !important;
+  font-weight: 700;
 }
 
+/* 3. IKHFA & IQLAB (HIJAU / EMERALD GREEN) — Ikhfa Haqiqi, Ikhfa Syafawi, Iqlab */
+.tj-ikhfa,
 .tajweed-ikhfa {
-  color: #15803d !important; /* Hijau untuk Ikhfa & Iqlab */
+  color: #15803d !important;
+  font-weight: 700;
 }
 
+/* 4. QALQALAH (BIRU LANGIT / SKY BLUE) — Quthbu Jadin Sukun (Qof, Tho, Ba, Jim, Dal) */
+.tj-qalqalah,
 .tajweed-qalqalah {
-  color: #0284c7 !important; /* Biru Langit untuk Qalqalah */
+  color: #0284c7 !important;
+  font-weight: 700;
+}
+
+/* 5. IDGHAM BILA GHUNNAH & MUTAJANISAYN (ORANYE / AMBER) — Lam & Ra */
+.tj-idgham,
+.tajweed-idgham {
+  color: #ea580c !important;
+  font-weight: 700;
+}
+
+/* 6. HAMZAH WASL & HURUF TIDAK DIBACA (ABU-ABU / MUTED) */
+.tj-wasl,
+.tj-alef {
+  color: #94a3b8 !important;
+  opacity: 0.85;
 }
 
 /* Masking Uji Hafalan (Tutup 20 Menit) */
@@ -4665,26 +4714,53 @@
   box-shadow: 0 0 14px rgba(253, 224, 71, 0.95);
 }
 
-/* Tajweed Colors in Dark Mode */
+/* Tajweed Colors in Dark Mode (High-contrast pastel luminescence) */
+[data-theme="dark"] .tj-mad,
 [data-theme="dark"] .tajweed-mad {
-  color: #fb7185 !important;
-  text-shadow: 0 0 3px rgba(251, 113, 133, 0.4);
+  color: #f87171 !important;
+  text-shadow: 0 0 4px rgba(248, 113, 113, 0.4);
 }
 
+[data-theme="dark"] .tj-ghunnah,
 [data-theme="dark"] .tajweed-ghunnah {
-  color: #f472b6 !important;
-  text-shadow: 0 0 3px rgba(244, 114, 182, 0.4);
+  color: #fb7185 !important;
+  text-shadow: 0 0 4px rgba(251, 113, 133, 0.4);
 }
 
+[data-theme="dark"] .tj-ikhfa,
 [data-theme="dark"] .tajweed-ikhfa {
   color: #4ade80 !important;
-  text-shadow: 0 0 3px rgba(74, 222, 128, 0.4);
+  text-shadow: 0 0 4px rgba(74, 222, 128, 0.4);
 }
 
+[data-theme="dark"] .tj-qalqalah,
 [data-theme="dark"] .tajweed-qalqalah {
   color: #38bdf8 !important;
-  text-shadow: 0 0 3px rgba(56, 189, 248, 0.4);
+  text-shadow: 0 0 4px rgba(56, 189, 248, 0.4);
 }
+
+[data-theme="dark"] .tj-idgham,
+[data-theme="dark"] .tajweed-idgham {
+  color: #fb923c !important;
+  text-shadow: 0 0 4px rgba(251, 146, 60, 0.4);
+}
+
+[data-theme="dark"] .tj-wasl,
+[data-theme="dark"] .tj-alef {
+  color: #64748b !important;
+  opacity: 0.75;
+}
+
+[data-theme="dark"] .tajweed-badge.mad { color: #f87171; }
+[data-theme="dark"] .tajweed-badge.ghunnah { color: #fb7185; }
+[data-theme="dark"] .tajweed-badge.ikhfa { color: #4ade80; }
+[data-theme="dark"] .tajweed-badge.qalqalah { color: #38bdf8; }
+[data-theme="dark"] .tajweed-badge.idgham { color: #fb923c; }
+[data-theme="dark"] .dot-mad { background: #f87171; }
+[data-theme="dark"] .dot-ghunnah { background: #fb7185; }
+[data-theme="dark"] .dot-ikhfa { background: #4ade80; }
+[data-theme="dark"] .dot-qalqalah { background: #38bdf8; }
+[data-theme="dark"] .dot-idgham { background: #fb923c; }
 
 /* Akhir Ayat Emas */
 [data-theme="dark"] .mushaf-end-marker {
