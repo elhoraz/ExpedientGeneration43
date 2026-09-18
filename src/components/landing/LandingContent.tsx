@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import "@/app/landing.css";
@@ -8,6 +9,13 @@ import ThemeToggle from "@/components/layout/ThemeToggle";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import TiltCard from "@/components/features/TiltCard";
 import HeritageVideoPlayer from "@/components/features/HeritageVideoPlayer";
+import CelestialParticles from "@/components/landing/CelestialParticles";
+import HistoryTimeline from "@/components/landing/HistoryTimeline";
+import WisdomAsatidz from "@/components/landing/WisdomAsatidz";
+import AppMockupShowcase from "@/components/landing/AppMockupShowcase";
+import MobileDrawer from "@/components/landing/MobileDrawer";
+import ScrollToTopIndicator from "@/components/landing/ScrollToTopIndicator";
+import DailyWisdomWidget from "@/components/landing/DailyWisdomWidget";
 
 interface LandingContentProps {
   totalAlumni: number;
@@ -23,6 +31,7 @@ function getCms(contents: any[] | undefined, key: string, defaultValue: string) 
 
 export default function LandingContent({ totalAlumni, cms = [] }: LandingContentProps) {
   const { t, locale, isRTL } = useLanguage();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const currentYear = new Date().getFullYear();
 
   const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(t.cta.share_wa_text)}`;
@@ -48,9 +57,12 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </Link>
 
+        {/* Desktop Nav Links */}
         <nav className="nav-links">
+          <a href="#sejarah" className="nav-link">Sejarah 1982</a>
+          <a href="#nasehat" className="nav-link">Nasehat Asatidz</a>
           <a href="#almamater" className="nav-link">{t.nav.almamater}</a>
-          <a href="#filosofi" className="nav-link">{t.nav.philosophy}</a>
+          <a href="#aplikasi" className="nav-link">Aplikasi APK</a>
           <a href="#ekosistem" className="nav-link">{t.nav.ecosystem}</a>
           <Link href="/radar" className="nav-link nav-link-highlight">
             <i className="fa-solid fa-map-location-dot"></i> {t.nav.radar}
@@ -60,7 +72,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <div className="nav-actions">
           <LanguageSwitcher variant="pill" />
           <ThemeToggle />
-          <Link href="/login" className="nav-link" title={t.hero.cta_login}>
+          <Link href="/login" className="nav-link nav-login-link" title={t.hero.cta_login}>
             <i className="fa-solid fa-circle-user"></i>
             <span>{t.nav.login}</span>
           </Link>
@@ -68,12 +80,28 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             <i className="fa-solid fa-landmark"></i>
             <span>{t.nav.explore_museum}</span>
           </Link>
+
+          {/* Mobile Hamburger Button */}
+          <button
+            type="button"
+            className="nav-hamburger-btn"
+            onClick={() => setIsDrawerOpen(true)}
+            aria-label="Buka Menu Navigasi"
+          >
+            <i className="fa-solid fa-bars-staggered"></i>
+          </button>
         </div>
       </header>
+
+      {/* Mobile Drawer Sheet */}
+      <MobileDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
       <main className="landing-wrapper">
         {/* ====== HERO SECTION ====== */}
         <section className="landing-content" id="beranda">
+          {/* 60 FPS Lightweight Celestial Canvas Background */}
+          <CelestialParticles />
+
           {/* Almamater Prestige Pill Tag */}
           <div className="landing-prestige-badge">
             <span className="badge-shimmer"></span>
@@ -157,13 +185,22 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             </div>
           </div>
 
+          {/* Daily Wisdom & Hijri Calendar Widget */}
+          <DailyWisdomWidget />
+
           <div className="scroll-hint">
             <span>{t.hero.scroll_hint}</span>
             <div className="scroll-line"></div>
           </div>
         </section>
 
-        {/* ====== SECTION 1: ALMAMATER HERITAGE (BUMI SLAHUNG) ====== */}
+        {/* ====== SECTION 1: SEJARAH & NAPAK TILAS PONDOK 1982 ====== */}
+        <HistoryTimeline />
+
+        {/* ====== SECTION 2: KALAM HIKMAH & NASEHAT ASATIDZ ====== */}
+        <WisdomAsatidz />
+
+        {/* ====== SECTION 3: ALMAMATER HERITAGE (BUMI SLAHUNG) ====== */}
         <section className="heritage-section" id="almamater">
           <div className="section-header">
             <p className="section-eyebrow">{t.almamater.eyebrow}</p>
@@ -210,7 +247,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </section>
 
-        {/* ====== SECTION 2: THE PHILOSOPHY OF EXPEDIENT (IDENTITAS 43) ====== */}
+        {/* ====== SECTION 4: SHOWCASE APLIKASI MOBILE 3D MOCKUP ====== */}
+        <AppMockupShowcase />
+
+        {/* ====== SECTION 5: THE PHILOSOPHY OF EXPEDIENT (IDENTITAS 43) ====== */}
         <section className="philosophy-section" id="filosofi">
           <div className="section-header">
             <p className="section-eyebrow">{t.philosophy.eyebrow}</p>
@@ -247,7 +287,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </section>
 
-        {/* ====== SECTION 3: BENTO GRID EKOSISTEM DIGITAL ====== */}
+        {/* ====== SECTION 6: BENTO GRID EKOSISTEM DIGITAL ====== */}
         <section className="bento-section" id="ekosistem">
           <div className="section-header">
             <p className="section-eyebrow">{t.ecosystem.eyebrow}</p>
@@ -347,7 +387,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </section>
 
-        {/* ====== SECTION 4: CALL TO ACTION ====== */}
+        {/* ====== SECTION 7: CALL TO ACTION ====== */}
         <section className="cta-banner-section">
           <div className="cta-banner-box">
             <div className="cta-glow-circle"></div>
@@ -411,20 +451,24 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <h4>{t.footer.col1_title}</h4>
               <ul>
                 <li><a href="#beranda">{t.footer.nav_home}</a></li>
+                <li><a href="#sejarah">Sejarah Pondok 1982</a></li>
+                <li><a href="#nasehat">Wejangan Asatidz</a></li>
                 <li><a href="#almamater">{t.footer.nav_almamater}</a></li>
-                <li><a href="#filosofi">{t.footer.nav_philosophy}</a></li>
+                <li><a href="#aplikasi">Aplikasi Mobile</a></li>
                 <li><a href="#ekosistem">{t.footer.nav_ecosystem}</a></li>
                 <li><Link href="/radar">{t.footer.nav_radar}</Link></li>
               </ul>
             </div>
 
             <div className="footer-links-col">
-              <h4>{t.footer.col2_title}</h4>
+              <h4>Utilitas &amp; Fitur Bebas</h4>
               <ul>
-                <li><Link href="/login">{t.footer.srv_member}</Link></li>
-                <li><Link href="/sovereign">{t.footer.srv_kta}</Link></li>
-                <li><Link href="/beranda">{t.footer.srv_museum}</Link></li>
-                <li><Link href="/baitul-maal">{t.footer.srv_baitul}</Link></li>
+                <li><Link href="/quran">Al-Qur&apos;an Al-Hufaz</Link></li>
+                <li><Link href="/matsurat">Al-Ma&apos;tsurat Dzikir</Link></li>
+                <li><Link href="/asmaul-husna">99 Asmaul Husna</Link></li>
+                <li><Link href="/mahfuzhat">Mahfuzhat Santri</Link></li>
+                <li><Link href="/photobooth">Photobooth Santri</Link></li>
+                <li><Link href="/kiblat">Kiblat &amp; Waktu Sholat</Link></li>
                 <li><Link href="/download">{t.footer.srv_apk}</Link></li>
               </ul>
             </div>
@@ -444,6 +488,9 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </footer>
       </main>
+
+      {/* Floating Circular Scroll to Top Indicator */}
+      <ScrollToTopIndicator />
     </>
   );
 }

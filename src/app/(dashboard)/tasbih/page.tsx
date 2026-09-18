@@ -1,5 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import TasbihClient from "./TasbihClient";
 
 export const metadata = {
@@ -7,15 +5,6 @@ export const metadata = {
   description: "Tasbih digital interaktif dengan umpan balik getar haptic smartphone, animasi cincin mutiara emas, dan kumpulan dzikir harian mustajab.",
 };
 
-export default async function TasbihPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
+export default function TasbihPage() {
   return <TasbihClient />;
 }

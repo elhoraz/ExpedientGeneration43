@@ -45,9 +45,18 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
     request.nextUrl.pathname.startsWith('/auth') ||
+    request.nextUrl.pathname.startsWith('/download') ||
     request.nextUrl.pathname.startsWith('/beranda') ||
     request.nextUrl.pathname.startsWith('/direktori') ||
-    request.nextUrl.pathname.startsWith('/galeri');
+    request.nextUrl.pathname.startsWith('/galeri') ||
+    request.nextUrl.pathname.startsWith('/quran') ||
+    request.nextUrl.pathname.startsWith('/matsurat') ||
+    request.nextUrl.pathname.startsWith('/asmaul-husna') ||
+    request.nextUrl.pathname.startsWith('/mahfuzhat') ||
+    request.nextUrl.pathname.startsWith('/kiblat') ||
+    request.nextUrl.pathname.startsWith('/tasbih') ||
+    request.nextUrl.pathname.startsWith('/sirah') ||
+    request.nextUrl.pathname.startsWith('/photobooth');
 
   if (!user && !isPublicRoute) {
     // If not logged in and not accessing public routes

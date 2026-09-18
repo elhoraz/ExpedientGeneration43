@@ -1,5 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import MatsuratClient from "./MatsuratClient";
 
 export const metadata = {
@@ -7,15 +5,6 @@ export const metadata = {
   description: "Dzikir Pagi dan Petang otentik Al-Ma'tsurat (Sughro & Kubro) dengan penghitung haptic tasbih interaktif, audio tilawah, dan doa ikatan hati Rabithah alumni.",
 };
 
-export default async function MatsuratPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
+export default function MatsuratPage() {
   return <MatsuratClient />;
 }

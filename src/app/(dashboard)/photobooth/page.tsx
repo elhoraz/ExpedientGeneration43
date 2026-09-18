@@ -8,12 +8,5 @@ export const metadata = {
 };
 
 export default async function PhotoboothPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
   return <PhotoboothDynamic />;
 }

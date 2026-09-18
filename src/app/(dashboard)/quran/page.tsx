@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
 import QuranClient from "./QuranClient";
 
 export const metadata = {
@@ -17,10 +16,6 @@ export default async function QuranPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
-
   const params = await searchParams;
   const initialTab: "cordoba" | "surahList" | "khataman" =
     params?.tab === "khatam" || params?.tab === "khataman"
@@ -30,27 +25,29 @@ export default async function QuranPage({
       : "cordoba";
 
   let currentUser = {
-    id: user.id,
-    name: user.user_metadata?.nama_panggilan || user.user_metadata?.nama_lengkap || "Sahabat 43",
-    avatar: user.user_metadata?.avatar_url || null,
+    id: user ? user.id : "guest",
+    name: user?.user_metadata?.nama_panggilan || user?.user_metadata?.nama_lengkap || "Tamu Arrisalah",
+    avatar: user?.user_metadata?.avatar_url || null,
   };
 
-  try {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("nama_panggilan, nama_lengkap, foto_profil")
-      .eq("id", user.id)
-      .maybeSingle();
+  if (user) {
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("nama_panggilan, nama_lengkap, foto_profil")
+        .eq("id", user.id)
+        .maybeSingle();
 
-    if (profile) {
-      currentUser = {
-        id: user.id,
-        name: profile.nama_panggilan || profile.nama_lengkap || currentUser.name,
-        avatar: profile.foto_profil || currentUser.avatar,
-      };
+      if (profile) {
+        currentUser = {
+          id: user.id,
+          name: profile.nama_panggilan || profile.nama_lengkap || currentUser.name,
+          avatar: profile.foto_profil || currentUser.avatar,
+        };
+      }
+    } catch (e) {
+      console.warn("Quran page profile fetch error:", e);
     }
-  } catch (e) {
-    console.warn("Quran page profile fetch error:", e);
   }
 
   const parsedPage = params?.page ? parseInt(params.page, 10) : undefined;
@@ -58,7 +55,7 @@ export default async function QuranPage({
 
   return (
     <QuranClient
-      currentUserId={user.id}
+      currentUserId={currentUser.id}
       currentUser={currentUser}
       initialTab={initialTab}
       initialPage={!isNaN(parsedPage as number) ? parsedPage : undefined}
