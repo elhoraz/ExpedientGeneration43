@@ -16,6 +16,10 @@ import {
   ALHUFAZ_MOTIVASI_LIST,
   PageVerseItem,
   PageHufazBlock,
+  MushafWordItem,
+  MushafLineItem,
+  PAGE_6_DEFAULT_LINES,
+  partition15LinesInto5Blocks,
   partitionPageInto5Blocks,
   SURAH_START_PAGES,
   JUZ_START_PAGES,
@@ -86,6 +90,7 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     headerTitle: string;
     primarySurah: any;
     verses: PageVerseItem[];
+    lines?: MushafLineItem[];
   } | null>(null);
   const [loadingPage, setLoadingPage] = useState<boolean>(true);
   const [errorPage, setErrorPage] = useState<string | null>(null);
@@ -256,11 +261,20 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     loadCordobaPage(cordobaPage);
   }, [cordobaPage, loadCordobaPage]);
 
-  // Page Partition into 5 Colors
+  // Page Partition into 5 Colors (15 Baris Autentik Medina Mushaf)
   const pageBlocks = useMemo<PageHufazBlock[]>(() => {
-    if (!pageData || !pageData.verses) return [];
-    return partitionPageInto5Blocks(pageData.verses);
-  }, [pageData]);
+    const rawLines =
+      pageData?.lines && pageData.lines.length > 0
+        ? pageData.lines
+        : cordobaPage === 6
+        ? PAGE_6_DEFAULT_LINES
+        : [];
+    const verses = pageData?.verses || [];
+    if (rawLines.length > 0) {
+      return partition15LinesInto5Blocks(rawLines, verses);
+    }
+    return partitionPageInto5Blocks(verses);
+  }, [pageData, cordobaPage]);
 
   // Toggle TUTUP / BUKA for a color block
   const toggleBlockClosure = (blockId: number) => {
@@ -491,6 +505,15 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
     setAudioQueue([item]);
     setCurrentPlayingBlockId(blockId || null);
     playQueueItemAtIndex(0);
+  };
+
+  // Play a single verse directly when a word or verse marker is clicked in the 15-line mushaf
+  const playSingleAyahAudio = (verseNum: number, surahNum?: number, blockId?: number) => {
+    triggerHaptic(10);
+    const targetVerse = pageData?.verses?.find((v) => v.verseNumber === verseNum);
+    const finalSurah = surahNum || targetVerse?.surahNumber || 2;
+    const url = targetVerse?.audioUrl || getEveryAyahUrl(finalSurah, verseNum, selectedQari);
+    playVerseAudio(url, verseNum, finalSurah, blockId);
   };
 
   // Play ALL verses of a color block in continuous sequence
@@ -1164,39 +1187,96 @@ export default function QuranClient({ currentUserId }: { currentUserId: string }
                           </div>
                         </div>
 
-                        {/* 2. Teks Al-Qur'an Sambung 15 Baris Autentik (1 Baris Bisa 2 Warna Berbeda) */}
-                        <div className="mushaf-continuous-text-flow" dir="rtl">
+                        {/* 2. Teks Mushaf Al-Hufaz Autentik: 15 Baris & 5 Blok Warna Solid Nempel Atas-Bawah */}
+                        <div className="mushaf-15lines-wrapper">
                           {pageBlocks.map((b) => {
                             const isClosed = !!closedBlocks[b.blockId];
-                            return b.ayahs.map((v) => {
-                              const isCurrentAudio = currentPlayingAyah === v.verseNumber;
-                              return (
-                                <span
-                                  key={v.verseKey}
-                                  className={`hufaz-verse-flow-span band-${b.blockId} ${isClosed ? "is-blind-closed" : ""} ${isCurrentAudio ? "highlight-audio" : ""}`}
-                                  onClick={() => {
-                                    if (isClosed) {
-                                      toggleBlockClosure(b.blockId);
-                                    } else {
-                                      handleVerseClickInMushaf(b, v);
-                                    }
-                                  }}
-                                  title={
-                                    isClosed
-                                      ? `Ayat ${v.verseNumber} (Teks ${b.config.name} ditutup - klik untuk membuka)`
-                                      : `Ayat ${v.verseNumber} (Klik untuk dengar audio murottal)`
-                                  }
-                                >
-                                  <span className="verse-text-content">{v.textUthmani}</span>
-                                  {" "}
-                                  <span className="verse-golden-ayah-marker" contentEditable={false}>
-                                    <span className="ayah-symbol">۝</span>
-                                    <span className="ayah-num">{toArabicNumerals(v.verseNumber)}</span>
-                                  </span>
-                                  {" "}
-                                </span>
-                              );
-                            });
+                            const isCurrentPlayingBlock = currentPlayingBlockId === b.blockId;
+                            const blockLines = b.lines && b.lines.length > 0 ? b.lines : [];
+
+                            return (
+                              <div
+                                key={`block-${b.blockId}`}
+                                className={`mushaf-color-band band-${b.blockId} ${isClosed ? "is-closed" : ""} ${isCurrentPlayingBlock ? "highlight-active-band" : ""}`}
+                              >
+                                {blockLines.length > 0 ? (
+                                  blockLines.map((line) => (
+                                    <div key={`line-${line.lineNumber}`} className="mushaf-15-line" dir="rtl">
+                                      {line.words.map((w, wIdx) => {
+                                        if (w.charType === "end") {
+                                          const isAudioActive = currentPlayingAyah === w.verseNumber;
+                                          return (
+                                            <span
+                                              key={`w-${line.lineNumber}-${wIdx}`}
+                                              className={`mushaf-end-marker ${isAudioActive ? "active-audio-marker" : ""}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (isClosed) {
+                                                  toggleBlockClosure(b.blockId);
+                                                } else {
+                                                  playSingleAyahAudio(w.verseNumber, w.surahNumber, b.blockId);
+                                                }
+                                              }}
+                                              title={`Akhir Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
+                                            >
+                                              <span className="end-marker-symbol">۝</span>
+                                              <span className="end-marker-num">{toArabicNumerals(w.verseNumber)}</span>
+                                            </span>
+                                          );
+                                        }
+
+                                        const isAudioActive = currentPlayingAyah === w.verseNumber;
+                                        return (
+                                          <span
+                                            key={`w-${line.lineNumber}-${wIdx}`}
+                                            className={`mushaf-word-item ${isAudioActive ? "active-audio-word" : ""}`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (isClosed) {
+                                                toggleBlockClosure(b.blockId);
+                                              } else {
+                                                playSingleAyahAudio(w.verseNumber, w.surahNumber, b.blockId);
+                                              }
+                                            }}
+                                            title={`Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
+                                          >
+                                            {w.text}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="mushaf-fallback-ayahs-flow" dir="rtl">
+                                    {b.ayahs.map((v) => (
+                                      <span
+                                        key={v.verseKey}
+                                        className="mushaf-word-item"
+                                        onClick={() => playSingleAyahAudio(v.verseNumber, v.surahNumber, b.blockId)}
+                                      >
+                                        {v.textUthmani}{" "}
+                                        <span className="mushaf-end-marker">
+                                          <span className="end-marker-symbol">۝</span>
+                                          <span className="end-marker-num">{toArabicNumerals(v.verseNumber)}</span>
+                                        </span>{" "}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {isClosed && (
+                                  <div className="mushaf-band-blind-overlay">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleBlockClosure(b.blockId)}
+                                      className="blind-reveal-btn"
+                                    >
+                                      <i className="fa-solid fa-eye"></i> Buka Teks {b.config.name}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            );
                           })}
                         </div>
                       </div>

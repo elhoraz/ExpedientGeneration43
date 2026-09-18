@@ -16,8 +16,8 @@ export async function GET(
       );
     }
 
-    // Fetch verses by page from api.quran.com with Indonesian Kemenag translation (resource 33)
-    const apiUrl = `https://api.quran.com/api/v4/verses/by_page/${pageNum}?language=id&words=false&translations=33&fields=text_uthmani,chapter_id,verse_number,juz_number`;
+    // Fetch verses by page from api.quran.com with Indonesian Kemenag translation and word-level line_numbers
+    const apiUrl = `https://api.quran.com/api/v4/verses/by_page/${pageNum}?language=id&words=true&word_fields=text_uthmani,location,line_number,char_type_name&translations=33&fields=text_uthmani,chapter_id,verse_number,juz_number`;
     const res = await fetch(apiUrl, {
       next: { revalidate: 86400 }, // Cache 24 jam di Next.js server
     });
@@ -69,6 +69,47 @@ export async function GET(
       };
     });
 
+    // Group words into authentic 15 lines (Medina Mushaf standard)
+    const lineMap: Record<number, any[]> = {};
+    for (let i = 1; i <= 15; i++) {
+      lineMap[i] = [];
+    }
+
+    rawVerses.forEach((v: any) => {
+      (v.words || []).forEach((w: any) => {
+        const lineNum = w.line_number || 1;
+        if (!lineMap[lineNum]) lineMap[lineNum] = [];
+        lineMap[lineNum].push({
+          id: w.id,
+          text: w.text_uthmani || w.text,
+          charType: w.char_type_name || "word",
+          verseNumber: v.verse_number,
+          surahNumber: v.chapter_id,
+          lineNumber: lineNum,
+          audioUrl: `https://everyayah.com/data/Alafasy_128kbps/${String(v.chapter_id).padStart(3, "0")}${String(v.verse_number).padStart(3, "0")}.mp3`,
+        });
+      });
+    });
+
+    // Normalize: if a line starts with verse end marker ('end'), move it to the end of the previous line
+    for (let i = 2; i <= 15; i++) {
+      if (lineMap[i].length > 0 && lineMap[i][0].charType === "end") {
+        const marker = lineMap[i].shift();
+        lineMap[i - 1].push(marker);
+      }
+    }
+
+    // Build the 15 lines array with corresponding blockId (1..5)
+    const lines = [];
+    for (let i = 1; i <= 15; i++) {
+      const blockId = Math.min(5, Math.ceil(i / 3)); // Lines 1..3 -> 1, 4..6 -> 2, 7..9 -> 3, 10..12 -> 4, 13..15 -> 5
+      lines.push({
+        lineNumber: i,
+        blockId,
+        words: lineMap[i] || [],
+      });
+    }
+
     // Primary surah info on this page
     const primarySurahNum = verses[0].surahNumber;
     const primarySurah = QURAN_SURAHS.find((s) => s.nomor === primarySurahNum);
@@ -94,6 +135,7 @@ export async function GET(
           tempatTurun: primarySurah?.tempatTurun || "Mekah",
         },
         verses,
+        lines,
       },
     });
   } catch (error: any) {

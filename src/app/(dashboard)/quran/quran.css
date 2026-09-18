@@ -1358,95 +1358,235 @@
   transform: scale(1.15);
 }
 
-.mushaf-continuous-text-flow {
-  font-family: 'Amiri Quran', 'Scheherazade New', var(--font-amiri), 'Traditional Arabic', serif;
-  font-size: clamp(1.48rem, 2.1vw, 1.82rem);
-  line-height: 2.8;
-  text-align: justify;
-  text-justify: inter-word;
-  color: #111827;
-  padding: 16px 18px;
-  direction: rtl;
-  background: #ffffff;
-  word-spacing: 2px;
-  font-feature-settings: "cv01" on, "cv02" on;
-}
+/* ===================================================
+   AUTENTIK AL-HUFAZ: 15 BARIS & 5 BLOK WARNA FULL COLOUR
+   (5 Blok Warna Solid Nempel Atas Bawah Tanpa Jeda)
+   =================================================== */
 
-[data-theme="dark"] .mushaf-continuous-text-flow {
-  background: #0f172a;
-  color: #f8fafc;
-}
-
-/* Inline Flow Verse Spans - Supports multi-color on a single line */
-.hufaz-verse-flow-span {
-  display: inline;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding: 3px 2px;
+.mushaf-15lines-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
   margin: 0;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* 5 Pastel Color Bands matching authentic Mushaf Al-Hufaz Cordoba */
-.hufaz-verse-flow-span.band-1 {
-  background-color: #fef08a !important; /* Kuning pastel */
-  color: #111827 !important;
+/* 5 Solid Color Bands - Nempel Atas Bawah TANPA Jeda Putih! */
+.mushaf-color-band {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  margin: 0 !important;
+  padding: 8px 18px;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  transition: background-color 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  min-height: 88px;
+  border: none !important;
 }
-.hufaz-verse-flow-span.band-2 {
-  background-color: #bbf7d0 !important; /* Hijau pastel */
-  color: #111827 !important;
-}
-.hufaz-verse-flow-span.band-3 {
-  background-color: #bae6fd !important; /* Biru pastel */
-  color: #111827 !important;
-}
-.hufaz-verse-flow-span.band-4 {
-  background-color: #fbcfe8 !important; /* Pink pastel */
-  color: #111827 !important;
-}
-.hufaz-verse-flow-span.band-5 {
-  background-color: #fed7aa !important; /* Krem / Oranye pastel */
+
+/* 1. Kuning Pastel (Baris 1, 2, 3) */
+.mushaf-color-band.band-1 {
+  background-color: #fef08a !important;
   color: #111827 !important;
 }
 
-/* Dark theme pastel adjustments for contrast */
-[data-theme="dark"] .hufaz-verse-flow-span.band-1 { background-color: rgba(234, 179, 8, 0.35) !important; color: #fef9c3 !important; }
-[data-theme="dark"] .hufaz-verse-flow-span.band-2 { background-color: rgba(34, 197, 94, 0.32) !important; color: #dcfce7 !important; }
-[data-theme="dark"] .hufaz-verse-flow-span.band-3 { background-color: rgba(56, 189, 248, 0.32) !important; color: #e0f2fe !important; }
-[data-theme="dark"] .hufaz-verse-flow-span.band-4 { background-color: rgba(244, 63, 94, 0.32) !important; color: #ffe4e6 !important; }
-[data-theme="dark"] .hufaz-verse-flow-span.band-5 { background-color: rgba(249, 115, 22, 0.35) !important; color: #ffedd5 !important; }
-
-.hufaz-verse-flow-span:hover {
-  filter: brightness(0.92);
+/* 2. Hijau Pastel (Baris 4, 5, 6) */
+.mushaf-color-band.band-2 {
+  background-color: #bbf7d0 !important;
+  color: #111827 !important;
 }
 
-.hufaz-verse-flow-span.highlight-audio {
-  outline: 2px solid #059669 !important;
-  box-shadow: 0 0 14px rgba(5, 150, 105, 0.6) !important;
-  font-weight: 700;
+/* 3. Biru Pastel (Baris 7, 8, 9) */
+.mushaf-color-band.band-3 {
+  background-color: #bae6fd !important;
+  color: #111827 !important;
 }
 
-/* Uji Hafalan 20 Menit (TUTUP HAFALAN BLIND TEST) */
-.hufaz-verse-flow-span.is-blind-closed {
-  background-color: #fee2e2 !important;
-  color: transparent !important;
-  text-shadow: none !important;
+/* 4. Pink Pastel (Baris 10, 11, 12) */
+.mushaf-color-band.band-4 {
+  background-color: #fbcfe8 !important;
+  color: #111827 !important;
+}
+
+/* 5. Krem / Oranye Pastel (Baris 13, 14, 15) */
+.mushaf-color-band.band-5 {
+  background-color: #fed7aa !important;
+  color: #111827 !important;
+}
+
+/* Dark Theme Full Color Bands */
+[data-theme="dark"] .mushaf-color-band.band-1 {
+  background-color: #713f12 !important;
+  color: #fef9c3 !important;
+}
+[data-theme="dark"] .mushaf-color-band.band-2 {
+  background-color: #14532d !important;
+  color: #dcfce7 !important;
+}
+[data-theme="dark"] .mushaf-color-band.band-3 {
+  background-color: #0c4a6e !important;
+  color: #e0f2fe !important;
+}
+[data-theme="dark"] .mushaf-color-band.band-4 {
+  background-color: #831843 !important;
+  color: #fce7f3 !important;
+}
+[data-theme="dark"] .mushaf-color-band.band-5 {
+  background-color: #7c2d12 !important;
+  color: #ffedd5 !important;
+}
+
+/* Highlight Active Playing Band */
+.mushaf-color-band.highlight-active-band {
+  outline: 2.5px solid #16a34a !important;
+  outline-offset: -2.5px;
+  box-shadow: inset 0 0 12px rgba(22, 163, 74, 0.35);
+}
+
+/* 15 Baris Tepat (Satu Baris Tidak Akan Pernah Pecah / Wrap) */
+.mushaf-15-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  direction: rtl;
+  white-space: nowrap;
+  font-family: 'Amiri Quran', 'Scheherazade New', var(--font-amiri), serif;
+  font-size: clamp(0.82rem, 1.88vw, 1.62rem);
+  line-height: 2.15;
+  padding: 1px 0;
+  box-sizing: border-box;
   user-select: none;
-  border-bottom: 2px dashed #f43f5e;
-  border-radius: 4px;
 }
 
-[data-theme="dark"] .hufaz-verse-flow-span.is-blind-closed {
-  background-color: rgba(244, 63, 94, 0.25) !important;
-  color: transparent !important;
-  border-bottom-color: #fb7185;
+/* Kata per Kata dalam Mushaf */
+.mushaf-word-item {
+  display: inline-block;
+  cursor: pointer;
+  padding: 0 1px;
+  transition: transform 0.12s ease, color 0.15s ease, text-shadow 0.15s ease;
 }
 
-.hufaz-verse-flow-span.is-blind-closed .verse-golden-ayah-marker {
-  color: #dc2626 !important;
-  opacity: 0.9;
+.mushaf-word-item:hover {
+  opacity: 0.82;
+  transform: scale(1.04);
+}
+
+/* Tanda Akhir Ayat ۝٣٠ Tradisional */
+.mushaf-end-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+  margin: 0 3px;
+  transition: transform 0.15s ease;
+}
+
+.mushaf-end-marker:hover {
+  transform: scale(1.15);
+}
+
+.mushaf-end-marker .end-marker-symbol {
+  color: #d97706;
+  font-size: 1.28em;
+  line-height: 1;
+}
+
+.mushaf-end-marker .end-marker-num {
+  position: absolute;
+  font-size: 0.52em;
+  font-weight: 800;
+  color: #92400e;
+  font-family: sans-serif, var(--font-amiri);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+[data-theme="dark"] .mushaf-end-marker .end-marker-symbol {
+  color: #f59e0b;
+}
+
+[data-theme="dark"] .mushaf-end-marker .end-marker-num {
+  color: #fef3c7;
+}
+
+/* Active Audio Highlight */
+.mushaf-word-item.active-audio-word {
+  color: #15803d !important;
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(22, 163, 74, 0.45);
+}
+
+[data-theme="dark"] .mushaf-word-item.active-audio-word {
+  color: #4ade80 !important;
+  text-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+}
+
+.mushaf-end-marker.active-audio-marker .end-marker-symbol {
+  color: #16a34a !important;
+  filter: drop-shadow(0 0 8px rgba(22, 163, 74, 0.7));
+}
+
+/* Tutup Hafalan 20 Menit: Blind Test Overlay */
+.mushaf-color-band.is-closed .mushaf-15-line {
+  filter: blur(8px);
+  opacity: 0.18;
+  pointer-events: none;
+  user-select: none;
+}
+
+.mushaf-band-blind-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 5;
+}
+
+[data-theme="dark"] .mushaf-band-blind-overlay {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.blind-reveal-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.blind-reveal-btn:hover {
+  background: #b91c1c;
+  transform: scale(1.05);
+}
+
+.mushaf-fallback-ayahs-flow {
+  font-family: 'Amiri Quran', 'Scheherazade New', var(--font-amiri), serif;
+  font-size: 1.4rem;
+  line-height: 2.4;
+  text-align: justify;
+  direction: rtl;
+  padding: 6px;
 }
 
 
@@ -2853,6 +2993,30 @@
 
   .poster-arrows-stack {
     grid-template-columns: 1fr;
+  }
+
+  .mushaf-color-band {
+    padding: 5px 8px !important;
+    min-height: 64px !important;
+  }
+
+  .mushaf-15-line {
+    font-size: clamp(0.68rem, 2.7vw, 1.05rem) !important;
+    line-height: 1.95 !important;
+    white-space: nowrap !important;
+  }
+
+  .mushaf-end-marker {
+    margin: 0 1.5px !important;
+  }
+
+  .sheet-center-mushaf {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mushaf-golden-frame {
+    min-width: 310px;
   }
 }
 
