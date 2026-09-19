@@ -207,6 +207,22 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                 <i className="fa-solid fa-landmark"></i>
                 <span>Jelajahi Museum Digital</span>
               </Link>
+
+              <a
+                href="https://www.instagram.com/expedientgeneration_/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="drawer-btn-ig"
+                onClick={onClose}
+              >
+                <i className="fa-brands fa-instagram"></i>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "0.82rem" }}>@expedientgeneration_</div>
+                  <div style={{ fontSize: "0.68rem", opacity: 0.85, fontWeight: 500 }}>
+                    The Successor of Islamic Glory
+                  </div>
+                </div>
+              </a>
             </div>
           </div>
         </div>

@@ -2644,9 +2644,9 @@ export default function PhotoboothClient() {
                       </div>
                       <div>
                         <div className="ig-username-text">
-                          expedientgeneration <i className="fa-solid fa-circle-check" style={{ color: "#3897f0", fontSize: "0.68rem" }}></i>
+                          expedientgeneration_ <i className="fa-solid fa-circle-check" style={{ color: "#3897f0", fontSize: "0.68rem" }}></i>
                         </div>
-                        <div className="ig-location-text">Pondok Pesantren Arrisalah</div>
+                        <div className="ig-location-text">Pondok Modern Arrisalah Slahung</div>
                       </div>
                     </div>
                     <i className="fa-solid fa-ellipsis" style={{ color: "#262626", fontSize: "0.85rem" }}></i>
@@ -2949,7 +2949,7 @@ export default function PhotoboothClient() {
                     </div>
                     <div className="ig-likes-text">4,343 likes</div>
                     <div className="ig-caption-text">
-                      <span className="ig-caption-bold">expedientgeneration</span>
+                      <span className="ig-caption-bold">expedientgeneration_</span>
                       {captionTitle} • Nostalgia ukhuwah santri takkan pernah pudar.
                     </div>
                     <div className="ig-timestamp-text">{captionDate} • 2 HOURS AGO</div>

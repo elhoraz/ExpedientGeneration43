@@ -145,6 +145,22 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             <span className="origin-dest">{t.hero.origin_dest}</span>
           </div>
 
+          {/* Official Cohort Identity & Instagram Badge */}
+          <div className="landing-cohort-bar">
+            <a
+              href="https://www.instagram.com/expedientgeneration_/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="landing-ig-chip"
+              title="Instagram Resmi Angkatan 43 Arrisalah Slahung: @expedientgeneration_"
+            >
+              <i className="fa-brands fa-instagram"></i>
+              <span className="ig-handle">@expedientgeneration_</span>
+              <span className="ig-divider">•</span>
+              <span className="ig-tagline"><i className="fa-solid fa-crown"></i> The Successor of Islamic Glory</span>
+            </a>
+          </div>
+
           {/* Action Button Group */}
           <div className="cta-group">
             <Link href="/beranda" className="btn-primary" id="ctaExplore">
@@ -444,6 +460,19 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               </p>
               <div className="footer-motto">
                 <em>&ldquo;{t.footer.motto}&rdquo;</em>
+              </div>
+              <div className="footer-ig-box">
+                <a
+                  href="https://www.instagram.com/expedientgeneration_/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-ig-link"
+                  title="Akun Instagram Resmi Angkatan 43: @expedientgeneration_"
+                >
+                  <i className="fa-brands fa-instagram"></i>
+                  <span>@expedientgeneration_</span>
+                  <span className="footer-ig-badge">Official</span>
+                </a>
               </div>
             </div>
 
