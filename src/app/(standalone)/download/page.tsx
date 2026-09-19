@@ -31,6 +31,13 @@ export default function DownloadPage() {
         padding: "2.5rem 2rem",
         boxShadow: "0 25px 60px rgba(0,0,0,0.7)",
       }}>
+        {/* Top Back Button */}
+        <div style={{ marginBottom: "1.5rem" }}>
+          <Link href="/" className="btn-back">
+            <i className="fa-solid fa-arrow-left" /> Kembali ke Beranda
+          </Link>
+        </div>
+
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
           <div style={{

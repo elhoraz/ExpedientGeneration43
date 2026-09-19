@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import "./tasbih.css";
 
@@ -84,6 +85,7 @@ const DZIKIR_LIST: DzikirItem[] = [
 const TOTAL_BEADS = 33;
 
 export default function TasbihClient() {
+  const { t } = useLanguage();
   const [selectedDzikir, setSelectedDzikir] = useState<DzikirItem>(DZIKIR_LIST[0]);
   const [count, setCount] = useState<number>(0);
   const [target, setTarget] = useState<number>(33);
@@ -227,8 +229,8 @@ export default function TasbihClient() {
       <div className="tasbih-container">
         {/* Navigation */}
         <div className="tasbih-nav-bar">
-          <Link href="/fitur" className="btn-tasbih-back">
-            <i className="fa-solid fa-chevron-left"></i> Fitur
+          <Link href="/fitur" className="btn-back">
+            <i className="fa-solid fa-arrow-left"></i> {t.tasbih.back_to_features}
           </Link>
           <ThemeToggle />
         </div>
@@ -238,7 +240,7 @@ export default function TasbihClient() {
           <div className="tasbih-badge-sup">
             <i className="fa-solid fa-gem"></i> Tasbih Mutiara Haptic
           </div>
-          <h1 className="tasbih-title">Tasbih & Dzikir Digital</h1>
+          <h1 className="tasbih-title">{t.tasbih.title}</h1>
         </div>
 
         {/* Dzikir Selection Scroll */}

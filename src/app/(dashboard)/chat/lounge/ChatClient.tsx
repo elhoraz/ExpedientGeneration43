@@ -268,6 +268,13 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
 
   return (
     <div className="chat-room-container" style={{ padding: "clamp(70px, 10vh, 95px) 12px 18px", maxWidth: "900px" }}>
+      <div style={{ marginBottom: "12px", display: "flex", justifyContent: "flex-start" }}>
+        <Link href="/chat" className="btn-back">
+          <i className="fa-solid fa-arrow-left"></i>
+          <span>{t.common?.back || "Kembali ke Kotak Masuk"}</span>
+        </Link>
+      </div>
+
       <div className="lounge-header-container">
         <h2 className="lounge-title">
           {t.chat.lounge_title}

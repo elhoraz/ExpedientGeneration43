@@ -317,3 +317,35 @@
         bottom: max(24px, calc(env(safe-area-inset-bottom, 24px) + 8px)); 
     }
 }
+
+/* ==========================================================================
+   KONTEMPLASI LIGHT THEME SUPPORT
+   ========================================================================== */
+:root[data-theme="light"] .start-title {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .start-desc {
+    color: #475569;
+}
+
+:root[data-theme="light"] .btn-top-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .btn-top-back:hover {
+    background: #fdf8eb;
+    color: #78350f;
+}
+
+:root[data-theme="light"] .audio-menu,
+:root[data-theme="light"] .journal-panel {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.3);
+    color: #0f172a;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+

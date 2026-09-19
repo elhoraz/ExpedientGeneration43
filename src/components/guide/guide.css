@@ -599,3 +599,94 @@ body.sidebar-closed .floating-help-btn {
     padding: 11px 0;
   }
 }
+
+/* ==========================================================================
+   GUIDE MODAL & FLOATING BUTTON LIGHT THEME
+   ========================================================================== */
+:root[data-theme="light"] .floating-help-btn {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(170, 119, 28, 0.4);
+  color: #aa771c;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), 0 0 15px rgba(170, 119, 28, 0.1);
+}
+
+:root[data-theme="light"] .help-btn-icon {
+  background: linear-gradient(135deg, rgba(170, 119, 28, 0.2), rgba(170, 119, 28, 0.06));
+  border-color: rgba(170, 119, 28, 0.4);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .help-btn-divider {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .help-btn-lang {
+  background: rgba(170, 119, 28, 0.1);
+  border-color: rgba(170, 119, 28, 0.25);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .guide-modal-card {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.35);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 0 0 30px rgba(170, 119, 28, 0.08);
+}
+
+:root[data-theme="light"] .guide-modal-header {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .guide-title {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .guide-subtitle {
+  color: #475569;
+}
+
+:root[data-theme="light"] .guide-summary-box {
+  background: rgba(170, 119, 28, 0.08);
+  border-color: rgba(170, 119, 28, 0.25);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .guide-section-title {
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .guide-step-item {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .guide-step-num {
+  background: #aa771c;
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .guide-control-item {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .control-name {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .control-desc {
+  color: #475569;
+}
+
+:root[data-theme="light"] .guide-tip-item {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #065f46;
+}
+
+:root[data-theme="light"] .guide-modal-footer {
+  background: rgba(0, 0, 0, 0.02);
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+

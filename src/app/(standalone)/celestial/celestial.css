@@ -413,3 +413,41 @@
         letter-spacing: 2px;
     }
 }
+
+/* ==========================================================================
+   CELESTIAL CODEX LIGHT THEME SUPPORT
+   ========================================================================== */
+:root[data-theme="light"] .celestial-wrapper {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .codex-title {
+    color: #aa771c;
+    text-shadow: none;
+}
+
+:root[data-theme="light"] .codex-subtitle {
+    color: #475569;
+}
+
+:root[data-theme="light"] .tarot-card .card-back {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    border-color: rgba(170, 119, 28, 0.35);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .tarot-card .card-front {
+    background: #ffffff;
+    border-color: #aa771c;
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .card-name {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .card-meaning {
+    color: #475569;
+}
+

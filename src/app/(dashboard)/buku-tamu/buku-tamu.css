@@ -22,3 +22,50 @@
     .buku-tamu-wrapper .bt-submit { width: 100%; text-align: center; }
     .buku-tamu-wrapper .msg-card { padding: 16px; border-radius: 12px; }
 }
+
+/* ==========================================================================
+   BUKU TAMU LIGHT THEME SUPPORT
+   ========================================================================== */
+:root[data-theme="light"] .buku-tamu-wrapper .bt-title {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .bt-subtitle {
+    color: #475569;
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .bt-form {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .bt-textarea {
+    background: #f8fafc;
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .msg-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.2);
+    border-left-color: #aa771c;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .msg-author {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .msg-header {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .msg-date {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .msg-body {
+    color: #334155;
+}
+

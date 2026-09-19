@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import Link from "next/link";
 import html2canvas from "html2canvas";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./photobooth.css";
@@ -1905,6 +1906,13 @@ export default function PhotoboothClient() {
 
   return (
     <div className="photobooth-page">
+      <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
+        <Link href="/fitur" className="btn-back">
+          <i className="fa-solid fa-arrow-left"></i>
+          <span>{t.common?.back || "Kembali ke Menu Fitur"}</span>
+        </Link>
+      </div>
+
       {/* Studio Header */}
       <div className="studio-header">
         <div className="studio-badge">

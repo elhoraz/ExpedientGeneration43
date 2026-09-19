@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import {
   POPULAR_CITIES,
@@ -15,6 +16,7 @@ import {
 import "./kiblat.css";
 
 export default function KiblatClient() {
+  const { t } = useLanguage();
   // Default to Ponorogo (Almamater Arrisalah)
   const [selectedCity, setSelectedCity] = useState<CityPreset>(POPULAR_CITIES[1]);
   const [currentLocation, setCurrentLocation] = useState<{
@@ -211,8 +213,8 @@ export default function KiblatClient() {
       <div className="kiblat-container">
         {/* Top Bar */}
         <div className="kiblat-nav-bar">
-          <Link href="/fitur" className="btn-kiblat-back">
-            <i className="fa-solid fa-chevron-left"></i> Fitur
+          <Link href="/fitur" className="btn-back">
+            <i className="fa-solid fa-arrow-left"></i> {t.kiblat.back_to_features}
           </Link>
           <ThemeToggle />
         </div>
@@ -222,9 +224,9 @@ export default function KiblatClient() {
           <div className="kiblat-badge-sup">
             <i className="fa-solid fa-compass"></i> Instrumen Astronomi Islam
           </div>
-          <h1 className="kiblat-title">Astrolabe Kiblat & Waktu Sholat</h1>
+          <h1 className="kiblat-title">{t.kiblat.title}</h1>
           <p className="kiblat-subtitle">
-            Penunjuk arah Ka&apos;bah presisi dan jadwal sholat akurat metode Kementerian Agama RI untuk alumni Expedient Generation 43.
+            {t.kiblat.subtitle}
           </p>
         </div>
 

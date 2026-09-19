@@ -5244,4 +5244,152 @@
     width: 100%;
     justify-content: center;
   }
+
+  .quran-floating-audio-bar {
+    bottom: max(105px, calc(env(safe-area-inset-bottom, 16px) + 85px));
+    width: calc(100% - 24px);
+    z-index: 9970;
+  }
+
+  .quran-page-root {
+    padding-bottom: 180px;
+  }
 }
+
+/* ==========================================================================
+   AL-QUR'AN & CORDOBA REPLICA FULL LIGHT THEME SUPPORT
+   ========================================================================== */
+:root[data-theme="light"] .top-mushaf-switcher-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(170, 119, 28, 0.35);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .top-mushaf-tab {
+  color: #475569;
+}
+
+:root[data-theme="light"] .top-mushaf-tab.active {
+  background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .cordoba-control-panel,
+:root[data-theme="light"] .cordoba-subview-panel {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(170, 119, 28, 0.35);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .cordoba-page-nav-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .cordoba-page-nav-btn:hover:not(:disabled) {
+  background: rgba(170, 119, 28, 0.15);
+  border-color: #aa771c;
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .cordoba-page-input-wrapper {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(170, 119, 28, 0.3);
+}
+
+:root[data-theme="light"] .cordoba-page-input {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .page-label,
+:root[data-theme="light"] .page-total {
+  color: #64748b;
+}
+
+:root[data-theme="light"] .cordoba-select {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .subview-toggle-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #334155;
+}
+
+:root[data-theme="light"] .subview-toggle-btn:hover {
+  background: rgba(170, 119, 28, 0.12);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .subview-toggle-btn.active {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .subview-photo-btn {
+  background: rgba(170, 119, 28, 0.12);
+  border-color: rgba(170, 119, 28, 0.4);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .subview-photo-btn:hover {
+  background: #aa771c;
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .quran-floating-audio-bar {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(170, 119, 28, 0.4);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 0 25px rgba(170, 119, 28, 0.12);
+}
+
+:root[data-theme="light"] .audio-surah-title {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .audio-qari-name {
+  color: #64748b;
+}
+
+:root[data-theme="light"] .audio-btn {
+  background: rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .audio-btn:hover {
+  background: rgba(170, 119, 28, 0.15);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .audio-btn.play-main-btn {
+  background: linear-gradient(135deg, #aa771c, #d4af37);
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .cordoba-timer-box {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+:root[data-theme="light"] .timer-digits {
+  color: #047857;
+}
+
+:root[data-theme="light"] .btn-back {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #aa771c;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .btn-back:hover {
+  background: #fdf8eb;
+  border-color: #aa771c;
+  color: #78350f;
+}
+

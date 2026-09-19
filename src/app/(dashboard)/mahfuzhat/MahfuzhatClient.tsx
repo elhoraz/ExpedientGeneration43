@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   MAFHUZHAT_DATA,
   MAFHUZHAT_CATEGORIES,
@@ -21,6 +22,7 @@ interface QuizQuestion {
 }
 
 export default function MahfuzhatClient() {
+  const { t } = useLanguage();
   // Tab Navigation
   const [activeTab, setActiveTab] = useState<TabType>("library");
 
@@ -594,7 +596,7 @@ export default function MahfuzhatClient() {
         {/* Top Back Action */}
         <div className="mahfuzhat-top-actions">
           <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+            <i className="fa-solid fa-arrow-left"></i> {t.mahfuzhat.back_to_features}
           </Link>
         </div>
 
@@ -604,9 +606,9 @@ export default function MahfuzhatClient() {
             <span>✨</span>
             <span>Khazanah Pesantren 43</span>
           </div>
-          <h1 className="mahfuzhat-title">MAHFUZHAT & HIKMAH</h1>
+          <h1 className="mahfuzhat-title">{t.mahfuzhat.title}</h1>
           <p className="mahfuzhat-subtitle">
-            Koleksi kata mutiara klasik pesantren, kuis sambung hafalan berhadiah predikat santri, dan generator status WhatsApp bernuansa Obsidian Gold.
+            {t.mahfuzhat.subtitle}
           </p>
         </header>
 

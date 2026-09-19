@@ -147,6 +147,13 @@ export default function PanduanClient() {
 
   return (
     <div className="panduan-page">
+      <div style={{ width: "100%", maxWidth: "1200px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
+        <Link href="/fitur" className="btn-back">
+          <i className="fa-solid fa-arrow-left"></i>
+          <span>{t.common?.back || "Kembali ke Menu Fitur"}</span>
+        </Link>
+      </div>
+
       {/* 1. HERO SECTION */}
       <section className="panduan-hero">
         <div className="panduan-tagline">

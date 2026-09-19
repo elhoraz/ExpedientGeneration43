@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   SIRAH_PLACES,
   SIRAH_ROUTES,
@@ -17,6 +18,7 @@ type TabView = "map" | "timeline" | "leadership";
 type StoryTheme = "obsidian" | "parchment" | "ivory";
 
 export default function SirahClient() {
+  const { t } = useLanguage();
   // Tabs
   const [activeTab, setActiveTab] = useState<TabView>("map");
 
@@ -688,7 +690,7 @@ export default function SirahClient() {
         {/* Top Action / Back Button */}
         <div className="sirah-top-actions">
           <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+            <i className="fa-solid fa-arrow-left"></i> {t.sirah.back_to_features}
           </Link>
         </div>
 
@@ -698,9 +700,9 @@ export default function SirahClient() {
             <span>🕌</span>
             <span>Ekspedisi Sejarah & Kepemimpinan</span>
           </div>
-          <h1 className="sirah-title">SIRAH NABAWIYAH 3D</h1>
+          <h1 className="sirah-title">{t.sirah.title}</h1>
           <p className="sirah-subtitle">
-            Peta kartografi manuskrip kuno Jazirah Arab, linimasa peristiwa agung Makkah & Madinah, dan tadabbur prinsip kepemimpinan modern Rasulullah SAW.
+            {t.sirah.subtitle}
           </p>
         </header>
 

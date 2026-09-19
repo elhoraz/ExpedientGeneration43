@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   QURAN_SURAHS,
   JUZ_LIST,
@@ -105,6 +106,7 @@ export default function QuranClient({
   initialPage,
   initialJuz,
 }: QuranClientProps) {
+  const { t, locale } = useLanguage();
   // Main Top-Level Mode: "cordoba" (Authentic Mushaf Page Layout) vs "surahList" (List of Surahs) vs "khataman" (One Member One Juz)
   const [mainDisplayMode, setMainDisplayMode] = useState<"cordoba" | "surahList" | "khataman">(initialTab);
 
@@ -1004,6 +1006,14 @@ export default function QuranClient({
 
   return (
     <div className="quran-page-root">
+      {/* Back Button to Features */}
+      <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto 14px auto", display: "flex", justifyContent: "flex-start" }}>
+        <Link href="/fitur" className="btn-back">
+          <i className="fa-solid fa-arrow-left"></i>
+          <span>{t.quran.back_to_features}</span>
+        </Link>
+      </div>
+
       {/* Toast Notification */}
       {toastMessage && (
         <div className="quran-toast">
@@ -1024,8 +1034,8 @@ export default function QuranClient({
           }}
         >
           <i className="fa-solid fa-book-quran"></i>
-          <span>Mushaf Al-Hufaz</span>
-          <span className="live-pill">Metode 5 Jam</span>
+          <span>{t.quran.tab_mushaf}</span>
+          <span className="live-pill">{t.quran.method_5h}</span>
         </button>
 
         <button
@@ -1037,7 +1047,7 @@ export default function QuranClient({
           }}
         >
           <i className="fa-solid fa-list-ul"></i>
-          <span>Daftar 114 Surah</span>
+          <span>{t.quran.tab_surah}</span>
         </button>
 
         <button
@@ -1050,9 +1060,9 @@ export default function QuranClient({
           }}
         >
           <i className="fa-solid fa-kaaba"></i>
-          <span>Khataman 30 Juz</span>
+          <span>{t.quran.tab_khatam}</span>
           <span className="live-pill khatam-live-pill">
-            {khatamCompletedCount}/30 Selesai
+            {khatamCompletedCount}/30 {t.quran.completed}
           </span>
         </button>
       </div>

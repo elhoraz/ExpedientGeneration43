@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   ASMAUL_HUSNA_DATA,
   ASMA_CATEGORIES,
@@ -14,6 +15,7 @@ type TabType = "gallery" | "tasbih" | "player" | "favorites";
 type StoryTheme = "obsidian" | "emerald" | "ivory";
 
 export default function AsmaulHusnaClient() {
+  const { t } = useLanguage();
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<TabType>("gallery");
 
@@ -578,7 +580,7 @@ export default function AsmaulHusnaClient() {
         {/* Top Back Action */}
         <div className="asma-top-actions">
           <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+            <i className="fa-solid fa-arrow-left"></i> {t.asmaul_husna.back_to_features}
           </Link>
         </div>
 
@@ -588,9 +590,9 @@ export default function AsmaulHusnaClient() {
             <span>✨</span>
             <span>Khazanah Asma Agung</span>
           </div>
-          <h1 className="asma-title">99 ASMAUL HUSNA</h1>
+          <h1 className="asma-title">{t.asmaul_husna.title}</h1>
           <p className="asma-subtitle">
-            Eksplorasi spiritual 99 Nama Agung Allah SWT, lembar tadabbur & dalil Al-Qur'an, mode tasbih haptic terdedikasi per asma, dan pemutar murattal sekuensial.
+            {t.asmaul_husna.subtitle}
           </p>
         </header>
 
@@ -602,7 +604,7 @@ export default function AsmaulHusnaClient() {
             onClick={() => setActiveTab("gallery")}
           >
             <span>💎</span>
-            <span>Galeri 99 Nama</span>
+            <span>{t.asmaul_husna.tab_gallery}</span>
           </button>
           <button
             type="button"
@@ -610,7 +612,7 @@ export default function AsmaulHusnaClient() {
             onClick={() => setActiveTab("tasbih")}
           >
             <span>📿</span>
-            <span>Tasbih Dzikir</span>
+            <span>{t.asmaul_husna.tab_tasbih}</span>
           </button>
           <button
             type="button"
@@ -618,7 +620,7 @@ export default function AsmaulHusnaClient() {
             onClick={() => setActiveTab("player")}
           >
             <span>🎧</span>
-            <span>Muroja'ah Audio</span>
+            <span>{t.asmaul_husna.tab_murottal}</span>
           </button>
           <button
             type="button"

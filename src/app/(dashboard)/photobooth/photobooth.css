@@ -2079,3 +2079,132 @@
   }
 }
 
+/* ==========================================================================
+   AEGIS PHOTOBOOTH — FULL LIGHT THEME (ROYAL PEARL & OBSIDIAN GOLD)
+   ========================================================================== */
+:root[data-theme="light"] .photobooth-page {
+  background: radial-gradient(circle at 50% 15%, rgba(212, 175, 55, 0.15) 0%, #f8fafc 70%);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .studio-title {
+  color: #0f172a;
+  text-shadow: none;
+}
+
+:root[data-theme="light"] .studio-subtitle {
+  color: #475569;
+}
+
+:root[data-theme="light"] .studio-badge {
+  background: rgba(170, 119, 28, 0.12);
+  border-color: rgba(170, 119, 28, 0.4);
+  color: #aa771c;
+  box-shadow: 0 4px 16px rgba(170, 119, 28, 0.15);
+}
+
+:root[data-theme="light"] .live-mode-toggle-bar {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(170, 119, 28, 0.35);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .live-mode-btn {
+  color: #475569;
+}
+
+:root[data-theme="light"] .live-mode-btn:hover {
+  color: #aa771c;
+  background: rgba(170, 119, 28, 0.08);
+}
+
+:root[data-theme="light"] .live-mode-btn.active {
+  background: linear-gradient(135deg, #aa771c 0%, #d4af37 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(170, 119, 28, 0.35);
+}
+
+:root[data-theme="light"] .camera-studio-box,
+:root[data-theme="light"] .studio-sidebar-box,
+:root[data-theme="light"] .results-panel-box {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(170, 119, 28, 0.3);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 0 20px rgba(170, 119, 28, 0.05);
+}
+
+:root[data-theme="light"] .tool-section-title,
+:root[data-theme="light"] .results-header-title {
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .layout-card-option {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .layout-card-option.active {
+  background: rgba(170, 119, 28, 0.12);
+  border-color: #aa771c;
+  box-shadow: 0 4px 16px rgba(170, 119, 28, 0.2);
+}
+
+:root[data-theme="light"] .layout-label {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .filter-pill-btn,
+:root[data-theme="light"] .aspect-pill-btn {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #475569;
+}
+
+:root[data-theme="light"] .filter-pill-btn:hover,
+:root[data-theme="light"] .aspect-pill-btn:hover {
+  background: rgba(170, 119, 28, 0.08);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .filter-pill-btn.active,
+:root[data-theme="light"] .aspect-pill-btn.active {
+  background: #aa771c;
+  border-color: #aa771c;
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .frame-chip {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .frame-chip.active {
+  border-color: #aa771c;
+  box-shadow: 0 0 12px rgba(170, 119, 28, 0.35);
+}
+
+:root[data-theme="light"] .btn-studio-action.btn-secondary {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #334155;
+}
+
+:root[data-theme="light"] .btn-studio-action.btn-secondary:hover {
+  background: rgba(170, 119, 28, 0.1);
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .btn-back {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #aa771c;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .btn-back:hover {
+  background: #fdf8eb;
+  border-color: #aa771c;
+  color: #78350f;
+}
+
+

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   MATSURAT_ITEMS,
   MatsuratItem,
@@ -11,6 +12,7 @@ import {
 import "./matsurat.css";
 
 export default function MatsuratClient() {
+  const { t } = useLanguage();
   // 1. Inisialisasi waktu otomatis (Pagi: 04.00 - 15.00, Petang: 15.00 - 04.00)
   const [time, setTime] = useState<MatsuratTime>(() => {
     if (typeof window !== "undefined") {
@@ -358,7 +360,7 @@ export default function MatsuratClient() {
         {/* Top Back Action */}
         <div className="matsurat-top-actions">
           <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+            <i className="fa-solid fa-arrow-left"></i> {t.matsurat.back_to_features}
           </Link>
         </div>
 
@@ -366,11 +368,11 @@ export default function MatsuratClient() {
         <div className="matsurat-header">
           <div className="matsurat-title-badge">
             <i className={`fa-solid ${time === "pagi" ? "fa-sun" : "fa-moon"}`}></i>
-            &nbsp;Amalan Harian Santri & Alumni
+            &nbsp;{t.matsurat.badge}
           </div>
-          <h1 className="matsurat-title">Al-Ma’tsurat</h1>
+          <h1 className="matsurat-title">{t.matsurat.title}</h1>
           <p className="matsurat-subtitle">
-            Untaian doa pelindung jiwa dan penentram batin yang diajarkan Rasulullah SAW di waktu fajar dan senja.
+            {t.matsurat.subtitle}
           </p>
         </div>
 
@@ -384,14 +386,14 @@ export default function MatsuratClient() {
                 className={`btn-pill-toggle ${time === "pagi" ? "active" : ""}`}
                 onClick={() => setTime("pagi")}
               >
-                <i className="fa-solid fa-sun" style={{ color: "#f59e0b" }}></i> Dzikir Pagi
+                <i className="fa-solid fa-sun" style={{ color: "#f59e0b" }}></i> {t.matsurat.morning}
               </button>
               <button
                 type="button"
                 className={`btn-pill-toggle ${time === "petang" ? "active" : ""}`}
                 onClick={() => setTime("petang")}
               >
-                <i className="fa-solid fa-moon" style={{ color: "#38bdf8" }}></i> Dzikir Petang
+                <i className="fa-solid fa-moon" style={{ color: "#38bdf8" }}></i> {t.matsurat.evening}
               </button>
             </div>
 
@@ -403,7 +405,7 @@ export default function MatsuratClient() {
                 onClick={() => setType("sughro")}
                 title="Edisi Inti Ringkas"
               >
-                Sughro
+                {t.matsurat.sughro}
               </button>
               <button
                 type="button"
@@ -411,7 +413,7 @@ export default function MatsuratClient() {
                 onClick={() => setType("kubro")}
                 title="Edisi Lengkap Sempurna"
               >
-                Kubro
+                {t.matsurat.kubro}
               </button>
             </div>
 

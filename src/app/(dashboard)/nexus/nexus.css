@@ -41,3 +41,74 @@
     .nexus-page-wrapper .match-grid { grid-template-columns: 1fr; gap: 16px; margin-top: 25px; }
     .nexus-page-wrapper .match-card { padding: 24px 16px; border-radius: 16px; }
 }
+
+/* ==========================================================================
+   NEXUS LIGHT THEME SUPPORT
+   ========================================================================== */
+:root[data-theme="light"] .nexus-page-wrapper .btn-back {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    color: #aa771c;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .nexus-title {
+    color: #aa771c;
+    text-shadow: none;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .nexus-subtitle {
+    color: #475569;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .nexus-sphere {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.35);
+    box-shadow: inset 0 0 50px rgba(170, 119, 28, 0.08), 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .nexus-core-text {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .match-card {
+    background: #ffffff;
+    border-color: rgba(170, 119, 28, 0.25);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .match-name {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .match-category {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .match-avatar {
+    border-color: #aa771c;
+    background: #ffffff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .btn-connect {
+    border-color: #aa771c;
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .btn-connect:hover {
+    background: #aa771c;
+    color: #ffffff;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .btn-reanalyze {
+    background: rgba(170, 119, 28, 0.1);
+    border-color: rgba(170, 119, 28, 0.4);
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .nexus-page-wrapper .btn-reanalyze:hover {
+    background: #aa771c;
+    color: #ffffff;
+}
+

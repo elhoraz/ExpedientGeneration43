@@ -73,6 +73,54 @@
     .multazam-page-wrapper .page-subtitle { text-align: left; }
     .multazam-page-wrapper .vip-ticket { max-width: 320px; height: 550px; margin: 0 auto; }
     .multazam-page-wrapper .action-buttons { flex-direction: column; width: 100%; max-width: 320px; }
-    .multazam-page-wrapper .btn-wallet, .multazam-page-wrapper .btn-secondary { width: 100%; justify-content: center; }
     .multazam-page-wrapper .prayer-panel { width: 100%; right: -100%; padding: 30px 20px; }
 }
+
+/* ==========================================================================
+   MULTAZAM LIGHT THEME SUPPORT
+   ========================================================================== */
+:root[data-theme="light"] .multazam-page-wrapper {
+  --gold-main: #aa771c;
+  --gold-dark: #8c5e11;
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .btn-back {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #aa771c;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .vip-ticket {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.3);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .page-subtitle {
+  color: #64748b;
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .btn-wallet {
+  background: #aa771c;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(170, 119, 28, 0.25);
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .prayer-panel {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.3);
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .prayer-card {
+  background: rgba(170, 119, 28, 0.04);
+  border-color: rgba(170, 119, 28, 0.3);
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .prayer-form textarea {
+  background: #f8fafc;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+}
+

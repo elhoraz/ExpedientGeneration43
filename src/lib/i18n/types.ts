@@ -639,4 +639,108 @@ export interface Dictionary {
     switch_camera: string;
     timer_label: string;
   };
+  quran: {
+    title: string;
+    subtitle: string;
+    tab_mushaf: string;
+    tab_surah: string;
+    tab_khatam: string;
+    method_5h: string;
+    completed: string;
+    search_placeholder: string;
+    surah_count: string;
+    juz_select_label: string;
+    page_label: string;
+    prev_page: string;
+    next_page: string;
+    jump_page: string;
+    reading_mode: string;
+    per_verse: string;
+    full_surah: string;
+    translation_toggle: string;
+    latin_toggle: string;
+    audio_playing: string;
+    audio_paused: string;
+    audio_speed: string;
+    back_to_features: string;
+    khatam_ribbon_active: string;
+    khatam_claim_btn: string;
+  };
+  matsurat: {
+    title: string;
+    subtitle: string;
+    badge: string;
+    morning: string;
+    evening: string;
+    sughro: string;
+    kubro: string;
+    play_audio: string;
+    pause_audio: string;
+    counter_label: string;
+    reset: string;
+    back_to_features: string;
+    target_completed: string;
+  };
+  asmaul_husna: {
+    title: string;
+    subtitle: string;
+    search_placeholder: string;
+    tab_gallery: string;
+    tab_tasbih: string;
+    tab_murottal: string;
+    meaning_label: string;
+    dalil_label: string;
+    share_story: string;
+    back_to_features: string;
+  };
+  mahfuzhat: {
+    title: string;
+    subtitle: string;
+    category_all: string;
+    category_adab: string;
+    category_ilmu: string;
+    category_kesabaran: string;
+    category_ukhuwah: string;
+    copy_text: string;
+    share_story: string;
+    back_to_features: string;
+  };
+  sirah: {
+    title: string;
+    subtitle: string;
+    history_pondok: string;
+    history_nabawi: string;
+    chronology: string;
+    view_map: string;
+    back_to_features: string;
+  };
+  tasbih: {
+    title: string;
+    subtitle: string;
+    tap_count: string;
+    target_label: string;
+    reset_btn: string;
+    sound_toggle: string;
+    vibrate_toggle: string;
+    back_to_features: string;
+  };
+  kiblat: {
+    title: string;
+    subtitle: string;
+    compass_heading: string;
+    qibla_angle: string;
+    distance_label: string;
+    calibrate_hint: string;
+    back_to_features: string;
+  };
+  download: {
+    title: string;
+    subtitle: string;
+    btn_apk: string;
+    btn_ios: string;
+    guide_title: string;
+    faq_title: string;
+    back_home: string;
+  };
 }
+

@@ -447,3 +447,40 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   ONBOARDING LIGHT THEME SUPPORT
+   ========================================================================== */
+:root[data-theme="light"] .onboarding-tooltip {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #0f172a;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 0 25px rgba(170, 119, 28, 0.08);
+}
+
+:root[data-theme="light"] .onboarding-tooltip-title {
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .onboarding-tooltip-desc {
+  color: #475569;
+}
+
+:root[data-theme="light"] .onboarding-step-badge {
+  color: #64748b;
+}
+
+:root[data-theme="light"] .welcome-modal {
+  background: #ffffff !important;
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .welcome-title {
+  color: #aa771c;
+}
+
+:root[data-theme="light"] .welcome-desc {
+  color: #475569;
+}
+

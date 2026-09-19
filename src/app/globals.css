@@ -68,11 +68,13 @@ a {
 html[data-theme="light"] {
   color-scheme: light !important;
   background-color: #f8fafc;
+  --text-main: #0f172a;
 }
 
 html[data-theme="dark"] {
   color-scheme: dark !important;
   background-color: #060b14;
+  --text-main: #ffffff;
 }
 
 html,
@@ -601,5 +603,60 @@ body {
   animation-duration: 0.25s;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* =========================================================================
+   UNIVERSAL BACK BUTTON (.btn-back & .btn-back-vault)
+   ========================================================================= */
+.btn-back,
+.btn-back-vault {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(14, 18, 27, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 9999px;
+  color: var(--gold-main, #d4af37);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  z-index: 50;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  min-height: 40px;
+}
+
+.btn-back:hover,
+.btn-back-vault:hover {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: #ffd700;
+  color: #ffffff;
+  transform: translateX(-3px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+
+:root[data-theme="light"] .btn-back,
+:root[data-theme="light"] .btn-back-vault,
+[data-theme="light"] .btn-back,
+[data-theme="light"] .btn-back-vault {
+  background: #ffffff !important;
+  border: 1px solid rgba(170, 119, 28, 0.35) !important;
+  color: #aa771c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+:root[data-theme="light"] .btn-back:hover,
+:root[data-theme="light"] .btn-back-vault:hover,
+[data-theme="light"] .btn-back:hover,
+[data-theme="light"] .btn-back-vault:hover {
+  background: #fdf8eb !important;
+  border-color: #aa771c !important;
+  color: #78350f !important;
+  box-shadow: 0 6px 18px rgba(170, 119, 28, 0.18) !important;
+}
+
 
 
