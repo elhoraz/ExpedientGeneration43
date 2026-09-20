@@ -102,113 +102,145 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           {/* 60 FPS Lightweight Celestial Canvas Background */}
           <CelestialParticles />
 
-          {/* Almamater Prestige Pill Tag */}
-          <div className="landing-prestige-badge">
-            <span className="badge-shimmer"></span>
-            <i className="fa-solid fa-certificate"></i>
-            <span>{t.hero.badge}</span>
+          {/* Almamater Dignified Tag */}
+          <div className="tuku-heritage-badge">
+            <span className="badge-bullet">⚜️</span>
+            <span>PONDOK MODERN ARRISALAH • KELAS 2025</span>
           </div>
 
-          <div className="landing-logo-container">
-            <div className="logo-ring"></div>
-            <div className="logo-ring-outer"></div>
+          {/* Clean Logo with Interactive Embossed Pesantren Stamp */}
+          <div className="tuku-logo-wrapper">
             <Image
               src={getCms(cms, "landing_hero_image", "/images/logo-utuh.webp")}
-              alt="Expedient Generation"
-              width={190}
-              height={190}
+              alt="Expedient Generation 43"
+              width={150}
+              height={150}
               priority
-              className="logo-img"
+              className="tuku-logo-img"
               unoptimized={getCms(cms, "landing_hero_image", "/images/logo-utuh.webp").startsWith("data:")}
             />
+            {/* Interactive Stamp - Cap Resmi Pesantren Arrisalah */}
+            <div className="tuku-interactive-stamp" title="Cap Resmi Santri Angkatan 43 Arrisalah">
+              <svg viewBox="0 0 100 100" className="stamp-svg-ring">
+                <path
+                  id="stampCurvePath"
+                  d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0"
+                  fill="none"
+                />
+                <text className="stamp-curved-text">
+                  <textPath href="#stampCurvePath" startOffset="0%">
+                    ✦ EXPEDIENT 43 ✦ ARRISALAH SLAHUNG ✦ EST. 1982 ✦
+                  </textPath>
+                </text>
+              </svg>
+              <div className="stamp-center-emblem">43</div>
+            </div>
           </div>
 
-          <p className="landing-eyebrow">
-            {locale === "id" ? getCms(cms, "landing_hero_eyebrow", t.hero.eyebrow) : t.hero.eyebrow}
+          <p className="landing-eyebrow-tuku">
+            {locale === "id" ? "WARISAN & UKHUWAH SANTRI" : "HERITAGE & FELLOWSHIP"}
           </p>
 
-          <h1 className="landing-title">
-            {locale === "id" ? getCms(cms, "landing_hero_title", t.hero.title) : t.hero.title}
+          <h1 className="landing-title-tuku">
+            Expedient Generation
           </h1>
 
-          <p className="landing-subtitle">
-            {locale === "id" ? getCms(cms, "landing_hero_subtitle", t.hero.subtitle) : t.hero.subtitle}
+          <p className="landing-subtitle-tuku">
+            {locale === "id"
+              ? "Rumah temu digital dan arsip kenangan alumni angkatan ke-43. Merawat hangatnya ukhuwah dari kawah candradimuka Slahung hingga penjuru peradaban dunia."
+              : t.hero.subtitle}
           </p>
 
-          {/* Location Origin Anchor */}
-          <div className="landing-origin-chip">
-            <i className="fa-solid fa-location-dot"></i>
-            <span>{t.hero.origin_loc}</span>
-            <span className="origin-divider">•</span>
-            <span className="origin-coords">{t.hero.origin_coords}</span>
-            <span className="origin-divider">➔</span>
-            <span className="origin-dest">{t.hero.origin_dest}</span>
-          </div>
-
-          {/* Official Cohort Identity & Instagram Badge */}
-          <div className="landing-cohort-bar">
+          {/* Official Cohort Instagram & Motto Touchpoint */}
+          <div className="tuku-ig-bar">
             <a
               href="https://www.instagram.com/expedientgeneration_/"
               target="_blank"
               rel="noopener noreferrer"
-              className="landing-ig-chip"
-              title="Instagram Resmi Angkatan 43 Arrisalah Slahung: @expedientgeneration_"
+              className="tuku-ig-link"
+              title="Instagram Resmi Angkatan 43: @expedientgeneration_"
             >
               <i className="fa-brands fa-instagram"></i>
-              <span className="ig-handle">@expedientgeneration_</span>
-              <span className="ig-divider">•</span>
-              <span className="ig-tagline"><i className="fa-solid fa-crown"></i> The Successor of Islamic Glory</span>
+              <span className="tuku-ig-handle">@expedientgeneration_</span>
+              <span className="tuku-ig-sep">•</span>
+              <span className="tuku-ig-tag">The Successor of Islamic Glory</span>
             </a>
           </div>
 
-          {/* Action Button Group */}
-          <div className="cta-group">
-            <Link href="/beranda" className="btn-primary" id="ctaExplore">
-              <i className="fa-solid fa-landmark"></i> {t.hero.cta_explore}
+          {/* Action Button Group - Focused, Uncrowded */}
+          <div className="tuku-cta-row">
+            <Link href="/beranda" className="btn-tuku-primary" id="ctaExplore">
+              <i className="fa-solid fa-compass"></i> {t.hero.cta_explore}
             </Link>
-            <Link
-              href="/download"
-              className="btn-secondary btn-app-download"
-              id="ctaDownload"
-              title="Unduh Expedient Mobile App (.APK) untuk Android"
-            >
-              <i className="fa-brands fa-android"></i> {t.hero.cta_download}
-            </Link>
-            <Link href="/login" className="btn-secondary" id="ctaLogin" title="Khusus Anggota Alumni">
+            <Link href="/login" className="btn-tuku-secondary" id="ctaLogin" title="Khusus Anggota Alumni">
               <i className="fa-solid fa-circle-user"></i> {t.hero.cta_login}
             </Link>
           </div>
 
-          {/* Key Facts Stats Counter Row */}
-          <div className="stats-row">
-            <div className="stat-item">
-              <div className="stat-number" id="counterAlumni">
-                {totalAlumni || 240}
-              </div>
-              <div className="stat-label">{t.hero.stat_alumni_label}</div>
+          {/* Compact Single-Row Stats Ribbon (Bebas Sesak di HP) */}
+          <div className="tuku-stats-ribbon">
+            <div className="tuku-stat-item">
+              <span className="tuku-stat-num" id="counterAlumni">{totalAlumni || 240}</span>
+              <span className="tuku-stat-lbl">{t.hero.stat_alumni_label}</span>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">{t.hero.stat_grad_year}</div>
-              <div className="stat-label">{t.hero.stat_grad_label}</div>
+            <div className="tuku-stat-divider">/</div>
+            <div className="tuku-stat-item">
+              <span className="tuku-stat-num">{t.hero.stat_grad_year}</span>
+              <span className="tuku-stat-lbl">{t.hero.stat_grad_label}</span>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">{t.hero.stat_gen_num}</div>
-              <div className="stat-label">{t.hero.stat_gen_label}</div>
+            <div className="tuku-stat-divider">/</div>
+            <div className="tuku-stat-item">
+              <span className="tuku-stat-num">43</span>
+              <span className="tuku-stat-lbl">Generasi</span>
             </div>
-            <div className="stat-item">
-              <div className="stat-number">{t.hero.stat_ukhuwah_num}</div>
-              <div className="stat-label">{t.hero.stat_ukhuwah_label}</div>
+            <div className="tuku-stat-divider">/</div>
+            <div className="tuku-stat-item">
+              <span className="tuku-stat-num">100%</span>
+              <span className="tuku-stat-lbl">Ukhuwah</span>
             </div>
           </div>
-
-          {/* Daily Wisdom & Hijri Calendar Widget */}
-          <DailyWisdomWidget />
 
           <div className="scroll-hint">
             <span>{t.hero.scroll_hint}</span>
             <div className="scroll-line"></div>
           </div>
         </section>
+
+        {/* ====== TUKU-STYLE RUNNING TICKER RIBBON (CSS-ONLY, ULTRA LIGHTWEIGHT) ====== */}
+        <div className="tuku-running-ribbon" aria-hidden="true">
+          <div className="tuku-ticker-track">
+            <span className="ticker-segment">⚜️ EXPEDIENT 43</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">PONDOK MODERN ARRISALAH SLAHUNG</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">PANGGUNG GEMBIRA 643 (18 JULI 2024)</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">THE SUCCESSOR OF ISLAMIC GLORY</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">240 SANTRI BERUKHUWAH</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">@expedientgeneration_</span>
+            <span className="ticker-dot">✦</span>
+            {/* Duplicate for seamless infinite loop */}
+            <span className="ticker-segment">⚜️ EXPEDIENT 43</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">PONDOK MODERN ARRISALAH SLAHUNG</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">PANGGUNG GEMBIRA 643 (18 JULI 2024)</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">THE SUCCESSOR OF ISLAMIC GLORY</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">240 SANTRI BERUKHUWAH</span>
+            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">@expedientgeneration_</span>
+            <span className="ticker-dot">✦</span>
+          </div>
+        </div>
+
+        {/* Daily Wisdom Note (Secarik Nasihat Mahfuzhat Santri) */}
+        <div className="tuku-wisdom-section">
+          <DailyWisdomWidget />
+        </div>
 
         {/* ====== SECTION 1: SEJARAH & NAPAK TILAS PONDOK 1982 ====== */}
         <HistoryTimeline />
