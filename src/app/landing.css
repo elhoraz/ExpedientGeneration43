@@ -236,6 +236,14 @@
   margin-bottom: 22px;
   opacity: 0;
   animation: fadeUp 0.8s ease-out 0.2s forwards;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
+}
+
+.tuku-heritage-badge:hover {
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(212, 175, 55, 0.65);
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.18);
 }
 
 :root[data-theme="light"] .tuku-heritage-badge {
@@ -283,7 +291,8 @@
   cursor: pointer;
   user-select: none;
   transform: rotate(-5deg);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease, filter 0.2s ease;
+  will-change: transform;
 }
 
 :root[data-theme="light"] .tuku-interactive-stamp {
@@ -292,10 +301,20 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
-.tuku-interactive-stamp:hover,
-.tuku-interactive-stamp:active {
-  transform: rotate(12deg) scale(1.12);
+.tuku-interactive-stamp:hover {
+  transform: rotate(12deg) scale(1.1) translateY(-2px);
   border-color: #ffd700;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.35), inset 0 0 14px rgba(212, 175, 55, 0.25);
+}
+
+/* Tactile Ink Stamp Press Effect (Sensasi Cap Tinta Fisik Menekan Kertas) */
+.tuku-interactive-stamp:active {
+  transform: rotate(-3deg) scale(0.92) translateY(4px);
+  border-color: #d4af37;
+  border-style: solid;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 3px 8px rgba(0, 0, 0, 0.7) !important;
+  filter: brightness(0.92) contrast(1.1);
+  transition-duration: 0.1s;
 }
 
 .stamp-svg-ring {
@@ -407,7 +426,8 @@
   color: var(--text-primary);
   text-decoration: none;
   font-size: clamp(0.76rem, 1.5vw, 0.84rem);
-  transition: all 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
 }
 
 :root[data-theme="light"] .tuku-ig-link {
@@ -418,7 +438,13 @@
 .tuku-ig-link:hover {
   background: rgba(212, 175, 55, 0.12);
   border-color: #d4af37;
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.15);
+}
+
+.tuku-ig-link:active {
+  transform: translateY(1.5px) scale(0.97);
+  transition-duration: 0.1s;
 }
 
 .tuku-ig-link i.fa-instagram {
@@ -474,15 +500,23 @@
   font-size: 0.85rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, filter 0.2s ease;
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
   flex: 1;
   min-width: 190px;
+  will-change: transform;
 }
 
 .btn-tuku-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(212, 175, 55, 0.45);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(212, 175, 55, 0.48);
+}
+
+.btn-tuku-primary:active {
+  transform: translateY(2px) scale(0.96);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.25) !important;
+  filter: brightness(0.95);
+  transition-duration: 0.1s;
 }
 
 .btn-tuku-secondary {
@@ -499,9 +533,10 @@
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.5px;
-  transition: all 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   flex: 1;
   min-width: 160px;
+  will-change: transform;
 }
 
 :root[data-theme="light"] .btn-tuku-secondary {
@@ -513,7 +548,15 @@
 .btn-tuku-secondary:hover {
   background: rgba(212, 175, 55, 0.12);
   border-color: #d4af37;
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.2);
+}
+
+.btn-tuku-secondary:active {
+  transform: translateY(2px) scale(0.96);
+  background: rgba(212, 175, 55, 0.18);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+  transition-duration: 0.1s;
 }
 
 /* Compact Stats Ribbon */
@@ -1904,11 +1947,24 @@
   border: 1px solid rgba(212, 175, 55, 0.25);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease;
+  will-change: transform;
 }
 
 :root[data-theme="light"] .history-tab-item {
   background: rgba(255, 255, 255, 0.85);
+}
+
+.history-tab-item:hover {
+  transform: translateY(-3px) scale(1.02);
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.history-tab-item:active {
+  transform: translateY(2px) scale(0.96);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transition-duration: 0.1s;
 }
 
 .history-tab-item.active {
@@ -2231,12 +2287,25 @@
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: all 0.35s ease;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  will-change: transform;
 }
 
 :root[data-theme="light"] .wisdom-card {
   background: rgba(255, 255, 255, 0.88);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+.wisdom-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  border-color: rgba(212, 175, 55, 0.65);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 25px rgba(212, 175, 55, 0.15);
+}
+
+.wisdom-card:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  transition-duration: 0.1s;
 }
 
 .wisdom-card-top {
@@ -3229,8 +3298,9 @@
   color: var(--text-primary);
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: all 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   user-select: none;
+  will-change: transform;
 }
 
 :root[data-theme="light"] .tuku-audio-btn {
@@ -3241,8 +3311,14 @@
 
 .tuku-audio-btn:hover {
   border-color: #d4af37;
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+
+.tuku-audio-btn:active {
+  transform: translateY(2px) scale(0.96);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  transition-duration: 0.1s;
 }
 
 .tuku-audio-btn.playing {
@@ -3355,6 +3431,12 @@
   transform: rotate(0deg) translateY(-8px) scale(1.04);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(212, 175, 55, 0.25);
   z-index: 10;
+}
+
+.polaroid-card:active {
+  transform: scale(0.97) translateY(2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition-duration: 0.12s;
 }
 
 .polaroid-tape {
