@@ -243,14 +243,58 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           <DailyWisdomWidget />
         </div>
 
+        {/* Islamic Heritage Flourish Divider 1 */}
+        <div className="islamic-flourish-divider" aria-hidden="true">
+          <div className="flourish-line"></div>
+          <div className="flourish-center">
+            <span className="flourish-star">✦</span>
+            <span className="flourish-emblem">⚜️</span>
+            <span className="flourish-star">✦</span>
+          </div>
+          <div className="flourish-line"></div>
+        </div>
+
         {/* ====== SECTION 1: SEJARAH & NAPAK TILAS PONDOK 1982 ====== */}
         <HistoryTimeline />
+
+        {/* Islamic Heritage Flourish Divider 2 */}
+        <div className="islamic-flourish-divider" aria-hidden="true">
+          <div className="flourish-line"></div>
+          <div className="flourish-center">
+            <span className="flourish-star">✦</span>
+            <span className="flourish-emblem">📜</span>
+            <span className="flourish-star">✦</span>
+          </div>
+          <div className="flourish-line"></div>
+        </div>
 
         {/* ====== SECTION 2: LEMBARAN POLAROID & KENANGAN SANTRI ====== */}
         <PolaroidMemories />
 
+        {/* Islamic Heritage Flourish Divider 3 */}
+        <div className="islamic-flourish-divider" aria-hidden="true">
+          <div className="flourish-line"></div>
+          <div className="flourish-center">
+            <span className="flourish-star">✦</span>
+            <span className="flourish-emblem">🕌</span>
+            <span className="flourish-star">✦</span>
+          </div>
+          <div className="flourish-line"></div>
+        </div>
+
         {/* ====== SECTION 3: KALAM HIKMAH & NASEHAT ASATIDZ ====== */}
         <WisdomAsatidz />
+
+        {/* Islamic Heritage Flourish Divider 4 */}
+        <div className="islamic-flourish-divider" aria-hidden="true">
+          <div className="flourish-line"></div>
+          <div className="flourish-center">
+            <span className="flourish-star">✦</span>
+            <span className="flourish-emblem">⚜️</span>
+            <span className="flourish-star">✦</span>
+          </div>
+          <div className="flourish-line"></div>
+        </div>
 
         {/* ====== SECTION 3: ALMAMATER HERITAGE (BUMI SLAHUNG) ====== */}
         <section className="heritage-section" id="almamater">

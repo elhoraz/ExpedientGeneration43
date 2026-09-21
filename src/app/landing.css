@@ -3566,4 +3566,70 @@
   transform: translateY(-2px);
 }
 
+/* ========================================================
+   ISLAMIC HERITAGE FLOURISH DIVIDER (ARTISANAL SEPARATOR)
+   Pure CSS, Delicate Gold Gradient, Arabesque Geometry
+======================================================== */
+.islamic-flourish-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 680px;
+  margin: 36px auto;
+  padding: 0 20px;
+  position: relative;
+  user-select: none;
+  pointer-events: none;
+}
+
+.flourish-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.45) 50%, transparent);
+}
+
+.flourish-center {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: transparent;
+}
+
+.flourish-star {
+  color: #d4af37;
+  font-size: 0.65rem;
+  opacity: 0.75;
+}
+
+.flourish-emblem {
+  font-size: 0.95rem;
+  filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.35));
+}
+
+:root[data-theme="light"] .flourish-line {
+  background: linear-gradient(90deg, transparent, rgba(184, 151, 47, 0.4) 50%, transparent);
+}
+
+:root[data-theme="light"] .flourish-star {
+  color: #8c6d1f;
+}
+
+@media (max-width: 640px) {
+  .islamic-flourish-divider {
+    margin: 22px auto;
+    max-width: 90%;
+  }
+  .flourish-center {
+    gap: 6px;
+    padding: 0 10px;
+  }
+  .flourish-star {
+    font-size: 0.55rem;
+  }
+  .flourish-emblem {
+    font-size: 0.85rem;
+  }
+}
+
 
