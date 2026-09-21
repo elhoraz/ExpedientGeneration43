@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import ThemeToggle from "@/components/layout/ThemeToggle";
 import "./tasbih.css";
 
 interface DzikirItem {
@@ -232,7 +231,6 @@ export default function TasbihClient() {
           <Link href="/fitur" className="btn-back">
             <i className="fa-solid fa-arrow-left"></i> {t.tasbih.back_to_features}
           </Link>
-          <ThemeToggle />
         </div>
 
         {/* Header */}

@@ -71,7 +71,9 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </nav>
 
         <div className="nav-actions">
-          <LanguageSwitcher variant="pill" />
+          <div className="landing-desktop-lang">
+            <LanguageSwitcher variant="pill" />
+          </div>
           <ThemeToggle />
           <Link href="/login" className="nav-link nav-login-link" title={t.hero.cta_login}>
             <i className="fa-solid fa-circle-user"></i>

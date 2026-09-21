@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import ThemeToggle from "@/components/layout/ThemeToggle";
 import "./khatam.css";
 
 const ARABIC_NUMS = ["", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "١٠",
@@ -123,7 +122,6 @@ export default function KhatamClient({
           <Link href="/fitur" className="btn-khatam-back">
             <i className="fa-solid fa-chevron-left"></i> Fitur
           </Link>
-          <ThemeToggle />
         </div>
 
         <div className="khatam-header-box">

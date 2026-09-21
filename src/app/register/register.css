@@ -555,6 +555,22 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
     .floating-nav { left: 16px; }
     .theme-widget { right: 16px; }
     .widget-text { display: none; }
+
+    .register-top-bar {
+        top: max(16px, env(safe-area-inset-top, 16px)) !important;
+        right: max(16px, env(safe-area-inset-right, 16px)) !important;
+        gap: 8px !important;
+    }
+
+    .register-top-bar .theme-widget,
+    .register-top-bar .lang-widget {
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        left: auto !important;
+        bottom: auto !important;
+        margin: 0 !important;
+    }
 }
 
 [data-perf="lite"] .register-page {

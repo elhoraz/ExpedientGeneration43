@@ -1761,25 +1761,147 @@
 }
 
 /* ====== 9. MOBILE PERFORMANCE OPTIMIZATION ====== */
-@media (max-width: 768px), (pointer: coarse) {
+@media (max-width: 859px) {
   .landing-nav-island {
-    top: 10px;
-    padding: 8px 14px;
+    top: max(8px, env(safe-area-inset-top, 8px));
+    padding: 6px 12px;
+    width: calc(100% - 20px);
+    max-width: 100%;
+    gap: 6px;
+    justify-content: space-between;
   }
 
-  /* Keep mobile navbar minimal & untouched - language switcher available in footer */
+  .landing-nav-island .nav-brand {
+    gap: 8px;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+  }
+
+  .landing-nav-island .nav-logo-wrap {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  .landing-nav-island .nav-logo-img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .landing-nav-island .brand-title {
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .landing-nav-island .brand-subtitle {
+    font-size: 0.52rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .landing-nav-island .nav-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* Hide desktop-only elements in mobile navbar */
+  .landing-desktop-lang,
   .landing-nav-island .lang-widget,
-  .landing-nav-island .lang-switcher-container {
+  .landing-nav-island .lang-compact-group,
+  .landing-nav-island .lang-switcher-container,
+  .landing-nav-island .nav-login-link {
     display: none !important;
   }
 
-  .nav-btn-portal span {
-    display: none;
+  /* Button 1: Theme Toggle (Clean 36x36 circular button) */
+  .landing-nav-island .theme-widget {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(212, 175, 55, 0.35) !important;
+    background: rgba(212, 175, 55, 0.12) !important;
+    flex-shrink: 0 !important;
   }
 
-  .nav-btn-portal {
-    padding: 8px 12px;
+  .landing-nav-island .theme-widget .icon-orb {
+    width: 100% !important;
+    height: 100% !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--text-primary) !important;
   }
+
+  .landing-nav-island .theme-widget .widget-text {
+    display: none !important;
+  }
+
+  /* Button 2: Jelajahi Museum Portal (Clean 36x36 circular button) */
+  .landing-nav-island .nav-btn-portal {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+  }
+
+  .landing-nav-island .nav-btn-portal span {
+    display: none !important;
+  }
+
+  .landing-nav-island .nav-btn-portal i {
+    font-size: 0.92rem !important;
+    margin: 0 !important;
+  }
+
+  /* Button 3: Hamburger Menu (Clean 36x36 circular button) */
+  .landing-nav-island .nav-hamburger-btn {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+@media (max-width: 768px), (pointer: coarse) {
 
   .pillar-card,
   .bento-card,
@@ -3113,6 +3235,17 @@
   justify-content: space-between;
   padding-bottom: 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 12px;
+}
+
+.drawer-quick-actions .theme-widget,
+.drawer-quick-actions .lang-widget {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  margin: 0 !important;
 }
 
 .drawer-section-label {

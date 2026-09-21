@@ -164,6 +164,16 @@ body.page-admin .btn-cancel:hover { border-color: var(--text-primary); color: va
     transform: translateY(-5px) scale(1.05);
     box-shadow: 0 15px 40px rgba(212,175,55,0.7);
 }
+
+@media (max-width: 768px) {
+    .batch-save-widget {
+        bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
+        left: 16px;
+        right: auto;
+        padding: 10px 18px;
+        font-size: 0.78rem;
+    }
+}
 .batch-save-count {
     background: #000;
     color: #d4af37;

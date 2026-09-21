@@ -268,6 +268,32 @@ body.sidebar-closed .floating-help-btn {
                 visibility 0.35s !important;
 }
 
+/* ANTI-OVERLAP: Prevent fixed widget positioning inside flex navbars and headers */
+.landing-nav-island .theme-widget,
+.landing-nav-island .lang-widget,
+.drawer-quick-actions .theme-widget,
+.drawer-quick-actions .lang-widget,
+.login-top-bar .theme-widget,
+.login-top-bar .toggle-widget,
+.login-top-bar .lang-widget,
+.register-top-bar .theme-widget,
+.register-top-bar .lang-widget,
+.sovereign-header-actions .theme-widget,
+.sovereign-header-actions .lang-widget,
+.divine-top-nav .theme-widget,
+.celestial-top-nav .theme-widget,
+.sanctuary-wrapper .theme-widget,
+.footer-meta-links .theme-widget,
+.footer-meta-links .lang-widget {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+}
+
 /* ================= 8. MOBILE RESPONSIVENESS ================= */
 @media (max-width: 768px), (pointer: coarse) {
     /* ===== GLOBAL MOBILE PERF: Matikan efek blur konvolusi GPU yang berat ===== */

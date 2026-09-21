@@ -123,7 +123,7 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
   return (
     <button
       type="button"
-      className={`theme-widget lang-widget hover-trigger ${className}`}
+      className={`lang-widget hover-trigger ${className}`}
       id="btnLang"
       title="Ganti Bahasa / Switch Language (ID → AR → EN)"
       onClick={cycleLanguage}
