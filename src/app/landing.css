@@ -254,6 +254,33 @@
   animation: fadeUp 0.8s ease-out 0.2s forwards;
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
   will-change: transform;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gold Hot-Foil Stamp Sheen Sweep */
+.tuku-heritage-badge::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 35%,
+    rgba(255, 240, 160, 0.7) 50%,
+    rgba(255, 255, 255, 0.15) 65%,
+    transparent 100%
+  );
+  transform: skewX(-22deg);
+  transition: left 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.tuku-heritage-badge:hover::after {
+  left: 170%;
 }
 
 .tuku-heritage-badge:hover {
@@ -309,6 +336,18 @@
   transform: rotate(-5deg);
   transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease, filter 0.2s ease;
   will-change: transform;
+  overflow: hidden;
+}
+
+.tuku-interactive-stamp::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 240, 160, 0.35), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
 }
 
 :root[data-theme="light"] .tuku-interactive-stamp {
@@ -321,6 +360,10 @@
   transform: rotate(12deg) scale(1.1) translateY(-2px);
   border-color: #ffd700;
   box-shadow: 0 8px 24px rgba(212, 175, 55, 0.35), inset 0 0 14px rgba(212, 175, 55, 0.25);
+}
+
+.tuku-interactive-stamp:hover::after {
+  opacity: 1;
 }
 
 /* Tactile Ink Stamp Press Effect (Sensasi Cap Tinta Fisik Menekan Kertas) */
@@ -521,6 +564,32 @@
   flex: 1;
   min-width: 190px;
   will-change: transform;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-tuku-primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0.15) 65%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.btn-tuku-primary:hover::after {
+  left: 170%;
 }
 
 .btn-tuku-primary:hover {
