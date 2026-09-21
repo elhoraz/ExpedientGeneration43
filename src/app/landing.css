@@ -1893,6 +1893,58 @@
   border-color: rgba(184, 151, 47, 0.55);
 }
 
+/* Dog-Ear Paper Fold on Desk Memo (Lipatan Sudut Kertas Memo) */
+.memo-dog-ear {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border-top-right-radius: 20px;
+  pointer-events: none;
+  z-index: 12;
+}
+
+.memo-dog-ear::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 32px 32px 0;
+  border-color: transparent #080d0a transparent transparent;
+  filter: drop-shadow(-3px 3px 4px rgba(0, 0, 0, 0.5));
+}
+
+.memo-dog-ear::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 28px 28px 0 0;
+  border-color: rgba(212, 175, 55, 0.65) transparent transparent transparent;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+:root[data-theme="light"] .memo-dog-ear::before {
+  border-color: transparent #f4ede0 transparent transparent;
+}
+
+:root[data-theme="light"] .memo-dog-ear::after {
+  border-color: rgba(184, 151, 47, 0.75) transparent transparent transparent;
+}
+
+.daily-wisdom-banner:hover .memo-dog-ear::after {
+  transform: scale(1.18) translate(-2px, 2px);
+}
+
 .wisdom-banner-content {
   display: flex;
   align-items: center;
@@ -2391,6 +2443,29 @@
   transform: translateY(2px) scale(0.98);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   transition-duration: 0.1s;
+}
+
+/* Dog-Ear Paper Corner on Wisdom Card (Lipatan Sudut Kitab Hikmah) */
+.wisdom-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 20px 20px;
+  border-color: transparent transparent rgba(212, 175, 55, 0.45) transparent;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease;
+  pointer-events: none;
+  z-index: 2;
+  border-bottom-right-radius: 20px;
+  will-change: transform;
+}
+
+.wisdom-card:hover::after {
+  transform: scale(1.25) translate(-1.5px, -1.5px);
+  border-color: transparent transparent #ffd700 transparent;
 }
 
 .wisdom-card-top {
