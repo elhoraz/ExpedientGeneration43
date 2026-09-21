@@ -679,9 +679,9 @@ body.sidebar-closed .floating-help-btn {
     .sidebar { height: 65px; bottom: 15px; left: 5px; right: 5px; width: calc(100vw - 10px); }
     .nav-item { font-size: 0.85rem; }
     .nav-label { font-size: 0.42rem; }
-    .theme-widget { top: 15px; right: 15px; }
-    .notif-widget { top: 15px; left: 15px; }
-    .chat-widget { top: 15px; left: 70px; }
+    .theme-widget { top: 12px; right: 12px; min-width: 38px; min-height: 38px; padding: 4px; }
+    .notif-widget { top: 12px; right: 54px; left: auto !important; min-width: 38px; min-height: 38px; }
+    .chat-widget { top: 12px; right: 96px; left: auto !important; min-width: 38px; min-height: 38px; }
     .aegis-toast { font-size: 0.8rem; padding: 10px 15px; }
     .main-wrapper { bottom: 100px; }
     body.sidebar-closed .main-wrapper { bottom: 0; }
@@ -1028,7 +1028,7 @@ img.skeleton-shimmer {
 
 /* ================= 16. P3: SMART SCROLL-TO-TOP (#26) ================= */
 .scroll-top-btn {
-    position: fixed; right: 24px; bottom: 140px;
+    position: fixed; right: 28px; bottom: 84px;
     width: 46px; height: 46px; border-radius: 50%;
     background: rgba(10,17,14,0.88);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -1049,10 +1049,10 @@ img.skeleton-shimmer {
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 @media (max-width: 768px) {
-    .scroll-top-btn { right: 16px; bottom: max(165px, calc(140px + env(safe-area-inset-bottom, 0px))); }
+    .scroll-top-btn { right: 16px; bottom: max(175px, calc(150px + env(safe-area-inset-bottom, 0px))); }
 }
 @media (min-width: 769px) and (max-width: 1024px) {
-    .scroll-top-btn { bottom: 30px; right: 20px; }
+    .scroll-top-btn { bottom: 84px; right: 24px; }
 }
 
 /* ========================================================

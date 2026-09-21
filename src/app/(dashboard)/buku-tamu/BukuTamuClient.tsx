@@ -47,9 +47,11 @@ export default function BukuTamuClient({ initialMessages, userId }: { initialMes
   return (
     <div className="buku-tamu-wrapper">
 
-      <Link href="/fitur" className="btn-back" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--gold-premium)', textDecoration: 'none', position: 'absolute', top: '40px', left: '20px' }}>
-        <i className="fa-solid fa-arrow-left"></i> {t.common.back}
-      </Link>
+      <div style={{ width: "100%", maxWidth: "800px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
+        <Link href="/fitur" className="btn-back">
+          <i className="fa-solid fa-arrow-left"></i> {t.common.back}
+        </Link>
+      </div>
 
       <h1 className="bt-title">{t.buku_tamu.title}</h1>
       <p className="bt-subtitle">{t.buku_tamu.subtitle}</p>

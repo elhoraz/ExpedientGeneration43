@@ -1011,12 +1011,12 @@ body.mode-yearbook .dimension-shift-btn,
 .vault-fab-upload {
     position: fixed;
     bottom: 28px;
-    right: 24px;
-    z-index: 85;
+    right: 170px;
+    z-index: 9990;
     background: linear-gradient(135deg, #d4af37, #b8860b);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 50px;
-    padding: 14px 22px;
+    padding: 12px 20px;
     color: #0b120e;
     display: flex;
     align-items: center;
@@ -1025,6 +1025,15 @@ body.mode-yearbook .dimension-shift-btn,
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     user-select: none;
+}
+
+@media (max-width: 768px) {
+    .vault-fab-upload {
+        bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
+        left: 16px;
+        right: auto;
+        padding: 10px 16px;
+    }
 }
 
 .vault-fab-upload i {

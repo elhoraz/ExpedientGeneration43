@@ -550,15 +550,39 @@ body.sidebar-closed .floating-help-btn {
 }
 
 /* --------------------------------------------------------------------------
-   7. MOBILE & SAFE AREA ADJUSTMENTS
+   7. TABLET, MOBILE & SAFE AREA ADJUSTMENTS (NO OVERLAP)
    -------------------------------------------------------------------------- */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .floating-help-btn {
+    bottom: 28px;
+    right: 24px;
+  }
+}
+
+/* Page-specific avoidance on desktop */
+body.page-radar .floating-help-btn {
+  bottom: 120px;
+  right: 35px;
+}
+
 @media (max-width: 768px) {
   .floating-help-btn {
     /* Angkat tombol di atas floating bottom dock mobile dan safe-area gesture bar */
-    bottom: calc(90px + max(16px, env(safe-area-inset-bottom, 16px)));
-    right: 14px;
+    bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
+    right: 16px;
     padding: 6px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Radar & Quran page clearance on mobile */
+  body.page-radar .floating-help-btn {
+    bottom: calc(160px + max(16px, env(safe-area-inset-bottom, 16px)));
+    right: 14px;
+  }
+
+  body.page-quran .floating-help-btn {
+    bottom: calc(165px + max(16px, env(safe-area-inset-bottom, 16px)));
+    right: 16px;
   }
 
   /* Sembunyikan teks label "Bantuan" & badge di mobile kecil agar ramping jadi lingkaran FAB */

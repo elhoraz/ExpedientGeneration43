@@ -3303,8 +3303,8 @@
 /* ====== 17. SCROLL TO TOP INDICATOR ====== */
 .scroll-progress-fab {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: max(24px, calc(16px + env(safe-area-inset-bottom, 16px)));
+  right: max(24px, calc(16px + env(safe-area-inset-right, 16px)));
   width: 44px;
   height: 44px;
   border-radius: 50%;

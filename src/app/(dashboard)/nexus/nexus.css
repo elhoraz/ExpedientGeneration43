@@ -1,5 +1,5 @@
 .nexus-page-wrapper .nexus-wrapper { padding: clamp(40px, 10vh, 80px) 20px 40px; max-width: 1000px; margin: 0 auto; min-height: 80vh; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; font-family: 'Inter', sans-serif; }
-.nexus-page-wrapper .btn-back { position: absolute; top: 0px; left: 20px; background: rgba(212, 175, 55, 0.1); color: var(--gold-main, #d4af37); border: 1px solid rgba(212, 175, 55, 0.3); padding: 10px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; backdrop-filter: blur(10px); transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+.nexus-page-wrapper .btn-back { align-self: flex-start; margin-bottom: 20px; background: rgba(212, 175, 55, 0.1); color: var(--gold-main, #d4af37); border: 1px solid rgba(212, 175, 55, 0.3); padding: 10px 20px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; backdrop-filter: blur(10px); transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
 .nexus-page-wrapper .btn-back:hover { background: var(--gold-main, #d4af37); color: #000; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
 
 .nexus-page-wrapper .nexus-header { margin-bottom: 40px; margin-top: 40px; }

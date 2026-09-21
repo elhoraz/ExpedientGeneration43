@@ -648,9 +648,9 @@
     /* ====== MUSEUM AMBIENCE AUDIO PILL ====== */
     .museum-audio-pill {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 999;
+        bottom: 28px;
+        right: 170px;
+        z-index: 9990;
         display: flex;
         align-items: center;
         gap: 10px;
@@ -724,8 +724,9 @@
 
     @media (max-width: 768px) {
         .museum-audio-pill {
-            bottom: 80px;
-            right: 16px;
+            bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
+            left: 16px;
+            right: auto;
             padding: 8px 14px;
             font-size: 0.75rem;
         }
