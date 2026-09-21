@@ -93,9 +93,9 @@ export default function WisdomAsatidz() {
   return (
     <section className="wisdom-section" id="nasehat">
       <div className="section-header">
-        <div className="landing-prestige-badge" style={{ marginBottom: "14px" }}>
-          <i className="fa-solid fa-feather-pointed"></i>
-          <span>Wejangan Guru &amp; Suluh Perjuangan</span>
+        <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
+          <span className="badge-bullet">📜</span>
+          <span>WEJANGAN GURU &amp; SULUH PERJUANGAN</span>
         </div>
         <h2 className="section-title">
           Kalam Hikmah &amp; Nasehat Asatidz

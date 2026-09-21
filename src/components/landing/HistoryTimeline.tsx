@@ -83,9 +83,9 @@ export default function HistoryTimeline() {
   return (
     <section className="history-section" id="sejarah">
       <div className="section-header">
-        <div className="landing-prestige-badge" style={{ marginBottom: "14px" }}>
-          <i className="fa-solid fa-landmark"></i>
-          <span>Napak Tilas 44 Tahun Pondok Modern Arrisalah</span>
+        <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
+          <span className="badge-bullet">🏛️</span>
+          <span>NAPAK TILAS 44 TAHUN ARRISALAH</span>
         </div>
         <h2 className="section-title">
           Sejarah Agung &amp; Jejak Langkah Almamater

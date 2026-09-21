@@ -16,6 +16,7 @@ import AppMockupShowcase from "@/components/landing/AppMockupShowcase";
 import MobileDrawer from "@/components/landing/MobileDrawer";
 import ScrollToTopIndicator from "@/components/landing/ScrollToTopIndicator";
 import DailyWisdomWidget from "@/components/landing/DailyWisdomWidget";
+import PolaroidMemories from "@/components/landing/PolaroidMemories";
 
 interface LandingContentProps {
   totalAlumni: number;
@@ -245,7 +246,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== SECTION 1: SEJARAH & NAPAK TILAS PONDOK 1982 ====== */}
         <HistoryTimeline />
 
-        {/* ====== SECTION 2: KALAM HIKMAH & NASEHAT ASATIDZ ====== */}
+        {/* ====== SECTION 2: LEMBARAN POLAROID & KENANGAN SANTRI ====== */}
+        <PolaroidMemories />
+
+        {/* ====== SECTION 3: KALAM HIKMAH & NASEHAT ASATIDZ ====== */}
         <WisdomAsatidz />
 
         {/* ====== SECTION 3: ALMAMATER HERITAGE (BUMI SLAHUNG) ====== */}

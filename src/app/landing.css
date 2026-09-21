@@ -3179,3 +3179,265 @@
   }
 }
 
+/* ========================================================
+   POLAROID MEMORIES & AMBIENT AUDIO (TUKU AESTHETIC)
+   Tactile, Nostalgic, Swipeable, Physical Paper Feel
+======================================================== */
+
+.polaroid-section {
+  padding: 60px 20px 40px;
+  position: relative;
+}
+
+/* Audio Player Pill */
+.tuku-audio-pill-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.tuku-audio-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  border-radius: 999px;
+  background: rgba(18, 24, 20, 0.85);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+:root[data-theme="light"] .tuku-audio-btn {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(184, 151, 47, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+.tuku-audio-btn:hover {
+  border-color: #d4af37;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+
+.tuku-audio-btn.playing {
+  border-color: #d4af37;
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.audio-icon-disc {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #b8972f);
+  color: #080d0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+}
+
+.audio-btn-labels {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.audio-btn-labels strong {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #d4af37;
+}
+
+:root[data-theme="light"] .audio-btn-labels strong {
+  color: #8c6d1f;
+}
+
+.audio-btn-labels span {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+}
+
+.audio-mini-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 14px;
+}
+
+.audio-mini-bars .bar {
+  width: 3px;
+  background: #d4af37;
+  border-radius: 2px;
+  animation: barPulse 0.8s infinite ease-in-out alternate;
+}
+
+.audio-mini-bars .bar.b1 { height: 60%; animation-delay: 0.1s; }
+.audio-mini-bars .bar.b2 { height: 100%; animation-delay: 0.3s; }
+.audio-mini-bars .bar.b3 { height: 40%; animation-delay: 0.2s; }
+
+@keyframes barPulse {
+  0% { height: 25%; }
+  100% { height: 100%; }
+}
+
+/* Polaroid Scroll Container & Track */
+.polaroid-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  padding: 30px 10px 40px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.3) transparent;
+}
+
+.polaroid-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.polaroid-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 999px;
+}
+
+.polaroid-track {
+  display: flex;
+  gap: 26px;
+  width: max-content;
+  padding: 0 10px;
+  margin: 0 auto;
+}
+
+/* The Individual Polaroid Card */
+.polaroid-card {
+  width: 280px;
+  background: #ffffff;
+  padding: 12px 12px 20px;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
+  transform: rotate(var(--rotate-deg, 0deg));
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  scroll-snap-align: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.polaroid-card:hover {
+  transform: rotate(0deg) translateY(-8px) scale(1.04);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 20px rgba(212, 175, 55, 0.25);
+  z-index: 10;
+}
+
+.polaroid-pin {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffd700, #b8860b);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+
+.polaroid-tag {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(14, 19, 16, 0.85);
+  color: #ffd700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.polaroid-photo-frame {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  background: #1a1a1a;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.polaroid-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.polaroid-card:hover .polaroid-img {
+  transform: scale(1.04);
+}
+
+.polaroid-caption-area {
+  padding: 14px 4px 4px;
+  text-align: center;
+}
+
+.polaroid-caption-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 3px;
+  line-height: 1.2;
+}
+
+.polaroid-caption-sub {
+  font-size: 0.74rem;
+  color: #555555;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Callout to Full Album */
+.polaroid-footer-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btn-tuku-album-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #d4af37;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+}
+
+:root[data-theme="light"] .btn-tuku-album-link {
+  background: rgba(184, 151, 47, 0.08);
+  border-color: rgba(184, 151, 47, 0.4);
+  color: #8c6d1f;
+}
+
+.btn-tuku-album-link:hover {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: #d4af37;
+  transform: translateY(-2px);
+}
+
+
