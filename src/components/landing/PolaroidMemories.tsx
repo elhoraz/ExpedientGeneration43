@@ -138,13 +138,17 @@ export default function PolaroidMemories() {
       {/* Swipeable Polaroid Cards Track */}
       <div className="polaroid-scroll-container">
         <div className="polaroid-track">
-          {MEMORIES.map((item) => (
+          {MEMORIES.map((item, idx) => (
             <div
               key={item.id}
               className="polaroid-card"
               style={{ "--rotate-deg": item.rotation } as React.CSSProperties}
             >
-              <div className="polaroid-pin"></div>
+              {idx % 2 === 0 ? (
+                <div className="polaroid-tape" title="Selotip Kenangan Santri"></div>
+              ) : (
+                <div className="polaroid-pin" title="Pin Peniti Emas"></div>
+              )}
               <div className="polaroid-tag">{item.tag}</div>
               <div className="polaroid-photo-frame">
                 <Image

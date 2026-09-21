@@ -74,6 +74,8 @@ export default function DailyWisdomWidget() {
 
   return (
     <div className="daily-wisdom-banner">
+      {/* Authentic Washi / Masking Tape on Desk Memo */}
+      <div className="memo-masking-tape" title="Selotip Secarik Memo"></div>
       <div className="wisdom-banner-content">
         <div className="wisdom-banner-left">
           <div className="wisdom-calendar-tag">
