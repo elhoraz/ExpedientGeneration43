@@ -57,3 +57,7 @@ android/app/release/
 android/local.properties
 .idea/
 android/.idea/
+
+# Raw photos & temporary download archives
+/FOTO/
+*.zip

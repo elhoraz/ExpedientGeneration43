@@ -1451,3 +1451,54 @@ body.mode-yearbook .dimension-shift-btn,
     color: #0f172a;
 }
 
+/* Zero-Lag Progressive Batching Load More */
+.vault-load-more-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 40px 0 60px;
+    width: 100%;
+}
+
+.btn-vault-load-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 32px;
+    border-radius: 50px;
+    background: rgba(18, 22, 28, 0.85);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.15);
+}
+
+.btn-vault-load-more:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(184, 134, 11, 0.25));
+    border-color: #d4af37;
+    color: #ffd700;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(212, 175, 55, 0.3);
+}
+
+.btn-vault-load-more i {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-vault-load-more:hover i {
+    transform: translateY(2px);
+}
+
+[data-theme="light"] .btn-vault-load-more {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(212, 175, 55, 0.5);
+    color: #1e293b;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+

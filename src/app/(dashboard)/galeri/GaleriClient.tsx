@@ -19,6 +19,7 @@ export interface AlbumItem {
 export interface PhotoItem {
   id: string;
   image_url: string;
+  thumbnail_url?: string;
   caption?: string | null;
   created_at?: string | null;
   likes_count: number;
@@ -38,7 +39,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     caption: "Sampul Emas Mahakarya Angkatan 43 — The Syndicate & Omega",
     likes_count: 43,
     year: 2025,
-    album_id: "wisuda",
+    album_id: "galeri_ekspi",
     uploader_name: "Presidium Expedient",
     is_liked: false,
   },
@@ -48,7 +49,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     caption: "Prakata & Kilas Balik Perjalanan 6 Tahun Pengabdian",
     likes_count: 28,
     year: 2025,
-    album_id: "keseharian",
+    album_id: "foto2mu",
     uploader_name: "Redaksi Yearbook",
     is_liked: false,
   },
@@ -58,7 +59,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     caption: "Arsip Keagungan Omega Dynasty — Generasi Putri 43",
     likes_count: 39,
     year: 2025,
-    album_id: "wisuda",
+    album_id: "galeri_ekspi",
     uploader_name: "Presidium Putri",
     is_liked: false,
   },
@@ -68,7 +69,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     caption: "Dokumentasi Pagelaran Seni & Panggung Gembira (PG)",
     likes_count: 52,
     year: 2024,
-    album_id: "pg",
+    album_id: "rihlah",
     uploader_name: "Divisi Dokumentasi",
     is_liked: false,
   },
@@ -78,7 +79,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     caption: "Senyuman Hangat Kebersamaan di Serambi Asrama",
     likes_count: 34,
     year: 2024,
-    album_id: "keseharian",
+    album_id: "foto2mu",
     uploader_name: "Keluarga Besar 43",
     is_liked: false,
   },
@@ -88,7 +89,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     caption: "Momen Silaturahmi Akbar & Malam Keakraban Alumni",
     likes_count: 61,
     year: 2025,
-    album_id: "reuni",
+    album_id: "galeri_ekspi",
     uploader_name: "Humas Expedient",
     is_liked: false,
   },
@@ -96,10 +97,11 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
 
 const DEFAULT_ALBUM_HIGHLIGHTS: AlbumItem[] = [
   { id: "all", title: "Semua Momen", icon: "fa-solid fa-photo-film" },
-  { id: "wisuda", title: "Wisuda 2025", icon: "fa-solid fa-graduation-cap" },
-  { id: "pg", title: "Panggung Gembira", icon: "fa-solid fa-masks-theater" },
-  { id: "reuni", title: "Reuni & Temu Kangen", icon: "fa-solid fa-people-roof" },
-  { id: "keseharian", title: "Nostalgia Asrama", icon: "fa-solid fa-camera-retro" },
+  { id: "galeri_ekspi", title: "Galeri Ekspedient", icon: "fa-solid fa-crown" },
+  { id: "rihlah", title: "Rihlah & Seminar", icon: "fa-solid fa-compass" },
+  { id: "foto2mu", title: "Momen Santri", icon: "fa-solid fa-camera-retro" },
+  { id: "canon", title: "Dokumentasi Canon", icon: "fa-solid fa-camera" },
+  { id: "eid_adha", title: "Idul Adha 2024", icon: "fa-solid fa-kaaba" },
 ];
 
 export default function GaleriClient({
@@ -212,6 +214,34 @@ export default function GaleriClient({
       return true;
     });
   }, [photos, selectedAlbum, selectedYear, searchQuery]);
+
+  // Zero-Lag Progressive Batching (Initial 24, load 24 more on scroll)
+  const [visibleCount, setVisibleCount] = useState(24);
+  const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  // Reset visible count on filter or search changes
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [selectedAlbum, selectedYear, searchQuery]);
+
+  // Smooth Intersection Observer for Infinite Scroll
+  useEffect(() => {
+    if (!loadMoreSentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + 24, filteredPhotos.length));
+        }
+      },
+      { rootMargin: "400px" }
+    );
+    observer.observe(loadMoreSentinelRef.current);
+    return () => observer.disconnect();
+  }, [filteredPhotos.length]);
+
+  const visiblePhotos = useMemo(() => {
+    return filteredPhotos.slice(0, visibleCount);
+  }, [filteredPhotos, visibleCount]);
 
   // Handle Like Action (Heart Button or Double-Tap)
   const handleToggleLike = async (photo: PhotoItem) => {
@@ -625,22 +655,25 @@ export default function GaleriClient({
               </div>
             ) : (
               <div className="vault-masonry-grid">
-                {filteredPhotos.map((photo, index) => {
+                {visiblePhotos.map((photo, index) => {
                   const isHeartActive = activeHeartPhotoId === photo.id;
+                  const fullIndex = filteredPhotos.findIndex((p) => p.id === photo.id);
+                  const effectiveIndex = fullIndex >= 0 ? fullIndex : index;
 
                   return (
                     <div
                       key={photo.id}
                       className="masonry-card cursor-bind"
-                      onClick={() => handlePhotoTap(photo, index)}
+                      onClick={() => handlePhotoTap(photo, effectiveIndex)}
                     >
-                      {/* Photo Thumbnail Wrapper */}
+                      {/* Photo Thumbnail Wrapper (Fast 25KB WebP) */}
                       <div className="card-media-wrapper">
                         <img
-                          src={photo.image_url}
+                          src={photo.thumbnail_url || photo.image_url}
                           alt={photo.caption || "Momen Angkatan 43"}
                           className="card-media-img"
                           loading="lazy"
+                          decoding="async"
                         />
 
                         {/* Floating Heart Micro-Animation on Double Tap */}
@@ -659,7 +692,7 @@ export default function GaleriClient({
                           className="media-expand-btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setLightboxIndex(index);
+                            setLightboxIndex(effectiveIndex);
                             triggerHaptic(10);
                           }}
                           title={t.galeri.fullscreen}
@@ -696,6 +729,26 @@ export default function GaleriClient({
                   );
                 })}
               </div>
+            )}
+
+            {/* Zero-Lag Progressive Load More Trigger & Button */}
+            {visibleCount < filteredPhotos.length && (
+              <>
+                <div ref={loadMoreSentinelRef} style={{ height: "10px", width: "100%" }} />
+                <div className="vault-load-more-wrapper">
+                  <button
+                    type="button"
+                    className="btn-vault-load-more"
+                    onClick={() => {
+                      setVisibleCount((prev) => Math.min(prev + 24, filteredPhotos.length));
+                      triggerHaptic(15);
+                    }}
+                  >
+                    <i className="fa-solid fa-angle-down"></i>
+                    <span>Muat Lebih Banyak ({filteredPhotos.length - visibleCount} foto tersisa)</span>
+                  </button>
+                </div>
+              </>
             )}
           </div>
 

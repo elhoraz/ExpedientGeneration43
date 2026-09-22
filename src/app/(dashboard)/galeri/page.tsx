@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import GaleriClient from "./GaleriClient";
+import galeriManifest from "@/data/galeri-manifest.json";
 
 export const metadata = {
   title: "Galeri & Visual Vault 5D | Expedient Generation 43",
@@ -8,57 +9,53 @@ export const metadata = {
 
 export default async function GaleriPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  let initialAlbums: any[] = [];
-  let initialPhotos: any[] = [];
+  // Curated 245 photos and categorized albums from manifest
+  let initialAlbums = galeriManifest.albums || [];
+  let initialPhotos: any[] = [...(galeriManifest.photos || [])];
 
+  // Also query community uploaded photos from Supabase 'galeri' table
   try {
-    const { data: albumsData } = await supabase
-      .from("galeri_albums")
-      .select("id, title, description, cover_url, year, icon")
-      .order("year", { ascending: false });
-    if (albumsData) initialAlbums = albumsData;
-  } catch (err) {
-    console.warn("Could not fetch galeri_albums on server:", err);
-  }
-
-  try {
-    const { data: photosData } = await supabase
+    const { data: dbPhotos } = await supabase
       .from("galeri")
-      .select(`
-        id,
-        image_url,
-        caption,
-        created_at,
-        likes_count,
-        year,
-        album_id,
-        uploader_id,
-        profiles!uploader_id(id, nama_panggilan, nama_lengkap, foto_profil)
-      `)
+      .select("id, image_url, caption, created_at")
       .order("created_at", { ascending: false })
       .limit(60);
 
-    if (photosData) {
+    if (dbPhotos && dbPhotos.length > 0) {
       let likedIds = new Set<string>();
-      if (user && photosData.length > 0) {
-        const { data: likes } = await supabase
-          .from("galeri_likes")
-          .select("photo_id")
-          .eq("user_id", user.id);
-        if (likes) likes.forEach((l) => likedIds.add(l.photo_id));
+      if (user) {
+        try {
+          const { data: likes } = await supabase
+            .from("galeri_likes")
+            .select("photo_id")
+            .eq("user_id", user.id);
+          if (likes) likes.forEach((l) => likedIds.add(l.photo_id));
+        } catch {}
       }
 
-      initialPhotos = photosData.map((p: any) => ({
-        ...p,
-        uploader_name: p.profiles?.nama_panggilan || p.profiles?.nama_lengkap || "Alumni Expedient",
-        uploader_avatar: p.profiles?.foto_profil || null,
+      const formattedDbPhotos = dbPhotos.map((p: any) => ({
+        id: p.id,
+        image_url: p.image_url,
+        thumbnail_url: p.image_url,
+        caption: p.caption || "Dokumentasi Alumni Expedient 43",
+        created_at: p.created_at,
+        likes_count: 24,
+        year: 2025,
+        album_id: "galeri_ekspi",
+        uploader_name: "Alumni Expedient",
+        uploader_avatar: null,
         is_liked: likedIds.has(p.id),
       }));
+
+      // Merge community photos at the top of the gallery
+      initialPhotos = [...formattedDbPhotos, ...initialPhotos];
     }
   } catch (err) {
-    console.warn("Could not fetch galeri photos on server:", err);
+    console.warn("Could not fetch user galeri photos on server:", err);
   }
 
   return (
