@@ -47,7 +47,20 @@
 /* SWIPER CONTAINER */
 .swiper { width: 100%; padding-top: 15px; padding-bottom: 60px; z-index: 10; overflow: hidden; }
 .swiper-wrapper { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; box-sizing: content-box !important; }
-.swiper-slide { width: 340px; height: auto; flex-shrink: 0 !important; display: flex; flex-direction: column; opacity: 0.4; transition: opacity 0.6s ease; cursor: grab; }
+.swiper-slide { 
+    width: 340px; 
+    height: auto; 
+    flex-shrink: 0 !important; 
+    display: flex; 
+    flex-direction: column; 
+    opacity: 0.4; 
+    transition: opacity 0.6s ease; 
+    cursor: grab;
+    content-visibility: auto;
+    contain-intrinsic-size: 340px 520px;
+    transform: translateZ(0);
+    will-change: transform;
+}
 .swiper-slide-active { opacity: 1; } 
 
 /* LUXURY DOSSIER CARD */
@@ -78,7 +91,7 @@
     background: #ffffff;
     border: 1px solid rgba(212, 175, 55, 0.35);
     box-shadow: 0 15px 35px rgba(212, 175, 55, 0.12);
-    color: #0a110e;
+    color: #0f172a;
 }
 [data-theme="light"] .swiper-slide-active .luminary-card { 
     box-shadow: 0 25px 50px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05); 
@@ -87,16 +100,16 @@
 [data-theme="light"] .search-input {
     background: #ffffff;
     border-color: rgba(212, 175, 55, 0.4);
-    color: #0a110e;
+    color: #0f172a;
     box-shadow: 0 10px 25px rgba(212, 175, 55, 0.1);
 }
-[data-theme="light"] .card-name { color: #0a110e; }
+[data-theme="light"] .card-name { color: #0f172a; }
 [data-theme="light"] .swiper-slide-active .card-name { color: #aa771c; }
-[data-theme="light"] .card-full-name { color: #5d6e66; }
+[data-theme="light"] .card-full-name { color: #475569; }
 [data-theme="light"] .d-label { color: #aa771c; }
-[data-theme="light"] .d-value { color: #0a110e; }
-[data-theme="light"] .card-quote { color: #2d3e36; }
-[data-theme="light"] .agent-serial { color: #7a8b84; }
+[data-theme="light"] .d-value { color: #0f172a; }
+[data-theme="light"] .card-quote { color: #334155; }
+[data-theme="light"] .agent-serial { color: #64748b; }
 
 /* Serial Number */
 .agent-serial { position: absolute; top: 18px; right: 20px; font-family: 'Courier New', monospace; font-size: 0.68rem; color: #a8b8c5; letter-spacing: 2px; opacity: 0; font-weight: 600; transition: opacity 0.5s ease; }
@@ -183,8 +196,23 @@
     .search-icon { left: 16px; font-size: 0.95rem; }
 
     .nav-arrow { display: none; }
-    .photo-ring { width: 110px; height: 110px; margin-bottom: 16px; }
-    .swiper-slide-active .photo-ring { width: 130px; height: 130px; margin-bottom: 18px; }
+    .photo-ring { 
+        width: 110px; 
+        height: 110px; 
+        margin-bottom: 16px; 
+        filter: grayscale(0%) opacity(1) !important;
+    }
+    .swiper-slide-active .photo-ring { 
+        width: 130px; 
+        height: 130px; 
+        margin-bottom: 18px; 
+        filter: grayscale(0%) opacity(1) !important;
+        box-shadow: 0 12px 28px rgba(212,175,55,0.35);
+    }
+    .swiper-slide {
+        transform: translateZ(0);
+        will-change: transform;
+    }
     .card-name { font-size: 1.5rem; }
     .swiper-slide-active .card-name { font-size: 1.75rem; }
     .card-quote { font-size: 0.98rem; margin: 18px 0 14px; }

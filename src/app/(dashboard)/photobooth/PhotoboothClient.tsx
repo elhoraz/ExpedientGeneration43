@@ -188,6 +188,7 @@ export default function PhotoboothClient() {
     dataUrl: string;
     blob: Blob | null;
     filename: string;
+    downloadUrl?: string;
     type: "image" | "video";
   } | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -1210,36 +1211,6 @@ export default function PhotoboothClient() {
     return new Blob([u8arr], { type: mime });
   };
 
-  const triggerServerDownload = (dataUrl: string, filename: string) => {
-    try {
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = "/api/photobooth/download";
-      form.style.display = "none";
-
-      const inputData = document.createElement("input");
-      inputData.type = "hidden";
-      inputData.name = "dataUrl";
-      inputData.value = dataUrl;
-      form.appendChild(inputData);
-
-      const inputName = document.createElement("input");
-      inputName.type = "hidden";
-      inputName.name = "filename";
-      inputName.value = filename;
-      form.appendChild(inputName);
-
-      document.body.appendChild(form);
-      form.submit();
-
-      setTimeout(() => {
-        if (document.body.contains(form)) document.body.removeChild(form);
-      }, 1500);
-    } catch (e) {
-      console.error("Server download trigger error:", e);
-    }
-  };
-
   // Universal Direct Download Helper (Rock-solid across Mobile Safari, Android WebView APK & Desktop)
   const triggerDirectDownload = async (
     blobOrDataUrl: Blob | string,
@@ -1270,52 +1241,78 @@ export default function PhotoboothClient() {
         }
       }
 
-      const isMobile = isAppOrMobileDevice();
+      // 1. Upload to server to get real HTTPS GET download URL (Crucial for Android WebView DownloadManager)
+      let serverDownloadUrl = "";
+      try {
+        const formData = new FormData();
+        if (blob) {
+          formData.append("file", blob, filename);
+        } else if (dataUrl) {
+          formData.append("dataUrl", dataUrl);
+        }
+        formData.append("filename", filename);
 
-      // Store in state so the Export Result Modal is populated
+        const res = await fetch("/api/photobooth/download", {
+          method: "POST",
+          body: formData,
+        });
+        if (res.ok) {
+          const resData = await res.json();
+          serverDownloadUrl = resData.downloadUrl || resData.fallbackUrl || "";
+        }
+      } catch (uploadErr) {
+        console.warn("Server download URL generation warning:", uploadErr);
+      }
+
+      // 2. Set export result state with preview and server download link
       setExportedResult({
         dataUrl: dataUrl || (blob ? URL.createObjectURL(blob) : ""),
         blob,
         filename,
+        downloadUrl: serverDownloadUrl,
         type: isVideo ? "video" : "image",
       });
 
-      // 1. Standard Anchor Download (works seamlessly on desktop & standard mobile browsers)
-      let url = dataUrl;
-      let shouldRevoke = false;
-      if (blob) {
-        url = URL.createObjectURL(blob);
-        shouldRevoke = true;
-      }
+      // 3. Trigger download via preferred target URL
+      const targetUrl = serverDownloadUrl || (blob ? URL.createObjectURL(blob) : dataUrl);
 
+      // Trigger standard anchor download
       const a = document.createElement("a");
-      a.href = url;
+      a.href = targetUrl;
       a.download = filename;
       a.style.position = "fixed";
       a.style.left = "-9999px";
       a.style.opacity = "0";
       document.body.appendChild(a);
       a.click();
-
       setTimeout(() => {
         if (document.body.contains(a)) document.body.removeChild(a);
-        if (shouldRevoke) {
-          setTimeout(() => {
-            try {
-              URL.revokeObjectURL(url);
-            } catch {}
-          }, 60000);
-        }
-      }, 400);
+      }, 500);
 
-      // 2. On Mobile / Android APK WebView: Always open the interactive modal
-      // This allows fresh user gestures for navigator.share, long-press save, and server download!
-      if (isMobile || options?.forceModal) {
+      // On Android APK / WebView, iframe navigation to HTTPS GET URL forces Android DownloadManager
+      if (serverDownloadUrl && isAppOrMobileDevice()) {
+        setTimeout(() => {
+          try {
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = serverDownloadUrl;
+            document.body.appendChild(iframe);
+            setTimeout(() => {
+              if (document.body.contains(iframe)) document.body.removeChild(iframe);
+            }, 60000);
+          } catch {}
+        }, 300);
+      }
+
+      // 4. Always show the interactive modal (unless forceModal is explicitly false)
+      if (options?.forceModal !== false) {
         setShowExportModal(true);
       }
     } catch (err) {
       console.error("Direct download error:", err);
-      setShowExportModal(true);
+      if (options?.forceModal !== false) {
+        setShowExportModal(true);
+      }
     }
   };
 
@@ -1348,7 +1345,7 @@ export default function PhotoboothClient() {
         }
       } catch (shareErr: any) {
         if (shareErr?.name === "AbortError") return;
-        console.warn("navigator.share failed, fallback to server download:", shareErr);
+        console.warn("navigator.share failed, fallback to download:", shareErr);
       }
     }
 
@@ -1359,35 +1356,47 @@ export default function PhotoboothClient() {
   const handleDownloadFromModal = () => {
     if (!exportedResult) return;
     triggerHaptic(30);
-    const { dataUrl, blob, filename } = exportedResult;
+    const { dataUrl, blob, filename, downloadUrl } = exportedResult;
+
+    const targetUrl = downloadUrl || (blob ? URL.createObjectURL(blob) : dataUrl);
 
     // 1. Anchor click
-    if (blob) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        if (document.body.contains(a)) document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
-      }, 400);
-    }
+    const a = document.createElement("a");
+    a.href = targetUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      if (document.body.contains(a)) document.body.removeChild(a);
+    }, 500);
 
-    // 2. Server-assisted HTTPS form download (guaranteed interception by Android WebView)
-    if (dataUrl && dataUrl.startsWith("data:")) {
-      triggerServerDownload(dataUrl, filename);
+    // 2. Hidden iframe trigger for Android WebView DownloadManager
+    if (downloadUrl) {
+      try {
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = downloadUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+          if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        }, 30000);
+      } catch {}
+
+      if (isAppOrMobileDevice()) {
+        try {
+          window.location.assign(downloadUrl);
+        } catch {}
+      }
     }
   };
 
   // Download Single Photo (Foto Biasa Satuan)
-  const handleDownloadSinglePhoto = (index: number) => {
+  const handleDownloadSinglePhoto = async (index: number) => {
     const item = photos[index];
     if (!item?.image) return;
     triggerHaptic(25);
     const filename = `Expedient_Foto_${index + 1}_${Date.now()}.jpg`;
-    triggerDirectDownload(item.image, filename);
+    await triggerDirectDownload(item.image, filename);
   };
 
   // Download All Individual Still Photos (Semua Foto Biasa)
@@ -1425,19 +1434,18 @@ export default function PhotoboothClient() {
           return;
         }
       } catch (shareErr: any) {
-        if (shareErr?.name === "AbortError") return;
+        console.warn("Share sheet multi-file warning:", shareErr);
       }
     }
 
-    // Fallback: sequential download
-    filled.forEach(({ p, idx }, i) => {
-      setTimeout(() => {
-        if (p?.image) {
-          const filename = `Expedient_Foto_${idx + 1}_${Date.now()}.jpg`;
-          triggerDirectDownload(p.image, filename);
-        }
-      }, i * 350);
-    });
+    // Fallback: sequential download (opens modal on last photo)
+    for (let i = 0; i < filled.length; i++) {
+      const { p, idx } = filled[i];
+      if (p?.image) {
+        const filename = `Expedient_Foto_${idx + 1}_${Date.now()}.jpg`;
+        await triggerDirectDownload(p.image, filename, { forceModal: i === filled.length - 1 });
+      }
+    }
   };
 
   // Sanitize photo cells in cloned DOM for reliable, high-fidelity export
@@ -1578,7 +1586,7 @@ export default function PhotoboothClient() {
           });
           if (!blob) {
             const dataUrl = freshFinal.toDataURL("image/png");
-            triggerDirectDownload(dataUrl, filename);
+            await triggerDirectDownload(dataUrl, filename);
             triggerHaptic(50);
             return;
           }
@@ -1588,11 +1596,11 @@ export default function PhotoboothClient() {
       }
 
       if (blob) {
-        triggerDirectDownload(blob, filename);
+        await triggerDirectDownload(blob, filename);
         triggerHaptic(50);
       } else {
         const dataUrl = finalCanvas.toDataURL("image/png");
-        triggerDirectDownload(dataUrl, filename);
+        await triggerDirectDownload(dataUrl, filename);
         triggerHaptic(50);
       }
     } catch (error: any) {
@@ -1601,7 +1609,7 @@ export default function PhotoboothClient() {
       try {
         const emergencyCanvas = await renderPhotostripNative(2);
         const dataUrl = emergencyCanvas.toDataURL("image/png");
-        triggerDirectDownload(dataUrl, `Expedient_Photostrip_Backup_${Date.now()}.png`);
+        await triggerDirectDownload(dataUrl, `Expedient_Photostrip_Backup_${Date.now()}.png`);
       } catch {}
     } finally {
       setIsExporting(false);
@@ -1647,7 +1655,7 @@ export default function PhotoboothClient() {
 
       // If share sheet not available, fallback to download
       if (blob) {
-        triggerDirectDownload(blob, filename);
+        await triggerDirectDownload(blob, filename);
       }
     } catch (err: any) {
       if (err?.name !== "AbortError") {
@@ -2056,30 +2064,8 @@ export default function PhotoboothClient() {
           const ext = finalMime.includes("mp4") ? "mp4" : "webm";
           const filename = `Expedient_Live_Photostrip_${Date.now()}.${ext}`;
 
-          // Mobile Web Share API support (iOS Safari & Android Chrome native share / Save Video)
-          let sharedSuccessfully = false;
-          if (typeof navigator !== "undefined" && typeof File !== "undefined" && navigator.canShare) {
-            try {
-              const file = new File([blob], filename, { type: finalMime });
-              if (navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                  files: [file],
-                  title: "Expedient Live Photostrip",
-                  text: "Photostrip Bergerak Expedient 43!",
-                });
-                sharedSuccessfully = true;
-              }
-            } catch (shareErr: any) {
-              if (shareErr?.name === "AbortError") {
-                sharedSuccessfully = true;
-              }
-            }
-          }
-
-          // Direct download via helper (with video preview option)
-          if (!sharedSuccessfully) {
-            triggerDirectDownload(blob, filename, { isVideo: true });
-          }
+          // Direct download via helper and open interactive video preview & share modal
+          await triggerDirectDownload(blob, filename, { isVideo: true });
 
           triggerHaptic(50);
           setIsExporting(false);
@@ -3421,6 +3407,19 @@ export default function PhotoboothClient() {
                   <i className="fa-solid fa-download"></i>
                   <span>Unduh Ulang (File Langsung)</span>
                 </button>
+
+                {exportedResult.downloadUrl && (
+                  <a
+                    href={exportedResult.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-modal-external"
+                    download={exportedResult.filename}
+                  >
+                    <i className="fa-brands fa-chrome"></i>
+                    <span>Buka / Unduh di Chrome HP</span>
+                  </a>
+                )}
               </div>
             </div>
           </div>

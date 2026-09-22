@@ -510,12 +510,12 @@ function initRadar2D() {
             if (isTouring) {
                 clearInterval(tourInterval);
                 map.flyTo([CENTER.lat, CENTER.lng], initialZoom);
-                btnTour.innerHTML = '<i class="fa-solid fa-plane-departure"></i> <span class="hide-mobile">Jelajahi </span>Jaringan';
+                btnTour.innerHTML = '<i class="fa-solid fa-plane-departure"></i> <span class="btn-radar-text">Jelajah Peta</span>';
                 if (tourOverlay) tourOverlay.classList.remove('show');
                 isTouring = false;
             } else {
                 isTouring = true;
-                btnTour.innerHTML = '<i class="fa-solid fa-stop"></i> <span class="hide-mobile">Hentikan </span>Jelajah';
+                btnTour.innerHTML = '<i class="fa-solid fa-stop"></i> <span class="btn-radar-text">Hentikan Jelajah</span>';
                 const nodes = filteredAgents.filter(n => n.lat && n.lng);
                 if (!nodes.length) return;
                 let idx = 0;

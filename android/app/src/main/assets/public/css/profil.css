@@ -99,7 +99,7 @@
         border-radius: 50%; 
         overflow: hidden;
         z-index: 10; 
-        background: #050505; /* Always dark for camera */
+        background: #060b14; /* Always dark for camera */
     }
 
     .camera-frame::after {

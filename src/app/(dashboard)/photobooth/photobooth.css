@@ -2466,4 +2466,36 @@
   transform: translateY(-1px);
 }
 
+.btn-modal-external {
+  width: 100%;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-sizing: border-box;
+}
+
+:root[data-theme="light"] .btn-modal-external {
+  background: rgba(241, 245, 249, 0.9);
+  color: #475569;
+  border-color: rgba(203, 213, 225, 0.8);
+}
+
+.btn-modal-external:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+
 

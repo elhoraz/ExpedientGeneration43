@@ -1,32 +1,44 @@
 /* ================= 1. DUAL THEME VARIABLES ================= */
 :root {
-    --bg-main: #030504; --bg-radial: #0a110e; --bg-secondary: rgba(12, 18, 15, 0.92); --bg-card: rgba(12, 18, 15, 0.88);
-    --aurora-1: rgba(0, 255, 136, 0.08); --aurora-2: rgba(0, 162, 255, 0.06); --aurora-3: rgba(212, 175, 55, 0.05);
+    --bg-main: #060b14; --bg-radial: #0c182b; --bg-secondary: rgba(12, 21, 38, 0.92); --bg-card: rgba(15, 26, 46, 0.88);
+    --aurora-1: rgba(0, 210, 255, 0.08); --aurora-2: rgba(212, 175, 55, 0.07); --aurora-3: rgba(30, 58, 138, 0.10);
     --glass-bg: rgba(255, 255, 255, 0.02); --glass-blur: blur(40px) saturate(150%);
     --glass-border: rgba(255, 255, 255, 0.08); --glass-shadow: 0 30px 60px rgba(0,0,0,0.4);
-    --text-primary: #ffffff; --text-secondary: #8b9ba8;
-    --gold-main: #d4af37; /* Emas cerah untuk mode malam */
+    --text-primary: #ffffff; --text-secondary: #94a3b8;
+    --text-main: #ffffff;
+    --gold-main: #d4af37; /* Royal Gold dari Mahkota & Filigree Lambang */
+    --azure-main: #00d2ff; /* Crystal Azure dari Sayap Elang Lambang */
+    --sapphire-main: #0284c7; /* Deep Sapphire dari Kristal */
+    --emerald-gem: #00c853; /* Hijau Zamrud 8 Permata Bezel Lambang */
+    --ruby-gem: #f43f5e; /* Permata Delima Hati Lambang */
+    --steel-shield: #475569; /* Baja Titanium Perisai Luar */
     --awwwards-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 :root[data-theme="light"] {
-    --bg-main: #fcfbf8; /* Gading / Pearl White yang elegan */
+    --bg-main: #f8fafc; /* Silken Ivory / Pearl White dari Pita Lambang */
     --bg-radial: #ffffff; --bg-secondary: rgba(255, 255, 255, 0.92); --bg-card: rgba(255, 255, 255, 0.95);
     --aurora-1: rgba(212, 175, 55, 0.12); /* Emas Mewah */
-    --aurora-2: rgba(3, 5, 4, 0.05); /* Sedikit sentuhan gelap */
-    --aurora-3: rgba(184, 150, 40, 0.15); /* Emas Tua */
+    --aurora-2: rgba(0, 180, 255, 0.07); /* Sayap Azure Ringan */
+    --aurora-3: rgba(148, 163, 184, 0.15); /* Titanium Platinum */
     --glass-bg: rgba(255, 255, 255, 0.75); 
     --glass-border: rgba(212, 175, 55, 0.4); 
     --glass-shadow: 0 25px 50px rgba(212, 175, 55, 0.15);
-    --text-primary: #0a110e; /* Hijau sangat gelap (hampir hitam) */
-    --text-secondary: #5d6e66; /* Abu-abu kehijauan */
+    --text-primary: #0f172a; /* Slate Gelap Obsidian Elegan */
+    --text-secondary: #475569; /* Slate Titanium Menengah */
+    --text-main: #0f172a;
     --gold-main: #aa771c; /* Emas gelap untuk mode siang */
+    --azure-main: #0284c7;
+    --sapphire-main: #0369a1;
+    --emerald-gem: #059669;
+    --ruby-gem: #e11d48;
+    --steel-shield: #64748b;
 }
 
 html, body { overscroll-behavior: none; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-inter, 'Inter', sans-serif); -webkit-tap-highlight-color: transparent; }
 ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 10px; }
 
-body { background-color: var(--bg-main); background-image: radial-gradient(circle at 50% 50%, var(--bg-radial), transparent 80%); color: var(--text-primary); height: 100vh; overflow: hidden; transition: background 1s ease, color 0.5s ease; cursor: default; }
+body { background-color: var(--bg-main); background-image: radial-gradient(circle at 50% 50%, var(--bg-radial), transparent 80%); color: var(--text-primary); height: 100vh; overflow: hidden; transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1), color 0.35s cubic-bezier(0.16, 1, 0.3, 1); cursor: default; }
 
 /* Utility Classes */
 .no-select { user-select: none; -webkit-user-select: none; }
@@ -70,7 +82,7 @@ body.custom-cursor-ready { cursor: none; }
 .load-v5 .loader-logo { z-index: 1; } .load-v5 .lunar-eclipse { position: absolute; width: 140px; height: 140px; background: var(--bg-main); border-radius: 50%; z-index: 5; box-shadow: -20px 0 30px #d4af37; animation: lunarEclipse 4s infinite ease-in-out; } :root[data-theme="light"] .load-v5 .lunar-eclipse { box-shadow: -20px 0 30px #aa771c; } @keyframes lunarEclipse { 0% { left: -120%; box-shadow: 20px 0 30px #d4af37; } 50% { left: 20px; box-shadow: 0 0 40px #d4af37; } 100% { left: 120%; box-shadow: -20px 0 30px #d4af37; } }
 .load-v6 .solar-crown { position: absolute; inset: -25px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 70%, rgba(212,175,55,0.6) 100%); animation: spinFull 2s linear infinite; border: 2px solid rgba(212,175,55,0.1); }
 .load-v7 .sacred-lattice { position: absolute; width: 160px; height: 160px; border: 1px solid rgba(212,175,55,0.2); animation: latticePulse 3s infinite alternate; opacity: 0; } @keyframes latticePulse { 0% { opacity: 0.1; } 100% { opacity: 0.7; transform: scale(1.1); } }
-.load-v8 .prismatic-pulse { position: absolute; width: 180px; height: 180px; border: 2px solid #00ff88; animation: prismRipple 3s infinite ease-out; opacity: 0; } :root[data-theme="light"] .load-v8 .prismatic-pulse { border-color: #00a2ff; } @keyframes prismRipple { 0% { transform: scale(0.8); opacity: 1; filter: hue-rotate(0deg); } 100% { transform: scale(2.5); opacity: 0; filter: hue-rotate(360deg); } }
+.load-v8 .prismatic-pulse { position: absolute; width: 180px; height: 180px; border: 2px solid #00d2ff; animation: prismRipple 3s infinite ease-out; opacity: 0; } :root[data-theme="light"] .load-v8 .prismatic-pulse { border-color: #0284c7; } @keyframes prismRipple { 0% { transform: scale(0.8); opacity: 1; filter: hue-rotate(0deg); } 100% { transform: scale(2.5); opacity: 0; filter: hue-rotate(360deg); } }
 .load-v9 .flowing-veils { position: absolute; bottom: -60px; display: flex; gap: 10px; height: 35px; align-items: center; justify-content: center; } .load-v9 .veil { width: 7px; background: #d4af37; border-radius: 4px; animation: veilFlow 1.2s infinite alternate ease-in-out; box-shadow: 0 0 15px #d4af37; } @keyframes veilFlow { 0% { transform: scaleY(0.5); opacity: 0.4; } 100% { transform: scaleY(1.3); opacity: 1; } }
 .load-v10 { perspective: 1500px; } .load-v10 .stellar-orbit { position: absolute; width: 250px; height: 90px; border: 1px solid rgba(212,175,55,0.3); border-radius: 50%; animation: spinX 4s infinite linear; } .load-v10 .stellar-orbit:nth-child(2) { animation: spinY 4s infinite linear; } .load-v10 .stellar-dot { position: absolute; width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 20px #fff; top: -6px; left: 50%; transform: translateX(-50%); } :root[data-theme="light"] .load-v10 .stellar-dot { background: #d4af37; box-shadow: 0 0 20px #d4af37; }
 
@@ -191,21 +203,38 @@ body.sidebar-closed .main-wrapper { left: 0; }
 :root[data-theme="light"] .aegis-name { color: #000; }
 
 /* ================= 7. THEME & NOTIF WIDGETS ================= */
-.theme-widget { position: fixed; top: 30px; right: 40px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px 16px 6px 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); pointer-events: auto; }
+/* Synchronized Universal Theme Transitions */
+.sidebar,
+.navbar,
+.glass-panel,
+.theme-widget,
+.notif-widget,
+.chat-widget,
+.content-canvas,
+.dashboard-container {
+    transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-widget { position: fixed; top: 30px; right: 40px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px 16px 6px 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: var(--glass-shadow); color: var(--text-primary); pointer-events: auto; }
 .theme-widget:hover { transform: translateY(-3px) scale(1.05); border-color: #d4af37; }
-.icon-orb { width: 35px; height: 35px; border-radius: 50%; background: var(--bg-main); display: flex; justify-content: center; align-items: center; color: var(--text-primary); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); transition: 0.4s; }
+.icon-orb { width: 35px; height: 35px; border-radius: 50%; background: var(--bg-main); display: flex; justify-content: center; align-items: center; color: var(--text-primary); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); transition: background 0.35s ease, color 0.35s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
 :root[data-theme="light"] .icon-orb { box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
 .theme-widget:hover .icon-orb { background: var(--text-primary); color: var(--bg-main); }
-.widget-text { font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-secondary); transition: 0.4s; }
+.icon-orb i { display: inline-block; transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.35s ease; }
+.theme-widget.theme-spinning .icon-orb i { transform: rotate(360deg) scale(1.18); }
+.widget-text { font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-secondary); transition: 0.35s; }
 
-.notif-widget { position: fixed; top: 30px; right: 170px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px; cursor: pointer; display: flex; align-items: center; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); pointer-events: auto; }
+.notif-widget { position: fixed; top: 30px; right: 165px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px; cursor: pointer; display: flex; align-items: center; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); pointer-events: auto; }
 .notif-widget:hover { transform: translateY(-3px) scale(1.05); border-color: #d4af37; }
 .notif-widget:hover .icon-orb { background: var(--text-primary); color: var(--bg-main); }
 
-.chat-widget { position: fixed; top: 30px; right: 235px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px; cursor: pointer; display: flex; align-items: center; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); text-decoration: none; pointer-events: auto; }
+.chat-widget { position: fixed; top: 30px; right: 230px; z-index: 9999; background: linear-gradient(135deg, var(--glass-bg) 0%, rgba(255,255,255,0.01) 100%); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 40px; padding: 6px; cursor: pointer; display: flex; align-items: center; transition: 0.4s; box-shadow: var(--glass-shadow); color: var(--text-primary); text-decoration: none; pointer-events: auto; }
 .chat-widget:hover { transform: translateY(-3px) scale(1.05); border-color: #d4af37; }
 .chat-widget:hover .icon-orb { background: var(--text-primary); color: var(--bg-main); }
-.chat-dropdown { display: flex; flex-direction: column; position: fixed; top: 75px; right: 235px; width: 340px; max-width: calc(100vw - 32px); background: var(--glass-bg, rgba(10, 15, 12, 0.95)); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.25)); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 10002; overflow: hidden; pointer-events: auto; }
+.chat-dropdown { display: flex; flex-direction: column; position: fixed; top: 75px; right: 230px; width: 340px; max-width: calc(100vw - 32px); background: var(--glass-bg, rgba(10, 15, 12, 0.95)); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.25)); border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 10002; overflow: hidden; pointer-events: auto; }
 
 /* Top widgets (theme, notif, chat) remain accessible */
 .theme-widget,
@@ -214,7 +243,7 @@ body.sidebar-closed .main-wrapper { left: 0; }
     pointer-events: auto !important;
 }
 
-/* Sembunyikan widget navbar saat panel disembunyikan (Desktop & Mobile) */
+/* Sembunyikan widget navbar & tombol bantuan saat panel disembunyikan (Desktop & Mobile) */
 body.sidebar-closed .theme-widget,
 body.sidebar-closed .notif-widget,
 body.sidebar-closed .chat-widget,
@@ -227,6 +256,42 @@ body.sidebar-closed .notif-dropdown {
     transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
                 visibility 0.35s !important;
+}
+
+body.sidebar-closed .floating-help-btn {
+    opacity: 0 !important;
+    transform: translateY(25px) scale(0.92) !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 0.35s !important;
+}
+
+/* ANTI-OVERLAP: Prevent fixed widget positioning inside flex navbars and headers */
+.landing-nav-island .theme-widget,
+.landing-nav-island .lang-widget,
+.drawer-quick-actions .theme-widget,
+.drawer-quick-actions .lang-widget,
+.login-top-bar .theme-widget,
+.login-top-bar .toggle-widget,
+.login-top-bar .lang-widget,
+.register-top-bar .theme-widget,
+.register-top-bar .lang-widget,
+.sovereign-header-actions .theme-widget,
+.sovereign-header-actions .lang-widget,
+.divine-top-nav .theme-widget,
+.celestial-top-nav .theme-widget,
+.sanctuary-wrapper .theme-widget,
+.footer-meta-links .theme-widget,
+.footer-meta-links .lang-widget {
+    position: static !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    margin: 0 !important;
 }
 
 /* ================= 8. MOBILE RESPONSIVENESS ================= */
@@ -261,23 +326,40 @@ body.sidebar-closed .notif-dropdown {
     .theme-widget { top: 20px; right: 20px; padding: 6px; min-width: 44px; min-height: 44px; } .widget-text { display: none; }
 
     @media (orientation: portrait) {
-        .notif-widget { top: 20px; right: auto; left: 20px; min-width: 44px; min-height: 44px; }
-        .notif-dropdown { top: 70px; right: auto; left: 20px; }
-        .chat-dropdown { top: 70px; right: auto; left: 75px; }
-        .chat-widget { top: 20px; right: auto; left: 75px; min-width: 44px; min-height: 44px; }
+        /* Align all top widgets to top-right so top-left is 100% reserved for .btn-back */
+        .theme-widget { top: 16px; right: 16px; min-width: 42px; min-height: 42px; }
+        .notif-widget { top: 16px; right: 66px; left: auto; min-width: 42px; min-height: 42px; }
+        .chat-widget { top: 16px; right: 116px; left: auto; min-width: 42px; min-height: 42px; }
+        .notif-dropdown { top: 66px; right: 16px; left: auto; max-width: calc(100vw - 32px); }
+        .chat-dropdown { top: 66px; right: 16px; left: auto; max-width: calc(100vw - 32px); }
 
         @supports (padding: max(0px)) {
             .theme-widget {
-                top: max(20px, env(safe-area-inset-top, 20px));
+                top: max(16px, calc(env(safe-area-inset-top, 16px) + 6px));
+                right: max(16px, env(safe-area-inset-right, 16px));
             }
-            .notif-widget, .chat-widget {
-                top: max(20px, env(safe-area-inset-top, 20px));
+            .notif-widget {
+                top: max(16px, calc(env(safe-area-inset-top, 16px) + 6px));
+                right: calc(max(16px, env(safe-area-inset-right, 16px)) + 50px);
+                left: auto;
             }
-            .notif-dropdown, .chat-dropdown {
-                top: max(70px, calc(env(safe-area-inset-top, 20px) + 50px));
+            .chat-widget {
+                top: max(16px, calc(env(safe-area-inset-top, 16px) + 6px));
+                right: calc(max(16px, env(safe-area-inset-right, 16px)) + 100px);
+                left: auto;
+            }
+            .notif-dropdown {
+                top: max(66px, calc(env(safe-area-inset-top, 16px) + 54px));
+                right: max(16px, env(safe-area-inset-right, 16px));
+                left: auto;
+            }
+            .chat-dropdown {
+                top: max(66px, calc(env(safe-area-inset-top, 16px) + 54px));
+                right: max(16px, env(safe-area-inset-right, 16px));
+                left: auto;
             }
             .aegis-toast.show {
-                top: max(25px, calc(env(safe-area-inset-top, 25px) + 10px));
+                top: max(25px, calc(env(safe-area-inset-top, 25px) + 12px));
             }
         }
     }
@@ -339,6 +421,9 @@ body.sidebar-closed .notif-dropdown {
     #btnMenuClose {
         display: none !important;
     }
+    .nav-item-panduan {
+        display: none !important;
+    }
     .nav-item { 
         width: auto; height: 100%; min-height: 48px; font-size: 0.95rem; margin: 0; 
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -366,7 +451,9 @@ body.sidebar-closed .notif-dropdown {
     .nav-spacer { display: none; }
     
     /* P2-15: CSS var agar chat & main-wrapper bisa referensi nilai yang sama */
-    :root { --nav-clearance: 105px; }
+    :root { 
+        --nav-clearance: calc(105px + env(safe-area-inset-bottom, 0px)); 
+    }
     .main-wrapper { 
         left: 0; 
         bottom: var(--nav-clearance); 
@@ -379,7 +466,13 @@ body.sidebar-closed .notif-dropdown {
     
     /* Sidebar Closed State (Mobile Portrait) */
     body.sidebar-closed .sidebar { transform: translateY(150px); opacity: 0; }
-    body.sidebar-closed .main-wrapper { bottom: 0; height: 100vh; max-width: 100vw !important; overflow-x: hidden !important; }
+    body.sidebar-closed .main-wrapper { 
+        bottom: 0; 
+        height: 100vh; 
+        height: 100dvh; 
+        max-width: 100vw !important; 
+        overflow-x: hidden !important; 
+    }
     
     /* Ultra-Minimalist Drawer Handle (iOS Style) */
     .menu-toggle { 
@@ -398,18 +491,21 @@ body.sidebar-closed .notif-dropdown {
 
     /* SAFE AREA INSETS (Portrait) */
     @supports (padding: max(0px)) {
+        :root {
+            --nav-clearance: calc(105px + env(safe-area-inset-bottom, 0px));
+        }
         .sidebar {
-            bottom: max(20px, env(safe-area-inset-bottom, 20px));
-            padding-bottom: env(safe-area-inset-bottom, 0);
+            bottom: max(16px, env(safe-area-inset-bottom, 16px));
+            padding-bottom: 0;
         }
         body.sidebar-closed .main-wrapper {
             padding-bottom: env(safe-area-inset-bottom, 0);
         }
         .menu-toggle {
-            bottom: max(0px, env(safe-area-inset-bottom, 0px));
+            bottom: max(4px, env(safe-area-inset-bottom, 4px));
         }
         body:not(.sidebar-closed) .menu-toggle {
-            transform: translateX(-50%) translateY(calc(-80px - env(safe-area-inset-bottom, 0px))) !important;
+            transform: translateX(-50%) translateY(calc(-82px - env(safe-area-inset-bottom, 0px))) !important;
         }
     }
 }
@@ -597,8 +693,8 @@ body.sidebar-closed .notif-dropdown {
     
     /* Widgets: slightly smaller spacing & clear left anchor */
     .theme-widget { top: 15px; right: 15px; left: auto !important; }
-    .notif-widget { top: 15px; right: 120px; left: auto !important; }
-    .chat-widget { top: 15px; right: 65px; left: auto !important; }
+    .chat-widget { top: 15px; right: 70px; left: auto !important; }
+    .notif-widget { top: 15px; right: 125px; left: auto !important; }
     
     /* Reduce heavy effects for tablet GPU */
     :root { --glass-blur: blur(15px); }
@@ -609,9 +705,9 @@ body.sidebar-closed .notif-dropdown {
     .sidebar { height: 65px; bottom: 15px; left: 5px; right: 5px; width: calc(100vw - 10px); }
     .nav-item { font-size: 0.85rem; }
     .nav-label { font-size: 0.42rem; }
-    .theme-widget { top: 15px; right: 15px; }
-    .notif-widget { top: 15px; left: 15px; }
-    .chat-widget { top: 15px; left: 70px; }
+    .theme-widget { top: 12px; right: 12px; min-width: 38px; min-height: 38px; padding: 4px; }
+    .notif-widget { top: 12px; right: 54px; left: auto !important; min-width: 38px; min-height: 38px; }
+    .chat-widget { top: 12px; right: 96px; left: auto !important; min-width: 38px; min-height: 38px; }
     .aegis-toast { font-size: 0.8rem; padding: 10px 15px; }
     .main-wrapper { bottom: 100px; }
     body.sidebar-closed .main-wrapper { bottom: 0; }
@@ -783,7 +879,7 @@ img.skeleton-shimmer {
     padding: 0 25px; font-size: 1.4rem; border-radius: inherit; z-index: 0; opacity: 0;
     transition: opacity 0.3s, background 0.3s;
 }
-.swipe-action-bg.left-active { opacity: 1; background: rgba(0, 255, 136, 0.15); color: #00ff88; justify-content: flex-start; }
+.swipe-action-bg.left-active { opacity: 1; background: rgba(0, 200, 83, 0.15); color: #00c853; justify-content: flex-start; }
 .swipe-action-bg.right-active { opacity: 1; background: rgba(255, 50, 50, 0.15); color: #ff3232; justify-content: flex-end; }
 .swipe-action-card {
     position: relative; z-index: 1; width: 100%; height: 100%;
@@ -958,7 +1054,7 @@ img.skeleton-shimmer {
 
 /* ================= 16. P3: SMART SCROLL-TO-TOP (#26) ================= */
 .scroll-top-btn {
-    position: fixed; right: 24px; bottom: 140px;
+    position: fixed; right: 28px; bottom: 84px;
     width: 46px; height: 46px; border-radius: 50%;
     background: rgba(10,17,14,0.88);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -968,7 +1064,7 @@ img.skeleton-shimmer {
     z-index: 9000;
     opacity: 0; pointer-events: none;
     transform: translateY(10px) scale(0.9);
-    transition: opacity 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    transition: opacity 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex; align-items: center; justify-content: center;
 }
 .scroll-top-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
@@ -979,10 +1075,11 @@ img.skeleton-shimmer {
     box-shadow: 0 8px 24px rgba(0,0,0,0.12);
 }
 @media (max-width: 768px) {
-    .scroll-top-btn { right: 16px; bottom: max(140px, calc(115px + env(safe-area-inset-bottom, 0px))); }
+    .scroll-top-btn { right: 16px; bottom: max(175px, calc(150px + env(safe-area-inset-bottom, 0px))); }
+    body.sidebar-closed .scroll-top-btn { bottom: max(75px, calc(55px + env(safe-area-inset-bottom, 0px))); }
 }
 @media (min-width: 769px) and (max-width: 1024px) {
-    .scroll-top-btn { bottom: 30px; right: 20px; }
+    .scroll-top-btn { bottom: 84px; right: 24px; }
 }
 
 /* ========================================================
@@ -1088,6 +1185,61 @@ img.skeleton-shimmer {
     transition: transform 0.08s ease-out !important;
   }
 }
+
+/* =========================================================================
+   UNIVERSAL BACK BUTTON (.btn-back & .btn-back-vault)
+   ========================================================================= */
+.btn-back,
+.btn-back-vault {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(14, 18, 27, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 9999px;
+  color: var(--gold-main, #d4af37);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  z-index: 50;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  min-height: 40px;
+}
+
+.btn-back:hover,
+.btn-back-vault:hover {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: #ffd700;
+  color: #ffffff;
+  transform: translateX(-3px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+}
+
+:root[data-theme="light"] .btn-back,
+:root[data-theme="light"] .btn-back-vault,
+[data-theme="light"] .btn-back,
+[data-theme="light"] .btn-back-vault {
+  background: #ffffff !important;
+  border: 1px solid rgba(170, 119, 28, 0.35) !important;
+  color: #aa771c !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+:root[data-theme="light"] .btn-back:hover,
+:root[data-theme="light"] .btn-back-vault:hover,
+[data-theme="light"] .btn-back:hover,
+[data-theme="light"] .btn-back-vault:hover {
+  background: #fdf8eb !important;
+  border-color: #aa771c !important;
+  color: #78350f !important;
+  box-shadow: 0 6px 18px rgba(170, 119, 28, 0.18) !important;
+}
+
 
 
 

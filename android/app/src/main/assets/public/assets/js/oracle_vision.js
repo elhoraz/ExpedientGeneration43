@@ -161,7 +161,7 @@
                     switch(dominantEmotion) {
                         case 'happy': 
                             maqam = "Tasyakkur (Bersyukur)"; 
-                            tintColor = "rgba(0, 255, 136, 0.4)"; 
+                            tintColor = "rgba(0, 200, 83, 0.4)"; 
                             filterStr = "sepia(0.3) hue-rotate(90deg) brightness(0.9) contrast(1.3)";
                             break;
                         case 'sad': 
