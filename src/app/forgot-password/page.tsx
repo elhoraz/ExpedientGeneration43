@@ -5,9 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "../login/login.css";
 
 export default function ForgotPasswordPage() {
+  const { locale, t } = useLanguage();
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"request" | "sent">("request");
   const [loading, setLoading] = useState(false);
@@ -60,14 +63,17 @@ export default function ForgotPasswordPage() {
         <div className="core-orb orb-3"></div>
       </div>
 
-      <button className="toggle-widget" id="btnTheme" title="Ganti Mode" onClick={toggleTheme}>
-        <div className="icon-orb">
-          <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
-        </div>
-        <span className="widget-text" id="themeText">
-          {theme === "dark" ? "Malam" : "Siang"}
-        </span>
-      </button>
+      <div style={{ position: "fixed", top: "20px", right: "20px", zIndex: 100, display: "flex", alignItems: "center", gap: "10px" }}>
+        <LanguageSwitcher />
+        <button className="toggle-widget" id="btnTheme" title={t.common.theme_toggle} onClick={toggleTheme}>
+          <div className="icon-orb">
+            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
+          </div>
+          <span className="widget-text" id="themeText">
+            {theme === "dark" ? t.common.theme_dark : t.common.theme_light}
+          </span>
+        </button>
+      </div>
 
       {toastData && (
         <div id="toastAlert" className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}>
@@ -87,14 +93,20 @@ export default function ForgotPasswordPage() {
             </div>
             <div className="subtitle-spec">Expedient Generation</div>
             <h1 className="title-holo" style={{ fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>
-              {step === "request" ? "Pemulihan Kata Sandi" : "Instruksi Terkirim"}
+              {step === "request"
+                ? (locale === "ar" ? "استعادة كلمة المرور" : locale === "en" ? "Password Recovery" : "Pemulihan Kata Sandi")
+                : (locale === "ar" ? "تم إرسال التعليمات" : locale === "en" ? "Instructions Sent" : "Instruksi Terkirim")}
             </h1>
           </div>
 
           {step === "request" ? (
             <form onSubmit={handleSubmit}>
               <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "25px", textAlign: "center" }}>
-                Masukkan alamat surel yang terdaftar. Kami akan mengirimkan tautan pemulihan ke kotak masuk Anda.
+                {locale === "ar"
+                  ? "أدخل بريدك الإلكتروني المسجل. سنرسل إليك رابط إعادة تعيين كلمة المرور."
+                  : locale === "en"
+                  ? "Enter your registered email address. We will send a recovery link to your inbox."
+                  : "Masukkan alamat surel yang terdaftar. Kami akan mengirimkan tautan pemulihan ke kotak masuk Anda."}
               </p>
 
               <div className="input-group">
@@ -107,7 +119,9 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                <label className="input-label">Surel Resmi</label>
+                <label className="input-label">
+                  {locale === "ar" ? "البريد الإلكتروني" : locale === "en" ? "Official Email" : "Surel Resmi"}
+                </label>
                 <div className="input-neon-line"></div>
               </div>
 
@@ -115,9 +129,12 @@ export default function ForgotPasswordPage() {
                 <div className="magnetic-wrap">
                   <button type="submit" className="btn-prime magnetic-btn" disabled={loading}>
                     {loading ? (
-                      <><i className="fa-solid fa-circle-notch fa-spin"></i> Mengirim...</>
+                      <><i className="fa-solid fa-circle-notch fa-spin"></i> {t.common.loading}</>
                     ) : (
-                      <>Kirim Tautan Pemulihan <i className="fa-solid fa-paper-plane"></i></>
+                      <>
+                        {locale === "ar" ? "إرسال رابط الاستعادة" : locale === "en" ? "Send Recovery Link" : "Kirim Tautan Pemulihan"}{" "}
+                        <i className={`fa-solid ${locale === "ar" ? "fa-paper-plane fa-flip-horizontal" : "fa-paper-plane"}`} style={{ marginInlineStart: "6px" }}></i>
+                      </>
                     )}
                   </button>
                 </div>
@@ -129,16 +146,22 @@ export default function ForgotPasswordPage() {
                 <i className="fa-solid fa-envelope-circle-check"></i>
               </div>
               <p style={{ color: "var(--text-primary, #fff)", fontSize: "0.95rem", fontWeight: 600, marginBottom: "10px" }}>
-                Tautan pemulihan telah dikirim
+                {locale === "ar" ? "تم إرسال رابط الاستعادة" : locale === "en" ? "Recovery link has been sent" : "Tautan pemulihan telah dikirim"}
               </p>
               <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "30px" }}>
-                Periksa kotak masuk <strong style={{ color: "#d4af37" }}>{email}</strong> untuk instruksi selanjutnya.
-                Jika tidak ditemukan, cek folder spam Anda.
+                {locale === "ar" ? (
+                  <>يرجى التحقق من بريدك الإلكتروني <strong style={{ color: "#d4af37" }}>{email}</strong> للحصول على التعليمات.</>
+                ) : locale === "en" ? (
+                  <>Check your inbox at <strong style={{ color: "#d4af37" }}>{email}</strong> for instructions. Check your spam folder if not found.</>
+                ) : (
+                  <>Periksa kotak masuk <strong style={{ color: "#d4af37" }}>{email}</strong> untuk instruksi selanjutnya. Jika tidak ditemukan, cek folder spam Anda.</>
+                )}
               </p>
               <div className="btn-rack">
                 <div className="magnetic-wrap">
                   <button type="button" className="btn-prime magnetic-btn" onClick={() => { setStep("request"); setEmail(""); }}>
-                    <i className="fa-solid fa-rotate-left" style={{ marginRight: "8px" }}></i> Kirim Ulang
+                    <i className="fa-solid fa-rotate-left" style={{ marginInlineEnd: "8px" }}></i>
+                    {locale === "ar" ? "إعادة الإرسال" : locale === "en" ? "Resend" : "Kirim Ulang"}
                   </button>
                 </div>
               </div>
@@ -146,7 +169,10 @@ export default function ForgotPasswordPage() {
           )}
 
           <div className="register-link" style={{ marginTop: "20px" }}>
-            <Link href="/login"><i className="fa-solid fa-arrow-left" style={{ marginRight: "5px" }}></i> Kembali ke Portal Utama</Link>
+            <Link href="/login">
+              <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} style={{ marginInlineEnd: "6px" }}></i>
+              {locale === "ar" ? "العودة إلى بوابة الدخول" : locale === "en" ? "Back to Portal" : "Kembali ke Portal Utama"}
+            </Link>
           </div>
         </div>
       </div>

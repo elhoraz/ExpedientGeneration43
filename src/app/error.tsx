@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function GlobalError({
   error,
@@ -11,6 +12,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { locale } = useLanguage();
   useEffect(() => {
     console.error("Global System Error:", error);
     const msg = String(error?.message || error?.name || "");
@@ -81,7 +83,7 @@ export default function GlobalError({
             fontFamily: "'Playfair Display', serif",
           }}
         >
-          Sistem Menemui Kendala
+          {locale === "ar" ? "حدث خطأ في النظام" : locale === "en" ? "System Encountered an Issue" : "Sistem Menemui Kendala"}
         </h2>
 
         <p
@@ -95,6 +97,10 @@ export default function GlobalError({
         >
           {error.message && !error.message.includes("digest")
             ? error.message
+            : locale === "ar"
+            ? "حدث خلل مؤقت في وحدة التطبيق. يرجى إعادة التحميل أو العودة إلى الصفحة الرئيسية."
+            : locale === "en"
+            ? "A temporary disruption occurred in the application module. Please reload or return to the main home page."
             : "Terjadi gangguan sementara pada modul aplikasi. Silakan muat ulang atau kembali ke beranda utama."}
         </p>
 
@@ -122,8 +128,8 @@ export default function GlobalError({
               transition: "all 0.3s ease",
             }}
           >
-            <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }}></i>
-            Muat Ulang Modul
+            <i className="fa-solid fa-rotate-right" style={{ marginInlineEnd: "8px" }}></i>
+            {locale === "ar" ? "إعادة تحميل الوحدة" : locale === "en" ? "Reload Module" : "Muat Ulang Modul"}
           </button>
 
           <Link
@@ -140,8 +146,8 @@ export default function GlobalError({
               transition: "all 0.3s ease",
             }}
           >
-            <i className="fa-solid fa-landmark" style={{ marginRight: "8px" }}></i>
-            Beranda Utama
+            <i className="fa-solid fa-landmark" style={{ marginInlineEnd: "8px" }}></i>
+            {locale === "ar" ? "الصفحة الرئيسية" : locale === "en" ? "Home Page" : "Beranda Utama"}
           </Link>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function DashboardError({
   error,
@@ -10,6 +11,8 @@ export default function DashboardError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { locale } = useLanguage();
+
   useEffect(() => {
     // Log the error to an error reporting service
     console.error("Dashboard Boundary Error:", error);
@@ -29,9 +32,15 @@ export default function DashboardError({
       textAlign: "center"
     }}>
       <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: "3rem", color: "#ff3366", marginBottom: "20px" }}></i>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#ff3366", marginBottom: "10px" }}>Terjadi Kesalahan Sistem</h2>
+      <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#ff3366", marginBottom: "10px" }}>
+        {locale === "ar" ? "حدث خطأ في النظام" : locale === "en" ? "System Error Occurred" : "Terjadi Kesalahan Sistem"}
+      </h2>
       <p style={{ color: "var(--text-secondary)", maxWidth: "500px", marginBottom: "30px", fontSize: "0.9rem" }}>
-        {error.message || "Komponen tidak dapat dirender atau koneksi database terputus. Silakan coba muat ulang halaman."}
+        {error.message || (locale === "ar"
+          ? "تعذر عرض المكون أو انقطع الاتصال بقاعدة البيانات. يرجى محاولة إعادة تحميل الصفحة."
+          : locale === "en"
+          ? "Component could not be rendered or database connection was lost. Please try reloading the page."
+          : "Komponen tidak dapat dirender atau koneksi database terputus. Silakan coba muat ulang halaman.")}
       </p>
       <div style={{ display: "flex", gap: "15px" }}>
         <button 
@@ -46,7 +55,7 @@ export default function DashboardError({
             fontWeight: 600
           }}
         >
-          <i className="fa-solid fa-rotate-right" style={{ marginRight: "8px" }}></i> Coba Lagi
+          <i className="fa-solid fa-rotate-right" style={{ marginInlineEnd: "8px" }}></i> {locale === "ar" ? "حاول مرة أخرى" : locale === "en" ? "Try Again" : "Coba Lagi"}
         </button>
         <Link href="/beranda" style={{
             background: "rgba(212, 175, 55, 0.1)",
@@ -57,7 +66,7 @@ export default function DashboardError({
             textDecoration: "none",
             fontWeight: 600
           }}>
-          <i className="fa-solid fa-house" style={{ marginRight: "8px" }}></i> Kembali ke Beranda
+          <i className="fa-solid fa-house" style={{ marginInlineEnd: "8px" }}></i> {locale === "ar" ? "العودة إلى الصفحة الرئيسية" : locale === "en" ? "Return to Home" : "Kembali ke Beranda"}
         </Link>
       </div>
     </div>

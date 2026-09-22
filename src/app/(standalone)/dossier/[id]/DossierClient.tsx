@@ -5,8 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function DossierClient({ targetUser, age }: { targetUser: any, age: string | number }) {
+  const { t, locale } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const [decryptText, setDecryptText] = useState("INITIALIZING...");
@@ -366,7 +368,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
       <div className="mobile-container" id="main-content" ref={contentRef} style={{ display: loading ? 'none' : 'block' }}>
           <div className="header">
               <button onClick={() => window.history.length > 1 ? router.back() : router.push('/beranda')} className="btn-exit">
-                  <i className="fa-solid fa-arrow-left"></i> KEMBALI
+                  <i className="fa-solid fa-arrow-left"></i> {t.common.back.toUpperCase()}
               </button>
               <div style={{ fontFamily: "'Space Mono'", fontSize: "10px", color: "var(--dark-gold)", letterSpacing: "2px" }}>
                   ALUMNI TERVERIFIKASI <i className="fa-solid fa-check" style={{ color: "#00c853" }}></i>
@@ -401,13 +403,13 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
 
               <div className="actions">
                   <Link href={`/chat/personal/${targetUser.id}`} className="btn-action btn-primary">
-                      <i className="fa-solid fa-comment-dots"></i> KIRIM PESAN
+                      <i className="fa-solid fa-comment-dots"></i> {locale === "ar" ? "إرسال رسالة" : locale === "en" ? "SEND MESSAGE" : "KIRIM PESAN"}
                   </Link>
                   <a href={targetUser.akun_ig ? `https://instagram.com/${targetUser.akun_ig}` : '#'} target="_blank" className="btn-action btn-secondary" style={!targetUser.akun_ig ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
                       <i className="fa-brands fa-instagram"></i> INSTAGRAM
                   </a>
                   <a href={`/api/vcard/${targetUser.public_token || targetUser.id}`} className="btn-action btn-secondary">
-                      <i className="fa-solid fa-address-card"></i> SIMPAN KONTAK
+                      <i className="fa-solid fa-address-card"></i> {locale === "ar" ? "حفظ جهة الاتصال" : locale === "en" ? "SAVE CONTACT" : "SIMPAN KONTAK"}
                   </a>
               </div>
           </div>

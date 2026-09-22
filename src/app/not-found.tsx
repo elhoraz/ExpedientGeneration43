@@ -3,9 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function NotFound() {
   const router = useRouter();
+  const { locale, t } = useLanguage();
 
   return (
     <div
@@ -72,7 +74,7 @@ export default function NotFound() {
             fontFamily: "'Playfair Display', serif",
           }}
         >
-          Arsip Tidak Ditemukan
+          {locale === "ar" ? "الأرشيف غير موجود" : locale === "en" ? "Archive Not Found" : "Arsip Tidak Ditemukan"}
         </h2>
 
         <p
@@ -84,7 +86,11 @@ export default function NotFound() {
             maxWidth: "420px",
           }}
         >
-          Koordinat atau halaman yang Anda tuju berada di luar jangkauan radar galeri digital Expedient Generation.
+          {locale === "ar"
+            ? "الصفحة أو الإحداثيات التي تبحث عنها تقع خارج نطاق رادار إكسبيدينت جينيريشن الرقمي."
+            : locale === "en"
+            ? "The coordinates or page you are looking for is beyond the reach of the Expedient Generation digital radar."
+            : "Koordinat atau halaman yang Anda tuju berada di luar jangkauan radar galeri digital Expedient Generation."}
         </p>
 
         <div
@@ -111,8 +117,8 @@ export default function NotFound() {
               transition: "all 0.3s ease",
             }}
           >
-            <i className="fa-solid fa-arrow-left" style={{ marginRight: "8px" }}></i>
-            Kembali
+            <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} style={{ marginInlineEnd: "8px" }}></i>
+            {t.common.back}
           </button>
 
           <Link
@@ -130,8 +136,8 @@ export default function NotFound() {
               transition: "all 0.3s ease",
             }}
           >
-            <i className="fa-solid fa-landmark" style={{ marginRight: "8px" }}></i>
-            Beranda Utama
+            <i className="fa-solid fa-landmark" style={{ marginInlineEnd: "8px" }}></i>
+            {locale === "ar" ? "الصفحة الرئيسية" : locale === "en" ? "Home Page" : "Beranda Utama"}
           </Link>
         </div>
       </div>

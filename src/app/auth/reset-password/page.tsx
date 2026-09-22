@@ -6,9 +6,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "../../login/login.css";
 
 export default function ResetPasswordPage() {
+  const { locale, t } = useLanguage();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -88,14 +91,17 @@ export default function ResetPasswordPage() {
         <div className="core-orb orb-3"></div>
       </div>
 
-      <button className="toggle-widget" id="btnTheme" title="Ganti Mode" onClick={toggleTheme}>
-        <div className="icon-orb">
-          <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
-        </div>
-        <span className="widget-text" id="themeText">
-          {theme === "dark" ? "Malam" : "Siang"}
-        </span>
-      </button>
+      <div style={{ position: "fixed", top: "20px", right: "20px", zIndex: 100, display: "flex", alignItems: "center", gap: "10px" }}>
+        <LanguageSwitcher />
+        <button className="toggle-widget" id="btnTheme" title={t.common.theme_toggle} onClick={toggleTheme}>
+          <div className="icon-orb">
+            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
+          </div>
+          <span className="widget-text" id="themeText">
+            {theme === "dark" ? t.common.theme_dark : t.common.theme_light}
+          </span>
+        </button>
+      </div>
 
       {toastData && (
         <div id="toastAlert" className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}>
@@ -115,7 +121,9 @@ export default function ResetPasswordPage() {
             </div>
             <div className="subtitle-spec">Expedient Generation</div>
             <h1 className="title-holo" style={{ fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>
-              {success ? "Sandi Dipulihkan" : "Atur Sandi Baru"}
+              {success
+                ? (locale === "ar" ? "تم استعادة كلمة المرور" : locale === "en" ? "Password Reset" : "Sandi Dipulihkan")
+                : (locale === "ar" ? "تعيين كلمة مرور جديدة" : locale === "en" ? "Set New Password" : "Atur Sandi Baru")}
             </h1>
           </div>
 
@@ -125,16 +133,16 @@ export default function ResetPasswordPage() {
                 <i className="fa-solid fa-check-circle"></i>
               </div>
               <p style={{ color: "var(--text-primary, #fff)", fontSize: "0.95rem", fontWeight: 600, marginBottom: "10px" }}>
-                Kata sandi berhasil diperbarui!
+                {locale === "ar" ? "تم تحديث كلمة المرور بنجاح!" : locale === "en" ? "Password updated successfully!" : "Kata sandi berhasil diperbarui!"}
               </p>
               <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7 }}>
-                Anda akan dialihkan ke beranda dalam beberapa detik...
+                {locale === "ar" ? "سيتم توجيهك إلى الصفحة الرئيسية خلال لحظات..." : locale === "en" ? "Redirecting to home page shortly..." : "Anda akan dialihkan ke beranda dalam beberapa detik..."}
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "25px", textAlign: "center" }}>
-                Masukkan kata sandi baru Anda. Pastikan minimal 8 karakter.
+                {locale === "ar" ? "أدخل كلمة المرور الجديدة. يجب أن تتكون من 8 أحرف على الأقل." : locale === "en" ? "Enter your new password. Must be at least 8 characters." : "Masukkan kata sandi baru Anda. Pastikan minimal 8 karakter."}
               </p>
 
               <div className="input-group">
@@ -147,7 +155,9 @@ export default function ResetPasswordPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
-                <label className="input-label">Kata Sandi Baru</label>
+                <label className="input-label">
+                  {locale === "ar" ? "كلمة المرور الجديدة" : locale === "en" ? "New Password" : "Kata Sandi Baru"}
+                </label>
                 <div className="input-neon-line"></div>
                 <i
                   className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`}
@@ -165,7 +175,9 @@ export default function ResetPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
-                <label className="input-label">Konfirmasi Kata Sandi</label>
+                <label className="input-label">
+                  {locale === "ar" ? "تأكيد كلمة المرور" : locale === "en" ? "Confirm Password" : "Konfirmasi Kata Sandi"}
+                </label>
                 <div className="input-neon-line"></div>
               </div>
 
@@ -173,9 +185,12 @@ export default function ResetPasswordPage() {
                 <div className="magnetic-wrap">
                   <button type="submit" className="btn-prime magnetic-btn" disabled={loading}>
                     {loading ? (
-                      <><i className="fa-solid fa-circle-notch fa-spin"></i> Memproses...</>
+                      <><i className="fa-solid fa-circle-notch fa-spin"></i> {t.common.loading}</>
                     ) : (
-                      <>Perbarui Kata Sandi <i className="fa-solid fa-shield-halved"></i></>
+                      <>
+                        {locale === "ar" ? "تحديث كلمة المرور" : locale === "en" ? "Update Password" : "Perbarui Kata Sandi"}{" "}
+                        <i className="fa-solid fa-shield-halved" style={{ marginInlineStart: "6px" }}></i>
+                      </>
                     )}
                   </button>
                 </div>
@@ -184,7 +199,10 @@ export default function ResetPasswordPage() {
           )}
 
           <div className="register-link" style={{ marginTop: "20px" }}>
-            <Link href="/login"><i className="fa-solid fa-arrow-left" style={{ marginRight: "5px" }}></i> Kembali ke Portal Utama</Link>
+            <Link href="/login">
+              <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} style={{ marginInlineEnd: "6px" }}></i>
+              {locale === "ar" ? "العودة إلى بوابة الدخول" : locale === "en" ? "Back to Portal" : "Kembali ke Portal Utama"}
+            </Link>
           </div>
         </div>
       </div>

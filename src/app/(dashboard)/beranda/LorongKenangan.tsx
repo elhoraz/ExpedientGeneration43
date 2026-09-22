@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 // Roman Numeral Helper
 function toRoman(num: number): string {
@@ -30,6 +31,7 @@ function useIsMobile() {
 }
 
 export default function LorongKenangan({ galeri }: { galeri: any[] }) {
+  const { locale, t } = useLanguage();
   const [activeStyle, setActiveStyle] = useState<GalleryStyleMode>('monolith');
   const [activeIndex, setActiveIndex] = useState(0);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
@@ -512,7 +514,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap"
             }}>
               <i className="fa-solid fa-gem" style={{ color: "#ffd700", fontSize: "0.85rem" }}></i>
-              <span>MEMORI {toRoman(activeIndex + 1)} / {toRoman(total)}</span>
+              <span>{locale === "ar" ? `ذكرى ${toRoman(activeIndex + 1)} / ${toRoman(total)}` : locale === "en" ? `MEMORY ${toRoman(activeIndex + 1)} / ${toRoman(total)}` : `MEMORI ${toRoman(activeIndex + 1)} / ${toRoman(total)}`}</span>
             </div>
 
             <button
@@ -543,7 +545,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               padding: "4px 12px", borderRadius: "20px", letterSpacing: "1px",
               pointerEvents: "none", zIndex: 500, whiteSpace: "nowrap"
             }}>
-              ← GESER →
+              {locale === "ar" ? "← اسحب →" : locale === "en" ? "← SWIPE →" : "← GESER →"}
             </div>
           )}
         </div>
@@ -604,7 +606,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                       padding: "2px 8px", borderRadius: "6px",
                       border: "1px solid rgba(212,175,55,0.4)"
                     }}>
-                      MEMORI {toRoman(idx + 1)}
+                      {locale === "ar" ? "ذكرى" : locale === "en" ? "MEMORY" : "MEMORI"} {toRoman(idx + 1)}
                     </div>
                   </div>
                   <div style={{ padding: isMobile ? "10px 12px" : "16px 20px" }}>
@@ -669,7 +671,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               marginBottom: "14px", flexWrap: "wrap"
             }}>
               <i className="fa-solid fa-landmark" style={{ color: "#ffd700" }}></i>
-              <span>SOVEREIGN ARCHIVE — MEMORI ARRISALAH</span>
+              <span>{locale === "ar" ? "الأرشيف السيادي — ذكريات الرسالة" : locale === "en" ? "SOVEREIGN ARCHIVE — ARRISALAH MEMORIES" : "SOVEREIGN ARCHIVE — MEMORI ARRISALAH"}</span>
             </div>
 
             {/* Photo */}
@@ -708,7 +710,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               paddingTop: isMobile ? "12px" : "18px"
             }}>
               <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "0.5px" }}>
-                Arsip Visual Resmi Museum Angkatan Expedient
+                {locale === "ar" ? "الأرشيف المرئي الرسمي لمتحف إكسبيدينت" : locale === "en" ? "Official Visual Archive of Expedient Generation" : "Arsip Visual Resmi Museum Angkatan Expedient"}
               </span>
               <a
                 href={selectedItem.image_url || selectedItem.foto_url}
@@ -726,7 +728,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                 }}
                 className="hover-trigger"
               >
-                <i className="fa-solid fa-arrow-down-long"></i> Unduh Ukuran Asli (HD)
+                <i className="fa-solid fa-arrow-down-long"></i> {locale === "ar" ? "تحميل بالحجم الأصلي (HD)" : locale === "en" ? "Download Original (HD)" : "Unduh Ukuran Asli (HD)"}
               </a>
             </div>
           </div>

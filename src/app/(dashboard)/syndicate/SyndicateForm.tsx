@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./syndicate.css";
 
 interface ProductItem {
@@ -56,6 +57,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
   const router = useRouter();
   const supabase = createClient();
   const { showAlert } = useConfirm();
+  const { locale, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"info" | "marketplace" | "branding" | "produk" | "promo">("info");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [waNumber, setWaNumber] = useState(userWhatsapp);
@@ -350,7 +352,9 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               Alumni Business Website Builder
             </div>
             <h2 style={{ fontFamily: "var(--font-playfair, 'Playfair Display', serif)", color: "var(--text-primary, #ffffff)", margin: "4px 0 0", fontSize: "1.9rem" }}>
-              {initialData ? "Kelola Website Bisnis Anda" : "Buat Website & Katalog Usaha"}
+              {initialData
+                ? (locale === "ar" ? "إدارة موقع عملك" : locale === "en" ? "Manage Your Business Website" : "Kelola Website Bisnis Anda")
+                : (locale === "ar" ? "إنشاء موقع وكتالوج الأعمال" : locale === "en" ? "Create Business Website & Catalog" : "Buat Website & Katalog Usaha")}
             </h2>
           </div>
           <Link href="/syndicate" style={{ color: "var(--text-secondary)", textDecoration: "none", fontSize: "1.3rem" }}>
@@ -365,35 +369,35 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
             className={`syndicate-tab-btn ${activeTab === "info" ? "active" : ""}`}
             onClick={() => setActiveTab("info")}
           >
-            <i className="fa-solid fa-id-card"></i> Info Dasar & Kontak
+            <i className="fa-solid fa-id-card"></i> {locale === "ar" ? "المعلومات والاتصال" : locale === "en" ? "Basic Info & Contact" : "Info Dasar & Kontak"}
           </button>
           <button
             type="button"
             className={`syndicate-tab-btn ${activeTab === "marketplace" ? "active" : ""}`}
             onClick={() => setActiveTab("marketplace")}
           >
-            <i className="fa-solid fa-store"></i> Marketplace (Opsional)
+            <i className="fa-solid fa-store"></i> {locale === "ar" ? "المتاجر الإلكترونية" : locale === "en" ? "Marketplace (Optional)" : "Marketplace (Opsional)"}
           </button>
           <button
             type="button"
             className={`syndicate-tab-btn ${activeTab === "branding" ? "active" : ""}`}
             onClick={() => setActiveTab("branding")}
           >
-            <i className="fa-solid fa-image"></i> Logo & Banner
+            <i className="fa-solid fa-image"></i> {locale === "ar" ? "الشعار والبانر" : locale === "en" ? "Logo & Banner" : "Logo & Banner"}
           </button>
           <button
             type="button"
             className={`syndicate-tab-btn ${activeTab === "produk" ? "active" : ""}`}
             onClick={() => setActiveTab("produk")}
           >
-            <i className="fa-solid fa-boxes-stacked"></i> Produk & Layanan ({formData.produk_layanan?.length || 0})
+            <i className="fa-solid fa-boxes-stacked"></i> {locale === "ar" ? `المنتجات والخدمات (${formData.produk_layanan?.length || 0})` : locale === "en" ? `Products & Services (${formData.produk_layanan?.length || 0})` : `Produk & Layanan (${formData.produk_layanan?.length || 0})`}
           </button>
           <button
             type="button"
             className={`syndicate-tab-btn ${activeTab === "promo" ? "active" : ""}`}
             onClick={() => setActiveTab("promo")}
           >
-            <i className="fa-solid fa-gift"></i> Promo KTA & Jam Buka
+            <i className="fa-solid fa-gift"></i> {locale === "ar" ? "عروض KTA وساعات العمل" : locale === "en" ? "Alumni Promo & Hours" : "Promo KTA & Jam Buka"}
           </button>
         </div>
 
@@ -908,7 +912,9 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               }}
             >
               <i className="fa-solid fa-cloud-arrow-up"></i>
-              {isSubmitting ? "Menyimpan Data..." : "Publikasikan / Simpan Website Bisnis"}
+              {isSubmitting
+                ? (locale === "ar" ? "جارٍ الحفظ..." : locale === "en" ? "Saving Data..." : "Menyimpan Data...")
+                : (locale === "ar" ? "نشر / حفظ موقع العمل" : locale === "en" ? "Publish / Save Business Website" : "Publikasikan / Simpan Website Bisnis")}
             </button>
           </div>
 
