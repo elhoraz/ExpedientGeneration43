@@ -1643,6 +1643,7 @@ export default function PhotoboothClient() {
     let dataUrl: string = "";
     const isVideo =
       options?.isVideo || filename.endsWith(".mp4") || filename.endsWith(".webm");
+    const mimeType = isVideo ? (filename.endsWith(".mp4") ? "video/mp4" : "video/webm") : "image/png";
 
     try {
       if (typeof blobOrDataUrl === "string") {
@@ -1663,7 +1664,20 @@ export default function PhotoboothClient() {
         }
       }
 
-      // 1. Upload to server to get real HTTPS GET download URL (Crucial for Android WebView DownloadManager)
+      // 1. Direct native save if running inside Expedient Android APK with NativeDownloadBridge
+      let savedNatively = false;
+      if (typeof window !== "undefined" && (window as any).ExpedientNativeBridge?.saveBase64) {
+        try {
+          const rawBase64 = dataUrl.startsWith("data:") ? dataUrl : (blob ? await blobToDataUrl(blob) : "");
+          if (rawBase64) {
+            savedNatively = (window as any).ExpedientNativeBridge.saveBase64(rawBase64, filename, mimeType);
+          }
+        } catch (bridgeErr) {
+          console.warn("Native bridge save error:", bridgeErr);
+        }
+      }
+
+      // 2. Upload to server to get real HTTPS download URL (essential for Android WebView's DownloadManager)
       let serverDownloadUrl = "";
       try {
         const formData = new FormData();
@@ -1686,7 +1700,7 @@ export default function PhotoboothClient() {
         console.warn("Server download URL generation warning:", uploadErr);
       }
 
-      // 2. Set export result state with preview and server download link
+      // 3. Set export result state for modal preview and sharing
       setExportedResult({
         dataUrl: dataUrl || (blob ? URL.createObjectURL(blob) : ""),
         blob,
@@ -1695,22 +1709,46 @@ export default function PhotoboothClient() {
         type: isVideo ? "video" : "image",
       });
 
-      // 3. Trigger standard anchor download IN-APP with local blob / dataUrl (NEVER redirects to external browser)
-      const targetUrl = (blob ? URL.createObjectURL(blob) : dataUrl) || serverDownloadUrl;
+      // 4. If not saved natively, trigger file download:
+      if (!savedNatively) {
+        const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
 
-      const a = document.createElement("a");
-      a.href = targetUrl;
-      a.download = filename;
-      a.style.position = "fixed";
-      a.style.left = "-9999px";
-      a.style.opacity = "0";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        if (document.body.contains(a)) document.body.removeChild(a);
-      }, 500);
+        if (isAndroid && serverDownloadUrl) {
+          // On Android WebView: target="_self" and hidden iframe triggers DownloadListener.onDownloadStart directly
+          const a = document.createElement("a");
+          a.href = serverDownloadUrl;
+          a.download = filename;
+          a.target = "_self";
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            if (document.body.contains(a)) document.body.removeChild(a);
+          }, 1000);
 
-      // 4. Always show the interactive modal (unless forceModal is explicitly false)
+          const iframe = document.createElement("iframe");
+          iframe.style.display = "none";
+          iframe.src = serverDownloadUrl;
+          document.body.appendChild(iframe);
+          setTimeout(() => {
+            if (document.body.contains(iframe)) document.body.removeChild(iframe);
+          }, 5000);
+        } else {
+          // Desktop Chrome / Safari / Firefox: Blob anchor click works perfectly
+          const targetUrl = (blob ? URL.createObjectURL(blob) : dataUrl) || serverDownloadUrl;
+          if (targetUrl) {
+            const a = document.createElement("a");
+            a.href = targetUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+              if (document.body.contains(a)) document.body.removeChild(a);
+            }, 500);
+          }
+        }
+      }
+
+      // 5. Show interactive preview modal
       if (options?.forceModal !== false) {
         setShowExportModal(true);
       }
@@ -1726,7 +1764,22 @@ export default function PhotoboothClient() {
     if (!exportedResult) return;
     triggerHaptic(30);
 
-    const { blob, dataUrl, filename, type } = exportedResult;
+    const { blob, dataUrl, filename, type, downloadUrl } = exportedResult;
+    const isVideo = type === "video";
+    const mimeType = isVideo ? (filename.endsWith(".mp4") ? "video/mp4" : "video/webm") : "image/png";
+
+    // 1. Native bridge direct save to gallery
+    if (typeof window !== "undefined" && (window as any).ExpedientNativeBridge?.saveBase64) {
+      try {
+        const base64 = dataUrl || (blob ? await blobToDataUrl(blob) : "");
+        if (base64) {
+          const ok = (window as any).ExpedientNativeBridge.saveBase64(base64, filename, mimeType);
+          if (ok) return;
+        }
+      } catch {}
+    }
+
+    // 2. System Share Sheet (Web Share API)
     let fileBlob = blob;
     if (!fileBlob && dataUrl && dataUrl.startsWith("data:")) {
       try {
@@ -1741,12 +1794,7 @@ export default function PhotoboothClient() {
       navigator.canShare
     ) {
       try {
-        const mime =
-          type === "video"
-            ? filename.endsWith(".mp4") ? "video/mp4" : "video/webm"
-            : "image/png";
-        const file = new File([fileBlob], filename, { type: mime });
-
+        const file = new File([fileBlob], filename, { type: mimeType });
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
@@ -1762,19 +1810,55 @@ export default function PhotoboothClient() {
       }
     }
 
-    // Fallback: direct anchor download inside app
+    // 3. Fallback: trigger download
     handleDownloadFromModal();
   };
 
-  const handleDownloadFromModal = () => {
+  const handleDownloadFromModal = async () => {
     if (!exportedResult) return;
     triggerHaptic(30);
-    const { dataUrl, blob, filename, downloadUrl } = exportedResult;
+    const { dataUrl, blob, filename, downloadUrl, type } = exportedResult;
+    const isVideo = type === "video";
+    const mimeType = isVideo ? (filename.endsWith(".mp4") ? "video/mp4" : "video/webm") : "image/png";
 
+    // 1. Native bridge direct save to gallery
+    if (typeof window !== "undefined" && (window as any).ExpedientNativeBridge?.saveBase64) {
+      try {
+        const base64 = dataUrl || (blob ? await blobToDataUrl(blob) : "");
+        if (base64) {
+          const ok = (window as any).ExpedientNativeBridge.saveBase64(base64, filename, mimeType);
+          if (ok) return;
+        }
+      } catch {}
+    }
+
+    // 2. Android WebView: trigger HTTPS downloadUrl
+    const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+    if (isAndroid && downloadUrl) {
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = filename;
+      a.target = "_self";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (document.body.contains(a)) document.body.removeChild(a);
+      }, 1000);
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = downloadUrl;
+      document.body.appendChild(iframe);
+      setTimeout(() => {
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+      }, 5000);
+      return;
+    }
+
+    // 3. Desktop / Standard browser: anchor download
     const targetUrl = (blob ? URL.createObjectURL(blob) : dataUrl) || downloadUrl || "";
     if (!targetUrl) return;
 
-    // Direct anchor click inside app
     const a = document.createElement("a");
     a.href = targetUrl;
     a.download = filename;
@@ -1814,12 +1898,17 @@ export default function PhotoboothClient() {
       navigator.canShare
     ) {
       try {
-        const filePromises = filled.map(async ({ p, idx }) => {
-          const res = await fetch(p!.image);
-          const b = await res.blob();
-          return new File([b], `Expedient_Foto_${idx + 1}.jpg`, { type: "image/jpeg" });
-        });
-        const files = await Promise.all(filePromises);
+        const files: File[] = [];
+        for (const { p, idx } of filled) {
+          let b: Blob;
+          if (p!.image.startsWith("data:")) {
+            b = dataUrlToBlob(p!.image);
+          } else {
+            const res = await fetch(p!.image);
+            b = await res.blob();
+          }
+          files.push(new File([b], `Expedient_Foto_${idx + 1}.jpg`, { type: "image/jpeg" }));
+        }
         if (navigator.canShare({ files })) {
           await navigator.share({
             files,
