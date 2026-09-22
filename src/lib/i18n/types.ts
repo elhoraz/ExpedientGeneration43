@@ -811,5 +811,13 @@ export interface Dictionary {
     card_title: string;
     back_to_home: string;
   };
+  nexus: {
+    title: string;
+    subtitle: string;
+    activate: string;
+    analyzing: string;
+    reanalyze: string;
+    match_score: string;
+  };
 }
 

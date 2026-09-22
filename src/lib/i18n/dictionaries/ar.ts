@@ -777,6 +777,14 @@ export const arDictionary: Dictionary = {
     card_title: "بطاقة التهنئة الرقمية",
     back_to_home: "العودة للصفحة الرئيسية",
   },
+  nexus: {
+    title: "ذا نيكسوس",
+    subtitle: "خوارزمية تحليلية تربط الرؤى وتنسج شبكات الأعمال التنفيذية لمستقبلك.",
+    activate: "تفعيل التحليل",
+    analyzing: "جارٍ التحليل...",
+    reanalyze: "إعادة التحليل",
+    match_score: "نسبة توافق الرؤية",
+  },
 };
 
 

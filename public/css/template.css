@@ -510,6 +510,39 @@ body.sidebar-closed .floating-help-btn {
     }
 }
 
+/* ===== 8A-1. UNIVERSAL MOBILE BOTTOM CLEARANCE & DOCK OVERLAP AVOIDANCE ===== */
+@media (max-width: 1024px), (pointer: coarse) and (orientation: portrait) {
+    :root {
+        --mobile-bottom-clearance: max(120px, calc(100px + env(safe-area-inset-bottom, 20px)));
+    }
+
+    body:not(.sidebar-closed) .photobooth-page,
+    body:not(.sidebar-closed) .syndicate-page,
+    body:not(.sidebar-closed) .wasiat-page-wrapper .vault-wrapper,
+    body:not(.sidebar-closed) .khatam-page-wrapper,
+    body:not(.sidebar-closed) .multazam-page-wrapper .multazam-wrapper,
+    body:not(.sidebar-closed) .tarbiyah-page-wrapper .tarbiyah-wrapper,
+    body:not(.sidebar-closed) .tasbih-page-wrapper,
+    body:not(.sidebar-closed) .direktori-page-wrapper,
+    body:not(.sidebar-closed) .profil-container,
+    body:not(.sidebar-closed) .baitul-maal-wrapper {
+        padding-bottom: var(--mobile-bottom-clearance) !important;
+    }
+
+    body.sidebar-closed .photobooth-page,
+    body.sidebar-closed .syndicate-page,
+    body.sidebar-closed .wasiat-page-wrapper .vault-wrapper,
+    body.sidebar-closed .khatam-page-wrapper,
+    body.sidebar-closed .multazam-page-wrapper .multazam-wrapper,
+    body.sidebar-closed .tarbiyah-page-wrapper .tarbiyah-wrapper,
+    body.sidebar-closed .tasbih-page-wrapper,
+    body.sidebar-closed .direktori-page-wrapper,
+    body.sidebar-closed .profil-container,
+    body.sidebar-closed .baitul-maal-wrapper {
+        padding-bottom: max(32px, calc(20px + env(safe-area-inset-bottom, 12px))) !important;
+    }
+}
+
 /* ===== 8B. MOBILE LANDSCAPE NAVIGATION (Vertical Left Rail - Zero Bottom Obstruction) ===== */
 @media (orientation: landscape) and (max-height: 600px) {
     .sidebar { 

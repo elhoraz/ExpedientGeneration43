@@ -777,6 +777,14 @@ export const idDictionary: Dictionary = {
     card_title: "Kartu Ucapan Digital",
     back_to_home: "Kembali ke Beranda",
   },
+  nexus: {
+    title: "The Nexus",
+    subtitle: "Algoritma Analitik Menghubungkan Visi, Merajut Jaringan Bisnis Eksekutif Masa Depan Anda.",
+    activate: "Aktivasi Analisis",
+    analyzing: "Menganalisis...",
+    reanalyze: "Analisis Ulang",
+    match_score: "Kecocokan Visi",
+  },
 };
 
 

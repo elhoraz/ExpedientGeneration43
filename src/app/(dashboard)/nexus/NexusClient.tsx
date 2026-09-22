@@ -5,9 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
 import { getAvatarUrl } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./nexus.css";
 
 export default function NexusClient({ currentUser, otherProfiles }: { currentUser: any, otherProfiles: any[] }) {
+  const { t } = useLanguage();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [matches, setMatches] = useState<any[]>([]);
   const [hasResults, setHasResults] = useState(false);
@@ -137,19 +139,19 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
       <div className="nexus-wrapper">
 
       <Link href="/fitur" className="btn-back">
-        <i className="fa-solid fa-arrow-left"></i> Kembali
+        <i className="fa-solid fa-arrow-left"></i> {t.common.back}
       </Link>
 
       <div className="nexus-header">
-        <h1 className="nexus-title">The Nexus</h1>
-        <p className="nexus-subtitle">Algoritma Analitik Menghubungkan Visi, Merajut Jaringan Bisnis Eksekutif Masa Depan Anda.</p>
+        <h1 className="nexus-title">{t.nexus.title}</h1>
+        <p className="nexus-subtitle">{t.nexus.subtitle}</p>
       </div>
 
       {!hasResults && (
         <div className="nexus-sphere-container">
             <div className="nexus-sphere" onClick={startAnalysis}>
                 <div className="scanning-line"></div>
-                <div className="nexus-core-text">{isAnalyzing ? 'MENGANALISIS...' : <>AKTIVASI<br/>ANALISIS</>}</div>
+                <div className="nexus-core-text">{isAnalyzing ? t.nexus.analyzing : <>AKTIVASI<br/>ANALISIS</>}</div>
             </div>
             <div style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', letterSpacing: '2px', fontSize: '0.85rem', marginTop: '20px', minHeight: '20px' }}>
                 {statusText}
@@ -186,7 +188,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
                                 <div className="match-category">
                                     {m.syndicate ? (Array.isArray(m.syndicate) ? m.syndicate[0]?.kategori : m.syndicate.kategori) || 'Independen' : 'Independen'}
                                 </div>
-                                <Link href={`/dossier/${m.id}`} className="btn-connect">Lihat Profil</Link>
+                                <Link href={`/dossier/${m.id}`} className="btn-connect">{t.radar.view_profile}</Link>
                             </div>
                         );
                     })}
@@ -194,7 +196,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
             )}
             
             <button className="btn-reanalyze" onClick={forceReanalyze}>
-                <i className="fa-solid fa-rotate"></i> Analisis Ulang
+                <i className="fa-solid fa-rotate"></i> {t.nexus.reanalyze}
             </button>
         </div>
       )}

@@ -565,13 +565,23 @@ body.page-radar .floating-help-btn {
   right: 35px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px), (pointer: coarse) and (orientation: portrait) {
   .floating-help-btn {
     /* Angkat tombol di atas floating bottom dock mobile dan safe-area gesture bar */
     bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
     right: 16px;
     padding: 6px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Ketika navbar disembunyikan di mobile, tombol bantuan ikut turun menempati posisi dock */
+  body.sidebar-closed .floating-help-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px))) !important;
+    right: 16px !important;
+    transform: none !important;
   }
 
   /* Radar & Quran page clearance on mobile */

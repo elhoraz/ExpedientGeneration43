@@ -777,6 +777,14 @@ export const enDictionary: Dictionary = {
     card_title: "Digital Greeting Card",
     back_to_home: "Back to Home",
   },
+  nexus: {
+    title: "The Nexus",
+    subtitle: "Analytical Algorithm Connecting Visions, Weaving Executive Business Networks of Your Future.",
+    activate: "Activate Analysis",
+    analyzing: "Analyzing...",
+    reanalyze: "Re-analyze",
+    match_score: "Vision Match",
+  },
 };
 
 

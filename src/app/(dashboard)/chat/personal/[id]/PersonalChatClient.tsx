@@ -13,6 +13,7 @@ import ChatCallModal from "@/components/chat/ChatCallModal";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import { usePersonalChat } from "@/hooks/usePersonalChat";
 import { useAgoraVideoCall } from "@/hooks/useAgoraVideoCall";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "../../chat.css";
 
 type Contact = {
@@ -38,6 +39,7 @@ export default function PersonalChatClient({
   userId: string; 
   contact: Contact;
 }) {
+  const { t } = useLanguage();
   const { showAlert, showConfirm } = useConfirm();
   const supabase = createClient();
 
@@ -243,7 +245,7 @@ export default function PersonalChatClient({
       {/* HEADER WITH CALL BUTTONS */}
       <div className="chat-room-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", minWidth: 0 }}>
-          <Link href="/chat" className="back-btn" title="Kembali ke Kotak Pesan">
+          <Link href="/chat" className="back-btn" title={t.common.back}>
             <i className="fa-solid fa-arrow-left"></i>
           </Link>
           <div className="contact-info">
@@ -414,7 +416,7 @@ export default function PersonalChatClient({
                 transition: "0.3s"
               }}
             >
-              {isLoadingMore ? "Memuat..." : "Muat Lebih Lama"}
+              {isLoadingMore ? t.common.loading : t.chat.load_older}
             </button>
           </div>
         )}
@@ -635,7 +637,7 @@ export default function PersonalChatClient({
                   type="text" 
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Tulis pesan..." 
+                  placeholder={t.chat.type_message}
                   className="chat-text-input"
                 />
 
@@ -643,7 +645,7 @@ export default function PersonalChatClient({
                   <button 
                     type="submit" 
                     className="btn-chat-send"
-                    title="Kirim Pesan"
+                    title={t.chat.send_btn}
                   >
                     <i className="fa-solid fa-paper-plane"></i>
                   </button>
@@ -653,7 +655,7 @@ export default function PersonalChatClient({
                     type="button"
                     onClick={() => setIsRecordingVoice(true)}
                     className="btn-chat-send"
-                    title="Tekan untuk Rekam Voice Note"
+                    title={t.chat.record_voice}
                   >
                     <i className="fa-solid fa-microphone"></i>
                   </button>

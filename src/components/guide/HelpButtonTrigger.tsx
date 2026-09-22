@@ -68,8 +68,8 @@ export default function HelpButtonTrigger() {
     return () => window.removeEventListener("expedient-sidebar-toggle", handleToggle);
   }, []);
 
-  // Jangan tampilkan tombol melayang jika pengguna sedang membuka halaman /panduan
-  if (pathname === "/panduan") {
+  // Jangan tampilkan tombol melayang jika pengguna sedang membuka panduan, chat, atau photobooth agar tidak tumpang tindih
+  if (pathname === "/panduan" || pathname?.startsWith("/chat") || pathname?.startsWith("/photobooth")) {
     return null;
   }
 

@@ -722,7 +722,7 @@
         50% { height: 12px; }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 1024px), (pointer: coarse) and (orientation: portrait) {
         .museum-audio-pill {
             bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
             left: 16px;
@@ -733,7 +733,7 @@
         }
 
         body.sidebar-closed .museum-audio-pill {
-            bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px)));
+            bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px))) !important;
         }
 
         #bdayToast {

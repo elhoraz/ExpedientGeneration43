@@ -1027,7 +1027,7 @@ body.mode-yearbook .dimension-shift-btn,
     user-select: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px), (pointer: coarse) and (orientation: portrait) {
     .vault-fab-upload {
         bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
         left: 16px;
@@ -1037,7 +1037,7 @@ body.mode-yearbook .dimension-shift-btn,
     }
 
     body.sidebar-closed .vault-fab-upload {
-        bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px)));
+        bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px))) !important;
     }
 }
 
