@@ -183,6 +183,15 @@ export default function PhotoboothClient() {
   const [isFlashing, setIsFlashing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  // Export Result Preview Modal (Ensures 100% reliable download & APK save)
+  const [exportedResult, setExportedResult] = useState<{
+    dataUrl: string;
+    blob: Blob | null;
+    filename: string;
+    type: "image" | "video";
+  } | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+
   // Stickers
   const [stickers, setStickers] = useState<PlacedSticker[]>([]);
 
@@ -1164,16 +1173,118 @@ export default function PhotoboothClient() {
     return storyCanvas;
   };
 
-  // Universal Direct Download Helper (Rock-solid across Mobile Safari, Android Chrome & Desktop)
-  const triggerDirectDownload = (blobOrDataUrl: Blob | string, filename: string) => {
-    try {
-      let url: string;
-      let shouldRevoke = false;
+  // Helper to detect app WebView or mobile screen
+  const isAppOrMobileDevice = (): boolean => {
+    if (typeof window === "undefined") return false;
+    const ua = navigator.userAgent || "";
+    const isStandalone =
+      (window.navigator as any).standalone === true ||
+      window.matchMedia("(display-mode: standalone)").matches;
+    const isAndroid = /Android/i.test(ua);
+    const isWebView =
+      /wv|WebView/i.test(ua) ||
+      (isAndroid && /Version\/[0-9.]+/i.test(ua)) ||
+      isStandalone;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(ua) || window.innerWidth < 768;
+    return isWebView || isMobile;
+  };
 
+  const blobToDataUrl = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const dataUrlToBlob = (dataUrl: string): Blob => {
+    const arr = dataUrl.split(",");
+    const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+
+  const triggerServerDownload = (dataUrl: string, filename: string) => {
+    try {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/api/photobooth/download";
+      form.style.display = "none";
+
+      const inputData = document.createElement("input");
+      inputData.type = "hidden";
+      inputData.name = "dataUrl";
+      inputData.value = dataUrl;
+      form.appendChild(inputData);
+
+      const inputName = document.createElement("input");
+      inputName.type = "hidden";
+      inputName.name = "filename";
+      inputName.value = filename;
+      form.appendChild(inputName);
+
+      document.body.appendChild(form);
+      form.submit();
+
+      setTimeout(() => {
+        if (document.body.contains(form)) document.body.removeChild(form);
+      }, 1500);
+    } catch (e) {
+      console.error("Server download trigger error:", e);
+    }
+  };
+
+  // Universal Direct Download Helper (Rock-solid across Mobile Safari, Android WebView APK & Desktop)
+  const triggerDirectDownload = async (
+    blobOrDataUrl: Blob | string,
+    filename: string,
+    options?: { isVideo?: boolean; forceModal?: boolean }
+  ) => {
+    let blob: Blob | null = null;
+    let dataUrl: string = "";
+    const isVideo =
+      options?.isVideo || filename.endsWith(".mp4") || filename.endsWith(".webm");
+
+    try {
       if (typeof blobOrDataUrl === "string") {
-        url = blobOrDataUrl;
+        dataUrl = blobOrDataUrl;
+        try {
+          blob = dataUrlToBlob(dataUrl);
+        } catch {}
       } else {
-        url = URL.createObjectURL(blobOrDataUrl);
+        blob = blobOrDataUrl;
+        if (!isVideo) {
+          try {
+            dataUrl = await blobToDataUrl(blob);
+          } catch {
+            dataUrl = URL.createObjectURL(blob);
+          }
+        } else {
+          dataUrl = URL.createObjectURL(blob);
+        }
+      }
+
+      const isMobile = isAppOrMobileDevice();
+
+      // Store in state so the Export Result Modal is populated
+      setExportedResult({
+        dataUrl: dataUrl || (blob ? URL.createObjectURL(blob) : ""),
+        blob,
+        filename,
+        type: isVideo ? "video" : "image",
+      });
+
+      // 1. Standard Anchor Download (works seamlessly on desktop & standard mobile browsers)
+      let url = dataUrl;
+      let shouldRevoke = false;
+      if (blob) {
+        url = URL.createObjectURL(blob);
         shouldRevoke = true;
       }
 
@@ -1189,17 +1300,84 @@ export default function PhotoboothClient() {
       setTimeout(() => {
         if (document.body.contains(a)) document.body.removeChild(a);
         if (shouldRevoke) {
-          // Keep blob URL alive for 60s so mobile browser downloads have ample time to complete
           setTimeout(() => {
-            try { URL.revokeObjectURL(url); } catch {}
+            try {
+              URL.revokeObjectURL(url);
+            } catch {}
           }, 60000);
         }
       }, 400);
+
+      // 2. On Mobile / Android APK WebView: Always open the interactive modal
+      // This allows fresh user gestures for navigator.share, long-press save, and server download!
+      if (isMobile || options?.forceModal) {
+        setShowExportModal(true);
+      }
     } catch (err) {
       console.error("Direct download error:", err);
-      if (typeof blobOrDataUrl === "string") {
-        window.open(blobOrDataUrl, "_blank");
+      setShowExportModal(true);
+    }
+  };
+
+  const handleShareFromModal = async () => {
+    if (!exportedResult) return;
+    triggerHaptic(30);
+
+    const { blob, dataUrl, filename, type } = exportedResult;
+    let fileBlob = blob;
+    if (!fileBlob && dataUrl && dataUrl.startsWith("data:")) {
+      fileBlob = dataUrlToBlob(dataUrl);
+    }
+
+    if (
+      fileBlob &&
+      typeof navigator !== "undefined" &&
+      typeof File !== "undefined" &&
+      navigator.canShare
+    ) {
+      try {
+        const mime = type === "video" ? "video/mp4" : "image/png";
+        const file = new File([fileBlob], filename, { type: mime });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: "Expedient Photobooth",
+            text: "Hasil foto photobooth Expedient 43!",
+          });
+          return;
+        }
+      } catch (shareErr: any) {
+        if (shareErr?.name === "AbortError") return;
+        console.warn("navigator.share failed, fallback to server download:", shareErr);
       }
+    }
+
+    // Fallback if share sheet is unsupported
+    handleDownloadFromModal();
+  };
+
+  const handleDownloadFromModal = () => {
+    if (!exportedResult) return;
+    triggerHaptic(30);
+    const { dataUrl, blob, filename } = exportedResult;
+
+    // 1. Anchor click
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        if (document.body.contains(a)) document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
+      }, 400);
+    }
+
+    // 2. Server-assisted HTTPS form download (guaranteed interception by Android WebView)
+    if (dataUrl && dataUrl.startsWith("data:")) {
+      triggerServerDownload(dataUrl, filename);
     }
   };
 
@@ -1213,7 +1391,7 @@ export default function PhotoboothClient() {
   };
 
   // Download All Individual Still Photos (Semua Foto Biasa)
-  const handleDownloadAllSinglePhotos = () => {
+  const handleDownloadAllSinglePhotos = async () => {
     triggerHaptic(30);
     const filled = photos
       .slice(0, totalSlots)
@@ -1225,6 +1403,33 @@ export default function PhotoboothClient() {
       return;
     }
 
+    // On mobile / app: if navigator.canShare supports multiple files, share all at once!
+    if (
+      typeof navigator !== "undefined" &&
+      typeof File !== "undefined" &&
+      navigator.canShare
+    ) {
+      try {
+        const filePromises = filled.map(async ({ p, idx }) => {
+          const res = await fetch(p!.image);
+          const b = await res.blob();
+          return new File([b], `Expedient_Foto_${idx + 1}.jpg`, { type: "image/jpeg" });
+        });
+        const files = await Promise.all(filePromises);
+        if (navigator.canShare({ files })) {
+          await navigator.share({
+            files,
+            title: "Expedient Photos",
+            text: `Semua ${files.length} foto satuan dari Photobooth Expedient 43`,
+          });
+          return;
+        }
+      } catch (shareErr: any) {
+        if (shareErr?.name === "AbortError") return;
+      }
+    }
+
+    // Fallback: sequential download
     filled.forEach(({ p, idx }, i) => {
       setTimeout(() => {
         if (p?.image) {
@@ -1871,9 +2076,9 @@ export default function PhotoboothClient() {
             }
           }
 
-          // Direct download via helper
+          // Direct download via helper (with video preview option)
           if (!sharedSuccessfully) {
-            triggerDirectDownload(blob, filename);
+            triggerDirectDownload(blob, filename, { isVideo: true });
           }
 
           triggerHaptic(50);
@@ -3102,7 +3307,7 @@ export default function PhotoboothClient() {
         </div>
       </div>
 
-      {/* Live Video Exporting Fullscreen Modal Overlay */}
+      {/* Exporting Fullscreen Modal Overlay */}
       {isExporting && (
         <div style={{
           position: "fixed",
@@ -3128,11 +3333,97 @@ export default function PhotoboothClient() {
             marginBottom: "18px",
           }} />
           <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#d4af37", marginBottom: "8px" }}>
-            Mengekspor Foto Live Bergerak...
+            {isLiveMode ? "Mengekspor Foto Live Bergerak..." : "Menyiapkan Foto Photostrip HD..."}
           </h2>
           <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.75)", maxWidth: "340px", lineHeight: 1.5 }}>
-            Sedang merekam dan menyinkronkan seluruh animasi frame foto live ke format video loop berdurasi 6 detik (kualitas HD). Mohon tunggu sebentar...
+            {isLiveMode
+              ? "Sedang merekam dan menyinkronkan seluruh animasi frame foto live ke format video loop berdurasi 6 detik (kualitas HD). Mohon tunggu sebentar..."
+              : "Sedang merender resolusi tinggi dan memproses desain photostrip Anda..."}
           </p>
+        </div>
+      )}
+
+      {/* Export Result Preview Modal (Guaranteed Mobile/APK Save & Share) */}
+      {showExportModal && exportedResult && (
+        <div
+          className="export-result-modal-backdrop"
+          onClick={() => setShowExportModal(false)}
+        >
+          <div
+            className="export-result-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="export-modal-header">
+              <div className="export-modal-title-group">
+                <div className="export-modal-icon">
+                  <i className="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                  <h3 className="export-modal-title">Foto Siap Disimpan!</h3>
+                  <p className="export-modal-subtitle">
+                    {exportedResult.type === "video" ? "Format Video Bergerak (HD)" : "Format Foto Photostrip (HD)"}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="export-modal-close-btn"
+                onClick={() => setShowExportModal(false)}
+                aria-label="Tutup"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div className="export-modal-body">
+              <div className="export-preview-container">
+                {exportedResult.type === "video" ? (
+                  <video
+                    src={exportedResult.dataUrl}
+                    controls
+                    autoPlay
+                    loop
+                    playsInline
+                    className="export-preview-video"
+                  />
+                ) : (
+                  <img
+                    src={exportedResult.dataUrl}
+                    alt="Hasil Foto Photobooth"
+                    className="export-preview-img"
+                  />
+                )}
+              </div>
+
+              <div className="apk-save-hint">
+                <i className="fa-solid fa-lightbulb"></i>
+                <div>
+                  <strong>Tips Simpan di Aplikasi HP:</strong>
+                  Gunakan tombol <strong>Simpan ke Galeri</strong> di bawah. Atau cukup <strong>tekan & tahan (tahan jari di foto)</strong> lalu pilih <em>"Simpan Gambar"</em> / <em>"Download Image"</em>.
+                </div>
+              </div>
+
+              <div className="export-modal-actions">
+                <button
+                  type="button"
+                  className="btn-modal-share"
+                  onClick={handleShareFromModal}
+                >
+                  <i className="fa-solid fa-share-nodes"></i>
+                  <span>Simpan ke Galeri / Bagikan</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-modal-download"
+                  onClick={handleDownloadFromModal}
+                >
+                  <i className="fa-solid fa-download"></i>
+                  <span>Unduh Ulang (File Langsung)</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -2207,4 +2207,263 @@
   color: #78350f;
 }
 
+/* =============================================================
+   EXPORT RESULT / SAVE TO DEVICE MODAL (PERFECT FOR APP / APK)
+   ============================================================= */
+.export-result-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 12, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.export-result-modal-card {
+  width: 100%;
+  max-width: 460px;
+  max-height: 92vh;
+  background: #0d1210;
+  background: linear-gradient(180deg, rgba(18, 26, 22, 0.98) 0%, rgba(10, 15, 12, 0.99) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(212, 175, 55, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+:root[data-theme="light"] .export-result-modal-card {
+  background: #ffffff;
+  border-color: rgba(170, 119, 28, 0.35);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2), 0 0 30px rgba(170, 119, 28, 0.1);
+}
+
+.export-modal-header {
+  padding: 18px 20px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.export-modal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.export-modal-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: #ffd700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+:root[data-theme="light"] .export-modal-icon {
+  background: rgba(170, 119, 28, 0.12);
+  color: #aa771c;
+  border-color: rgba(170, 119, 28, 0.3);
+}
+
+.export-modal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffd700;
+  margin: 0;
+}
+
+:root[data-theme="light"] .export-modal-title {
+  color: #aa771c;
+}
+
+.export-modal-subtitle {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin: 2px 0 0 0;
+}
+
+.export-modal-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:root[data-theme="light"] .export-modal-close-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #334155;
+}
+
+.export-modal-close-btn:hover {
+  background: rgba(212, 175, 55, 0.25);
+  color: #ffd700;
+  transform: scale(1.05);
+}
+
+.export-modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.export-preview-container {
+  width: 100%;
+  max-height: 44vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed rgba(212, 175, 55, 0.3);
+  border-radius: 16px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+:root[data-theme="light"] .export-preview-container {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.export-preview-img,
+.export-preview-video {
+  max-width: 100%;
+  max-height: 40vh;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  -webkit-touch-callout: default !important;
+  pointer-events: auto !important;
+}
+
+.apk-save-hint {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #e6dfc8;
+}
+
+:root[data-theme="light"] .apk-save-hint {
+  background: #fdf8eb;
+  border-color: rgba(170, 119, 28, 0.35);
+  color: #78350f;
+}
+
+.apk-save-hint i {
+  color: #ffd700;
+  font-size: 1rem;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+:root[data-theme="light"] .apk-save-hint i {
+  color: #d97706;
+}
+
+.apk-save-hint strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #ffd700;
+}
+
+:root[data-theme="light"] .apk-save-hint strong {
+  color: #b45309;
+}
+
+.export-modal-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-modal-share {
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffd700, #c89611);
+  color: #060b14;
+  border: none;
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  transition: all 0.25s ease;
+}
+
+.btn-modal-share:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
+}
+
+.btn-modal-download {
+  width: 100%;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #ffd700;
+  font-weight: 600;
+  font-size: 0.84rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+:root[data-theme="light"] .btn-modal-download {
+  background: rgba(0, 0, 0, 0.04);
+  color: #aa771c;
+  border-color: rgba(170, 119, 28, 0.35);
+}
+
+.btn-modal-download:hover {
+  background: rgba(212, 175, 55, 0.15);
+  transform: translateY(-1px);
+}
+
 
