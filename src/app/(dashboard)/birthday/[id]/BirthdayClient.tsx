@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const palettes = [
     ['#ff6b6b','#feca57','#ff9ff3','#ffffff','#ffffffcc'],
@@ -72,6 +73,7 @@ function getZodiak(dateStr: string) {
 }
 
 export default function BirthdayClient({ userProfile, age, seed }: { userProfile: any, age: number, seed: number }) {
+  const { t, locale } = useLanguage();
   const [particles, setParticles] = useState<any[]>([]);
 
   const p = palettes[seed % 25];
@@ -184,7 +186,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
               </div>
           </div>
 
-          <div className="bday-pretitle bday-body bday-sub bday-anim-el">Selamat Ulang Tahun</div>
+          <div className="bday-pretitle bday-body bday-sub bday-anim-el">{t.birthday.title}</div>
 
           <h1 className="bday-name bday-heading bday-text bday-anim-el">{userProfile.nama_panggilan}</h1>
 
@@ -200,7 +202,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
           <div className="bday-anim-el">
               <div className="bday-date-badge bday-body bday-text">
-                  {new Date(userProfile.tanggal_lahir).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                  {new Date(userProfile.tanggal_lahir).toLocaleDateString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID", { day: "2-digit", month: "long", year: "numeric" })}
               </div>
           </div>
 
@@ -211,11 +213,11 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
           <div className="bday-anim-el" style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", width: "100%", maxWidth: "340px", margin: "0 auto" }}>
               {directWishUrl && (
                 <a href={directWishUrl} target="_blank" rel="noopener noreferrer" className="bday-share-btn bday-body" style={{ width: "100%", justifyContent: "center" }}>
-                    <i className="fa-brands fa-whatsapp"></i> Kirim ke WhatsApp {userProfile.nama_panggilan}
+                    <i className="fa-brands fa-whatsapp"></i> {t.birthday.send_greeting} ({userProfile.nama_panggilan})
                 </a>
               )}
               <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="bday-share-btn bday-body" style={{ width: "100%", justifyContent: "center", background: directWishUrl ? "rgba(255,255,255,0.15)" : undefined, borderColor: directWishUrl ? "var(--glass-border)" : undefined }}>
-                  <i className="fa-solid fa-share-nodes"></i> Bagikan ke Grup Angkatan
+                  <i className="fa-solid fa-share-nodes"></i> {t.common.share}
               </a>
           </div>
         </div>

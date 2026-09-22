@@ -742,5 +742,74 @@ export interface Dictionary {
     faq_title: string;
     back_home: string;
   };
+  syndicate: {
+    title: string;
+    subtitle: string;
+    search_placeholder: string;
+    all_categories: string;
+    add_business: string;
+    contact_owner: string;
+    view_details: string;
+    order_wa: string;
+    visit_website: string;
+    qr_code: string;
+    empty_title: string;
+    empty_desc: string;
+    back_to_list: string;
+    verified_badge: string;
+  };
+  wasiat: {
+    title: string;
+    subtitle: string;
+    write_btn: string;
+    read_btn: string;
+    category_all: string;
+    lock_notice: string;
+    empty_state: string;
+    back_to_features: string;
+  };
+  khatam: {
+    title: string;
+    subtitle: string;
+    total_progress: string;
+    active_period: string;
+    claim_juz: string;
+    already_claimed: string;
+    read_confirmation: string;
+    back_to_features: string;
+  };
+  majlis: {
+    title: string;
+    subtitle: string;
+    agenda_tab: string;
+    syura_tab: string;
+    create_vote: string;
+    submit_aspirasi: string;
+    back_to_features: string;
+  };
+  tarbiyah: {
+    title: string;
+    subtitle: string;
+    request_halaqah: string;
+    my_mentors: string;
+    schedule_title: string;
+    back_to_features: string;
+  };
+  multazam: {
+    title: string;
+    subtitle: string;
+    submit_prayer: string;
+    amin_btn: string;
+    prayers_count: string;
+    back_to_features: string;
+  };
+  birthday: {
+    title: string;
+    subtitle: string;
+    send_greeting: string;
+    greeting_sent: string;
+    card_title: string;
+    back_to_home: string;
+  };
 }
 

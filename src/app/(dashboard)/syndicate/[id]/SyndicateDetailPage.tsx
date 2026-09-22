@@ -6,6 +6,7 @@ import Link from "next/link";
 import QRCode from "qrcode";
 import { getAvatarUrl } from "@/lib/avatar";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "../syndicate.css";
 
 interface ProductItem {
@@ -62,6 +63,7 @@ interface Props {
 }
 
 export default function SyndicateDetailPage({ business, isOwner, viewerName }: Props) {
+  const { t } = useLanguage();
   const { showAlert } = useConfirm();
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
@@ -126,7 +128,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
         {/* Navigation Breadcrumb */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px", flexWrap: "wrap", gap: "10px" }}>
           <Link href="/syndicate" style={{ color: "var(--text-secondary)", textDecoration: "none", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
-            <i className="fa-solid fa-arrow-left"></i> Kembali ke Katalog Bisnis
+            <i className="fa-solid fa-arrow-left"></i> {t.syndicate.back_to_list}
           </Link>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
@@ -233,7 +235,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               className="btn-cta-wa"
             >
               <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.3rem" }}></i>
-              Hubungi via WhatsApp
+              {t.syndicate.order_wa}
             </a>
 
             {business.link_url && (
@@ -244,7 +246,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 className="btn-cta-share"
               >
                 <i className="fa-solid fa-globe" style={{ color: "var(--gold-main)" }}></i>
-                Kunjungi Website Resmi
+                {t.syndicate.visit_website}
               </a>
             )}
 

@@ -7,6 +7,7 @@ import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { getAvatarUrl } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./syndicate.css";
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export default function SyndicateClient({ initialPortofolio, userId, viewerName = "Rekan Alumni" }: Props) {
+  const { t, locale } = useLanguage();
   const [portofolio, setPortofolio] = useState<any[]>(initialPortofolio);
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -95,15 +97,15 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
       <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
         <Link href="/fitur" className="btn-back">
           <i className="fa-solid fa-arrow-left"></i>
-          <span>Kembali ke Menu Fitur</span>
+          <span>{t.common.back}</span>
         </Link>
       </div>
 
       {/* Title Header */}
       <div style={{ textAlign: "center", marginBottom: "35px" }}>
-        <h1 className="syndicate-title">Katalog Bisnis Alumni</h1>
+        <h1 className="syndicate-title">{t.syndicate.title}</h1>
         <div className="syndicate-subtitle">
-          Jaringan Usaha & Profesional Sahabat Alumni Expedient 43
+          {t.syndicate.subtitle}
         </div>
       </div>
 
@@ -116,7 +118,7 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
             className="syndicate-search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama bisnis, produk, kota, atau nama alumni..."
+            placeholder={t.syndicate.search_placeholder}
           />
           {searchQuery && (
             <button
@@ -149,7 +151,7 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
               onClick={() => handleFilter(cat)}
               className={`syndicate-filter-btn ${filter === cat ? "active" : ""}`}
             >
-              {cat === "all" ? "Semua" : cat}
+              {cat === "all" ? t.syndicate.all_categories : cat}
             </button>
           ))}
         </div>
@@ -175,18 +177,17 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
             whiteSpace: "nowrap",
           }}
         >
-          <i className="fa-solid fa-plus"></i> Tambah Usaha Anda
+          <i className="fa-solid fa-plus"></i> {t.syndicate.add_business}
         </Link>
       </div>
 
       {/* Business Cards Grid */}
       <div
+        className="syndicate-grid"
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
           gap: "30px",
-          position: "relative",
-          zIndex: 5,
         }}
       >
         {filteredBiz.length === 0 ? (
@@ -194,8 +195,8 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
             style={{
               gridColumn: "1 / -1",
               textAlign: "center",
-              padding: "80px 20px",
-              background: "var(--glass-bg)",
+              padding: "70px 20px",
+              background: "var(--bg-card)",
               border: "1px dashed var(--glass-border)",
               borderRadius: "20px",
             }}
@@ -212,12 +213,12 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
                 marginBottom: "10px",
               }}
             >
-              {searchQuery ? "Tidak Ada Usaha yang Cocok" : "Belum Ada Usaha Terdaftar"}
+              {searchQuery ? t.syndicate.empty_title : t.syndicate.empty_title}
             </h3>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
               {searchQuery
-                ? `Tidak ditemukan hasil pencarian untuk "${searchQuery}". Coba kata kunci lain.`
-                : "Jadilah yang pertama mendaftarkan usaha atau jasa Anda untuk rekan-rekan alumni."}
+                ? `${t.syndicate.empty_desc} ("${searchQuery}")`
+                : t.syndicate.empty_desc}
             </p>
           </div>
         ) : (
@@ -414,11 +415,11 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
                     className="biz-footer-btn btn-wa"
                     style={{ borderRight: "1px solid var(--glass-border, rgba(255,255,255,0.08))" }}
                   >
-                    <i className="fa-brands fa-whatsapp" style={{ fontSize: "1rem" }}></i> WhatsApp
+                    <i className="fa-brands fa-whatsapp" style={{ fontSize: "1rem" }}></i> {t.syndicate.order_wa}
                   </a>
 
                   <Link href={`/syndicate/${biz.id}`} className="biz-footer-btn btn-site">
-                    <i className="fa-solid fa-globe"></i> Website Bisnis
+                    <i className="fa-solid fa-globe"></i> {t.syndicate.view_details}
                   </Link>
                 </div>
 

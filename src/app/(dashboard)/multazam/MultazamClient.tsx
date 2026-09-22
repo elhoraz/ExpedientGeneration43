@@ -5,9 +5,11 @@ import Link from "next/link";
 import gsap from "gsap";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./multazam.css";
 
 export default function MultazamClient({ activeTicket, initialPrayers, userId }: { activeTicket: any, initialPrayers: any[], userId: string }) {
+  const { t } = useLanguage();
   const [prayers, setPrayers] = useState(initialPrayers);
   const [newPrayer, setNewPrayer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -95,11 +97,11 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
       <div className="multazam-wrapper">
           <header className="multazam-header">
               <Link href="/fitur" className="btn-back">
-                  <i className="fa-solid fa-chevron-left"></i> Vault
+                  <i className="fa-solid fa-chevron-left"></i> {t.common.back}
               </Link>
               <div className="header-titles">
-                  <h1 className="page-title">Protokol Multazam</h1>
-                  <div className="page-subtitle">Sistem Tiket VVIP Eksklusif</div>
+                  <h1 className="page-title">{t.multazam.title}</h1>
+                  <div className="page-subtitle">{t.multazam.subtitle}</div>
               </div>
           </header>
 

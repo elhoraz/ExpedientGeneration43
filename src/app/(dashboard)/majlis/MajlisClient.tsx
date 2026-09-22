@@ -15,6 +15,7 @@ import AgoraRTC, {
   LocalVideoTrack,
   RemoteUser,
 } from "agora-rtc-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./majlis.css";
 
 // 1. Inisialisasi Agora Client (hanya di browser)
@@ -32,6 +33,7 @@ export default function MajlisWrapper(props: { currentUser: any, initialTopics: 
 }
 
 function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initialTopics: any[] }) {
+  const { t } = useLanguage();
   const [topics, setTopics] = useState(initialTopics);
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
   const [activeSpeaker, setActiveSpeaker] = useState<any | null>(null);
@@ -626,10 +628,10 @@ function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initia
 
         <header className="majlis-header">
             <Link href="/fitur" className="btn-back">
-                <i className="fa-solid fa-chevron-left"></i> Kembali ke Vault
+                <i className="fa-solid fa-chevron-left"></i> {t.common.back}
             </Link>
             <div className="room-info">
-                <h1 className="room-title">Majlis Syura Utama</h1>
+                <h1 className="room-title">{t.majlis.title}</h1>
                 <div className="room-status">
                     <span className="status-dot"></span> <span>{onlineUsers.length}</span> Kolega Hadir
                     {!APP_ID && <span style={{ color: '#ff3366', marginLeft: '10px', fontSize: '0.65rem' }}>[AGORA ID MISSING]</span>}

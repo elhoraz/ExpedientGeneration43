@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./khatam.css";
 
 const ARABIC_NUMS = ["", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "١٠",
@@ -25,6 +26,7 @@ export default function KhatamClient({
   initialAllocations,
   currentUser,
 }: KhatamClientProps) {
+  const { t } = useLanguage();
   const [session, setSession] = useState(initialSession);
   const [allocations, setAllocations] = useState<any[]>(initialAllocations || []);
   const [filter, setFilter] = useState<"all" | "available" | "my" | "completed">("all");
@@ -120,17 +122,17 @@ export default function KhatamClient({
         {/* Navigation & Header */}
         <div className="khatam-nav-bar">
           <Link href="/fitur" className="btn-khatam-back">
-            <i className="fa-solid fa-chevron-left"></i> Fitur
+            <i className="fa-solid fa-chevron-left"></i> {t.common.back}
           </Link>
         </div>
 
         <div className="khatam-header-box">
           <div className="khatam-badge-sup">
-            <i className="fa-solid fa-kaaba"></i> Protokol Spiritual Angkatan
+            <i className="fa-solid fa-kaaba"></i> {t.khatam.active_period}
           </div>
-          <h1 className="khatam-title">Khatam Bersama Real-Time</h1>
+          <h1 className="khatam-title">{t.khatam.title}</h1>
           <p className="khatam-subtitle">
-            One Member One Juz — Sinergi 30 Juz Al-Qur&apos;an secara serentak untuk keberkahan keluarga besar Expedient Generation 43.
+            {t.khatam.subtitle}
           </p>
         </div>
 
@@ -314,7 +316,7 @@ export default function KhatamClient({
                       onClick={() => handleAction("claim", item.juz_number)}
                     >
                       <i className="fa-solid fa-hand-holding-heart"></i>
-                      {isBusy ? "Memproses..." : "Klaim Juz"}
+                      {isBusy ? t.common.loading : t.khatam.claim_juz}
                     </button>
                   )}
 
@@ -327,7 +329,7 @@ export default function KhatamClient({
                         onClick={() => handleAction("complete", item.juz_number)}
                       >
                         <i className="fa-solid fa-check"></i>
-                        {isBusy ? "Menyimpan..." : "Tandai Selesai"}
+                        {isBusy ? t.common.loading : t.khatam.read_confirmation}
                       </button>
                       <button
                         type="button"
@@ -335,7 +337,7 @@ export default function KhatamClient({
                         className="btn-juz-unclaim"
                         onClick={() => handleAction("unclaim", item.juz_number)}
                       >
-                        Batalkan Klaim
+                        {t.common.cancel}
                       </button>
                     </>
                   )}

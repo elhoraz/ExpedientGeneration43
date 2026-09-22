@@ -9,9 +9,11 @@ import { addPrestise } from "@/lib/gamification";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { getAvatarUrl } from "@/lib/avatar";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./wasiat.css";
 
 export default function WasiatClient({ currentUser, initialWasiats }: { currentUser: any, initialWasiats: any[] }) {
+  const { t, locale } = useLanguage();
   const [wasiats, setWasiats] = useState(initialWasiats);
   const [newMessage, setNewMessage] = useState("");
   const [newPassphrase, setNewPassphrase] = useState("");
@@ -194,11 +196,11 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
       <div className="vault-wrapper">
         <header className="vault-header">
           <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left-long"></i> Kembali ke Vault
+            <i className="fa-solid fa-arrow-left-long"></i> {t.common.back}
           </Link>
           <div className="header-titles">
-            <h1 className="page-title">Amanah &amp; Wasiat</h1>
-            <div className="status-badge"><i className="fa-solid fa-feather-pointed"></i> Arsip Personal Tertutup</div>
+            <h1 className="page-title">{t.wasiat.title}</h1>
+            <div className="status-badge"><i className="fa-solid fa-feather-pointed"></i> {t.wasiat.subtitle}</div>
           </div>
         </header>
 
@@ -207,9 +209,9 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
           <div className="legacy-card" style={{ borderColor: "rgba(212,175,55,0.5)" }}>
             <div className="card-header" style={{ borderBottom: "none", marginBottom: 0, paddingBottom: 0 }}>
               <div className="author-meta">
-                <h2 className="box-title" style={{ color: "var(--gold-main)", fontSize: "1.4rem" }}>Buat Dokumen Segel Baru</h2>
+                <h2 className="box-title" style={{ color: "var(--gold-main)", fontSize: "1.4rem" }}>{t.wasiat.write_btn}</h2>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: "10px" }}>
-                  Tuliskan amanah yang hanya dapat dibaca oleh mereka yang memegang kunci otorisasinya.
+                  {t.wasiat.lock_notice}
                 </p>
               </div>
             </div>
@@ -289,8 +291,8 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
                   />
                   <button type="submit" className="seal-btn unlock-btn" disabled={unlockingId === w.id}>
                     {unlockingId === w.id
-                      ? <><i className="fa-solid fa-spinner fa-spin"></i> DEKRIPSI LOKAL...</>
-                      : <><i className="fa-solid fa-key" style={{ color: "var(--gold-main)" }}></i> Buka Dokumen</>
+                      ? <><i className="fa-solid fa-spinner fa-spin"></i> {t.common.loading}</>
+                      : <><i className="fa-solid fa-key" style={{ color: "var(--gold-main)" }}></i> {t.wasiat.read_btn}</>
                     }
                   </button>
                 </form>
@@ -305,7 +307,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
         <div className="modal-paper" id="unsealPaper">
           <div style={{ textAlign: "center", marginBottom: "30px" }}>
             <i className="fa-solid fa-stamp" style={{ color: "var(--wax-red)", fontSize: "3rem", marginBottom: "15px" }}></i>
-            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", margin: 0 }}>Amanah Terbuka</h2>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "2rem", margin: 0 }}>{t.wasiat.title}</h2>
             <div style={{ width: "50px", height: "2px", background: "var(--gold-main)", margin: "15px auto" }}></div>
           </div>
           
@@ -319,7 +321,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
               onClick={closeUnsealModal}
               className="close-modal-btn"
             >
-              Tutup Kembali
+              {t.common.close}
             </button>
           </div>
         </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { getAvatarUrl } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./tarbiyah.css";
 
 interface Mentor {
@@ -74,6 +75,7 @@ export default function TarbiyahClient({
   incomingRequests: RequestItem[];
   initialMateri: Materi[];
 }) {
+  const { t } = useLanguage();
   // CSS Scoping: body class untuk isolasi CSS halaman ini
   useEffect(() => {
     document.body.classList.add('page-tarbiyah');
@@ -325,13 +327,13 @@ export default function TarbiyahClient({
     <div className="tarbiyah-page-wrapper">
       <div className="tarbiyah-wrapper">
         <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+          <i className="fa-solid fa-arrow-left"></i> {t.common.back}
         </Link>
 
         {/* HEADER */}
         <div className="header-titles">
-          <h1 className="tarbiyah-title">Jejaring Karir & Mentoring</h1>
-          <p className="tarbiyah-subtitle">Pusat Mentorship, Sinergi Usaha & Pengembangan Diri Alumni</p>
+          <h1 className="tarbiyah-title">{t.tarbiyah.title}</h1>
+          <p className="tarbiyah-subtitle">{t.tarbiyah.subtitle}</p>
         </div>
 
         {/* 5 MAIN NAVIGATION TABS */}
