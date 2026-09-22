@@ -1064,7 +1064,7 @@ img.skeleton-shimmer {
     z-index: 9000;
     opacity: 0; pointer-events: none;
     transform: translateY(10px) scale(0.9);
-    transition: opacity 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    transition: opacity 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex; align-items: center; justify-content: center;
 }
 .scroll-top-btn.visible { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
@@ -1076,6 +1076,7 @@ img.skeleton-shimmer {
 }
 @media (max-width: 768px) {
     .scroll-top-btn { right: 16px; bottom: max(175px, calc(150px + env(safe-area-inset-bottom, 0px))); }
+    body.sidebar-closed .scroll-top-btn { bottom: max(75px, calc(55px + env(safe-area-inset-bottom, 0px))); }
 }
 @media (min-width: 769px) and (max-width: 1024px) {
     .scroll-top-btn { bottom: 84px; right: 24px; }

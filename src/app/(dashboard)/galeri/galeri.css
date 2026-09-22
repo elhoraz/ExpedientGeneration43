@@ -1033,6 +1033,11 @@ body.mode-yearbook .dimension-shift-btn,
         left: 16px;
         right: auto;
         padding: 10px 16px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    body.sidebar-closed .vault-fab-upload {
+        bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px)));
     }
 }
 

@@ -194,6 +194,7 @@ body.page-radar .tt-loc,
 
 /* ===== DESKTOP SIDEBAR ADJUSTMENTS ===== */
 body.page-radar .radar-hud, 
+body.page-radar .radar-controls,
 body.page-radar .filter-panel, 
 body.page-radar .leaderboard { transition: left 0.8s var(--awwwards-ease), bottom 0.8s var(--awwwards-ease), top 0.8s var(--awwwards-ease); }
 body.page-radar.sidebar-closed .radar-hud,

@@ -729,5 +729,19 @@
             right: auto;
             padding: 8px 14px;
             font-size: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body.sidebar-closed .museum-audio-pill {
+            bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px)));
+        }
+
+        #bdayToast {
+            bottom: max(100px, calc(85px + env(safe-area-inset-bottom, 16px))) !important;
+            transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16,1,0.3,1), opacity 0.8s ease !important;
+        }
+
+        body.sidebar-closed #bdayToast {
+            bottom: max(24px, calc(16px + env(safe-area-inset-bottom, 0px))) !important;
         }
     }

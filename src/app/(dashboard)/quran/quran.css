@@ -5249,10 +5249,20 @@
     bottom: max(105px, calc(env(safe-area-inset-bottom, 16px) + 85px));
     width: calc(100% - 24px);
     z-index: 9970;
+    transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, background 0.3s ease;
+  }
+
+  body.sidebar-closed .quran-floating-audio-bar {
+    bottom: max(16px, calc(env(safe-area-inset-bottom, 16px) + 8px));
   }
 
   .quran-page-root {
     padding-bottom: 180px;
+    transition: padding-bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  body.sidebar-closed .quran-page-root {
+    padding-bottom: 110px;
   }
 }
 
