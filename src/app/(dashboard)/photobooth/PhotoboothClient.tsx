@@ -840,9 +840,12 @@ export default function PhotoboothClient() {
     setSelectedStickerId(null);
   };
 
-  // ── Bulletproof Native 2D Canvas Fallback Renderer ──
-  // Renders photostrip directly to canvas in ~10ms without html2canvas, eliminating any possibility of crash or tainted canvas
-  const renderPhotostripNative = async (scale: number = 2): Promise<HTMLCanvasElement> => {
+  // ── Bulletproof Native 2D Canvas Renderer for ALL 24 THEMES ──
+  // Faithfully renders every frame, background, header, and footer directly to Canvas 2D
+  const renderPhotostripNative = async (
+    scale: number = 2,
+    options?: { forVideoBackground?: boolean }
+  ): Promise<HTMLCanvasElement> => {
     const stripEl = stripRef.current;
     const stripRect = stripEl ? stripEl.getBoundingClientRect() : { width: 270, height: 1000 };
     const baseWidth = Math.max(270, stripRect.width || 270);
@@ -857,147 +860,240 @@ export default function PhotoboothClient() {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas 2D context unavailable");
 
-    // 1. Color tokens based on theme
-    let bg = "#0d0d10";
-    let borderCol = "#d4af37";
-    let textCol = "#ffd700";
-    let subCol = "rgba(255,255,255,0.7)";
-
-    if (theme === "white") {
-      bg = "#ffffff";
-      borderCol = "#dcdce0";
-      textCol = "#111111";
-      subCol = "#666666";
-    } else if (theme === "film") {
-      bg = "#0a0a0c";
-      borderCol = "#333333";
-      textCol = "#f0f0f0";
-      subCol = "#888888";
-    } else if (theme === "sakura") {
-      bg = "#fff0f3";
-      borderCol = "#ffb3c1";
-      textCol = "#590d22";
-      subCol = "#800f2f";
-    } else if (theme === "cyber") {
-      bg = "#05050f";
-      borderCol = "#00f0ff";
-      textCol = "#00f0ff";
-      subCol = "#ff007f";
-    } else if (theme === "gingham") {
-      bg = "#fbf7f0";
-      borderCol = "#8b7355";
-      textCol = "#5c4033";
-      subCol = "#8b7355";
-    } else if (theme === "cobalt") {
-      bg = "#0b192c";
-      borderCol = "#1e3e62";
-      textCol = "#f1f6f9";
-      subCol = "#9ba4b5";
-    } else if (theme === "doily") {
-      bg = "#1f1d1a";
-      borderCol = "#faebd7";
-      textCol = "#faebd7";
-      subCol = "#d5c4a8";
-    } else if (theme === "portra") {
-      bg = "#181715";
-      borderCol = "#c89d5c";
-      textCol = "#e6c387";
-      subCol = "#9e8b75";
-    } else if (theme === "instagram") {
-      bg = "#ffffff";
-      borderCol = "#e5e5e5";
-      textCol = "#262626";
-      subCol = "#8e8e8e";
-    } else if (theme === "luggage") {
-      bg = "#2b261f";
-      borderCol = "#c5a059";
-      textCol = "#e8d8b9";
-      subCol = "#a8987b";
-    } else if (theme === "spiral") {
-      bg = "#1e1e24";
-      borderCol = "#faebd7";
-      textCol = "#ffffff";
-      subCol = "#cccccc";
-    } else if (theme === "ticket") {
-      bg = "#fdfbf7";
-      borderCol = "#8b0000";
-      textCol = "#8b0000";
-      subCol = "#555555";
-    } else if (theme === "receipt") {
-      bg = "#f5f5f0";
-      borderCol = "#222222";
-      textCol = "#111111";
-      subCol = "#444444";
-    } else if (theme === "scrapbook") {
-      bg = "#2a2228";
-      borderCol = "#e8b4b8";
-      textCol = "#ffe4e8";
-      subCol = "#c59b9f";
-    } else if (theme === "doodle") {
-      bg = "#fceade";
-      borderCol = "#0a1f5c";
-      textCol = "#0a1f5c";
-      subCol = "#223366";
-    } else if (theme === "mihrab") {
-      bg = "#0c1a14";
-      borderCol = "#ffd700";
-      textCol = "#ffd700";
-      subCol = "#c4b59d";
-    } else if (theme === "parchment") {
-      bg = "#f4ebd9";
-      borderCol = "#8b5a2b";
-      textCol = "#4a2e12";
-      subCol = "#7a5028";
-    } else if (theme === "ocean") {
-      bg = "#071626";
-      borderCol = "#00b4d8";
-      textCol = "#caf0f8";
-      subCol = "#90e0ef";
-    } else if (theme === "velvet") {
-      bg = "#1c0b19";
-      borderCol = "#d4af37";
-      textCol = "#f7d6e0";
-      subCol = "#c08081";
-    } else if (theme === "y2k") {
-      bg = "#ff007f";
-      borderCol = "#00ffff";
-      textCol = "#ffff00";
-      subCol = "#ffffff";
-    } else if (theme === "botanical") {
-      bg = "#122018";
-      borderCol = "#52b788";
-      textCol = "#d8f3dc";
-      subCol = "#95d5b2";
-    } else if (theme === "monolith") {
-      bg = "#000000";
-      borderCol = "#222222";
-      textCol = "#ffffff";
-      subCol = "#777777";
-    } else if (theme === "custom" && customBgColor) {
-      bg = customBgColor;
-    }
-
-    // Card background fill & border
-    const cardRadius = 14 * scale;
+    // ── 1. Background & Theme Framing ──
     ctx.save();
-    ctx.beginPath();
-    if (typeof (ctx as any).roundRect === "function") {
-      (ctx as any).roundRect(0, 0, canvasWidth, canvasHeight, cardRadius);
+    
+    if (theme === "cobalt") {
+      const grad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+      grad.addColorStop(0, "#0d52bd");
+      grad.addColorStop(1, "#083884");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#206be6";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "gingham") {
+      ctx.fillStyle = "#f7f3eb";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      // Gingham checkered grid
+      ctx.fillStyle = "rgba(206, 185, 155, 0.45)";
+      const step = 24 * scale;
+      for (let x = 0; x < canvasWidth; x += step) {
+        ctx.fillRect(x, 0, step / 2, canvasHeight);
+      }
+      for (let y = 0; y < canvasHeight; y += step) {
+        ctx.fillRect(0, y, canvasWidth, step / 2);
+      }
+      ctx.strokeStyle = "#d5c3aa";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "doily") {
+      // Corduroy wine red stripes
+      ctx.fillStyle = "#320710";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.fillStyle = "#450c18";
+      const cStep = 6 * scale;
+      for (let x = 0; x < canvasWidth; x += cStep) {
+        ctx.fillRect(x + cStep / 2, 0, cStep / 2, canvasHeight);
+      }
+      ctx.strokeStyle = "#1c0308";
+      ctx.lineWidth = 3 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "portra") {
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#222222";
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "instagram") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#dbdbdb";
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "luggage") {
+      ctx.fillStyle = "#d5c3aa";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#6b4d2e";
+      ctx.lineWidth = 3 * scale;
+      ctx.strokeRect(4 * scale, 4 * scale, canvasWidth - 8 * scale, canvasHeight - 8 * scale);
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeRect(7 * scale, 7 * scale, canvasWidth - 14 * scale, canvasHeight - 14 * scale);
+    } else if (theme === "spiral") {
+      ctx.fillStyle = "#2c060d";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.fillStyle = "#3b0913";
+      const sStep = 6 * scale;
+      for (let x = 0; x < canvasWidth; x += sStep) {
+        ctx.fillRect(x + sStep / 2, 0, sStep / 2, canvasHeight);
+      }
+      ctx.strokeStyle = "#160206";
+      ctx.lineWidth = 3 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "ticket") {
+      ctx.fillStyle = "#fffdf9";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#8b0000";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+      // Cutout side notches
+      const notchY = 90 * scale;
+      const notchR = 10 * scale;
+      ctx.fillStyle = "#0d0d10";
+      ctx.beginPath();
+      ctx.arc(0, notchY, notchR, -Math.PI / 2, Math.PI / 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(canvasWidth, notchY, notchR, Math.PI / 2, (3 * Math.PI) / 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (theme === "receipt") {
+      ctx.fillStyle = "#fdfdf9";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#d4d4cb";
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "scrapbook") {
+      ctx.fillStyle = "#54121d";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#ff99a8";
+      ctx.lineWidth = 2 * scale;
+      ctx.setLineDash([6 * scale, 6 * scale]);
+      ctx.strokeRect(6 * scale, 6 * scale, canvasWidth - 12 * scale, canvasHeight - 12 * scale);
+      ctx.setLineDash([]);
+    } else if (theme === "doodle") {
+      ctx.fillStyle = "#103396";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 3 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "mihrab") {
+      const grad = ctx.createRadialGradient(
+        canvasWidth / 2, 40 * scale, 20 * scale,
+        canvasWidth / 2, canvasHeight / 2, canvasHeight
+      );
+      grad.addColorStop(0, "#0d2818");
+      grad.addColorStop(1, "#06120b");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#d4af37";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "film") {
+      ctx.fillStyle = "#111114";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      // Draw 35mm film sprocket holes along left and right margins
+      const holeW = 6 * scale;
+      const holeH = 10 * scale;
+      const holeStep = 18 * scale;
+      ctx.fillStyle = "#28282e";
+      for (let y = 14 * scale; y < canvasHeight - 14 * scale; y += holeStep) {
+        ctx.beginPath();
+        if (typeof (ctx as any).roundRect === "function") {
+          (ctx as any).roundRect(4 * scale, y, holeW, holeH, 2 * scale);
+          (ctx as any).roundRect(canvasWidth - 10 * scale, y, holeW, holeH, 2 * scale);
+        } else {
+          ctx.rect(4 * scale, y, holeW, holeH);
+          ctx.rect(canvasWidth - 10 * scale, y, holeW, holeH);
+        }
+        ctx.fill();
+      }
+    } else if (theme === "santri") {
+      const grad = ctx.createRadialGradient(
+        canvasWidth / 2, 0, 10 * scale,
+        canvasWidth / 2, canvasHeight / 2, canvasHeight
+      );
+      grad.addColorStop(0, "#0d2818");
+      grad.addColorStop(1, "#06120b");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#2d6a4f";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "sakura") {
+      const grad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+      grad.addColorStop(0, "#fff0f5");
+      grad.addColorStop(1, "#ffe4ec");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#ffb6c1";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "cyber") {
+      ctx.fillStyle = "#080812";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#00f0ff";
+      ctx.lineWidth = 2 * scale;
+      ctx.shadowColor = "#00f0ff";
+      ctx.shadowBlur = 10 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+      ctx.shadowBlur = 0;
+    } else if (theme === "parchment") {
+      ctx.fillStyle = "#f5eedb";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#9c7a5b";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "ocean") {
+      const grad = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+      grad.addColorStop(0, "#071626");
+      grad.addColorStop(1, "#0b2545");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#00b4d8";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "velvet") {
+      ctx.fillStyle = "#1c0b19";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#d4af37";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "y2k") {
+      ctx.fillStyle = "#ff007f";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#00ffff";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "botanical") {
+      ctx.fillStyle = "#122018";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#52b788";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "monolith") {
+      ctx.fillStyle = "#18191d";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#444752";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "white") {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#e0e0e0";
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+    } else if (theme === "custom" && customBgColor) {
+      ctx.fillStyle = customBgColor;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "rgba(255,255,255,0.2)";
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
     } else {
-      ctx.rect(0, 0, canvasWidth, canvasHeight);
+      // Default sovereign
+      ctx.fillStyle = "#0d0d10";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+      ctx.strokeStyle = "#d4af37";
+      ctx.lineWidth = 2 * scale;
+      ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
     }
-    ctx.fillStyle = bg;
-    ctx.fill();
-
-    ctx.strokeStyle = borderCol;
-    ctx.lineWidth = 2 * scale;
-    ctx.stroke();
     ctx.restore();
 
-    // 2. Measure actual slot bounding boxes from real DOM
+    // ── 2. Measure actual slot bounding boxes from real DOM ──
     const cellElements = stripEl ? Array.from(stripEl.querySelectorAll<HTMLElement>(".photo-cell")) : [];
 
-    // 3. Draw Photos in Slots
+    // ── 3. Draw Photos in Slots (or reserve slots if forVideoBackground) ──
     for (let idx = 0; idx < totalSlots; idx++) {
       const photoObj = photos[idx];
       let slotX = 14 * scale;
@@ -1014,12 +1110,53 @@ export default function PhotoboothClient() {
         slotH = cRect.height * scale;
       }
 
-      const radius = frameRadius * scale;
+      let cellRadius = frameRadius * scale;
+      if (theme === "portra" || theme === "instagram") {
+        cellRadius = 0;
+      } else if (theme === "cobalt") {
+        cellRadius = 18 * scale;
+      }
 
       ctx.save();
+
+      // Special handling for Doily alternating rotation
+      if (theme === "doily") {
+        const angles = [-0.04, 0.035, -0.03, 0.038];
+        const angle = angles[idx % angles.length];
+        ctx.translate(slotX + slotW / 2, slotY + slotH / 2);
+        ctx.rotate(angle);
+        ctx.translate(-(slotX + slotW / 2), -(slotY + slotH / 2));
+
+        // White polaroid backing card with dashed border
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(slotX - 6 * scale, slotY - 6 * scale, slotW + 12 * scale, slotH + 12 * scale);
+        ctx.strokeStyle = "#cfbe9f";
+        ctx.lineWidth = 2 * scale;
+        ctx.setLineDash([4 * scale, 4 * scale]);
+        ctx.strokeRect(slotX - 3 * scale, slotY - 3 * scale, slotW + 6 * scale, slotH + 6 * scale);
+        ctx.setLineDash([]);
+      } else if (theme === "spiral") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(slotX - 5 * scale, slotY - 5 * scale, slotW + 10 * scale, slotH + 10 * scale);
+        ctx.strokeStyle = "#cfbe9f";
+        ctx.lineWidth = 1.5 * scale;
+        ctx.setLineDash([3 * scale, 3 * scale]);
+        ctx.strokeRect(slotX - 2 * scale, slotY - 2 * scale, slotW + 4 * scale, slotH + 4 * scale);
+        ctx.setLineDash([]);
+      } else if (theme === "gingham") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(slotX - 4 * scale, slotY - 4 * scale, slotW + 8 * scale, slotH + 8 * scale);
+        ctx.strokeStyle = "#c0ad94";
+        ctx.lineWidth = 2 * scale;
+        ctx.setLineDash([4 * scale, 4 * scale]);
+        ctx.strokeRect(slotX - 2 * scale, slotY - 2 * scale, slotW + 4 * scale, slotH + 4 * scale);
+        ctx.setLineDash([]);
+      }
+
+      // Clip image to cell
       ctx.beginPath();
       if (typeof (ctx as any).roundRect === "function") {
-        (ctx as any).roundRect(slotX, slotY, slotW, slotH, radius);
+        (ctx as any).roundRect(slotX, slotY, slotW, slotH, cellRadius);
       } else {
         ctx.rect(slotX, slotY, slotW, slotH);
       }
@@ -1028,7 +1165,7 @@ export default function PhotoboothClient() {
       ctx.fillStyle = "#141418";
       ctx.fillRect(slotX, slotY, slotW, slotH);
 
-      if (photoObj?.image) {
+      if (!options?.forVideoBackground && photoObj?.image) {
         await new Promise<void>((resolveImg) => {
           const img = new Image();
           img.onload = () => {
@@ -1046,7 +1183,6 @@ export default function PhotoboothClient() {
                 sy = (ih - sh) / 2;
               }
 
-              // Apply current filter to canvas if supported
               const filterStyle = getFilterStyle();
               if (filterStyle && filterStyle !== "none" && typeof ctx.filter !== "undefined") {
                 ctx.filter = filterStyle;
@@ -1063,52 +1199,338 @@ export default function PhotoboothClient() {
       }
 
       ctx.restore();
+
+      // Washi tape over slot 2 for Gingham
+      if (theme === "gingham" && idx === 1) {
+        ctx.save();
+        ctx.translate(slotX, slotY);
+        ctx.rotate(-0.5);
+        ctx.fillStyle = "rgba(205, 180, 150, 0.92)";
+        ctx.fillRect(-14 * scale, -8 * scale, 82 * scale, 22 * scale);
+        ctx.strokeStyle = "rgba(140, 110, 80, 0.3)";
+        ctx.strokeRect(-14 * scale, -8 * scale, 82 * scale, 22 * scale);
+        ctx.restore();
+      }
     }
 
-    // 4. Draw Header
+    // ── 4. Draw Header per Theme ──
     if (showHeader) {
       ctx.save();
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.font = `bold ${10 * scale}px 'Inter', sans-serif`;
-      ctx.fillStyle = textCol;
-      const headerTitle = theme === "santri" ? "أُخُوَّةٌ فِي سَبِيلِ اللهِ" : "EXPEDIENT GENERATION";
-      ctx.fillText(headerTitle, canvasWidth / 2, 24 * scale);
+
+      if (theme === "cobalt") {
+        const bx = 12 * scale;
+        const by = 10 * scale;
+        const bw = canvasWidth - 24 * scale;
+        const bh = 52 * scale;
+        ctx.fillStyle = "#f0f6ff";
+        ctx.beginPath();
+        if (typeof (ctx as any).roundRect === "function") {
+          (ctx as any).roundRect(bx, by, bw, bh, 10 * scale);
+        } else {
+          ctx.rect(bx, by, bw, bh);
+        }
+        ctx.fill();
+        ctx.fillStyle = "#0d52bd";
+        ctx.font = `bold ${8 * scale}px 'Inter', sans-serif`;
+        ctx.fillText("✦ EVERY MOMENT MATTERS 1.0 ✦", canvasWidth / 2, by + 14 * scale);
+        ctx.font = `bold ${16 * scale}px 'Impact', sans-serif`;
+        ctx.fillText("EVERY MOMENT", canvasWidth / 2, by + 32 * scale);
+        ctx.font = `${8 * scale}px monospace`;
+        ctx.fillText("|||| | |||| || ||| |||| | ||||", canvasWidth / 2, by + 45 * scale);
+      } else if (theme === "portra") {
+        ctx.fillStyle = "#d1d1d1";
+        ctx.font = `bold ${8 * scale}px monospace`;
+        ctx.fillText("90 F11.0   X   PRO/2 120   50   90 F11.0", canvasWidth / 2, 20 * scale);
+        ctx.strokeStyle = "#333333";
+        ctx.beginPath();
+        ctx.moveTo(12 * scale, 28 * scale);
+        ctx.lineTo(canvasWidth - 12 * scale, 28 * scale);
+        ctx.stroke();
+      } else if (theme === "instagram") {
+        const ringX = 24 * scale;
+        const ringY = 22 * scale;
+        const ringR = 10 * scale;
+        const ringGrad = ctx.createLinearGradient(ringX - ringR, ringY - ringR, ringX + ringR, ringY + ringR);
+        ringGrad.addColorStop(0, "#f09433");
+        ringGrad.addColorStop(0.5, "#dc2743");
+        ringGrad.addColorStop(1, "#bc1888");
+        ctx.fillStyle = ringGrad;
+        ctx.beginPath();
+        ctx.arc(ringX, ringY, ringR, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#111111";
+        ctx.beginPath();
+        ctx.arc(ringX, ringY, ringR - 2 * scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ffd700";
+        ctx.font = `bold ${7 * scale}px sans-serif`;
+        ctx.fillText("43", ringX, ringY + 1);
+
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#262626";
+        ctx.font = `bold ${9 * scale}px sans-serif`;
+        ctx.fillText("expedientgeneration_ ✓", 42 * scale, 17 * scale);
+        ctx.font = `${7 * scale}px sans-serif`;
+        ctx.fillStyle = "#8e8e8e";
+        ctx.fillText("Pondok Modern Arrisalah", 42 * scale, 27 * scale);
+      } else if (theme === "ticket") {
+        ctx.fillStyle = "#8b0000";
+        ctx.font = `bold ${9 * scale}px sans-serif`;
+        ctx.fillText("EXPEDIENT BOARDING PASS", canvasWidth / 2, 16 * scale);
+        ctx.fillStyle = "#555555";
+        ctx.font = `bold ${7 * scale}px sans-serif`;
+        ctx.fillText("FROM: ARRISALAH ➔ TO: SUCCESS & JANNAH", canvasWidth / 2, 28 * scale);
+        ctx.fillStyle = "#111111";
+        ctx.font = `${14 * scale}px monospace`;
+        ctx.fillText("||| | |||| || ||| |", canvasWidth / 2, 44 * scale);
+      } else if (theme === "receipt") {
+        ctx.fillStyle = "#111111";
+        ctx.font = `bold ${11 * scale}px 'Courier New', monospace`;
+        ctx.fillText("★ KOPONTREN MART 43 ★", canvasWidth / 2, 16 * scale);
+        ctx.font = `${8 * scale}px 'Courier New', monospace`;
+        ctx.fillText("Pesantren Arrisalah Slahung", canvasWidth / 2, 28 * scale);
+        ctx.font = `${7 * scale}px 'Courier New', monospace`;
+        ctx.fillText(`Tgl: ${captionDate || "2026"} • Kasir: Santri-43`, canvasWidth / 2, 39 * scale);
+      } else if (theme === "luggage") {
+        ctx.fillStyle = "#3b2816";
+        ctx.font = `italic bold ${8 * scale}px serif`;
+        ctx.fillText("⚜️ TRUE UKHUWAH IS THE BEST ADVENTURE ⚜️", canvasWidth / 2, 20 * scale);
+        ctx.strokeStyle = "#6b4d2e";
+        ctx.strokeRect(12 * scale, 8 * scale, canvasWidth - 24 * scale, 24 * scale);
+      } else if (theme === "spiral") {
+        const ringStep = (canvasWidth - 40 * scale) / 5;
+        for (let i = 0; i < 6; i++) {
+          const rx = 20 * scale + i * ringStep;
+          ctx.fillStyle = "#aaaaaa";
+          ctx.beginPath();
+          if (typeof (ctx as any).roundRect === "function") {
+            (ctx as any).roundRect(rx - 4 * scale, 6 * scale, 8 * scale, 14 * scale, 3 * scale);
+          } else {
+            ctx.rect(rx - 4 * scale, 6 * scale, 8 * scale, 14 * scale);
+          }
+          ctx.fill();
+        }
+        ctx.fillStyle = "#faebd7";
+        ctx.font = `bold ${9 * scale}px sans-serif`;
+        ctx.fillText("📓 JURNAL ANGKATAN 43", canvasWidth / 2, 32 * scale);
+      } else if (theme === "doily") {
+        ctx.font = `${18 * scale}px sans-serif`;
+        ctx.fillText("🌺", canvasWidth - 22 * scale, 22 * scale);
+        ctx.fillText("🌸", 22 * scale, 22 * scale);
+        ctx.fillStyle = "#faebd7";
+        ctx.font = `italic bold ${10 * scale}px serif`;
+        ctx.fillText("Mahabbah Fillah • '43", canvasWidth / 2, 22 * scale);
+      } else if (theme === "gingham") {
+        ctx.fillStyle = "#8b7355";
+        ctx.font = `bold ${9 * scale}px sans-serif`;
+        ctx.fillText("✦ EXPEDIENT SCRAPBOOK ✦", canvasWidth / 2, 20 * scale);
+      } else if (theme === "santri") {
+        ctx.fillStyle = "#74c69d";
+        ctx.font = `bold ${12 * scale}px 'Traditional Arabic', serif`;
+        ctx.fillText("أُخُوَّةٌ فِي سَبِيلِ اللهِ", canvasWidth / 2, 24 * scale);
+      } else if (theme === "doodle") {
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `bold ${11 * scale}px sans-serif`;
+        ctx.fillText("⚡ EXPEDIENT STREETWEAR 43 ⚡", canvasWidth / 2, 22 * scale);
+      } else if (theme === "scrapbook") {
+        ctx.font = `${16 * scale}px sans-serif`;
+        ctx.fillText("📌", 20 * scale, 18 * scale);
+        ctx.fillStyle = "#ffe4e8";
+        ctx.font = `bold ${10 * scale}px sans-serif`;
+        ctx.fillText("MEMORIES OF ARRISALAH 43", canvasWidth / 2, 22 * scale);
+      } else {
+        const headerTitle = "EXPEDIENT GENERATION";
+        let textCol = "#ffd700";
+        if (theme === "white") textCol = "#111111";
+        else if (theme === "cyber") textCol = "#00f0ff";
+        else if (theme === "sakura") textCol = "#c71f66";
+        else if (theme === "parchment") textCol = "#4a2c11";
+        else if (theme === "ocean") textCol = "#caf0f8";
+        else if (theme === "velvet") textCol = "#f7d6e0";
+        else if (theme === "botanical") textCol = "#d8f3dc";
+        else if (theme === "monolith") textCol = "#ffffff";
+
+        ctx.font = `bold ${10 * scale}px 'Inter', sans-serif`;
+        ctx.fillStyle = textCol;
+        ctx.fillText(headerTitle, canvasWidth / 2, 24 * scale);
+      }
+
       ctx.restore();
     }
 
-    // 5. Draw Footer
+    // ── 5. Draw Footer per Theme ──
     if (showFooter) {
       ctx.save();
-      ctx.textAlign = "center";
       const footerY = canvasHeight - 34 * scale;
 
-      if (showDivider) {
-        ctx.strokeStyle = borderCol;
-        ctx.lineWidth = 1 * scale;
+      if (theme === "instagram") {
+        const igY = canvasHeight - 56 * scale;
+        ctx.textAlign = "left";
+        ctx.font = `${14 * scale}px sans-serif`;
+        ctx.fillText("❤️   💬   ✈️", 16 * scale, igY);
+        ctx.textAlign = "right";
+        ctx.fillText("🔖", canvasWidth - 16 * scale, igY);
+
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#262626";
+        ctx.font = `bold ${8 * scale}px sans-serif`;
+        ctx.fillText("4,343 likes", 16 * scale, igY + 16 * scale);
+        ctx.font = `${8 * scale}px sans-serif`;
+        ctx.fillText(`expedientgeneration_ ${captionTitle || "Momen Kenangan"}`, 16 * scale, igY + 28 * scale);
+        ctx.fillStyle = "#8e8e8e";
+        ctx.font = `${7 * scale}px sans-serif`;
+        ctx.fillText(`${captionDate || "2026"} • 2 HOURS AGO`, 16 * scale, igY + 40 * scale);
+      } else if (theme === "portra") {
+        ctx.strokeStyle = "#333333";
         ctx.beginPath();
-        ctx.moveTo(30 * scale, footerY - 14 * scale);
-        ctx.lineTo(canvasWidth - 30 * scale, footerY - 14 * scale);
+        ctx.moveTo(12 * scale, footerY - 14 * scale);
+        ctx.lineTo(canvasWidth - 12 * scale, footerY - 14 * scale);
         ctx.stroke();
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `bold ${9 * scale}px monospace`;
+        ctx.fillText("KODAK PORTRA 400 - EXPEDIENT 43", canvasWidth / 2, footerY);
+        ctx.fillStyle = "#d1d1d1";
+        ctx.font = `${7 * scale}px monospace`;
+        ctx.fillText(`S1   ◄ 5 ►   ${captionDate || "2026"}   P80/2 120   J A N F`, canvasWidth / 2, footerY + 14 * scale);
+      } else if (theme === "receipt") {
+        const rcY = canvasHeight - 65 * scale;
+        ctx.font = `${8 * scale}px 'Courier New', monospace`;
+        ctx.fillStyle = "#111111";
+        ctx.textAlign = "left";
+        ctx.fillText("1x Momen Nostalgia", 16 * scale, rcY);
+        ctx.textAlign = "right";
+        ctx.fillText("Rp 0", canvasWidth - 16 * scale, rcY);
+
+        ctx.textAlign = "left";
+        ctx.fillText("1x Ukhuwah Selamanya", 16 * scale, rcY + 12 * scale);
+        ctx.textAlign = "right";
+        ctx.fillText("GRATIS", canvasWidth - 16 * scale, rcY + 12 * scale);
+
+        ctx.textAlign = "left";
+        ctx.fillText("1x Tawa & Kenangan", 16 * scale, rcY + 24 * scale);
+        ctx.textAlign = "right";
+        ctx.fillText("PRICELESS", canvasWidth - 16 * scale, rcY + 24 * scale);
+
+        ctx.strokeStyle = "#444444";
+        ctx.setLineDash([3 * scale, 3 * scale]);
+        ctx.beginPath();
+        ctx.moveTo(16 * scale, rcY + 32 * scale);
+        ctx.lineTo(canvasWidth - 16 * scale, rcY + 32 * scale);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.font = `bold ${9 * scale}px 'Courier New', monospace`;
+        ctx.textAlign = "left";
+        ctx.fillText("TOTAL", 16 * scale, rcY + 44 * scale);
+        ctx.textAlign = "right";
+        ctx.fillText("BARAKALLAH", canvasWidth - 16 * scale, rcY + 44 * scale);
+      } else if (theme === "cobalt") {
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `bold ${10 * scale}px 'Inter', sans-serif`;
+        ctx.fillText(captionTitle || "MOMEN KENANGAN", canvasWidth / 2, footerY - 4 * scale);
+        ctx.font = `${7 * scale}px sans-serif`;
+        ctx.fillText(`${captionDate || "2026"} • ARRISALAH COHORT 43`, canvasWidth / 2, footerY + 8 * scale);
+        ctx.font = `${8 * scale}px monospace`;
+        ctx.fillText("|||| | |||| || ||| |||| | ||||", canvasWidth / 2, footerY + 20 * scale);
+      } else if (theme === "gingham") {
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#3b2e20";
+        ctx.font = `italic ${9 * scale}px serif`;
+        ctx.fillText("- your eyes tell a story -", canvasWidth / 2, footerY);
+        ctx.font = `bold ${8 * scale}px sans-serif`;
+        ctx.fillStyle = "#8b7355";
+        ctx.fillText(`✦ ${captionTitle || "Kenangan"} • ${captionDate || "2026"} ✦`, canvasWidth / 2, footerY + 14 * scale);
+      } else if (theme === "luggage") {
+        ctx.textAlign = "center";
+        ctx.font = `${18 * scale}px sans-serif`;
+        ctx.fillText("🧳", 28 * scale, footerY + 4 * scale);
+        ctx.textAlign = "left";
+        ctx.fillStyle = "#3b2816";
+        ctx.font = `bold ${9 * scale}px serif`;
+        ctx.fillText("EXPEDIENT GENERATION 43", 44 * scale, footerY);
+        ctx.font = `italic ${7 * scale}px serif`;
+        ctx.fillText(`Arrisalah Slahung • ${captionDate || "2026"}`, 44 * scale, footerY + 12 * scale);
+      } else if (theme === "spiral") {
+        const ringStep = (canvasWidth - 40 * scale) / 5;
+        for (let i = 0; i < 6; i++) {
+          const rx = 20 * scale + i * ringStep;
+          ctx.fillStyle = "#aaaaaa";
+          ctx.beginPath();
+          if (typeof (ctx as any).roundRect === "function") {
+            (ctx as any).roundRect(rx - 4 * scale, canvasHeight - 20 * scale, 8 * scale, 14 * scale, 3 * scale);
+          } else {
+            ctx.rect(rx - 4 * scale, canvasHeight - 20 * scale, 8 * scale, 14 * scale);
+          }
+          ctx.fill();
+        }
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#faebd7";
+        ctx.font = `bold ${10 * scale}px sans-serif`;
+        ctx.fillText(captionTitle || "Momen Kenangan", canvasWidth / 2, footerY);
+        ctx.font = `${8 * scale}px sans-serif`;
+        ctx.fillText(captionDate || "2026", canvasWidth / 2, footerY + 14 * scale);
+      } else {
+        ctx.textAlign = "center";
+        let textCol = "#ffd700";
+        let subCol = "rgba(255,255,255,0.7)";
+        let borderCol = "#d4af37";
+
+        if (theme === "white") {
+          textCol = "#111111"; subCol = "#666666"; borderCol = "#dcdce0";
+        } else if (theme === "film") {
+          textCol = "#e5a93c"; subCol = "#888888"; borderCol = "#333333";
+        } else if (theme === "santri") {
+          textCol = "#74c69d"; subCol = "#52b788"; borderCol = "#2d6a4f";
+        } else if (theme === "sakura") {
+          textCol = "#c71f66"; subCol = "#800f2f"; borderCol = "#ffb3c1";
+        } else if (theme === "cyber") {
+          textCol = "#00f0ff"; subCol = "#ff007f"; borderCol = "#00f0ff";
+        } else if (theme === "parchment") {
+          textCol = "#4a2c11"; subCol = "#7a5028"; borderCol = "#8b5a2b";
+        } else if (theme === "ocean") {
+          textCol = "#caf0f8"; subCol = "#90e0ef"; borderCol = "#00b4d8";
+        } else if (theme === "velvet") {
+          textCol = "#f7d6e0"; subCol = "#c08081"; borderCol = "#d4af37";
+        } else if (theme === "y2k") {
+          textCol = "#ffff00"; subCol = "#ffffff"; borderCol = "#00ffff";
+        } else if (theme === "botanical") {
+          textCol = "#d8f3dc"; subCol = "#95d5b2"; borderCol = "#52b788";
+        } else if (theme === "monolith") {
+          textCol = "#ffffff"; subCol = "#777777"; borderCol = "#444752";
+        }
+
+        if (showDivider) {
+          ctx.strokeStyle = borderCol;
+          ctx.lineWidth = 1 * scale;
+          ctx.beginPath();
+          ctx.moveTo(30 * scale, footerY - 14 * scale);
+          ctx.lineTo(canvasWidth - 30 * scale, footerY - 14 * scale);
+          ctx.stroke();
+        }
+
+        ctx.font = `bold ${11 * scale}px 'Inter', sans-serif`;
+        ctx.fillStyle = textCol;
+        ctx.fillText(captionTitle || "Momen Kenangan", canvasWidth / 2, footerY);
+
+        ctx.font = `${8 * scale}px 'Inter', sans-serif`;
+        ctx.fillStyle = subCol;
+        ctx.fillText(captionDate || "2026", canvasWidth / 2, footerY + 14 * scale);
+
+        if (showCrest) {
+          ctx.font = `${7 * scale}px 'Inter', sans-serif`;
+          ctx.fillStyle = borderCol;
+          ctx.fillText("43RD ARRISALAH COHORT", canvasWidth / 2, footerY + 26 * scale);
+        }
       }
 
-      ctx.font = `bold ${11 * scale}px 'Inter', sans-serif`;
-      ctx.fillStyle = textCol;
-      ctx.fillText(captionTitle || "Momen Kenangan", canvasWidth / 2, footerY);
-
-      ctx.font = `${8 * scale}px 'Inter', sans-serif`;
-      ctx.fillStyle = subCol;
-      ctx.fillText(captionDate || "2026", canvasWidth / 2, footerY + 14 * scale);
-
-      if (showCrest) {
-        ctx.font = `${7 * scale}px 'Inter', sans-serif`;
-        ctx.fillStyle = borderCol;
-        ctx.fillText("43RD ARRISALAH COHORT", canvasWidth / 2, footerY + 26 * scale);
-      }
       ctx.restore();
     }
 
-    // 6. Draw Stickers
+    // ── 6. Draw User Stickers ──
     if (stickers.length > 0) {
       stickers.forEach((stk) => {
         const x = (stk.left / 100) * canvasWidth;
@@ -1273,10 +1695,9 @@ export default function PhotoboothClient() {
         type: isVideo ? "video" : "image",
       });
 
-      // 3. Trigger download via preferred target URL
-      const targetUrl = serverDownloadUrl || (blob ? URL.createObjectURL(blob) : dataUrl);
+      // 3. Trigger standard anchor download IN-APP with local blob / dataUrl (NEVER redirects to external browser)
+      const targetUrl = (blob ? URL.createObjectURL(blob) : dataUrl) || serverDownloadUrl;
 
-      // Trigger standard anchor download
       const a = document.createElement("a");
       a.href = targetUrl;
       a.download = filename;
@@ -1288,21 +1709,6 @@ export default function PhotoboothClient() {
       setTimeout(() => {
         if (document.body.contains(a)) document.body.removeChild(a);
       }, 500);
-
-      // On Android APK / WebView, iframe navigation to HTTPS GET URL forces Android DownloadManager
-      if (serverDownloadUrl && isAppOrMobileDevice()) {
-        setTimeout(() => {
-          try {
-            const iframe = document.createElement("iframe");
-            iframe.style.display = "none";
-            iframe.src = serverDownloadUrl;
-            document.body.appendChild(iframe);
-            setTimeout(() => {
-              if (document.body.contains(iframe)) document.body.removeChild(iframe);
-            }, 60000);
-          } catch {}
-        }, 300);
-      }
 
       // 4. Always show the interactive modal (unless forceModal is explicitly false)
       if (options?.forceModal !== false) {
@@ -1323,7 +1729,9 @@ export default function PhotoboothClient() {
     const { blob, dataUrl, filename, type } = exportedResult;
     let fileBlob = blob;
     if (!fileBlob && dataUrl && dataUrl.startsWith("data:")) {
-      fileBlob = dataUrlToBlob(dataUrl);
+      try {
+        fileBlob = dataUrlToBlob(dataUrl);
+      } catch {}
     }
 
     if (
@@ -1333,23 +1741,28 @@ export default function PhotoboothClient() {
       navigator.canShare
     ) {
       try {
-        const mime = type === "video" ? "video/mp4" : "image/png";
+        const mime =
+          type === "video"
+            ? filename.endsWith(".mp4") ? "video/mp4" : "video/webm"
+            : "image/png";
         const file = new File([fileBlob], filename, { type: mime });
+
         if (navigator.canShare({ files: [file] })) {
           await navigator.share({
             files: [file],
-            title: "Expedient Photobooth",
-            text: "Hasil foto photobooth Expedient 43!",
+            title: "Hasil Photobooth Expedient 43",
+            text: "Kenangan Photobooth Alumni Expedient 43!",
           });
           return;
         }
-      } catch (shareErr: any) {
-        if (shareErr?.name === "AbortError") return;
-        console.warn("navigator.share failed, fallback to download:", shareErr);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          console.warn("Modal share sheet warning:", err);
+        }
       }
     }
 
-    // Fallback if share sheet is unsupported
+    // Fallback: direct anchor download inside app
     handleDownloadFromModal();
   };
 
@@ -1358,9 +1771,10 @@ export default function PhotoboothClient() {
     triggerHaptic(30);
     const { dataUrl, blob, filename, downloadUrl } = exportedResult;
 
-    const targetUrl = downloadUrl || (blob ? URL.createObjectURL(blob) : dataUrl);
+    const targetUrl = (blob ? URL.createObjectURL(blob) : dataUrl) || downloadUrl || "";
+    if (!targetUrl) return;
 
-    // 1. Anchor click
+    // Direct anchor click inside app
     const a = document.createElement("a");
     a.href = targetUrl;
     a.download = filename;
@@ -1369,25 +1783,6 @@ export default function PhotoboothClient() {
     setTimeout(() => {
       if (document.body.contains(a)) document.body.removeChild(a);
     }, 500);
-
-    // 2. Hidden iframe trigger for Android WebView DownloadManager
-    if (downloadUrl) {
-      try {
-        const iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.src = downloadUrl;
-        document.body.appendChild(iframe);
-        setTimeout(() => {
-          if (document.body.contains(iframe)) document.body.removeChild(iframe);
-        }, 30000);
-      } catch {}
-
-      if (isAppOrMobileDevice()) {
-        try {
-          window.location.assign(downloadUrl);
-        } catch {}
-      }
-    }
   };
 
   // Download Single Photo (Foto Biasa Satuan)
@@ -1450,24 +1845,15 @@ export default function PhotoboothClient() {
 
   // Sanitize photo cells in cloned DOM for reliable, high-fidelity export
   const sanitizeClonedCellsForExport = (clonedDoc: Document) => {
-    // Strip foreign stylesheets that cause cross-origin SecurityError
+    // Strip heavy non-booth stylesheets that cause cross-origin SecurityError (leaflet/swiper/cropper)
     clonedDoc.querySelectorAll<HTMLLinkElement>("link[rel='stylesheet']").forEach((link) => {
       const href = link.href || "";
       if (
         href.includes("leaflet") ||
         href.includes("swiper") ||
-        href.includes("cropper") ||
-        href.includes("cdnjs") ||
-        href.includes("font-awesome")
+        href.includes("cropper")
       ) {
         link.remove();
-      }
-    });
-
-    // Remove cross-origin @import rules to avoid tainted canvas SecurityError
-    clonedDoc.querySelectorAll("style").forEach((style) => {
-      if (style.innerHTML && style.innerHTML.includes("@import")) {
-        style.innerHTML = style.innerHTML.replace(/@import\s+url\([^)]+\);?/gi, "");
       }
     });
 
@@ -1529,15 +1915,15 @@ export default function PhotoboothClient() {
 
       let canvas: HTMLCanvasElement | null = null;
 
-      // Primary attempt: html2canvas with strict 3.5s timeout & sanitization
+      // Primary attempt: html2canvas with generous 25s timeout & sanitization
       try {
         const h2cPromise = html2canvas(stripRef.current, {
           scale: exportScale,
           useCORS: true,
-          allowTaint: false,
+          allowTaint: true,
           backgroundColor: null,
           logging: false,
-          imageTimeout: 3000,
+          imageTimeout: 10000,
           scrollX: 0,
           scrollY: 0,
           onclone: (clonedDoc) => {
@@ -1546,7 +1932,7 @@ export default function PhotoboothClient() {
         });
 
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("html2canvas timeout")), 3500)
+          setTimeout(() => reject(new Error("html2canvas timeout")), 25000)
         );
 
         canvas = await Promise.race([h2cPromise, timeoutPromise]);
@@ -1631,9 +2017,19 @@ export default function PhotoboothClient() {
 
       let canvas: HTMLCanvasElement;
       try {
-        canvas = await renderPhotostripNative(exportScale);
+        canvas = await html2canvas(stripRef.current, {
+          scale: exportScale,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+          logging: false,
+          imageTimeout: 10000,
+          onclone: (clonedDoc) => {
+            sanitizeClonedCellsForExport(clonedDoc);
+          },
+        });
       } catch {
-        canvas = await html2canvas(stripRef.current, { scale: exportScale });
+        canvas = await renderPhotostripNative(exportScale);
       }
 
       const filename = `Expedient_Photostrip_${layout}_${Date.now()}.png`;
@@ -1722,7 +2118,7 @@ export default function PhotoboothClient() {
         bgCanvas = await html2canvas(stripEl, {
           scale: exportScale,
           useCORS: true,
-          allowTaint: false,
+          allowTaint: true,
           backgroundColor: null,
           logging: false,
           scrollX: 0,
@@ -1751,7 +2147,7 @@ export default function PhotoboothClient() {
         });
       } catch (bgErr) {
         console.warn("bgCanvas html2canvas error, using native canvas:", bgErr);
-        bgCanvas = await renderPhotostripNative(exportScale);
+        bgCanvas = await renderPhotostripNative(exportScale, { forVideoBackground: true });
       }
 
       // ── Build slot info & acquire active playing video elements ──
@@ -3385,7 +3781,7 @@ export default function PhotoboothClient() {
                 <i className="fa-solid fa-lightbulb"></i>
                 <div>
                   <strong>Tips Simpan di Aplikasi HP:</strong>
-                  Gunakan tombol <strong>Simpan ke Galeri</strong> di bawah. Atau cukup <strong>tekan & tahan (tahan jari di foto)</strong> lalu pilih <em>"Simpan Gambar"</em> / <em>"Download Image"</em>.
+                  Tekan tombol <strong>Simpan ke Galeri / Bagikan</strong> di bawah untuk langsung menyimpan ke galeri HP tanpa keluar aplikasi. Anda juga bisa <strong>tekan & tahan jari pada foto</strong> di atas lalu pilih <em>"Simpan Gambar"</em>.
                 </div>
               </div>
 
@@ -3395,7 +3791,7 @@ export default function PhotoboothClient() {
                   className="btn-modal-share"
                   onClick={handleShareFromModal}
                 >
-                  <i className="fa-solid fa-share-nodes"></i>
+                  <i className="fa-solid fa-cloud-arrow-down"></i>
                   <span>Simpan ke Galeri / Bagikan</span>
                 </button>
 
@@ -3405,21 +3801,8 @@ export default function PhotoboothClient() {
                   onClick={handleDownloadFromModal}
                 >
                   <i className="fa-solid fa-download"></i>
-                  <span>Unduh Ulang (File Langsung)</span>
+                  <span>Simpan File Langsung</span>
                 </button>
-
-                {exportedResult.downloadUrl && (
-                  <a
-                    href={exportedResult.downloadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-modal-external"
-                    download={exportedResult.filename}
-                  >
-                    <i className="fa-brands fa-chrome"></i>
-                    <span>Buka / Unduh di Chrome HP</span>
-                  </a>
-                )}
               </div>
             </div>
           </div>
