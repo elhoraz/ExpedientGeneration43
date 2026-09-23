@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import LoadingScreen from "./LoadingScreen";
+import DynamicPageTranslator from "@/components/i18n/DynamicPageTranslator";
 import { ToastProvider } from "./AegisToast";
 import { ConfirmProvider } from "./AegisConfirm";
 import gsap from "gsap";
@@ -289,6 +290,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           </div>
         )}
         <LoadingScreen />
+        <DynamicPageTranslator />
         {children}
       </ToastProvider>
     </ConfirmProvider>
