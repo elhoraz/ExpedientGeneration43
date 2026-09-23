@@ -72,13 +72,17 @@ export interface Dictionary {
     chat_send: string;
   };
   nav: {
+    sejarah: string;
+    nasehat: string;
     almamater: string;
+    apk: string;
     philosophy: string;
     ecosystem: string;
     radar: string;
     login: string;
     explore_museum: string;
     brand_sub: string;
+    open_nav: string;
   };
   hero: {
     badge: string;
@@ -169,11 +173,21 @@ export interface Dictionary {
     motto: string;
     col1_title: string;
     col2_title: string;
+    col3_title: string;
     nav_home: string;
+    nav_sejarah: string;
+    nav_nasehat: string;
     nav_almamater: string;
+    nav_apk: string;
     nav_philosophy: string;
     nav_ecosystem: string;
     nav_radar: string;
+    util_quran: string;
+    util_matsurat: string;
+    util_asmaul: string;
+    util_mahfuzhat: string;
+    util_photobooth: string;
+    util_kiblat: string;
     srv_member: string;
     srv_kta: string;
     srv_museum: string;
@@ -818,6 +832,84 @@ export interface Dictionary {
     analyzing: string;
     reanalyze: string;
     match_score: string;
+  };
+  drawer: {
+    section_landing: string;
+    section_free_features: string;
+    section_free_badge: string;
+    section_portal: string;
+    nav_home: string;
+    nav_sejarah: string;
+    nav_nasehat: string;
+    nav_almamater: string;
+    nav_apk: string;
+    nav_ecosystem: string;
+    quran_title: string;
+    quran_desc: string;
+    matsurat_title: string;
+    matsurat_desc: string;
+    asmaul_title: string;
+    asmaul_desc: string;
+    mahfuzhat_title: string;
+    mahfuzhat_desc: string;
+    kiblat_title: string;
+    kiblat_desc: string;
+    tasbih_title: string;
+    tasbih_desc: string;
+    sirah_title: string;
+    sirah_desc: string;
+    photobooth_title: string;
+    photobooth_desc: string;
+    download_title: string;
+    download_desc: string;
+    login_btn: string;
+    museum_btn: string;
+    close_aria: string;
+  };
+  history_section: {
+    badge: string;
+    title: string;
+    lead: string;
+    figure_label: string;
+    photobooth_title: string;
+    photobooth_desc: string;
+    photobooth_btn: string;
+  };
+  wisdom_section: {
+    badge: string;
+    title: string;
+    lead: string;
+  };
+  app_showcase: {
+    badge: string;
+    title: string;
+    lead: string;
+    version_pill: string;
+    headline: string;
+    desc: string;
+    tab_kta: string;
+    tab_quran: string;
+    tab_radar: string;
+    perk1_title: string;
+    perk1_desc: string;
+    perk2_title: string;
+    perk2_desc: string;
+    perk3_title: string;
+    perk3_desc: string;
+    perk4_title: string;
+    perk4_desc: string;
+  };
+  memories_section: {
+    badge: string;
+    title: string;
+    lead: string;
+    audio_playing: string;
+    audio_idle: string;
+    audio_sub: string;
+  };
+  daily_wisdom: {
+    next_btn: string;
+    explore_btn: string;
   };
 }
 
