@@ -39,7 +39,7 @@ export default function PersonalChatClient({
   userId: string; 
   contact: Contact;
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { showAlert, showConfirm } = useConfirm();
   const supabase = createClient();
 
@@ -739,13 +739,13 @@ export default function PersonalChatClient({
             </div>
 
             <p style={{ color: "#94a3b8", fontSize: "0.85rem", marginBottom: "1.25rem", lineHeight: 1.5 }}>
-              Laporan Anda akan ditinjau secara rahasia oleh tim moderator sesuai Pedoman Komunitas Expedient 43.
+              {locale === "ar" ? "سيتم مراجعة بلاغك بسرية تامة من قبل المشرفين وفق إرشادات مجتمع إكسبيدينت 43." : locale === "en" ? "Your report will be reviewed confidentially by moderators following Expedient 43 Guidelines." : "Laporan Anda akan ditinjau secara rahasia oleh tim moderator sesuai Pedoman Komunitas Expedient 43."}
             </p>
 
             <form onSubmit={handleSubmitReport}>
               <div style={{ marginBottom: "1rem" }}>
                 <label style={{ display: "block", color: "#e2e8f0", fontSize: "0.85rem", marginBottom: "0.5rem", fontWeight: 500 }}>
-                  Alasan Pelaporan:
+                  {locale === "ar" ? "سبب البلاغ:" : locale === "en" ? "Report Reason:" : "Alasan Pelaporan:"}
                 </label>
                 <select
                   value={reportReason}
@@ -761,22 +761,22 @@ export default function PersonalChatClient({
                     outline: "none",
                   }}
                 >
-                  <option value="Spam atau Penipuan" style={{ background: "#121814" }}>Spam atau Penipuan</option>
-                  <option value="Pelecehan atau Ujaran Kebencian" style={{ background: "#121814" }}>Pelecehan atau Ujaran Kebencian</option>
-                  <option value="Konten Tidak Pantas / Asusila" style={{ background: "#121814" }}>Konten Tidak Pantas / Asusila</option>
-                  <option value="Peniruan Identitas (Impersonation)" style={{ background: "#121814" }}>Peniruan Identitas (Impersonation)</option>
-                  <option value="Lainnya" style={{ background: "#121814" }}>Lainnya</option>
+                  <option value="Spam atau Penipuan" style={{ background: "#121814" }}>{locale === "ar" ? "احتيال أو رسائل مزعجة (Spam)" : locale === "en" ? "Spam or Scam" : "Spam atau Penipuan"}</option>
+                  <option value="Pelecehan atau Ujaran Kebencian" style={{ background: "#121814" }}>{locale === "ar" ? "مضايقة أو خطاب كراهية" : locale === "en" ? "Harassment or Hate Speech" : "Pelecehan atau Ujaran Kebencian"}</option>
+                  <option value="Konten Tidak Pantas / Asusila" style={{ background: "#121814" }}>{locale === "ar" ? "محتوى غير لائق" : locale === "en" ? "Inappropriate Content" : "Konten Tidak Pantas / Asusila"}</option>
+                  <option value="Peniruan Identitas (Impersonation)" style={{ background: "#121814" }}>{locale === "ar" ? "انتحال شخصية" : locale === "en" ? "Impersonation" : "Peniruan Identitas (Impersonation)"}</option>
+                  <option value="Lainnya" style={{ background: "#121814" }}>{locale === "ar" ? "أخرى" : locale === "en" ? "Other" : "Lainnya"}</option>
                 </select>
               </div>
 
               <div style={{ marginBottom: "1.5rem" }}>
                 <label style={{ display: "block", color: "#e2e8f0", fontSize: "0.85rem", marginBottom: "0.5rem", fontWeight: 500 }}>
-                  Keterangan Tambahan (Opsional):
+                  {locale === "ar" ? "معلومات إضافية (اختياري):" : locale === "en" ? "Additional Details (Optional):" : "Keterangan Tambahan (Opsional):"}
                 </label>
                 <textarea
                   value={reportDetails}
                   onChange={(e) => setReportDetails(e.target.value)}
-                  placeholder="Jelaskan detail pelanggaran yang terjadi..."
+                  placeholder={locale === "ar" ? "اشرح تفاصيل المخالفة التي حدثت..." : locale === "en" ? "Describe details of the violation..." : "Jelaskan detail pelanggaran yang terjadi..."}
                   rows={3}
                   style={{
                     width: "100%",
@@ -806,7 +806,7 @@ export default function PersonalChatClient({
                     cursor: "pointer",
                   }}
                 >
-                  Batal
+                  {locale === "ar" ? "إلغاء" : locale === "en" ? "Cancel" : "Batal"}
                 </button>
                 <button
                   type="submit"
@@ -822,7 +822,7 @@ export default function PersonalChatClient({
                     cursor: "pointer",
                   }}
                 >
-                  {submittingReport ? "Mengirim..." : "Kirim Laporan"}
+                  {submittingReport ? (locale === "ar" ? "جاري الإرسال..." : locale === "en" ? "Submitting..." : "Mengirim...") : (locale === "ar" ? "إرسال البلاغ" : locale === "en" ? "Submit Report" : "Kirim Laporan")}
                 </button>
               </div>
             </form>

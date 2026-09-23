@@ -1128,14 +1128,14 @@ export default function QuranClient({
                 className="cordoba-page-btn"
                 onClick={() => cordobaPage > 1 && loadCordobaPage(cordobaPage - 1)}
                 disabled={cordobaPage <= 1}
-                title="Halaman Sebelumnya"
+                title={locale === "ar" ? "الصفحة السابقة" : locale === "en" ? "Previous Page" : "Halaman Sebelumnya"}
               >
                 <i className="fa-solid fa-chevron-left"></i>
-                <span className="btn-label">Sebelumnya</span>
+                <span className="btn-label">{locale === "ar" ? "السابقة" : locale === "en" ? "Previous" : "Sebelumnya"}</span>
               </button>
 
               <div className="cordoba-page-indicator">
-                <span className="page-lbl">HALAMAN</span>
+                <span className="page-lbl">{locale === "ar" ? "الصفحة" : locale === "en" ? "PAGE" : "HALAMAN"}</span>
                 <span className="page-val">{cordobaPage}</span>
                 <span className="page-total">/ 604</span>
               </div>
@@ -1145,9 +1145,9 @@ export default function QuranClient({
                 className="cordoba-page-btn"
                 onClick={() => cordobaPage < 604 && loadCordobaPage(cordobaPage + 1)}
                 disabled={cordobaPage >= 604}
-                title="Halaman Selanjutnya"
+                title={locale === "ar" ? "الصفحة التالية" : locale === "en" ? "Next Page" : "Halaman Selanjutnya"}
               >
-                <span className="btn-label">Selanjutnya</span>
+                <span className="btn-label">{locale === "ar" ? "التالية" : locale === "en" ? "Next" : "Selanjutnya"}</span>
                 <i className="fa-solid fa-chevron-right"></i>
               </button>
             </div>
@@ -2128,7 +2128,7 @@ export default function QuranClient({
                       <input
                         type="text"
                         className="quran-search-input"
-                        placeholder="Cari nama surah, arti, atau nomor (misal: Yasin, Kahf, 36)..."
+                        placeholder={locale === "ar" ? "ابحث عن اسم السورة، المعنى، أو الرقم (مثال: يس، الكهف، 36)..." : locale === "en" ? "Search surah name, meaning, or number (e.g. Yasin, Kahf, 36)..." : "Cari nama surah, arti, atau nomor (misal: Yasin, Kahf, 36)..."}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                       />
@@ -2152,7 +2152,7 @@ export default function QuranClient({
                           triggerHaptic(8);
                         }}
                       >
-                        Semua ({QURAN_SURAHS.length})
+                        {locale === "ar" ? `الكل (${QURAN_SURAHS.length})` : locale === "en" ? `All (${QURAN_SURAHS.length})` : `Semua (${QURAN_SURAHS.length})`}
                       </button>
                       <button
                         type="button"
@@ -2162,7 +2162,7 @@ export default function QuranClient({
                           triggerHaptic(8);
                         }}
                       >
-                        <i className="fa-solid fa-kaaba"></i> Makkiyyah (86)
+                        <i className="fa-solid fa-kaaba"></i> {locale === "ar" ? "مكية (86)" : locale === "en" ? "Meccan (86)" : "Makkiyyah (86)"}
                       </button>
                       <button
                         type="button"
@@ -2172,7 +2172,7 @@ export default function QuranClient({
                           triggerHaptic(8);
                         }}
                       >
-                        <i className="fa-solid fa-mosque"></i> Madaniyyah (28)
+                        <i className="fa-solid fa-mosque"></i> {locale === "ar" ? "مدنية (28)" : locale === "en" ? "Medinan (28)" : "Madaniyyah (28)"}
                       </button>
                     </div>
                   </div>
@@ -2252,16 +2252,16 @@ export default function QuranClient({
                   type="button"
                   className="back-btn"
                   onClick={closeSurahReader}
-                  title="Kembali ke Daftar Surah"
+                  title={t.common.back}
                 >
                   <i className="fa-solid fa-arrow-left"></i>
-                  <span className="back-text">Kembali ke Daftar</span>
+                  <span className="back-text">{t.common.back}</span>
                 </button>
 
                 <div className="reader-center-info">
                   <span className="reader-surah-name">{selectedSurah.namaLatin}</span>
                   <span className="reader-surah-meta">
-                    {selectedSurah.nama} • {selectedSurah.jumlahAyat} Ayat • {selectedSurah.tempatTurun}
+                    {selectedSurah.nama} • {selectedSurah.jumlahAyat} {locale === "ar" ? "آيات" : locale === "en" ? "Verses" : "Ayat"} • {selectedSurah.tempatTurun}
                   </span>
                 </div>
 
@@ -2273,10 +2273,10 @@ export default function QuranClient({
                     setCordobaPage(page);
                     setMainDisplayMode("cordoba");
                   }}
-                  title="Buka di Mushaf 5 Blok Al-Hufaz"
+                  title={locale === "ar" ? "فتح في مصحف الحفاظ 5 مقاطع" : locale === "en" ? "Open in 5-Block Al-Hufaz Mushaf" : "Buka di Mushaf 5 Blok Al-Hufaz"}
                 >
                   <i className="fa-solid fa-book-quran"></i>
-                  <span>Buka di Al-Hufaz</span>
+                  <span>{locale === "ar" ? "عرض في مصحف الحفاظ" : locale === "en" ? "Open in Al-Hufaz" : "Buka di Al-Hufaz"}</span>
                 </button>
               </div>
 
@@ -2813,7 +2813,7 @@ export default function QuranClient({
                   className="audio-btn prev-btn"
                   onClick={() => queueIndex > 0 && playQueueItemAtIndex(queueIndex - 1)}
                   disabled={queueIndex <= 0}
-                  title="Ayat Sebelumnya"
+                  title={locale === "ar" ? "الآية السابقة" : locale === "en" ? "Previous Verse" : "Ayat Sebelumnya"}
                 >
                   <i className="fa-solid fa-backward-step"></i>
                 </button>
@@ -2833,7 +2833,7 @@ export default function QuranClient({
                     }
                   }
                 }}
-                title={isPlaying ? "Jeda Audio" : "Lanjutkan Audio"}
+                title={isPlaying ? (locale === "ar" ? "إيقاف مؤقت" : locale === "en" ? "Pause Audio" : "Jeda Audio") : (locale === "ar" ? "متابعة الصوت" : locale === "en" ? "Resume Audio" : "Lanjutkan Audio")}
               >
                 <i className={`fa-solid ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
               </button>
@@ -2844,7 +2844,7 @@ export default function QuranClient({
                   className="audio-btn next-btn"
                   onClick={() => queueIndex + 1 < audioQueue.length && playQueueItemAtIndex(queueIndex + 1)}
                   disabled={queueIndex + 1 >= audioQueue.length}
-                  title="Ayat Berikutnya"
+                  title={locale === "ar" ? "الآية التالية" : locale === "en" ? "Next Verse" : "Ayat Berikutnya"}
                 >
                   <i className="fa-solid fa-forward-step"></i>
                 </button>
@@ -2857,9 +2857,9 @@ export default function QuranClient({
                   const next = !isLoopingQueue;
                   isLoopingRef.current = next;
                   setIsLoopingQueue(next);
-                  showToast(next ? "🔁 Loop Murottal Aktif (Akan mengulang terus)" : "➡️ Loop Murottal Nonaktif");
+                  showToast(next ? (locale === "ar" ? "🔁 تم تفعيل تكرار التلاوة" : locale === "en" ? "🔁 Continuous Repeat Active" : "🔁 Loop Murottal Aktif") : (locale === "ar" ? "➡️ تم إيقاف تكرار التلاوة" : locale === "en" ? "➡️ Continuous Repeat Inactive" : "➡️ Loop Murottal Nonaktif"));
                 }}
-                title={isLoopingQueue ? "Ulangi Terus (Aktif)" : "Ulangi Terus (Nonaktif)"}
+                title={isLoopingQueue ? (locale === "ar" ? "تكرار مستمر (مفعل)" : locale === "en" ? "Continuous Repeat (Active)" : "Ulangi Terus (Aktif)") : (locale === "ar" ? "تكرار مستمر (معطل)" : locale === "en" ? "Continuous Repeat (Inactive)" : "Ulangi Terus (Nonaktif)")}
               >
                 <i className="fa-solid fa-repeat"></i>
               </button>
@@ -2868,7 +2868,7 @@ export default function QuranClient({
                 type="button"
                 className="audio-btn close-audio-btn"
                 onClick={stopAudio}
-                title="Hentikan Audio"
+                title={locale === "ar" ? "إيقاف الصوت" : locale === "en" ? "Stop Audio" : "Hentikan Audio"}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -2884,13 +2884,13 @@ export default function QuranClient({
             <div className="quran-modal-header">
               <div className="modal-title-group">
                 <i className="fa-solid fa-book-open-reader"></i>
-                <h3>Tafsir Ringkas Kemenag RI</h3>
+                <h3>{locale === "ar" ? "تفسير الآيات الكريمة" : locale === "en" ? "Quranic Tafsir Analysis" : "Tafsir Ringkas Kemenag RI"}</h3>
               </div>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setShowTafsirModal(false)}
-                title="Tutup Modal"
+                title={t.common.close}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -2899,7 +2899,7 @@ export default function QuranClient({
               {loadingTafsir ? (
                 <div className="modal-loading-state">
                   <i className="fa-solid fa-spinner fa-spin"></i>
-                  <p>Memuat tafsir ayat...</p>
+                  <p>{locale === "ar" ? "جارٍ تحميل التفسير..." : locale === "en" ? "Loading verse tafsir..." : "Memuat tafsir ayat..."}</p>
                 </div>
               ) : (
                 <>
@@ -2915,10 +2915,10 @@ export default function QuranClient({
                   )}
 
                   <div className="tafsir-explanation">
-                    <h4>Penjelasan Tafsir Resmi:</h4>
+                    <h4>{locale === "ar" ? "البيان والتفسير:" : locale === "en" ? "Official Tafsir Explanation:" : "Penjelasan Tafsir Resmi:"}</h4>
                     <p>
                       {tafsirData?.tafsir?.find((t: any) => t.ayat === selectedAyahTafsir)?.teks ||
-                        "Tafsir resmi Kemenag RI untuk ayat ini sedang diproses."}
+                        (locale === "ar" ? "تفسير هذه الآية قيد المعالجة." : locale === "en" ? "Tafsir for this verse is being loaded." : "Tafsir resmi Kemenag RI untuk ayat ini sedang diproses.")}
                     </p>
                   </div>
                 </>
@@ -2935,13 +2935,13 @@ export default function QuranClient({
             <div className="quran-modal-header">
               <div className="modal-title-group">
                 <i className="fa-solid fa-star gold-icon"></i>
-                <h3>Bookmark & Ayat Favorit</h3>
+                <h3>{locale === "ar" ? "الإشارات المرجعية والآيات المفضلة" : locale === "en" ? "Bookmarks & Favorite Verses" : "Bookmark & Ayat Favorit"}</h3>
               </div>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setShowBookmarksModal(false)}
-                title="Tutup Modal"
+                title={t.common.close}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -2950,8 +2950,8 @@ export default function QuranClient({
               {bookmarks.length === 0 ? (
                 <div className="modal-empty-bookmarks">
                   <i className="fa-regular fa-bookmark empty-icon"></i>
-                  <p>Belum ada ayat yang ditandai</p>
-                  <span>Ketuk ikon bintang pada ayat saat membaca untuk menyimpannya di sini.</span>
+                  <p>{locale === "ar" ? "لم يتم حفظ أي آيات بعد" : locale === "en" ? "No bookmarked verses yet" : "Belum ada ayat yang ditandai"}</p>
+                  <span>{locale === "ar" ? "انقر على رمز النجمة بجانب الآية لحفظها هنا." : locale === "en" ? "Tap the star icon next to any verse to save it here." : "Ketuk ikon bintang pada ayat saat membaca untuk menyimpannya di sini."}</span>
                 </div>
               ) : (
                 <div className="bookmarks-list">
@@ -2966,7 +2966,7 @@ export default function QuranClient({
                     >
                       <div className="bookmark-item-top">
                         <span className="bookmark-surah-tag">
-                          Surah {b.surahName} : Ayat {b.ayahNumber}
+                          {locale === "ar" ? `سورة ${b.surahName} : آية ${b.ayahNumber}` : locale === "en" ? `Surah ${b.surahName} : Verse ${b.ayahNumber}` : `Surah ${b.surahName} : Ayat ${b.ayahNumber}`}
                         </span>
                         <button
                           type="button"
@@ -2978,9 +2978,9 @@ export default function QuranClient({
                             try {
                               localStorage.setItem("expedient_quran_bookmarks", JSON.stringify(updated));
                             } catch {}
-                            showToast("Bookmark dihapus");
+                            showToast(locale === "ar" ? "تمت إزالة الإشارة المرجعية" : locale === "en" ? "Bookmark removed" : "Bookmark dihapus");
                           }}
-                          title="Hapus bookmark"
+                          title={locale === "ar" ? "حذف الإشارة المرجعية" : locale === "en" ? "Remove bookmark" : "Hapus bookmark"}
                         >
                           <i className="fa-solid fa-trash-can"></i>
                         </button>

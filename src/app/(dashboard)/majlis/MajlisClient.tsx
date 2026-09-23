@@ -33,7 +33,7 @@ export default function MajlisWrapper(props: { currentUser: any, initialTopics: 
 }
 
 function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initialTopics: any[] }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [topics, setTopics] = useState(initialTopics);
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
   const [activeSpeaker, setActiveSpeaker] = useState<any | null>(null);
@@ -782,12 +782,12 @@ function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initia
           {/* Tombol Hentikan Pembicara di Panel - HANYA UNTUK ADMIN */}
           {currentUser.role === 'admin' && activeSpeaker && (
              <button onClick={() => handleSetSpeaker(null)} className="btn-stop-speaker-panel">
-                <i className="fa-solid fa-microphone-slash"></i> {activeSpeaker.id === currentUser.id ? 'Turun dari Podium' : 'Hentikan Pembicara Aktif'}
+                <i className="fa-solid fa-microphone-slash"></i> {activeSpeaker.id === currentUser.id ? (locale === "ar" ? "النزول من المنصة" : locale === "en" ? "Leave Stage" : "Turun dari Podium") : (locale === "ar" ? "إيقاف المتحدث النشط" : locale === "en" ? "Stop Active Speaker" : "Hentikan Pembicara Aktif")}
              </button>
           )}
 
           <div className="panel-header">
-              <h2 className="panel-title">Ajukan Mosi Baru</h2>
+              <h2 className="panel-title">{locale === "ar" ? "تقديم مقترح جديد" : locale === "en" ? "Submit New Motion" : "Ajukan Mosi Baru"}</h2>
               <button onClick={() => setPanelOpen(false)} className="btn-close-panel">&times;</button>
           </div>
 
@@ -796,7 +796,7 @@ function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initia
                 type="text" 
                 value={newTopicTitle} 
                 onChange={(e) => setNewTopicTitle(e.target.value)} 
-                placeholder="Judul Mosi (min. 5 karakter)" 
+                placeholder={locale === "ar" ? "عنوان المقترح (على الأقل 5 أحرف)" : locale === "en" ? "Motion Title (min. 5 chars)" : "Judul Mosi (min. 5 karakter)"} 
                 minLength={5}
                 required 
               />
@@ -804,32 +804,32 @@ function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initia
                 rows={2} 
                 value={newTopicDesc} 
                 onChange={(e) => setNewTopicDesc(e.target.value)} 
-                placeholder="Deskripsi landasan masalah... (min. 10 karakter)" 
+                placeholder={locale === "ar" ? "وصف القضية أو الخلفية... (على الأقل 10 أحرف)" : locale === "en" ? "Description of problem background... (min. 10 chars)" : "Deskripsi landasan masalah... (min. 10 karakter)"} 
                 minLength={10}
                 required
               ></textarea>
               <button type="submit" className="btn-submit-majlis" disabled={isSubmitting}>
-                {isSubmitting ? "Mengajukan..." : "Ajukan ke Forum"}
+                {isSubmitting ? (locale === "ar" ? "جاري التقديم..." : locale === "en" ? "Submitting..." : "Mengajukan...") : (locale === "ar" ? "تقديم إلى المجلس" : locale === "en" ? "Submit to Forum" : "Ajukan ke Forum")}
               </button>
           </form>
 
-          <h2 className="panel-section-title">Daftar Agenda</h2>
+          <h2 className="panel-section-title">{locale === "ar" ? "قائمة جدول الأعمال" : locale === "en" ? "Agenda List" : "Daftar Agenda"}</h2>
           <div>
               {topics.length === 0 && (
-                <div className="topics-empty">Belum ada mosi yang diajukan.</div>
+                <div className="topics-empty">{locale === "ar" ? "لا توجد مقترحات مقدمة بعد." : locale === "en" ? "No motions submitted yet." : "Belum ada mosi yang diajukan."}</div>
               )}
               {topics.map(t => (
                   <div key={t.id} className="topic-card">
                       <h3 className="topic-title">{t.title}</h3>
                       <div className="topic-meta">
-                          <span>Oleh: {t.creator_name}</span>
+                          <span>{locale === "ar" ? "بواسطة: " : locale === "en" ? "By: " : "Oleh: "}{t.creator_name}</span>
                           <span className={t.status === 'Open' ? 'status-open' : 'status-closed'}>{t.status}</span>
                       </div>
                       <p className="topic-desc">{t.description}</p>
 
                       <div className="vote-stats">
-                          <span className="vote-agree"><i className="fa-solid fa-check"></i> Setuju: {t.votes_setuju || 0}</span>
-                          <span className="vote-disagree"><i className="fa-solid fa-xmark"></i> Tidak: {t.votes_tidak_setuju || 0}</span>
+                          <span className="vote-agree"><i className="fa-solid fa-check"></i> {locale === "ar" ? "موافق: " : locale === "en" ? "Agree: " : "Setuju: "}{t.votes_setuju || 0}</span>
+                          <span className="vote-disagree"><i className="fa-solid fa-xmark"></i> {locale === "ar" ? "غير موافق: " : locale === "en" ? "Disagree: " : "Tidak: "}{t.votes_tidak_setuju || 0}</span>
                       </div>
 
                       {t.status === 'Open' && t.has_voted && (

@@ -18,7 +18,7 @@ type TabView = "map" | "timeline" | "leadership";
 type StoryTheme = "obsidian" | "parchment" | "ivory";
 
 export default function SirahClient() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   // Tabs
   const [activeTab, setActiveTab] = useState<TabView>("map");
 
@@ -698,7 +698,7 @@ export default function SirahClient() {
         <header className="sirah-header">
           <div className="sirah-badge">
             <span>🕌</span>
-            <span>Ekspedisi Sejarah & Kepemimpinan</span>
+            <span>{locale === "ar" ? "رحلة تاريخية وقيادية نبوية" : locale === "en" ? "Historical & Leadership Expedition" : "Ekspedisi Sejarah & Kepemimpinan"}</span>
           </div>
           <h1 className="sirah-title">{t.sirah.title}</h1>
           <p className="sirah-subtitle">
@@ -714,7 +714,7 @@ export default function SirahClient() {
             onClick={() => setActiveTab("map")}
           >
             <span>🗺️</span>
-            <span>Peta Manuskrip</span>
+            <span>{locale === "ar" ? "خريطة المخطوطة" : locale === "en" ? "Manuscript Map" : "Peta Manuskrip"}</span>
           </button>
           <button
             type="button"
@@ -722,7 +722,7 @@ export default function SirahClient() {
             onClick={() => setActiveTab("timeline")}
           >
             <span>📜</span>
-            <span>Linimasa Akbar</span>
+            <span>{locale === "ar" ? "الخط الزمني التاريخي" : locale === "en" ? "Grand Timeline" : "Linimasa Akbar"}</span>
           </button>
           <button
             type="button"
@@ -730,7 +730,7 @@ export default function SirahClient() {
             onClick={() => setActiveTab("leadership")}
           >
             <span>⚡</span>
-            <span>Prinsip Kepemimpinan</span>
+            <span>{locale === "ar" ? "مبادئ القيادة" : locale === "en" ? "Leadership Principles" : "Prinsip Kepemimpinan"}</span>
           </button>
         </nav>
 
@@ -743,7 +743,7 @@ export default function SirahClient() {
             <div className="sirah-map-toolbar">
               <div className="route-selector-group">
                 <span style={{ fontSize: "0.76rem", color: "var(--gold-main)", fontWeight: 700 }}>
-                  RUTE KAFILAH:
+                  {locale === "ar" ? "مسارات القوافل:" : locale === "en" ? "CARAVAN ROUTES:" : "RUTE KAFILAH:"}
                 </span>
                 {SIRAH_ROUTES.map((route) => (
                   <button
@@ -767,7 +767,7 @@ export default function SirahClient() {
                 onClick={runGuidedHijrahTour}
                 disabled={isTouring}
               >
-                <span>{isTouring ? "⏳ Berlayar..." : "🐪 Tur Ekspedisi Hijrah"}</span>
+                <span>{isTouring ? (locale === "ar" ? "⏳ جاري الإبحار..." : locale === "en" ? "⏳ Journeying..." : "⏳ Berlayar...") : (locale === "ar" ? "🐪 جولة الهجرة النبوية" : locale === "en" ? "🐪 Guided Hijrah Tour" : "🐪 Tur Ekspedisi Hijrah")}</span>
               </button>
             </div>
 
@@ -787,7 +787,7 @@ export default function SirahClient() {
               {/* Compass HUD */}
               <div className="map-compass-hud">
                 <span>🧭</span>
-                <span>JAZIRAH ARAB (610-632 M)</span>
+                <span>{locale === "ar" ? "شبه الجزيرة العربية (610-632 م)" : locale === "en" ? "ARABIAN PENINSULA (610-632 CE)" : "JAZIRAH ARAB (610-632 M)"}</span>
               </div>
 
               {/* Floating Zoom / Reset Controls */}
@@ -796,7 +796,7 @@ export default function SirahClient() {
                   type="button"
                   className="map-control-btn"
                   onClick={() => setZoom((z) => Math.min(3.5, z * 1.25))}
-                  title="Perbesar"
+                  title={locale === "ar" ? "تكبير" : locale === "en" ? "Zoom In" : "Perbesar"}
                 >
                   +
                 </button>
@@ -804,7 +804,7 @@ export default function SirahClient() {
                   type="button"
                   className="map-control-btn"
                   onClick={() => setZoom((z) => Math.max(0.6, z * 0.8))}
-                  title="Perkecil"
+                  title={locale === "ar" ? "تصغير" : locale === "en" ? "Zoom Out" : "Perkecil"}
                 >
                   -
                 </button>
@@ -816,7 +816,7 @@ export default function SirahClient() {
                     setPan({ x: 0, y: 0 });
                     setSelectedPlace(null);
                   }}
-                  title="Reset Kamera"
+                  title={locale === "ar" ? "إعادة ضبط الكاميرا" : locale === "en" ? "Reset Camera" : "Reset Kamera"}
                 >
                   ↺
                 </button>
@@ -847,8 +847,8 @@ export default function SirahClient() {
 
             {/* Sub-bar Description */}
             <div style={{ fontSize: "0.82rem", color: "#94a3b8", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-              <span>💡 Geser / drag untuk menjelajahi peta. Scroll atau cubit untuk memperbesar. Klik titik nama untuk detail.</span>
-              <span style={{ color: "var(--gold-main)", fontWeight: 600 }}>Total 13 Lokasi & 3 Rute Akbar</span>
+              <span>💡 {locale === "ar" ? "اسحب للتنقل في الخريطة. استخدم العجلة أو اللمس للتكبير. انقر على النقاط للتفاصيل." : locale === "en" ? "Drag to pan the map. Scroll or pinch to zoom. Click locations for details." : "Geser / drag untuk menjelajahi peta. Scroll atau cubit untuk memperbesar. Klik titik nama untuk detail."}</span>
+              <span style={{ color: "var(--gold-main)", fontWeight: 600 }}>{locale === "ar" ? "إجمالي 13 موقعاً و 3 مسارات كبرى" : locale === "en" ? "Total 13 Locations & 3 Historic Routes" : "Total 13 Lokasi & 3 Rute Akbar"}</span>
             </div>
           </div>
         )}
@@ -862,7 +862,7 @@ export default function SirahClient() {
             <div className="timeline-filters">
               <input
                 type="text"
-                placeholder="Cari peristiwa sejarah, tahun, atau nama tokoh..."
+                placeholder={locale === "ar" ? "ابحث عن أحداث تاريخية، سنوات، أو شخصيات..." : locale === "en" ? "Search historical events, years, or figures..." : "Cari peristiwa sejarah, tahun, atau nama tokoh..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -885,14 +885,14 @@ export default function SirahClient() {
                   onClick={() => setSelectedPhase(phase)}
                 >
                   {phase === "all"
-                    ? "Semua (15)"
+                    ? (locale === "ar" ? "الكل (15)" : locale === "en" ? "All (15)" : "Semua (15)")
                     : phase === "makkah"
-                    ? "Fase Makkah"
+                    ? (locale === "ar" ? "العهد المكي" : locale === "en" ? "Meccan Era" : "Fase Makkah")
                     : phase === "madinah"
-                    ? "Fase Madinah"
+                    ? (locale === "ar" ? "العهد المدني" : locale === "en" ? "Medinan Era" : "Fase Madinah")
                     : phase === "battle"
-                    ? "Perang Besar"
-                    : "Diplomasi"}
+                    ? (locale === "ar" ? "الغزوات الكبرى" : locale === "en" ? "Major Battles" : "Perang Besar")
+                    : (locale === "ar" ? "المعاهدات والدبلوماسية" : locale === "en" ? "Diplomacy & Treaties" : "Diplomasi")}
                 </button>
               ))}
             </div>
@@ -909,7 +909,7 @@ export default function SirahClient() {
                       <div className="event-card-header">
                         <span className="event-date-badge">{ev.dateString}</span>
                         <span className={`event-phase-tag ${ev.phase}`}>
-                          {ev.phase === "makkah" ? "Fase Makkah" : "Fase Madinah"}
+                          {ev.phase === "makkah" ? (locale === "ar" ? "العهد المكي" : locale === "en" ? "Meccan Era" : "Fase Makkah") : (locale === "ar" ? "العهد المدني" : locale === "en" ? "Medinan Era" : "Fase Madinah")}
                         </span>
                       </div>
 
@@ -926,10 +926,10 @@ export default function SirahClient() {
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", paddingTop: "8px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
                         <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
-                          📍 {place ? place.name : "Jazirah Arab"}
+                          📍 {place ? place.name : (locale === "ar" ? "شبه الجزيرة العربية" : locale === "en" ? "Arabian Peninsula" : "Jazirah Arab")}
                         </span>
                         <span style={{ fontSize: "0.78rem", color: "var(--gold-main)", fontWeight: 600 }}>
-                          Lihat Hikmah & Peta ➜
+                          {locale === "ar" ? "عرض الحكمة والخريطة ➜" : locale === "en" ? "View Wisdom & Map ➜" : "Lihat Hikmah & Peta ➜"}
                         </span>
                       </div>
                     </article>
@@ -957,13 +957,13 @@ export default function SirahClient() {
                   <span>{ev.leadership.title}</span>
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--gold-main)", fontWeight: 600 }}>
-                  Dari Peristiwa: {ev.title} ({ev.dateString})
+                  {locale === "ar" ? "من حدث: " : locale === "en" ? "From Event: " : "Dari Peristiwa: "} {ev.title} ({ev.dateString})
                 </div>
                 <p className="leadership-lesson">{ev.leadership.lesson}</p>
 
                 <div className="leadership-modern-box">
                   <div style={{ fontWeight: 700, fontSize: "0.76rem", marginBottom: "3px" }}>
-                    💼 Aplikasi Modern Alumni:
+                    {locale === "ar" ? "💼 التطبيق المعاصر للخريجين:" : locale === "en" ? "💼 Modern Application for Alumni:" : "💼 Aplikasi Modern Alumni:"}
                   </div>
                   {ev.leadership.modernApplication}
                 </div>
@@ -996,12 +996,12 @@ export default function SirahClient() {
               {/* Narrative Story */}
               <div className="sirah-story-box">
                 <div style={{ fontWeight: 700, color: "var(--gold-main)", marginBottom: "6px" }}>
-                  📜 Catatan Peristiwa:
+                  {locale === "ar" ? "📜 تفاصيل الحدث:" : locale === "en" ? "📜 Event Record:" : "📜 Catatan Peristiwa:"}
                 </div>
                 {selectedEvent.detailedStory}
                 {selectedEvent.quranRef && (
                   <div style={{ marginTop: "10px", color: "#34d399", fontSize: "0.8rem", fontWeight: 600 }}>
-                    📖 Rujukan Dalil: {selectedEvent.quranRef}
+                    {locale === "ar" ? "📖 المرجع الدليلي:" : locale === "en" ? "📖 Reference:" : "📖 Rujukan Dalil:"} {selectedEvent.quranRef}
                   </div>
                 )}
               </div>
@@ -1016,7 +1016,7 @@ export default function SirahClient() {
 
                 <div className="leadership-modern-box">
                   <div style={{ fontWeight: 700, fontSize: "0.78rem", marginBottom: "4px" }}>
-                    💼 Aplikasi di Dunia Nyata / Alumni:
+                    {locale === "ar" ? "💼 التطبيق في الواقع / للخريجين:" : locale === "en" ? "💼 Real-world / Alumni Application:" : "💼 Aplikasi di Dunia Nyata / Alumni:"}
                   </div>
                   {selectedEvent.leadership.modernApplication}
                 </div>
@@ -1037,7 +1037,7 @@ export default function SirahClient() {
                     }}
                   >
                     <span>📍</span>
-                    <span>Bidik di Peta</span>
+                    <span>{locale === "ar" ? "تحديد على الخريطة" : locale === "en" ? "Pin on Map" : "Bidik di Peta"}</span>
                   </button>
                 )}
                 <button
@@ -1046,7 +1046,7 @@ export default function SirahClient() {
                   onClick={() => speakNarrative(selectedEvent)}
                 >
                   <span>🔊</span>
-                  <span>Lafalkan Narasi</span>
+                  <span>{locale === "ar" ? "استماع للسرد" : locale === "en" ? "Listen Narrative" : "Lafalkan Narasi"}</span>
                 </button>
                 <button
                   type="button"
@@ -1054,7 +1054,7 @@ export default function SirahClient() {
                   onClick={() => openStoryModal(selectedEvent)}
                 >
                   <span>🎨</span>
-                  <span>Buat Story Card</span>
+                  <span>{locale === "ar" ? "إنشاء بطاقة قصة" : locale === "en" ? "Create Story Card" : "Buat Story Card"}</span>
                 </button>
                 <button
                   type="button"
@@ -1062,7 +1062,7 @@ export default function SirahClient() {
                   onClick={() => shareToWhatsApp(selectedEvent)}
                 >
                   <span>📲</span>
-                  <span>Bagikan ke WA</span>
+                  <span>{locale === "ar" ? "مشاركة عبر واتساب" : locale === "en" ? "Share to WA" : "Bagikan ke WA"}</span>
                 </button>
               </div>
             </div>
@@ -1077,7 +1077,7 @@ export default function SirahClient() {
             <div className="sirah-modal-box" onClick={(e) => e.stopPropagation()}>
               <div className="sirah-modal-header">
                 <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--gold-main)" }}>
-                  🎨 Generator Story Card Sirah 9:16
+                  {locale === "ar" ? "🎨 مولد بطاقات القصة 9:16" : locale === "en" ? "🎨 Sirah Story Card Generator 9:16" : "🎨 Generator Story Card Sirah 9:16"}
                 </span>
                 <button
                   type="button"
@@ -1127,7 +1127,7 @@ export default function SirahClient() {
                   onClick={downloadStoryImage}
                 >
                   <span>📥</span>
-                  <span>Unduh Gambar Story (PNG HD)</span>
+                  <span>{locale === "ar" ? "تحميل صورة القصة (PNG HD)" : locale === "en" ? "Download Story Image (PNG HD)" : "Unduh Gambar Story (PNG HD)"}</span>
                 </button>
                 <button
                   type="button"
@@ -1136,7 +1136,7 @@ export default function SirahClient() {
                   onClick={() => shareToWhatsApp(storyEvent)}
                 >
                   <span>📲</span>
-                  <span>Bagikan Teks ke WhatsApp</span>
+                  <span>{locale === "ar" ? "مشاركة النص عبر واتساب" : locale === "en" ? "Share Text to WhatsApp" : "Bagikan Teks ke WhatsApp"}</span>
                 </button>
               </div>
             </div>

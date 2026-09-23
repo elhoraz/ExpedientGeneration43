@@ -7,6 +7,7 @@ import Link from "next/link";
 import AdminLockBtn from "../../AdminLockBtn";
 import { compressImageFile } from "@/lib/image-compression";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { useLanguage } from "@/lib/i18n";
 
 type SiteContent = {
   id: string;
@@ -55,6 +56,7 @@ export default function CmsClient({
   initialContents: SiteContent[],
   initialGaleri: GaleriItem[]
 }) {
+  const { locale } = useLanguage();
   const [contents, setContents] = useState<SiteContent[]>(initialContents);
   const [activeTab, setActiveTab] = useState<string>("landing");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -495,7 +497,7 @@ export default function CmsClient({
           <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--gold-premium, #d4af37)", fontSize: "0.9rem" }}></i>
           <input 
             type="text" 
-            placeholder="Cari kata kunci (misal: hero, title, logo, kata kunci)..." 
+            placeholder={locale === "ar" ? "ابحث بالكلمات المفتاحية..." : locale === "en" ? "Search keywords (e.g.: hero, title, logo)..." : "Cari kata kunci (misal: hero, title, logo, kata kunci)..."} 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{ width: "100%", background: "transparent", border: "none", color: "var(--text-primary)", fontSize: "0.85rem", outline: "none" }}
@@ -507,8 +509,8 @@ export default function CmsClient({
           )}
         </div>
         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "12px" }}>
-          <span>Total Kunci CMS: <strong style={{ color: "var(--gold-premium, #d4af37)" }}>{contents.length}</strong></span>
-          <span>Ditemukan: <strong style={{ color: "#00c853" }}>{totalFilteredCount}</strong></span>
+          <span>{locale === "ar" ? "إجمالي مفاتيح CMS: " : locale === "en" ? "Total CMS Keys: " : "Total Kunci CMS: "}<strong style={{ color: "var(--gold-premium, #d4af37)" }}>{contents.length}</strong></span>
+          <span>{locale === "ar" ? "الموجود: " : locale === "en" ? "Found: " : "Ditemukan: "}<strong style={{ color: "#00c853" }}>{totalFilteredCount}</strong></span>
         </div>
       </div>
 

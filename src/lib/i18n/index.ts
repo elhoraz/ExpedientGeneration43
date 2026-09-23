@@ -4,6 +4,7 @@ import { enDictionary } from "./dictionaries/en";
 import { arDictionary } from "./dictionaries/ar";
 
 export * from "./types";
+export * from "./LanguageContext";
 
 export const DICTIONARIES: Record<Locale, Dictionary> = {
   id: idDictionary,

@@ -271,7 +271,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
       <div style={{ marginBottom: "12px", display: "flex", justifyContent: "flex-start" }}>
         <Link href="/chat" className="btn-back">
           <i className="fa-solid fa-arrow-left"></i>
-          <span>{t.common?.back || "Kembali ke Kotak Masuk"}</span>
+          <span>{t.common.back}</span>
         </Link>
       </div>
 

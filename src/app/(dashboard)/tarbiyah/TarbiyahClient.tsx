@@ -75,7 +75,7 @@ export default function TarbiyahClient({
   incomingRequests: RequestItem[];
   initialMateri: Materi[];
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   // CSS Scoping: body class untuk isolasi CSS halaman ini
   useEffect(() => {
     document.body.classList.add('page-tarbiyah');
@@ -157,7 +157,8 @@ export default function TarbiyahClient({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
+    const dLocale = locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID";
+    return new Date(dateString).toLocaleDateString(dLocale, {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -203,7 +204,10 @@ export default function TarbiyahClient({
   const handleSubmitProposal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!proposalTarget || !proposalTarget.id) {
-      await showAlert("Peringatan", "Silakan pilih target mentor atau bisnis terlebih dahulu.");
+      await showAlert(
+        locale === "ar" ? "تنبيه" : locale === "en" ? "Warning" : "Peringatan",
+        locale === "ar" ? "يرجى تحديد المرشد أو جهة العمل أولاً." : locale === "en" ? "Please select a mentor or business target first." : "Silakan pilih target mentor atau bisnis terlebih dahulu."
+      );
       return;
     }
 
@@ -235,13 +239,22 @@ export default function TarbiyahClient({
           target_avatar: proposalTarget.avatar,
         };
         setLocalSentRequests(prev => [newReq, ...prev.filter(r => r.target_id !== proposalTarget.id)]);
-        await showAlert("Disegel Resmi", `Permohonan ${proposalTarget.type} telah berhasil dikirimkan kepada ${proposalTarget.name}.`);
+        await showAlert(
+          locale === "ar" ? "تم التوثيق والختم" : locale === "en" ? "Officially Sealed" : "Disegel Resmi",
+          locale === "ar" ? `تم إرسال طلب ${proposalTarget.type === "Mentor" ? "الإرشاد" : "المناقصة"} بنجاح إلى ${proposalTarget.name}.` : locale === "en" ? `${proposalTarget.type} proposal successfully sent to ${proposalTarget.name}.` : `Permohonan ${proposalTarget.type} telah berhasil dikirimkan kepada ${proposalTarget.name}.`
+        );
         setIsProposalModalOpen(false);
       } else {
-        await showAlert("Gagal", json.message || json.error || "Gagal mengirimkan permohonan.");
+        await showAlert(
+          locale === "ar" ? "فشل" : locale === "en" ? "Failed" : "Gagal",
+          json.message || json.error || (locale === "ar" ? "فشل إرسال الطلب." : locale === "en" ? "Failed to send request." : "Gagal mengirimkan permohonan.")
+        );
       }
     } catch (err: any) {
-      await showAlert("Error", "Terjadi kesalahan: " + err.message);
+      await showAlert(
+        locale === "ar" ? "خطأ" : locale === "en" ? "Error" : "Error",
+        (locale === "ar" ? "حدث خطأ: " : locale === "en" ? "An error occurred: " : "Terjadi kesalahan: ") + err.message
+      );
     } finally {
       setIsSubmittingProposal(false);
     }
@@ -250,10 +263,14 @@ export default function TarbiyahClient({
   // Handle Response on Incoming Request (Approve / Reject)
   const handleIncomingResponse = async (requestId: string, newStatus: "Approved" | "Rejected", requesterName: string) => {
     const isApproved = newStatus === "Approved";
-    const confirmed = await showConfirm(
-      isApproved ? "Setujui Permohonan" : "Tolak Permohonan",
-      `Apakah Anda yakin ingin ${isApproved ? "menyetujui" : "menolak"} permohonan dari ${requesterName}?`
-    );
+    const confirmTitle = isApproved
+      ? (locale === "ar" ? "الموافقة على الطلب" : locale === "en" ? "Approve Request" : "Setujui Permohonan")
+      : (locale === "ar" ? "رفض الطلب" : locale === "en" ? "Reject Request" : "Tolak Permohonan");
+    const confirmMsg = isApproved
+      ? (locale === "ar" ? `هل أنت متأكد من رغبتك في الموافقة على طلب ${requesterName}؟` : locale === "en" ? `Are you sure you want to approve the request from ${requesterName}?` : `Apakah Anda yakin ingin menyetujui permohonan dari ${requesterName}?`)
+      : (locale === "ar" ? `هل أنت متأكد من رغبتك في رفض طلب ${requesterName}؟` : locale === "en" ? `Are you sure you want to reject the request from ${requesterName}?` : `Apakah Anda yakin ingin menolak permohonan dari ${requesterName}?`);
+    
+    const confirmed = await showConfirm(confirmTitle, confirmMsg);
     if (!confirmed) return;
 
     try {
@@ -272,12 +289,23 @@ export default function TarbiyahClient({
         setLocalIncomingRequests(prev =>
           prev.map(r => (r.id === requestId ? { ...r, status: newStatus } : r))
         );
-        await showAlert("Berhasil", `Permohonan telah di-${isApproved ? "setujui (+20 Prestise)" : "tolak"}.`);
+        await showAlert(
+          locale === "ar" ? "تم بنجاح" : locale === "en" ? "Success" : "Berhasil",
+          isApproved
+            ? (locale === "ar" ? "تمت الموافقة على الطلب (+20 نقاط)." : locale === "en" ? "Request approved (+20 Prestige)." : "Permohonan telah disetujui (+20 Prestise).")
+            : (locale === "ar" ? "تم رفض الطلب." : locale === "en" ? "Request rejected." : "Permohonan telah ditolak.")
+        );
       } else {
-        await showAlert("Gagal", json.message || json.error || "Gagal memperbarui status permohonan.");
+        await showAlert(
+          locale === "ar" ? "فشل" : locale === "en" ? "Failed" : "Gagal",
+          json.message || json.error || (locale === "ar" ? "فشل تحديث حالة الطلب." : locale === "en" ? "Failed to update request status." : "Gagal memperbarui status permohonan.")
+        );
       }
     } catch (err: any) {
-      await showAlert("Error", "Terjadi kesalahan: " + err.message);
+      await showAlert(
+        locale === "ar" ? "خطأ" : locale === "en" ? "Error" : "Error",
+        (locale === "ar" ? "حدث خطأ: " : locale === "en" ? "An error occurred: " : "Terjadi kesalahan: ") + err.message
+      );
     }
   };
 
@@ -285,7 +313,10 @@ export default function TarbiyahClient({
   const handleAddMateriSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMateriTitle.trim()) {
-      await showAlert("Peringatan", "Judul materi kajian wajib diisi.");
+      await showAlert(
+        locale === "ar" ? "تنبيه" : locale === "en" ? "Warning" : "Peringatan",
+        locale === "ar" ? "عنوان المادة العلمية مطلوب." : locale === "en" ? "Study material title is required." : "Judul materi kajian wajib diisi."
+      );
       return;
     }
 
@@ -306,16 +337,25 @@ export default function TarbiyahClient({
       const json = await res.json();
       if (json.status === "success") {
         setMateriList(prev => [json.data, ...prev]);
-        await showAlert("Berhasil", "Materi kajian baru berhasil ditambahkan.");
+        await showAlert(
+          locale === "ar" ? "تم بنجاح" : locale === "en" ? "Success" : "Berhasil",
+          locale === "ar" ? "تمت إضافة المادة العلمية بنجاح." : locale === "en" ? "New study material added successfully." : "Materi kajian baru berhasil ditambahkan."
+        );
         setIsAddMateriOpen(false);
         setNewMateriTitle("");
         setNewMateriDesc("");
         setNewMateriDate("");
       } else {
-        await showAlert("Gagal", json.message || "Gagal menambahkan materi.");
+        await showAlert(
+          locale === "ar" ? "فشل" : locale === "en" ? "Failed" : "Gagal",
+          json.message || (locale === "ar" ? "فشل إضافة المادة." : locale === "en" ? "Failed to add material." : "Gagal menambahkan materi.")
+        );
       }
     } catch (err: any) {
-      await showAlert("Error", "Terjadi kesalahan: " + err.message);
+      await showAlert(
+        locale === "ar" ? "خطأ" : locale === "en" ? "Error" : "Error",
+        (locale === "ar" ? "حدث خطأ: " : locale === "en" ? "An error occurred: " : "Terjadi kesalahan: ") + err.message
+      );
     } finally {
       setIsSubmittingMateri(false);
     }
@@ -343,35 +383,35 @@ export default function TarbiyahClient({
             className={`tab-btn ${activeTab === "mentor" ? "active" : ""}`}
             onClick={() => setActiveTab("mentor")}
           >
-            <i className="fa-solid fa-user-graduate"></i> Mentorship ({mentors.length})
+            <i className="fa-solid fa-user-graduate"></i> {t.tarbiyah.tab_mentorship} ({mentors.length})
           </button>
           <button
             type="button"
             className={`tab-btn ${activeTab === "tender" ? "active" : ""}`}
             onClick={() => setActiveTab("tender")}
           >
-            <i className="fa-solid fa-briefcase"></i> B2B & Tender ({tenders.length})
+            <i className="fa-solid fa-briefcase"></i> {t.tarbiyah.tab_tender} ({tenders.length})
           </button>
           <button
             type="button"
             className={`tab-btn ${activeTab === "materi" ? "active" : ""}`}
             onClick={() => setActiveTab("materi")}
           >
-            <i className="fa-solid fa-book-quran"></i> Materi Kajian ({materiList.length})
+            <i className="fa-solid fa-book-quran"></i> {t.tarbiyah.tab_materi} ({materiList.length})
           </button>
           <button
             type="button"
             className={`tab-btn ${activeTab === "my_requests" ? "active" : ""}`}
             onClick={() => setActiveTab("my_requests")}
           >
-            <i className="fa-solid fa-paper-plane"></i> Permohonan Saya ({localSentRequests.length})
+            <i className="fa-solid fa-paper-plane"></i> {t.tarbiyah.tab_my_requests} ({localSentRequests.length})
           </button>
           <button
             type="button"
             className={`tab-btn ${activeTab === "inbox" ? "active" : ""}`}
             onClick={() => setActiveTab("inbox")}
           >
-            <i className="fa-solid fa-inbox"></i> Permohonan Masuk
+            <i className="fa-solid fa-inbox"></i> {t.tarbiyah.tab_inbox}
             {pendingIncomingCount > 0 && <span className="tab-badge">{pendingIncomingCount}</span>}
           </button>
         </div>
@@ -386,7 +426,7 @@ export default function TarbiyahClient({
                 <i className="fa-solid fa-magnifying-glass"></i>
                 <input
                   type="text"
-                  placeholder="Cari mentor, bidang keahlian, atau motivasi..."
+                  placeholder={t.tarbiyah.search_mentor_placeholder}
                   value={mentorSearch}
                   onChange={e => setMentorSearch(e.target.value)}
                 />
@@ -402,7 +442,7 @@ export default function TarbiyahClient({
                 className="btn-toolbar-action"
                 onClick={() => handleOpenGeneralProposal("Mentor")}
               >
-                <i className="fa-solid fa-feather-pointed"></i> Ajukan Bimbingan
+                <i className="fa-solid fa-feather-pointed"></i> {t.tarbiyah.apply_mentorship}
               </button>
             </div>
 
@@ -410,14 +450,14 @@ export default function TarbiyahClient({
               {filteredMentors.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-user-slash"></i>
-                  <p>Tidak ada mentor yang sesuai dengan kriteria pencarian.</p>
+                  <p>{t.tarbiyah.no_mentors}</p>
                   <button
                     type="button"
                     className="btn-toolbar-action"
                     style={{ marginTop: "15px" }}
                     onClick={() => handleOpenGeneralProposal("Mentor")}
                   >
-                    <i className="fa-solid fa-feather-pointed"></i> Ajukan Permohonan Bimbingan Terbuka
+                    <i className="fa-solid fa-feather-pointed"></i> {t.tarbiyah.open_proposal}
                   </button>
                 </div>
               ) : (
@@ -428,7 +468,7 @@ export default function TarbiyahClient({
 
                   return (
                     <div key={m.id} className="nexus-card item-card">
-                      <div className="card-badge">{m.role === "admin" ? "Pimpinan Sidang" : "Mentor Elite"}</div>
+                      <div className="card-badge">{m.role === "admin" ? t.tarbiyah.leader_badge : t.tarbiyah.elite_badge}</div>
                       <Image
                         src={avatar}
                         alt={displayName}
@@ -447,14 +487,14 @@ export default function TarbiyahClient({
 
                       <div className="card-actions">
                         <div className="card-btn-row">
-                          <Link href={`/dossier/${m.id}`} className="btn-action-view" title="Lihat Dossier Lengkap">
+                          <Link href={`/dossier/${m.id}`} className="btn-action-view" title={t.tarbiyah.view_dossier}>
                             <i className="fa-regular fa-id-badge"></i> Dossier
                           </Link>
                           {status && (
                             <span className={`status-pill-mini status-${status}`}>
-                              {status === "Pending" && <><i className="fa-solid fa-clock"></i> Menunggu</>}
-                              {status === "Approved" && <><i className="fa-solid fa-check-double"></i> Disetujui</>}
-                              {status === "Rejected" && <><i className="fa-solid fa-xmark"></i> Ditolak</>}
+                              {status === "Pending" && <><i className="fa-solid fa-clock"></i> {locale === "ar" ? "قيد الانتظار" : locale === "en" ? "Pending" : "Menunggu"}</>}
+                              {status === "Approved" && <><i className="fa-solid fa-check-double"></i> {locale === "ar" ? "معتمد" : locale === "en" ? "Approved" : "Disetujui"}</>}
+                              {status === "Rejected" && <><i className="fa-solid fa-xmark"></i> {locale === "ar" ? "مرفوض" : locale === "en" ? "Rejected" : "Ditolak"}</>}
                             </span>
                           )}
                         </div>
@@ -476,7 +516,7 @@ export default function TarbiyahClient({
                             <i className="fa-solid fa-feather-pointed"></i>
                           </div>
                           <span>
-                            {status === "Pending" ? "Ubah Bimbingan" : status === "Approved" ? "Ajukan Sesi Baru" : "Ajukan Bimbingan"}
+                            {status === "Pending" ? (locale === "ar" ? "تعديل الطلب" : locale === "en" ? "Edit Request" : "Ubah Bimbingan") : status === "Approved" ? (locale === "ar" ? "طلب جلسة جديدة" : locale === "en" ? "New Session" : "Ajukan Sesi Baru") : t.tarbiyah.apply_mentorship}
                           </span>
                         </button>
                       </div>
@@ -502,7 +542,7 @@ export default function TarbiyahClient({
                     className={`chip-btn ${selectedTenderCat === cat ? "active" : ""}`}
                     onClick={() => setSelectedTenderCat(cat)}
                   >
-                    {cat}
+                    {cat === "Semua" ? (locale === "ar" ? "الكل" : locale === "en" ? "All" : "Semua") : cat}
                   </button>
                 ))}
               </div>
@@ -512,7 +552,7 @@ export default function TarbiyahClient({
                   <i className="fa-solid fa-magnifying-glass"></i>
                   <input
                     type="text"
-                    placeholder="Cari bisnis, tender, atau peluang..."
+                    placeholder={locale === "ar" ? "ابحث عن مشروع، مناقصة، أو فرصة..." : locale === "en" ? "Search business, tender, or opportunities..." : "Cari bisnis, tender, atau peluang..."}
                     value={tenderSearch}
                     onChange={e => setTenderSearch(e.target.value)}
                   />
@@ -528,7 +568,7 @@ export default function TarbiyahClient({
                   className="btn-toolbar-action"
                   onClick={() => handleOpenGeneralProposal("Tender")}
                 >
-                  <i className="fa-solid fa-handshake"></i> Ajukan Proposal B2B
+                  <i className="fa-solid fa-handshake"></i> {locale === "ar" ? "تقديم مقترح B2B" : locale === "en" ? "Submit B2B Proposal" : "Ajukan Proposal B2B"}
                 </button>
               </div>
             </div>
@@ -537,14 +577,14 @@ export default function TarbiyahClient({
               {filteredTenders.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-store-slash"></i>
-                  <p>Tidak ada tender bisnis yang sesuai dengan filter.</p>
+                  <p>{locale === "ar" ? "لا توجد مشاريع تطابق خيارات التصفية." : locale === "en" ? "No business tenders match the filters." : "Tidak ada tender bisnis yang sesuai dengan filter."}</p>
                   <button
                     type="button"
                     className="btn-toolbar-action"
                     style={{ marginTop: "15px" }}
                     onClick={() => handleOpenGeneralProposal("Tender")}
                   >
-                    <i className="fa-solid fa-handshake"></i> Ajukan Proposal Kerjasama
+                    <i className="fa-solid fa-handshake"></i> {locale === "ar" ? "تقديم مقترح شراكة" : locale === "en" ? "Submit Partnership Proposal" : "Ajukan Proposal Kerjasama"}
                   </button>
                 </div>
               ) : (
@@ -564,7 +604,7 @@ export default function TarbiyahClient({
                         unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com") || logo.includes("supabase.co")}
                       />
                       <h3 className="item-name">{t.nama_bisnis}</h3>
-                      <div className="item-subtitle">Katalog Bisnis Alumni</div>
+                      <div className="item-subtitle">{locale === "ar" ? "دليل مشاريع الدفعة" : locale === "en" ? "Alumni Business Directory" : "Katalog Bisnis Alumni"}</div>
                       <p className="item-desc">
                         {t.deskripsi && t.deskripsi.length > 90
                           ? t.deskripsi.substring(0, 90) + "..."
@@ -573,14 +613,14 @@ export default function TarbiyahClient({
 
                       <div className="card-actions">
                         <div className="card-btn-row">
-                          <Link href="/syndicate" className="btn-action-view" title="Lihat Detail Katalog Usaha">
-                            <i className="fa-solid fa-store"></i> Katalog
+                          <Link href="/syndicate" className="btn-action-view" title={locale === "ar" ? "عرض تفاصيل الدليل التجاري" : locale === "en" ? "View Business Catalog Details" : "Lihat Detail Katalog Usaha"}>
+                            <i className="fa-solid fa-store"></i> {locale === "ar" ? "الدليل" : locale === "en" ? "Catalog" : "Katalog"}
                           </Link>
                           {status && (
                             <span className={`status-pill-mini status-${status}`}>
-                              {status === "Pending" && <><i className="fa-solid fa-clock"></i> Menunggu</>}
-                              {status === "Approved" && <><i className="fa-solid fa-check-double"></i> Disetujui</>}
-                              {status === "Rejected" && <><i className="fa-solid fa-xmark"></i> Ditolak</>}
+                              {status === "Pending" && <><i className="fa-solid fa-clock"></i> {locale === "ar" ? "قيد الانتظار" : locale === "en" ? "Pending" : "Menunggu"}</>}
+                              {status === "Approved" && <><i className="fa-solid fa-check-double"></i> {locale === "ar" ? "معتمد" : locale === "en" ? "Approved" : "Disetujui"}</>}
+                              {status === "Rejected" && <><i className="fa-solid fa-xmark"></i> {locale === "ar" ? "مرفوض" : locale === "en" ? "Rejected" : "Ditolak"}</>}
                             </span>
                           )}
                         </div>
@@ -602,7 +642,7 @@ export default function TarbiyahClient({
                             <i className="fa-solid fa-handshake"></i>
                           </div>
                           <span>
-                            {status === "Pending" ? "Ubah Proposal" : "Ajukan Proposal"}
+                            {status === "Pending" ? (locale === "ar" ? "تعديل المقترح" : locale === "en" ? "Edit Proposal" : "Ubah Proposal") : (locale === "ar" ? "تقديم المقترح" : locale === "en" ? "Submit Proposal" : "Ajukan Proposal")}
                           </span>
                         </button>
                       </div>
@@ -621,8 +661,8 @@ export default function TarbiyahClient({
           <div className="tab-content-section">
             <div className="materi-header-bar">
               <div>
-                <h2 className="materi-section-title">Silabus & Arsip Kajian</h2>
-                <p className="materi-section-desc">Materi peningkatan tsaqafah & pengembangan spiritual berkala</p>
+                <h2 className="materi-section-title">{locale === "ar" ? "المنهج وأرشيف الدروس" : locale === "en" ? "Syllabus & Lecture Archive" : "Silabus & Arsip Kajian"}</h2>
+                <p className="materi-section-desc">{locale === "ar" ? "مواد التزكية والمعارف الإسلامية الدورية" : locale === "en" ? "Islamic knowledge & spiritual development materials" : "Materi peningkatan tsaqafah & pengembangan spiritual berkala"}</p>
               </div>
               {currentUser.role === "admin" && (
                 <button
@@ -630,7 +670,7 @@ export default function TarbiyahClient({
                   className="btn-add-materi"
                   onClick={() => setIsAddMateriOpen(true)}
                 >
-                  <i className="fa-solid fa-plus"></i> Tambah Materi Baru
+                  <i className="fa-solid fa-plus"></i> {locale === "ar" ? "إضافة مادة جديدة" : locale === "en" ? "Add New Material" : "Tambah Materi Baru"}
                 </button>
               )}
             </div>
@@ -639,7 +679,7 @@ export default function TarbiyahClient({
               {materiList.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-book-open"></i>
-                  <p>Belum ada materi kajian yang dipublikasikan.</p>
+                  <p>{locale === "ar" ? "لم يتم نشر أي مواد علمية بعد." : locale === "en" ? "No study materials published yet." : "Belum ada materi kajian yang dipublikasikan."}</p>
                 </div>
               ) : (
                 materiList.map(m => (
@@ -647,18 +687,18 @@ export default function TarbiyahClient({
                     <div className="materi-content-left">
                       <div className="materi-meta-row">
                         <span className={`materi-status-badge ${m.status === "completed" ? "status-completed" : "status-upcoming"}`}>
-                          {m.status === "completed" ? "Selesai" : "Akan Datang"}
+                          {m.status === "completed" ? (locale === "ar" ? "مكتمل" : locale === "en" ? "Completed" : "Selesai") : (locale === "ar" ? "قادم" : locale === "en" ? "Upcoming" : "Akan Datang")}
                         </span>
                         <span className="materi-date">
                           <i className="fa-regular fa-calendar"></i> {formatDate(m.event_date)}
                         </span>
                       </div>
                       <h3 className="materi-title">{m.title}</h3>
-                      <p className="materi-desc">{m.description || "Materi kajian rutin angkatan untuk mempererat ukhuwah dan memperdalam wawasan keislaman."}</p>
+                      <p className="materi-desc">{m.description || (locale === "ar" ? "دروس دورية لتعزيز الأخوة وتعميق البصيرة الإسلامية." : locale === "en" ? "Cohort study circle to enrich brotherhood and Islamic insight." : "Materi kajian rutin angkatan untuk mempererat ukhuwah dan memperdalam wawasan keislaman.")}</p>
                     </div>
                     <div className="materi-actions">
                       <Link href="/kontemplasi" className="btn-materi-link">
-                        <i className="fa-solid fa-hands-praying"></i> Kontemplasi
+                        <i className="fa-solid fa-hands-praying"></i> {locale === "ar" ? "التأمل" : locale === "en" ? "Reflection" : "Kontemplasi"}
                       </Link>
                     </div>
                   </div>
@@ -674,15 +714,15 @@ export default function TarbiyahClient({
         {activeTab === "my_requests" && (
           <div className="tab-content-section">
             <div className="section-intro">
-              <h2 className="section-title">Permohonan yang Telah Anda Ajukan</h2>
-              <p className="section-desc">Pantau status persetujuan dari mentor atau tender bisnis yang Anda hubungi.</p>
+              <h2 className="section-title">{locale === "ar" ? "الطلبات التي قدمتها" : locale === "en" ? "Requests You Have Submitted" : "Permohonan yang Telah Anda Ajukan"}</h2>
+              <p className="section-desc">{locale === "ar" ? "تابع حالة الاعتماد من المرشدين أو مشاريع الأعمال." : locale === "en" ? "Track approval status from mentors or business tenders." : "Pantau status persetujuan dari mentor atau tender bisnis yang Anda hubungi."}</p>
             </div>
 
             <div className="requests-grid">
               {localSentRequests.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-envelope-open-text"></i>
-                  <p>Anda belum mengajukan permohonan bimbingan atau proposal tender.</p>
+                  <p>{locale === "ar" ? "لم تقدم أي طلبات إرشاد أو مقترحات بعد." : locale === "en" ? "You have not submitted any mentorship or tender requests yet." : "Anda belum mengajukan permohonan bimbingan atau proposal tender."}</p>
                 </div>
               ) : (
                 localSentRequests.map(r => (
@@ -690,27 +730,27 @@ export default function TarbiyahClient({
                     <div className="req-header">
                       <div className="req-type-badge">
                         <i className={r.type === "Mentor" ? "fa-solid fa-user-graduate" : "fa-solid fa-briefcase"}></i>{" "}
-                        {r.type}
+                        {locale === "ar" ? (r.type === "Mentor" ? "إرشاد" : "مناقصة B2B") : r.type}
                       </div>
                       <span className={`status-pill status-${r.status}`}>
-                        {r.status === "Pending" && "Menunggu Persetujuan"}
-                        {r.status === "Approved" && "Disetujui"}
-                        {r.status === "Rejected" && "Ditolak"}
+                        {r.status === "Pending" && (locale === "ar" ? "قيد انتظار الموافقة" : locale === "en" ? "Awaiting Approval" : "Menunggu Persetujuan")}
+                        {r.status === "Approved" && (locale === "ar" ? "معتمد" : locale === "en" ? "Approved" : "Disetujui")}
+                        {r.status === "Rejected" && (locale === "ar" ? "مرفوض" : locale === "en" ? "Rejected" : "Ditolak")}
                       </span>
                     </div>
 
                     <div className="req-body">
-                      <h3 className="req-target-name">{r.target_name || "Target"}</h3>
+                      <h3 className="req-target-name">{r.target_name || (locale === "ar" ? "الهدف" : locale === "en" ? "Target" : "Target")}</h3>
                       <p className="req-subtitle">{r.target_subtitle || ""}</p>
                       <div className="req-date">
-                        <i className="fa-regular fa-clock"></i> Diajukan pada {formatDate(r.created_at)}
+                        <i className="fa-regular fa-clock"></i> {locale === "ar" ? `قُدم في ${formatDate(r.created_at)}` : locale === "en" ? `Submitted on ${formatDate(r.created_at)}` : `Diajukan pada ${formatDate(r.created_at)}`}
                       </div>
                     </div>
 
                     {r.status === "Approved" && (
                       <div className="req-footer">
                         <Link href="/chat" className="btn-connect-chat">
-                          <i className="fa-solid fa-comments"></i> Hubungi di Chat Lounge
+                          <i className="fa-solid fa-comments"></i> {locale === "ar" ? "تواصل عبر غرفة المحادثة" : locale === "en" ? "Connect in Chat Lounge" : "Hubungi di Chat Lounge"}
                         </Link>
                       </div>
                     )}
@@ -727,15 +767,15 @@ export default function TarbiyahClient({
         {activeTab === "inbox" && (
           <div className="tab-content-section">
             <div className="section-intro">
-              <h2 className="section-title">Permohonan Masuk untuk Anda</h2>
-              <p className="section-desc">Tinjau dan tanggapi permintaan bimbingan atau proposal kemitraan dari rekan-rekan angkatan.</p>
+              <h2 className="section-title">{locale === "ar" ? "الطلبات الواردة إليك" : locale === "en" ? "Incoming Requests for You" : "Permohonan Masuk untuk Anda"}</h2>
+              <p className="section-desc">{locale === "ar" ? "مراجعة والرد على طلبات الإرشاد أو مقترحات الشراكة من زملاء الدفعة." : locale === "en" ? "Review and respond to mentorship requests or business proposals from cohort peers." : "Tinjau dan tanggapi permintaan bimbingan atau proposal kemitraan dari rekan-rekan angkatan."}</p>
             </div>
 
             <div className="requests-grid">
               {localIncomingRequests.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-inbox"></i>
-                  <p>Belum ada permohonan bimbingan atau tender yang ditujukan kepada Anda.</p>
+                  <p>{locale === "ar" ? "لا توجد طلبات إرشاد أو مناقصات موجهة إليك بعد." : locale === "en" ? "No mentorship or tender requests directed to you yet." : "Belum ada permohonan bimbingan atau tender yang ditujukan kepada Anda."}</p>
                 </div>
               ) : (
                 localIncomingRequests.map(r => {
@@ -746,19 +786,19 @@ export default function TarbiyahClient({
                       <div className="req-header">
                         <div className="req-type-badge">
                           <i className={r.type === "Mentor" ? "fa-solid fa-user-graduate" : "fa-solid fa-briefcase"}></i>{" "}
-                          Permohonan {r.type}
+                          {locale === "ar" ? (r.type === "Mentor" ? "طلب إرشاد" : "طلب مناقصة") : locale === "en" ? `${r.type} Request` : `Permohonan ${r.type}`}
                         </div>
                         <span className={`status-pill status-${r.status}`}>
-                          {r.status === "Pending" && "Menunggu Respon"}
-                          {r.status === "Approved" && "Telah Disetujui"}
-                          {r.status === "Rejected" && "Telah Ditolak"}
+                          {r.status === "Pending" && (locale === "ar" ? "في انتظار الرد" : locale === "en" ? "Awaiting Response" : "Menunggu Respon")}
+                          {r.status === "Approved" && (locale === "ar" ? "معتمد" : locale === "en" ? "Approved" : "Telah Disetujui")}
+                          {r.status === "Rejected" && (locale === "ar" ? "مرفوض" : locale === "en" ? "Rejected" : "Telah Ditolak")}
                         </span>
                       </div>
 
                       <div className="incoming-requester-info">
                         <Image
                           src={avatar}
-                          alt={r.requester_name || "Pemohon"}
+                          alt={r.requester_name || (locale === "ar" ? "صاحب الطلب" : locale === "en" ? "Requester" : "Pemohon")}
                           width={46}
                           height={46}
                           className="requester-avatar"
@@ -771,10 +811,10 @@ export default function TarbiyahClient({
                       </div>
 
                       <div className="req-target-label">
-                        Untuk: <strong>{r.target_name}</strong>
+                        {locale === "ar" ? "إلى:" : locale === "en" ? "For:" : "Untuk:"} <strong>{r.target_name}</strong>
                       </div>
                       <div className="req-date">
-                        <i className="fa-regular fa-clock"></i> Masuk pada {formatDate(r.created_at)}
+                        <i className="fa-regular fa-clock"></i> {locale === "ar" ? `وارد في ${formatDate(r.created_at)}` : locale === "en" ? `Received on ${formatDate(r.created_at)}` : `Masuk pada ${formatDate(r.created_at)}`}
                       </div>
 
                       {r.status === "Pending" ? (
@@ -784,21 +824,21 @@ export default function TarbiyahClient({
                             className="btn-approve"
                             onClick={() => handleIncomingResponse(r.id, "Approved", r.requester_name || "Kolega")}
                           >
-                            <i className="fa-solid fa-check"></i> Setujui (+20 Prestise)
+                            <i className="fa-solid fa-check"></i> {locale === "ar" ? "موافقة (+20 نقاط)" : locale === "en" ? "Approve (+20 Prestige)" : "Setujui (+20 Prestise)"}
                           </button>
                           <button
                             type="button"
                             className="btn-reject"
                             onClick={() => handleIncomingResponse(r.id, "Rejected", r.requester_name || "Kolega")}
                           >
-                            <i className="fa-solid fa-xmark"></i> Tolak
+                            <i className="fa-solid fa-xmark"></i> {locale === "ar" ? "رفض" : locale === "en" ? "Reject" : "Tolak"}
                           </button>
                         </div>
                       ) : (
                         <div className="req-footer">
                           {r.status === "Approved" && (
                             <Link href={`/chat/personal/${r.user_id}`} className="btn-connect-chat">
-                              <i className="fa-solid fa-comments"></i> Buka Percakapan Pribadi
+                              <i className="fa-solid fa-comments"></i> {locale === "ar" ? "فتح محادثة خاصة" : locale === "en" ? "Open Private Chat" : "Buka Percakapan Pribadi"}
                             </Link>
                           )}
                         </div>
@@ -821,9 +861,9 @@ export default function TarbiyahClient({
             <div className="modal-header">
               <div>
                 <h2 className="modal-title">
-                  {proposalTarget.type === "Mentor" ? "Ajukan Bimbingan Mentorship" : "Ajukan Proposal Kerjasama"}
+                  {proposalTarget.type === "Mentor" ? (locale === "ar" ? "طلب جلسة إرشاد" : locale === "en" ? "Apply for Mentorship" : "Ajukan Bimbingan Mentorship") : (locale === "ar" ? "تقديم مقترح شراكة" : locale === "en" ? "Submit Partnership Proposal" : "Ajukan Proposal Kerjasama")}
                 </h2>
-                <p className="modal-subtitle">Segel resmi permohonan kolaborasi dengan stempel lilin emas</p>
+                <p className="modal-subtitle">{locale === "ar" ? "توثيق رسمي لطلب التعاون بالختم الشمعي الذهبي" : locale === "en" ? "Official collaboration proposal sealed with golden wax" : "Segel resmi permohonan kolaborasi dengan stempel lilin emas"}</p>
               </div>
               <button type="button" className="btn-close-modal" onClick={() => setIsProposalModalOpen(false)}>
                 &times;
@@ -832,7 +872,7 @@ export default function TarbiyahClient({
 
             {/* Target Selector / Summary */}
             <div className="form-group">
-              <label>TARGET {proposalTarget.type === "Mentor" ? "MENTOR" : "TENDER BISNIS"}</label>
+              <label>{locale === "ar" ? (proposalTarget.type === "Mentor" ? "المرشد المستهدف" : "المشروع المستهدف") : locale === "en" ? (proposalTarget.type === "Mentor" ? "TARGET MENTOR" : "TARGET BUSINESS TENDER") : `TARGET ${proposalTarget.type === "Mentor" ? "MENTOR" : "TENDER BISNIS"}`}</label>
               {proposalTarget.type === "Mentor" ? (
                 <select
                   value={proposalTarget.id}
@@ -882,10 +922,10 @@ export default function TarbiyahClient({
 
             <form onSubmit={handleSubmitProposal} className="proposal-form">
               <div className="form-group">
-                <label>TOPIK / SUBJEK PERMOHONAN</label>
+                <label>{locale === "ar" ? "موضوع / عنوان الطلب" : locale === "en" ? "REQUEST TOPIC / SUBJECT" : "TOPIK / SUBJEK PERMOHONAN"}</label>
                 <input
                   type="text"
-                  placeholder="Contoh: Konsultasi Karir & Sinergi Bisnis"
+                  placeholder={locale === "ar" ? "مثال: استشارة مهنية وتكامل تجاري" : locale === "en" ? "Example: Career Consultation & Business Synergy" : "Contoh: Konsultasi Karir & Sinergi Bisnis"}
                   value={proposalSubject}
                   onChange={e => setProposalSubject(e.target.value)}
                   required
@@ -893,10 +933,10 @@ export default function TarbiyahClient({
               </div>
 
               <div className="form-group">
-                <label>PESAN PENGANTAR / LATAR BELAKANG</label>
+                <label>{locale === "ar" ? "رسالة التقديم / الخلفية" : locale === "en" ? "COVER MESSAGE / BACKGROUND" : "PESAN PENGANTAR / LATAR BELAKANG"}</label>
                 <textarea
                   rows={3}
-                  placeholder="Tuliskan tujuan bimbingan, pertanyaan, atau rincian proposal yang ingin Anda sampaikan..."
+                  placeholder={locale === "ar" ? "اكتب أهداف الإرشاد أو الأسئلة أو تفاصيل المقترح التي ترغب في مشاركتها..." : locale === "en" ? "Write the mentorship goals, questions, or proposal details you wish to convey..." : "Tuliskan tujuan bimbingan, pertanyaan, atau rincian proposal yang ingin Anda sampaikan..."}
                   value={proposalMessage}
                   onChange={e => setProposalMessage(e.target.value)}
                 ></textarea>
@@ -912,8 +952,8 @@ export default function TarbiyahClient({
                     <i className={isSubmittingProposal ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-feather-pointed"}></i>
                   </div>
                   <div className="wax-label">
-                    <span className="wax-title">{isSubmittingProposal ? "Menyegel Permohonan..." : "Segel & Kirim Resmi"}</span>
-                    <span className="wax-sub">Surat permohonan akan disegel stempel lilin</span>
+                    <span className="wax-title">{isSubmittingProposal ? (locale === "ar" ? "جاري الختم والتوثيق..." : locale === "en" ? "Sealing Proposal..." : "Menyegel Permohonan...") : (locale === "ar" ? "ختم وإرسال رسمي" : locale === "en" ? "Official Seal & Submit" : "Segel & Kirim Resmi")}</span>
+                    <span className="wax-sub">{locale === "ar" ? "سيتم توثيق خطاب الطلب بالختم الشمعي" : locale === "en" ? "Proposal letter will be officially sealed with wax" : "Surat permohonan akan disegel stempel lilin"}</span>
                   </div>
                 </button>
               </div>
@@ -930,8 +970,8 @@ export default function TarbiyahClient({
           <div className="tarbiyah-modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <h2 className="modal-title">Tambah Materi Kajian</h2>
-                <p className="modal-subtitle">Publikasikan jadwal dan silabus materi baru untuk anggota</p>
+                <h2 className="modal-title">{locale === "ar" ? "إضافة مادة علمية جديدة" : locale === "en" ? "Add Study Material" : "Tambah Materi Kajian"}</h2>
+                <p className="modal-subtitle">{locale === "ar" ? "نشر المواعيد والمناهج الدراسية الجديدة للأعضاء" : locale === "en" ? "Publish new schedules and syllabus for members" : "Publikasikan jadwal dan silabus materi baru untuk anggota"}</p>
               </div>
               <button type="button" className="btn-close-modal" onClick={() => setIsAddMateriOpen(false)}>
                 &times;
@@ -940,10 +980,10 @@ export default function TarbiyahClient({
 
             <form onSubmit={handleAddMateriSubmit} className="proposal-form">
               <div className="form-group">
-                <label>JUDUL MATERI KAJIAN</label>
+                <label>{locale === "ar" ? "عنوان المادة العلمية" : locale === "en" ? "STUDY MATERIAL TITLE" : "JUDUL MATERI KAJIAN"}</label>
                 <input
                   type="text"
-                  placeholder="Contoh: Fiqih Muamalah & Etika Bisnis Muslim"
+                  placeholder={locale === "ar" ? "مثال: فقه المعاملات وأخلاقيات الأعمال الإسلامية" : locale === "en" ? "Example: Islamic Business Ethics & Transactions" : "Contoh: Fiqih Muamalah & Etika Bisnis Muslim"}
                   value={newMateriTitle}
                   onChange={e => setNewMateriTitle(e.target.value)}
                   required
@@ -951,17 +991,17 @@ export default function TarbiyahClient({
               </div>
 
               <div className="form-group">
-                <label>DESKRIPSI / RANGKUMAN</label>
+                <label>{locale === "ar" ? "الوصف / الخلاصة" : locale === "en" ? "DESCRIPTION / SUMMARY" : "DESKRIPSI / RANGKUMAN"}</label>
                 <textarea
                   rows={3}
-                  placeholder="Ringkasan poin pembahasan kajian..."
+                  placeholder={locale === "ar" ? "ملخص محاور وموضوعات الدرس..." : locale === "en" ? "Summary of discussion points..." : "Ringkasan poin pembahasan kajian..."}
                   value={newMateriDesc}
                   onChange={e => setNewMateriDesc(e.target.value)}
                 ></textarea>
               </div>
 
               <div className="form-group">
-                <label>TANGGAL PELAKSANAAN</label>
+                <label>{locale === "ar" ? "تاريخ الإنعقاد" : locale === "en" ? "EVENT DATE" : "TANGGAL PELAKSANAAN"}</label>
                 <input
                   type="date"
                   value={newMateriDate}
@@ -971,13 +1011,13 @@ export default function TarbiyahClient({
               </div>
 
               <div className="form-group">
-                <label>STATUS KAJIAN</label>
+                <label>{locale === "ar" ? "حالة الدرس" : locale === "en" ? "STUDY STATUS" : "STATUS KAJIAN"}</label>
                 <select
                   value={newMateriStatus}
                   onChange={e => setNewMateriStatus(e.target.value as any)}
                 >
-                  <option value="upcoming">Akan Datang (Upcoming)</option>
-                  <option value="completed">Selesai (Completed)</option>
+                  <option value="upcoming">{locale === "ar" ? "قادم (Upcoming)" : locale === "en" ? "Upcoming" : "Akan Datang (Upcoming)"}</option>
+                  <option value="completed">{locale === "ar" ? "مكتمل (Completed)" : locale === "en" ? "Completed" : "Selesai (Completed)"}</option>
                 </select>
               </div>
 
@@ -987,7 +1027,7 @@ export default function TarbiyahClient({
                 disabled={isSubmittingMateri}
               >
                 <i className="fa-solid fa-floppy-disk"></i>{" "}
-                {isSubmittingMateri ? "Menyimpan..." : "Publikasikan Materi"}
+                {isSubmittingMateri ? (locale === "ar" ? "جاري الحفظ..." : locale === "en" ? "Saving..." : "Menyimpan...") : (locale === "ar" ? "نشر المادة" : locale === "en" ? "Publish Material" : "Publikasikan Materi")}
               </button>
             </form>
           </div>

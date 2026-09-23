@@ -122,7 +122,7 @@ export default function InboxClient({
       <div style={{ marginBottom: "16px" }}>
         <Link href="/fitur" className="btn-back">
           <i className="fa-solid fa-arrow-left"></i>
-          <span>{t.common?.back || "Kembali ke Menu Fitur"}</span>
+          <span>{t.common.back}</span>
         </Link>
       </div>
 

@@ -160,7 +160,13 @@ export default function KiblatClient() {
   // GPS Geolocation Handler
   const handleDetectGps = () => {
     if (!navigator.geolocation) {
-      alert("Browser Anda tidak mendukung deteksi lokasi GPS.");
+      alert(
+        locale === "ar"
+          ? "متصفحك لا يدعم تحديد الموقع عبر GPS."
+          : locale === "en"
+          ? "Your browser does not support GPS geolocation."
+          : "Browser Anda tidak mendukung deteksi lokasi GPS."
+      );
       return;
     }
 
@@ -169,7 +175,7 @@ export default function KiblatClient() {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         setCurrentLocation({
-          name: "Lokasi GPS Anda",
+          name: locale === "ar" ? "موقع GPS الخاص بك" : locale === "en" ? "Your GPS Location" : "Lokasi GPS Anda",
           lat: latitude,
           lng: longitude,
           timezone: 7, // default Indonesia WIB
@@ -180,7 +186,13 @@ export default function KiblatClient() {
       (err) => {
         console.warn("GPS error:", err);
         setIsGpsLoading(false);
-        alert("Tidak dapat mengakses GPS. Pastikan izin lokasi telah diaktifkan.");
+        alert(
+          locale === "ar"
+            ? "تعذر الوصول إلى GPS. يرجى التأكد من تفعيل إذن الموقع."
+            : locale === "en"
+            ? "Unable to access GPS. Please ensure location permissions are enabled."
+            : "Tidak dapat mengakses GPS. Pastikan izin lokasi telah diaktifkan."
+        );
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );

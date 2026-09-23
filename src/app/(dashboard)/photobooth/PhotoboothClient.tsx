@@ -1887,7 +1887,13 @@ export default function PhotoboothClient() {
       .filter(({ p }) => p && p.image);
 
     if (filled.length === 0) {
-      alert("Belum ada foto yang diambil.");
+      alert(
+        locale === "ar"
+          ? "لم يتم التقاط أي صور بعد."
+          : locale === "en"
+          ? "No photos captured yet."
+          : "Belum ada foto yang diambil."
+      );
       return;
     }
 
@@ -2080,7 +2086,13 @@ export default function PhotoboothClient() {
       }
     } catch (error: any) {
       console.error("Export error:", error);
-      alert("Gagal mengekspor foto strip secara langsung. Mencoba unduhan darurat...");
+      alert(
+        locale === "ar"
+          ? "فشل تصدير شريط الصور مباشرة. جاري تجربة التنزيل الاحتياطي..."
+          : locale === "en"
+          ? "Failed to export photostrip directly. Attempting emergency download..."
+          : "Gagal mengekspor foto strip secara langsung. Mencoba unduhan darurat..."
+      );
       try {
         const emergencyCanvas = await renderPhotostripNative(2);
         const dataUrl = emergencyCanvas.toDataURL("image/png");
@@ -2196,7 +2208,13 @@ export default function PhotoboothClient() {
         (exportCanvas as any).captureStream || (exportCanvas as any).mozCaptureStream;
       if (!captureStreamFn || typeof MediaRecorder === "undefined") {
         cleanup();
-        alert("Browser Anda belum mendukung ekspor video. Mengunduh PNG sebagai gantinya.");
+        alert(
+          locale === "ar"
+            ? "متصفحك لا يدعم تصدير الفيديو حالياً. سيتم تنزيل صورة PNG بدلاً من ذلك."
+            : locale === "en"
+            ? "Your browser does not yet support video export. Downloading PNG instead."
+            : "Browser Anda belum mendukung ekspor video. Mengunduh PNG sebagai gantinya."
+        );
         handleDownloadStrip("strip");
         return;
       }
@@ -2567,7 +2585,13 @@ export default function PhotoboothClient() {
       console.error("Live video export error:", err);
       cleanup();
       setIsExporting(false);
-      alert("Perangkat Anda tidak dapat merender format video bergerak ini. Mengunduh format Photostrip HD (PNG) sebagai gantinya.");
+      alert(
+        locale === "ar"
+          ? "جهازك لا يدعم تصيير هذا الفيديو المتحرك. سيتم تنزيل شريط الصور عالي الدقة (PNG) بدلاً من ذلك."
+          : locale === "en"
+          ? "Your device cannot render this motion video format. Downloading HD Photostrip (PNG) instead."
+          : "Perangkat Anda tidak dapat merender format video bergerak ini. Mengunduh format Photostrip HD (PNG) sebagai gantinya."
+      );
       handleDownloadStrip("strip");
     }
   };
@@ -2585,7 +2609,7 @@ export default function PhotoboothClient() {
       <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
         <Link href="/fitur" className="btn-back">
           <i className="fa-solid fa-arrow-left"></i>
-          <span>{t.common?.back || "Kembali ke Menu Fitur"}</span>
+          <span>{t.common.back}</span>
         </Link>
       </div>
 
@@ -3183,14 +3207,14 @@ export default function PhotoboothClient() {
             {/* 5. Custom Text */}
             <div>
               <div className="tool-group-label">
-                <i className="fa-solid fa-pen-nib"></i> 5. Judul & Tanggal Kenangan
+                <i className="fa-solid fa-pen-nib"></i> {locale === "ar" ? "5. عنوان وتاريخ الذكرى" : locale === "en" ? "5. Memory Title & Date" : "5. Judul & Tanggal Kenangan"}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                 <input
                   type="text"
                   value={captionTitle}
                   onChange={(e) => setCaptionTitle(e.target.value)}
-                  placeholder="Judul Momen"
+                  placeholder={locale === "ar" ? "عنوان اللحظة" : locale === "en" ? "Moment Title" : "Judul Momen"}
                   style={{
                     padding: "10px 14px",
                     borderRadius: "10px",
@@ -3204,7 +3228,7 @@ export default function PhotoboothClient() {
                   type="text"
                   value={captionDate}
                   onChange={(e) => setCaptionDate(e.target.value)}
-                  placeholder="Tanggal"
+                  placeholder={locale === "ar" ? "التاريخ" : locale === "en" ? "Date" : "Tanggal"}
                   style={{
                     padding: "10px 14px",
                     borderRadius: "10px",
@@ -3881,7 +3905,7 @@ export default function PhotoboothClient() {
                   onClick={handleShareFromModal}
                 >
                   <i className="fa-solid fa-cloud-arrow-down"></i>
-                  <span>Simpan ke Galeri / Bagikan</span>
+                  <span>{locale === "ar" ? "حفظ في المعرض / مشاركة" : locale === "en" ? "Save to Gallery / Share" : "Simpan ke Galeri / Bagikan"}</span>
                 </button>
 
                 <button
@@ -3890,7 +3914,7 @@ export default function PhotoboothClient() {
                   onClick={handleDownloadFromModal}
                 >
                   <i className="fa-solid fa-download"></i>
-                  <span>Simpan File Langsung</span>
+                  <span>{locale === "ar" ? "حفظ الملف مباشرة" : locale === "en" ? "Direct Download File" : "Simpan File Langsung"}</span>
                 </button>
               </div>
             </div>

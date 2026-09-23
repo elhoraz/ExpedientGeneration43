@@ -12,7 +12,7 @@ import {
 import "./matsurat.css";
 
 export default function MatsuratClient() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   // 1. Inisialisasi waktu otomatis (Pagi: 04.00 - 15.00, Petang: 15.00 - 04.00)
   const [time, setTime] = useState<MatsuratTime>(() => {
     if (typeof window !== "undefined") {
@@ -304,7 +304,13 @@ export default function MatsuratClient() {
   };
 
   const handleResetAll = () => {
-    if (confirm("Reset seluruh hitungan dzikir untuk sesi ini?")) {
+    const confirmMsg =
+      locale === "ar"
+        ? "هل أنت متأكد من إعادة ضبط جميع أذكار هذه الجلسة؟"
+        : locale === "en"
+        ? "Reset all dhikr counts for this session?"
+        : "Reset seluruh hitungan dzikir untuk sesi ini?";
+    if (confirm(confirmMsg)) {
       saveCounts({});
       setCurrentIndex(0);
       triggerHaptic([50, 50]);
@@ -790,7 +796,7 @@ export default function MatsuratClient() {
             className="btn-card-nav"
             style={{ textDecoration: "none" }}
           >
-            <i className="fa-solid fa-arrow-left"></i> Kembali ke Menu Fitur
+            <i className="fa-solid fa-arrow-left"></i> {t.common.back}
           </Link>
         </div>
       </div>
@@ -813,7 +819,7 @@ export default function MatsuratClient() {
             zIndex: 9999,
           }}
         >
-          <i className="fa-solid fa-check"></i> Teks doa berhasil disalin!
+          <i className="fa-solid fa-check"></i> {locale === "ar" ? "تم نسخ نص الدعاء!" : locale === "en" ? "Prayer text copied!" : "Teks doa berhasil disalin!"}
         </div>
       )}
     </div>

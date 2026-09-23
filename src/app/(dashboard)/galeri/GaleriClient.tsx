@@ -445,11 +445,28 @@ export default function GaleriClient({
   const handleOpenPrintView = (dim: "putra" | "putri") => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      alert("Harap izinkan pop-up browser untuk mengekspor buku kenangan.");
+      alert(
+        locale === "ar"
+          ? "يرجى السماح بالنوافذ المنبثقة في المتصفح لتصدير كتاب الذكريات."
+          : locale === "en"
+          ? "Please allow browser pop-ups to export the yearbook."
+          : "Harap izinkan pop-up browser untuk mengekspor buku kenangan."
+      );
       return;
     }
 
-    const title = dim === "putra" ? "Buku Kenangan Putra — Expedient 43" : "Buku Kenangan Putri — Expedient 43";
+    const title =
+      dim === "putra"
+        ? locale === "ar"
+          ? "كتاب الذكريات (بنين) — إكسبيدينت ٤٣"
+          : locale === "en"
+          ? "Brothers Yearbook — Expedient 43"
+          : "Buku Kenangan Putra — Expedient 43"
+        : locale === "ar"
+        ? "كتاب الذكريات (بنات) — إكسبيدينت ٤٣"
+        : locale === "en"
+        ? "Sisters Yearbook — Expedient 43"
+        : "Buku Kenangan Putri — Expedient 43";
     const totalPages = dim === "putra" ? 75 : 41;
     const folder = dim === "putra" ? "foto_putra" : "foto_putri";
 

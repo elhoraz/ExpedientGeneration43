@@ -26,7 +26,7 @@ export default function KhatamClient({
   initialAllocations,
   currentUser,
 }: KhatamClientProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [session, setSession] = useState(initialSession);
   const [allocations, setAllocations] = useState<any[]>(initialAllocations || []);
   const [filter, setFilter] = useState<"all" | "available" | "my" | "completed">("all");
@@ -69,7 +69,14 @@ export default function KhatamClient({
 
       const data = await res.json();
       if (!res.ok) {
-        showToast(data.error || "Gagal memproses aksi.");
+        showToast(
+          data.error ||
+            (locale === "ar"
+              ? "فشلت معالجة الإجراء."
+              : locale === "en"
+              ? "Failed to process action."
+              : "Gagal memproses aksi.")
+        );
         return;
       }
 
@@ -81,18 +88,42 @@ export default function KhatamClient({
       }
 
       if (action === "claim") {
-        showToast(`Alhamdulillah! Anda telah mengambil Juz ${juzNumber}. Selamat membaca.`);
+        showToast(
+          locale === "ar"
+            ? `الحمد لله! لقد حجزت الجزء ${juzNumber}. قراءة مباركة.`
+            : locale === "en"
+            ? `Alhamdulillah! You claimed Juz ${juzNumber}. Happy reading.`
+            : `Alhamdulillah! Anda telah mengambil Juz ${juzNumber}. Selamat membaca.`
+        );
       } else if (action === "complete") {
-        showToast(`Masya Allah! Juz ${juzNumber} selesai dibaca. +25 Poin Prestise ditambahkan.`);
+        showToast(
+          locale === "ar"
+            ? `ما شاء الله! اكتملت قراءة الجزء ${juzNumber}. أُضيفت 25 نقطة رفعة.`
+            : locale === "en"
+            ? `Masha Allah! Juz ${juzNumber} completed. +25 Prestige points added.`
+            : `Masya Allah! Juz ${juzNumber} selesai dibaca. +25 Poin Prestise ditambahkan.`
+        );
         if (data.allocations?.filter((a: any) => a.status === "completed").length === 30) {
           setShowDoaModal(true);
         }
       } else if (action === "unclaim") {
-        showToast(`Klaim Juz ${juzNumber} telah dibatalkan.`);
+        showToast(
+          locale === "ar"
+            ? `تم إلغاء حجز الجزء ${juzNumber}.`
+            : locale === "en"
+            ? `Claim for Juz ${juzNumber} was cancelled.`
+            : `Klaim Juz ${juzNumber} telah dibatalkan.`
+        );
       }
     } catch (e) {
       console.error(e);
-      showToast("Terjadi kendala jaringan.");
+      showToast(
+        locale === "ar"
+          ? "حدث خطأ في الاتصال بالشبكة."
+          : locale === "en"
+          ? "Network issue occurred."
+          : "Terjadi kendala jaringan."
+      );
     } finally {
       setLoadingJuz(null);
     }
@@ -101,7 +132,13 @@ export default function KhatamClient({
   const handleQuickClaim = () => {
     const firstAvailable = allocations.find((a) => a.status === "available");
     if (!firstAvailable) {
-      showToast("Semua Juz sudah diambil sahabat angkatan!");
+      showToast(
+        locale === "ar"
+          ? "تم حجز جميع الأجزاء من قبل الإخوة!"
+          : locale === "en"
+          ? "All Juz have been claimed by cohort companions!"
+          : "Semua Juz sudah diambil sahabat angkatan!"
+      );
       return;
     }
     handleAction("claim", firstAvailable.juz_number);
@@ -160,14 +197,14 @@ export default function KhatamClient({
         <div className="khatam-hero-card">
           <div className="khatam-stats-row">
             <div className="khatam-stat-item">
-              <span className="khatam-stat-label">Sesi Khataman</span>
+              <span className="khatam-stat-label">{t.khatam.session_title}</span>
               <span style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gold-main)" }}>
-                {session?.title || "Khataman Pekanan Angkatan 43"}
+                {session?.title || t.khatam.default_session}
               </span>
             </div>
 
             <div className="khatam-stat-item">
-              <span className="khatam-stat-label">Progres Khatam</span>
+              <span className="khatam-stat-label">{t.khatam.khatam_progress}</span>
               <div className="khatam-stat-value">
                 <span>{completedCount}</span>
                 <span className="khatam-stat-total">/ 30 Juz ({progressPercent}%)</span>
@@ -175,11 +212,11 @@ export default function KhatamClient({
             </div>
 
             <div className="khatam-stat-item">
-              <span className="khatam-stat-label">Status Alokasi</span>
+              <span className="khatam-stat-label">{t.khatam.allocation_status}</span>
               <div style={{ display: "flex", gap: "10px", fontSize: "0.82rem", fontWeight: 600 }}>
-                <span style={{ color: "#2bb97c" }}>{completedCount} Selesai</span>
-                <span style={{ color: "#ffb300" }}>• {readingCount} Dibaca</span>
-                <span style={{ color: "var(--text-secondary)" }}>• {availableCount} Kosong</span>
+                <span style={{ color: "#2bb97c" }}>{completedCount} {t.khatam.stat_completed}</span>
+                <span style={{ color: "#ffb300" }}>• {readingCount} {t.khatam.stat_reading}</span>
+                <span style={{ color: "var(--text-secondary)" }}>• {availableCount} {t.khatam.stat_available}</span>
               </div>
             </div>
           </div>
@@ -187,7 +224,7 @@ export default function KhatamClient({
           {/* Progress Bar */}
           <div className="khatam-progress-wrapper">
             <div className="khatam-progress-meta">
-              <span>{completedCount === 30 ? "🎉 30/30 Juz Selesai — Khatam!" : `${30 - completedCount} Juz Menuju Khatam`}</span>
+              <span>{completedCount === 30 ? t.khatam.all_completed : `${30 - completedCount} ${t.khatam.juz_to_khatam}`}</span>
               <span style={{ fontWeight: 700, color: "var(--gold-main)" }}>{progressPercent}%</span>
             </div>
             <div className="khatam-progress-track">
@@ -202,7 +239,7 @@ export default function KhatamClient({
           <div className="khatam-hero-actions">
             {availableCount > 0 && (
               <button type="button" className="btn-khatam-quick" onClick={handleQuickClaim}>
-                <i className="fa-solid fa-bolt-lightning"></i> Ambil Juz Acak
+                <i className="fa-solid fa-bolt-lightning"></i> {t.khatam.quick_claim}
               </button>
             )}
 
@@ -211,7 +248,7 @@ export default function KhatamClient({
               className="btn-khatam-doa-modal"
               onClick={() => setShowDoaModal(true)}
             >
-              <i className="fa-solid fa-book-quran"></i> Doa Khatam Al-Qur&apos;an
+              <i className="fa-solid fa-book-quran"></i> {t.khatam.doa_modal_btn}
             </button>
           </div>
         </div>
@@ -223,28 +260,28 @@ export default function KhatamClient({
             className={`khatam-filter-btn ${filter === "all" ? "active" : ""}`}
             onClick={() => setFilter("all")}
           >
-            Semua Juz (30)
+            {t.khatam.filter_all} (30)
           </button>
           <button
             type="button"
             className={`khatam-filter-btn ${filter === "available" ? "active" : ""}`}
             onClick={() => setFilter("available")}
           >
-            Tersedia ({availableCount})
+            {t.khatam.filter_available} ({availableCount})
           </button>
           <button
             type="button"
             className={`khatam-filter-btn ${filter === "my" ? "active" : ""}`}
             onClick={() => setFilter("my")}
           >
-            Juz Saya ({allocations.filter((a) => a.user_id === currentUser.id).length})
+            {t.khatam.filter_my} ({allocations.filter((a) => a.user_id === currentUser.id).length})
           </button>
           <button
             type="button"
             className={`khatam-filter-btn ${filter === "completed" ? "active" : ""}`}
             onClick={() => setFilter("completed")}
           >
-            Selesai ({completedCount})
+            {t.khatam.filter_completed} ({completedCount})
           </button>
         </div>
 
@@ -266,9 +303,9 @@ export default function KhatamClient({
                     <span className="juz-latin-num">Juz {item.juz_number}</span>
                   </div>
                   <span className="juz-status-pill">
-                    {item.status === "available" && "Tersedia"}
-                    {item.status === "reading" && "Dibaca"}
-                    {item.status === "completed" && "Selesai"}
+                    {item.status === "available" && t.khatam.status_available}
+                    {item.status === "reading" && t.khatam.status_reading}
+                    {item.status === "completed" && t.khatam.status_completed}
                   </span>
                 </div>
 
@@ -295,13 +332,13 @@ export default function KhatamClient({
                       </div>
                     )}
                     <span className="juz-reader-name">
-                      {isMyJuz ? "Anda" : item.user_name || "Sahabat 43"}
+                      {isMyJuz ? t.khatam.you : item.user_name || t.khatam.cohort_peer}
                     </span>
                   </div>
                 ) : (
                   <div className="juz-reader-box" style={{ opacity: 0.5 }}>
                     <span style={{ fontSize: "0.72rem", fontStyle: "italic" }}>
-                      Belum ada pembaca
+                      {t.khatam.no_reader}
                     </span>
                   </div>
                 )}
@@ -345,14 +382,14 @@ export default function KhatamClient({
                   {item.status === "reading" && !isMyJuz && (
                     <div style={{ textAlign: "center", fontSize: "0.72rem", color: "#ffb300", padding: "6px 0" }}>
                       <i className="fa-solid fa-hourglass-half" style={{ marginRight: "4px" }}></i>
-                      Sedang Ditadarus
+                      {t.khatam.under_reading}
                     </div>
                   )}
 
                   {item.status === "completed" && (
                     <div className="juz-completed-stamp">
                       <i className="fa-solid fa-circle-check"></i>
-                      Khatam
+                      {t.khatam.khatam_badge}
                     </div>
                   )}
                 </div>
@@ -376,9 +413,9 @@ export default function KhatamClient({
 
             <div className="modal-header-text">
               <div className="khatam-badge-sup" style={{ margin: "0 auto" }}>
-                <i className="fa-solid fa-star-and-crescent"></i> Doa Mustajab
+                <i className="fa-solid fa-star-and-crescent"></i> {t.khatam.doa_badge}
               </div>
-              <h2>Doa Khatam Al-Qur&apos;an</h2>
+              <h2>{t.khatam.doa_title}</h2>
               <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", margin: 0 }}>
                 اللَّهُمَّ ارْحَمْنَا بِالقُرْءَانِ
               </p>
@@ -392,7 +429,7 @@ export default function KhatamClient({
                 &ldquo;Allāhummarhamnā bil-qur&apos;ān, waj&apos;alhu lanā imāman wa nūran wa hudan wa rahmah. Allāhumma żakkirnā minhu mā nasīnā, wa &apos;allimnā minhu mā jahilnā, warzuqnā tilāwatahu ānā&apos;al-layli wa aṭrāfan-nahār, waj&apos;alhu lanā hujjatan yā rabbal-&apos;ālamīn.&rdquo;
               </div>
               <div className="doa-meaning">
-                &ldquo;Ya Allah, rahmatilah kami dengan Al-Qur&apos;an. Jadikanlah ia bagi kami sebagai panutan, cahaya, petunjuk, dan rahmat. Ya Allah, ingatkanlah kami dari apa yang kami lupakan darinya, ajarkanlah kami apa yang belum kami ketahui darinya, anugerahilah kami kemampuan membacanya di sepanjang malam dan siang hari, serta jadikanlah ia sebagai pembela kami, wahai Tuhan semesta alam.&rdquo;
+                &ldquo;{t.khatam.doa_meaning}&rdquo;
               </div>
             </div>
 
@@ -402,7 +439,7 @@ export default function KhatamClient({
               style={{ width: "100%", justifyContent: "center" }}
               onClick={() => setShowDoaModal(false)}
             >
-              Aamiin Ya Rabbal &apos;Alamin
+              {t.khatam.amin_button}
             </button>
           </div>
         </div>

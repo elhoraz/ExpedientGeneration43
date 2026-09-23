@@ -385,7 +385,7 @@ export default function DirektoriClient({
       <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
         <Link href="/fitur" className="btn-back">
           <i className="fa-solid fa-arrow-left"></i>
-          <span>{t.common?.back || "Kembali ke Menu Fitur"}</span>
+          <span>{t.common.back}</span>
         </Link>
       </div>
 
@@ -827,7 +827,7 @@ export default function DirektoriClient({
             </div>
             <h2 className="asatidz-header-title">Diwan Asatidz & Masyayikh</h2>
             <p className="asatidz-header-desc">
-              Untaian doa, petuah bijak, dan jejak bimbingan para guru mulia pembimbing angkatan Expedient 43.
+              {locale === "ar" ? "دعوات مباركة ونصائح حكيمة وتوجيهات أساتذتنا الأفاضل مرشدي دفعة إكسبيدينت 43." : locale === "en" ? "Prayers, wise advice, and guidance from our esteemed teachers guiding Expedient 43." : "Untaian doa, petuah bijak, dan jejak bimbingan para guru mulia pembimbing angkatan Expedient 43."}
             </p>
           </div>
 
@@ -839,7 +839,7 @@ export default function DirektoriClient({
               <input
                 type="text"
                 className="search-pill-input"
-                placeholder="Cari nama guru, amanah, atau pelajaran..."
+                placeholder={locale === "ar" ? "ابحث عن اسم الأستاذ، المسؤولية، أو المادة..." : locale === "en" ? "Search teacher name, role, or subject..." : "Cari nama guru, amanah, atau pelajaran..."}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -848,7 +848,7 @@ export default function DirektoriClient({
                   type="button"
                   className="search-pill-clear"
                   onClick={() => setSearch("")}
-                  title="Hapus pencarian"
+                  title={locale === "ar" ? "مسح البحث" : locale === "en" ? "Clear search" : "Hapus pencarian"}
                 >
                   <i className="fa-solid fa-xmark"></i>
                 </button>

@@ -38,7 +38,7 @@ export default function FiturClient({
   eventWidget = { nearest: null },
 }: FiturClientProps) {
   const cardsRef = useRef<(HTMLAnchorElement | null)[]>([]);
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const router = useRouter();
 
   // Desktop Category Filter state
@@ -706,15 +706,15 @@ export default function FiturClient({
             <span className="widget-event-tag" style={{ color: "#2bb97c" }}>Live Tracker</span>
           </div>
           <h3 className="widget-event-title" style={{ color: "var(--gold-main)" }}>
-            Khatam Bersama Angkatan 43
+            {locale === "ar" ? "ختمة جماعية للدفعة 43" : locale === "en" ? "Cohort 43 Group Khatam" : "Khatam Bersama Angkatan 43"}
           </h3>
           <div className="widget-event-meta" style={{ justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
               <i className="fa-solid fa-circle-check" style={{ color: "#2bb97c", marginRight: "6px" }}></i>
-              Ambil & Selesaikan Juz Anda
+              {locale === "ar" ? "اختر وأكمل جزأك" : locale === "en" ? "Claim & Complete Your Juz" : "Ambil & Selesaikan Juz Anda"}
             </span>
             <div className="widget-card-footer-link" style={{ marginTop: 0, color: "var(--gold-main)" }}>
-              <span>Buka Papan</span>
+              <span>{locale === "ar" ? "فتح اللوحة" : locale === "en" ? "Open Board" : "Buka Papan"}</span>
               <i className="fa-solid fa-arrow-right"></i>
             </div>
           </div>
@@ -725,13 +725,13 @@ export default function FiturClient({
           <i className="fa-solid fa-magnifying-glass search-icon"></i>
           <input
             type="text"
-            placeholder="Cari nama kawan alumni..."
+            placeholder={locale === "ar" ? "ابحث عن اسم زميل الخريجين..." : locale === "en" ? "Search alumni friend name..." : "Cari nama kawan alumni..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
           <button type="submit" className="search-btn">
-            Cari
+            {locale === "ar" ? "بحث" : locale === "en" ? "Search" : "Cari"}
           </button>
         </form>
 
@@ -739,9 +739,9 @@ export default function FiturClient({
         <div className="mobile-apps-section">
           <div className="mobile-section-header">
             <h3 className="mobile-section-title">
-              <i className="fa-solid fa-shapes"></i> Fasilitas & Fitur Lainnya
+              <i className="fa-solid fa-shapes"></i> {locale === "ar" ? "المرافق والميزات الأخرى" : locale === "en" ? "Other Features & Facilities" : "Fasilitas & Fitur Lainnya"}
             </h3>
-            <span className="mobile-section-counter">{MINI_APPS.length} Menu</span>
+            <span className="mobile-section-counter">{MINI_APPS.length} {locale === "ar" ? "قائمة" : locale === "en" ? "Menus" : "Menu"}</span>
           </div>
 
           <div className="mobile-app-grid">
@@ -764,7 +764,7 @@ export default function FiturClient({
         <div style={{ marginBottom: "20px" }}>
           <Link href="/beranda" className="btn-back">
             <i className="fa-solid fa-arrow-left"></i>
-            <span>{t.common?.back || "Kembali ke Beranda"}</span>
+            <span>{t.common.back}</span>
           </Link>
         </div>
         <div className="desktop-header">

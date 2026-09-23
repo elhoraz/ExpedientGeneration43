@@ -222,7 +222,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
                 rows={4}
                 className="form-input"
                 required
-                placeholder="Tulis pesan rahasia yang akan disegel..."
+                placeholder={t.wasiat.placeholder_message}
                 style={{ width: "100%", marginBottom: "20px" }}
               ></textarea>
               <div className="form-row" style={{ display: "flex", gap: "15px", alignItems: "center" }}>
@@ -232,13 +232,13 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
                   onChange={(e) => setNewPassphrase(e.target.value)}
                   className="form-input"
                   required
-                  placeholder="Kunci Akses (Passphrase)"
+                  placeholder={t.wasiat.placeholder_passphrase}
                   style={{ flex: 1 }}
                 />
                 <button type="submit" className="seal-btn" disabled={isSealing}>
                   {isSealing
-                    ? <><i className="fa-solid fa-spinner fa-spin"></i> MENGAMANKAN...</>
-                    : <><i className="fa-solid fa-stamp wax-seal-icon"></i> SEGEL DOKUMEN</>
+                    ? <><i className="fa-solid fa-spinner fa-spin"></i> {t.wasiat.sealing_btn}</>
+                    : <><i className="fa-solid fa-stamp wax-seal-icon"></i> {t.wasiat.seal_btn}</>
                   }
                 </button>
               </div>
@@ -248,7 +248,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
           {wasiats.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px", color: "var(--text-muted)", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: "8px" }}>
               <i className="fa-solid fa-box-archive" style={{ fontSize: "3rem", marginBottom: "20px", opacity: 0.5 }}></i><br />
-              Belum ada amanah yang diarsipkan di ruang ini.
+              {t.wasiat.empty_state}
             </div>
           ) : (
             wasiats.map(w => (
@@ -264,18 +264,18 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
                       unoptimized={w.author_avatar?.startsWith("data:") || w.author_avatar?.includes("ui-avatars.com") || w.author_avatar?.includes("supabase.co")}
                     />
                     <div className="author-meta">
-                      <div className="box-id">Diarsipkan pada: {new Date(w.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}</div>
-                      <h2 className="box-title">Amanah dari {w.author_name}</h2>
+                      <div className="box-id">{t.wasiat.archived_at} {new Date(w.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID", { day: "2-digit", month: "short", year: "numeric" })}</div>
+                      <h2 className="box-title">{t.wasiat.trust_from} {w.author_name}</h2>
                     </div>
                   </div>
                   <div className="document-meta">
-                    <div><i className="fa-solid fa-lock" style={{ color: "var(--gold-main)", fontSize: "0.8rem" }}></i> Terenkripsi Penuh</div>
-                    <div style={{ marginTop: "5px" }}>Akses Tertutup</div>
+                    <div><i className="fa-solid fa-lock" style={{ color: "var(--gold-main)", fontSize: "0.8rem" }}></i> {t.wasiat.fully_encrypted}</div>
+                    <div style={{ marginTop: "5px" }}>{t.wasiat.closed_access}</div>
                   </div>
                 </div>
                 <div className="secret-content">
                   <div className="scramble-text">
-                    Amanah ini dalam keadaan tertutup rapat. Hanya otoritas atau pewaris yang memiliki kunci persetujuan yang dapat membaca isi pesan yang terkandung di dalamnya. Menjaga kerahasiaan...
+                    {t.wasiat.scramble_notice}
                   </div>
                 </div>
                 
@@ -286,7 +286,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
                     onChange={(e) => setUnlockPassphrase({ ...unlockPassphrase, [w.id]: e.target.value })}
                     className="form-input"
                     required
-                    placeholder="Masukkan Kunci Akses..."
+                    placeholder={t.wasiat.placeholder_unlock}
                     style={{ width: "250px" }}
                   />
                   <button type="submit" className="seal-btn unlock-btn" disabled={unlockingId === w.id}>

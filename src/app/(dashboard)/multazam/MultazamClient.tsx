@@ -9,7 +9,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./multazam.css";
 
 export default function MultazamClient({ activeTicket, initialPrayers, userId }: { activeTicket: any, initialPrayers: any[], userId: string }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [prayers, setPrayers] = useState(initialPrayers);
   const [newPrayer, setNewPrayer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -67,9 +67,9 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
       if (!error && data) {
           setPrayers([data[0], ...prayers]);
           setNewPrayer("");
-          await showAlert("Berhasil", "Munajat berhasil dipanjatkan.");
+          await showAlert("Berhasil", t.multazam.prayer_success);
       } else if (error) {
-          await showAlert("Gagal", "Terjadi kesalahan atau tabel prayers belum ada: " + error.message);
+          await showAlert("Gagal", error.message);
       }
       setIsSubmitting(false);
   };
@@ -79,14 +79,16 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
       setPanelOpen(!panelOpen);
   };
 
+  const dateLocale = locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID";
+
   const handleAppleWallet = (e: React.MouseEvent<HTMLAnchorElement>) => {
       e.preventDefault();
       const btn = e.currentTarget;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${t.multazam.wallet_processing}`;
       btn.style.pointerEvents = 'none';
       
       setTimeout(() => {
-          btn.innerHTML = '<i class="fa-solid fa-check"></i> Tersimpan di Wallet';
+          btn.innerHTML = `<i class="fa-solid fa-check"></i> ${t.multazam.wallet_saved}`;
           btn.style.background = 'var(--neon-green, #39ff14)';
           btn.style.color = '#000';
       }, 1500);
@@ -120,19 +122,19 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
                           
                           <div className="ticket-details">
                               <div className="detail-item">
-                                  <span className="detail-label">Tanggal</span>
-                                  <span className="detail-value">{new Date(activeTicket.event_date).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'})}</span>
+                                  <span className="detail-label">{t.multazam.ticket_date}</span>
+                                  <span className="detail-value">{new Date(activeTicket.event_date).toLocaleDateString(dateLocale, {day: '2-digit', month: 'short', year: 'numeric'})}</span>
                               </div>
                               <div className="detail-item">
-                                  <span className="detail-label">Waktu</span>
-                                  <span className="detail-value">{new Date(activeTicket.event_date).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'})} WIB</span>
+                                  <span className="detail-label">{t.multazam.ticket_time}</span>
+                                  <span className="detail-value">{new Date(activeTicket.event_date).toLocaleTimeString(dateLocale, {hour: '2-digit', minute: '2-digit'})}</span>
                               </div>
                               <div className="detail-item">
-                                  <span className="detail-label">Lokasi</span>
+                                  <span className="detail-label">{t.multazam.ticket_location}</span>
                                   <span className="detail-value">{activeTicket.location}</span>
                               </div>
                               <div className="detail-item">
-                                  <span className="detail-label">Dresscode</span>
+                                  <span className="detail-label">{t.multazam.ticket_dresscode}</span>
                                   <span className="detail-value">{activeTicket.dresscode}</span>
                               </div>
                           </div>
@@ -141,7 +143,7 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
                       <div className="qr-section">
                           <div className="qr-code"></div>
                           <div className="seat-info">
-                              <span className="detail-label">Meja VIP</span>
+                              <span className="detail-label">{t.multazam.ticket_vip_table}</span>
                               <div className="seat-number">{activeTicket.seat_number}</div>
                           </div>
                       </div>
@@ -150,8 +152,8 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
               ) : (
               <div style={{ textAlign: 'center', padding: '50px 20px', background: 'rgba(212,175,55,0.05)', border: '1px dashed rgba(212,175,55,0.3)', borderRadius: '20px', color: 'var(--gold-main)' }}>
                   <i className="fa-solid fa-ticket-simple" style={{ fontSize: '3rem', opacity: 0.5, marginBottom: '20px' }}></i>
-                  <h3 style={{ color: 'var(--text-primary)' }}>Belum Ada Tiket Tersedia</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Anda belum terdaftar untuk acara eksklusif mendatang, atau tiket belum diterbitkan oleh Admin.</p>
+                  <h3 style={{ color: 'var(--text-primary)' }}>{t.multazam.no_tickets_title}</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{t.multazam.no_tickets_desc}</p>
               </div>
               )}
           </div>
@@ -163,30 +165,30 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
               </a>
               )}
               <button className="btn-secondary" onClick={togglePanel}>
-                  <i className="fa-solid fa-hands-praying"></i> Dinding Multazam
+                  <i className="fa-solid fa-hands-praying"></i> {t.multazam.multazam_wall}
               </button>
           </div>
       </div>
 
       <div className={`prayer-panel ${panelOpen ? 'open' : ''}`}>
           <button type="button" className="btn-close-panel" onClick={togglePanel}><i className="fa-solid fa-xmark"></i></button>
-          <div className="panel-title">Panjatkan Doa</div>
+          <div className="panel-title">{t.multazam.pray_header}</div>
           <form className="prayer-form" onSubmit={handlePrayerSubmit}>
-              <textarea value={newPrayer} onChange={e => setNewPrayer(e.target.value)} rows={4} placeholder="Tuliskan harapan, doa, atau munajat Anda..." required disabled={isSubmitting}></textarea>
-              <button type="submit" className="btn-submit-prayer" disabled={isSubmitting || !newPrayer.trim()}>{isSubmitting ? 'Mengirim...' : 'Panjatkan'}</button>
+              <textarea value={newPrayer} onChange={e => setNewPrayer(e.target.value)} rows={4} placeholder={t.multazam.pray_placeholder} required disabled={isSubmitting}></textarea>
+              <button type="submit" className="btn-submit-prayer" disabled={isSubmitting || !newPrayer.trim()}>{isSubmitting ? t.multazam.pray_sending : t.multazam.pray_submit}</button>
           </form>
 
-          <div className="panel-title" style={{ marginTop: '20px' }}>Dinding Harapan</div>
+          <div className="panel-title" style={{ marginTop: '20px' }}>{t.multazam.hope_wall}</div>
           {prayers.length > 0 ? (
               prayers.map(p => (
                   <div key={p.id || Math.random()} className="prayer-card">
-                      <div className="prayer-date">{new Date(p.created_at).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'})}</div>
+                      <div className="prayer-date">{new Date(p.created_at).toLocaleDateString(dateLocale, {day: '2-digit', month: 'short', year: 'numeric'})}</div>
                       <div className="prayer-content">"{p.prayer_text}"</div>
                       <div className="prayer-status"><i className="fa-solid fa-check-double" style={{ color: 'var(--gold-main)' }}></i> {p.status}</div>
                   </div>
               ))
           ) : (
-              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)', fontSize: '0.8rem', fontStyle: 'italic' }}>Belum ada munajat yang dipanjatkan.</div>
+              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)', fontSize: '0.8rem', fontStyle: 'italic' }}>{t.multazam.empty_prayers}</div>
           )}
       </div>
     </div>
