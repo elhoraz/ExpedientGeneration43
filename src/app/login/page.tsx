@@ -39,19 +39,19 @@ function LoginContent() {
 
   useEffect(() => {
     if (errorMsg) {
-      setToastData({ title: "Akses Ditolak", message: errorMsg, isError: true });
+      setToastData({ title: tLang.login_extra.toast_access_denied_title, message: errorMsg, isError: true });
       const timer = setTimeout(() => setToastData(null), 8000);
       return () => clearTimeout(timer);
     } else if (successMsg) {
-      setToastData({ title: "Akses Berhasil", message: successMsg, isError: false });
+      setToastData({ title: tLang.login_extra.toast_access_granted_title, message: successMsg, isError: false });
       const timer = setTimeout(() => setToastData(null), 5000);
       return () => clearTimeout(timer);
     } else if (verifyMsg === "true") {
-      setToastData({ title: "Registrasi Berhasil", message: "Akun Anda telah terverifikasi. Silakan masuk.", isError: false });
+      setToastData({ title: tLang.login_extra.toast_reg_success_title, message: tLang.login_extra.toast_verified_desc, isError: false });
       const timer = setTimeout(() => setToastData(null), 6000);
       return () => clearTimeout(timer);
     }
-  }, [errorMsg, successMsg, verifyMsg]);
+  }, [errorMsg, successMsg, verifyMsg, tLang]);
 
   const showToast = (title: string, message: string, isError: boolean) => {
     setToastData({ title, message, isError });
@@ -105,7 +105,7 @@ function LoginContent() {
   const handleLoginBiometric = async () => {
     const trimmedEmail = email.trim();
     if (!trimmedEmail) {
-      showToast("Gagal", "Masukkan email Anda terlebih dahulu.", true);
+      showToast(tLang.login_extra.toast_access_denied_title, tLang.login_extra.toast_fill_email_first, true);
       emailInputRef.current?.focus();
       return;
     }
@@ -122,11 +122,11 @@ function LoginContent() {
         options = await optResp.json();
       } catch {
         const errText = await optResp.text().catch(() => "");
-        throw new Error(errText || "Gagal mengambil opsi biometrik dari server.");
+        throw new Error(errText || tLang.login_extra.toast_biometric_failed);
       }
 
       if (!optResp.ok || options?.error) {
-        throw new Error(options?.error || "Gagal mengambil opsi biometrik");
+        throw new Error(options?.error || tLang.login_extra.toast_biometric_failed);
       }
 
       // 2. Mulai autentikasi
@@ -144,18 +144,18 @@ function LoginContent() {
         verifyJSON = await verifyResp.json();
       } catch {
         const errText = await verifyResp.text().catch(() => "");
-        throw new Error(errText || "Gagal memverifikasi biometrik ke server.");
+        throw new Error(errText || tLang.login_extra.toast_biometric_failed);
       }
 
       if (verifyJSON?.verified) {
-        showToast("Sukses", "Autentikasi biometrik berhasil! Mengalihkan...", false);
+        showToast(tLang.login_extra.toast_access_granted_title, tLang.login_extra.toast_biometric_success, false);
         window.location.href = verifyJSON.redirect_url || verifyJSON.action_link || "/beranda";
       } else {
-        throw new Error(verifyJSON?.error || "Gagal verifikasi biometrik");
+        throw new Error(verifyJSON?.error || tLang.login_extra.toast_biometric_failed);
       }
     } catch (e: any) {
       console.error(e);
-      showToast("Biometrik", e.message || "Biometrik Error", true);
+      showToast(tLang.login_extra.toast_access_denied_title, e.message || tLang.login_extra.toast_biometric_failed, true);
     } finally {
       setIsBioLoading(false);
     }
@@ -171,7 +171,7 @@ function LoginContent() {
     const passwordVal = String(formData.get("password") || "");
 
     if (!emailVal || !passwordVal) {
-      showToast("Data Tidak Lengkap", "Harap isi surel dan kata sandi akses.", true);
+      showToast(tLang.login_extra.toast_incomplete_title, tLang.login_extra.toast_incomplete_desc, true);
       return;
     }
 
@@ -190,7 +190,7 @@ function LoginContent() {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        showToast("Akses Ditolak", data.error || "Surel atau kata sandi tidak valid.", true);
+        showToast(tLang.login_extra.toast_access_denied_title, data.error || tLang.login_extra.toast_invalid_creds, true);
         return;
       }
 
@@ -199,10 +199,10 @@ function LoginContent() {
         return;
       }
 
-      showToast("Akses Diterima", "Berhasil masuk! Mengalihkan ke Beranda...", false);
+      showToast(tLang.login_extra.toast_access_granted_title, tLang.login_extra.toast_welcome_redirect, false);
       window.location.href = data.redirect || "/beranda";
     } catch (err: any) {
-      showToast("Koneksi Bermasalah", err.message || "Gagal menghubungi server.", true);
+      showToast(tLang.login_extra.toast_network_error_title, err.message || tLang.login_extra.toast_invalid_creds, true);
     } finally {
       setIsSubmitting(false);
     }
@@ -227,8 +227,8 @@ function LoginContent() {
             type="button"
             onClick={() => setToastData(null)}
             style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', fontSize: '1rem', lineHeight: 1 }}
-            title="Tutup notifikasi"
-            aria-label="Tutup notifikasi"
+            title={tLang.login_extra.toast_close_notification}
+            aria-label={tLang.login_extra.toast_close_notification}
           >
             <i className="fa-solid fa-xmark"></i>
           </button>

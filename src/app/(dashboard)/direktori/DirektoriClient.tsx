@@ -393,18 +393,18 @@ export default function DirektoriClient({
       <div className="direktori-hero-header">
         <div className="direktori-hero-badge">
           <i className="fa-solid fa-compass"></i>
-          <span>Arsip Digital Resmi Expedient 43</span>
+          <span>{t.direktori_extra.hero_badge}</span>
         </div>
         <h1 className="direktori-hero-title">
-          The Sacred Archive <span className="gold-text">Expedient 43</span>
+          {t.direktori_extra.hero_title}
         </h1>
         <p className="direktori-hero-desc">
-          Menjaga jejak perjuangan, menyambung tali silaturahmi alumni, dan mengenang untaian petuah bimbingan para guru mulia.
+          {t.direktori_extra.hero_desc}
         </p>
       </div>
 
       {/* ================= MAIN DIRECTORY SWITCHER TABS ================= */}
-      <div className="direktori-main-tabs" role="tablist" aria-label="Kategori Direktori">
+      <div className="direktori-main-tabs" role="tablist" aria-label={t.direktori_extra.hero_badge}>
         <button
           type="button"
           role="tab"
@@ -417,7 +417,7 @@ export default function DirektoriClient({
           }}
         >
           <i className="fa-solid fa-graduation-cap"></i>
-          <span className="tab-title">Alumni Angkatan 43</span>
+          <span className="tab-title">{t.direktori_extra.tab_alumni}</span>
           <span className="tab-pill-count">{alumni.length}</span>
         </button>
         <button
@@ -432,7 +432,7 @@ export default function DirektoriClient({
           }}
         >
           <i className="fa-solid fa-landmark"></i>
-          <span className="tab-title">Dewan Guru & Asatidz</span>
+          <span className="tab-title">{t.direktori_extra.tab_asatidz}</span>
           <span className="tab-pill-count">{ASATIDZ_ITEMS.length}</span>
         </button>
       </div>
@@ -514,7 +514,7 @@ export default function DirektoriClient({
                 triggerHaptic(10);
               }}
             >
-              <i className="fa-solid fa-chalkboard-user"></i> Kelas {cls}
+              <i className="fa-solid fa-chalkboard-user"></i> {t.direktori_extra.filter_class_prefix} {cls}
             </button>
           ))}
         </div>
@@ -865,7 +865,7 @@ export default function DirektoriClient({
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-layer-group"></i> Semua ({asatidzCounts.all})
+                <i className="fa-solid fa-layer-group"></i> {t.direktori_extra.asatidz_cat_all} ({asatidzCounts.all})
               </button>
               <button
                 type="button"
@@ -875,7 +875,7 @@ export default function DirektoriClient({
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-crown" style={{ color: "#ffd700" }}></i> Pimpinan Pondok ({asatidzCounts.pimpinan})
+                <i className="fa-solid fa-crown" style={{ color: "#ffd700" }}></i> {t.direktori_extra.asatidz_cat_pimpinan} ({asatidzCounts.pimpinan})
               </button>
               <button
                 type="button"
@@ -885,7 +885,7 @@ export default function DirektoriClient({
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-person" style={{ color: "#34d399" }}></i> Asatidz Putra ({asatidzCounts.guru})
+                <i className="fa-solid fa-person" style={{ color: "#34d399" }}></i> {t.direktori_extra.asatidz_cat_guru} ({asatidzCounts.guru})
               </button>
               <button
                 type="button"
@@ -895,7 +895,7 @@ export default function DirektoriClient({
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-graduation-cap" style={{ color: "#c084fc" }}></i> Tutor ({asatidzCounts.tutor})
+                <i className="fa-solid fa-graduation-cap" style={{ color: "#c084fc" }}></i> {t.direktori_extra.asatidz_cat_tutor} ({asatidzCounts.tutor})
               </button>
               <button
                 type="button"
@@ -905,7 +905,7 @@ export default function DirektoriClient({
                   triggerHaptic(10);
                 }}
               >
-                <i className="fa-solid fa-person-dress" style={{ color: "#fb7185" }}></i> Ustadzat Putri ({asatidzCounts.ustadzah})
+                <i className="fa-solid fa-person-dress" style={{ color: "#fb7185" }}></i> {t.direktori_extra.asatidz_cat_ustadzah} ({asatidzCounts.ustadzah})
               </button>
             </div>
           </div>
@@ -915,8 +915,8 @@ export default function DirektoriClient({
             {filteredAsatidz.length === 0 ? (
               <div className="empty-direktori-state">
                 <i className="fa-solid fa-chalkboard-user empty-icon"></i>
-                <h3>Guru Tidak Ditemukan</h3>
-                <p>Tidak ada data asatidz yang cocok dengan kata kunci &quot;{search}&quot;.</p>
+                <h3>{t.direktori.empty_title}</h3>
+                <p>{t.direktori.empty_desc}</p>
                 <button
                   type="button"
                   className="btn-reset-filters"
@@ -926,7 +926,7 @@ export default function DirektoriClient({
                     triggerHaptic(10);
                   }}
                 >
-                  Reset Filter
+                  {t.direktori.reset_filter}
                 </button>
               </div>
             ) : (
@@ -944,17 +944,17 @@ export default function DirektoriClient({
                     >
                       {item.isFounder && (
                         <div className="asatidz-founder-ribbon">
-                          <i className="fa-solid fa-crown"></i> Pendiri Pondok
+                          <i className="fa-solid fa-crown"></i> {locale === "ar" ? "مؤسس المعهد" : locale === "en" ? "Pondok Founder" : "Pendiri Pondok"}
                         </div>
                       )}
                       {item.isSuccessor && (
                         <div className="asatidz-successor-ribbon">
-                          <i className="fa-solid fa-certificate"></i> Penerus Pendiri
+                          <i className="fa-solid fa-certificate"></i> {locale === "ar" ? "خليفة المؤسس" : locale === "en" ? "Founder Successor" : "Penerus Pendiri"}
                         </div>
                       )}
                       {item.isMotherHeadmaster && (
                         <div className="asatidz-mother-ribbon">
-                          <i className="fa-solid fa-heart"></i> Pimpinan Putri
+                          <i className="fa-solid fa-heart"></i> {locale === "ar" ? "مديرة قسم البنات" : locale === "en" ? "Head of Female Branch" : "Pimpinan Putri"}
                         </div>
                       )}
                       {/* Portrait Yearbook Crop Frame */}
@@ -1002,12 +1002,12 @@ export default function DirektoriClient({
                         {(item.category === "ustadzah" || item.isMotherHeadmaster) && <i className="fa-solid fa-person-dress"></i>}
                         <span>
                           {item.category === "pimpinan"
-                            ? "Pimpinan"
+                            ? t.direktori_extra.asatidz_cat_pimpinan
                             : item.category === "ustadzah" || item.isMotherHeadmaster
-                            ? "Ustadzah"
+                            ? t.direktori_extra.asatidz_cat_ustadzah
                             : item.category === "tutor"
-                            ? "Tutor"
-                            : "Asatidz"}
+                            ? t.direktori_extra.asatidz_cat_tutor
+                            : t.direktori_extra.asatidz_cat_guru}
                         </span>
                       </div>
 
@@ -1049,7 +1049,7 @@ export default function DirektoriClient({
                           }}
                         >
                           <i className="fa-solid fa-heart" style={{ color: "#f43f5e" }}></i>
-                          <span>{fatihahCount} Al-Fatihah dihadiahkan</span>
+                          <span>{fatihahCount} {t.direktori_extra.fatihah_sent_toast}</span>
                         </div>
                       )}
                     </div>
@@ -1083,7 +1083,7 @@ export default function DirektoriClient({
                 type="button"
                 className="sheet-close-btn"
                 onClick={closeBottomSheet}
-                title="Tutup (Esc)"
+                title={t.common.close}
               >
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -1105,7 +1105,7 @@ export default function DirektoriClient({
                 <div className="sheet-hero-info">
                   <h2 className="sheet-user-name">{selectedUser.nama_lengkap}</h2>
                   <div className="sheet-user-panggilan">
-                    Panggilan: <strong>{selectedUser.nama_panggilan || "-"}</strong>
+                    {locale === 'ar' ? 'اللقب: ' : locale === 'en' ? 'Nickname: ' : 'Panggilan: '}<strong>{selectedUser.nama_panggilan || "-"}</strong>
                   </div>
                   <div className="sheet-badges-container">
                     <span
@@ -1114,8 +1114,8 @@ export default function DirektoriClient({
                     >
                       <i className={getGelarIcon(selectedUser.prestise_points || 0)}></i> {getGelar(selectedUser.prestise_points || 0)}
                     </span>
-                    {selectedUser.kelas && <span className="sheet-class-badge">Kelas {selectedUser.kelas}</span>}
-                    <span className="sheet-class-badge">Angkatan 43</span>
+                    {selectedUser.kelas && <span className="sheet-class-badge">{t.direktori_extra.filter_class_prefix} {selectedUser.kelas}</span>}
+                    <span className="sheet-class-badge">Expedient 43</span>
                   </div>
                 </div>
               </div>
@@ -1130,7 +1130,7 @@ export default function DirektoriClient({
                     <Link
                       href="/login"
                       className="dock-action-btn dock-disabled"
-                      title="Masuk sebagai anggota alumni untuk menghubungi kontak"
+                      title={t.direktori.wa_locked}
                     >
                       <i className="fa-solid fa-lock"></i>
                       <span>{t.direktori.wa_locked}</span>
@@ -1145,7 +1145,7 @@ export default function DirektoriClient({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="dock-action-btn dock-whatsapp"
-                      title="Kirim Pesan WhatsApp"
+                      title={t.direktori.contact_wa}
                       onClick={() => triggerHaptic(15)}
                     >
                       <i className="fa-brands fa-whatsapp"></i>
@@ -1663,7 +1663,7 @@ export default function DirektoriClient({
               onClick={() => handleGiftFatihah(selectedAsatidz.id)}
             >
               <i className="fa-solid fa-hands-praying"></i>
-              <span>Hadiahkan Al-Fatihah & Doa</span>
+              <span>{t.direktori_extra.btn_send_fatihah}</span>
               <span
                 style={{
                   background: "rgba(0,0,0,0.3)",
@@ -1688,7 +1688,7 @@ export default function DirektoriClient({
                   animation: "fadeInModal 0.2s ease-out",
                 }}
               >
-                <i className="fa-solid fa-check-circle"></i> Al-Fatihah terkirim. Semoga berkah untuk beliau 🤲
+                <i className="fa-solid fa-check-circle"></i> {t.direktori_extra.fatihah_sent_toast} 🤲
               </div>
             )}
           </div>

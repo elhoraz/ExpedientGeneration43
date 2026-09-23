@@ -155,7 +155,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
 
         if (!uploadResp.ok) {
           const errJson = await uploadResp.json().catch(() => ({}));
-          showToast("Gagal mengunggah foto profil: " + (errJson.error || "Gagal upload"), "error");
+          showToast(tLang.common.error + ": " + (errJson.error || tLang.common.error), "error");
           setSaving(false);
           return;
         }
@@ -164,12 +164,12 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         if (uploadJson.url) {
           updateData.foto_profil = uploadJson.url;
         } else {
-          showToast("Gagal mendapatkan tautan foto profil dari server.", "error");
+          showToast(tLang.common.error, "error");
           setSaving(false);
           return;
         }
       } catch (uploadErr: any) {
-        showToast("Koneksi gagal saat mengunggah foto: " + uploadErr.message, "error");
+        showToast(tLang.login_extra.toast_network_error_title + ": " + uploadErr.message, "error");
         setSaving(false);
         return;
       }
@@ -180,7 +180,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     if (newEmail && newEmail !== user.email) {
       const { error: emailError } = await supabase.auth.updateUser({ email: newEmail });
       if (emailError) {
-        showToast("Gagal mengubah email: " + emailError.message, "error");
+        showToast(tLang.common.error + ": " + emailError.message, "error");
         setSaving(false);
         return;
       }
@@ -193,7 +193,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       .eq("id", user.id);
 
     if (error) {
-      showToast("Gagal menyimpan data profil: " + error.message, "error");
+      showToast(tLang.common.error + ": " + error.message, "error");
     } else {
       if (updateData.foto_profil) {
         setAvatarPreviewSrc(updateData.foto_profil);
@@ -212,7 +212,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         window.dispatchEvent(new CustomEvent("expedient-quest-updated"));
       }
 
-      showToast("Profil berhasil diperbarui!");
+      showToast(locale === 'ar' ? 'تم تحديث الملف الشخصي بنجاح!' : locale === 'en' ? 'Profile updated successfully!' : 'Profil berhasil diperbarui!');
       router.refresh();
     }
 
@@ -230,13 +230,13 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     const confirmPw = formData.get("confirm_password") as string;
 
     if (newPw.length < 8) {
-      showToast("Kata sandi baru minimal 8 karakter.", "error");
+      showToast(tLang.reset_password.toast_min_length, "error");
       setChangingPw(false);
       return;
     }
 
     if (newPw !== confirmPw) {
-      showToast("Konfirmasi kata sandi tidak cocok.", "error");
+      showToast(tLang.reset_password.toast_mismatch, "error");
       setChangingPw(false);
       return;
     }
@@ -244,7 +244,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     const { error } = await supabase.auth.updateUser({ password: newPw });
 
     if (error) {
-      showToast("Gagal mengubah kata sandi: " + error.message, "error");
+      showToast(tLang.common.error + ": " + error.message, "error");
     } else {
       // Log activity
       await supabase.from("activity_logs").insert([{
@@ -252,7 +252,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         action: "Ubah Kata Sandi",
         details: "Pengguna memperbarui kata sandi akun eksekutif."
       }]);
-      showToast("Kata sandi berhasil diperbarui!");
+      showToast(tLang.reset_password.toast_success);
       form.reset();
     }
 
@@ -279,11 +279,11 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         options = await optResp.json();
       } catch {
         const errText = await optResp.text().catch(() => "");
-        throw new Error(errText || "Gagal mengambil opsi biometrik dari server.");
+        throw new Error(errText || tLang.login_extra.toast_biometric_failed);
       }
 
       if (!optResp.ok || options?.error) {
-        throw new Error(options?.error || "Gagal mengambil opsi biometrik.");
+        throw new Error(options?.error || tLang.login_extra.toast_biometric_failed);
       }
 
       // 2. Start Registration in Browser
@@ -301,21 +301,21 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         verifyJSON = await verifyResp.json();
       } catch {
         const errText = await verifyResp.text().catch(() => "");
-        throw new Error(errText || "Gagal memverifikasi pendaftaran biometrik.");
+        throw new Error(errText || tLang.login_extra.toast_biometric_failed);
       }
 
       if (verifyJSON?.verified) {
-        showToast("Perangkat biometrik berhasil didaftarkan!");
+        showToast(tLang.login_extra.toast_biometric_success);
         await fetchBiometrics();
       } else {
-        throw new Error(verifyJSON?.error || "Gagal verifikasi perangkat");
+        throw new Error(verifyJSON?.error || tLang.login_extra.toast_biometric_failed);
       }
     } catch (e: any) {
       console.error(e);
       if (e.name === "NotAllowedError") {
-        showToast("Pendaftaran biometrik dibatalkan.", "error");
+        showToast(tLang.login_extra.toast_biometric_failed, "error");
       } else {
-        showToast("Biometrik Error: " + (e.message || "Terjadi kesalahan."), "error");
+        showToast(tLang.login_extra.toast_biometric_failed + ": " + (e.message || ""), "error");
       }
     } finally {
       setRegisteringBio(false);
@@ -323,7 +323,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   };
 
   const handleDeleteBiometric = async (id: string) => {
-    if (!confirm("Apakah Anda yakin ingin menghapus kredensial biometrik ini dari akun Anda?")) return;
+    if (!confirm(tLang.profil.confirm_delete_biometric || (locale === 'ar' ? 'هل أنت متأكد من حذف هذه البصمة البيومترية؟' : locale === 'en' ? 'Are you sure you want to remove this biometric credential?' : 'Apakah Anda yakin ingin menghapus kredensial biometrik ini?'))) return;
     try {
       setDeletingBioId(id);
       const { error } = await supabase
@@ -333,10 +333,10 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
         .eq("user_id", user.id);
 
       if (error) throw error;
-      showToast("Kredensial biometrik berhasil dihapus.");
+      showToast(locale === 'ar' ? 'تم حذف بيانات البصمة بنجاح' : locale === 'en' ? 'Biometric credential deleted successfully' : 'Kredensial biometrik berhasil dihapus.');
       setBiometricsList((prev) => prev.filter((b) => b.id !== id));
     } catch (err: any) {
-      showToast("Gagal menghapus biometrik: " + err.message, "error");
+      showToast(tLang.common.error + ": " + err.message, "error");
     } finally {
       setDeletingBioId(null);
     }
@@ -347,7 +347,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!deletePassword) {
-      showToast("Sandi konfirmasi harus diisi.", "error");
+      showToast(locale === 'ar' ? 'يرجى إدخال كلمة المرور للتأكيد' : locale === 'en' ? 'Confirmation password required' : 'Sandi konfirmasi harus diisi.', "error");
       return;
     }
     
@@ -361,7 +361,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       });
 
       if (signInError) {
-        showToast("Kata sandi tidak valid. Gagal memverifikasi identitas Anda.", "error");
+        showToast(tLang.login_extra.toast_invalid_creds, "error");
         setDeletingAccount(false);
         return;
       }
@@ -376,10 +376,10 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || data.error) {
-        throw new Error(data.error || "Gagal memproses penghapusan akun di server.");
+        throw new Error(data.error || (locale === 'ar' ? 'فشل معالجة حذف الحساب' : locale === 'en' ? 'Failed to process account deletion' : 'Gagal memproses penghapusan akun'));
       }
 
-      showToast("Akun Anda telah berhasil dihapus secara permanen.", "success");
+      showToast(locale === 'ar' ? 'تم حذف الحساب نهائياً بنجاح' : locale === 'en' ? 'Account permanently deleted' : 'Akun berhasil dihapus permanen.', "success");
       await supabase.auth.signOut();
       setTimeout(() => {
         router.push("/login?deleted=true");
@@ -387,7 +387,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       }, 1200);
 
     } catch (err: any) {
-      showToast("Gagal menghapus akun: " + (err?.message || "Terjadi kesalahan."), "error");
+      showToast(tLang.common.error + ": " + (err?.message || ""), "error");
       setDeletingAccount(false);
     }
   };
@@ -418,7 +418,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       URL.revokeObjectURL(rawCropImage);
       setRawCropImage(null);
     }
-    showToast("Posisi foto disesuaikan. Klik 'Simpan Perubahan' di bawah untuk menyimpan.");
+    showToast(locale === 'ar' ? 'تم ضبط موضع الصورة بنجاح. انقر فوق حفظ التغييرات لحفظها.' : locale === 'en' ? 'Photo position adjusted. Click Save Changes to apply.' : 'Posisi foto disesuaikan. Klik Simpan Perubahan di bawah untuk menyimpan.');
   };
 
   const handleCropCancel = () => {
@@ -886,7 +886,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                         </p>
                         <p style={{ fontSize: "0.75rem", marginBottom: "20px" }}>
                           <Link href="/delete-account" target="_blank" style={{ color: "#f3ba2f", textDecoration: "underline" }}>
-                            Pelajari Kebijakan Penghapusan Data Lengkap &rarr;
+                            {locale === 'ar' ? 'اطلع على سياسة حذف البيانات الكاملة ←' : locale === 'en' ? 'Learn Full Data Deletion Policy →' : 'Pelajari Kebijakan Penghapusan Data Lengkap →'}
                           </Link>
                         </p>
                         {!showDeleteConfirm ? (

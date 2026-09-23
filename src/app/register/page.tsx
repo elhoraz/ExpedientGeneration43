@@ -74,7 +74,7 @@ function RegisterFormContent() {
   }, [otpCooldown]);
 
   const showToastAlert = (msg: any) => {
-    let text = "Pendaftaran gagal. Silakan coba lagi.";
+    let text = tLang.register_extra?.toast_reg_failed || "Pendaftaran gagal. Silakan coba lagi.";
     if (typeof msg === "string") {
       text = msg;
     } else if (msg && typeof msg.message === "string") {
@@ -83,7 +83,7 @@ function RegisterFormContent() {
       text = msg.error;
     }
     if (text === "[object Object]" || text.includes("[object Object]")) {
-      text = "Ukuran file atau data foto terlalu besar. Silakan gunakan foto lain yang lebih ringan.";
+      text = tLang.register_extra?.toast_photo_too_large || "Ukuran file atau data foto terlalu besar. Silakan gunakan foto lain yang lebih ringan.";
     }
     setToastMessage(text);
     setShowToast(true);
@@ -97,7 +97,7 @@ function RegisterFormContent() {
 
     if (errorMsg) {
       let text = errorMsg;
-      if (text === "[object Object]") text = "Terjadi kendala saat registrasi. Silakan ulangi.";
+      if (text === "[object Object]") text = tLang.register_extra?.toast_reg_failed || "Terjadi kendala saat registrasi. Silakan ulangi.";
       setToastMessage(text);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 6000);
@@ -541,7 +541,7 @@ function RegisterFormContent() {
         <div id="dynamicToast" className={`quantum-toast toast-error ${showToast ? 'show' : ''}`}>
           <div className="toast-icon"><i className="fa-solid fa-shield-virus"></i></div>
           <div style={{ transform: "translateZ(15px)" }}>
-            <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", letterSpacing: "1px" }}>Pemberitahuan</strong><br/>
+            <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", letterSpacing: "1px" }}>{tLang.register_extra?.toast_notification_title || "Pemberitahuan"}</strong><br/>
             <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>{toastMessage || errorMsg}</span>
           </div>
         </div>
@@ -585,14 +585,14 @@ function RegisterFormContent() {
                 <input type="text" name="nama_lengkap" className="input-control" required minLength={3} placeholder=" " />
                 <label className="input-label">{tLang.register.full_name_label}</label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint">Wajib diisi dengan benar.</div>
+                <div className="error-hint">{locale === "ar" ? "حقل إلزامي مطلوب." : locale === "en" ? "Required field." : "Wajib diisi dengan benar."}</div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="nama_panggilan" className="input-control" required minLength={2} placeholder=" " />
                 <label className="input-label">{tLang.register.nickname_label}</label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint">Wajib diisi dengan benar.</div>
+                <div className="error-hint">{locale === "ar" ? "حقل إلزامي مطلوب." : locale === "en" ? "Required field." : "Wajib diisi dengan benar."}</div>
               </div>
 
               <div className="input-group">
@@ -647,7 +647,7 @@ function RegisterFormContent() {
                 />
                 <label className="input-label">{tLang.register.whatsapp_label}</label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint">Format nomor salah. Wajib diawali 08 atau 628 dengan 10-14 digit angka.</div>
+                <div className="error-hint">{tLang.register_extra.whatsapp_format_error}</div>
               </div>
 
               <div className="input-group span-full has-requirements">
@@ -820,28 +820,28 @@ function RegisterFormContent() {
                 <div className="photo-guidelines-box">
                   <div className="photo-guide-header">
                     <i className="fa-solid fa-circle-info"></i>
-                    <span>Ketentuan & Petunjuk Unggah Pasfoto</span>
+                    <span>{tLang.register_extra.photo_guide_title}</span>
                   </div>
                   <div className="photo-guide-grid">
                     <div className="photo-guide-item">
                       <i className="fa-solid fa-file-image"></i>
                       <div>
-                        <strong>Format & Ukuran File</strong>
-                        <p>Mendukung JPG, JPEG, PNG, WEBP (Maksimal 15MB). Sistem otomatis mengompresi gambar tanpa mengurangi kualitas.</p>
+                        <strong>{tLang.register_extra.photo_format_title}</strong>
+                        <p>{tLang.register_extra.photo_format_desc}</p>
                       </div>
                     </div>
                     <div className="photo-guide-item">
                       <i className="fa-solid fa-user-check"></i>
                       <div>
-                        <strong>Kerapihan & Komposisi Pasfoto</strong>
-                        <p>Gunakan pasfoto sopan/formal, wajah menghadap depan, pencahayaan jelas tanpa kacamata hitam atau masker.</p>
+                        <strong>{tLang.register_extra.photo_neatness_title}</strong>
+                        <p>{tLang.register_extra.photo_neatness_desc}</p>
                       </div>
                     </div>
                     <div className="photo-guide-item">
                       <i className="fa-solid fa-crop-simple"></i>
                       <div>
-                        <strong>Pemotong Foto Otomatis (Rasio 1:1)</strong>
-                        <p>Setelah memilih foto, jendela pemotong foto akan muncul otomatis agar posisi wajah pas dan simetris.</p>
+                        <strong>{tLang.register_extra.photo_crop_title}</strong>
+                        <p>{tLang.register_extra.photo_crop_desc}</p>
                       </div>
                     </div>
                   </div>
@@ -877,7 +877,7 @@ function RegisterFormContent() {
         <ImageCropperModal
           isOpen={isCropperOpen}
           imageSrc={rawCropImage}
-          title="Sesuaikan Posisi Pasfoto (Rasio 1:1)"
+          title={tLang.register_extra.cropper_modal_title}
           aspectRatio={1}
           outputWidth={600}
           outputHeight={600}
@@ -891,7 +891,7 @@ function RegisterFormContent() {
       {/* OTP Verification Modal */}
       {isOtpModalOpen && (
         <div className="otp-modal-backdrop">
-          <div className="otp-modal-vault" role="dialog" aria-modal="true" aria-label="Verifikasi Kode Keamanan OTP">
+          <div className="otp-modal-vault" role="dialog" aria-modal="true" aria-label={tLang.register.otp_input_title}>
             <div className="otp-ambient-glow"></div>
 
             {/* STEP 1: PILIH METODE VERIFIKASI (GMAIL vs WHATSAPP) */}
@@ -923,7 +923,7 @@ function RegisterFormContent() {
                           {tLang.register.otp_recommended}
                         </span>
                       </div>
-                      <div className="channel-target">{registeredEmail || "Email Anda"}</div>
+                      <div className="channel-target">{registeredEmail || tLang.register.email_label}</div>
                     </div>
                     <div className="channel-arrow">
                       <i className="fa-solid fa-chevron-right"></i>
@@ -944,7 +944,7 @@ function RegisterFormContent() {
                       <div className="channel-name" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span>{tLang.register.otp_via_wa}</span>
                       </div>
-                      <div className="channel-target">{registeredWa || "Nomor WhatsApp Anda"}</div>
+                      <div className="channel-target">{registeredWa || tLang.register.whatsapp_label}</div>
                     </div>
                     <div className="channel-arrow">
                       <i className="fa-solid fa-chevron-right"></i>
@@ -980,7 +980,7 @@ function RegisterFormContent() {
                   <div className="otp-email-hint">
                     <i className="fa-solid fa-circle-info"></i>
                     <span>
-                      Belum menerima email di Kotak Masuk? Pastikan cek folder <strong>Spam</strong>, <strong>Junk</strong>, atau <strong>Promosi</strong> di Gmail Anda.
+                      {tLang.register_extra.otp_email_spam_hint}
                     </span>
                   </div>
                 )}
@@ -989,7 +989,7 @@ function RegisterFormContent() {
                   <div className="otp-email-hint">
                     <i className="fa-brands fa-whatsapp" style={{ color: "#25d366" }}></i>
                     <span>
-                      Kode OTP 6 digit telah dikirimkan ke nomor WhatsApp Anda. Silakan periksa pesan masuk di aplikasi WhatsApp Anda.
+                      {tLang.register_extra.otp_wa_hint}
                     </span>
                   </div>
                 )}
@@ -1039,7 +1039,7 @@ function RegisterFormContent() {
                 <div className="otp-resend-row">
                   {otpCooldown > 0 ? (
                     <span className="otp-cooldown-text">
-                      {tLang.register.otp_resend} dalam <strong>{otpCooldown}s</strong>
+                      {tLang.register_extra.otp_resend_cooldown} <strong>{otpCooldown}s</strong>
                     </span>
                   ) : (
                     <button
@@ -1070,7 +1070,7 @@ function RegisterFormContent() {
                       }}
                     >
                       <i className="fa-solid fa-envelope" style={{ marginRight: "5px" }}></i>
-                      Tidak menerima WhatsApp? Kirim via Email
+                      {tLang.register_extra.otp_no_wa_use_email}
                     </button>
                   </div>
                 )}

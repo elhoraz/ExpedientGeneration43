@@ -144,7 +144,9 @@ export default function AppMockupShowcase() {
                   <div className="screen-view screen-kta">
                     <div className="screen-header">
                       <span className="screen-title">SOVEREIGN CARD</span>
-                      <span className="screen-badge">ANGGOTA RESMI</span>
+                      <span className="screen-badge">
+                        {locale === "ar" ? "عضو رسمي" : locale === "en" ? "OFFICIAL MEMBER" : "ANGGOTA RESMI"}
+                      </span>
                     </div>
 
                     <div className="mock-card-card">
@@ -160,18 +162,22 @@ export default function AppMockupShowcase() {
                       <div className="mock-card-num">43.2026.001.088</div>
                       <div className="mock-card-footer">
                         <div>
-                          <span className="mock-lbl">NAMA SANTRI</span>
+                          <span className="mock-lbl">
+                            {locale === "ar" ? "اسم العضو" : locale === "en" ? "MEMBER NAME" : "NAMA SANTRI"}
+                          </span>
                           <span className="mock-val">AHMAD ARRISALAH</span>
                         </div>
                         <div>
-                          <span className="mock-lbl">ALMAMATER</span>
+                          <span className="mock-lbl">
+                            {locale === "ar" ? "المعهد" : locale === "en" ? "ALMAMATER" : "ALMAMATER"}
+                          </span>
                           <span className="mock-val">SLAHUNG</span>
                         </div>
                       </div>
                     </div>
 
                     <div className="mock-action-pill">
-                      <i className="fa-solid fa-qrcode"></i> Scan QR Verifikasi
+                      <i className="fa-solid fa-qrcode"></i> {locale === "ar" ? "مسح رمز التحقق" : locale === "en" ? "Scan QR Verification" : "Scan QR Verifikasi"}
                     </div>
                   </div>
                 )}
@@ -180,8 +186,10 @@ export default function AppMockupShowcase() {
                 {activeScreen === "quran" && (
                   <div className="screen-view screen-quran">
                     <div className="screen-header">
-                      <span className="screen-title">MUSHAF AL-HUFAZ</span>
-                      <span className="screen-badge">JUZ 1 • HAL 6</span>
+                      <span className="screen-title">{t.quran.tab_mushaf.toUpperCase()}</span>
+                      <span className="screen-badge">
+                        {locale === "ar" ? "الجزء ١ • ص ٦" : locale === "en" ? "JUZ 1 • PAGE 6" : "JUZ 1 • HAL 6"}
+                      </span>
                     </div>
 
                     <div className="mock-mushaf-sheet">
@@ -216,8 +224,12 @@ export default function AppMockupShowcase() {
                 {activeScreen === "radar" && (
                   <div className="screen-view screen-radar">
                     <div className="screen-header">
-                      <span className="screen-title">RADAR GEOSPASIAL</span>
-                      <span className="screen-badge">LIVE SATELLITE</span>
+                      <span className="screen-title">
+                        {locale === "ar" ? "رادار الخريجين" : locale === "en" ? "GEOSPATIAL RADAR" : "RADAR GEOSPASIAL"}
+                      </span>
+                      <span className="screen-badge">
+                        {locale === "ar" ? "قمر صناعي حي" : locale === "en" ? "LIVE SATELLITE" : "LIVE SATELLITE"}
+                      </span>
                     </div>
 
                     <div className="mock-radar-map">
@@ -227,13 +239,13 @@ export default function AppMockupShowcase() {
                       <div className="radar-pin p-center" title="Slahung Ponorogo">
                         <i className="fa-solid fa-kaaba"></i>
                       </div>
-                      <div className="radar-pin p-egypt" title="Kairo, Mesir">
+                      <div className="radar-pin p-egypt" title={locale === "ar" ? "القاهرة، مصر" : locale === "en" ? "Cairo, Egypt" : "Kairo, Mesir"}>
                         <span className="pin-dot"></span>
                       </div>
-                      <div className="radar-pin p-jkt" title="Jakarta">
+                      <div className="radar-pin p-jkt" title={locale === "ar" ? "جاكرتا" : "Jakarta"}>
                         <span className="pin-dot"></span>
                       </div>
-                      <div className="radar-pin p-sby" title="Surabaya">
+                      <div className="radar-pin p-sby" title={locale === "ar" ? "سورابايا" : "Surabaya"}>
                         <span className="pin-dot"></span>
                       </div>
                     </div>
@@ -241,15 +253,15 @@ export default function AppMockupShowcase() {
                     <div className="mock-radar-stats">
                       <div>
                         <strong>142</strong>
-                        <span>Terhubung</span>
+                        <span>{locale === "ar" ? "متصل" : locale === "en" ? "Connected" : "Terhubung"}</span>
                       </div>
                       <div>
                         <strong>18</strong>
-                        <span>Provinsi</span>
+                        <span>{locale === "ar" ? "محافظة" : locale === "en" ? "Provinces" : "Provinsi"}</span>
                       </div>
                       <div>
                         <strong>6</strong>
-                        <span>Negara</span>
+                        <span>{locale === "ar" ? "دول" : locale === "en" ? "Countries" : "Negara"}</span>
                       </div>
                     </div>
                   </div>

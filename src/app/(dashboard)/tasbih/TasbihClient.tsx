@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./tasbih.css";
@@ -81,10 +81,56 @@ const DZIKIR_LIST: DzikirItem[] = [
   },
 ];
 
+const DZIKIR_I18N: Record<
+  string,
+  { id: { name: string; meaning: string }; en: { name: string; meaning: string }; ar: { name: string; meaning: string } }
+> = {
+  tasbih: {
+    id: { name: "Subhanallah", meaning: "Maha Suci Allah dari segala kekurangan dan kesyirikan." },
+    en: { name: "Subhanallah", meaning: "Glory be to Allah, free from all imperfections." },
+    ar: { name: "سبحان الله", meaning: "تنزيه الله تعالى عن كل نقص وعيب وشريك." },
+  },
+  tahmid: {
+    id: { name: "Alhamdulillah", meaning: "Segala puji hanya bagi Allah, Rabb semesta alam." },
+    en: { name: "Alhamdulillah", meaning: "All praise belongs to Allah, Lord of all creation." },
+    ar: { name: "الحمد لله", meaning: "الثناء التام على الله بجميل صفاته ونعمه التي لا تحصى." },
+  },
+  takbir: {
+    id: { name: "Allahu Akbar", meaning: "Allah Maha Besar di atas segala sesuatu di langit dan bumi." },
+    en: { name: "Allahu Akbar", meaning: "Allah is the Greatest, above all things in existence." },
+    ar: { name: "الله أكبر", meaning: "الله أعظم وأجلّ وأكبر من كل شيء في السماوات والأرض." },
+  },
+  tahlil: {
+    id: { name: "Tahlil", meaning: "Tiada Tuhan yang berhak disembah selain Allah." },
+    en: { name: "Tahlil", meaning: "There is no true deity worthy of worship except Allah." },
+    ar: { name: "التهليل", meaning: "لا إله إلا الله، كلمة الإخلاص والتوحيد الخالص لله وحده." },
+  },
+  istighfar: {
+    id: { name: "Istighfar", meaning: "Aku memohon ampun kepada Allah dan bertaubat kepada-Nya." },
+    en: { name: "Istighfar", meaning: "I seek forgiveness from Allah and turn to Him in repentance." },
+    ar: { name: "الاستغفار", meaning: "طلب المغفرة والصفح من الله تعالى والتوبة الصادقة إليه." },
+  },
+  shalawat: {
+    id: { name: "Shalawat", meaning: "Ya Allah, limpahkanlah shalawat dan salam kepada junjungan kami Nabi Muhammad." },
+    en: { name: "Salawat", meaning: "O Allah, bestow blessings and peace upon our Master Muhammad." },
+    ar: { name: "الصلاة على النبي", meaning: "اللهم صلِّ وسلِّم وبارك على سيدنا وحبيبنا محمد وعلى آله وصحبه." },
+  },
+  hauqalah: {
+    id: { name: "Hauqalah", meaning: "Tiada daya untuk menjauhi maksiat dan tiada kekuatan untuk taat melainkan dengan pertolongan Allah." },
+    en: { name: "Hawqalah", meaning: "There is no power nor might except with Allah." },
+    ar: { name: "الحوقلة", meaning: "لا حول ولا قوة إلا بالله، براءة من الحول والقوة إلا بحول الله وقوته." },
+  },
+  sayyidul: {
+    id: { name: "Sayyidul Istighfar", meaning: "Puncak permohonan ampunan yang menjamin keselamatan dunia dan akhirat." },
+    en: { name: "Chief of Repentance", meaning: "The supreme prayer of seeking forgiveness guaranteeing eternal salvation." },
+    ar: { name: "سيد الاستغفار", meaning: "أعظم صيغ الاستغفار الجامعة لكل معاني الخضوع والافتقار لله تعالى." },
+  },
+};
+
 const TOTAL_BEADS = 33;
 
 export default function TasbihClient() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [selectedDzikir, setSelectedDzikir] = useState<DzikirItem>(DZIKIR_LIST[0]);
   const [count, setCount] = useState<number>(0);
   const [target, setTarget] = useState<number>(33);
@@ -93,6 +139,22 @@ export default function TasbihClient() {
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [hapticEnabled, setHapticEnabled] = useState<boolean>(true);
   const [isFlashing, setIsFlashing] = useState<boolean>(false);
+
+  const localizedDzikirList = useMemo(() => {
+    return DZIKIR_LIST.map((item) => {
+      const trans = DZIKIR_I18N[item.id]?.[locale] || DZIKIR_I18N[item.id]?.["id"];
+      return {
+        ...item,
+        name: trans?.name || item.name,
+        meaning: trans?.meaning || item.meaning,
+      };
+    });
+  }, [locale]);
+
+  const currentDzikir = useMemo(() => {
+    const found = localizedDzikirList.find((x) => x.id === selectedDzikir.id);
+    return found || selectedDzikir;
+  }, [localizedDzikirList, selectedDzikir]);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
 
@@ -236,14 +298,14 @@ export default function TasbihClient() {
         {/* Header */}
         <div className="tasbih-header-box">
           <div className="tasbih-badge-sup">
-            <i className="fa-solid fa-gem"></i> Tasbih Mutiara Haptic
+            <i className="fa-solid fa-gem"></i> {locale === "ar" ? "سبحة اللؤلؤ بالاهتزاز اللمسي" : locale === "en" ? "Haptic Pearl Tasbih" : "Tasbih Mutiara Haptic"}
           </div>
           <h1 className="tasbih-title">{t.tasbih.title}</h1>
         </div>
 
         {/* Dzikir Selection Scroll */}
         <div className="tasbih-dzikir-scroll">
-          {DZIKIR_LIST.map((item) => (
+          {localizedDzikirList.map((item) => (
             <button
               key={item.id}
               type="button"
@@ -257,16 +319,16 @@ export default function TasbihClient() {
 
         {/* Active Dzikir Showcase Card */}
         <div className="tasbih-recite-card">
-          <div className="recite-arabic">{selectedDzikir.arabic}</div>
-          <div className="recite-latin">&ldquo;{selectedDzikir.latin}&rdquo;</div>
-          <div className="recite-meaning">{selectedDzikir.meaning}</div>
+          <div className="recite-arabic">{currentDzikir.arabic}</div>
+          <div className="recite-latin">&ldquo;{currentDzikir.latin}&rdquo;</div>
+          <div className="recite-meaning">{currentDzikir.meaning}</div>
         </div>
 
         {/* Target & Toggles Bar */}
         <div className="tasbih-controls-bar">
           <div className="target-pills">
             <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginRight: "4px" }}>
-              Target:
+              {t.tasbih.target_label}:
             </span>
             {[33, 99, 100, 0].map((val) => (
               <button
@@ -278,7 +340,7 @@ export default function TasbihClient() {
                   setCount(0);
                 }}
               >
-                {val === 0 ? "Bebas" : val}
+                {val === 0 ? t.tasbih.beads_remaining : val}
               </button>
             ))}
           </div>
@@ -288,7 +350,7 @@ export default function TasbihClient() {
               type="button"
               className={`btn-toggle-round ${soundEnabled ? "active" : ""}`}
               onClick={() => setSoundEnabled(!soundEnabled)}
-              title={soundEnabled ? "Suara Aktif" : "Suara Senyap"}
+              title={soundEnabled ? (locale === "ar" ? "الصوت مفعّل" : locale === "en" ? "Sound Enabled" : "Suara Aktif") : (locale === "ar" ? "الصوت مكتوم" : locale === "en" ? "Muted" : "Suara Senyap")}
             >
               <i className={`fa-solid ${soundEnabled ? "fa-volume-high" : "fa-volume-xmark"}`}></i>
             </button>
@@ -297,7 +359,7 @@ export default function TasbihClient() {
               type="button"
               className={`btn-toggle-round ${hapticEnabled ? "active" : ""}`}
               onClick={() => setHapticEnabled(!hapticEnabled)}
-              title={hapticEnabled ? "Getar Haptic Aktif" : "Getar Nonaktif"}
+              title={hapticEnabled ? (locale === "ar" ? "الاهتزاز اللمسي مفعّل" : locale === "en" ? "Haptic Feedback Enabled" : "Getar Haptic Aktif") : (locale === "ar" ? "الاهتزاز متوقف" : locale === "en" ? "Haptic Disabled" : "Getar Nonaktif")}
             >
               <i className="fa-solid fa-mobile-screen"></i>
             </button>
@@ -332,14 +394,18 @@ export default function TasbihClient() {
             type="button"
             className={`tasbih-tap-dial ${isFlashing ? "milestone-flash" : ""}`}
             onClick={handleTap}
-            aria-label="Sentuh untuk berdzikir"
+            aria-label={locale === "ar" ? "انقر للتسبيح" : locale === "en" ? "Tap to count dhikr" : "Sentuh untuk berdzikir"}
           >
             <div className="counter-num">{count}</div>
             <div className="counter-target-lbl">
-              {target > 0 ? `/ ${target}` : "Bebas"}
+              {target > 0 ? `/ ${target}` : t.tasbih.beads_remaining}
             </div>
-            {target > 0 && <div className="counter-round-lbl">Putaran ke-{round}</div>}
-            <span className="counter-tap-hint">Sentuh</span>
+            {target > 0 && (
+              <div className="counter-round-lbl">
+                {locale === "ar" ? `الدورة ${round}` : locale === "en" ? `Round ${round}` : `${t.tasbih.round_label}-${round}`}
+              </div>
+            )}
+            <span className="counter-tap-hint">{t.tasbih.tap_count}</span>
           </button>
         </div>
 
@@ -356,7 +422,7 @@ export default function TasbihClient() {
           </button>
 
           <div className="tasbih-total-badge">
-            <i className="fa-solid fa-seedling"></i> Total Sesi: {totalDzikir.toLocaleString("id-ID")}
+            <i className="fa-solid fa-seedling"></i> {t.tasbih.total_lifetime}: {totalDzikir.toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")}
           </div>
 
           <button
@@ -364,7 +430,7 @@ export default function TasbihClient() {
             className="btn-tasbih-action danger"
             onClick={handleReset}
           >
-            <i className="fa-solid fa-arrow-rotate-right"></i> Reset
+            <i className="fa-solid fa-arrow-rotate-right"></i> {t.tasbih.reset_btn}
           </button>
         </div>
       </div>

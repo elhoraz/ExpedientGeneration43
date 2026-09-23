@@ -18,69 +18,21 @@ interface TimelineEra {
   icon: string;
 }
 
-const HISTORICAL_ERAS: TimelineEra[] = [
-  {
-    year: "1982 - 1985",
-    badge: "FASE PERINTISAN & PERESMIAN MADINATUL THULLAB",
-    title: "Lahirnya Cahaya di Bumi Slahung",
-    subtitle: "Dirintis Drs. KH. Muhammad Ma'shum Yusuf & Diresmikan KH. Imam Zarkasyi",
-    desc: [
-      "Mulai dirintis pada tahun 1982 oleh Drs. KH. Muhammad Ma'shum Yusuf bin Taslim (alumnus KMI Gontor dan mantan sekretaris pribadi KH. Imam Zarkasyi) di Desa Gundik, Kecamatan Slahung, Ponorogo.",
-      "Awalnya mendidik anak-anak putus sekolah dan dhuafa, resmi dibuka pada 1 Muharram 1403 H (18 Oktober 1982), dan diresmikan langsung oleh KH. Imam Zarkasyi (Trimurti Pendiri Pondok Modern Darussalam Gontor) pada 26 Februari 1985 dengan nama awal 'Madinatul Thullab' (Kota Santri).",
-    ],
-    keyFigures: "Drs. KH. Muhammad Ma'shum Yusuf bin Taslim & KH. Imam Zarkasyi",
-    location: "Desa Gundik, Slahung, Ponorogo",
-    highlights: ["1 Muharram 1403 H (1982)", "Diresmikan KH. Imam Zarkasyi 1985", "Awal Bernama Madinatul Thullab"],
-    icon: "fa-solid fa-seedling",
-  },
-  {
-    year: "1990 - 2000",
-    badge: "FASE KULLIYYATUL MU'ALLIMIN AL-ISLAMIYYAH (KMI)",
-    title: "Kurikulum Terpadu & Program Internasional",
-    subtitle: "Penerapan Disiplin Total 24 Jam Bahasa Arab & Inggris",
-    desc: [
-      "Mengadopsi sistem KMI yang memadukan kedalaman ilmu agama (turats) dan keunggulan sains modern, disertai kewajiban disiplin 24 jam berbicara bahasa resmi Arab dan Inggris.",
-      "Pondok berganti nama dan berkembang menjadi Pondok Modern Arrisalah Program Internasional, mencetak kader ulama intelek yang mandiri dan berwawasan luas.",
-    ],
-    keyFigures: "KH. Muhammad Ma'shum Yusuf & Dewan Guru KMI Arrisalah",
-    location: "Kampus Putra & Putri Gundik Slahung",
-    highlights: ["Dwibahasa 24 Jam", "Program Internasional", "Panca Jiwa & Khutbatu-l-'Arsy"],
-    icon: "fa-solid fa-book-quran",
-  },
-  {
-    year: "2000 - 2020",
-    badge: "FASE EKSPANSI SARANA & ESTAFET KEPEMIMPINAN",
-    title: "Pembangunan Kampus & Khidmat Penuh Keikhlasan",
-    subtitle: "38 Tahun Pengabdian Sang Pendiri & Regenerasi Pimpinan",
-    desc: [
-      "Pembangunan Masjid Jami' Arrisalah, asrama bertingkat, laboratorium bahasa & sains, serta perluasan jenjang pendidikan dari dasar hingga KMI setingkat Aliyah.",
-      "Setelah 38 tahun berkhidmat tulus mendidik umat, sang perintis Drs. KH. Muhammad Ma'shum Yusuf berpulang ke rahmatullah pada 18 Juli 2020. Estafet kepengasuhan dilanjutkan penuh amanah oleh putra sulung beliau, KH. Muhammad Azharullah, Lc.",
-    ],
-    keyFigures: "Alm. Drs. KH. Muhammad Ma'shum Yusuf & KH. Muhammad Azharullah, Lc.",
-    location: "Kampus Terpadu Arrisalah Slahung",
-    highlights: ["Masjid Jami' Arrisalah", "Dedikasi 38 Tahun Sang Pendiri", "Estafet KH. Muhammad Azharullah, Lc."],
-    icon: "fa-solid fa-mosque",
-  },
-  {
-    year: "2020 - 2026",
-    badge: "FASE ANGKATAN 43 'EXPEDIENT GENERATION'",
-    title: "The Successor of Islamic Glory",
-    subtitle: "Panggung Gembira 643 Akbar (18 Juli 2024) & Ekosistem Digital",
-    desc: [
-      "Santri angkatan ke-43 menorehkan tinta emas melalui mahakarya seni akbar Panggung Gembira 643 'Expedient Generation' pada 18 Juli 2024 yang menampilkan Reog Ponorogo, Drama Perjuangan Buya Hamka, dan musikal santri mandiri.",
-      "Melalui akun resmi Instagram @expedientgeneration_ dengan semboyan 'The Successor of Islamic Glory', alumni angkatan 43 terus merawat ukhuwah abadi dan meluncurkan portal alumni terpadu.",
-    ],
-    keyFigures: "KH. Muhammad Azharullah, Lc. & Santri Angkatan 43 (@expedientgeneration_)",
-    location: "Pondok Modern Arrisalah Slahung",
-    highlights: ["Panggung Gembira 643 (18 Juli 2024)", "The Successor of Islamic Glory", "Instagram @expedientgeneration_"],
-    icon: "fa-solid fa-certificate",
-  },
+const ERA_ICONS = [
+  "fa-solid fa-seedling",
+  "fa-solid fa-book-quran",
+  "fa-solid fa-mosque",
+  "fa-solid fa-certificate",
 ];
 
 export default function HistoryTimeline() {
   const { t } = useLanguage();
   const [activeIdx, setActiveIdx] = useState(0);
-  const active = HISTORICAL_ERAS[activeIdx];
+  const eras = (t.history_era_items && t.history_era_items.length > 0 ? t.history_era_items : []).map((era, i) => ({
+    ...era,
+    icon: ERA_ICONS[i % ERA_ICONS.length],
+  }));
+  const active = eras[activeIdx] || eras[0];
 
   return (
     <section className="history-section" id="sejarah">
@@ -99,7 +51,7 @@ export default function HistoryTimeline() {
 
       {/* Interactive Year Selector Tabs */}
       <div className="history-tabs-track">
-        {HISTORICAL_ERAS.map((era, idx) => (
+        {eras.map((era, idx) => (
           <button
             key={era.year}
             type="button"

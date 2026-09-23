@@ -215,14 +215,14 @@ export default function BerandaClient({
         body: JSON.stringify({ nama, message: pesan })
       });
       if (res.ok) {
-        await showAlert("Berhasil", "Pesan berhasil dikirim!");
+        await showAlert(tLang.common.success, tLang.beranda.toast_sent_success || tLang.common.success);
         // Reload to show new message or handle optimism
         window.location.reload();
       } else {
-        await showAlert("Gagal", "Gagal mengirim pesan.");
+        await showAlert(tLang.common.error, tLang.common.error);
       }
     } catch (err) {
-      await showAlert("Gagal", "Terjadi kesalahan.");
+      await showAlert(tLang.common.error, tLang.common.error);
     }
   };
 
@@ -273,8 +273,8 @@ export default function BerandaClient({
 
       <div className="phil-modal" id="philModal">
           <div className="phil-content">
-              <h2 className="phil-title" id="modalTitle">Judul</h2>
-              <p className="phil-desc" id="modalDesc">Deskripsi filosofi.</p>
+              <h2 className="phil-title" id="modalTitle">{tLang.beranda_extra.panca_jiwa_modal_title}</h2>
+              <p className="phil-desc" id="modalDesc"></p>
               <button className="btn-mecha hover-trigger" style={{ marginTop: '25px', padding: '10px 25px', fontSize: '0.8rem' }} onClick={closeModal}>{tLang.common.close.toUpperCase()}</button>
           </div>
       </div>
@@ -335,20 +335,20 @@ export default function BerandaClient({
                           </div>
                           <div>
                               <div style={{ fontSize: '0.72rem', letterSpacing: '2px', color: 'var(--gold-main)', textTransform: 'uppercase', fontWeight: 700 }}>
-                                  Sinergi Spiritual
+                                  {tLang.beranda_extra.spiritual_synergy}
                               </div>
                               <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'var(--text-primary)' }}>
-                                  Khatam Bersama Real-Time
+                                  {tLang.beranda_extra.khatam_realtime_title}
                               </h3>
                           </div>
                       </div>
                       <Link href="/quran?tab=khataman" className="btn-stamp" style={{ padding: '8px 20px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <span>Buka Papan 30 Juz</span>
+                          <span>{tLang.beranda_extra.khatam_board_btn}</span>
                           <i className="fa-solid fa-arrow-right"></i>
                       </Link>
                   </div>
                   <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                      Gerakan One Member One Juz — Mari bersama-sama menuntaskan 30 Juz Al-Qur&apos;an secara serentak demi keberkahan dan kejayaan keluarga besar Expedient Generation 43.
+                      {tLang.beranda_extra.khatam_movement_desc}
                   </p>
               </div>
           </section>
@@ -362,13 +362,13 @@ export default function BerandaClient({
               <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_manuskrip_title', tLang.beranda.manuskrip_title) : tLang.beranda.manuskrip_title}</h2>
               <div className="news-list">
                   <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('visi')} style={{ cursor: 'pointer' }}>
-                      <span className="news-date">30 MARET 2026</span>
-                      <h3 className="news-title">Penetapan Visi Angkatan</h3>
+                      <span className="news-date">{tLang.beranda_extra.archive_date_visi}</span>
+                      <h3 className="news-title">{tLang.beranda_extra.archive_title_visi}</h3>
                       <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
                   </article>
                   <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('simpul')} style={{ cursor: 'pointer' }}>
-                      <span className="news-date">15 FEBRUARI 2026</span>
-                      <h3 className="news-title">Simpul Kesucian: Menjaga Nilai-Nilai Arrisalah</h3>
+                      <span className="news-date">{tLang.beranda_extra.archive_date_simpul}</span>
+                      <h3 className="news-title">{tLang.beranda_extra.archive_title_simpul}</h3>
                       <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
                   </article>
               </div>
@@ -440,7 +440,7 @@ export default function BerandaClient({
                                       </div>
                                   </div>
                                   <div className="leaderboard-score">
-                                      {new Intl.NumberFormat('id-ID').format(l.prestise_points || 0)}
+                                      {new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID').format(l.prestise_points || 0)}
                                   </div>
                               </div>
                           );
@@ -463,8 +463,8 @@ export default function BerandaClient({
           <div className="jiwa-modal" id="jiwaModal">
               <div className="jiwa-anim-container" id="jiwaAnimContainer"></div>
               <div className="jiwa-content" id="jiwaContent">
-                  <h2 className="jiwa-title" id="jiwaTitle">Judul</h2>
-                  <div className="jiwa-desc" id="jiwaDesc">Penjelasan...</div>
+                  <h2 className="jiwa-title" id="jiwaTitle">{tLang.beranda_extra.panca_jiwa_modal_title}</h2>
+                  <div className="jiwa-desc" id="jiwaDesc">{tLang.beranda.close_explanation}</div>
                   <button className="btn-stamp" style={{ marginTop: '30px', fontSize: '0.8rem', padding: '10px 20px' }} onClick={() => (window as any).closeJiwa?.()}>{tLang.beranda.close_explanation}</button>
               </div>
           </div>
@@ -525,7 +525,7 @@ export default function BerandaClient({
                               <div className="guestbook-item" key={idx}>
                                   <div className="guestbook-name">{bt.nama}</div>
                                   <div className="guestbook-msg">"{bt.pesan}"</div>
-                                  <div className="guestbook-date">{new Date(bt.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                                  <div className="guestbook-date">{new Date(bt.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                               </div>
                           ))}
                       </div>

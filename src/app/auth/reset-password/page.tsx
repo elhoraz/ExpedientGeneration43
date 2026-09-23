@@ -42,24 +42,19 @@ export default function ResetPasswordPage() {
     setTimeout(() => setToastData(null), 5000);
   };
 
-  useEffect(() => {
-    // Supabase will automatically handle the token from the URL hash
-    // when the page loads via the email reset link
-  }, []);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     if (newPassword.length < 8) {
-      showToast("Gagal", "Kata sandi baru minimal 8 karakter.", true);
+      showToast(t.common.error, t.reset_password.toast_min_length, true);
       setLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      showToast("Gagal", "Konfirmasi kata sandi tidak cocok.", true);
+      showToast(t.common.error, t.reset_password.toast_mismatch, true);
       setLoading(false);
       return;
     }
@@ -69,7 +64,7 @@ export default function ResetPasswordPage() {
     });
 
     if (updateError) {
-      showToast("Gagal", updateError.message, true);
+      showToast(t.common.error, updateError.message, true);
       setLoading(false);
       return;
     }
@@ -121,9 +116,7 @@ export default function ResetPasswordPage() {
             </div>
             <div className="subtitle-spec">Expedient Generation</div>
             <h1 className="title-holo" style={{ fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>
-              {success
-                ? (locale === "ar" ? "تم استعادة كلمة المرور" : locale === "en" ? "Password Reset" : "Sandi Dipulihkan")
-                : (locale === "ar" ? "تعيين كلمة مرور جديدة" : locale === "en" ? "Set New Password" : "Atur Sandi Baru")}
+              {t.reset_password.title}
             </h1>
           </div>
 
@@ -133,16 +126,16 @@ export default function ResetPasswordPage() {
                 <i className="fa-solid fa-check-circle"></i>
               </div>
               <p style={{ color: "var(--text-primary, #fff)", fontSize: "0.95rem", fontWeight: 600, marginBottom: "10px" }}>
-                {locale === "ar" ? "تم تحديث كلمة المرور بنجاح!" : locale === "en" ? "Password updated successfully!" : "Kata sandi berhasil diperbarui!"}
+                {t.reset_password.toast_success}
               </p>
               <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7 }}>
-                {locale === "ar" ? "سيتم توجيهك إلى الصفحة الرئيسية خلال لحظات..." : locale === "en" ? "Redirecting to home page shortly..." : "Anda akan dialihkan ke beranda dalam beberapa detik..."}
+                {t.reset_password.toast_redirecting}
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "25px", textAlign: "center" }}>
-                {locale === "ar" ? "أدخل كلمة المرور الجديدة. يجب أن تتكون من 8 أحرف على الأقل." : locale === "en" ? "Enter your new password. Must be at least 8 characters." : "Masukkan kata sandi baru Anda. Pastikan minimal 8 karakter."}
+                {t.reset_password.subtitle}
               </p>
 
               <div className="input-group">
@@ -156,7 +149,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
                 <label className="input-label">
-                  {locale === "ar" ? "كلمة المرور الجديدة" : locale === "en" ? "New Password" : "Kata Sandi Baru"}
+                  {t.reset_password.new_password_label}
                 </label>
                 <div className="input-neon-line"></div>
                 <i
@@ -176,7 +169,7 @@ export default function ResetPasswordPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
                 <label className="input-label">
-                  {locale === "ar" ? "تأكيد كلمة المرور" : locale === "en" ? "Confirm Password" : "Konfirmasi Kata Sandi"}
+                  {t.reset_password.confirm_password_label}
                 </label>
                 <div className="input-neon-line"></div>
               </div>
@@ -185,10 +178,10 @@ export default function ResetPasswordPage() {
                 <div className="magnetic-wrap">
                   <button type="submit" className="btn-prime magnetic-btn" disabled={loading}>
                     {loading ? (
-                      <><i className="fa-solid fa-circle-notch fa-spin"></i> {t.common.loading}</>
+                      <><i className="fa-solid fa-circle-notch fa-spin"></i> {t.reset_password.btn_submitting}</>
                     ) : (
                       <>
-                        {locale === "ar" ? "تحديث كلمة المرور" : locale === "en" ? "Update Password" : "Perbarui Kata Sandi"}{" "}
+                        {t.reset_password.btn_submit}{" "}
                         <i className="fa-solid fa-shield-halved" style={{ marginInlineStart: "6px" }}></i>
                       </>
                     )}
@@ -201,7 +194,7 @@ export default function ResetPasswordPage() {
           <div className="register-link" style={{ marginTop: "20px" }}>
             <Link href="/login">
               <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} style={{ marginInlineEnd: "6px" }}></i>
-              {locale === "ar" ? "العودة إلى بوابة الدخول" : locale === "en" ? "Back to Portal" : "Kembali ke Portal Utama"}
+              {t.reset_password.back_to_login}
             </Link>
           </div>
         </div>

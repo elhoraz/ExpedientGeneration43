@@ -84,12 +84,12 @@ export default function FiturClient({
 
   // Desktop Categories
   const CATEGORIES = [
-    { id: "all", label: "Semua Fasilitas", icon: "fa-solid fa-layer-group" },
-    { id: "social", label: "Sosial & Alumni", icon: "fa-solid fa-users" },
-    { id: "kas", label: "Kas & Baitul Maal", icon: "fa-solid fa-hand-holding-dollar" },
-    { id: "media", label: "Media & Kenangan", icon: "fa-solid fa-camera-retro" },
-    { id: "spiritual", label: "Spiritual & Hikmah", icon: "fa-solid fa-kaaba" },
-    { id: "explore", label: "Eksplorasi & Arsip", icon: "fa-solid fa-compass" },
+    { id: "all", label: t.fitur.cat_all, icon: "fa-solid fa-layer-group" },
+    { id: "social", label: t.fitur.cat_social, icon: "fa-solid fa-users" },
+    { id: "kas", label: t.fitur.cat_kas, icon: "fa-solid fa-hand-holding-dollar" },
+    { id: "media", label: t.fitur.cat_media, icon: "fa-solid fa-camera-retro" },
+    { id: "spiritual", label: t.fitur.cat_spiritual, icon: "fa-solid fa-kaaba" },
+    { id: "explore", label: t.fitur.cat_explore, icon: "fa-solid fa-compass" },
   ];
 
   // Full Feature List for Desktop
@@ -129,23 +129,23 @@ export default function FiturClient({
     {
       id: "chat",
       category: "social",
-      title: "Ruang Obrolan Alumni",
-      desc: "Bilik silaturahmi langsung antar alumni angkatan, koordinasi kegiatan, dan obrolan santai.",
+      title: t.fitur.quick_chat_title,
+      desc: t.fitur.quick_chat_desc,
       href: "/chat",
       icon: "fa-comments",
       bg: "https://images.unsplash.com/photo-1577563908411-5077b6dc7624?q=80&w=2670&auto=format&fit=crop",
-      btnText: "Buka Obrolan",
+      btnText: t.fitur.quick_chat_btn,
       badge: "Real-time",
     },
     {
       id: "direktori",
       category: "social",
-      title: "Direktori Angkatan",
-      desc: "Buku induk digital kontak alumni, domisili, profil lengkap, dan sebaran karir sahabat seangkatan.",
+      title: t.fitur.quick_dir_title,
+      desc: t.fitur.quick_dir_desc,
       href: "/direktori",
       icon: "fa-address-book",
       bg: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=2670&auto=format&fit=crop",
-      btnText: "Buka Direktori",
+      btnText: t.fitur.quick_dir_btn,
     },
     {
       id: "baitul-maal",
@@ -241,23 +241,23 @@ export default function FiturClient({
     {
       id: "khatam",
       category: "spiritual",
-      title: "Khatam Bersama Real-Time",
-      desc: "Papan pembagian 30 Juz Al-Qur'an terintegrasi. Klaim juz, catat progres tadarus, dan raih berkah khataman angkatan.",
+      title: t.fitur.quick_khatam_title,
+      desc: t.fitur.quick_khatam_desc,
       href: "/quran?tab=khataman",
       icon: "fa-book-quran",
       bg: "https://images.unsplash.com/photo-1584281722572-c284fc5fcefa?q=80&w=2670&auto=format&fit=crop",
-      btnText: "Buka Khataman",
+      btnText: t.fitur.quick_khatam_btn,
       badge: "Live Tracker",
     },
     {
       id: "kiblat",
       category: "spiritual",
-      title: "Astrolabe Kiblat & Waktu Sholat",
-      desc: "Kompas penunjuk arah Ka'bah interaktif bergaya astrolabe emas klasik dan jadwal sholat akurat metode Kemenag RI.",
+      title: t.fitur.quick_kiblat_title,
+      desc: t.fitur.quick_kiblat_desc,
       href: "/kiblat",
       icon: "fa-compass",
       bg: "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=2574&auto=format&fit=crop",
-      btnText: "Buka Astrolabe",
+      btnText: t.fitur.quick_kiblat_btn,
       badge: "Kompas GPS",
     },
     {
@@ -396,34 +396,34 @@ export default function FiturClient({
   // Mini App Drawer items for mobile launcher
   const MINI_APPS = [
     { href: "/sovereign", name: "KTA 3D", icon: "fa-id-card", color: "#ffd700", bg: "rgba(212,175,55,0.18)" },
-    { href: "/scanner", name: "Pindai QR", icon: "fa-qrcode", color: "#00d2ff", bg: "rgba(0,210,255,0.18)" },
-    { href: "/baitul-maal", name: "Baitul Maal", icon: "fa-hand-holding-dollar", color: "#25d366", bg: "rgba(37,211,102,0.18)" },
-    { href: "/chat", name: "Obrolan", icon: "fa-comments", color: "#a855f7", bg: "rgba(168,85,247,0.18)" },
-    { href: "/direktori", name: "Direktori", icon: "fa-address-book", color: "#f59e0b", bg: "rgba(245,158,11,0.18)" },
-    { href: "/galeri", name: "Galeri", icon: "fa-images", color: "#ec4899", bg: "rgba(236,72,153,0.18)" },
-    { href: "/photobooth", name: "Photobooth", icon: "fa-camera-retro", color: "#f43f5e", bg: "rgba(244,63,94,0.18)" },
-    { href: "/event", name: "Agenda", icon: "fa-calendar-days", color: "#3b82f6", bg: "rgba(59,130,246,0.18)" },
-    { href: "/wasiat", name: "Wasiat", icon: "fa-scroll", color: "#eab308", bg: "rgba(234,179,8,0.18)" },
-    { href: "/majlis", name: "Majlis", icon: "fa-microphone-lines", color: "#10b981", bg: "rgba(16,185,129,0.18)" },
-    { href: "/tarbiyah", name: "Karir", icon: "fa-handshake-angle", color: "#06b6d4", bg: "rgba(6,182,212,0.18)" },
+    { href: "/scanner", name: t.fitur.scanner_btn, icon: "fa-qrcode", color: "#00d2ff", bg: "rgba(0,210,255,0.18)" },
+    { href: "/baitul-maal", name: t.fitur.launcher_baitul, icon: "fa-hand-holding-dollar", color: "#25d366", bg: "rgba(37,211,102,0.18)" },
+    { href: "/chat", name: t.fitur.launcher_chat, icon: "fa-comments", color: "#a855f7", bg: "rgba(168,85,247,0.18)" },
+    { href: "/direktori", name: t.fitur.launcher_direktori, icon: "fa-address-book", color: "#f59e0b", bg: "rgba(245,158,11,0.18)" },
+    { href: "/galeri", name: t.fitur.launcher_galeri, icon: "fa-images", color: "#ec4899", bg: "rgba(236,72,153,0.18)" },
+    { href: "/photobooth", name: t.fitur.launcher_photobooth, icon: "fa-camera-retro", color: "#f43f5e", bg: "rgba(244,63,94,0.18)" },
+    { href: "/event", name: t.fitur.launcher_event, icon: "fa-calendar-days", color: "#3b82f6", bg: "rgba(59,130,246,0.18)" },
+    { href: "/wasiat", name: t.fitur.launcher_wasiat, icon: "fa-scroll", color: "#eab308", bg: "rgba(234,179,8,0.18)" },
+    { href: "/majlis", name: t.fitur.launcher_majlis, icon: "fa-microphone-lines", color: "#10b981", bg: "rgba(16,185,129,0.18)" },
+    { href: "/tarbiyah", name: t.fitur.launcher_tarbiyah, icon: "fa-handshake-angle", color: "#06b6d4", bg: "rgba(6,182,212,0.18)" },
     { href: "/oracle", name: "Oracle", icon: "fa-camera", color: "#8b5cf6", bg: "rgba(139,92,246,0.18)" },
-    { href: "/multazam", name: "Dinding Doa", icon: "fa-kaaba", color: "#d97706", bg: "rgba(217,119,6,0.18)" },
-    { href: "/quran", name: "Al-Qur'an", icon: "fa-quran", color: "#10b981", bg: "rgba(16,185,129,0.22)" },
-    { href: "/quran?tab=khataman", name: "Khatam", icon: "fa-book-quran", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
-    { href: "/kiblat", name: "Kiblat", icon: "fa-compass", color: "#ffd700", bg: "rgba(212,175,55,0.2)" },
-    { href: "/tasbih", name: "Tasbih", icon: "fa-gem", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
-    { href: "/kontemplasi", name: "Dzikir", icon: "fa-spa", color: "#14b8a6", bg: "rgba(20,184,166,0.18)" },
-    { href: "/celestial", name: "Hikmah", icon: "fa-star", color: "#facc15", bg: "rgba(250,204,21,0.18)" },
+    { href: "/multazam", name: t.fitur.launcher_multazam, icon: "fa-kaaba", color: "#d97706", bg: "rgba(217,119,6,0.18)" },
+    { href: "/quran", name: t.fitur.launcher_quran, icon: "fa-quran", color: "#10b981", bg: "rgba(16,185,129,0.22)" },
+    { href: "/quran?tab=khataman", name: t.fitur.launcher_khatam, icon: "fa-book-quran", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
+    { href: "/kiblat", name: t.fitur.launcher_kiblat, icon: "fa-compass", color: "#ffd700", bg: "rgba(212,175,55,0.2)" },
+    { href: "/tasbih", name: t.fitur.launcher_tasbih, icon: "fa-gem", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
+    { href: "/kontemplasi", name: t.fitur.launcher_kontemplasi, icon: "fa-spa", color: "#14b8a6", bg: "rgba(20,184,166,0.18)" },
+    { href: "/celestial", name: t.fitur.launcher_celestial, icon: "fa-star", color: "#facc15", bg: "rgba(250,204,21,0.18)" },
     { href: "/divine", name: "Ayat Suci", icon: "fa-book-open", color: "#22c55e", bg: "rgba(34,197,94,0.18)" },
-    { href: "/matsurat", name: "Ma'tsurat", icon: "fa-hands-praying", color: "#10b981", bg: "rgba(16,185,129,0.2)" },
-    { href: "/mahfuzhat", name: "Mahfuzhat", icon: "fa-feather-pointed", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
-    { href: "/asmaul-husna", name: "Asmaul Husna", icon: "fa-certificate", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
-    { href: "/sirah", name: "Sirah Nabawi", icon: "fa-map-location-dot", color: "#f59e0b", bg: "rgba(245,158,11,0.2)" },
+    { href: "/matsurat", name: t.fitur.launcher_matsurat, icon: "fa-hands-praying", color: "#10b981", bg: "rgba(16,185,129,0.2)" },
+    { href: "/mahfuzhat", name: t.fitur.launcher_mahfuzhat, icon: "fa-feather-pointed", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
+    { href: "/asmaul-husna", name: t.fitur.launcher_asmaul, icon: "fa-certificate", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
+    { href: "/sirah", name: t.fitur.launcher_sirah, icon: "fa-map-location-dot", color: "#f59e0b", bg: "rgba(245,158,11,0.2)" },
     { href: "/enigma", name: "Catatan", icon: "fa-book-bookmark", color: "#6366f1", bg: "rgba(99,102,241,0.18)" },
     { href: "/genesis", name: "Genesis", icon: "fa-landmark", color: "#c084fc", bg: "rgba(192,132,252,0.18)" },
-    { href: "/nexus", name: "Nexus", icon: "fa-network-wired", color: "#38bdf8", bg: "rgba(56,189,248,0.18)" },
+    { href: "/nexus", name: t.fitur.launcher_nexus, icon: "fa-network-wired", color: "#38bdf8", bg: "rgba(56,189,248,0.18)" },
     { href: "/wrapped", name: "Wrapped", icon: "fa-film", color: "#f472b6", bg: "rgba(244,114,182,0.18)" },
-    { href: "/panduan", name: "Panduan", icon: "fa-circle-question", color: "#94a3b8", bg: "rgba(148,163,184,0.18)" },
+    { href: "/panduan", name: t.fitur.launcher_panduan, icon: "fa-circle-question", color: "#94a3b8", bg: "rgba(148,163,184,0.18)" },
   ];
 
   // Setup GSAP and 3D Tilt for Desktop
@@ -529,14 +529,14 @@ export default function FiturClient({
               }}
             />
             <div className="widget-profile-info">
-              <div className="widget-greeting">Ahlan wa Sahlan,</div>
+              <div className="widget-greeting">{t.fitur.greeting_ahlan}</div>
               <h2 className="widget-user-name">{userProfile?.nama_panggilan || userProfile?.nama_lengkap || "Sahabat"}</h2>
               <div className="widget-badge-row">
                 <span className="widget-gelar-badge" style={{ background: badgeColor }}>
                   <i className={badgeIcon}></i> {gelar}
                 </span>
                 <span className="widget-points-badge">
-                  {points.toLocaleString("id-ID")} <small>PTS</small>
+                  {points.toLocaleString("id-ID")} <small>{t.fitur.points_unit}</small>
                 </span>
               </div>
             </div>

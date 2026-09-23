@@ -4,7 +4,7 @@ import { addPrestise } from "@/lib/gamification";
 
 export const dynamic = "force-dynamic";
 
-export const JUZ_DATA = [
+const JUZ_DATA = [
   { juz: 1, range: "Al-Fatihah 1 - Al-Baqarah 141" },
   { juz: 2, range: "Al-Baqarah 142 - Al-Baqarah 252" },
   { juz: 3, range: "Al-Baqarah 253 - Ali 'Imran 92" },

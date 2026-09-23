@@ -7,49 +7,54 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Locale } from "@/lib/i18n/types";
 import "./CommandPalette.css";
 
-const COMMANDS = [
-  { id: "beranda", title: "Beranda Utama & Mini Museum", url: "/beranda", icon: "fa-landmark" },
-  { id: "direktori", title: "Direktori & Buku Angkatan", url: "/direktori", icon: "fa-address-book" },
-  { id: "galeri", title: "Galeri & Visual Angkatan", url: "/galeri", icon: "fa-photo-film" },
-  { id: "sovereign", title: "Kartu Alumni 3D (KTA)", url: "/sovereign", icon: "fa-id-card" },
-  { id: "oracle", title: "Kamera Aura Positif", url: "/oracle", icon: "fa-camera-retro" },
-  { id: "enigma", title: "Catatan Kenangan Pribadi", url: "/enigma", icon: "fa-book-bookmark" },
-  { id: "radar", title: "Peta Persebaran Alumni", url: "/radar", icon: "fa-map-location-dot" },
-  { id: "syndicate", title: "Katalog Bisnis & Usaha Alumni", url: "/syndicate", icon: "fa-briefcase" },
-  { id: "majlis", title: "Majlis Kajian & Suara", url: "/majlis", icon: "fa-gavel" },
-  { id: "baitul", title: "Kas & Donasi (Baitul Maal)", url: "/baitul-maal", icon: "fa-hand-holding-dollar" },
-  { id: "tarbiyah", title: "Jejaring Karir & Mentoring", url: "/tarbiyah", icon: "fa-user-graduate" },
-  { id: "multazam", title: "Agenda Acara & Dinding Doa", url: "/multazam", icon: "fa-kaaba" },
-  { id: "wasiat", title: "Kotak Pesan & Wasiat", url: "/wasiat", icon: "fa-scroll" },
-  { id: "kontemplasi", title: "Ruang Dzikir & Ketenangan", url: "/kontemplasi", icon: "fa-brain" },
-  { id: "celestial", title: "Mutiara Hikmah & Nasihat", url: "/celestial", icon: "fa-star" },
-  { id: "genesis", title: "Sejarah & Filosofi Angkatan", url: "/genesis", icon: "fa-monument" },
-  { id: "nexus", title: "Pencocok Minat & Domisili", url: "/nexus", icon: "fa-network-wired" },
-  { id: "asmaul-husna", title: "99 Asmaul Husna & Tadabbur", url: "/asmaul-husna", icon: "fa-certificate" },
-  { id: "matsurat", title: "Al-Ma'tsurat Dzikir Pagi & Petang", url: "/matsurat", icon: "fa-hands-praying" },
-  { id: "mahfuzhat", title: "Mahfuzhat & Hikmah Santri", url: "/mahfuzhat", icon: "fa-feather-pointed" },
-  { id: "sirah", title: "Sirah Nabawiyah & Peta Jejak 3D", url: "/sirah", icon: "fa-map-location-dot" },
-  { id: "panduan", title: "Pusat Panduan & Bantuan Alumni", url: "/panduan", icon: "fa-book-bookmark" },
-  { id: "profile", title: "Profil Saya & Pengaturan", url: "/profil", icon: "fa-circle-user" },
-  { id: "admin", title: "Panel Admin Angkatan", url: "/admin", icon: "fa-shield-halved" },
-  { id: "lang-id", title: "Ganti Bahasa: Indonesia (Bahasa Indonesia)", url: "lang:id", icon: "fa-globe" },
-  { id: "lang-ar", title: "Ganti Bahasa: Arab (العربية)", url: "lang:ar", icon: "fa-globe" },
-  { id: "lang-en", title: "Ganti Bahasa: English (UK/US)", url: "lang:en", icon: "fa-globe" },
+const COMMAND_DEFINITIONS = [
+  { id: "beranda", key: "beranda", url: "/beranda", icon: "fa-landmark" },
+  { id: "direktori", key: "direktori", url: "/direktori", icon: "fa-address-book" },
+  { id: "galeri", key: "galeri", url: "/galeri", icon: "fa-photo-film" },
+  { id: "sovereign", key: "sovereign", url: "/sovereign", icon: "fa-id-card" },
+  { id: "oracle", key: "oracle", url: "/oracle", icon: "fa-camera-retro" },
+  { id: "enigma", key: "enigma", url: "/enigma", icon: "fa-book-bookmark" },
+  { id: "radar", key: "radar", url: "/radar", icon: "fa-map-location-dot" },
+  { id: "syndicate", key: "syndicate", url: "/syndicate", icon: "fa-briefcase" },
+  { id: "majlis", key: "majlis", url: "/majlis", icon: "fa-gavel" },
+  { id: "baitul", key: "baitul", url: "/baitul-maal", icon: "fa-hand-holding-dollar" },
+  { id: "tarbiyah", key: "tarbiyah", url: "/tarbiyah", icon: "fa-user-graduate" },
+  { id: "multazam", key: "multazam", url: "/multazam", icon: "fa-kaaba" },
+  { id: "wasiat", key: "wasiat", url: "/wasiat", icon: "fa-scroll" },
+  { id: "kontemplasi", key: "kontemplasi", url: "/kontemplasi", icon: "fa-brain" },
+  { id: "celestial", key: "celestial", url: "/celestial", icon: "fa-star" },
+  { id: "genesis", key: "genesis", url: "/genesis", icon: "fa-monument" },
+  { id: "nexus", key: "nexus", url: "/nexus", icon: "fa-network-wired" },
+  { id: "asmaul-husna", key: "asmaul_husna", url: "/asmaul-husna", icon: "fa-certificate" },
+  { id: "matsurat", key: "matsurat", url: "/matsurat", icon: "fa-hands-praying" },
+  { id: "mahfuzhat", key: "mahfuzhat", url: "/mahfuzhat", icon: "fa-feather-pointed" },
+  { id: "sirah", key: "sirah", url: "/sirah", icon: "fa-map-location-dot" },
+  { id: "panduan", key: "panduan", url: "/panduan", icon: "fa-book-bookmark" },
+  { id: "profile", key: "profile", url: "/profil", icon: "fa-circle-user" },
+  { id: "admin", key: "admin", url: "/admin", icon: "fa-shield-halved" },
+  { id: "lang-id", key: "lang_id", url: "lang:id", icon: "fa-globe" },
+  { id: "lang-ar", key: "lang_ar", url: "lang:ar", icon: "fa-globe" },
+  { id: "lang-en", key: "lang_en", url: "lang:en", icon: "fa-globe" },
 ];
 
 export default function CommandPalette() {
-  const { t, setLocale } = useLanguage();
+  const { t, locale, setLocale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const filteredCommands = COMMANDS.filter(cmd => 
+  const commands = COMMAND_DEFINITIONS.map(def => ({
+    ...def,
+    title: t.command_palette?.commands?.[def.key] || def.key,
+  }));
+
+  const filteredCommands = commands.filter(cmd => 
     cmd.title.toLowerCase().includes(query.toLowerCase())
   );
 
-  const executeCommand = (cmd: (typeof COMMANDS)[0]) => {
+  const executeCommand = (cmd: (typeof commands)[0]) => {
     if (cmd.url.startsWith("lang:")) {
       const targetLang = cmd.url.slice(5) as Locale;
       if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -66,7 +71,6 @@ export default function CommandPalette() {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        // Cukup set true, jangan di-toggle untuk menghindari double trigger
         setIsOpen(true);
       }
     };
@@ -124,7 +128,7 @@ export default function CommandPalette() {
             ref={inputRef}
             type="text" 
             className="cmd-input" 
-            placeholder={t.navbar.search_palette} 
+            placeholder={t.command_palette?.search_placeholder || t.navbar.search_palette} 
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoComplete="off" 
@@ -136,7 +140,9 @@ export default function CommandPalette() {
         <div className="cmd-results">
           {filteredCommands.length > 0 ? (
             <>
-              <div className="cmd-section-label">Navigasi Utama</div>
+              <div className="cmd-section-label">
+                {locale === "ar" ? "التنقل والميزات" : locale === "en" ? "Main Navigation" : "Navigasi Utama"}
+              </div>
               {filteredCommands.map((cmd, index) => (
                 <div 
                   key={cmd.id} 
@@ -152,15 +158,15 @@ export default function CommandPalette() {
             </>
           ) : (
             <div style={{ padding: "20px", textAlign: "center", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-              Tidak ditemukan hasil untuk "{query}"
+              {t.command_palette?.no_results || `Tidak ditemukan hasil untuk "${query}"`}
             </div>
           )}
         </div>
         
         <div className="cmd-footer">
-          <span><kbd>↑↓</kbd> Navigasi</span>
-          <span><kbd>↵</kbd> Buka</span>
-          <span><kbd>ESC</kbd> Tutup</span>
+          <span><kbd>↑↓</kbd> {locale === "ar" ? "تنقل" : locale === "en" ? "Navigate" : "Navigasi"}</span>
+          <span><kbd>↵</kbd> {locale === "ar" ? "فتح" : locale === "en" ? "Open" : "Buka"}</span>
+          <span><kbd>ESC</kbd> {locale === "ar" ? "إغلاق" : locale === "en" ? "Close" : "Tutup"}</span>
         </div>
       </div>
     </div>

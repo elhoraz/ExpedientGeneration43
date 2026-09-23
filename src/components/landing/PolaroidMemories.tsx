@@ -15,67 +15,26 @@ interface MemorySnap {
   tag: string;
 }
 
-const MEMORIES: MemorySnap[] = [
-  {
-    id: "cover",
-    imgSrc: "/assets/foto_putra/Cover Depan.webp",
-    alt: "Album Kenangan Expedient 43",
-    caption: "The Successor of Islamic Glory",
-    sub: "Mahakarya Buku Tahunan Angkatan 43",
-    rotation: "-2deg",
-    tag: "Dokumen Resmi",
-  },
-  {
-    id: "pg643",
-    imgSrc: "/assets/foto_putra/Hal 5.webp",
-    alt: "Momen Panggung Gembira 643",
-    caption: "Panggung Gembira 643",
-    sub: "Kamis Malam, 18 Juli 2024",
-    rotation: "1.8deg",
-    tag: "Pentas Akbar",
-  },
-  {
-    id: "kmi",
-    imgSrc: "/assets/foto_putra/Hal 8.webp",
-    alt: "Kawah Candradimuka KMI",
-    caption: "Kulliyyatul Mu'allimin",
-    sub: "Tarbiyah & Ta'lim 24 Jam",
-    rotation: "-1.5deg",
-    tag: "Keilmuan",
-  },
-  {
-    id: "slahung",
-    imgSrc: "/assets/foto_putra/Hal 6.webp",
-    alt: "Bumi Gundik Slahung",
-    caption: "Tanah Berkah Gundik",
-    sub: "Slahung, Ponorogo, Jawa Timur",
-    rotation: "2.2deg",
-    tag: "Bumi Santri",
-  },
-  {
-    id: "ukhuwah",
-    imgSrc: "/assets/foto_putra/Hal 9.webp",
-    alt: "Ikatan Persaudaraan Santri",
-    caption: "Ukhuwah Fi Sabilillah",
-    sub: "240 Sahabat Seperjuangan",
-    rotation: "-2.4deg",
-    tag: "Persaudaraan",
-  },
-  {
-    id: "perjuangan",
-    imgSrc: "/assets/foto_putra/Hal 4.webp",
-    alt: "Derap Langkah Santri",
-    caption: "Derap Langkah Alumni",
-    sub: "Menatap Masa Depan Peradaban",
-    rotation: "1.2deg",
-    tag: "Masa Depan",
-  },
-];
+const MEMORY_ASSETS: Record<string, { imgSrc: string; rotation: string }> = {
+  cover: { imgSrc: "/assets/foto_putra/Cover Depan.webp", rotation: "-2deg" },
+  pg643: { imgSrc: "/assets/foto_putra/Hal 5.webp", rotation: "1.8deg" },
+  kmi: { imgSrc: "/assets/foto_putra/Hal 8.webp", rotation: "-1.5deg" },
+  slahung: { imgSrc: "/assets/foto_putra/Hal 6.webp", rotation: "2.2deg" },
+  ukhuwah: { imgSrc: "/assets/foto_putra/Hal 9.webp", rotation: "-2.4deg" },
+  perjuangan: { imgSrc: "/assets/foto_putra/Hal 4.webp", rotation: "1.2deg" },
+};
 
 export default function PolaroidMemories() {
   const { t, locale } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const list = (t.memories_snaps && t.memories_snaps.length > 0 ? t.memories_snaps : []).map(snap => ({
+    ...snap,
+    imgSrc: MEMORY_ASSETS[snap.id]?.imgSrc || "/assets/foto_putra/Cover Depan.webp",
+    rotation: MEMORY_ASSETS[snap.id]?.rotation || "0deg",
+    alt: snap.caption,
+  }));
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
@@ -140,16 +99,16 @@ export default function PolaroidMemories() {
       {/* Swipeable Polaroid Cards Track */}
       <div className="polaroid-scroll-container">
         <div className="polaroid-track">
-          {MEMORIES.map((item, idx) => (
+          {list.map((item, idx) => (
             <div
               key={item.id}
               className="polaroid-card"
               style={{ "--rotate-deg": item.rotation } as React.CSSProperties}
             >
               {idx % 2 === 0 ? (
-                <div className="polaroid-tape" title="Selotip Kenangan Santri"></div>
+                <div className="polaroid-tape" title={locale === "ar" ? "شريط الذكريات" : locale === "en" ? "Memory Tape" : "Selotip Kenangan Santri"}></div>
               ) : (
-                <div className="polaroid-pin" title="Pin Peniti Emas"></div>
+                <div className="polaroid-pin" title={locale === "ar" ? "دبوس ذهبي" : locale === "en" ? "Golden Pin" : "Pin Peniti Emas"}></div>
               )}
               <div className="polaroid-tag">{item.tag}</div>
               <div className="polaroid-photo-frame">

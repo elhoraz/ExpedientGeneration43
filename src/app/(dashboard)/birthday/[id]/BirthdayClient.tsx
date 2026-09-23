@@ -53,23 +53,44 @@ const layouts = ['center-stack','split-left','split-right','diagonal','frame-ove
 const decos = ['confetti','stars','balloons','sparkles','ribbons','floral'];
 const anims = ['cascade','bounce','bloom','burst'];
 
-function getZodiak(dateStr: string) {
+function getZodiak(dateStr: string, locale: string = "id") {
     const date = new Date(dateStr);
     const day = date.getDate();
     const month = date.getMonth() + 1;
 
-    if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return { nama: 'Aries', icon: '♈' };
-    if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return { nama: 'Taurus', icon: '♉' };
-    if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) return { nama: 'Gemini', icon: '♊' };
-    if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) return { nama: 'Cancer', icon: '♋' };
-    if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return { nama: 'Leo', icon: '♌' };
-    if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return { nama: 'Virgo', icon: '♍' };
-    if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) return { nama: 'Libra', icon: '♎' };
-    if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return { nama: 'Scorpio', icon: '♏' };
-    if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return { nama: 'Sagittarius', icon: '♐' };
-    if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return { nama: 'Capricorn', icon: '♑' };
-    if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return { nama: 'Aquarius', icon: '♒' };
-    return { nama: 'Pisces', icon: '♓' };
+    let key = "pisces";
+    let icon = "♓";
+
+    if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) { key = "aries"; icon = "♈"; }
+    else if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) { key = "taurus"; icon = "♉"; }
+    else if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) { key = "gemini"; icon = "♊"; }
+    else if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) { key = "cancer"; icon = "♋"; }
+    else if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) { key = "leo"; icon = "♌"; }
+    else if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) { key = "virgo"; icon = "♍"; }
+    else if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) { key = "libra"; icon = "♎"; }
+    else if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) { key = "scorpio"; icon = "♏"; }
+    else if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) { key = "sagittarius"; icon = "♐"; }
+    else if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) { key = "capricorn"; icon = "♑"; }
+    else if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) { key = "aquarius"; icon = "♒"; }
+
+    const names: Record<string, { id: string; en: string; ar: string }> = {
+      aries: { id: "Aries", en: "Aries", ar: "برج الحمل" },
+      taurus: { id: "Taurus", en: "Taurus", ar: "برج الثور" },
+      gemini: { id: "Gemini", en: "Gemini", ar: "برج الجوزاء" },
+      cancer: { id: "Cancer", en: "Cancer", ar: "برج السرطان" },
+      leo: { id: "Leo", en: "Leo", ar: "برج الأسد" },
+      virgo: { id: "Virgo", en: "Virgo", ar: "برج العذراء" },
+      libra: { id: "Libra", en: "Libra", ar: "برج الميزان" },
+      scorpio: { id: "Scorpio", en: "Scorpio", ar: "برج العقرب" },
+      sagittarius: { id: "Sagittarius", en: "Sagittarius", ar: "برج القوس" },
+      capricorn: { id: "Capricorn", en: "Capricorn", ar: "برج الجدي" },
+      aquarius: { id: "Aquarius", en: "Aquarius", ar: "برج الدلو" },
+      pisces: { id: "Pisces", en: "Pisces", ar: "برج الحوت" },
+    };
+
+    const trans = names[key];
+    const nama = locale === "ar" ? trans.ar : locale === "en" ? trans.en : trans.id;
+    return { nama, icon };
 }
 
 export default function BirthdayClient({ userProfile, age, seed }: { userProfile: any, age: number, seed: number }) {
@@ -83,7 +104,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
   const anim = anims[seed % 4];
 
   const fontUrl = `https://fonts.googleapis.com/css2?family=${f[0].replace(/ /g, '+')}:wght@${f[2]}&family=${f[1].replace(/ /g, '+')}:wght@400;600&display=swap`;
-  const zodiak = getZodiak(userProfile.tanggal_lahir);
+  const zodiak = getZodiak(userProfile.tanggal_lahir, locale);
 
   useEffect(() => {
     const colors = [p[0], p[1], p[2], '#fff', '#ffd700', '#ff6b6b', '#48dbfb', '#55efc4'];
@@ -192,7 +213,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
           {age > 0 && (
             <div className="bday-age bday-body bday-text bday-anim-el">
-                Ke-<strong style={{ fontSize: "1.4em" }}>{age}</strong> Tahun
+                {locale === "ar" ? <>العام الـ<strong style={{ fontSize: "1.4em" }}>{age}</strong></> : locale === "en" ? <>Age <strong style={{ fontSize: "1.4em" }}>{age}</strong></> : <>Ke-<strong style={{ fontSize: "1.4em" }}>{age}</strong> Tahun</>}
             </div>
           )}
 
@@ -207,7 +228,11 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
           </div>
 
           <p className="bday-wishes bday-body bday-sub bday-anim-el">
-              Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, dan kebahagiaan di setiap langkahmu. Barakallahu fiik! 🤲
+              {locale === "ar"
+                ? "نسأل الله تعالى أن يبارك في عمرك، وأن يديم عليك نعمة الصحة والعافية والتوفيق في كل خطواتك. بارك الله فيك! 🤲"
+                : locale === "en"
+                ? "May Allah SWT continuously bestow barakah, health, and happiness upon every step of your journey. Barakallahu feek! 🤲"
+                : "Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, dan kebahagiaan di setiap langkahmu. Barakallahu fiik! 🤲"}
           </p>
 
           <div className="bday-anim-el" style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", width: "100%", maxWidth: "340px", margin: "0 auto" }}>

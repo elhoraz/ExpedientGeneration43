@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./notifications.css";
 
 type Notification = {
@@ -23,46 +24,47 @@ type QuestItem = {
   storageKey: string;
 };
 
-const INITIAL_QUESTS: QuestItem[] = [
-  {
-    id: "login",
-    icon: "fa-solid fa-right-to-bracket",
-    label: "Login ke portal alumni",
-    href: "#",
-    actionText: "Selesai ✓",
-    storageKey: "expedient_quest_login",
-  },
-  {
-    id: "profile",
-    icon: "fa-solid fa-user-pen",
-    label: "Lengkapi foto & data profil",
-    href: "/profil",
-    actionText: "Buka Profil →",
-    storageKey: "expedient_quest_profile",
-  },
-  {
-    id: "radar",
-    icon: "fa-solid fa-map-location-dot",
-    label: "Perbarui lokasi tinggal di radar",
-    href: "/radar",
-    actionText: "Buka Radar →",
-    storageKey: "expedient_quest_radar",
-  },
-  {
-    id: "directory",
-    icon: "fa-solid fa-address-book",
-    label: "Cari kawan lama di direktori",
-    href: "/direktori",
-    actionText: "Buka Direktori →",
-    storageKey: "expedient_quest_directory",
-  },
-];
-
 export default function NotificationBell({ userId }: { userId: string }) {
+  const { t, locale } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"quest" | "notif">("quest");
   const [completedQuests, setCompletedQuests] = useState<Set<string>>(new Set(["login"]));
+
+  const quests: QuestItem[] = [
+    {
+      id: "login",
+      icon: "fa-solid fa-right-to-bracket",
+      label: t.notification_quests?.quest_login || "Login ke portal alumni",
+      href: "#",
+      actionText: t.notification_quests?.action_done || "Selesai ✓",
+      storageKey: "expedient_quest_login",
+    },
+    {
+      id: "profile",
+      icon: "fa-solid fa-user-pen",
+      label: t.notification_quests?.quest_profile || "Lengkapi foto & data profil",
+      href: "/profil",
+      actionText: t.notification_quests?.action_open_profile || "Buka Profil →",
+      storageKey: "expedient_quest_profile",
+    },
+    {
+      id: "radar",
+      icon: "fa-solid fa-map-location-dot",
+      label: t.notification_quests?.quest_radar || "Perbarui lokasi tinggal di radar",
+      href: "/radar",
+      actionText: t.notification_quests?.action_open_radar || "Buka Radar →",
+      storageKey: "expedient_quest_radar",
+    },
+    {
+      id: "directory",
+      icon: "fa-solid fa-address-book",
+      label: t.notification_quests?.quest_directory || "Cari kawan lama di direktori",
+      href: "/direktori",
+      actionText: t.notification_quests?.action_open_directory || "Buka Direktori →",
+      storageKey: "expedient_quest_directory",
+    },
+  ];
   
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -79,7 +81,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
     if (typeof window !== "undefined") {
       localStorage.setItem("expedient_quest_login", "true");
 
-      INITIAL_QUESTS.forEach((q) => {
+      quests.forEach((q) => {
         if (localStorage.getItem(q.storageKey) === "true") {
           done.add(q.id);
         }
@@ -262,7 +264,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
   const completedCount = completedQuests.size;
-  const totalCount = INITIAL_QUESTS.length;
+  const totalCount = quests.length;
   const isAllQuestsDone = completedCount >= totalCount;
 
   // Dynamic unread dot on favicon
@@ -327,7 +329,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
         type="button"
         className="notif-widget hover-trigger" 
         id="btnNotifWidget"
-        title="Pengumuman & Misi Alumni"
+        title={locale === "ar" ? "الإعلانات والمهام" : locale === "en" ? "Announcements & Quests" : "Pengumuman & Misi Alumni"}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -372,7 +374,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
               }}
             >
               <i className="fa-solid fa-scroll"></i>
-              <span>Misi Awal</span>
+              <span>{t.notification_quests?.tab_quests || "Misi Awal"}</span>
               <span className={`tab-badge ${isAllQuestsDone ? "done" : ""}`}>
                 {isAllQuestsDone ? "✓" : `${completedCount}/${totalCount}`}
               </span>
@@ -386,7 +388,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
               }}
             >
               <i className="fa-solid fa-bell"></i>
-              <span>Pemberitahuan</span>
+              <span>{t.notification_quests?.tab_notifications || "Pemberitahuan"}</span>
               {unreadCount > 0 && (
                 <span className="tab-badge unread">{unreadCount}</span>
               )}
@@ -398,8 +400,14 @@ export default function NotificationBell({ userId }: { userId: string }) {
             <div className="quest-tab-content">
               <div className="quest-header-bar">
                 <div className="quest-header-info">
-                  <span className="quest-header-title">Misi Langkah Awal</span>
-                  <span className="quest-header-progress">{completedCount} dari {totalCount} selesai</span>
+                  <span className="quest-header-title">{t.notification_quests?.tab_quests || "Misi Langkah Awal"}</span>
+                  <span className="quest-header-progress">
+                    {locale === "ar"
+                      ? `${completedCount} من ${totalCount} مكتمل`
+                      : locale === "en"
+                      ? `${completedCount} of ${totalCount} completed`
+                      : `${completedCount} dari ${totalCount} selesai`}
+                  </span>
                 </div>
                 <div className="quest-mini-progress">
                   <div 
@@ -410,7 +418,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
               </div>
 
               <div className="quest-list">
-                {INITIAL_QUESTS.map((q) => {
+                {quests.map((q) => {
                   const isDone = completedQuests.has(q.id);
                   return (
                     <Link
@@ -443,7 +451,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
               <div className="quest-tab-footer">
                 <button type="button" className="btn-tour-restart" onClick={restartTour}>
-                  <i className="fa-solid fa-compass"></i> Ulangi Tur Panduan Portal
+                  <i className="fa-solid fa-compass"></i> {locale === "ar" ? "إعادة الجولة التعريفية" : locale === "en" ? "Restart Portal Tour" : "Ulangi Tur Panduan Portal"}
                 </button>
               </div>
             </div>
@@ -453,9 +461,11 @@ export default function NotificationBell({ userId }: { userId: string }) {
           {activeTab === "notif" && (
             <div className="notif-body-wrap">
               <div className="notif-header">
-                <h4>Pemberitahuan</h4>
+                <h4>{t.notification_quests?.tab_notifications || "Pemberitahuan"}</h4>
                 {unreadCount > 0 && (
-                  <button type="button" onClick={markAllAsRead} className="btn-mark-all">Tandai Semua Dibaca</button>
+                  <button type="button" onClick={markAllAsRead} className="btn-mark-all">
+                    {t.notification_quests?.mark_all_read || "Tandai Semua Dibaca"}
+                  </button>
                 )}
               </div>
               <div className="notif-body">
@@ -482,14 +492,16 @@ export default function NotificationBell({ userId }: { userId: string }) {
                           </>
                         )}
                         <span className="notif-time">
-                          {new Date(n.created_at).toLocaleDateString("id-ID", { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(n.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID", { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                       {!n.is_read && <div className="unread-dot"></div>}
                     </div>
                   ))
                 ) : (
-                  <div className="notif-empty">Belum ada pemberitahuan baru.</div>
+                  <div className="notif-empty">
+                    {t.notification_quests?.empty_notif || "Belum ada pemberitahuan baru."}
+                  </div>
                 )}
               </div>
             </div>

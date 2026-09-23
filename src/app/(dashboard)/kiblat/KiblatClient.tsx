@@ -15,7 +15,7 @@ import {
 import "./kiblat.css";
 
 export default function KiblatClient() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   // Default to Ponorogo (Almamater Arrisalah)
   const [selectedCity, setSelectedCity] = useState<CityPreset>(POPULAR_CITIES[1]);
   const [currentLocation, setCurrentLocation] = useState<{
@@ -220,7 +220,7 @@ export default function KiblatClient() {
         {/* Title & Badge */}
         <div className="kiblat-header-box">
           <div className="kiblat-badge-sup">
-            <i className="fa-solid fa-compass"></i> Instrumen Astronomi Islam
+            <i className="fa-solid fa-compass"></i> {locale === "ar" ? "أداة الفلك والملاحة الإسلامية" : locale === "en" ? "Islamic Astronomical Instrument" : "Instrumen Astronomi Islam"}
           </div>
           <h1 className="kiblat-title">{t.kiblat.title}</h1>
           <p className="kiblat-subtitle">
@@ -235,7 +235,7 @@ export default function KiblatClient() {
               <i className="fa-solid fa-location-dot"></i>
             </div>
             <div className="location-text">
-              <h4>{currentLocation.name}</h4>
+              <h4>{currentLocation.isGps ? t.kiblat.gps_my_loc : currentLocation.name}</h4>
               <p>
                 {currentLocation.lat.toFixed(4)}° S, {currentLocation.lng.toFixed(4)}° E • UTC+{currentLocation.timezone}
               </p>
@@ -248,7 +248,7 @@ export default function KiblatClient() {
               value={currentLocation.isGps ? "" : selectedCity.name}
               onChange={(e) => handleCityChange(e.target.value)}
             >
-              {currentLocation.isGps && <option value="">📍 Lokasi GPS Saya</option>}
+              {currentLocation.isGps && <option value="">📍 {t.kiblat.gps_my_loc}</option>}
               {POPULAR_CITIES.map((c) => (
                 <option key={c.name} value={c.name}>
                   {c.name} ({c.region})
@@ -263,7 +263,7 @@ export default function KiblatClient() {
               disabled={isGpsLoading}
             >
               <i className={`fa-solid ${isGpsLoading ? "fa-spinner fa-spin" : "fa-crosshairs"}`}></i>
-              {isGpsLoading ? "Mencari..." : "Deteksi GPS"}
+              {isGpsLoading ? t.kiblat.gps_detecting : t.kiblat.gps_detect}
             </button>
           </div>
         </div>
@@ -278,10 +278,10 @@ export default function KiblatClient() {
             <div className="astrolabe-ring-pattern"></div>
 
             {/* Fixed Cardinal Marks */}
-            <span className="astrolabe-cardinal cardinal-n">U</span>
-            <span className="astrolabe-cardinal cardinal-e">T</span>
-            <span className="astrolabe-cardinal cardinal-s">S</span>
-            <span className="astrolabe-cardinal cardinal-w">B</span>
+            <span className="astrolabe-cardinal cardinal-n">{locale === "ar" ? "ش" : locale === "en" ? "N" : "U"}</span>
+            <span className="astrolabe-cardinal cardinal-e">{locale === "ar" ? "ق" : locale === "en" ? "E" : "T"}</span>
+            <span className="astrolabe-cardinal cardinal-s">{locale === "ar" ? "ج" : locale === "en" ? "S" : "S"}</span>
+            <span className="astrolabe-cardinal cardinal-w">{locale === "ar" ? "غ" : locale === "en" ? "W" : "B"}</span>
 
             {/* Center Core Pin */}
             <div className="astrolabe-center-core">
@@ -297,7 +297,7 @@ export default function KiblatClient() {
             >
               <div className="qibla-marker-arrow">
                 <i className="fa-solid fa-kaaba qibla-kaaba-icon"></i>
-                <span className="qibla-tag">Kiblat</span>
+                <span className="qibla-tag">{locale === "ar" ? "القبلة" : locale === "en" ? "Qibla" : "Kiblat"}</span>
               </div>
               <div className="astrolabe-needle-line"></div>
             </div>
@@ -308,12 +308,12 @@ export default function KiblatClient() {
             {isAligned ? (
               <>
                 <i className="fa-solid fa-circle-check"></i>
-                Tepat Mengarah ke Ka&apos;bah!
+                {t.kiblat.aligned_success}
               </>
             ) : (
               <>
                 <i className="fa-solid fa-arrows-spin"></i>
-                Putar ponsel hingga jarum mengarah ke atas ({Math.round(diffAngle)}° lagi)
+                {t.kiblat.rotate_hint} ({Math.round(diffAngle)}° {locale === "ar" ? "متبقية" : locale === "en" ? "remaining" : "lagi"})
               </>
             )}
           </div>
@@ -322,17 +322,17 @@ export default function KiblatClient() {
           <div className="kiblat-readout-row">
             <div className="kiblat-readout-box">
               <div className="kiblat-readout-val">{qiblaInfo.bearing}°</div>
-              <div className="kiblat-readout-lbl">Derajat Kiblat</div>
+              <div className="kiblat-readout-lbl">{t.kiblat.bearing_label}</div>
             </div>
             <div className="kiblat-readout-box">
               <div className="kiblat-readout-val">{heading}°</div>
-              <div className="kiblat-readout-lbl">Arah Ponsel</div>
+              <div className="kiblat-readout-lbl">{t.kiblat.phone_heading_label}</div>
             </div>
             <div className="kiblat-readout-box">
               <div className="kiblat-readout-val">
-                {qiblaInfo.distanceKm.toLocaleString("id-ID")} <small style={{ fontSize: "0.8rem" }}>KM</small>
+                {qiblaInfo.distanceKm.toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")} <small style={{ fontSize: "0.8rem" }}>KM</small>
               </div>
-              <div className="kiblat-readout-lbl">Jarak ke Mekkah</div>
+              <div className="kiblat-readout-lbl">{t.kiblat.distance_to_makkah}</div>
             </div>
           </div>
 
@@ -344,14 +344,14 @@ export default function KiblatClient() {
               onClick={activateCompassSensor}
               style={{ padding: "10px 24px", fontSize: "0.85rem", marginTop: "10px" }}
             >
-              <i className="fa-solid fa-mobile-screen"></i> Aktifkan Sensor Kompas Ponsel
+              <i className="fa-solid fa-mobile-screen"></i> {t.kiblat.activate_sensor_btn}
             </button>
           )}
 
           {/* Manual Simulation Slider for Laptop / Desktop Without Sensor */}
           <div className="kiblat-sim-box">
             <label>
-              <i className="fa-solid fa-sliders"></i> Simulasi Putar Manual (Desktop / Laptop): <strong>{heading}°</strong>
+              <i className="fa-solid fa-sliders"></i> {t.kiblat.sim_slider_label}: <strong>{heading}°</strong>
             </label>
             <input
               type="range"
@@ -374,9 +374,9 @@ export default function KiblatClient() {
           {/* Header */}
           <div className="prayer-header-row">
             <div>
-              <h2 className="prayer-section-title">Jadwal Sholat Hari Ini</h2>
+              <h2 className="prayer-section-title">{t.kiblat.prayer_schedule_title}</h2>
               <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
-                {prayerSchedule.dateStr} • Standar Kemenag RI
+                {prayerSchedule.dateStr} • {t.kiblat.standard_kemenag}
               </span>
             </div>
 
@@ -399,21 +399,21 @@ export default function KiblatClient() {
               }}
             >
               <i className={`fa-solid ${isPlayingAdzan ? "fa-volume-high" : "fa-bell"}`}></i>
-              <span>{isPlayingAdzan ? "Mendengarkan Nada Panggilan" : "Tes Suara Panggilan"}</span>
+              <span>{isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}</span>
             </button>
           </div>
 
           {/* Live Next Prayer Countdown Banner */}
           <div className="next-prayer-banner">
             <div className="next-prayer-info">
-              <span className="next-prayer-lbl">Waktu Sholat Berikutnya</span>
+              <span className="next-prayer-lbl">{t.kiblat.countdown_towards}</span>
               <div className="next-prayer-name">
                 {nextPrayer.name} <small>({nextPrayer.time} WIB)</small>
               </div>
             </div>
 
             <div className="next-prayer-timer">
-              <span className="next-prayer-lbl">Hitung Mundur</span>
+              <span className="next-prayer-lbl">{t.kiblat.in_time}</span>
               <div className="timer-countdown">{nextPrayer.countdown}</div>
             </div>
           </div>
@@ -421,21 +421,21 @@ export default function KiblatClient() {
           {/* 6 Prayer Times Cards Grid */}
           <div className="prayer-cards-grid">
             {[
-              { id: "imsak", name: "Imsak", arabic: "الإمساك", time: prayerSchedule.imsak },
-              { id: "subuh", name: "Subuh", arabic: "الفجر", time: prayerSchedule.subuh },
-              { id: "syuruq", name: "Syuruq", arabic: "الشروق", time: prayerSchedule.syuruq },
-              { id: "dzuhur", name: "Dzuhur", arabic: "الظهر", time: prayerSchedule.dzuhur },
-              { id: "ashar", name: "Ashar", arabic: "العصر", time: prayerSchedule.ashar },
-              { id: "maghrib", name: "Maghrib", arabic: "المغرب", time: prayerSchedule.maghrib },
-              { id: "isya", name: "Isya", arabic: "العشاء", time: prayerSchedule.isya },
+              { id: "imsak", name: locale === "ar" ? "الإمساك" : "Imsak", arabic: "الإمساك", time: prayerSchedule.imsak },
+              { id: "subuh", name: t.kiblat.prayer_subuh, arabic: "الفجر", time: prayerSchedule.subuh },
+              { id: "syuruq", name: t.kiblat.prayer_terbit, arabic: "الشروق", time: prayerSchedule.syuruq },
+              { id: "dzuhur", name: t.kiblat.prayer_dzuhur, arabic: "الظهر", time: prayerSchedule.dzuhur },
+              { id: "ashar", name: t.kiblat.prayer_ashar, arabic: "العصر", time: prayerSchedule.ashar },
+              { id: "maghrib", name: t.kiblat.prayer_maghrib, arabic: "المغرب", time: prayerSchedule.maghrib },
+              { id: "isya", name: t.kiblat.prayer_isya, arabic: "العشاء", time: prayerSchedule.isya },
             ].map((p) => {
-              const isActive = nextPrayer.name.toLowerCase() === p.name.toLowerCase();
+              const isActive = nextPrayer.name.toLowerCase() === p.id.toLowerCase();
               return (
                 <div
                   key={p.id}
                   className={`prayer-card ${isActive ? "is-active-prayer" : ""}`}
                 >
-                  {isActive && <div className="prayer-active-pill" title="Menuju waktu ini"></div>}
+                  {isActive && <div className="prayer-active-pill" title={locale === "ar" ? "الوقت القادم" : locale === "en" ? "Upcoming prayer" : "Menuju waktu ini"}></div>}
                   <div className="prayer-card-arabic">{p.arabic}</div>
                   <div className="prayer-card-name">{p.name}</div>
                   <div className="prayer-card-time">{p.time}</div>

@@ -123,7 +123,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               unoptimized={getCms(cms, "landing_hero_image", "/images/logo-utuh.webp").startsWith("data:")}
             />
             {/* Interactive Stamp - Cap Resmi Pesantren Arrisalah */}
-            <div className="tuku-interactive-stamp" title="Cap Resmi Santri Angkatan 43 Arrisalah">
+            <div className="tuku-interactive-stamp" title={t.ticker.stamp_title}>
               <svg viewBox="0 0 100 100" className="stamp-svg-ring">
                 <path
                   id="stampCurvePath"
@@ -132,7 +132,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 />
                 <text className="stamp-curved-text">
                   <textPath href="#stampCurvePath" startOffset="0%">
-                    ✦ EXPEDIENT 43 ✦ ARRISALAH SLAHUNG ✦ EST. 1982 ✦
+                    {t.ticker.stamp_curved}
                   </textPath>
                 </text>
               </svg>
@@ -210,28 +210,28 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== TUKU-STYLE RUNNING TICKER RIBBON (CSS-ONLY, ULTRA LIGHTWEIGHT) ====== */}
         <div className="tuku-running-ribbon" aria-hidden="true">
           <div className="tuku-ticker-track">
-            <span className="ticker-segment">⚜️ EXPEDIENT 43</span>
+            <span className="ticker-segment">⚜️ {t.ticker.seg_expedient}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">PONDOK MODERN ARRISALAH SLAHUNG</span>
+            <span className="ticker-segment">{t.ticker.seg_pondok}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">PANGGUNG GEMBIRA 643 (18 JULI 2024)</span>
+            <span className="ticker-segment">{t.ticker.seg_pg}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">THE SUCCESSOR OF ISLAMIC GLORY</span>
+            <span className="ticker-segment">{t.ticker.seg_motto}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">240 SANTRI BERUKHUWAH</span>
+            <span className="ticker-segment">{t.ticker.seg_santri}</span>
             <span className="ticker-dot">✦</span>
             <span className="ticker-segment">@expedientgeneration_</span>
             <span className="ticker-dot">✦</span>
             {/* Duplicate for seamless infinite loop */}
-            <span className="ticker-segment">⚜️ EXPEDIENT 43</span>
+            <span className="ticker-segment">⚜️ {t.ticker.seg_expedient}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">PONDOK MODERN ARRISALAH SLAHUNG</span>
+            <span className="ticker-segment">{t.ticker.seg_pondok}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">PANGGUNG GEMBIRA 643 (18 JULI 2024)</span>
+            <span className="ticker-segment">{t.ticker.seg_pg}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">THE SUCCESSOR OF ISLAMIC GLORY</span>
+            <span className="ticker-segment">{t.ticker.seg_motto}</span>
             <span className="ticker-dot">✦</span>
-            <span className="ticker-segment">240 SANTRI BERUKHUWAH</span>
+            <span className="ticker-segment">{t.ticker.seg_santri}</span>
             <span className="ticker-dot">✦</span>
             <span className="ticker-segment">@expedientgeneration_</span>
             <span className="ticker-dot">✦</span>

@@ -15,7 +15,7 @@ type TabType = "gallery" | "tasbih" | "player" | "favorites";
 type StoryTheme = "obsidian" | "emerald" | "ivory";
 
 export default function AsmaulHusnaClient() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<TabType>("gallery");
 
@@ -64,7 +64,7 @@ export default function AsmaulHusnaClient() {
       } catch {
         // ignore
       }
-      showToast(updated.includes(num) ? "Disimpan ke Asma Favorit ⭐" : "Dihapus dari Favorit");
+      showToast(updated.includes(num) ? t.asmaul_husna.fav_added : t.asmaul_husna.fav_removed);
       return updated;
     });
   };
@@ -186,7 +186,7 @@ export default function AsmaulHusnaClient() {
       playClickSound();
       stopActiveAudio();
 
-      showToast(`Melafalkan: Ya ${item.latin} 🔊`);
+      showToast(locale === "ar" ? `تلاوة: يا ${item.arabic} 🔊` : locale === "en" ? `Reciting: Ya ${item.latin} 🔊` : `Melafalkan: Ya ${item.latin} 🔊`);
 
       try {
         const spokenText = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
@@ -210,7 +210,7 @@ export default function AsmaulHusnaClient() {
         console.warn("Audio recitation error:", err);
       }
     },
-    [playClickSound, stopActiveAudio]
+    [playClickSound, stopActiveAudio, locale]
   );
 
   // Tasbih Tap Handler
@@ -224,13 +224,13 @@ export default function AsmaulHusnaClient() {
     if (tasbihTarget > 0 && nextVal === tasbihTarget) {
       playFinishFanfare();
       if ("vibrate" in navigator) navigator.vibrate([60, 40, 80]);
-      showToast(`Alhamdulillah! Target ${tasbihTarget}x tercapai ✨`);
+      showToast(locale === "ar" ? `الحمد لله! تم إنجاز الهدف ${tasbihTarget} مرة ✨` : locale === "en" ? `Alhamdulillah! Target ${tasbihTarget}x reached ✨` : `Alhamdulillah! Target ${tasbihTarget}x tercapai ✨`);
     }
   };
 
   const resetTasbih = () => {
     setTasbihCount(0);
-    showToast("Hitungan tasbih direset ke 0");
+    showToast(locale === "ar" ? "تمت إعادة ضبط عداد التسبيح إلى ٠" : locale === "en" ? "Tasbih count reset to 0" : "Hitungan tasbih direset ke 0");
   };
 
   const startDzikirWithAsma = (item: AsmaulHusnaItem, e?: React.MouseEvent) => {
@@ -239,7 +239,7 @@ export default function AsmaulHusnaClient() {
     setTasbihCount(0);
     setActiveTab("tasbih");
     setSelectedAsma(null);
-    showToast(`Mode Tasbih: Ya ${item.latin} ✨`);
+    showToast(locale === "ar" ? `وضع التسبيح: يا ${item.arabic} ✨` : locale === "en" ? `Tasbih Mode: Ya ${item.latin} ✨` : `Mode Tasbih: Ya ${item.latin} ✨`);
   };
 
   // Sequential Murattal Player Engine
@@ -257,7 +257,7 @@ export default function AsmaulHusnaClient() {
     if (index >= ASMAUL_HUSNA_DATA.length) {
       setIsPlaying(false);
       setCurrentPlayIndex(0);
-      showToast("Khatam 99 Asmaul Husna! Alhamdulillah 🤲");
+      showToast(t.asmaul_husna.khatam_congrats);
       return;
     }
 
@@ -547,7 +547,7 @@ export default function AsmaulHusnaClient() {
     link.download = `asmaul-husna-${storyItem.number}-${storyItem.latin.toLowerCase()}.png`;
     link.href = canvasRef.current.toDataURL("image/png");
     link.click();
-    showToast("Story card Asmaul Husna berhasil diunduh! 📲");
+    showToast(locale === "ar" ? "تم تحميل بطاقة قصة أسماء الله الحسنى بنجاح! 📲" : locale === "en" ? "Asmaul Husna story card downloaded successfully! 📲" : "Story card Asmaul Husna berhasil diunduh! 📲");
   };
 
   const shareToWhatsApp = (item: AsmaulHusnaItem) => {
@@ -588,7 +588,7 @@ export default function AsmaulHusnaClient() {
         <header className="asma-header">
           <div className="asma-badge">
             <span>✨</span>
-            <span>Khazanah Asma Agung</span>
+            <span>{locale === "ar" ? "خزائن الأسماء الحسنى" : locale === "en" ? "Divine Names Sanctuary" : "Khazanah Asma Agung"}</span>
           </div>
           <h1 className="asma-title">{t.asmaul_husna.title}</h1>
           <p className="asma-subtitle">
@@ -597,7 +597,7 @@ export default function AsmaulHusnaClient() {
         </header>
 
         {/* Navigation Tabs */}
-        <nav className="asma-tabs-nav" aria-label="Navigasi Fitur Asmaul Husna">
+        <nav className="asma-tabs-nav" aria-label={locale === "ar" ? "التنقل في أسماء الله الحسنى" : locale === "en" ? "Asmaul Husna Navigation" : "Navigasi Fitur Asmaul Husna"}>
           <button
             type="button"
             className={`asma-tab-btn ${activeTab === "gallery" ? "active" : ""}`}
@@ -628,7 +628,7 @@ export default function AsmaulHusnaClient() {
             onClick={() => setActiveTab("favorites")}
           >
             <span>⭐</span>
-            <span>Favorit ({favorites.length})</span>
+            <span>{t.asmaul_husna.tab_favorites} ({favorites.length})</span>
           </button>
         </nav>
 
@@ -644,7 +644,7 @@ export default function AsmaulHusnaClient() {
                 <input
                   type="text"
                   className="asma-search-input"
-                  placeholder="Cari nama, arti, atau nomor... (contoh: Rahman, Pengasih, 17)"
+                  placeholder={t.asmaul_husna.search_placeholder}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -653,7 +653,7 @@ export default function AsmaulHusnaClient() {
                     type="button"
                     className="asma-search-clear"
                     onClick={() => setSearchQuery("")}
-                    title="Hapus pencarian"
+                    title={locale === "ar" ? "مسح البحث" : locale === "en" ? "Clear search" : "Hapus pencarian"}
                   >
                     ✕
                   </button>
@@ -696,7 +696,7 @@ export default function AsmaulHusnaClient() {
                         type="button"
                         className={`asma-fav-btn ${isFav ? "favorited" : ""}`}
                         onClick={(e) => toggleFavorite(item.number, e)}
-                        title={isFav ? "Hapus dari favorit" : "Simpan ke favorit"}
+                        title={isFav ? (locale === "ar" ? "إزالة من المفضلة" : locale === "en" ? "Remove from favorites" : "Hapus dari favorit") : (locale === "ar" ? "حفظ في المفضلة" : locale === "en" ? "Save to favorites" : "Simpan ke favorit")}
                       >
                         {isFav ? "★" : "☆"}
                       </button>
@@ -711,7 +711,7 @@ export default function AsmaulHusnaClient() {
                         type="button"
                         className="asma-mini-btn"
                         onClick={(e) => speakAsma(item, e)}
-                        title="Dengarkan pelafalan"
+                        title={locale === "ar" ? "استمع للفظ" : locale === "en" ? "Listen to pronunciation" : "Dengarkan pelafalan"}
                       >
                         <span>🔊</span>
                       </button>
@@ -719,17 +719,17 @@ export default function AsmaulHusnaClient() {
                         type="button"
                         className="asma-mini-btn dzikir"
                         onClick={(e) => startDzikirWithAsma(item, e)}
-                        title="Buka tasbih untuk asma ini"
+                        title={locale === "ar" ? "ابدأ التسبيح بهذا الاسم" : locale === "en" ? "Open tasbih for this name" : "Buka tasbih untuk asma ini"}
                       >
-                        <span>📿 Dzikirkan</span>
+                        <span>📿 {t.asmaul_husna.dzikir_btn}</span>
                       </button>
                       <button
                         type="button"
                         className="asma-mini-btn"
                         onClick={(e) => openStoryModal(item, e)}
-                        title="Buat Story Card WhatsApp"
+                        title={locale === "ar" ? "إنشاء بطاقة قصة واتساب" : locale === "en" ? "Create WhatsApp Story Card" : "Buat Story Card WhatsApp"}
                       >
-                        <span>🎨 Story</span>
+                        <span>🎨 {t.asmaul_husna.story_btn}</span>
                       </button>
                     </div>
                   </article>
@@ -742,8 +742,8 @@ export default function AsmaulHusnaClient() {
                 <p style={{ fontSize: "1.8rem", marginBottom: "8px" }}>🍃</p>
                 <p>
                   {activeTab === "favorites"
-                    ? "Belum ada Asmaul Husna yang ditandai sebagai favorit. Ketuk bintang (☆) pada kartu untuk menyimpannya!"
-                    : `Tidak ditemukan Asmaul Husna dengan kata kunci "${searchQuery}".`}
+                    ? t.asmaul_husna.empty_favorites
+                    : `${t.asmaul_husna.empty_search} (${searchQuery})`}
                 </p>
               </div>
             )}
@@ -759,7 +759,7 @@ export default function AsmaulHusnaClient() {
               {/* Asma Selector Dropdown */}
               <div className="tasbih-selector-row">
                 <span style={{ fontSize: "0.8rem", color: "var(--gold-main)", fontWeight: 700 }}>
-                  PILIH ASMA:
+                  {t.asmaul_husna.select_asma}
                 </span>
                 <select
                   className="tasbih-select-input"
@@ -805,7 +805,7 @@ export default function AsmaulHusnaClient() {
                       setTasbihCount(0);
                     }}
                   >
-                    {preset === 0 ? "Bebas ∞" : `${preset}x`}
+                    {preset === 0 ? t.asmaul_husna.free_target : `${preset}x`}
                   </button>
                 ))}
               </div>
@@ -816,7 +816,7 @@ export default function AsmaulHusnaClient() {
                 onClick={handleTasbihTap}
                 role="button"
                 tabIndex={0}
-                aria-label="Ketuk untuk menghitung tasbih"
+                aria-label={t.asmaul_husna.tap_to_count}
               >
                 <svg className="tasbih-dial-svg" viewBox="0 0 220 220">
                   <circle className="tasbih-track" cx="110" cy="110" r={radius} />
@@ -835,7 +835,7 @@ export default function AsmaulHusnaClient() {
                 <div className="tasbih-inner-button">
                   <span className="tasbih-counter-number">{tasbihCount}</span>
                   <span className="tasbih-target-label">
-                    {tasbihTarget > 0 ? `Target ${tasbihTarget}x` : "Hitungan Bebas"}
+                    {tasbihTarget > 0 ? `${t.asmaul_husna.target_times} ${tasbihTarget}x` : t.asmaul_husna.free_target}
                   </span>
                 </div>
               </div>
@@ -844,7 +844,7 @@ export default function AsmaulHusnaClient() {
               <div className="tasbih-actions-bar">
                 <button type="button" className="tasbih-tool-btn" onClick={resetTasbih}>
                   <span>🔄</span>
-                  <span>Reset</span>
+                  <span>{t.asmaul_husna.reset_btn}</span>
                 </button>
                 <button
                   type="button"
@@ -852,7 +852,7 @@ export default function AsmaulHusnaClient() {
                   onClick={() => setSoundEnabled(!soundEnabled)}
                 >
                   <span>{soundEnabled ? "🔊" : "🔇"}</span>
-                  <span>{soundEnabled ? "Suara Aktif" : "Mute"}</span>
+                  <span>{soundEnabled ? t.asmaul_husna.sound_active : t.asmaul_husna.sound_mute}</span>
                 </button>
                 <button
                   type="button"
@@ -860,7 +860,7 @@ export default function AsmaulHusnaClient() {
                   onClick={() => setSelectedAsma(tasbihAsma)}
                 >
                   <span>📖</span>
-                  <span>Tadabbur</span>
+                  <span>{t.asmaul_husna.tadabbur_btn}</span>
                 </button>
               </div>
             </div>
@@ -874,12 +874,12 @@ export default function AsmaulHusnaClient() {
           <div className="murattal-player-card">
             <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--gold-main)", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase" }}>
               <span>🎧</span>
-              <span>Pemutar Audio Otomatis 99 Asmaul Husna</span>
+              <span>{t.asmaul_husna.auto_player_title}</span>
             </div>
 
             <div className="player-track-info">
               <span className="asma-num-badge">
-                #{currentPlayIndex + 1} dari 99
+                #{currentPlayIndex + 1} {t.asmaul_husna.of_99}
               </span>
               <p className="player-big-arabic">{ASMAUL_HUSNA_DATA[currentPlayIndex].arabic}</p>
               <h3 style={{ fontSize: "1.3rem", color: "var(--gold-main)", margin: 0 }}>
@@ -903,7 +903,7 @@ export default function AsmaulHusnaClient() {
                   setCurrentPlayIndex(prev);
                   if (isPlaying) playNextSequential(prev);
                 }}
-                title="Asma Sebelumnya"
+                title={locale === "ar" ? "الاسم السابق" : locale === "en" ? "Previous Name" : "Asma Sebelumnya"}
               >
                 ⏮
               </button>
@@ -912,7 +912,7 @@ export default function AsmaulHusnaClient() {
                 type="button"
                 className="player-round-btn play"
                 onClick={isPlaying ? pauseSequentialPlay : startSequentialPlay}
-                title={isPlaying ? "Jeda" : "Putar Berurutan"}
+                title={isPlaying ? (locale === "ar" ? "إيقاف مؤقت" : locale === "en" ? "Pause" : "Jeda") : (locale === "ar" ? "تشغيل متتابع" : locale === "en" ? "Play Sequentially" : "Putar Berurutan")}
               >
                 {isPlaying ? "⏸" : "▶"}
               </button>
@@ -925,14 +925,14 @@ export default function AsmaulHusnaClient() {
                   setCurrentPlayIndex(next);
                   if (isPlaying) playNextSequential(next);
                 }}
-                title="Asma Berikutnya"
+                title={locale === "ar" ? "الاسم التالي" : locale === "en" ? "Next Name" : "Asma Berikutnya"}
               >
                 ⏭
               </button>
             </div>
 
             <p style={{ fontSize: "0.82rem", color: "#94a3b8", textAlign: "center", maxWidth: "480px" }}>
-              Mode ini memutar pelafalan 99 Asmaul Husna secara otomatis dari nomor 1 hingga 99. Cocok didengarkan saat beristirahat, berkendara, atau menghafal.
+              {locale === "ar" ? "يقوم هذا الوضع بتشغيل تلاوة 99 اسماً من أسماء الله الحسنى تلقائياً من 1 إلى 99. مناسب للاستماع أثناء الراحة أو القيادة أو الحفظ." : locale === "en" ? "This mode automatically plays the recitation of the 99 Names of Allah sequentially from 1 to 99. Ideal for listening during rest, commute, or memorization." : "Mode ini memutar pelafalan 99 Asmaul Husna secara otomatis dari nomor 1 hingga 99. Cocok didengarkan saat beristirahat, berkendara, atau menghafal."}
             </p>
           </div>
         )}
@@ -960,14 +960,14 @@ export default function AsmaulHusnaClient() {
 
               <div className="asma-quran-ref-badge">
                 <span>📖</span>
-                <span>Rujukan Dalil: {selectedAsma.quranRef}</span>
+                <span>{t.asmaul_husna.dalil_label}: {selectedAsma.quranRef}</span>
               </div>
 
               {/* Tadabbur Section */}
               <div className="asma-section-box">
                 <div className="asma-section-title">
                   <span>💡</span>
-                  <span>Makna & Tadabbur Mendalam</span>
+                  <span>{t.asmaul_husna.meaning_label}</span>
                 </div>
                 <p className="asma-section-desc">{selectedAsma.meaning}</p>
               </div>
@@ -976,7 +976,7 @@ export default function AsmaulHusnaClient() {
               <div className="asma-section-box" style={{ borderColor: "rgba(16, 185, 129, 0.3)" }}>
                 <div className="asma-section-title" style={{ color: "#34d399" }}>
                   <span>📿</span>
-                  <span>Khasiat & Amalan Dzikir</span>
+                  <span>{locale === "ar" ? "فضائل وذكر الاسم" : locale === "en" ? "Virtues & Dhikr Benefits" : "Khasiat & Amalan Dzikir"}</span>
                 </div>
                 <p className="asma-section-desc">{selectedAsma.dhikrBenefit}</p>
               </div>
@@ -990,7 +990,7 @@ export default function AsmaulHusnaClient() {
                   onClick={() => startDzikirWithAsma(selectedAsma)}
                 >
                   <span>📿</span>
-                  <span>Dzikirkan Sekarang</span>
+                  <span>{t.asmaul_husna.dzikir_btn}</span>
                 </button>
                 <button
                   type="button"
@@ -999,7 +999,7 @@ export default function AsmaulHusnaClient() {
                   onClick={() => speakAsma(selectedAsma)}
                 >
                   <span>🔊</span>
-                  <span>Lafalkan</span>
+                  <span>{locale === "ar" ? "تلاوة" : locale === "en" ? "Recite" : "Lafalkan"}</span>
                 </button>
                 <button
                   type="button"
@@ -1008,7 +1008,7 @@ export default function AsmaulHusnaClient() {
                   onClick={() => openStoryModal(selectedAsma)}
                 >
                   <span>🎨</span>
-                  <span>Buat Story Card</span>
+                  <span>{t.asmaul_husna.story_btn}</span>
                 </button>
                 <button
                   type="button"
@@ -1017,7 +1017,7 @@ export default function AsmaulHusnaClient() {
                   onClick={() => shareToWhatsApp(selectedAsma)}
                 >
                   <span>📲</span>
-                  <span>Kirim WA</span>
+                  <span>{locale === "ar" ? "واتساب" : locale === "en" ? "Share WA" : "Kirim WA"}</span>
                 </button>
               </div>
             </div>
@@ -1032,7 +1032,7 @@ export default function AsmaulHusnaClient() {
             <div className="asma-modal-box" onClick={(e) => e.stopPropagation()}>
               <div className="asma-modal-header">
                 <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--gold-main)" }}>
-                  🎨 Generator Story Card 9:16
+                  🎨 {t.asmaul_husna.story_preview_title}
                 </span>
                 <button
                   type="button"
@@ -1082,7 +1082,7 @@ export default function AsmaulHusnaClient() {
                   onClick={downloadStoryImage}
                 >
                   <span>📥</span>
-                  <span>Unduh Gambar Story (PNG HD)</span>
+                  <span>{t.asmaul_husna.story_download}</span>
                 </button>
                 <button
                   type="button"
@@ -1091,7 +1091,7 @@ export default function AsmaulHusnaClient() {
                   onClick={() => shareToWhatsApp(storyItem)}
                 >
                   <span>📲</span>
-                  <span>Bagikan Teks ke WhatsApp</span>
+                  <span>{locale === "ar" ? "مشاركة النص إلى واتساب" : locale === "en" ? "Share Text to WhatsApp" : "Bagikan Teks ke WhatsApp"}</span>
                 </button>
               </div>
             </div>

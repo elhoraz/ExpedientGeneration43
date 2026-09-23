@@ -468,7 +468,7 @@ export default function BaitulMaalClient({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Tanda Terima Infaq — Baitul Maal Expedient 43</title>
+        <title>${locale === "ar" ? "إيصال التبرع — بيت المال دفعة 43" : locale === "en" ? "Donation Receipt — Baitul Maal Expedient 43" : "Tanda Terima Infaq — Baitul Maal Expedient 43"}</title>
         <style>
           body { font-family: 'Times New Roman', serif; padding: 40px; color: #111; max-width: 620px; margin: 0 auto; line-height: 1.6; border: 2px solid #b8860b; }
           .header { text-align: center; border-bottom: 2px solid #b8860b; padding-bottom: 15px; margin-bottom: 20px; }
@@ -485,22 +485,22 @@ export default function BaitulMaalClient({
       </head>
       <body>
         <div class="header">
-          <h1 class="title">Baitul Maal Expedient Generation</h1>
+          <h1 class="title">${locale === "ar" ? "بيت المال دفعة إكسبيديانت 43" : "Baitul Maal Expedient Generation"}</h1>
           <p class="subtitle">Pondok Modern Arrisalah — Angkatan 43</p>
           <p class="subtitle" style="font-size: 11px; margin-top: 2px;">No. Registrasi: EXP43-BM-${tx.id.slice(0, 8).toUpperCase()}</p>
         </div>
-        <div class="row"><span class="label">Nama Donatur / Penyalur:</span><span class="value">${tx.donor_name || "Hamba Allah"}</span></div>
-        <div class="row"><span class="label">Tanggal Diterima:</span><span class="value">${new Date(tx.created_at).toLocaleString("id-ID")}</span></div>
-        <div class="row"><span class="label">Alokasi Program:</span><span class="value">${tx.description || "Infaq & Ta'awun Kas Angkatan"}</span></div>
+        <div class="row"><span class="label">${locale === "ar" ? "اسم المتبرع:" : locale === "en" ? "Donor Name:" : "Nama Donatur / Penyalur:"}</span><span class="value">${tx.donor_name || (locale === "ar" ? "فاعل خير" : locale === "en" ? "Servant of Allah" : "Hamba Allah")}</span></div>
+        <div class="row"><span class="label">${locale === "ar" ? "تاريخ الاستلام:" : locale === "en" ? "Date Received:" : "Tanggal Diterima:"}</span><span class="value">${new Date(tx.created_at).toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")}</span></div>
+        <div class="row"><span class="label">${locale === "ar" ? "تخصيص البرنامج:" : locale === "en" ? "Program Allocation:" : "Alokasi Program:"}</span><span class="value">${tx.description || (locale === "ar" ? "إنفاق وتعاون صندوق الدفعة" : locale === "en" ? "Alumni Mutual Infaq & Fund" : "Infaq & Ta'awun Kas Angkatan")}</span></div>
         <div class="amount-box">${formatRupiah(Number(tx.amount))}</div>
         <div style="text-align: center;">
-          <div class="stamp">✓ TERVERIFIKASI BENDAHARA RESMI</div>
+          <div class="stamp">${locale === "ar" ? "✓ معتمد من أمين الصندوق الرسمي" : locale === "en" ? "✓ VERIFIED BY OFFICIAL TREASURER" : "✓ TERVERIFIKASI BENDAHARA RESMI"}</div>
         </div>
         <div class="footer">
-          <p>Jazakumullah khairan katsiran atas kontribusi infaq dan ta'awun Anda demi kemaslahatan ukhuwah alumni angkatan 43.</p>
+          <p>${locale === "ar" ? "جزاكم الله خيراً وأحسن الجزاء على مساهمتكم في الإنفاق والتكافل لدعم أخوة خريجي الدفعة 43." : locale === "en" ? "May Allah reward you with immense goodness for your infaq and solidarity contribution toward the alumni fraternity." : "Jazakumullah khairan katsiran atas kontribusi infaq dan ta'awun Anda demi kemaslahatan ukhuwah alumni angkatan 43."}</p>
         </div>
         <div class="no-print" style="text-align: center; margin-top: 20px;">
-          <button onclick="window.print()" style="padding: 10px 24px; background: #b8860b; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Cetak / Simpan PDF</button>
+          <button onclick="window.print()" style="padding: 10px 24px; background: #b8860b; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">${locale === "ar" ? "طباعة / حفظ PDF" : locale === "en" ? "Print / Save PDF" : "Cetak / Simpan PDF"}</button>
         </div>
         <script>
           window.onload = function() {
@@ -650,22 +650,24 @@ export default function BaitulMaalClient({
       <body>
         <div class="cert-frame">
           <div class="cert-header">BAITUL MAAL EXPEDIENT GENERATION 43</div>
-          <h1 class="cert-title">Piagam Apresiasi Donatur</h1>
-          <p class="cert-subtitle">Nomor Registrasi: CERT/BM43/${tx.id.slice(0, 8).toUpperCase()}/${new Date().getFullYear()}</p>
+          <h1 class="cert-title">${locale === "ar" ? "شهادة تقدير للمتبرع" : locale === "en" ? "Donor Appreciation Certificate" : "Piagam Apresiasi Donatur"}</h1>
+          <p class="cert-subtitle">${locale === "ar" ? "رقم التسجيل:" : locale === "en" ? "Registration No:" : "Nomor Registrasi:"} CERT/BM43/${tx.id.slice(0, 8).toUpperCase()}/${new Date().getFullYear()}</p>
           
-          <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 2px;">Dianugerahkan Dengan Penuh Takzim Kepada:</div>
-          <div class="recipient-name">${tx.donor_name || "Hamba Allah"}</div>
+          <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 2px;">${locale === "ar" ? "تُمنح بكل إجلال وتقدير إلى:" : locale === "en" ? "Bestowed with highest gratitude upon:" : "Dianugerahkan Dengan Penuh Takzim Kepada:"}</div>
+          <div class="recipient-name">${tx.donor_name || (locale === "ar" ? "فاعل خير" : locale === "en" ? "Servant of Allah" : "Hamba Allah")}</div>
           
           <p class="cert-desc">
-            Atas ketulusan, keikhlasan, dan komitmen ta'awun infaq senilai<br/>
-            <span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>
-            untuk dialokasikan pada program <strong>${tx.description || "Kas Rutin & Operasional Ukhuwah"}</strong>.<br/>
-            Semoga Allah Subhanahu Wa Ta'ala melipatgandakan pahala kebaikan, memperluas pintu rezeki, dan menjadikannya amal jariyah abadi bagi antum sekeluarga. Aamiin.
+            ${locale === "ar"
+              ? `تقديراً لصدق العطاء والإخلاص في المساهمة بإنفاق وتكافل بقيمة<br/><span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>لصالح برنامج <strong>${tx.description || "صندوق الدفعة والعمل الخيري"}</strong>.<br/>نسأل الله سبحانه وتعالى أن يضاعف لكم الأجر، ويوسع في أرزاقكم، ويجعله صدقة جارية تفيض بالخيرات والبركات. آمين.`
+              : locale === "en"
+              ? `In recognition of genuine sincerity and devotion in contributing infaq and solidarity valued at<br/><span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>allocated to <strong>${tx.description || "Routine Class & Solidarity Fund"}</strong>.<br/>May Allah Subhanahu Wa Ta'ala multiply your rewards, expand your provisions, and make it an enduring charitable legacy for you and your family. Aameen.`
+              : `Atas ketulusan, keikhlasan, dan komitmen ta'awun infaq senilai<br/><span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>untuk dialokasikan pada program <strong>${tx.description || "Kas Rutin & Operasional Ukhuwah"}</strong>.<br/>Semoga Allah Subhanahu Wa Ta'ala melipatgandakan pahala kebaikan, memperluas pintu rezeki, dan menjadikannya amal jariyah abadi bagi antum sekeluarga. Aamiin.`
+            }
           </p>
 
           <div class="cert-footer">
             <div class="sig-box">
-              <div class="sig-line">Ketua Angkatan 43</div>
+              <div class="sig-line">${locale === "ar" ? "رئيس الدفعة 43" : locale === "en" ? "President of Class 43" : "Ketua Angkatan 43"}</div>
               <div class="sig-role">Expedient Generation</div>
             </div>
 
@@ -676,15 +678,15 @@ export default function BaitulMaalClient({
             </div>
 
             <div class="sig-box">
-              <div class="sig-line">Bendahara Baitul Maal</div>
-              <div class="sig-role">Verifikasi Kas Terpercaya</div>
+              <div class="sig-line">${locale === "ar" ? "أمين بيت المال" : locale === "en" ? "Treasurer of Baitul Maal" : "Bendahara Baitul Maal"}</div>
+              <div class="sig-role">${locale === "ar" ? "التحقق المالي المعتمد" : locale === "en" ? "Verified Trust Treasury" : "Verifikasi Kas Terpercaya"}</div>
             </div>
           </div>
         </div>
 
         <div class="no-print" style="text-align: center; margin-top: 25px;">
           <button onclick="window.print()" style="padding: 12px 30px; background: #b8860b; color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-            Cetak / Simpan PDF (Landscape)
+            ${locale === "ar" ? "طباعة / حفظ PDF" : locale === "en" ? "Print / Save PDF (Landscape)" : "Cetak / Simpan PDF (Landscape)"}
           </button>
         </div>
         <script>
@@ -849,9 +851,9 @@ export default function BaitulMaalClient({
         <div className="campaign-section">
           <div className="section-heading">
             <h2 className="section-title">
-              <i className="fa-solid fa-bullseye-arrow"></i> Program & Alokasi Penyaluran
+              <i className="fa-solid fa-bullseye-arrow"></i> {t.baitul_maal.campaign_heading}
             </h2>
-            <span className="section-desc">Distribusi dana umat terhimpun untuk kemaslahatan bersama</span>
+            <span className="section-desc">{t.baitul_maal.campaign_sub}</span>
           </div>
 
           <div className="campaign-grid">
@@ -862,8 +864,8 @@ export default function BaitulMaalClient({
                   <i className="fa-solid fa-coins"></i>
                 </div>
                 <div>
-                  <h3 className="campaign-name">Kas Rutin & Operasional</h3>
-                  <p className="campaign-target">Dana Khidmah & Operasional Angkatan</p>
+                  <h3 className="campaign-name">{t.baitul_maal.prog_kas_title}</h3>
+                  <p className="campaign-target">{t.baitul_maal.prog_kas_desc}</p>
                 </div>
               </div>
               <div className="progress-bar-bg">
@@ -876,9 +878,9 @@ export default function BaitulMaalClient({
               </div>
               <div className="campaign-meta">
                 <span>
-                  Terkumpul: <strong>{formatRupiah(kasRutinIn)}</strong>
+                  {t.baitul_maal.collected_label}: <strong>{formatRupiah(kasRutinIn)}</strong>
                 </span>
-                <span>{totalIn > 0 ? Math.round((kasRutinIn / totalIn) * 100) : 0}% Alokasi</span>
+                <span>{totalIn > 0 ? Math.round((kasRutinIn / totalIn) * 100) : 0}% {t.baitul_maal.allocation_label}</span>
               </div>
             </div>
 
@@ -889,8 +891,8 @@ export default function BaitulMaalClient({
                   <i className="fa-solid fa-hand-holding-medical"></i>
                 </div>
                 <div>
-                  <h3 className="campaign-name">Dana Ta'awun & Santunan</h3>
-                  <p className="campaign-target">Bantuan Solidaritas & Kemanusiaan</p>
+                  <h3 className="campaign-name">{t.baitul_maal.prog_taawun_title}</h3>
+                  <p className="campaign-target">{t.baitul_maal.prog_taawun_desc}</p>
                 </div>
               </div>
               <div className="progress-bar-bg">
@@ -903,9 +905,9 @@ export default function BaitulMaalClient({
               </div>
               <div className="campaign-meta">
                 <span>
-                  Terkumpul: <strong>{formatRupiah(taawunIn)}</strong>
+                  {t.baitul_maal.collected_label}: <strong>{formatRupiah(taawunIn)}</strong>
                 </span>
-                <span>{totalIn > 0 ? Math.round((taawunIn / totalIn) * 100) : 0}% Alokasi</span>
+                <span>{totalIn > 0 ? Math.round((taawunIn / totalIn) * 100) : 0}% {t.baitul_maal.allocation_label}</span>
               </div>
             </div>
 
@@ -916,8 +918,8 @@ export default function BaitulMaalClient({
                   <i className="fa-solid fa-mosque"></i>
                 </div>
                 <div>
-                  <h3 className="campaign-name">Safari Dakwah & Silaturahmi</h3>
-                  <p className="campaign-target">Program Ukhuwah & Agenda Angkatan</p>
+                  <h3 className="campaign-name">{t.baitul_maal.prog_safari_title}</h3>
+                  <p className="campaign-target">{t.baitul_maal.prog_safari_desc}</p>
                 </div>
               </div>
               <div className="progress-bar-bg">
@@ -930,9 +932,9 @@ export default function BaitulMaalClient({
               </div>
               <div className="campaign-meta">
                 <span>
-                  Terkumpul: <strong>{formatRupiah(safariIn)}</strong>
+                  {t.baitul_maal.collected_label}: <strong>{formatRupiah(safariIn)}</strong>
                 </span>
-                <span>{totalIn > 0 ? Math.round((safariIn / totalIn) * 100) : 0}% Alokasi</span>
+                <span>{totalIn > 0 ? Math.round((safariIn / totalIn) * 100) : 0}% {t.baitul_maal.allocation_label}</span>
               </div>
             </div>
           </div>
@@ -1129,9 +1131,9 @@ export default function BaitulMaalClient({
                             cursor: "pointer",
                             fontWeight: 600,
                           }}
-                          title="Tolak entri donasi ini"
+                          title={locale === "ar" ? "رفض هذا التبرع" : locale === "en" ? "Reject this donation" : "Tolak entri donasi ini"}
                         >
-                          <i className="fa-solid fa-xmark"></i> Tolak
+                          <i className="fa-solid fa-xmark"></i> {locale === "ar" ? "رفض" : locale === "en" ? "Reject" : "Tolak"}
                         </button>
                       </div>
                     )}
@@ -1154,9 +1156,9 @@ export default function BaitulMaalClient({
                             alignItems: "center",
                             gap: "5px",
                           }}
-                          title="Cetak Bukti Tanda Terima Donasi Resmi"
+                          title={locale === "ar" ? "طباعة إيصال التبرع الرسمي" : locale === "en" ? "Print Official Donation Receipt" : "Cetak Bukti Tanda Terima Donasi Resmi"}
                         >
-                          <i className="fa-solid fa-receipt"></i> Bukti
+                          <i className="fa-solid fa-receipt"></i> {locale === "ar" ? "إيصال" : locale === "en" ? "Receipt" : "Bukti"}
                         </button>
                         <button
                           type="button"
@@ -1173,9 +1175,9 @@ export default function BaitulMaalClient({
                             alignItems: "center",
                             gap: "5px",
                           }}
-                          title="Cetak Piagam Penghargaan Apresiasi Donatur (Landscape)"
+                          title={locale === "ar" ? "طباعة شهادة تقدير للمتبرع" : locale === "en" ? "Print Donor Certificate of Appreciation" : "Cetak Piagam Penghargaan Apresiasi Donatur (Landscape)"}
                         >
-                          <i className="fa-solid fa-award"></i> Piagam
+                          <i className="fa-solid fa-award"></i> {locale === "ar" ? "شهادة" : locale === "en" ? "Certificate" : "Piagam"}
                         </button>
                       </div>
                     )}
@@ -1195,8 +1197,8 @@ export default function BaitulMaalClient({
           <div className="maal-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <h2 className="modal-title">Salurkan Infaq & Ta'awun</h2>
-                <p className="modal-subtitle">Pintu amal jariyah & kontribusi kemaslahatan angkatan</p>
+                <h2 className="modal-title">{locale === "ar" ? "تقديم الإنفاق والتكافل" : locale === "en" ? "Contribute Infaq & Solidarity" : "Salurkan Infaq & Ta'awun"}</h2>
+                <p className="modal-subtitle">{locale === "ar" ? "باب الصدقة الجارية والمساهمة في مصلحة الدفعة" : locale === "en" ? "Doorway to continuous charity and alumni fraternity support" : "Pintu amal jariyah & kontribusi kemaslahatan angkatan"}</p>
               </div>
               <button type="button" className="btn-close-modal" onClick={() => setIsDonateOpen(false)}>
                 &times;
@@ -1220,7 +1222,7 @@ export default function BaitulMaalClient({
                       className="btn-copy-acc"
                       onClick={() => handleCopy(acc.account_number.replace(/\s/g, ""), `Rekening ${acc.bank}`)}
                     >
-                      <i className="fa-regular fa-copy"></i> Salin
+                      <i className="fa-regular fa-copy"></i> {locale === "ar" ? "نسخ" : locale === "en" ? "Copy" : "Salin"}
                     </button>
                   </div>
                 ))}
@@ -1241,7 +1243,7 @@ export default function BaitulMaalClient({
                   style={{ fontSize: "2rem", color: "var(--gold-main, #d4af37)", marginBottom: "10px" }}
                 ></i>
                 <h4 style={{ margin: "0 0 6px", color: "var(--gold-main, #d4af37)", fontSize: "1rem" }}>
-                  Rekening Kas Resmi Sedang Disiapkan
+                  {locale === "ar" ? "جاري تجهيز الحساب البنكي الرسمي" : locale === "en" ? "Official Bank Accounts Being Prepared" : "Rekening Kas Resmi Sedang Disiapkan"}
                 </h4>
                 <p
                   style={{
@@ -1251,8 +1253,7 @@ export default function BaitulMaalClient({
                     lineHeight: 1.5,
                   }}
                 >
-                  Untuk mendapatkan nomor rekening resmi tujuan transfer atau konfirmasi infaq, silakan hubungi
-                  Bendahara Angkatan secara langsung.
+                  {locale === "ar" ? "للحصول على رقم الحساب البنكي المعتمد للتحويل، يرجى التواصل مع أمين صندوق الدفعة مباشرة." : locale === "en" ? "To obtain official bank account transfer details, please contact the class treasurer directly." : "Untuk mendapatkan nomor rekening resmi tujuan transfer atau konfirmasi infaq, silakan hubungi Bendahara Angkatan secara langsung."}
                 </p>
                 {contactInfo?.phone ? (
                   <a
@@ -1272,7 +1273,7 @@ export default function BaitulMaalClient({
                       textDecoration: "none",
                     }}
                   >
-                    <i className="fa-brands fa-whatsapp"></i> Hubungi Bendahara ({contactInfo.name || "Bendahara"})
+                    <i className="fa-brands fa-whatsapp"></i> {locale === "ar" ? `تواصل مع أمين الصندوق (${contactInfo.name || "أمين الصندوق"})` : locale === "en" ? `Contact Treasurer (${contactInfo.name || "Treasurer"})` : `Hubungi Bendahara (${contactInfo.name || "Bendahara"})`}
                   </a>
                 ) : null}
                 {isAdmin && (
@@ -1306,21 +1307,21 @@ export default function BaitulMaalClient({
 
             {/* FORM KONFIRMASI INFAQ */}
             <form onSubmit={handleDonateSubmit} className="maal-modal-form">
-              <h3 className="form-section-title">Konfirmasi Pengiriman Infaq</h3>
+              <h3 className="form-section-title">{locale === "ar" ? "تأكيد إرسال التبرع" : locale === "en" ? "Infaq Confirmation" : "Konfirmasi Pengiriman Infaq"}</h3>
 
               <div className="form-group">
-                <label>PILIHAN PROGRAM</label>
+                <label>{locale === "ar" ? "اختيار البرنامج" : locale === "en" ? "PROGRAM SELECTION" : "PILIHAN PROGRAM"}</label>
                 <select value={donateProgram} onChange={(e) => setDonateProgram(e.target.value)} required>
-                  <option value="Kas Rutin Angkatan">Kas Rutin Angkatan</option>
-                  <option value="Dana Ta'awun Sahabat">Dana Ta'awun & Santunan Sahabat</option>
-                  <option value="Infaq & Sedekah Bebas">Infaq & Sedekah Bebas</option>
-                  <option value="Zakat Maal & Penghasilan">Zakat Maal / Penghasilan</option>
-                  <option value="Safari Dakwah & Reuni">Safari Dakwah & Reuni</option>
+                  <option value="Kas Rutin Angkatan">{locale === "ar" ? "صندوق الدفعة والتشغيل" : locale === "en" ? "Routine Class Fund" : "Kas Rutin Angkatan"}</option>
+                  <option value="Dana Ta'awun Sahabat">{locale === "ar" ? "صندوق التكافل والإعانة" : locale === "en" ? "Solidarity & Assistance Fund" : "Dana Ta'awun & Santunan Sahabat"}</option>
+                  <option value="Infaq & Sedekah Bebas">{locale === "ar" ? "إنفاق وصدقة عامة" : locale === "en" ? "General Infaq & Charity" : "Infaq & Sedekah Bebas"}</option>
+                  <option value="Zakat Maal & Penghasilan">{locale === "ar" ? "زكاة المال والدخل" : locale === "en" ? "Wealth & Income Zakat" : "Zakat Maal / Penghasilan"}</option>
+                  <option value="Safari Dakwah & Reuni">{locale === "ar" ? "قافلة الدعوة واللقاءات" : locale === "en" ? "Da'wah Safari & Reunion" : "Safari Dakwah & Reuni"}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>BANK TUJUAN PENYALURAN</label>
+                <label>{locale === "ar" ? "حساب التحويل البنكي" : locale === "en" ? "TARGET BANK ACCOUNT" : "BANK TUJUAN PENYALURAN"}</label>
                 <select value={donateBank} onChange={(e) => setDonateBank(e.target.value)} required>
                   {bankAccounts.length > 0 ? (
                     bankAccounts.map((acc, idx) => (
@@ -1329,14 +1330,14 @@ export default function BaitulMaalClient({
                       </option>
                     ))
                   ) : (
-                    <option value="Rekening Bendahara">Rekening Resmi Bendahara Kas</option>
+                    <option value="Rekening Bendahara">{locale === "ar" ? "حساب أمين الصندوق الرسمي" : locale === "en" ? "Official Treasurer Account" : "Rekening Resmi Bendahara Kas"}</option>
                   )}
-                  <option value="QRIS / E-Wallet">QRIS / E-Wallet Lainnya</option>
+                  <option value="QRIS / E-Wallet">{locale === "ar" ? "QRIS / المحفظة الإلكترونية" : locale === "en" ? "QRIS / E-Wallet" : "QRIS / E-Wallet Lainnya"}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>NOMINAL INFAQ (RUPIAH)</label>
+                <label>{locale === "ar" ? "قيمة التبرع (بالروبية)" : locale === "en" ? "INFAQ AMOUNT (IDR)" : "NOMINAL INFAQ (RUPIAH)"}</label>
                 <div className="preset-amounts">
                   {[25000, 50000, 100000, 250000, 500000, 1000000].map((amt) => (
                     <button
@@ -1356,13 +1357,13 @@ export default function BaitulMaalClient({
                       donateInputRef.current?.select();
                     }}
                   >
-                    Nominal Lain...
+                    {locale === "ar" ? "مبلغ آخر..." : locale === "en" ? "Custom Amount..." : "Nominal Lain..."}
                   </button>
                 </div>
                 <input
                   ref={donateInputRef}
                   type="number"
-                  placeholder="Contoh: 150000"
+                  placeholder={locale === "ar" ? "مثال: 150000" : locale === "en" ? "Example: 150000" : "Contoh: 150000"}
                   value={donateAmount}
                   onChange={(e) => setDonateAmount(e.target.value)}
                   required
@@ -1371,10 +1372,10 @@ export default function BaitulMaalClient({
               </div>
 
               <div className="form-group">
-                <label>DOA / PESAN KEBERKAHAN (OPSIONAL)</label>
+                <label>{locale === "ar" ? "دعاء أو رسالة بركة (اختياري)" : locale === "en" ? "PRAYER / BLESSING MESSAGE (OPTIONAL)" : "DOA / PESAN KEBERKAHAN (OPSIONAL)"}</label>
                 <textarea
                   rows={2}
-                  placeholder="Tuliskan doa atau harapan untuk angkatan kita..."
+                  placeholder={locale === "ar" ? "اكتب دعاء أو أمنية طيبة لدفعتنا..." : locale === "en" ? "Write a prayer or hope for our class..." : "Tuliskan doa atau harapan untuk angkatan kita..."}
                   value={donatePrayer}
                   onChange={(e) => setDonatePrayer(e.target.value)}
                 ></textarea>
@@ -1387,13 +1388,13 @@ export default function BaitulMaalClient({
                   onChange={(e) => setDonateAnonim(e.target.checked)}
                 />
                 <span>
-                  Salurkan Sebagai <strong>Hamba Allah (Anonim)</strong>
+                  {locale === "ar" ? <>التبرع باسم <strong>فاعل خير (مجهول)</strong></> : locale === "en" ? <>Donate as <strong>Servant of Allah (Anonymous)</strong></> : <>Salurkan Sebagai <strong>Hamba Allah (Anonim)</strong></>}
                 </span>
               </label>
 
               <button type="submit" className="btn-submit-donate" disabled={isDonating}>
                 <i className="fa-solid fa-heart"></i>{" "}
-                {isDonating ? "Memproses..." : "Konfirmasi Penyaluran Infaq"}
+                {isDonating ? (locale === "ar" ? "جاري المعالجة..." : locale === "en" ? "Processing..." : "Memproses...") : (locale === "ar" ? "تأكيد تقديم الإنفاق" : locale === "en" ? "Confirm Infaq Contribution" : "Konfirmasi Penyaluran Infaq")}
               </button>
             </form>
           </div>
@@ -1408,8 +1409,8 @@ export default function BaitulMaalClient({
           <div className="maal-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div>
-                <h2 className="modal-title">Kalkulator Zakat & Nisab</h2>
-                <p className="modal-subtitle">Hitung kewajiban zakat maal dan profesi sesuai kaidah syariah</p>
+                <h2 className="modal-title">{locale === "ar" ? "حاسبة الزكاة والنصاب" : locale === "en" ? "Zakat & Nisab Calculator" : "Kalkulator Zakat & Nisab"}</h2>
+                <p className="modal-subtitle">{locale === "ar" ? "احسب زكاة المال وزكاة الدخل وفقاً لأحكام الشريعة" : locale === "en" ? "Calculate wealth and income zakat in accordance with Sharia principles" : "Hitung kewajiban zakat maal dan profesi sesuai kaidah syariah"}</p>
               </div>
               <button type="button" className="btn-close-modal" onClick={() => setIsZakatOpen(false)}>
                 &times;
@@ -1422,14 +1423,14 @@ export default function BaitulMaalClient({
                 className={`zakat-tab ${zakatType === "profesi" ? "active" : ""}`}
                 onClick={() => setZakatType("profesi")}
               >
-                Zakat Penghasilan (Profesi)
+                {locale === "ar" ? "زكاة الدخل والمهن" : locale === "en" ? "Income Zakat (Profession)" : "Zakat Penghasilan (Profesi)"}
               </button>
               <button
                 type="button"
                 className={`zakat-tab ${zakatType === "maal" ? "active" : ""}`}
                 onClick={() => setZakatType("maal")}
               >
-                Zakat Maal (Tabungan/Emas)
+                {locale === "ar" ? "زكاة المال (المدخرات/الذهب)" : locale === "en" ? "Wealth Zakat (Savings/Gold)" : "Zakat Maal (Tabungan/Emas)"}
               </button>
             </div>
 
@@ -1437,8 +1438,8 @@ export default function BaitulMaalClient({
               <div className="form-group">
                 <label>
                   {zakatType === "profesi"
-                    ? "PENGHASILAN UTAMA PER BULAN (RP)"
-                    : "TOTAL TABUNGAN / DEPOSITO / EMAS (RP)"}
+                    ? (locale === "ar" ? "الدخل الأساسي شهرياً (بالروبية)" : locale === "en" ? "PRIMARY MONTHLY INCOME (IDR)" : "PENGHASILAN UTAMA PER BULAN (RP)")
+                    : (locale === "ar" ? "إجمالي المدخرات / الودائع / الذهب (بالروبية)" : locale === "en" ? "TOTAL SAVINGS / DEPOSITS / GOLD (IDR)" : "TOTAL TABUNGAN / DEPOSITO / EMAS (RP)")}
                 </label>
                 <input
                   type="number"
@@ -1451,7 +1452,7 @@ export default function BaitulMaalClient({
               {zakatType === "profesi" && (
                 <>
                   <div className="form-group">
-                    <label>PENGHASILAN TAMBAHAN LAINNYA (RP)</label>
+                    <label>{locale === "ar" ? "الدخل الإضافي الآخر (بالروبية)" : locale === "en" ? "ADDITIONAL INCOME (IDR)" : "PENGHASILAN TAMBAHAN LAINNYA (RP)"}</label>
                     <input
                       type="number"
                       placeholder="Contoh: 2000000"
@@ -1461,7 +1462,7 @@ export default function BaitulMaalClient({
                   </div>
 
                   <div className="form-group">
-                    <label>PENGELUARAN POKOK / HUTANG JATUH TEMPO (RP)</label>
+                    <label>{locale === "ar" ? "النفقات الأساسية / الديون المستحقة (بالروبية)" : locale === "en" ? "BASIC LIVING EXPENSES / DUE DEBTS (IDR)" : "PENGELUARAN POKOK / HUTANG JATUH TEMPO (RP)"}</label>
                     <input
                       type="number"
                       placeholder="Contoh: 3000000"
@@ -1474,13 +1475,13 @@ export default function BaitulMaalClient({
 
               <div className="nisab-info-box">
                 <div className="nisab-row">
-                  <span>Standar Nisab (85g Emas):</span>
+                  <span>{locale === "ar" ? "معيار النصاب (٨٥ غرام ذهب):" : locale === "en" ? "Nisab Standard (85g Gold):" : "Standar Nisab (85g Emas):"}</span>
                   <strong>
-                    {formatRupiah(nisabBulanan)} / bulan ({formatRupiah(nisabTahunan)} / tahun)
+                    {locale === "ar" ? `${formatRupiah(nisabBulanan)} / شهرياً (${formatRupiah(nisabTahunan)} / سنوياً)` : locale === "en" ? `${formatRupiah(nisabBulanan)} / month (${formatRupiah(nisabTahunan)} / year)` : `${formatRupiah(nisabBulanan)} / bulan (${formatRupiah(nisabTahunan)} / tahun)`}
                   </strong>
                 </div>
                 <div className="nisab-row">
-                  <span>Total Bersih Dihitung:</span>
+                  <span>{locale === "ar" ? "صافي الوعاء المحسوب:" : locale === "en" ? "Net Calculated Base:" : "Total Bersih Dihitung:"}</span>
                   <strong>{formatRupiah(Math.max(0, totalPenghasilanBulanan))}</strong>
                 </div>
               </div>
@@ -1488,7 +1489,7 @@ export default function BaitulMaalClient({
               <div className={`zakat-result-card ${isWajibZakat ? "wajib" : "belum"}`}>
                 <div className="result-header">
                   <span className="result-badge">
-                    {isWajibZakat ? "WAJIB ZAKAT (2.5%)" : "BELUM MENCAPAI NISAB"}
+                    {isWajibZakat ? (locale === "ar" ? "تجب الزكاة (٢.٥٪)" : locale === "en" ? "ZAKAT DUE (2.5%)" : "WAJIB ZAKAT (2.5%)") : (locale === "ar" ? "لم يبلغ النصاب" : locale === "en" ? "BELOW NISAB" : "BELUM MENCAPAI NISAB")}
                   </span>
                   <div className="result-value">
                     {isWajibZakat ? formatRupiah(nilaiZakatBulanan) : "Rp 0"}
@@ -1496,8 +1497,8 @@ export default function BaitulMaalClient({
                 </div>
                 <p className="result-explanation">
                   {isWajibZakat
-                    ? "Alhamdulillah, total harta/penghasilan Anda telah memenuhi syarat nisab. Zakat 2.5% dapat disalurkan melalui Baitul Maal."
-                    : "Penghasilan belum melampaui batas nisab 85g emas. Namun, Anda tetap dianjurkan menyalurkan infaq & sedekah sukarela."}
+                    ? (locale === "ar" ? "الحمد لله، بلغ مالك النصاب الشرعي. يمكنك دفع زكاة ٢.٥٪ عبر بيت المال." : locale === "en" ? "Alhamdulillah, your wealth has reached the nisab. 2.5% zakat can be contributed via Baitul Maal." : "Alhamdulillah, total harta/penghasilan Anda telah memenuhi syarat nisab. Zakat 2.5% dapat disalurkan melalui Baitul Maal.")
+                    : (locale === "ar" ? "لم يتجاوز الدخل عتبة نصاب ٨٥ غراماً من الذهب، ولكن يستحب لك التصدق والإنفاق التطوعي." : locale === "en" ? "Income has not reached the 85g gold nisab threshold. Voluntary infaq and charity are highly encouraged." : "Penghasilan belum melampaui batas nisab 85g emas. Namun, Anda tetap dianjurkan menyalurkan infaq & sedekah sukarela.")}
                 </p>
               </div>
 
@@ -1507,7 +1508,7 @@ export default function BaitulMaalClient({
                   className="btn-submit-donate"
                   onClick={handleUseZakatForDonation}
                 >
-                  <i className="fa-solid fa-paper-plane"></i> Salurkan Zakat Ini ({formatRupiah(nilaiZakatBulanan)})
+                  <i className="fa-solid fa-paper-plane"></i> {locale === "ar" ? `دفع هذه الزكاة (${formatRupiah(nilaiZakatBulanan)})` : locale === "en" ? `Contribute This Zakat (${formatRupiah(nilaiZakatBulanan)})` : `Salurkan Zakat Ini (${formatRupiah(nilaiZakatBulanan)})`}
                 </button>
               )}
             </div>

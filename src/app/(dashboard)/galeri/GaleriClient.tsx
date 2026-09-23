@@ -113,7 +113,26 @@ export default function GaleriClient({
   initialPhotos?: PhotoItem[];
   currentUser?: { id: string; email?: string } | null;
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+
+  const getAlbumTitle = (album: AlbumItem) => {
+    if (album.id === "all") return t.galeri_extra?.album_all || t.galeri.tab_all;
+    if (album.id === "galeri_ekspi") return t.galeri_extra?.album_ekspi || album.title;
+    if (album.id === "rihlah") return t.galeri_extra?.album_rihlah || album.title;
+    if (album.id === "foto2mu") return t.galeri_extra?.album_harian || album.title;
+    return album.title;
+  };
+
+  const getPhotoCaption = (p: PhotoItem) => {
+    if (p.id === "showcase-1") return t.galeri_extra?.showcase_1_title || p.caption || "";
+    if (p.id === "showcase-2") return t.galeri_extra?.showcase_2_title || p.caption || "";
+    if (p.id === "showcase-3") return t.galeri_extra?.showcase_3_title || p.caption || "";
+    if (p.id === "showcase-4") return t.galeri_extra?.showcase_4_title || p.caption || "";
+    if (p.id === "showcase-5") return t.galeri_extra?.showcase_5_title || p.caption || "";
+    if (p.id === "showcase-6") return t.galeri_extra?.showcase_6_title || p.caption || "";
+    return p.caption || "";
+  };
+
   // Mode Switcher: "vault" (Mobile-first Modern Grid & Highlights) vs "yearbook" (3D Flipbook)
   const [galleryMode, setGalleryMode] = useState<"vault" | "yearbook">("vault");
 
@@ -584,7 +603,7 @@ export default function GaleriClient({
                         <i className={album.icon || "fa-solid fa-images"}></i>
                       </div>
                     </div>
-                    <span className="story-title">{album.id === "all" ? t.galeri.tab_all : album.title}</span>
+                    <span className="story-title">{getAlbumTitle(album)}</span>
                   </div>
                 );
               })}
@@ -634,7 +653,7 @@ export default function GaleriClient({
             {/* Photobooth Shortcut */}
             <Link href="/photobooth" className="vault-photobooth-link">
               <i className="fa-solid fa-wand-magic-sparkles"></i>
-              <span>Studio Photobooth</span>
+              <span>{t.fitur.photobooth_title}</span>
             </Link>
           </div>
 
@@ -644,7 +663,7 @@ export default function GaleriClient({
               <div className="vault-empty-state">
                 <i className="fa-solid fa-images empty-icon"></i>
                 <h3>{t.galeri.empty_msg}</h3>
-                <p>Jadilah yang pertama mengabadikan momen ini ke dalam arsip angkatan.</p>
+                <p>{t.galeri.subtitle}</p>
                 <button
                   type="button"
                   className="btn-empty-upload"
@@ -659,6 +678,7 @@ export default function GaleriClient({
                   const isHeartActive = activeHeartPhotoId === photo.id;
                   const fullIndex = filteredPhotos.findIndex((p) => p.id === photo.id);
                   const effectiveIndex = fullIndex >= 0 ? fullIndex : index;
+                  const displayCaption = getPhotoCaption(photo);
 
                   return (
                     <div
@@ -670,7 +690,7 @@ export default function GaleriClient({
                       <div className="card-media-wrapper">
                         <img
                           src={photo.thumbnail_url || photo.image_url}
-                          alt={photo.caption || "Momen Angkatan 43"}
+                          alt={displayCaption || t.galeri.title}
                           className="card-media-img"
                           loading="lazy"
                           decoding="async"
@@ -703,7 +723,7 @@ export default function GaleriClient({
 
                       {/* Card Meta & Actions Footer */}
                       <div className="card-footer-info">
-                        {photo.caption && <p className="card-caption">{photo.caption}</p>}
+                        {displayCaption && <p className="card-caption">{displayCaption}</p>}
 
                         <div className="card-action-row">
                           <div className="card-uploader">
@@ -745,7 +765,13 @@ export default function GaleriClient({
                     }}
                   >
                     <i className="fa-solid fa-angle-down"></i>
-                    <span>Muat Lebih Banyak ({filteredPhotos.length - visibleCount} foto tersisa)</span>
+                    <span>
+                      {locale === 'ar'
+                        ? `عرض المزيد (${filteredPhotos.length - visibleCount} صورة متبقية)`
+                        : locale === 'en'
+                        ? `Load More (${filteredPhotos.length - visibleCount} photos left)`
+                        : `Muat Lebih Banyak (${filteredPhotos.length - visibleCount} foto tersisa)`}
+                    </span>
                   </button>
                 </div>
               </>
@@ -883,7 +909,7 @@ export default function GaleriClient({
                 {/* Bottom Details Bar */}
                 <div className="lightbox-bottom-info">
                   <div className="lightbox-caption-text">
-                    {filteredPhotos[lightboxIndex].caption || "Momen Berharga Expedient 43"}
+                    {getPhotoCaption(filteredPhotos[lightboxIndex]) || t.galeri.title}
                   </div>
 
                   <div className="lightbox-bottom-row">
@@ -898,7 +924,7 @@ export default function GaleriClient({
                       onClick={() => handleToggleLike(filteredPhotos[lightboxIndex])}
                     >
                       <i className={filteredPhotos[lightboxIndex].is_liked ? "fa-solid fa-heart" : "fa-regular fa-heart"}></i>
-                      <span>{filteredPhotos[lightboxIndex].likes_count || 0} Suka</span>
+                      <span>{filteredPhotos[lightboxIndex].likes_count || 0} {t.galeri.likes_unit}</span>
                     </button>
                   </div>
                 </div>
@@ -959,7 +985,7 @@ export default function GaleriClient({
                       <div className="upload-preview-container">
                         <img src={uploadPreview} alt="Pratinjau Foto" className="upload-preview-img" />
                         <div className="change-photo-badge">
-                          <i className="fa-solid fa-rotate"></i> Ganti Foto
+                          <i className="fa-solid fa-rotate"></i> {t.register.btn_change_photo}
                         </div>
                       </div>
                     ) : (
@@ -981,10 +1007,10 @@ export default function GaleriClient({
                       value={uploadAlbumId}
                       onChange={(e) => setUploadAlbumId(e.target.value)}
                     >
-                      <option value="wisuda">Wisuda 2025</option>
-                      <option value="pg">Panggung Gembira (PG)</option>
-                      <option value="reuni">Reuni & Temu Kangen</option>
-                      <option value="keseharian">Nostalgia Asrama & Keseharian</option>
+                      <option value="wisuda">{locale === 'ar' ? 'حفل التخرج ٢٠٢٥' : locale === 'en' ? 'Graduation 2025' : 'Wisuda 2025'}</option>
+                      <option value="pg">{locale === 'ar' ? 'المسرح الاحتفالي (PG)' : locale === 'en' ? 'Grand Stage (PG)' : 'Panggung Gembira (PG)'}</option>
+                      <option value="reuni">{locale === 'ar' ? 'لقاء الأخوة ولمّ الشمل' : locale === 'en' ? 'Reunion & Gathering' : 'Reuni & Temu Kangen'}</option>
+                      <option value="keseharian">{locale === 'ar' ? 'يوميات السكن وذكرياته' : locale === 'en' ? 'Dorm Memories & Daily Life' : 'Nostalgia Asrama & Keseharian'}</option>
                     </select>
                   </div>
 
@@ -1004,11 +1030,11 @@ export default function GaleriClient({
 
                   {/* Caption Input */}
                   <div className="sheet-field-group">
-                    <label className="field-label">Keterangan / Cerita Momen</label>
+                    <label className="field-label">{t.galeri.caption_label}</label>
                     <textarea
                       rows={3}
                       className="upload-textarea"
-                      placeholder="Tuliskan cerita singkat atau kenangan di balik foto ini..."
+                      placeholder={t.galeri.caption_placeholder}
                       value={uploadCaption}
                       onChange={(e) => setUploadCaption(e.target.value)}
                     ></textarea>
@@ -1022,7 +1048,7 @@ export default function GaleriClient({
                       onClick={() => setIsUploadOpen(false)}
                       disabled={isSubmittingUpload}
                     >
-                      Batal
+                      {t.common.cancel}
                     </button>
                     <button
                       type="submit"
@@ -1032,12 +1058,12 @@ export default function GaleriClient({
                       {isSubmittingUpload ? (
                         <>
                           <i className="fa-solid fa-circle-notch fa-spin"></i>
-                          <span>Menyimpan ke Galeri...</span>
+                          <span>{t.galeri.btn_saving}</span>
                         </>
                       ) : (
                         <>
                           <i className="fa-solid fa-cloud-arrow-up"></i>
-                          <span>Publikasikan ke Galeri</span>
+                          <span>{t.galeri.immortalize_photo}</span>
                         </>
                       )}
                     </button>
@@ -1064,8 +1090,14 @@ export default function GaleriClient({
 
           <div className="portrait-lock">
             <i className="fa-solid fa-mobile-screen"></i>
-            <h2>AKSES TERKUNCI</h2>
-            <p>Ruang Kenangan 3D terbaik dinikmati dalam mode Landscape.<br />Silakan putar perangkat Anda.</p>
+            <h2>{locale === 'ar' ? 'الوصول مقفل' : locale === 'en' ? 'LOCKED ACCESS' : 'AKSES TERKUNCI'}</h2>
+            <p>
+              {locale === 'ar'
+                ? 'يُفضل تصفح الكتاب التذكاري ثلاثي الأبعاد بالوضع الأفقي. يرجى تدوير جهازك.'
+                : locale === 'en'
+                ? 'The 3D Yearbook is best enjoyed in Landscape mode. Please rotate your device.'
+                : 'Ruang Kenangan 3D terbaik dinikmati dalam mode Landscape. Silakan putar perangkat Anda.'}
+            </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
               <button
                 type="button"
@@ -1089,7 +1121,7 @@ export default function GaleriClient({
                   boxShadow: "0 6px 20px rgba(212, 175, 55, 0.4)",
                 }}
               >
-                <i className="fa-solid fa-arrow-left"></i> Kembali ke Galeri Foto (Mode Tegak)
+                <i className="fa-solid fa-arrow-left"></i> {locale === 'ar' ? 'العودة إلى معرض الصور' : locale === 'en' ? 'Back to Photo Vault' : 'Kembali ke Galeri Foto'}
               </button>
               <button
                 id="btnBypassLock"
@@ -1108,7 +1140,7 @@ export default function GaleriClient({
                   cursor: "pointer",
                 }}
               >
-                <i className="fa-solid fa-unlock" style={{ marginRight: "6px" }}></i> Buka 3D dalam Mode Tegak
+                <i className="fa-solid fa-unlock" style={{ marginRight: "6px" }}></i> {locale === 'ar' ? 'فتح في الوضع الرأسي' : locale === 'en' ? 'Open in Portrait Mode' : 'Buka 3D dalam Mode Tegak'}
               </button>
             </div>
           </div>
@@ -1119,7 +1151,7 @@ export default function GaleriClient({
             <canvas id="dustCanvas"></canvas>
             <div className="ambient-light" id="ambientLight"></div>
             <button className="dimension-shift-btn hover-trigger" id="btnShift">
-              <i className="fa-solid fa-rotate"></i> SHIFT TO OMEGA (PUTRI)
+              <i className="fa-solid fa-rotate"></i> {locale === 'ar' ? 'التبديل إلى دفعة أوميغا (البنات)' : locale === 'en' ? 'SHIFT TO OMEGA (FEMALE)' : 'SHIFT TO OMEGA (PUTRI)'}
             </button>
 
             <div className="dimension-core" id="dimCore">
@@ -1132,28 +1164,28 @@ export default function GaleriClient({
               </div>
             </div>
 
-            <button className="whisper-btn hover-trigger" id="btnWhisper" title="Dengarkan Pesan Memori">
+            <button className="whisper-btn hover-trigger" id="btnWhisper" title={t.galeri.play_audio}>
               <i className="fa-solid fa-microphone-lines"></i>
             </button>
 
             <div className="gallery-hud">
-              <button className="btn-icon hover-trigger" id="btnAudio" title="Nyalakan Musik Kenangan"><i className="fa-solid fa-music"></i></button>
-              <button className="btn-icon hover-trigger" id="btnAutoPlay" title="Cinematic Auto-Play"><i className="fa-solid fa-play"></i></button>
-              <button className="btn-icon hover-trigger" id="btnIndex" title="Constellation Grid"><i className="fa-solid fa-border-all"></i></button>
+              <button className="btn-icon hover-trigger" id="btnAudio" title={t.galeri.play_audio}><i className="fa-solid fa-music"></i></button>
+              <button className="btn-icon hover-trigger" id="btnAutoPlay" title="Auto-Play"><i className="fa-solid fa-play"></i></button>
+              <button className="btn-icon hover-trigger" id="btnIndex" title="Grid"><i className="fa-solid fa-border-all"></i></button>
 
               <button className="btn-nav hover-trigger" id="btnPrev"><i className="fa-solid fa-arrow-left"></i></button>
               <div className="indicator-wrapper">
-                <div className="page-indicator" id="pageIndicator">COVER DEPAN</div>
+                <div className="page-indicator" id="pageIndicator">{t.galeri.tab_yearbook}</div>
                 <div className="progress-bar-container"><div className="progress-bar-fill" id="progressFill"></div></div>
               </div>
               <button className="btn-nav hover-trigger" id="btnNext"><i className="fa-solid fa-arrow-right"></i></button>
 
-              <button className="btn-icon hover-trigger" id="btnCloseBook" title="Tutup Buku"><i className="fa-solid fa-book"></i></button>
-              <button className="btn-icon hover-trigger" id="btnPin" title="Simpan Halaman Ini"><i className="fa-regular fa-bookmark"></i></button>
-              <button className="btn-icon hover-trigger" id="btnGoToPin" title="Teleportasi ke Memori" style={{ display: "none" }}><i className="fa-solid fa-map-location-dot"></i></button>
-              <button className="btn-icon hover-trigger" onClick={() => setIsExportModalOpen(true)} title="Unduh Arsip & Ekspor Bundle PDF Buku Kenangan"><i className="fa-solid fa-file-pdf"></i></button>
-              <Link href="/photobooth" className="btn-icon hover-trigger" title="Studio Photobooth Angkatan" style={{ color: "#ffd700", display: "flex", alignItems: "center", justifyContent: "center" }}><i className="fa-solid fa-camera-retro"></i></Link>
-              <button className="btn-icon hover-trigger" id="btnFullscreen" title="Immersive Mode"><i className="fa-solid fa-expand"></i></button>
+              <button className="btn-icon hover-trigger" id="btnCloseBook" title={t.common.close}><i className="fa-solid fa-book"></i></button>
+              <button className="btn-icon hover-trigger" id="btnPin" title={t.galeri.title}><i className="fa-regular fa-bookmark"></i></button>
+              <button className="btn-icon hover-trigger" id="btnGoToPin" title={t.galeri.title} style={{ display: "none" }}><i className="fa-solid fa-map-location-dot"></i></button>
+              <button className="btn-icon hover-trigger" onClick={() => setIsExportModalOpen(true)} title={t.galeri.export_btn}><i className="fa-solid fa-file-pdf"></i></button>
+              <Link href="/photobooth" className="btn-icon hover-trigger" title={t.fitur.photobooth_title} style={{ color: "#ffd700", display: "flex", alignItems: "center", justifyContent: "center" }}><i className="fa-solid fa-camera-retro"></i></Link>
+              <button className="btn-icon hover-trigger" id="btnFullscreen" title={t.galeri.fullscreen}><i className="fa-solid fa-expand"></i></button>
             </div>
           </div>
 
@@ -1188,10 +1220,10 @@ export default function GaleriClient({
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                   <div>
                     <span style={{ fontFamily: "Courier New, monospace", color: "#d4af37", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase" }}>
-                      ARSIP RESMI ANGKATAN 43
+                      {t.galeri_extra.album_yearbook}
                     </span>
                     <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", color: "var(--text-primary)", margin: "4px 0 0 0" }}>
-                      Ekspor Buku Kenangan
+                      {t.galeri.export_btn}
                     </h3>
                   </div>
                   <button
@@ -1204,7 +1236,7 @@ export default function GaleriClient({
                 </div>
 
                 <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "22px" }}>
-                  Pilih edisi buku kenangan yang ingin dicetak atau disimpan sebagai arsip digital resolusi tinggi (High-Definition PDF Pack):
+                  {t.galeri.subtitle}
                 </p>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
@@ -1221,10 +1253,10 @@ export default function GaleriClient({
                   >
                     <div>
                       <div style={{ fontWeight: "bold", fontSize: "0.95rem", color: "#f3e5ab" }}>
-                        <i className="fa-solid fa-mars" style={{ color: "#00bfff", marginRight: "6px" }}></i> Edisi Putra (The Syndicate)
+                        <i className="fa-solid fa-mars" style={{ color: "#00bfff", marginRight: "6px" }}></i> {locale === 'ar' ? 'طبعة البنين (The Syndicate)' : locale === 'en' ? 'Boys Edition (The Syndicate)' : 'Edisi Putra (The Syndicate)'}
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
-                        150 Halaman Lengkap (Cover + Hal 1 - 150)
+                        150 {locale === 'ar' ? 'صفحة كاملة' : locale === 'en' ? 'Complete Pages' : 'Halaman Lengkap'}
                       </div>
                     </div>
                     <button
@@ -1247,7 +1279,7 @@ export default function GaleriClient({
                         gap: "6px",
                       }}
                     >
-                      <i className="fa-solid fa-print"></i> Cetak / PDF
+                      <i className="fa-solid fa-print"></i> {t.galeri.export_btn}
                     </button>
                   </div>
 
@@ -1264,10 +1296,10 @@ export default function GaleriClient({
                   >
                     <div>
                       <div style={{ fontWeight: "bold", fontSize: "0.95rem", color: "#f3e5ab" }}>
-                        <i className="fa-solid fa-venus" style={{ color: "#ff69b4", marginRight: "6px" }}></i> Edisi Putri (Omega Dynasty)
+                        <i className="fa-solid fa-venus" style={{ color: "#ff69b4", marginRight: "6px" }}></i> {locale === 'ar' ? 'طبعة البنات (Omega Dynasty)' : locale === 'en' ? 'Girls Edition (Omega Dynasty)' : 'Edisi Putri (Omega Dynasty)'}
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
-                        82 Halaman Lengkap (Cover + Hal 1 - 82)
+                        82 {locale === 'ar' ? 'صفحة كاملة' : locale === 'en' ? 'Complete Pages' : 'Halaman Lengkap'}
                       </div>
                     </div>
                     <button
@@ -1290,7 +1322,7 @@ export default function GaleriClient({
                         gap: "6px",
                       }}
                     >
-                      <i className="fa-solid fa-print"></i> Cetak / PDF
+                      <i className="fa-solid fa-print"></i> {t.galeri.export_btn}
                     </button>
                   </div>
                 </div>

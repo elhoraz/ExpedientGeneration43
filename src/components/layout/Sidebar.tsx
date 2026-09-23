@@ -64,18 +64,18 @@ export default function Sidebar() {
 
   // Public pages: accessible without login
   const publicNavItems = [
-    { href: "/", icon: "fa-house", label: t.sidebar.home, tooltip: "Halaman Utama & Profil Pondok" },
-    { href: "/beranda", icon: "fa-landmark", label: t.sidebar.museum, tooltip: "Museum Digital & Linimasa" },
-    { href: "/direktori", icon: "fa-address-book", label: t.sidebar.directory, tooltip: "Buku Kontak Alumni" },
-    { href: "/galeri", icon: "fa-film", label: t.sidebar.gallery, tooltip: "Arsip Foto & Video" },
+    { href: "/", icon: "fa-house", label: t.sidebar.home, tooltip: t.sidebar.tooltip_home },
+    { href: "/beranda", icon: "fa-landmark", label: t.sidebar.museum, tooltip: t.sidebar.tooltip_museum },
+    { href: "/direktori", icon: "fa-address-book", label: t.sidebar.directory, tooltip: t.sidebar.tooltip_directory },
+    { href: "/galeri", icon: "fa-film", label: t.sidebar.gallery, tooltip: t.sidebar.tooltip_gallery },
   ];
 
   // Auth-only pages
   const authNavItems = [
-    { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: "Peta Persebaran Alumni" },
-    { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar.business, tooltip: "Katalog Usaha Alumni" },
-    { href: "/fitur", icon: "fa-cubes", label: t.sidebar.features, tooltip: "Menu & Layanan Alumni" },
-    { href: "/panduan", icon: "fa-book-bookmark", label: t.sidebar.guide, tooltip: "Pusat Panduan & Bantuan", extraClass: "nav-item-panduan" },
+    { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: t.sidebar.tooltip_radar },
+    { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar.business, tooltip: t.sidebar.tooltip_business },
+    { href: "/fitur", icon: "fa-cubes", label: t.sidebar.features, tooltip: t.sidebar.tooltip_features },
+    { href: "/panduan", icon: "fa-book-bookmark", label: t.sidebar.guide, tooltip: t.sidebar.tooltip_guide, extraClass: "nav-item-panduan" },
   ];
 
   // Fitur sub-pages for active state detection
@@ -116,13 +116,13 @@ export default function Sidebar() {
 
   return (
     <>
-      <button className={`menu-toggle hover-trigger ${isOpen ? 'active' : ''}`} id="btnMenuOpen" title="Panggil Panel" onClick={toggleSidebar}>
+      <button className={`menu-toggle hover-trigger ${isOpen ? 'active' : ''}`} id="btnMenuOpen" title={t.sidebar.open_panel_title} onClick={toggleSidebar}>
         <span className="line"></span>
         <span className="line short"></span>
       </button>
 
       <nav className={`sidebar no-select ${isOpen ? 'active' : ''}`} id="sidebarNav">
-        <a href="#" className="nav-item hover-trigger" id="btnMenuClose" onClick={(e) => { e.preventDefault(); toggleSidebar(); }} data-tooltip="Sembunyikan Panel">
+        <a href="#" className="nav-item hover-trigger" id="btnMenuClose" onClick={(e) => { e.preventDefault(); toggleSidebar(); }} data-tooltip={t.sidebar.tooltip_hide}>
           <i className="fa-solid fa-compress"></i>
           <span className="nav-label">{t.sidebar.close}</span>
         </a>
