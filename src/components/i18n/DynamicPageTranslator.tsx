@@ -3,6 +3,32 @@
 import { useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { idDictionary } from "@/lib/i18n/dictionaries/id";
+import { enDictionary } from "@/lib/i18n/dictionaries/en";
+import { arDictionary } from "@/lib/i18n/dictionaries/ar";
+
+/**
+ * Extract all known dictionary strings into a fast lookup Set.
+ * Any text node that matches a dictionary string is natively handled by React's `t`
+ * and must NEVER be modified or overwritten by DynamicPageTranslator.
+ */
+const dictionaryStrings = new Set<string>();
+
+function extractDictionaryStrings(obj: any) {
+  if (!obj || typeof obj !== "object") return;
+  for (const v of Object.values(obj)) {
+    if (typeof v === "string") {
+      const trimmed = v.trim();
+      if (trimmed.length > 0) dictionaryStrings.add(trimmed);
+    } else if (typeof v === "object") {
+      extractDictionaryStrings(v);
+    }
+  }
+}
+
+extractDictionaryStrings(idDictionary);
+extractDictionaryStrings(enDictionary);
+extractDictionaryStrings(arDictionary);
 
 /**
  * Regex for scripts and tokens that should never be translated:
@@ -45,6 +71,11 @@ const SKIP_SELECTOR = [
   ".arabic-text",
   ".font-amiri",
   "[translate='no']",
+  ".lang-widget",
+  ".lang-compact-group",
+  ".lang-cards-grid",
+  ".lang-sidebar-wrapper",
+  "#btnLang",
 ].join(", ");
 
 function shouldSkipElement(el: Element | null): boolean {
@@ -60,6 +91,7 @@ function shouldTranslateText(text: string): boolean {
   if (PURE_SYMBOLS_REGEX.test(trimmed)) return false;
   if (ARABIC_REGEX.test(trimmed)) return false; // Never touch existing Arabic verses / prayers
   if (URL_EMAIL_REGEX.test(trimmed)) return false;
+  if (dictionaryStrings.has(trimmed)) return false; // Handled natively by React's dictionary `t`
   return true;
 }
 
@@ -115,21 +147,35 @@ export default function DynamicPageTranslator() {
   }, []);
 
   /**
-   * Restore all DOM text and placeholders to their original Indonesian values
+   * Restore all DOM text and placeholders to their original Indonesian values.
+   * Only affects nodes that were actually translated by DynamicPageTranslator!
    */
   const restoreOriginals = useCallback(() => {
     if (typeof document === "undefined") return;
 
-    // Restore text nodes
+    // 1. Cancel any pending flush
+    if (pendingBatchTimeoutRef.current) {
+      clearTimeout(pendingBatchTimeoutRef.current);
+    }
+    pendingNodesQueueRef.current.clear();
+    pendingPlaceholdersQueueRef.current.clear();
+
+    // 2. Restore text nodes that were modified by DynamicPageTranslator
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
-      null
+      {
+        acceptNode(node) {
+          const parent = node.parentElement;
+          if (!parent || shouldSkipElement(parent)) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        },
+      }
     );
 
     let currentNode = walker.nextNode() as Text | null;
     while (currentNode) {
-      if (originalTextMap.has(currentNode)) {
+      if (nodeTargetLang.has(currentNode) && originalTextMap.has(currentNode)) {
         const orig = originalTextMap.get(currentNode)!;
         if (currentNode.nodeValue !== orig) {
           currentNode.nodeValue = orig;
@@ -139,7 +185,7 @@ export default function DynamicPageTranslator() {
       currentNode = walker.nextNode() as Text | null;
     }
 
-    // Restore input / textarea placeholders
+    // 3. Restore input / textarea placeholders
     const inputsWithOrig = document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
       "input[data-i18n-orig-placeholder], textarea[data-i18n-orig-placeholder]"
     );
@@ -148,11 +194,8 @@ export default function DynamicPageTranslator() {
       if (orig !== null && el.placeholder !== orig) {
         el.placeholder = orig;
       }
+      el.removeAttribute("data-i18n-orig-placeholder");
     });
-
-    // Clear pending queues
-    pendingNodesQueueRef.current.clear();
-    pendingPlaceholdersQueueRef.current.clear();
   }, []);
 
   /**
@@ -160,6 +203,7 @@ export default function DynamicPageTranslator() {
    */
   const flushPendingBatch = useCallback(async (targetLocale: string) => {
     if (targetLocale === "id") return;
+    if (currentLocaleRef.current !== targetLocale) return;
 
     const allKeys = Array.from(
       new Set([
@@ -182,7 +226,7 @@ export default function DynamicPageTranslator() {
           body: JSON.stringify({
             texts: chunk,
             to: targetLocale,
-            from: "id",
+            from: "auto",
           }),
         });
 
@@ -253,6 +297,7 @@ export default function DynamicPageTranslator() {
    */
   const scanAndTranslate = useCallback((targetLocale: string) => {
     if (typeof document === "undefined" || !document.body) return;
+
     if (targetLocale === "id") {
       restoreOriginals();
       return;
@@ -282,33 +327,36 @@ export default function DynamicPageTranslator() {
 
       let currentNode = walker.nextNode() as Text | null;
       while (currentNode) {
-        // Record original Indonesian text if not yet recorded
-        if (!originalTextMap.has(currentNode)) {
-          originalTextMap.set(currentNode, currentNode.nodeValue || "");
-        }
+        const currentVal = currentNode.nodeValue || "";
+        const trimmed = currentVal.trim();
 
-        const origFull = originalTextMap.get(currentNode)!;
-        const trimmed = origFull.trim();
-
-        // Check if node is valid for translation
+        // Check if node is valid for translation (excludes symbols, Quran Arabic, and dictionary strings)
         if (shouldTranslateText(trimmed)) {
+          // If node has not been translated yet, its current text is the pristine original
+          if (!nodeTargetLang.has(currentNode)) {
+            originalTextMap.set(currentNode, currentVal);
+          }
+
+          const origFull = originalTextMap.get(currentNode) || currentVal;
+          const origTrimmed = origFull.trim();
+
           const currentLang = nodeTargetLang.get(currentNode);
 
           // Only translate if not already translated to current target locale
-          if (currentLang !== targetLocale) {
-            if (cache.has(trimmed)) {
+          if (currentLang !== targetLocale && shouldTranslateText(origTrimmed)) {
+            if (cache.has(origTrimmed)) {
               // 0ms INSTANT REPLACEMENT FROM CACHE!
-              const translated = cache.get(trimmed)!;
+              const translated = cache.get(origTrimmed)!;
               const leading = origFull.match(/^\s*/)?.[0] || "";
               const trailing = origFull.match(/\s*$/)?.[0] || "";
               currentNode.nodeValue = leading + translated + trailing;
               nodeTargetLang.set(currentNode, targetLocale);
             } else {
               // Queue for batch network translation
-              if (!pendingNodesQueueRef.current.has(trimmed)) {
-                pendingNodesQueueRef.current.set(trimmed, new Set());
+              if (!pendingNodesQueueRef.current.has(origTrimmed)) {
+                pendingNodesQueueRef.current.set(origTrimmed, new Set());
               }
-              pendingNodesQueueRef.current.get(trimmed)!.add(currentNode);
+              pendingNodesQueueRef.current.get(origTrimmed)!.add(currentNode);
               hasUncached = true;
             }
           }

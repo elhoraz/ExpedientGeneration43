@@ -30,13 +30,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       if (saved && (saved === "id" || saved === "en" || saved === "ar")) {
         setLocaleState(saved);
       } else {
-        // Check navigator language if not set
-        const browserLang = navigator.language?.toLowerCase() || "";
-        if (browserLang.startsWith("ar")) {
-          setLocaleState("ar");
-        } else if (browserLang.startsWith("en")) {
-          setLocaleState("en");
-        }
+        // Default to Indonesian ('id') for this Indonesian alumni platform
+        setLocaleState("id");
       }
     } catch {
       // Ignore storage errors in restricted contexts
