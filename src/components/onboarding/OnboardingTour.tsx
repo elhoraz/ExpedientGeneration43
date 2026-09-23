@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./onboarding.css";
 
 type TourStep = {
@@ -18,95 +19,261 @@ type TourStep = {
   requireSidebar?: boolean;
 };
 
-const TOUR_STEPS: TourStep[] = [
-  {
-    selector: '#sidebarNav a[href="/beranda"]',
-    icon: "fa-solid fa-landmark",
-    title: "Beranda — Museum Kenangan",
-    description:
-      "Halaman utama portal. Di sini kamu bisa lihat logo angkatan interaktif 3D, lorong kenangan foto masa pondok, timeline sejarah angkatan, dan buku tamu alumni.",
-    position: "right",
-    requireSidebar: true,
-  },
-  {
-    selector: '#sidebarNav a[href="/direktori"]',
-    icon: "fa-solid fa-address-book",
-    title: "Direktori — Buku Kontak Alumni",
-    description:
-      "Cari nama kawan lama berdasarkan konsulat, asal daerah, atau profesi. Temukan sahabat yang sudah lama tidak bertemu!",
-    position: "right",
-    requireSidebar: true,
-  },
-  {
-    selector: '#sidebarNav a[href="/galeri"]',
-    icon: "fa-solid fa-film",
-    title: "Galeri — Arsip Foto & Video",
-    description:
-      "Kumpulan foto dan video kenangan masa pondok. Kamu juga bisa upload dan berbagi momen kenanganmu sendiri.",
-    position: "right",
-    requireSidebar: true,
-  },
-  {
-    selector: '#sidebarNav a[href="/radar"]',
-    icon: "fa-solid fa-earth-asia",
-    title: "Peta — Persebaran Lokasi Alumni",
-    description:
-      "Peta interaktif yang menunjukkan di kota mana saja kawan-kawan seangkatan kita tinggal. Perbarui lokasimu agar teman-teman tahu!",
-    position: "right",
-    requireSidebar: true,
-  },
-  {
-    selector: '#sidebarNav a[href="/syndicate"]',
-    icon: "fa-solid fa-briefcase",
-    title: "Bisnis — Katalog Usaha Alumni",
-    description:
-      "Katalog usaha, produk, dan jasa yang dimiliki oleh rekan-rekan alumni. Dukung dan belanja di bisnis sahabat seangkatan!",
-    position: "right",
-    requireSidebar: true,
-  },
-  {
-    selector: '#sidebarNav a[href="/fitur"]',
-    icon: "fa-solid fa-gem",
-    title: "Fitur — Semua Layanan Alumni",
-    description:
-      "Kumpulan fitur lengkap: KTA digital 3D, jejaring bisnis & karir alumni, kas donasi, jadwal reuni, dan masih banyak lagi.",
-    position: "right",
-    requireSidebar: true,
-  },
-  {
-    selector: "#btnChatWidget",
-    icon: "fa-solid fa-comment-dots",
-    title: "Obrolan Alumni",
-    description:
-      "Ngobrol langsung dengan sesama alumni secara real-time. Ada ruang obrolan angkatan bersama dan juga chat pribadi antar kawan.",
-    position: "left",
-  },
-  {
-    selector: "#btnNotifWidget",
-    icon: "fa-solid fa-bell",
-    title: "Notifikasi",
-    description:
-      "Pemberitahuan penting: pesan baru, ucapan ulang tahun kawan, undangan acara reuni, dan info terbaru seputar angkatan.",
-    position: "left",
-  },
-  {
-    selector: "#btnTheme",
-    icon: "fa-solid fa-moon",
-    title: "Mode Tampilan",
-    description:
-      "Ganti tampilan ke mode gelap atau terang sesuai kenyamananmu. Pilih yang paling enak di mata!",
-    position: "left",
-  },
-  {
-    selector: '#sidebarNav a[href="/profil"]',
-    icon: "fa-solid fa-circle-user",
-    title: "Profil — Data Pribadimu",
-    description:
-      "Kelola data alumni: foto, bio, nomor kontak, media sosial, dan KTA digitalmu. Pastikan datamu selalu terbaru supaya teman-teman mudah menghubungimu!",
-    position: "right",
-    requireSidebar: true,
-  },
-];
+function getTourSteps(locale: string): TourStep[] {
+  if (locale === "ar") {
+    return [
+      {
+        selector: '#sidebarNav a[href="/beranda"]',
+        icon: "fa-solid fa-landmark",
+        title: "الرئيسية — متحف الذكريات",
+        description: "الصفحة الرئيسية للمنصة، تحتوي على الشعار ثلاثي الأبعاد، ممر الصور التاريخية، والجدول الزمني لأحداث الدفعة.",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/direktori"]',
+        icon: "fa-solid fa-address-book",
+        title: "دليل الخريجين — سجل جهات الاتصال",
+        description: "ابحث عن زملاء الدفعة حسب القنصلية، المنطقة، أو المهنة. تواصل مع أصدقائك القدامى بسهولة!",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/galeri"]',
+        icon: "fa-solid fa-film",
+        title: "المعرض — أرشيف الصور والفيديو",
+        description: "مجموعة صور ومقاطع فيديو توثق أيام الدراسة، ويمكنك أيضاً مشاركة ورفع ذكرياتك الخاصة.",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/radar"]',
+        icon: "fa-solid fa-earth-asia",
+        title: "الرادار — خريطة انتشار الخريجين",
+        description: "خريطة تفاعلية توضح المدن التي يقيم فيها زملاء الدفعة. حدّث موقعك ليتمكن رفقاؤك من التواصل معك!",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/syndicate"]',
+        icon: "fa-solid fa-briefcase",
+        title: "دليل الأعمال — مشاريع الخريجين",
+        description: "دليل للشركات والمنتجات والخدمات التي يملكها الزملاء. ادعم واشترِ من مشاريع إخوانك الخريجين!",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/fitur"]',
+        icon: "fa-solid fa-gem",
+        title: "الميزات — جميع خدمات المنصة",
+        description: "باقة كاملة من الخدمات: بطاقة الهوية الرقمية 3D، القرآن الكريم، بيت المال، جداول اللقاءات، والمزيد.",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: "#btnChatWidget",
+        icon: "fa-solid fa-comment-dots",
+        title: "محادثات الخريجين",
+        description: "تواصل فوري مع زملاء الدفعة في غرف المحادثة الجماعية أو المحادثات الخاصة الفردية.",
+        position: "left",
+      },
+      {
+        selector: "#btnNotifWidget",
+        icon: "fa-solid fa-bell",
+        title: "الإشعارات",
+        description: "تنبيهات هامة حول الرسائل الجديدة، تهاني أعياد الميلاد، دعوات الفعاليات، وأحدث المستجدات.",
+        position: "left",
+      },
+      {
+        selector: "#btnTheme",
+        icon: "fa-solid fa-moon",
+        title: "وضع العرض (داكن / فاتح)",
+        description: "بدّل مظهر المنصة بين الوضع الداكن والفاتح بحسب ما يناسب راحة عينيك.",
+        position: "left",
+      },
+      {
+        selector: '#sidebarNav a[href="/profil"]',
+        icon: "fa-solid fa-circle-user",
+        title: "الملف الشخصي — بياناتك",
+        description: "إدارة بياناتك الشخصية: الصورة، النبذة، جهات الاتصال، وبطاقة هويتك الرقمية.",
+        position: "right",
+        requireSidebar: true,
+      },
+    ];
+  }
+
+  if (locale === "en") {
+    return [
+      {
+        selector: '#sidebarNav a[href="/beranda"]',
+        icon: "fa-solid fa-landmark",
+        title: "Home — Memory Museum",
+        description: "The portal's main hub featuring an interactive 3D cohort emblem, photo gallery of pondok days, timeline history, and guestbook.",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/direktori"]',
+        icon: "fa-solid fa-address-book",
+        title: "Directory — Alumni Contacts",
+        description: "Search for old classmates by consulate, regional origin, or profession. Reconnect with friends you haven't seen in years!",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/galeri"]',
+        icon: "fa-solid fa-film",
+        title: "Gallery — Photo & Video Archive",
+        description: "Collection of photos and videos from pondok days. You can also upload and share your own cherished moments.",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/radar"]',
+        icon: "fa-solid fa-earth-asia",
+        title: "Radar — Alumni Distribution Map",
+        description: "Interactive map showing cities where our cohort members live. Update your location so friends know where to find you!",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/syndicate"]',
+        icon: "fa-solid fa-briefcase",
+        title: "Business — Alumni Venture Catalog",
+        description: "Catalog of businesses, products, and services owned by alumni. Support and trade within our cohort community!",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: '#sidebarNav a[href="/fitur"]',
+        icon: "fa-solid fa-gem",
+        title: "Features — All Portal Services",
+        description: "Full suite of alumni services: 3D digital ID card, Quran mushaf, cohort treasury, reunion agendas, and more.",
+        position: "right",
+        requireSidebar: true,
+      },
+      {
+        selector: "#btnChatWidget",
+        icon: "fa-solid fa-comment-dots",
+        title: "Alumni Chat",
+        description: "Chat in real-time with fellow alumni. Join group cohort rooms or reach out directly via 1-on-1 private messaging.",
+        position: "left",
+      },
+      {
+        selector: "#btnNotifWidget",
+        icon: "fa-solid fa-bell",
+        title: "Notifications",
+        description: "Important updates: new messages, friend birthday greetings, event invitations, and cohort announcements.",
+        position: "left",
+      },
+      {
+        selector: "#btnTheme",
+        icon: "fa-solid fa-moon",
+        title: "Display Mode",
+        description: "Switch between dark and light themes according to your preference and comfort.",
+        position: "left",
+      },
+      {
+        selector: '#sidebarNav a[href="/profil"]',
+        icon: "fa-solid fa-circle-user",
+        title: "Profile — Your Personal Data",
+        description: "Manage your alumni info: photo, bio, contact numbers, social media, and digital ID card.",
+        position: "right",
+        requireSidebar: true,
+      },
+    ];
+  }
+
+  return [
+    {
+      selector: '#sidebarNav a[href="/beranda"]',
+      icon: "fa-solid fa-landmark",
+      title: "Beranda — Museum Kenangan",
+      description:
+        "Halaman utama portal. Di sini kamu bisa lihat logo angkatan interaktif 3D, lorong kenangan foto masa pondok, timeline sejarah angkatan, dan buku tamu alumni.",
+      position: "right",
+      requireSidebar: true,
+    },
+    {
+      selector: '#sidebarNav a[href="/direktori"]',
+      icon: "fa-solid fa-address-book",
+      title: "Direktori — Buku Kontak Alumni",
+      description:
+        "Cari nama kawan lama berdasarkan konsulat, asal daerah, atau profesi. Temukan sahabat yang sudah lama tidak bertemu!",
+      position: "right",
+      requireSidebar: true,
+    },
+    {
+      selector: '#sidebarNav a[href="/galeri"]',
+      icon: "fa-solid fa-film",
+      title: "Galeri — Arsip Foto & Video",
+      description:
+        "Kumpulan foto dan video kenangan masa pondok. Kamu juga bisa upload dan berbagi momen kenanganmu sendiri.",
+      position: "right",
+      requireSidebar: true,
+    },
+    {
+      selector: '#sidebarNav a[href="/radar"]',
+      icon: "fa-solid fa-earth-asia",
+      title: "Peta — Persebaran Lokasi Alumni",
+      description:
+        "Peta interaktif yang menunjukkan di kota mana saja kawan-kawan seangkatan kita tinggal. Perbarui lokasimu agar teman-teman tahu!",
+      position: "right",
+      requireSidebar: true,
+    },
+    {
+      selector: '#sidebarNav a[href="/syndicate"]',
+      icon: "fa-solid fa-briefcase",
+      title: "Bisnis — Katalog Usaha Alumni",
+      description:
+        "Katalog usaha, produk, dan jasa yang dimiliki oleh rekan-rekan alumni. Dukung dan belanja di bisnis sahabat seangkatan!",
+      position: "right",
+      requireSidebar: true,
+    },
+    {
+      selector: '#sidebarNav a[href="/fitur"]',
+      icon: "fa-solid fa-gem",
+      title: "Fitur — Semua Layanan Alumni",
+      description:
+        "Kumpulan fitur lengkap: KTA digital 3D, jejaring bisnis & karir alumni, kas donasi, jadwal reuni, dan masih banyak lagi.",
+      position: "right",
+      requireSidebar: true,
+    },
+    {
+      selector: "#btnChatWidget",
+      icon: "fa-solid fa-comment-dots",
+      title: "Obrolan Alumni",
+      description:
+        "Ngobrol langsung dengan sesama alumni secara real-time. Ada ruang obrolan angkatan bersama dan juga chat pribadi antar kawan.",
+      position: "left",
+    },
+    {
+      selector: "#btnNotifWidget",
+      icon: "fa-solid fa-bell",
+      title: "Notifikasi",
+      description:
+        "Pemberitahuan penting: pesan baru, ucapan ulang tahun kawan, undangan acara reuni, dan info terbaru seputar angkatan.",
+      position: "left",
+    },
+    {
+      selector: "#btnTheme",
+      icon: "fa-solid fa-moon",
+      title: "Mode Tampilan",
+      description:
+        "Ganti tampilan ke mode gelap atau terang sesuai kenyamananmu. Pilih yang paling enak di mata!",
+      position: "left",
+    },
+    {
+      selector: '#sidebarNav a[href="/profil"]',
+      icon: "fa-solid fa-circle-user",
+      title: "Profil — Data Pribadimu",
+      description:
+        "Kelola data alumni: foto, bio, nomor kontak, media sosial, dan KTA digitalmu. Pastikan datamu selalu terbaru supaya teman-teman mudah menghubungimu!",
+      position: "right",
+      requireSidebar: true,
+    },
+  ];
+}
 
 const STORAGE_KEY = "expedient_onboarding_tour_done";
 
@@ -117,6 +284,8 @@ export default function OnboardingTour({
   isActive: boolean;
   onComplete: () => void;
 }) {
+  const { locale } = useLanguage();
+  const tourSteps = useMemo(() => getTourSteps(locale), [locale]);
   const [currentStep, setCurrentStep] = useState(0);
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -124,7 +293,7 @@ export default function OnboardingTour({
   const [isVisible, setIsVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
-  const step = TOUR_STEPS[currentStep];
+  const step = tourSteps[currentStep];
 
   // Open sidebar if needed
   const ensureSidebarOpen = useCallback(() => {
@@ -149,7 +318,7 @@ export default function OnboardingTour({
       const el = document.querySelector(step.selector) as HTMLElement;
       if (!el) {
         // If element not found, skip step
-        if (currentStep < TOUR_STEPS.length - 1) {
+        if (currentStep < tourSteps.length - 1) {
           setCurrentStep((prev) => prev + 1);
         } else {
           handleFinish();
@@ -249,7 +418,7 @@ export default function OnboardingTour({
 
   const handleNext = () => {
     setIsVisible(false);
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < tourSteps.length - 1) {
       setTimeout(() => setCurrentStep((prev) => prev + 1), 200);
     } else {
       handleFinish();
@@ -271,7 +440,7 @@ export default function OnboardingTour({
 
   if (!isActive || !spotlightRect) return null;
 
-  const isLast = currentStep === TOUR_STEPS.length - 1;
+  const isLast = currentStep === tourSteps.length - 1;
 
   return (
     <div className={`onboarding-overlay ${isVisible ? "active" : ""}`}>
@@ -297,7 +466,11 @@ export default function OnboardingTour({
         }}
       >
         <span className="onboarding-tooltip-step">
-          Langkah {currentStep + 1} dari {TOUR_STEPS.length}
+          {locale === "ar"
+            ? `الخطوة ${currentStep + 1} من ${tourSteps.length}`
+            : locale === "en"
+            ? `Step ${currentStep + 1} of ${tourSteps.length}`
+            : `Langkah ${currentStep + 1} dari ${tourSteps.length}`}
         </span>
 
         <div className="onboarding-tooltip-icon">
@@ -314,12 +487,12 @@ export default function OnboardingTour({
             </button>
           ) : (
             <button className="onboarding-btn onboarding-btn-skip" onClick={handleFinish}>
-              Lewati
+              {locale === "ar" ? "تخطي" : locale === "en" ? "Skip" : "Lewati"}
             </button>
           )}
 
           <div className="onboarding-dots">
-            {TOUR_STEPS.map((_, i) => (
+            {tourSteps.map((_, i) => (
               <div key={i} className={`onboarding-dot ${i === currentStep ? "active" : ""}`} />
             ))}
           </div>
@@ -327,11 +500,11 @@ export default function OnboardingTour({
           <button className="onboarding-btn onboarding-btn-next" onClick={handleNext}>
             {isLast ? (
               <>
-                Selesai <i className="fa-solid fa-check"></i>
+                {locale === "ar" ? "إنهاء" : locale === "en" ? "Finish" : "Selesai"} <i className="fa-solid fa-check"></i>
               </>
             ) : (
               <>
-                Lanjut <i className="fa-solid fa-arrow-right"></i>
+                {locale === "ar" ? "التالي" : locale === "en" ? "Next" : "Lanjut"} <i className="fa-solid fa-arrow-right"></i>
               </>
             )}
           </button>

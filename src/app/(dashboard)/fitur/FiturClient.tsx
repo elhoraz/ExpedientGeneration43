@@ -395,7 +395,7 @@ export default function FiturClient({
 
   // Mini App Drawer items for mobile launcher
   const MINI_APPS = [
-    { href: "/sovereign", name: "KTA 3D", icon: "fa-id-card", color: "#ffd700", bg: "rgba(212,175,55,0.18)" },
+    { href: "/sovereign", name: locale === "ar" ? "بطاقة الهوية 3D" : locale === "en" ? "3D ID Card" : "KTA 3D", icon: "fa-id-card", color: "#ffd700", bg: "rgba(212,175,55,0.18)" },
     { href: "/scanner", name: t.fitur.scanner_btn, icon: "fa-qrcode", color: "#00d2ff", bg: "rgba(0,210,255,0.18)" },
     { href: "/baitul-maal", name: t.fitur.launcher_baitul, icon: "fa-hand-holding-dollar", color: "#25d366", bg: "rgba(37,211,102,0.18)" },
     { href: "/chat", name: t.fitur.launcher_chat, icon: "fa-comments", color: "#a855f7", bg: "rgba(168,85,247,0.18)" },
@@ -414,12 +414,12 @@ export default function FiturClient({
     { href: "/tasbih", name: t.fitur.launcher_tasbih, icon: "fa-gem", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
     { href: "/kontemplasi", name: t.fitur.launcher_kontemplasi, icon: "fa-spa", color: "#14b8a6", bg: "rgba(20,184,166,0.18)" },
     { href: "/celestial", name: t.fitur.launcher_celestial, icon: "fa-star", color: "#facc15", bg: "rgba(250,204,21,0.18)" },
-    { href: "/divine", name: "Ayat Suci", icon: "fa-book-open", color: "#22c55e", bg: "rgba(34,197,94,0.18)" },
+    { href: "/divine", name: locale === "ar" ? "الآيات المباركة" : locale === "en" ? "Divine Verses" : "Ayat Suci", icon: "fa-book-open", color: "#22c55e", bg: "rgba(34,197,94,0.18)" },
     { href: "/matsurat", name: t.fitur.launcher_matsurat, icon: "fa-hands-praying", color: "#10b981", bg: "rgba(16,185,129,0.2)" },
     { href: "/mahfuzhat", name: t.fitur.launcher_mahfuzhat, icon: "fa-feather-pointed", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
     { href: "/asmaul-husna", name: t.fitur.launcher_asmaul, icon: "fa-certificate", color: "#ffd700", bg: "rgba(212,175,55,0.22)" },
     { href: "/sirah", name: t.fitur.launcher_sirah, icon: "fa-map-location-dot", color: "#f59e0b", bg: "rgba(245,158,11,0.2)" },
-    { href: "/enigma", name: "Catatan", icon: "fa-book-bookmark", color: "#6366f1", bg: "rgba(99,102,241,0.18)" },
+    { href: "/enigma", name: locale === "ar" ? "مذكرات إنيغما" : locale === "en" ? "Enigma Notes" : "Catatan", icon: "fa-book-bookmark", color: "#6366f1", bg: "rgba(99,102,241,0.18)" },
     { href: "/genesis", name: "Genesis", icon: "fa-landmark", color: "#c084fc", bg: "rgba(192,132,252,0.18)" },
     { href: "/nexus", name: t.fitur.launcher_nexus, icon: "fa-network-wired", color: "#38bdf8", bg: "rgba(56,189,248,0.18)" },
     { href: "/wrapped", name: "Wrapped", icon: "fa-film", color: "#f472b6", bg: "rgba(244,114,182,0.18)" },
@@ -596,27 +596,27 @@ export default function FiturClient({
             {birthdayWidget.today.length > 0 ? (
               <>
                 <div className="widget-bday-name">{birthdayWidget.today[0].nama_panggilan || birthdayWidget.today[0].nama_lengkap}</div>
-                <div className="widget-card-label">Ulang Tahun Hari Ini</div>
+                <div className="widget-card-label">{locale === "ar" ? "عيد ميلاد اليوم" : locale === "en" ? "Birthday Today" : "Ulang Tahun Hari Ini"}</div>
                 <div className="widget-card-footer-link bday">
-                  <span>Kirim Doa</span>
+                  <span>{locale === "ar" ? "إرسال دعاء" : locale === "en" ? "Send Wishes" : "Kirim Doa"}</span>
                   <i className="fa-brands fa-whatsapp"></i>
                 </div>
               </>
             ) : birthdayWidget.next ? (
               <>
                 <div className="widget-bday-name">{birthdayWidget.next.nama_panggilan || birthdayWidget.next.nama_lengkap}</div>
-                <div className="widget-card-label">Tgl {birthdayWidget.next.day} (H-{birthdayWidget.next.daysLeft})</div>
+                <div className="widget-card-label">{locale === "ar" ? `${birthdayWidget.next.day} (متبقي ${birthdayWidget.next.daysLeft} يوم)` : locale === "en" ? `Date ${birthdayWidget.next.day} (in ${birthdayWidget.next.daysLeft}d)` : `Tgl ${birthdayWidget.next.day} (H-${birthdayWidget.next.daysLeft})`}</div>
                 <div className="widget-card-footer-link">
-                  <span>Lihat Kalender</span>
+                  <span>{locale === "ar" ? "عرض التقويم" : locale === "en" ? "View Calendar" : "Lihat Kalender"}</span>
                   <i className="fa-solid fa-arrow-right"></i>
                 </div>
               </>
             ) : (
               <>
-                <div className="widget-bday-name" style={{ fontSize: "0.95rem" }}>Semua Rekan</div>
-                <div className="widget-card-label">Kalender Ultah Angkatan</div>
+                <div className="widget-bday-name" style={{ fontSize: "0.95rem" }}>{locale === "ar" ? "جميع الزملاء" : locale === "en" ? "All Peers" : "Semua Rekan"}</div>
+                <div className="widget-card-label">{locale === "ar" ? "تقويم أعياد ميلاد الدفعة" : locale === "en" ? "Cohort Birthday Calendar" : "Kalender Ultah Angkatan"}</div>
                 <div className="widget-card-footer-link">
-                  <span>Buka Kalender</span>
+                  <span>{locale === "ar" ? "فتح التقويم" : locale === "en" ? "Open Calendar" : "Buka Kalender"}</span>
                   <i className="fa-solid fa-arrow-right"></i>
                 </div>
               </>
@@ -629,9 +629,9 @@ export default function FiturClient({
           <Link href="/event" className="mobile-bento-card widget-event-card">
             <div className="widget-event-badge-row">
               <span className="widget-event-countdown">
-                <i className="fa-regular fa-clock"></i> {eventDaysLeft !== null ? (eventDaysLeft === 0 ? "Hari Ini!" : `H-${eventDaysLeft}`) : "Segera"}
+                <i className="fa-regular fa-clock"></i> {eventDaysLeft !== null ? (eventDaysLeft === 0 ? (locale === "ar" ? "اليوم!" : locale === "en" ? "Today!" : "Hari Ini!") : (locale === "ar" ? `متبقي ${eventDaysLeft} يوم` : locale === "en" ? `In ${eventDaysLeft}d` : `H-${eventDaysLeft}`)) : (locale === "ar" ? "قريباً" : locale === "en" ? "Soon" : "Segera")}
               </span>
-              <span className="widget-event-tag">Agenda Terdekat</span>
+              <span className="widget-event-tag">{locale === "ar" ? "الحدث القادم" : locale === "en" ? "Upcoming Event" : "Agenda Terdekat"}</span>
             </div>
             <h3 className="widget-event-title">{nearestEvent.title}</h3>
             <div className="widget-event-meta">
@@ -645,11 +645,11 @@ export default function FiturClient({
           <Link href="/event" className="mobile-bento-card widget-event-card empty">
             <div className="widget-event-meta" style={{ justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <h3 className="widget-event-title" style={{ fontSize: "0.95rem", marginBottom: "4px" }}>Agenda & Reuni Angkatan</h3>
-                <div className="widget-card-label">Belum ada agenda baru. Rencanakan bersama!</div>
+                <h3 className="widget-event-title" style={{ fontSize: "0.95rem", marginBottom: "4px" }}>{locale === "ar" ? "الفعاليات واللقاءات" : locale === "en" ? "Events & Reunions" : "Agenda & Reuni Angkatan"}</h3>
+                <div className="widget-card-label">{locale === "ar" ? "لا توجد فعاليات جديدة حالياً. خططوا معاً!" : locale === "en" ? "No new events yet. Plan together!" : "Belum ada agenda baru. Rencanakan bersama!"}</div>
               </div>
               <div className="widget-card-footer-link" style={{ marginTop: 0 }}>
-                <span>Buka</span>
+                <span>{locale === "ar" ? "فتح" : locale === "en" ? "Open" : "Buka"}</span>
                 <i className="fa-solid fa-arrow-right"></i>
               </div>
             </div>
@@ -664,8 +664,8 @@ export default function FiturClient({
               <i className="fa-solid fa-comments"></i>
             </div>
             <div className="bubble-text">
-              <h4>Ruang Obrolan</h4>
-              <p>Sapa kawan santri</p>
+              <h4>{locale === "ar" ? "غرفة المحادثة" : locale === "en" ? "Chat Room" : "Ruang Obrolan"}</h4>
+              <p>{locale === "ar" ? "تواصل مع رفقاء الدفعة" : locale === "en" ? "Say hello to peers" : "Sapa kawan santri"}</p>
             </div>
             <i className="fa-solid fa-chevron-right bubble-chevron"></i>
           </Link>
@@ -676,8 +676,8 @@ export default function FiturClient({
               <i className="fa-solid fa-camera-retro"></i>
             </div>
             <div className="bubble-text">
-              <h4>Photobooth</h4>
-              <p>Foto kenangan retro</p>
+              <h4>{locale === "ar" ? "كشك الصور" : locale === "en" ? "Photobooth" : "Photobooth"}</h4>
+              <p>{locale === "ar" ? "صور تذكارية كلاسيكية" : locale === "en" ? "Retro photo memories" : "Foto kenangan retro"}</p>
             </div>
             <i className="fa-solid fa-chevron-right bubble-chevron"></i>
           </Link>

@@ -4,10 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "../../admin.css";
 import AdminLockBtn from "../../../AdminLockBtn";
 
 export default function CreateAnnouncement() {
+  const { t, locale } = useLanguage();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("Berita");
@@ -33,10 +35,16 @@ export default function CreateAnnouncement() {
         router.refresh();
       } else {
         const errorData = await res.json();
-        await showAlert("Gagal", errorData.message || "Gagal membuat pengumuman");
+        await showAlert(
+          locale === "ar" ? "فشل" : locale === "en" ? "Failed" : "Gagal",
+          errorData.message || (locale === "ar" ? "فشل إنشاء الإعلان" : locale === "en" ? "Failed to create announcement" : "Gagal membuat pengumuman")
+        );
       }
     } catch (error) {
-      await showAlert("Gagal", "Terjadi kesalahan sistem.");
+      await showAlert(
+        locale === "ar" ? "فشل" : locale === "en" ? "Failed" : "Gagal",
+        locale === "ar" ? "حدث خطأ في النظام." : locale === "en" ? "System error occurred." : "Terjadi kesalahan sistem."
+      );
     } finally {
       setLoading(false);
     }
@@ -49,51 +57,55 @@ export default function CreateAnnouncement() {
           <AdminLockBtn />
         </div>
         <div style={{ textAlign: "center", width: "100%" }}>
-          <h1 className="admin-title">Buat Pengumuman</h1>
-          <p className="admin-subtitle">Publikasikan informasi untuk seluruh alumni Expedient 43</p>
+          <h1 className="admin-title">
+            {locale === "ar" ? "إنشاء إعلان" : locale === "en" ? "Create Announcement" : "Buat Pengumuman"}
+          </h1>
+          <p className="admin-subtitle">
+            {locale === "ar" ? "نشر المعلومات لجميع خريجي إكسبيدينت ٤٣" : locale === "en" ? "Publish information for all Expedient 43 alumni" : "Publikasikan informasi untuk seluruh alumni Expedient 43"}
+          </p>
         </div>
       </div>
 
       <div className="form-panel">
         <form onSubmit={handleCreate}>
           <div className="form-group">
-            <label className="form-label">Judul</label>
+            <label className="form-label">{locale === "ar" ? "العنوان" : locale === "en" ? "Title" : "Judul"}</label>
             <input 
               type="text" 
               required 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="form-input"
-              placeholder="Masukkan judul pengumuman..."
+              placeholder={locale === "ar" ? "أدخل عنوان الإعلان..." : locale === "en" ? "Enter announcement title..." : "Masukkan judul pengumuman..."}
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Konten</label>
+            <label className="form-label">{locale === "ar" ? "المحتوى" : locale === "en" ? "Content" : "Konten"}</label>
             <textarea 
               required 
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="form-textarea"
-              placeholder="Tulis isi pengumuman secara detail..."
+              placeholder={locale === "ar" ? "اكتب تفاصيل الإعلان هنا..." : locale === "en" ? "Write announcement details..." : "Tulis isi pengumuman secara detail..."}
             ></textarea>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Kategori</label>
+              <label className="form-label">{locale === "ar" ? "الفئة" : locale === "en" ? "Category" : "Kategori"}</label>
               <select 
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 className="form-select"
               >
-                <option value="Berita">Berita</option>
-                <option value="Pengumuman">Pengumuman</option>
-                <option value="Mosi">Mosi</option>
+                <option value="Berita">{locale === "ar" ? "أخبار" : locale === "en" ? "News" : "Berita"}</option>
+                <option value="Pengumuman">{locale === "ar" ? "إعلان" : locale === "en" ? "Announcement" : "Pengumuman"}</option>
+                <option value="Mosi">{locale === "ar" ? "اقتراح" : locale === "en" ? "Motion" : "Mosi"}</option>
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label">Tanggal Publikasi</label>
+              <label className="form-label">{locale === "ar" ? "تاريخ النشر" : locale === "en" ? "Publication Date" : "Tanggal Publikasi"}</label>
               <input 
                 type="date" 
                 className="form-input" 
@@ -110,15 +122,21 @@ export default function CreateAnnouncement() {
                 checked={isPinned}
                 onChange={(e) => setIsPinned(e.target.checked)}
               />
-              <span className="checkbox-label">Sematkan di atas (Pinned)</span>
+              <span className="checkbox-label">
+                {locale === "ar" ? "تثبيت في الأعلى (Pinned)" : locale === "en" ? "Pin to top (Pinned)" : "Sematkan di atas (Pinned)"}
+              </span>
             </label>
           </div>
 
           <div className="form-actions">
-            <Link href="/admin/announcements" className="btn-cancel hover-trigger">Batal</Link>
+            <Link href="/admin/announcements" className="btn-cancel hover-trigger">
+              {t.common.cancel}
+            </Link>
             <button type="submit" className="btn-submit-form hover-trigger" disabled={loading}>
               <i className="fa-solid fa-paper-plane" style={{ marginRight: "8px" }}></i>
-              {loading ? "Menyimpan..." : "Publikasikan"}
+              {loading 
+                ? (locale === "ar" ? "جارٍ الحفظ..." : locale === "en" ? "Saving..." : "Menyimpan...") 
+                : (locale === "ar" ? "نشر الإعلان" : locale === "en" ? "Publish" : "Publikasikan")}
             </button>
           </div>
         </form>

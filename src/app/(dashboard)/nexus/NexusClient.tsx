@@ -9,7 +9,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./nexus.css";
 
 export default function NexusClient({ currentUser, otherProfiles }: { currentUser: any, otherProfiles: any[] }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [matches, setMatches] = useState<any[]>([]);
   const [hasResults, setHasResults] = useState(false);
@@ -41,10 +41,10 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
     const scanAnim = gsap.to(".scanning-line", { top: "100%", duration: 1.5, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
     const statuses = [
-        "Mengekstraksi jejak linguistik...",
-        "Membandingkan matriks kategori...",
-        "Mengkalkulasi irisan visi & cita-cita...",
-        "Menyinkronisasi konstelasi eksekutif..."
+        locale === "ar" ? "جارٍ استخراج الأثر اللغوي..." : locale === "en" ? "Extracting linguistic traces..." : "Mengekstraksi jejak linguistik...",
+        locale === "ar" ? "مقارنة مصفوفة الفئات..." : locale === "en" ? "Comparing category matrices..." : "Membandingkan matriks kategori...",
+        locale === "ar" ? "حساب تقاطع الرؤى والأهداف..." : locale === "en" ? "Calculating intersection of visions & aspirations..." : "Mengkalkulasi irisan visi & cita-cita...",
+        locale === "ar" ? "مزامنة الكوكبة التنفيذية..." : locale === "en" ? "Synchronizing executive constellations..." : "Menyinkronisasi konstelasi eksekutif..."
     ];
 
     let i = 0;
@@ -59,7 +59,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
         scanAnim.kill();
         gsap.to(".scanning-line", { opacity: 0, duration: 0.3 });
         gsap.to(".nexus-sphere", { scale: 1, duration: 0.5, ease: "power2.out" });
-        setStatusText("Sinkronisasi Berhasil. Memuat Hasil.");
+        setStatusText(locale === "ar" ? "تمت المزامنة بنجاح. جارٍ تحميل النتائج." : locale === "en" ? "Synchronization Successful. Loading Results." : "Sinkronisasi Berhasil. Memuat Hasil.");
         
         // Generate matches based on CI4 Jaccard Index logic
         const calculateSimilarity = (target: any, candidate: any) => {
@@ -151,7 +151,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
         <div className="nexus-sphere-container">
             <div className="nexus-sphere" onClick={startAnalysis}>
                 <div className="scanning-line"></div>
-                <div className="nexus-core-text">{isAnalyzing ? t.nexus.analyzing : <>AKTIVASI<br/>ANALISIS</>}</div>
+                <div className="nexus-core-text">{isAnalyzing ? t.nexus.analyzing : <>{locale === "ar" ? "تفعيل" : locale === "en" ? "ACTIVATE" : "AKTIVASI"}<br/>{locale === "ar" ? "التحليل" : locale === "en" ? "ANALYSIS" : "ANALISIS"}</>}</div>
             </div>
             <div style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', letterSpacing: '2px', fontSize: '0.85rem', marginTop: '20px', minHeight: '20px' }}>
                 {statusText}
@@ -161,17 +161,20 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
 
       {hasResults && (
         <div style={{ width: '100%', animation: 'fadeIn 1s' }}>
-            <h3 style={{ fontFamily: "'Playfair Display', serif", color: "var(--text-primary)", fontSize: "1.8rem", fontWeight: "normal", marginBottom: "15px" }}>Kolega Strategis Anda</h3>
+            <h3 style={{ fontFamily: "'Playfair Display', serif", color: "var(--text-primary)", fontSize: "1.8rem", fontWeight: "normal", marginBottom: "15px" }}>
+                {locale === "ar" ? "شركاؤك الاستراتيجيون" : locale === "en" ? "Your Strategic Peers" : "Kolega Strategis Anda"}
+            </h3>
             <div style={{ width: "60px", height: "3px", background: "var(--gold-main, #d4af37)", margin: "0 auto", borderRadius: "3px", boxShadow: "0 0 10px rgba(212,175,55,0.5)" }}></div>
             
             {matches.length === 0 ? (
                 <div style={{ color: "var(--text-secondary)", width: "100%", padding: "40px", border: "1px solid var(--glass-border)", borderRadius: "15px", background: "var(--glass-bg)", textAlign: "center" }}>
-                    Belum ada data kolega yang memadai untuk analisis saat ini.
+                    {locale === "ar" ? "لا توجد بيانات كافية للزملاء لإجراء التحليل حالياً." : locale === "en" ? "Not enough peer data available for analysis currently." : "Belum ada data kolega yang memadai untuk analisis saat ini."}
                 </div>
             ) : (
                 <div className="match-grid">
                     {matches.map((m, idx) => {
                         const avatarUrl = getAvatarUrl(m.foto_profil, m.nama_panggilan || m.nama_lengkap || 'A');
+                        const defaultCategory = locale === "ar" ? "مستقل" : locale === "en" ? "Independent" : "Independen";
                         return (
                             <div key={m.id} className="match-card">
                                 <div className="match-percentage">{m.match_score}<span>%</span></div>
@@ -186,7 +189,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
                                 />
                                 <div className="match-name">{m.nama_panggilan || m.nama_lengkap}</div>
                                 <div className="match-category">
-                                    {m.syndicate ? (Array.isArray(m.syndicate) ? m.syndicate[0]?.kategori : m.syndicate.kategori) || 'Independen' : 'Independen'}
+                                    {m.syndicate ? (Array.isArray(m.syndicate) ? m.syndicate[0]?.kategori : m.syndicate.kategori) || defaultCategory : defaultCategory}
                                 </div>
                                 <Link href={`/dossier/${m.id}`} className="btn-connect">{t.radar.view_profile}</Link>
                             </div>

@@ -1256,7 +1256,7 @@ export default function QuranClient({
               }}
             >
               <i className="fa-solid fa-image"></i>
-              <span>Lihat Foto Brosur Asli Al-Hufaz</span>
+              <span>{locale === "ar" ? "عرض بروشور الحفاظ الأصلي" : locale === "en" ? "View Original Al-Hufaz Brochure" : "Lihat Foto Brosur Asli Al-Hufaz"}</span>
             </button>
           </div>
 
@@ -1268,7 +1268,7 @@ export default function QuranClient({
               onClick={() => setMobileCordobaTab("mushaf")}
             >
               <i className="fa-solid fa-palette"></i>
-              <span>Lembaran 5 Blok Warna</span>
+              <span>{locale === "ar" ? "ورقة ٥ كتل ملونة" : locale === "en" ? "5-Color Block Sheet" : "Lembaran 5 Blok Warna"}</span>
             </button>
             <button
               type="button"
@@ -1276,7 +1276,7 @@ export default function QuranClient({
               onClick={() => setMobileCordobaTab("kontrol")}
             >
               <i className="fa-solid fa-list-check"></i>
-              <span>Kotak Kontrol & Muraja'ah</span>
+              <span>{locale === "ar" ? "صندوق الضبط والمراجعة" : locale === "en" ? "Control Box & Muraja'ah" : "Kotak Kontrol & Muraja'ah"}</span>
             </button>
             <button
               type="button"
@@ -1284,7 +1284,7 @@ export default function QuranClient({
               onClick={() => setMobileCordobaTab("panduan")}
             >
               <i className="fa-solid fa-book"></i>
-              <span>Panduan & Terjemah</span>
+              <span>{locale === "ar" ? "الدليل والترجمة" : locale === "en" ? "Guide & Translation" : "Panduan & Terjemah"}</span>
             </button>
           </div>
 
@@ -1292,7 +1292,13 @@ export default function QuranClient({
           {loadingPage && (
             <div className="cordoba-loading-state">
               <i className="fa-solid fa-spinner fa-spin loading-icon"></i>
-              <p>Mempersiapkan Lembaran Halaman {cordobaPage} Mushaf Al-Hufaz Cordoba...</p>
+              <p>
+                {locale === "ar"
+                  ? `تحضير صفحة ${toArabicNumerals(cordobaPage)} من مصحف الحفاظ قرطبة...`
+                  : locale === "en"
+                  ? `Preparing Page ${cordobaPage} of Al-Hufaz Cordoba Mushaf...`
+                  : `Mempersiapkan Lembaran Halaman ${cordobaPage} Mushaf Al-Hufaz Cordoba...`}
+              </p>
             </div>
           )}
 
@@ -1305,7 +1311,7 @@ export default function QuranClient({
                 className="page-go-btn"
                 onClick={() => loadCordobaPage(cordobaPage)}
               >
-                Coba Lagi
+                {locale === "ar" ? "حاول ثانية" : locale === "en" ? "Try Again" : "Coba Lagi"}
               </button>
             </div>
           )}
@@ -1317,20 +1323,44 @@ export default function QuranClient({
               {cordobaSubView === "poster" && (
                 <div className="poster-top-callouts-bar">
                   <div className="poster-callout-pill pill-kontrol">
-                    <span className="callout-pill-title">Kotak Kontrol</span>
-                    <span className="callout-pill-desc">Kotak Kontrol Panduan Menghafal yang terdapat pada setiap blok warna.</span>
+                    <span className="callout-pill-title">
+                      {locale === "ar" ? "مربعات الضبط" : locale === "en" ? "Control Box" : "Kotak Kontrol"}
+                    </span>
+                    <span className="callout-pill-desc">
+                      {locale === "ar"
+                        ? "مربعات توجيه الحفظ الموجودة في كل كتلة لونية."
+                        : locale === "en"
+                        ? "Memorization control guide boxes on each color block."
+                        : "Kotak Kontrol Panduan Menghafal yang terdapat pada setiap blok warna."}
+                    </span>
                     <i className="fa-solid fa-arrow-down-long callout-arrow-down"></i>
                   </div>
 
                   <div className="poster-callout-pill pill-motivasi">
-                    <span className="callout-pill-title">Motivasi</span>
-                    <span className="callout-pill-desc">Motivasi pada setiap halaman dari Pakar dan Pengajar Tahfiz Al-Qur'an H. Abdul Aziz Abdur Rauf, Al-Hafiz</span>
+                    <span className="callout-pill-title">
+                      {locale === "ar" ? "تحفيز الحفظ" : locale === "en" ? "Motivation" : "Motivasi"}
+                    </span>
+                    <span className="callout-pill-desc">
+                      {locale === "ar"
+                        ? "تحفيز لكل صفحة من خبراء تحفيظ القرآن الكريم."
+                        : locale === "en"
+                        ? "Page-by-page motivation from Quran memorization scholars."
+                        : "Motivasi pada setiap halaman dari Pakar dan Pengajar Tahfiz Al-Qur'an H. Abdul Aziz Abdur Rauf, Al-Hafiz"}
+                    </span>
                     <i className="fa-solid fa-arrow-down-long callout-arrow-down"></i>
                   </div>
 
                   <div className="poster-callout-pill pill-tema">
-                    <span className="callout-pill-title">Tema Ayat</span>
-                    <span className="callout-pill-desc">Tema ayat secara ringkas untuk membantu memahami ayat-ayat yang sedang di hafal pada setiap halaman.</span>
+                    <span className="callout-pill-title">
+                      {locale === "ar" ? "موضوع الآيات" : locale === "en" ? "Verse Theme" : "Tema Ayat"}
+                    </span>
+                    <span className="callout-pill-desc">
+                      {locale === "ar"
+                        ? "ملخص موضوع الآيات للمساعدة في فهم ما تحفظه في كل صفحة."
+                        : locale === "en"
+                        ? "Brief verse theme to aid comprehension while memorizing each page."
+                        : "Tema ayat secara ringkas untuk membantu memahami ayat-ayat yang sedang di hafal pada setiap halaman."}
+                    </span>
                     <i className="fa-solid fa-arrow-down-long callout-arrow-down"></i>
                   </div>
                 </div>
@@ -1348,7 +1378,7 @@ export default function QuranClient({
                       <h2>{pageMeta.guideTopTitle}</h2>
                     </div>
                     <div className="ornate-method-pill">
-                      <span>Metode 5 Jam 1 Halaman</span>
+                      <span>{locale === "ar" ? "طريقة ٥ ساعات لكل صفحة" : locale === "en" ? "5-Hour 1-Page Method" : "Metode 5 Jam 1 Halaman"}</span>
                     </div>
                   </div>
 
@@ -1387,7 +1417,7 @@ export default function QuranClient({
                                     type="button"
                                     className={`left-block-action-btn audio-btn ${isCurrentBlockPlaying && isPlaying ? "is-playing" : ""}`}
                                     onClick={() => playBlockVerses(b)}
-                                    title={`Putar semua ayat berurutan di ${b.config.name} (Ayat ${b.startAyat}-${b.endAyat})`}
+                                    title={locale === "ar" ? `تشغيل الآيات بالتتابع في ${b.config.name}` : locale === "en" ? `Play all verses in ${b.config.name}` : `Putar semua ayat berurutan di ${b.config.name} (Ayat ${b.startAyat}-${b.endAyat})`}
                                   >
                                     <i className={`fa-solid ${isCurrentBlockPlaying && isPlaying ? "fa-pause" : "fa-volume-high"}`}></i>
                                   </button>
@@ -1395,7 +1425,7 @@ export default function QuranClient({
                                     type="button"
                                     className={`left-block-action-btn eye-btn ${isClosed ? "is-closed" : ""}`}
                                     onClick={() => toggleBlockClosure(b.blockId)}
-                                    title={isClosed ? "Buka teks Arab" : "Tutup teks Arab untuk tes hafalan 20 menit"}
+                                    title={isClosed ? (locale === "ar" ? "فتح النص العربي" : locale === "en" ? "Reveal Arabic text" : "Buka teks Arab") : (locale === "ar" ? "إخفاء النص العربي لاختبار الحفظ" : locale === "en" ? "Cover Arabic text for memorization test" : "Tutup teks Arab untuk tes hafalan 20 menit")}
                                   >
                                     <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
                                   </button>
@@ -1404,12 +1434,12 @@ export default function QuranClient({
 
                               <div className="left-block-subtitle">
                                 {b.ayahs && b.ayahs.length > 0
-                                  ? `${b.config.name} • ${b.ayahs.length} Ayat (Sesi 40m & 20m)`
-                                  : "Menghafal 1 jam dibagi 2 sesi: 40 mnt & 20 mnt"}
+                                  ? `${b.config.name} • ${b.ayahs.length} ${locale === "ar" ? "آيات (جلسة ٤٠ د و ٢٠ د)" : locale === "en" ? "Verses (40m & 20m sessions)" : "Ayat (Sesi 40m & 20m)"}`
+                                  : (locale === "ar" ? "حفظ خلال ساعة مقسمة لجلستين: ٤٠ د و ٢٠ د" : locale === "en" ? "1-hour memorization divided into 2 sessions: 40m & 20m" : "Menghafal 1 jam dibagi 2 sesi: 40 mnt & 20 mnt")}
                               </div>
 
                               <div className="left-block-checklist-row">
-                                <span className="chk-label">Baca Ulang (40 Mnt)</span>
+                                <span className="chk-label">{locale === "ar" ? "إعادة القراءة (٤٠ د)" : locale === "en" ? "Re-read (40 Min)" : "Baca Ulang (40 Mnt)"}</span>
                                 <div className="chk-bubbles">
                                   {[1, 2, 3, 4].map((idx) => {
                                     const k = `p${cordobaPage}-b${b.blockId}-baca-${idx}`;
@@ -1430,7 +1460,7 @@ export default function QuranClient({
                               </div>
 
                               <div className="left-block-checklist-row">
-                                <span className="chk-label">Menghafal* (20 Mnt)</span>
+                                <span className="chk-label">{locale === "ar" ? "الحفظ* (٢٠ د)" : locale === "en" ? "Memorize* (20 Min)" : "Menghafal* (20 Mnt)"}</span>
                                 <div className="chk-bubbles">
                                   {[1, 2, 3, 4].map((idx) => {
                                     const k = `p${cordobaPage}-b${b.blockId}-hafal-${idx}`;
@@ -1462,23 +1492,29 @@ export default function QuranClient({
                       {/* TABEL MURAJA'AH (5X SEHARI DALAM 1 PEKAN) */}
                       <div className="sheet-murajaah-box">
                         <div className="murajaah-box-header">
-                          <span className="murajaah-title">Tabel Muraja'ah</span>
-                          <span className="murajaah-sub">Mengingat kembali ayat yang telah dihafal</span>
+                          <span className="murajaah-title">{locale === "ar" ? "جدول المراجعة" : locale === "en" ? "Muraja'ah Table" : "Tabel Muraja'ah"}</span>
+                          <span className="murajaah-sub">{locale === "ar" ? "تثبيت الآيات التي تم حفظها" : locale === "en" ? "Reviewing previously memorized verses" : "Mengingat kembali ayat yang telah dihafal"}</span>
                         </div>
 
                         <div className="murajaah-grid-compact">
                           <div className="murajaah-col-headers">
-                            <span className="col-empty">Waktu</span>
-                            <span>Subuh</span>
-                            <span>Dzuhur</span>
-                            <span>Ashar</span>
-                            <span>Maghrib</span>
-                            <span>Isya</span>
+                            <span className="col-empty">{locale === "ar" ? "الوقت" : locale === "en" ? "Time" : "Waktu"}</span>
+                            <span>{locale === "ar" ? "الفجر" : locale === "en" ? "Fajr" : "Subuh"}</span>
+                            <span>{locale === "ar" ? "الظهر" : locale === "en" ? "Dhuhr" : "Dzuhur"}</span>
+                            <span>{locale === "ar" ? "العصر" : locale === "en" ? "Asr" : "Ashar"}</span>
+                            <span>{locale === "ar" ? "المغرب" : locale === "en" ? "Maghrib" : "Maghrib"}</span>
+                            <span>{locale === "ar" ? "العشاء" : locale === "en" ? "Isha" : "Isya"}</span>
                           </div>
 
                           {["sen", "sel", "rab", "kam", "jum", "sab", "ahd"].map((hari, dIdx) => (
                             <div key={hari} className="murajaah-grid-row">
-                              <span className="row-day">{["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahad"][dIdx]}</span>
+                              <span className="row-day">
+                                {locale === "ar"
+                                  ? ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"][dIdx]
+                                  : locale === "en"
+                                  ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][dIdx]
+                                  : ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahad"][dIdx]}
+                              </span>
                               {["Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya"].map((waktu) => {
                                 const key = `p${cordobaPage}-${waktu}-${hari}`;
                                 const isChecked = !!murajaahChecks[key];
@@ -1519,7 +1555,7 @@ export default function QuranClient({
                                     type="button"
                                     className={`quick-pill-toggle ${isClosed ? "is-closed" : ""}`}
                                     onClick={() => toggleBlockClosure(b.blockId)}
-                                    title={isClosed ? `Buka Teks ${b.config.name}` : `Tutup Teks ${b.config.name} (Uji Hafalan)`}
+                                    title={isClosed ? (locale === "ar" ? `فتح ${b.config.name}` : locale === "en" ? `Open ${b.config.name}` : `Buka Teks ${b.config.name}`) : (locale === "ar" ? `إخفاء ${b.config.name} (اختبار)` : locale === "en" ? `Cover ${b.config.name} (Test)` : `Tutup Teks ${b.config.name} (Uji Hafalan)`)}
                                   >
                                     <i className={`fa-solid ${isClosed ? "fa-eye" : "fa-eye-slash"}`}></i>
                                     <span>{b.config.name} ({b.startAyat}-{b.endAyat})</span>
@@ -1528,7 +1564,7 @@ export default function QuranClient({
                                     type="button"
                                     className="quick-pill-audio"
                                     onClick={() => playBlockVerses(b)}
-                                    title={`Putar semua ayat berurutan di ${b.config.name}`}
+                                    title={locale === "ar" ? `تشغيل الآيات بالتتابع في ${b.config.name}` : locale === "en" ? `Play all verses in ${b.config.name}` : `Putar semua ayat berurutan di ${b.config.name}`}
                                   >
                                     <i className={`fa-solid ${isCurrentBlockPlaying && isPlaying ? "fa-pause" : "fa-volume-high"}`}></i>
                                   </button>
@@ -1544,7 +1580,7 @@ export default function QuranClient({
                                 type="button"
                                 className="zoom-btn"
                                 onClick={handleZoomOut}
-                                title="Perkecil Ukuran Tulisan (Zoom Out)"
+                                title={locale === "ar" ? "تصغير الخط" : locale === "en" ? "Zoom Out" : "Perkecil Ukuran Tulisan (Zoom Out)"}
                               >
                                 <i className="fa-solid fa-magnifying-glass-minus"></i>
                               </button>
@@ -1552,7 +1588,7 @@ export default function QuranClient({
                                 type="button"
                                 className="zoom-val-btn"
                                 onClick={handleZoomReset}
-                                title="Klik untuk reset zoom ke 100%"
+                                title={locale === "ar" ? "إعادة ضبط الحجم" : locale === "en" ? "Reset Zoom" : "Klik untuk reset zoom ke 100%"}
                               >
                                 <span>{mushafZoom}%</span>
                               </button>
@@ -1560,7 +1596,7 @@ export default function QuranClient({
                                 type="button"
                                 className="zoom-btn"
                                 onClick={handleZoomIn}
-                                title="Perbesar Ukuran Tulisan (Zoom In)"
+                                title={locale === "ar" ? "تكبير الخط" : locale === "en" ? "Zoom In" : "Perbesar Ukuran Tulisan (Zoom In)"}
                               >
                                 <i className="fa-solid fa-magnifying-glass-plus"></i>
                               </button>
@@ -1571,20 +1607,20 @@ export default function QuranClient({
                               type="button"
                               className="mushaf-font-cycle-btn"
                               onClick={handleCycleFont}
-                              title="Ganti Font Khot Kaligrafi (LPMQ Standar Kemenag / Amiri / Scheherazade)"
+                              title={locale === "ar" ? "تغيير نوع الخط" : locale === "en" ? "Change Arabic Calligraphy Font" : "Ganti Font Khot Kaligrafi (LPMQ Standar Kemenag / Amiri / Scheherazade)"}
                             >
                               <i className="fa-solid fa-font"></i>
-                              <span>Khot: {mushafFont === "lpmq" ? "Kemenag (LPMQ)" : mushafFont === "noto" ? "Noto Naskh" : mushafFont === "amiri" ? "Amiri" : "Scheherazade"}</span>
+                              <span>{locale === "ar" ? "الخط: " : locale === "en" ? "Font: " : "Khot: "}{mushafFont === "lpmq" ? (locale === "ar" ? "مصحف إندونيسيا (LPMQ)" : "Kemenag (LPMQ)") : mushafFont === "noto" ? "Noto Naskh" : mushafFont === "amiri" ? "Amiri" : "Scheherazade"}</span>
                             </button>
 
                             <button
                               type="button"
                               className="quick-play-page-btn"
                               onClick={playEntirePage}
-                              title="Putar murottal 1 halaman penuh (Ayat 30-37 bersambung)"
+                              title="Putar murottal 1 halaman penuh"
                             >
                               <i className="fa-solid fa-play"></i>
-                              <span>Putar 1 Halaman Penuh</span>
+                              <span>{locale === "ar" ? "تشغيل صفحة كاملة" : locale === "en" ? "Play Full Page" : "Putar 1 Halaman Penuh"}</span>
                             </button>
                           </div>
                         </div>
@@ -1733,8 +1769,8 @@ export default function QuranClient({
                                     <div className="band-blind-cover" onClick={() => toggleBlockClosure(b.blockId)}>
                                       <div className="blind-cover-card">
                                         <i className="fa-solid fa-eye-slash"></i>
-                                        <strong>{b.config.name} Ditutup (Uji Hafalan 20 Menit)</strong>
-                                        <span>Klik di sini untuk membuka kembali teks</span>
+                                        <strong>{b.config.name} {locale === "ar" ? "مخفية (اختبار الحفظ ٢٠ دقيقة)" : locale === "en" ? "Covered (20-Min Memorization Test)" : "Ditutup (Uji Hafalan 20 Menit)"}</strong>
+                                        <span>{locale === "ar" ? "انقر هنا لإعادة إظهار النص" : locale === "en" ? "Click here to reveal text" : "Klik di sini untuk membuka kembali teks"}</span>
                                       </div>
                                     </div>
                                   ) : (
@@ -1763,16 +1799,16 @@ export default function QuranClient({
 
                       {/* Frame Bottom Navigation / Indicator */}
                       <div className="mushaf-frame-bottom-bar">
-                        <div className="bottom-left-guide-text" dir="rtl" title="Kata Awal Halaman Berikutnya">
-                          <span className="guide-label" style={{ fontSize: "0.72rem", color: "#64748b" }}>Lanjutan: </span>
+                        <div className="bottom-left-guide-text" dir="rtl" title={locale === "ar" ? "الكلمة الأولى من الصفحة التالية" : locale === "en" ? "First word of next page" : "Kata Awal Halaman Berikutnya"}>
+                          <span className="guide-label" style={{ fontSize: "0.72rem", color: "#64748b" }}>{locale === "ar" ? "المتابعة: " : locale === "en" ? "Next: " : "Lanjutan: "}</span>
                           <span>{pageMeta.nextPageGuideText}</span>
                         </div>
                         <div className="bottom-center-cartouche">
-                          <span className="cartouche-juz">Juz {pageData.juzNumber}</span>
+                          <span className="cartouche-juz">{locale === "ar" ? `الجزء ${toArabicNumerals(pageData.juzNumber)}` : locale === "en" ? `Juz ${pageData.juzNumber}` : `Juz ${pageData.juzNumber}`}</span>
                           <span className="cartouche-divider">•</span>
-                          <span className="cartouche-page">Hal. {cordobaPage}</span>
+                          <span className="cartouche-page">{locale === "ar" ? `ص. ${toArabicNumerals(cordobaPage)}` : locale === "en" ? `Page ${cordobaPage}` : `Hal. ${cordobaPage}`}</span>
                         </div>
-                        <div className="bottom-tajweed-legend" title="Pedoman Warna Tajwid Mushaf Al-Hufaz Cordoba & Standar Kemenag">
+                        <div className="bottom-tajweed-legend" title={locale === "ar" ? "دليل ألوان التجويد" : locale === "en" ? "Tajweed Color Legend" : "Pedoman Warna Tajwid Mushaf Al-Hufaz Cordoba & Standar Kemenag"}>
                           <span className="tajweed-badge mad"><span className="dot dot-mad"></span> Mad</span>
                           <span className="tajweed-badge ghunnah"><span className="dot dot-ghunnah"></span> Ghunnah</span>
                           <span className="tajweed-badge ikhfa"><span className="dot dot-ikhfa"></span> Ikhfa &amp; Iqlab</span>
@@ -1789,20 +1825,20 @@ export default function QuranClient({
                       {/* Box 1: Metode 5 Jam 1 Halaman */}
                       <div className="sheet-right-card metode-card">
                         <div className="right-card-header blue-header">
-                          <span>Metode 5 Jam 1 Halaman</span>
+                          <span>{locale === "ar" ? "طريقة ٥ ساعات لكل صفحة" : locale === "en" ? "5-Hour 1-Page Method" : "Metode 5 Jam 1 Halaman"}</span>
                         </div>
                         <ol className="metode-numbered-list">
-                          <li><strong>Syarat Utama:</strong> FOKUS, IKHLAS, DAN TIDAK PULANG KAMPUNG/ONLINE.</li>
-                          <li><strong>Menghafal berurutan:</strong> Mulai blok 1 (kuning) 40 menit membaca berulang, kemudian hafalkan tutup-buka 20 menit (fokus mushaf). Buka mushaf jika lupa dan ulangi 3x.</li>
-                          <li><strong>Setelah lancar,</strong> lanjutkan blok 2 (hijau) sampai blok 5 (krem).</li>
-                          <li><strong>Muraja'ah (mengulang)</strong> hafalan 5 kali sehari dalam seminggu. Gunakan tabel kontrol untuk monitoring.</li>
+                          <li><strong>{locale === "ar" ? "الشرط الأساسي: " : locale === "en" ? "Main Requirement: " : "Syarat Utama: "}</strong>{locale === "ar" ? "التركيز، الإخلاص، وعدم الانشغال." : locale === "en" ? "Focus, sincerity, and staying committed." : "FOKUS, IKHLAS, DAN TIDAK PULANG KAMPUNG/ONLINE."}</li>
+                          <li><strong>{locale === "ar" ? "الحفظ بالتتابع: " : locale === "en" ? "Sequential Memorization: " : "Menghafal berurutan: "}</strong>{locale === "ar" ? "ابدأ بالكتلة ١ (٤٠ دقيقة قراءة متكررة ثم ٢٠ دقيقة حفظ مع التغطية)." : locale === "en" ? "Start block 1 (40m repeated reading, then 20m memorization test)." : "Mulai blok 1 (kuning) 40 menit membaca berulang, kemudian hafalkan tutup-buka 20 menit (fokus mushaf). Buka mushaf jika lupa dan ulangi 3x."}</li>
+                          <li><strong>{locale === "ar" ? "بعد الإتقان: " : locale === "en" ? "After Mastery: " : "Setelah lancar, "}</strong>{locale === "ar" ? "تابع من الكتلة ٢ إلى الكتلة ٥." : locale === "en" ? "continue from block 2 to block 5." : "lanjutkan blok 2 (hijau) sampai blok 5 (krem)."}</li>
+                          <li><strong>{locale === "ar" ? "المراجعة: " : locale === "en" ? "Muraja'ah: " : "Muraja'ah (mengulang) "}</strong>{locale === "ar" ? "راجع الحفظ ٥ مرات يومياً في الأسبوع باستخدام جدول المتابعة." : locale === "en" ? "review 5 times a day for a week using the control table." : "hafalan 5 kali sehari dalam seminggu. Gunakan tabel kontrol untuk monitoring."}</li>
                         </ol>
                       </div>
 
                       {/* Box 2: Motivasi */}
                       <div className="sheet-right-card motivasi-card">
                         <div className="right-card-header red-header">
-                          <span>Motivasi</span>
+                          <span>{locale === "ar" ? "تحفيز الحفظ" : locale === "en" ? "Motivation" : "Motivasi"}</span>
                         </div>
                         <p className="motivasi-body-text">
                           "{pageMeta.motivasiQuote}"
@@ -1815,7 +1851,7 @@ export default function QuranClient({
                       {/* Box 3: Tema Ayat */}
                       <div className="sheet-right-card tema-card">
                         <div className="right-card-header green-header">
-                          <span>Tema Ayat</span>
+                          <span>{locale === "ar" ? "موضوع الآيات" : locale === "en" ? "Verse Theme" : "Tema Ayat"}</span>
                         </div>
                         <div className="tema-items-list">
                           {pageMeta.temaAyatItems.map((item, idx) => (
@@ -1834,8 +1870,8 @@ export default function QuranClient({
                   {/* ============================================================== */}
                   <div className="sheet-terjemah-section">
                     <div className="terjemah-green-ribbon">
-                      <span className="ribbon-title">TERJEMAH</span>
-                      <span className="ribbon-sub">Terjemah Kementerian Agama RI</span>
+                      <span className="ribbon-title">{locale === "ar" ? "الترجمة" : locale === "en" ? "TRANSLATION" : "TERJEMAH"}</span>
+                      <span className="ribbon-sub">{locale === "ar" ? "ترجمة معتمدة" : locale === "en" ? "Official Translation" : "Terjemah Kementerian Agama RI"}</span>
                     </div>
 
                     {pageMeta.terjemahSubTitle && (
@@ -1904,8 +1940,8 @@ export default function QuranClient({
                           <i className="fa-solid fa-arrow-left-long"></i>
                         </div>
                         <div className="arrow-text-box">
-                          <strong>BLOK KUNING</strong>
-                          <span>DIBACA 1 JAM</span>
+                          <strong>{locale === "ar" ? "الكتلة الصفراء" : locale === "en" ? "YELLOW BLOCK" : "BLOK KUNING"}</strong>
+                          <span>{locale === "ar" ? "قراءة لمدة ساعة" : locale === "en" ? "READ 1 HOUR" : "DIBACA 1 JAM"}</span>
                         </div>
                       </div>
 
@@ -1914,8 +1950,8 @@ export default function QuranClient({
                           <i className="fa-solid fa-arrow-left-long"></i>
                         </div>
                         <div className="arrow-text-box">
-                          <strong>BLOK HIJAU</strong>
-                          <span>DIBACA 1 JAM</span>
+                          <strong>{locale === "ar" ? "الكتلة الخضراء" : locale === "en" ? "GREEN BLOCK" : "BLOK HIJAU"}</strong>
+                          <span>{locale === "ar" ? "قراءة لمدة ساعة" : locale === "en" ? "READ 1 HOUR" : "DIBACA 1 JAM"}</span>
                         </div>
                       </div>
 
@@ -1924,8 +1960,8 @@ export default function QuranClient({
                           <i className="fa-solid fa-arrow-left-long"></i>
                         </div>
                         <div className="arrow-text-box">
-                          <strong>BLOK BIRU</strong>
-                          <span>DIBACA 1 JAM</span>
+                          <strong>{locale === "ar" ? "الكتلة الزرقاء" : locale === "en" ? "BLUE BLOCK" : "BLOK BIRU"}</strong>
+                          <span>{locale === "ar" ? "قراءة لمدة ساعة" : locale === "en" ? "READ 1 HOUR" : "DIBACA 1 JAM"}</span>
                         </div>
                       </div>
 
@@ -1934,8 +1970,8 @@ export default function QuranClient({
                           <i className="fa-solid fa-arrow-left-long"></i>
                         </div>
                         <div className="arrow-text-box">
-                          <strong>BLOK PINK</strong>
-                          <span>DIBACA 1 JAM</span>
+                          <strong>{locale === "ar" ? "الكتلة الوردية" : locale === "en" ? "PINK BLOCK" : "BLOK PINK"}</strong>
+                          <span>{locale === "ar" ? "قراءة لمدة ساعة" : locale === "en" ? "READ 1 HOUR" : "DIBACA 1 JAM"}</span>
                         </div>
                       </div>
 
@@ -1944,8 +1980,8 @@ export default function QuranClient({
                           <i className="fa-solid fa-arrow-left-long"></i>
                         </div>
                         <div className="arrow-text-box">
-                          <strong>BLOK KREM</strong>
-                          <span>DIBACA 1 JAM</span>
+                          <strong>{locale === "ar" ? "الكتلة البيج" : locale === "en" ? "CREAM BLOCK" : "BLOK KREM"}</strong>
+                          <span>{locale === "ar" ? "قراءة لمدة ساعة" : locale === "en" ? "READ 1 HOUR" : "DIBACA 1 JAM"}</span>
                         </div>
                       </div>
                     </div>
@@ -1954,27 +1990,27 @@ export default function QuranClient({
                       <div className="explainer-bullet">
                         <i className="fa-solid fa-stopwatch"></i>
                         <p>
-                          <strong>Membaca Ulang:</strong> Ayat-ayat yang ada di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>40 Menit</strong>.
+                          <strong>{locale === "ar" ? "إعادة القراءة:" : locale === "en" ? "Re-reading:" : "Membaca Ulang:"}</strong> {locale === "ar" ? "قراءة آيات الكتلة اللونية المستهدفة لمدة " : locale === "en" ? "Verses in target color block for " : "Ayat-ayat yang ada di blok warna sesuai blok warna yang sedang dihafalkan selama "}<strong>{locale === "ar" ? "٤٠ دقيقة" : locale === "en" ? "40 Minutes" : "40 Menit"}</strong>.
                         </p>
                       </div>
                       <div className="explainer-bullet">
                         <i className="fa-solid fa-eye-slash"></i>
                         <p>
-                          <strong>Menghafal (dengan TUTUP-BUKA):</strong> Ayat-ayat yang di blok warna sesuai blok warna yang sedang dihafalkan selama <strong>20 Menit</strong>.
+                          <strong>{locale === "ar" ? "الحفظ (مع التغطية):" : locale === "en" ? "Memorizing (Cover & Recall):" : "Menghafal (dengan TUTUP-BUKA):"}</strong> {locale === "ar" ? "اختبار حفظ الآيات في الكتلة المستهدفة لمدة " : locale === "en" ? "Testing memorization in target color block for " : "Ayat-ayat yang di blok warna sesuai blok warna yang sedang dihafalkan selama "}<strong>{locale === "ar" ? "٢٠ دقيقة" : locale === "en" ? "20 Minutes" : "20 Menit"}</strong>.
                         </p>
                       </div>
                     </div>
 
                     <div className="poster-bottom-callouts">
                       <div className="poster-callout-pill pill-murajaah">
-                        <span className="callout-pill-title">Tabel Muraja'ah</span>
-                        <span className="callout-pill-desc">Tabel Muraja'ah 5x sehari dalam 1 pekan</span>
+                        <span className="callout-pill-title">{locale === "ar" ? "جدول المراجعة" : locale === "en" ? "Muraja'ah Table" : "Tabel Muraja'ah"}</span>
+                        <span className="callout-pill-desc">{locale === "ar" ? "جدول المراجعة ٥ مرات يومياً لمدة أسبوع" : locale === "en" ? "Review table 5x daily for 1 week" : "Tabel Muraja'ah 5x sehari dalam 1 pekan"}</span>
                         <i className="fa-solid fa-arrow-left-long callout-arrow-left"></i>
                       </div>
 
                       <div className="poster-callout-pill pill-terjemah">
-                        <span className="callout-pill-title">Terjemah</span>
-                        <span className="callout-pill-desc">Terjemah Kementerian Agama RI</span>
+                        <span className="callout-pill-title">{locale === "ar" ? "الترجمة" : locale === "en" ? "Translation" : "Terjemah"}</span>
+                        <span className="callout-pill-desc">{locale === "ar" ? "الترجمة المعتمدة" : locale === "en" ? "Official Translation" : "Terjemah Kementerian Agama RI"}</span>
                         <i className="fa-solid fa-arrow-left-long callout-arrow-left"></i>
                       </div>
                     </div>
@@ -1991,13 +2027,13 @@ export default function QuranClient({
                 <div className="original-modal-header">
                   <div className="header-title-group">
                     <i className="fa-solid fa-image"></i>
-                    <h3>Foto Brosur Cetak Asli Mushaf Al-Hufaz Cordoba</h3>
+                    <h3>{locale === "ar" ? "الصورة الأصلية لبروشور مصحف الحفاظ قرطبة" : locale === "en" ? "Original Printed Brochure of Al-Hufaz Cordoba Mushaf" : "Foto Brosur Cetak Asli Mushaf Al-Hufaz Cordoba"}</h3>
                   </div>
                   <button
                     type="button"
                     className="modal-close-btn"
                     onClick={() => setShowOriginalModal(false)}
-                    title="Tutup Popup"
+                    title={t.common.close}
                   >
                     <i className="fa-solid fa-xmark"></i>
                   </button>
@@ -2005,18 +2041,18 @@ export default function QuranClient({
                 <div className="original-modal-body">
                   <img
                     src="/images/quran/mushaf-alhufaz-cordoba-asli.png"
-                    alt="Foto Asli Mushaf Al-Hufaz Cordoba"
+                    alt={locale === "ar" ? "الصورة الأصلية لمصحف الحفاظ قرطبة" : locale === "en" ? "Original Photo of Al-Hufaz Cordoba Mushaf" : "Foto Asli Mushaf Al-Hufaz Cordoba"}
                     className="original-brochure-img"
                   />
                 </div>
                 <div className="original-modal-footer">
-                  <p>Arsip Referensi Autentik Brosur Promosi & Panduan Mushaf Tahfiz Cordoba 5 Jam 1 Halaman.</p>
+                  <p>{locale === "ar" ? "الأرشيف المرجعي الأصلي لبروشور ودليل مصحف التحفيظ قرطبة ٥ ساعات لكل صفحة." : locale === "en" ? "Authentic reference archive of the promotional brochure & 5-hour 1-page guide for Cordoba Mushaf." : "Arsip Referensi Autentik Brosur Promosi & Panduan Mushaf Tahfiz Cordoba 5 Jam 1 Halaman."}</p>
                   <button
                     type="button"
                     className="lightbox-action-btn"
                     onClick={() => setShowOriginalModal(false)}
                   >
-                    Tutup Tampilan
+                    {t.common.close}
                   </button>
                 </div>
               </div>
@@ -2035,8 +2071,12 @@ export default function QuranClient({
             <div className="quran-loading-overlay">
               <div className="quran-loading-card">
                 <i className="fa-solid fa-circle-notch fa-spin"></i>
-                <span className="loading-title">Membuka Surah Al-Qur'an...</span>
-                <span className="loading-desc">Memuat ayat, transliterasi Latin, dan murottal resmi</span>
+                <span className="loading-title">
+                  {locale === "ar" ? "فتح سورة القرآن الكريم..." : locale === "en" ? "Opening Quran Surah..." : "Membuka Surah Al-Qur'an..."}
+                </span>
+                <span className="loading-desc">
+                  {locale === "ar" ? "تحميل الآيات والتلاوة الصوتية الرسمية" : locale === "en" ? "Loading verses, Latin transliteration, and official audio" : "Memuat ayat, transliterasi Latin, dan murottal resmi"}
+                </span>
               </div>
             </div>
           )}
@@ -2048,13 +2088,17 @@ export default function QuranClient({
               <div className="quran-hero-banner">
                 <div className="quran-hero-badge">
                   <i className="fa-solid fa-quran"></i>
-                  <span>Mushaf Digital Kemenag RI</span>
+                  <span>{locale === "ar" ? "المصحف الإلكتروني المعتمد" : locale === "en" ? "Official Digital Mushaf" : "Mushaf Digital Kemenag RI"}</span>
                 </div>
                 <h1 className="quran-hero-title">
                   Al-Qur'an <span className="gold-text">Al-Karim</span>
                 </h1>
                 <p className="quran-hero-desc">
-                  Katalog 114 Surah lengkap dengan audio murottal 6 Qari, transliterasi Latin, dan terjemahan resmi Kemenag RI.
+                  {locale === "ar"
+                    ? "فهرس ١١٤ سورة كاملة مع تلاوات ٦ قراء وترجمة معتمدة."
+                    : locale === "en"
+                    ? "Complete catalog of 114 Surahs with audio by 6 Qaris, transliteration, and official translations."
+                    : "Katalog 114 Surah lengkap dengan audio murottal 6 Qari, transliterasi Latin, dan terjemahan resmi Kemenag RI."}
                 </p>
 
                 {/* Quick Actions Header: Bookmarks & Last Read */}

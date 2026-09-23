@@ -2785,10 +2785,10 @@ export default function PhotoboothClient() {
               <button
                 className="btn-shutter btn-shutter-success"
                 onClick={scrollToPreview}
-                title="Semua pose lengkap, klik untuk melihat photostrip Anda"
+                title={locale === "ar" ? "اكتملت جميع الصور، انقر لعرض شريط الصور" : locale === "en" ? "All poses complete, click to view photostrip" : "Semua pose lengkap, klik untuk melihat photostrip Anda"}
               >
                 <i className="fa-solid fa-sparkles"></i>
-                <span>Lihat Hasil ({totalSlots}/{totalSlots})</span>
+                <span>{locale === "ar" ? `عرض النتيجة (${totalSlots}/${totalSlots})` : locale === "en" ? `View Results (${totalSlots}/${totalSlots})` : `Lihat Hasil (${totalSlots}/${totalSlots})`}</span>
               </button>
             ) : (
               <button
@@ -2799,12 +2799,12 @@ export default function PhotoboothClient() {
                 <i className={isLiveMode ? "fa-solid fa-video" : "fa-solid fa-camera"}></i>
                 <span>
                   {isCountingDown
-                    ? "Bersiap..."
+                    ? (locale === "ar" ? "استعد..." : locale === "en" ? "Get ready..." : "Bersiap...")
                     : isLiveRecording
-                    ? "Sedang Merekam..."
+                    ? (locale === "ar" ? "جارٍ التسجيل..." : locale === "en" ? "Recording..." : "Sedang Merekam...")
                     : isLiveMode
-                    ? `Rekam Live (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})`
-                    : `Ambil Foto (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})`}
+                    ? (locale === "ar" ? `تسجيل مباشر (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})` : locale === "en" ? `Record Live (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})` : `Rekam Live (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})`)
+                    : (locale === "ar" ? `التقاط صورة (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})` : locale === "en" ? `Capture Photo (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})` : `Ambil Foto (${(activeSlot >= 0 ? activeSlot : 0) + 1}/${totalSlots})`)}
                 </span>
               </button>
             )}
