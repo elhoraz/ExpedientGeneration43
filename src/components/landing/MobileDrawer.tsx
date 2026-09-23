@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
+  const { t } = useLanguage();
+
   // Lock body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
@@ -49,7 +52,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             type="button"
             className="drawer-close-btn"
             onClick={onClose}
-            aria-label="Tutup Menu"
+            aria-label={t.drawer.close_aria}
           >
             <i className="fa-solid fa-xmark"></i>
           </button>
@@ -65,31 +68,31 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
           {/* Section 1: Halaman Landing Anchor Links */}
           <div className="drawer-nav-section">
-            <span className="drawer-section-label">NAVIGASI LANDING PAGE</span>
+            <span className="drawer-section-label">{t.drawer.section_landing}</span>
             <div className="drawer-links-list">
               <a href="#beranda" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-solid fa-house"></i>
-                <span>Beranda Utama</span>
+                <span>{t.drawer.nav_home}</span>
               </a>
               <a href="#sejarah" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-solid fa-landmark"></i>
-                <span>Sejarah Pondok 1982</span>
+                <span>{t.drawer.nav_sejarah}</span>
               </a>
               <a href="#nasehat" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-solid fa-feather-pointed"></i>
-                <span>Wejangan Asatidz</span>
+                <span>{t.drawer.nav_nasehat}</span>
               </a>
               <a href="#almamater" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-solid fa-mosque"></i>
-                <span>Almamater &amp; Video Profil</span>
+                <span>{t.drawer.nav_almamater}</span>
               </a>
               <a href="#aplikasi" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-brands fa-android"></i>
-                <span>Aplikasi Mobile (.APK)</span>
+                <span>{t.drawer.nav_apk}</span>
               </a>
               <a href="#ekosistem" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-solid fa-cubes"></i>
-                <span>Ekosistem Digital 43</span>
+                <span>{t.drawer.nav_ecosystem}</span>
               </a>
             </div>
           </div>
@@ -98,7 +101,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           <div className="drawer-nav-section">
             <div className="drawer-section-badge">
               <i className="fa-solid fa-lock-open"></i>
-              <span>BEBAS AKSES (TANPA PERLU LOGIN)</span>
+              <span>{t.drawer.section_free_badge}</span>
             </div>
 
             <div className="drawer-features-grid">
@@ -107,8 +110,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-book-quran"></i>
                 </div>
                 <div>
-                  <strong>Al-Qur&apos;an 30 Juz</strong>
-                  <span>Mushaf Al-Hufaz 15 Baris &amp; Murottal 6 Qari</span>
+                  <strong>{t.drawer.quran_title}</strong>
+                  <span>{t.drawer.quran_desc}</span>
                 </div>
               </Link>
 
@@ -117,8 +120,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-hands-praying"></i>
                 </div>
                 <div>
-                  <strong>Al-Ma&apos;tsurat</strong>
-                  <span>Dzikir Pagi &amp; Petang Sughro-Kubro</span>
+                  <strong>{t.drawer.matsurat_title}</strong>
+                  <span>{t.drawer.matsurat_desc}</span>
                 </div>
               </Link>
 
@@ -127,8 +130,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-certificate"></i>
                 </div>
                 <div>
-                  <strong>99 Asmaul Husna</strong>
-                  <span>Nama-nama Indah Allah SWT &amp; Khasiat</span>
+                  <strong>{t.drawer.asmaul_title}</strong>
+                  <span>{t.drawer.asmaul_desc}</span>
                 </div>
               </Link>
 
@@ -137,8 +140,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-feather"></i>
                 </div>
                 <div>
-                  <strong>Mahfuzhat Santri</strong>
-                  <span>Mutiara Kata Hikmah Gontory &amp; Terjemahan</span>
+                  <strong>{t.drawer.mahfuzhat_title}</strong>
+                  <span>{t.drawer.mahfuzhat_desc}</span>
                 </div>
               </Link>
 
@@ -147,8 +150,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-compass"></i>
                 </div>
                 <div>
-                  <strong>Kiblat &amp; Waktu Sholat</strong>
-                  <span>Arah Kompas Akurat &amp; Jadwal Adzan</span>
+                  <strong>{t.drawer.kiblat_title}</strong>
+                  <span>{t.drawer.kiblat_desc}</span>
                 </div>
               </Link>
 
@@ -157,8 +160,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-gem"></i>
                 </div>
                 <div>
-                  <strong>Tasbih Digital</strong>
-                  <span>Penghitung Dzikir Haptic Interaktif</span>
+                  <strong>{t.drawer.tasbih_title}</strong>
+                  <span>{t.drawer.tasbih_desc}</span>
                 </div>
               </Link>
 
@@ -167,8 +170,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-map-location-dot"></i>
                 </div>
                 <div>
-                  <strong>Sirah Nabawiyah</strong>
-                  <span>Napak Tilas Kehidupan Rasulullah SAW</span>
+                  <strong>{t.drawer.sirah_title}</strong>
+                  <span>{t.drawer.sirah_desc}</span>
                 </div>
               </Link>
 
@@ -177,8 +180,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-solid fa-camera-retro"></i>
                 </div>
                 <div>
-                  <strong>Photobooth Santri</strong>
-                  <span>Cetak Foto Strip Retro Arrisalah 43</span>
+                  <strong>{t.drawer.photobooth_title}</strong>
+                  <span>{t.drawer.photobooth_desc}</span>
                 </div>
               </Link>
 
@@ -187,8 +190,8 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                   <i className="fa-brands fa-android"></i>
                 </div>
                 <div>
-                  <strong>Unduh App Android (.APK)</strong>
-                  <span>Instalasi Ringan &amp; Akses Offline</span>
+                  <strong>{t.drawer.download_title}</strong>
+                  <span>{t.drawer.download_desc}</span>
                 </div>
               </Link>
             </div>
@@ -196,16 +199,16 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
 
           {/* Section 3: Portal Anggota / Alumni */}
           <div className="drawer-nav-section">
-            <span className="drawer-section-label">PORTAL ALUMNI EXPEDIENT 43</span>
+            <span className="drawer-section-label">{t.drawer.section_portal}</span>
             <div className="drawer-auth-buttons">
               <Link href="/login" className="drawer-btn-login" onClick={onClose}>
                 <i className="fa-solid fa-circle-user"></i>
-                <span>Masuk Akun Anggota</span>
+                <span>{t.drawer.login_btn}</span>
               </Link>
 
               <Link href="/beranda" className="drawer-btn-museum" onClick={onClose}>
                 <i className="fa-solid fa-landmark"></i>
-                <span>Jelajahi Museum Digital</span>
+                <span>{t.drawer.museum_btn}</span>
               </Link>
 
               <a

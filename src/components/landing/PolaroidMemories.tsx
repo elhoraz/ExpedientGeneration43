@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MemorySnap {
   id: string;
@@ -72,6 +73,7 @@ const MEMORIES: MemorySnap[] = [
 ];
 
 export default function PolaroidMemories() {
+  const { t, locale } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -94,13 +96,13 @@ export default function PolaroidMemories() {
       <div className="section-header">
         <div className="tuku-heritage-badge" style={{ marginBottom: "12px" }}>
           <span className="badge-bullet">🎞️</span>
-          <span>MEMORABILIA &amp; ARSIP FISIK</span>
+          <span>{t.memories_section.badge}</span>
         </div>
         <h2 className="section-title">
-          Lembaran Foto Kenangan Santri
+          {t.memories_section.title}
         </h2>
         <p className="section-lead">
-          Nostalgia terekam abadi dari panggung pertunjukan, asrama, hingga tanah merah Slahung. Geser untuk melihat cuplikan album asli angkatan.
+          {t.memories_section.lead}
         </p>
 
         {/* Ambient "Suara Memori Slahung" Audio Player */}
@@ -121,8 +123,8 @@ export default function PolaroidMemories() {
               <i className={`fa-solid ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
             </span>
             <div className="audio-btn-labels">
-              <strong>{isPlaying ? "Memutar Nada Memori Santri..." : "Dengarkan Suasana Memori"}</strong>
-              <span>Instrumen Nostalgia Slahung (Klik untuk Dengar)</span>
+              <strong>{isPlaying ? t.memories_section.audio_playing : t.memories_section.audio_idle}</strong>
+              <span>{t.memories_section.audio_sub}</span>
             </div>
             {isPlaying && (
               <div className="audio-mini-bars">
@@ -173,7 +175,13 @@ export default function PolaroidMemories() {
       <div className="polaroid-footer-cta">
         <Link href="/beranda" className="btn-tuku-album-link">
           <i className="fa-solid fa-book-journal-whills"></i>
-          <span>Buka 150+ Halaman Album Lengkap di Museum ➔</span>
+          <span>
+            {locale === "ar"
+              ? "افتح أكثر من 150 صفحة في المتحف الرقمي ➔"
+              : locale === "en"
+              ? "Open 150+ Full Album Pages in Museum ➔"
+              : "Buka 150+ Halaman Album Lengkap di Museum ➔"}
+          </span>
         </Link>
       </div>
     </section>

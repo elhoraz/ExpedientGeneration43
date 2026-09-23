@@ -3,10 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 type ScreenPreview = "kta" | "quran" | "radar";
 
 export default function AppMockupShowcase() {
+  const { t, locale } = useLanguage();
   const [activeScreen, setActiveScreen] = useState<ScreenPreview>("kta");
 
   return (
@@ -14,13 +16,13 @@ export default function AppMockupShowcase() {
       <div className="section-header">
         <div className="landing-prestige-badge" style={{ marginBottom: "14px" }}>
           <i className="fa-brands fa-android"></i>
-          <span>Official Android APK &amp; Mobile Web</span>
+          <span>{t.app_showcase.badge}</span>
         </div>
         <h2 className="section-title">
-          Platform Santri dalam Genggaman
+          {t.app_showcase.title}
         </h2>
         <p className="section-lead">
-          Nikmati seluruh ekosistem Expedient 43 di layar smartphone Anda dengan performa gesit, hemat kuota, dan fitur offline.
+          {t.app_showcase.lead}
         </p>
       </div>
 
@@ -29,14 +31,14 @@ export default function AppMockupShowcase() {
         <div className="app-info-col">
           <div className="app-pill-feature">
             <span className="live-pulse-dot"></span>
-            <span>Versi Mobile Resmi 2026</span>
+            <span>{t.app_showcase.version_pill}</span>
           </div>
 
           <h3 className="app-feature-headline">
-            Semua Fitur Angkatan, Selalu Bersama Anda Kapan Saja.
+            {t.app_showcase.headline}
           </h3>
           <p className="app-feature-desc">
-            Didesain khusus untuk mobilitas alumni di seluruh dunia. Tanpa iklan yang mengganggu, ringan di perangkat spesifikasi hemat, dan mendukung pembacaan Al-Qur&apos;an secara luring.
+            {t.app_showcase.desc}
           </p>
 
           {/* Interactive Screen Switcher Tabs */}
@@ -47,7 +49,7 @@ export default function AppMockupShowcase() {
               onClick={() => setActiveScreen("kta")}
             >
               <i className="fa-solid fa-id-card"></i>
-              <span>KTA Digital 3D</span>
+              <span>{t.app_showcase.tab_kta}</span>
             </button>
             <button
               type="button"
@@ -55,7 +57,7 @@ export default function AppMockupShowcase() {
               onClick={() => setActiveScreen("quran")}
             >
               <i className="fa-solid fa-book-quran"></i>
-              <span>Mushaf Al-Hufaz</span>
+              <span>{t.app_showcase.tab_quran}</span>
             </button>
             <button
               type="button"
@@ -63,7 +65,7 @@ export default function AppMockupShowcase() {
               onClick={() => setActiveScreen("radar")}
             >
               <i className="fa-solid fa-map-location-dot"></i>
-              <span>Radar Alumni</span>
+              <span>{t.app_showcase.tab_radar}</span>
             </button>
           </div>
 
@@ -72,29 +74,29 @@ export default function AppMockupShowcase() {
             <div className="perk-item">
               <i className="fa-solid fa-shield-halved"></i>
               <div>
-                <strong>Tanpa Iklan</strong>
-                <span>100% Khidmat Dakwah &amp; Ukhuwah</span>
+                <strong>{t.app_showcase.perk1_title}</strong>
+                <span>{t.app_showcase.perk1_desc}</span>
               </div>
             </div>
             <div className="perk-item">
               <i className="fa-solid fa-cloud-arrow-down"></i>
               <div>
-                <strong>Mode Offline</strong>
-                <span>Al-Qur&apos;an &amp; Ma&apos;tsurat siap baca</span>
+                <strong>{t.app_showcase.perk2_title}</strong>
+                <span>{t.app_showcase.perk2_desc}</span>
               </div>
             </div>
             <div className="perk-item">
               <i className="fa-solid fa-feather"></i>
               <div>
-                <strong>Ukuran Ringan</strong>
-                <span>Hanya ~24 MB, lancar di semua HP</span>
+                <strong>{t.app_showcase.perk3_title}</strong>
+                <span>{t.app_showcase.perk3_desc}</span>
               </div>
             </div>
             <div className="perk-item">
               <i className="fa-solid fa-compass"></i>
               <div>
-                <strong>Waktu Sholat &amp; Kiblat</strong>
-                <span>Akurat otomatis sesuai GPS Anda</span>
+                <strong>{t.app_showcase.perk4_title}</strong>
+                <span>{t.app_showcase.perk4_desc}</span>
               </div>
             </div>
           </div>
@@ -103,11 +105,11 @@ export default function AppMockupShowcase() {
           <div className="app-action-buttons">
             <Link href="/download" className="btn-primary" id="btnDownloadApkLanding">
               <i className="fa-brands fa-android"></i>
-              <span>Unduh Aplikasi (.APK)</span>
+              <span>{t.cta.btn_apk}</span>
             </Link>
             <Link href="/download" className="btn-secondary">
               <i className="fa-solid fa-circle-question"></i>
-              <span>Panduan Instalasi</span>
+              <span>{locale === "ar" ? "دليل التثبيت" : locale === "en" ? "Installation Guide" : "Panduan Instalasi"}</span>
             </Link>
           </div>
         </div>

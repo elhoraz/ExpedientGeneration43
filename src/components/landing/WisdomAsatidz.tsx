@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import TiltCard from "@/components/features/TiltCard";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface WisdomItem {
   id: string;
@@ -86,6 +87,7 @@ const WISDOM_LIST: WisdomItem[] = [
 ];
 
 export default function WisdomAsatidz() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("all");
 
   const filtered = activeTab === "all" ? WISDOM_LIST : WISDOM_LIST.filter(w => w.id.includes(activeTab));
@@ -95,13 +97,13 @@ export default function WisdomAsatidz() {
       <div className="section-header">
         <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
           <span className="badge-bullet">📜</span>
-          <span>WEJANGAN GURU &amp; SULUH PERJUANGAN</span>
+          <span>{t.wisdom_section.badge}</span>
         </div>
         <h2 className="section-title">
-          Kalam Hikmah &amp; Nasehat Asatidz
+          {t.wisdom_section.title}
         </h2>
         <p className="section-lead">
-          Pondasi ruhani yang senantiasa menuntun setiap jejak langkah santri dan alumni Expedient 43 di manapun mengabdi.
+          {t.wisdom_section.lead}
         </p>
       </div>
 

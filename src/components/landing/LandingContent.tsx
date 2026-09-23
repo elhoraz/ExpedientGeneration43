@@ -60,10 +60,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
         {/* Desktop Nav Links */}
         <nav className="nav-links">
-          <a href="#sejarah" className="nav-link">Sejarah 1982</a>
-          <a href="#nasehat" className="nav-link">Nasehat Asatidz</a>
+          <a href="#sejarah" className="nav-link">{t.nav.sejarah}</a>
+          <a href="#nasehat" className="nav-link">{t.nav.nasehat}</a>
           <a href="#almamater" className="nav-link">{t.nav.almamater}</a>
-          <a href="#aplikasi" className="nav-link">Aplikasi APK</a>
+          <a href="#aplikasi" className="nav-link">{t.nav.apk}</a>
           <a href="#ekosistem" className="nav-link">{t.nav.ecosystem}</a>
           <Link href="/radar" className="nav-link nav-link-highlight">
             <i className="fa-solid fa-map-location-dot"></i> {t.nav.radar}
@@ -89,7 +89,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             type="button"
             className="nav-hamburger-btn"
             onClick={() => setIsDrawerOpen(true)}
-            aria-label="Buka Menu Navigasi"
+            aria-label={t.nav.open_nav}
           >
             <i className="fa-solid fa-bars-staggered"></i>
           </button>
@@ -108,7 +108,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           {/* Almamater Dignified Tag */}
           <div className="tuku-heritage-badge">
             <span className="badge-bullet">⚜️</span>
-            <span>PONDOK MODERN ARRISALAH • KELAS 2025</span>
+            <span>{locale === "ar" ? "معهد الرسالة الحديث • دفعة ٢٠٢٥" : locale === "en" ? "ARRISALAH MODERN BOARDING SCHOOL • CLASS OF 2025" : "PONDOK MODERN ARRISALAH • KELAS 2025"}</span>
           </div>
 
           {/* Clean Logo with Interactive Embossed Pesantren Stamp */}
@@ -141,7 +141,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
 
           <p className="landing-eyebrow-tuku">
-            {locale === "id" ? "WARISAN & UKHUWAH SANTRI" : "HERITAGE & FELLOWSHIP"}
+            {t.hero.badge}
           </p>
 
           <h1 className="landing-title-tuku">
@@ -149,9 +149,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </h1>
 
           <p className="landing-subtitle-tuku">
-            {locale === "id"
-              ? "Rumah temu digital dan arsip kenangan alumni angkatan ke-43. Merawat hangatnya ukhuwah dari kawah candradimuka Slahung hingga penjuru peradaban dunia."
-              : t.hero.subtitle}
+            {t.hero.subtitle}
           </p>
 
           {/* Official Cohort Instagram & Motto Touchpoint */}
@@ -194,12 +192,12 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             <div className="tuku-stat-divider">/</div>
             <div className="tuku-stat-item">
               <span className="tuku-stat-num">43</span>
-              <span className="tuku-stat-lbl">Generasi</span>
+              <span className="tuku-stat-lbl">{locale === "ar" ? "دفعة" : locale === "en" ? "Generation" : "Generasi"}</span>
             </div>
             <div className="tuku-stat-divider">/</div>
             <div className="tuku-stat-item">
               <span className="tuku-stat-num">100%</span>
-              <span className="tuku-stat-lbl">Ukhuwah</span>
+              <span className="tuku-stat-lbl">{locale === "ar" ? "أخوة" : locale === "en" ? "Brotherhood" : "Ukhuwah"}</span>
             </div>
           </div>
 
@@ -511,7 +509,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary btn-share-wa"
-                title="Sebarkan Tautan ke Grup WhatsApp Alumni"
+                title={t.cta.btn_share_wa}
               >
                 <i className="fa-brands fa-whatsapp"></i> {t.cta.btn_share_wa}
               </a>
@@ -562,24 +560,24 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <h4>{t.footer.col1_title}</h4>
               <ul>
                 <li><a href="#beranda">{t.footer.nav_home}</a></li>
-                <li><a href="#sejarah">Sejarah Pondok 1982</a></li>
-                <li><a href="#nasehat">Wejangan Asatidz</a></li>
+                <li><a href="#sejarah">{t.footer.nav_sejarah}</a></li>
+                <li><a href="#nasehat">{t.footer.nav_nasehat}</a></li>
                 <li><a href="#almamater">{t.footer.nav_almamater}</a></li>
-                <li><a href="#aplikasi">Aplikasi Mobile</a></li>
+                <li><a href="#aplikasi">{t.footer.nav_apk}</a></li>
                 <li><a href="#ekosistem">{t.footer.nav_ecosystem}</a></li>
                 <li><Link href="/radar">{t.footer.nav_radar}</Link></li>
               </ul>
             </div>
 
             <div className="footer-links-col">
-              <h4>Utilitas &amp; Fitur Bebas</h4>
+              <h4>{t.footer.col3_title}</h4>
               <ul>
-                <li><Link href="/quran">Al-Qur&apos;an Al-Hufaz</Link></li>
-                <li><Link href="/matsurat">Al-Ma&apos;tsurat Dzikir</Link></li>
-                <li><Link href="/asmaul-husna">99 Asmaul Husna</Link></li>
-                <li><Link href="/mahfuzhat">Mahfuzhat Santri</Link></li>
-                <li><Link href="/photobooth">Photobooth Santri</Link></li>
-                <li><Link href="/kiblat">Kiblat &amp; Waktu Sholat</Link></li>
+                <li><Link href="/quran">{t.footer.util_quran}</Link></li>
+                <li><Link href="/matsurat">{t.footer.util_matsurat}</Link></li>
+                <li><Link href="/asmaul-husna">{t.footer.util_asmaul}</Link></li>
+                <li><Link href="/mahfuzhat">{t.footer.util_mahfuzhat}</Link></li>
+                <li><Link href="/photobooth">{t.footer.util_photobooth}</Link></li>
+                <li><Link href="/kiblat">{t.footer.util_kiblat}</Link></li>
                 <li><Link href="/download">{t.footer.srv_apk}</Link></li>
               </ul>
             </div>

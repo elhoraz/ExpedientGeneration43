@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import TiltCard from "@/components/features/TiltCard";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface TimelineEra {
   year: string;
@@ -77,6 +78,7 @@ const HISTORICAL_ERAS: TimelineEra[] = [
 ];
 
 export default function HistoryTimeline() {
+  const { t } = useLanguage();
   const [activeIdx, setActiveIdx] = useState(0);
   const active = HISTORICAL_ERAS[activeIdx];
 
@@ -85,13 +87,13 @@ export default function HistoryTimeline() {
       <div className="section-header">
         <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
           <span className="badge-bullet">🏛️</span>
-          <span>NAPAK TILAS 44 TAHUN ARRISALAH</span>
+          <span>{t.history_section.badge}</span>
         </div>
         <h2 className="section-title">
-          Sejarah Agung &amp; Jejak Langkah Almamater
+          {t.history_section.title}
         </h2>
         <p className="section-lead">
-          Dari sebidang tanah wakaf di Desa Gundik Slahung tahun 1982, hingga menjelma menjadi kawah candradimuka pemimpin umat dan lahirnya angkatan ke-43.
+          {t.history_section.lead}
         </p>
       </div>
 
@@ -141,7 +143,7 @@ export default function HistoryTimeline() {
                 <div className="history-figure-box">
                   <i className="fa-solid fa-feather-pointed"></i>
                   <div>
-                    <span className="figure-label">Tokoh Perintis / Pengasuh:</span>
+                    <span className="figure-label">{t.history_section.figure_label}</span>
                     <span className="figure-name">{active.keyFigures}</span>
                   </div>
                 </div>
@@ -163,9 +165,9 @@ export default function HistoryTimeline() {
                 <div className="photobooth-icon-badge">
                   <i className="fa-solid fa-camera-retro"></i>
                 </div>
-                <h4 className="photobooth-box-title">Studio Photobooth Santri</h4>
+                <h4 className="photobooth-box-title">{t.history_section.photobooth_title}</h4>
                 <p className="photobooth-box-desc">
-                  Abadikan momen persaudaraan santri dengan cetakan foto strip retro 4-cut berornamen khas Pondok Modern Arrisalah dan Expedient 43.
+                  {t.history_section.photobooth_desc}
                 </p>
 
                 <div className="photobooth-strip-mini-preview">
@@ -180,7 +182,7 @@ export default function HistoryTimeline() {
 
                 <Link href="/photobooth" className="btn-open-photobooth">
                   <i className="fa-solid fa-wand-magic-sparkles"></i>
-                  <span>Cetak Foto Strip Santri (Bebas Akses)</span>
+                  <span>{t.history_section.photobooth_btn}</span>
                 </Link>
               </TiltCard>
             </div>

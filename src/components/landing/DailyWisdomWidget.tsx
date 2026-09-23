@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MahfuzhatItem {
   arabic: string;
@@ -44,6 +45,7 @@ const MAHFUZHAT_DAILY: MahfuzhatItem[] = [
 ];
 
 export default function DailyWisdomWidget() {
+  const { locale } = useLanguage();
   const [mahfuzhatIdx, setMahfuzhatIdx] = useState(0);
   const [hijriDate, setHijriDate] = useState<string>("Bumi Slahung • Ponorogo");
 
@@ -55,16 +57,18 @@ export default function DailyWisdomWidget() {
 
     // Format local date with Hijri context
     try {
-      const formatter = new Intl.DateTimeFormat("id-ID-u-ca-islamic", {
+      const loc = locale === "ar" ? "ar-SA-u-ca-islamic" : locale === "en" ? "en-US-u-ca-islamic" : "id-ID-u-ca-islamic";
+      const formatter = new Intl.DateTimeFormat(loc, {
         day: "numeric",
         month: "long",
         year: "numeric",
       });
-      setHijriDate(`${formatter.format(today)} • Slahung Ponorogo`);
+      const locationText = locale === "ar" ? "سلاهونج فونوروجو" : locale === "en" ? "Slahung Ponorogo" : "Slahung Ponorogo";
+      setHijriDate(`${formatter.format(today)} • ${locationText}`);
     } catch {
       setHijriDate("1447 H • Slahung Ponorogo");
     }
-  }, []);
+  }, [locale]);
 
   const current = MAHFUZHAT_DAILY[mahfuzhatIdx];
 
@@ -101,15 +105,15 @@ export default function DailyWisdomWidget() {
             type="button"
             className="btn-next-wisdom"
             onClick={nextWisdom}
-            title="Ganti Mutiara Mahfuzhat Berikutnya"
+            title={locale === "ar" ? "حكمة أخرى" : locale === "en" ? "Next Wisdom" : "Ganti Mutiara Mahfuzhat Berikutnya"}
           >
             <i className="fa-solid fa-shuffle"></i>
-            <span>Hikmah Lain</span>
+            <span>{locale === "ar" ? "حكمة أخرى" : locale === "en" ? "Next Wisdom" : "Hikmah Lain"}</span>
           </button>
 
           <Link href="/mahfuzhat" className="btn-explore-mahfuzhat">
             <i className="fa-solid fa-book-open"></i>
-            <span>Buka 100+ Mahfuzhat</span>
+            <span>{locale === "ar" ? "تصفح المحفوظات" : locale === "en" ? "Explore Mahfuzhat" : "Buka 100+ Mahfuzhat"}</span>
           </Link>
         </div>
       </div>
