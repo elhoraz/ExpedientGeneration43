@@ -745,3 +745,23 @@
             bottom: max(24px, calc(16px + env(safe-area-inset-bottom, 0px))) !important;
         }
     }
+
+    /* =========================================================
+       ADAPTIVE ZERO-LAG MODE FOR LOW-SPEC HARDWARE & PREF MODE
+       ========================================================= */
+    html.low-perf-mode .shard-static,
+    html.low-perf-mode #fullLogoStatic {
+        display: block !important;
+        opacity: 1 !important;
+    }
+    html.low-perf-mode .shard-canvas,
+    html.low-perf-mode #fullLogoCanvas,
+    html.low-perf-mode #constellationCanvas,
+    html.low-perf-mode #dustCanvas,
+    html.low-perf-mode .god-rays {
+        display: none !important;
+    }
+    html.low-perf-mode .interactive-cursor,
+    html.low-perf-mode .cursor-dot {
+        display: none !important;
+    }

@@ -17,6 +17,8 @@ import MobileDrawer from "@/components/landing/MobileDrawer";
 import ScrollToTopIndicator from "@/components/landing/ScrollToTopIndicator";
 import DailyWisdomWidget from "@/components/landing/DailyWisdomWidget";
 import PolaroidMemories from "@/components/landing/PolaroidMemories";
+import LandingInteractivity from "@/components/landing/LandingInteractivity";
+import PerformanceToggle from "@/components/layout/PerformanceToggle";
 
 interface LandingContentProps {
   totalAlumni: number;
@@ -75,6 +77,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             <LanguageSwitcher variant="pill" />
           </div>
           <ThemeToggle />
+          <PerformanceToggle />
           <Link href="/login" className="nav-link nav-login-link" title={t.hero.cta_login}>
             <i className="fa-solid fa-circle-user"></i>
             <span>{t.nav.login}</span>
@@ -100,6 +103,9 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
       <MobileDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
       <main className="landing-wrapper">
+        {/* Dynamic Interactivity & Ambient Spotlight */}
+        <LandingInteractivity totalAlumni={totalAlumni} />
+
         {/* ====== HERO SECTION ====== */}
         <section className="landing-content" id="beranda">
           {/* 60 FPS Lightweight Celestial Canvas Background */}

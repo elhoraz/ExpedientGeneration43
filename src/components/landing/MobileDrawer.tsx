@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import PerformanceToggle from "@/components/layout/PerformanceToggle";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MobileDrawerProps {
@@ -64,6 +65,7 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           <div className="drawer-quick-actions">
             <LanguageSwitcher variant="pill" />
             <ThemeToggle />
+            <PerformanceToggle />
           </div>
 
           {/* Section 1: Halaman Landing Anchor Links */}
