@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -10,9 +10,75 @@ type ScreenPreview = "kta" | "quran" | "radar";
 export default function AppMockupShowcase() {
   const { t, locale } = useLanguage();
   const [activeScreen, setActiveScreen] = useState<ScreenPreview>("kta");
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [scrollProgress, setScrollProgress] = useState(0); // -1 (passed) to 0 (centered) to 1 (incoming)
+  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    let ticking = false;
+
+    const calculateParallax = () => {
+      if (!sectionRef.current) {
+        ticking = false;
+        return;
+      }
+
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight || 800;
+
+      // Distance from center of section to center of viewport
+      const sectionCenter = rect.top + rect.height / 2;
+      const viewportCenter = windowHeight / 2;
+      const maxDistance = (rect.height + windowHeight) / 2;
+      const distance = sectionCenter - viewportCenter;
+
+      // Normalized ratio: -1 (above viewport), 0 (centered), 1 (below viewport)
+      const ratio = Math.max(-1, Math.min(1, distance / maxDistance));
+      setScrollProgress(ratio);
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(calculateParallax);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll, { passive: true });
+    calculateParallax();
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, []);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    setMouseOffset({ x: x * 6, y: y * -6 });
+  };
+
+  const handleMouseLeave = () => {
+    setMouseOffset({ x: 0, y: 0 });
+  };
+
+  // 3D Parallax Transformations for Smartphone Chassis
+  const phoneRotateX = scrollProgress * 15 + mouseOffset.y;
+  const phoneRotateY = scrollProgress * -12 + mouseOffset.x;
+  const phoneRotateZ = scrollProgress * -2.5;
+  const phoneTranslateY = scrollProgress * 42;
+
+  // Independent Layered Depth for KTA Card & Content
+  const cardTranslateY = scrollProgress * -22;
+  const cardRotateX = scrollProgress * -8;
+  const cardRotateY = scrollProgress * 5;
 
   return (
-    <section className="app-showcase-section" id="aplikasi">
+    <section ref={sectionRef} className="app-showcase-section" id="aplikasi">
       <div className="section-header">
         <div className="landing-prestige-badge" style={{ marginBottom: "14px" }}>
           <i className="fa-brands fa-android"></i>
@@ -116,12 +182,27 @@ export default function AppMockupShowcase() {
 
         {/* Right / Luxury 3D Smartphone Mockup */}
         <div className="app-mockup-col">
-          <div className="phone-mockup-wrapper">
-            {/* Ambient Gold Glow Behind Device */}
-            <div className="phone-ambient-glow"></div>
+          <div
+            className="phone-mockup-wrapper"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Ambient Gold Glow Behind Device with Parallax Depth */}
+            <div
+              className="phone-ambient-glow"
+              style={{
+                transform: `translateY(${scrollProgress * -25}px) scale(${1 + (1 - Math.abs(scrollProgress)) * 0.15})`,
+                opacity: 0.65 + (1 - Math.abs(scrollProgress)) * 0.35,
+              }}
+            ></div>
 
-            {/* Smartphone Chassis */}
-            <div className="phone-chassis">
+            {/* Smartphone Chassis with Smooth 3D Scroll Parallax */}
+            <div
+              className="phone-chassis"
+              style={{
+                transform: `perspective(1000px) translateY(${phoneTranslateY}px) rotateX(${phoneRotateX}deg) rotateY(${phoneRotateY}deg) rotateZ(${phoneRotateZ}deg)`,
+              }}
+            >
               {/* Speaker / Dynamic Island */}
               <div className="phone-dynamic-island">
                 <span className="camera-lens"></span>
@@ -149,8 +230,18 @@ export default function AppMockupShowcase() {
                       </span>
                     </div>
 
-                    <div className="mock-card-card">
-                      <div className="mock-card-gold-shine"></div>
+                    <div
+                      className="mock-card-card"
+                      style={{
+                        transform: `translateZ(20px) translateY(${cardTranslateY}px) rotateX(${cardRotateX}deg) rotateY(${cardRotateY}deg)`,
+                      }}
+                    >
+                      <div
+                        className="mock-card-gold-shine"
+                        style={{
+                          background: `linear-gradient(${45 + scrollProgress * 30}deg, transparent 40%, rgba(212, 175, 55, ${0.2 + (1 - Math.abs(scrollProgress)) * 0.15}) 50%, transparent 60%)`,
+                        }}
+                      ></div>
                       <div className="mock-card-top">
                         <span className="mock-brand">EXPEDIENT 43</span>
                         <i className="fa-solid fa-shield-cat gold-icon"></i>
@@ -192,7 +283,12 @@ export default function AppMockupShowcase() {
                       </span>
                     </div>
 
-                    <div className="mock-mushaf-sheet">
+                    <div
+                      className="mock-mushaf-sheet"
+                      style={{
+                        transform: `translateZ(16px) translateY(${scrollProgress * -15}px)`,
+                      }}
+                    >
                       <div className="mock-surah-header">
                         <span>سُورَةُ البَقَرَةِ</span>
                       </div>
@@ -232,7 +328,12 @@ export default function AppMockupShowcase() {
                       </span>
                     </div>
 
-                    <div className="mock-radar-map">
+                    <div
+                      className="mock-radar-map"
+                      style={{
+                        transform: `translateZ(16px) translateY(${scrollProgress * -15}px)`,
+                      }}
+                    >
                       <div className="radar-sweep-beam"></div>
                       <div className="radar-ring r1"></div>
                       <div className="radar-ring r2"></div>
