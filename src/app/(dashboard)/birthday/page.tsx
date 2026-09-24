@@ -15,14 +15,12 @@ export default async function BirthdayListPage() {
     redirect("/login");
   }
 
-  // Get current day and month
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1; // 1-12
-  const currentDay = today.getDate(); // 1-31
+  // Get current day and month in Asia/Jakarta timezone (WIB)
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  const currentMonth = now.getMonth() + 1; // 1-12
+  const currentDay = now.getDate(); // 1-31
 
   // Fetch users with birthday today
-  // PostgreSQL extract function doesn't work directly with Supabase eq on dates easily,
-  // we'll fetch all and filter for now (or write a rpc, but let's filter for simplicity since it's < 200 users)
   const { data: allUsers } = await supabase
       .from("profiles")
       .select("id, nama_lengkap, nama_panggilan, foto_profil, tanggal_lahir")
@@ -32,8 +30,12 @@ export default async function BirthdayListPage() {
       if (!u.tanggal_lahir) return false;
       const parts = u.tanggal_lahir.split(/[-/]/);
       if (parts.length < 3) return false;
-      const month = parseInt(parts[1], 10);
-      const day = parseInt(parts[2], 10);
+      let month = parseInt(parts[1], 10);
+      let day = parseInt(parts[2], 10);
+      if (parts[2].length === 4) {
+        day = parseInt(parts[0], 10);
+        month = parseInt(parts[1], 10);
+      }
       return month === currentMonth && day === currentDay;
   });
 

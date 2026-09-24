@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
@@ -141,20 +141,108 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
     setParticles(newParticles);
   }, [deco, p]);
 
+  const displayName = (userProfile.nama_panggilan || userProfile.nama_lengkap || "Kawan").trim();
+  const fullName = (userProfile.nama_lengkap || displayName).trim();
+
   const [avatarSrc, setAvatarSrc] = useState(() => 
-    getAvatarUrl(userProfile.foto_profil, userProfile.nama_panggilan || userProfile.nama_lengkap)
+    getAvatarUrl(userProfile.foto_profil, displayName)
   );
+
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedWish, setCopiedWish] = useState(false);
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
+  const [currentUrl, setCurrentUrl] = useState(() => `${siteUrl}/birthday/${userProfile.id}`);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentUrl(window.location.href);
+    }
+  }, []);
 
   let cleanWa = (userProfile.no_whatsapp || "").replace(/\D/g, "");
   if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.substring(1);
   else if (cleanWa && !cleanWa.startsWith("62")) cleanWa = "62" + cleanWa;
 
-  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
-  const directWishUrl = cleanWa
-    ? `https://wa.me/${cleanWa}?text=${encodeURIComponent(`Assalamu'alaikum ${userProfile.nama_panggilan || 'Kawan'}! 🎉\nBarakallahu fii umrik! Selamat ulang tahun ya, semoga senantiasa diberikan keberkahan, kesehatan, dan kelancaran dalam segala hal. Aamiin! 🤲\n\nLihat kartu ucapan angkatan untukmu di sini:\n${currentUrl}`)}`
+  const isValidWa = cleanWa.length >= 10 && cleanWa.length <= 15;
+
+  const wishMessage = useMemo(() => {
+    if (locale === "ar") {
+      return `السلام عليكم ورحمة الله وبركاته ${displayName}! 🎉\nبارك الله في عمرك! أبارك لك بذكرى ميلادك المبارك، نسأل الله تعالى أن يملأ أيامك خيراً وبركة وصحة وسعادة دائمة. آمين يا رب العالمين! 🤲\n\nشاهد بطاقة تهنئة الدفعة لك من هنا:\n${currentUrl}`;
+    }
+    if (locale === "en") {
+      return `Assalamu'alaikum ${displayName}! 🎉\nBarakallahu fee umrik! Wishing you a very blessed birthday, may Allah bestow continuous happiness, health, barakah, and success in all your endeavors. Aamiin! 🤲\n\nView your cohort birthday card here:\n${currentUrl}`;
+    }
+    return `Assalamu'alaikum ${displayName}! 🎉\nBarakallahu fii umrik! Selamat ulang tahun ya, semoga senantiasa diberikan keberkahan umur, kesehatan, rezeki yang melimpah, dan kemudahan dalam setiap urusan. Aamiin ya Rabbal 'Alamiin! 🤲\n\nLihat kartu ucapan angkatan untukmu di sini:\n${currentUrl}`;
+  }, [displayName, currentUrl, locale]);
+
+  const shareMessage = useMemo(() => {
+    if (locale === "ar") {
+      return `🎂 اليوم نحتفل بذكرى ميلاد رفيقنا العزيز *${displayName}*! شاركونا الدعاء والتهنئة له بمناسبة ميلاده المبارك:\n${currentUrl}`;
+    }
+    if (locale === "en") {
+      return `🎂 Today our friend *${displayName}* is celebrating their birthday! Let's send our warmest prayers and congratulations:\n${currentUrl}`;
+    }
+    return `🎂 Hari ini sahabat kita *${displayName}* sedang berulang tahun! Mari kirimkan doa dan ucapan terbaik untuknya:\n${currentUrl}`;
+  }, [displayName, currentUrl, locale]);
+
+  const directWishUrl = isValidWa
+    ? `https://api.whatsapp.com/send?phone=${cleanWa}&text=${encodeURIComponent(wishMessage)}`
     : null;
 
-  const shareUrl = `https://wa.me/?text=${encodeURIComponent(`🎂 Hari ini sahabat kita *${userProfile.nama_panggilan || userProfile.nama_lengkap}* sedang berulang tahun! Mari kirim doa dan ucapan terbaik untuknya:\n${currentUrl}`)}`;
+  const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Selamat Ulang Tahun ${displayName}! 🎉`,
+          text: shareMessage,
+          url: currentUrl,
+        });
+        return;
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+      }
+    }
+    // Fallback to WhatsApp
+    window.open(shareWaUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(currentUrl);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = currentUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {}
+  };
+
+  const handleCopyWish = async () => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(wishMessage);
+      } else {
+        const ta = document.createElement("textarea");
+        ta.value = wishMessage;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopiedWish(true);
+      setTimeout(() => setCopiedWish(false), 2500);
+    } catch {}
+  };
 
   useEffect(() => {
     document.body.classList.add("page-birthday");
@@ -172,7 +260,21 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
   return (
     <>
-      <Link href="/direktori" className="bday-back"><i className="fa-solid fa-arrow-left"></i></Link>
+      <button 
+        type="button" 
+        onClick={() => {
+          if (typeof window !== "undefined" && window.history.length > 1) {
+            window.history.back();
+          } else {
+            window.location.href = "/beranda";
+          }
+        }} 
+        className="bday-back" 
+        title="Kembali"
+        style={{ cursor: "pointer", border: "none" }}
+      >
+        <i className="fa-solid fa-arrow-left"></i>
+      </button>
 
       <div className={`bday-universe layout-${layout} deco-${deco} anim-${anim}`} style={{
         "--p0": p[0],
@@ -199,9 +301,9 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
                     src={avatarSrc} 
                     width={160} 
                     height={160} 
-                    alt={userProfile.nama_panggilan || "Foto"} 
+                    alt={displayName} 
                     priority
-                    onError={() => setAvatarSrc(getAvatarFallback(userProfile.nama_panggilan))}
+                    onError={() => setAvatarSrc(getAvatarFallback(displayName))}
                     unoptimized={avatarSrc.startsWith("data:") || avatarSrc.includes("ui-avatars.com")} 
                   />
               </div>
@@ -209,7 +311,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
           <div className="bday-pretitle bday-body bday-sub bday-anim-el">{t.birthday.title}</div>
 
-          <h1 className="bday-name bday-heading bday-text bday-anim-el">{userProfile.nama_panggilan}</h1>
+          <h1 className="bday-name bday-heading bday-text bday-anim-el">{displayName}</h1>
 
           {age > 0 && (
             <div className="bday-age bday-body bday-text bday-anim-el">
@@ -236,14 +338,51 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
           </p>
 
           <div className="bday-anim-el" style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", width: "100%", maxWidth: "340px", margin: "0 auto" }}>
-              {directWishUrl && (
+              {directWishUrl ? (
                 <a href={directWishUrl} target="_blank" rel="noopener noreferrer" className="bday-share-btn bday-body" style={{ width: "100%", justifyContent: "center" }}>
-                    <i className="fa-brands fa-whatsapp"></i> {t.birthday.send_greeting} ({userProfile.nama_panggilan})
+                    <i className="fa-brands fa-whatsapp"></i> {t.birthday.send_greeting} ({displayName})
                 </a>
+              ) : (
+                <button type="button" onClick={handleCopyWish} className="bday-share-btn bday-body" style={{ width: "100%", justifyContent: "center", cursor: "pointer" }}>
+                    <i className={copiedWish ? "fa-solid fa-check" : "fa-regular fa-copy"}></i> {copiedWish ? (locale === 'ar' ? 'تم نسخ التهنئة!' : locale === 'en' ? 'Wish Copied!' : 'Ucapan Berhasil Disalin!') : (locale === 'ar' ? 'نسخ نص الدعاء' : locale === 'en' ? 'Copy Greeting' : `Salin Ucapan (${displayName})`)}
+                </button>
               )}
-              <a href={shareUrl} target="_blank" rel="noopener noreferrer" className="bday-share-btn bday-body" style={{ width: "100%", justifyContent: "center", background: directWishUrl ? "rgba(255,255,255,0.15)" : undefined, borderColor: directWishUrl ? "var(--glass-border)" : undefined }}>
+
+              <button 
+                type="button" 
+                onClick={handleShare} 
+                className="bday-share-btn bday-body" 
+                style={{ 
+                  width: "100%", 
+                  justifyContent: "center", 
+                  background: directWishUrl ? "rgba(255,255,255,0.15)" : undefined, 
+                  borderColor: directWishUrl ? "var(--glass-border)" : undefined,
+                  cursor: "pointer"
+                }}
+              >
                   <i className="fa-solid fa-share-nodes"></i> {t.common.share}
-              </a>
+              </button>
+
+              <button 
+                type="button" 
+                onClick={handleCopyLink} 
+                style={{ 
+                  background: "transparent", 
+                  border: "none", 
+                  color: "var(--text-secondary, rgba(255,255,255,0.7))", 
+                  fontSize: "0.82rem", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: "6px", 
+                  cursor: "pointer", 
+                  padding: "6px 12px", 
+                  borderRadius: "20px",
+                  transition: "all 0.2s ease"
+                }}
+              >
+                <i className={copiedLink ? "fa-solid fa-check" : "fa-solid fa-link"}></i>
+                <span>{copiedLink ? (locale === 'ar' ? 'تم نسخ الرابط!' : locale === 'en' ? 'Link Copied!' : 'Tautan Kartu Berhasil Disalin!') : (locale === 'ar' ? 'نسخ رابط البطاقة' : locale === 'en' ? 'Copy Card Link' : 'Salin Tautan Kartu')}</span>
+              </button>
           </div>
         </div>
 

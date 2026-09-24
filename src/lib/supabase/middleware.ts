@@ -56,6 +56,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/kiblat') ||
     request.nextUrl.pathname.startsWith('/tasbih') ||
     request.nextUrl.pathname.startsWith('/sirah') ||
+    request.nextUrl.pathname.startsWith('/birthday') ||
     request.nextUrl.pathname.startsWith('/photobooth');
 
   if (!user && !isPublicRoute) {

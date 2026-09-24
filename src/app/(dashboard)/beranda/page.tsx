@@ -39,17 +39,21 @@ export default async function BerandaPage() {
   const leaderboard = leaderboardResult.status === "fulfilled" ? (leaderboardResult.value.data || []) : [];
   const allProfiles = profilesResult.status === "fulfilled" ? (profilesResult.value.data || []) : [];
 
-  // Filter Birthday Users
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentDay = today.getDate();
+  // Filter Birthday Users in Asia/Jakarta timezone (WIB)
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
   
   const birthdayUsers = allProfiles.filter((p: any) => {
     if (!p.tanggal_lahir) return false;
     const parts = p.tanggal_lahir.split(/[-/]/);
     if (parts.length < 3) return false;
-    const month = parseInt(parts[1], 10);
-    const day = parseInt(parts[2], 10);
+    let month = parseInt(parts[1], 10);
+    let day = parseInt(parts[2], 10);
+    if (parts[2].length === 4) {
+      day = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+    }
     return month === currentMonth && day === currentDay;
   });
 
