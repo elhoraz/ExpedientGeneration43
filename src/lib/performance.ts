@@ -21,7 +21,7 @@ const STORAGE_KEY = "expedient_perf_tier";
 export function detectLowSpecDevice(): boolean {
   if (typeof window === "undefined") return false;
 
-  // 1. Check user preference for reduced motion
+  // 1. Check user preference for reduced motion (accessibility)
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     return true;
   }
@@ -32,16 +32,10 @@ export function detectLowSpecDevice(): boolean {
     return true;
   }
 
-  // 3. Hardware Concurrency (Logical CPU cores)
+  // 3. Truly constrained budget device check (<= 2 cores AND <= 2GB RAM on small phone)
   const cores = navigator.hardwareConcurrency || 4;
-  if (cores <= 4 && window.innerWidth <= 768) {
-    // Budget mobile phone
-    return true;
-  }
-
-  // 4. Device Memory (RAM in GB, supported in Chrome/Edge/Android)
   const memory = (navigator as any).deviceMemory;
-  if (typeof memory === "number" && memory <= 4) {
+  if (cores <= 2 && typeof memory === "number" && memory <= 2 && window.innerWidth <= 480) {
     return true;
   }
 
@@ -80,6 +74,8 @@ export function applyPerformanceTier(tier: PerformanceTier) {
     html.classList.add("high-perf-mode");
     html.classList.remove("low-perf-mode");
   }
+
+  window.dispatchEvent(new CustomEvent("performance-tier-changed", { detail: { tier } }));
 }
 
 /**
@@ -94,31 +90,6 @@ export function usePerformanceTier() {
     setTier(initialTier);
     applyPerformanceTier(initialTier);
     setIsReady(true);
-
-    // Optional quick FPS health check in the first 1.5 seconds
-    if (initialTier === "high") {
-      let frameCount = 0;
-      let startTime = performance.now();
-      let animId: number;
-
-      const checkFps = (time: number) => {
-        frameCount++;
-        if (time - startTime < 1000) {
-          animId = requestAnimationFrame(checkFps);
-        } else {
-          const fps = (frameCount * 1000) / (time - startTime);
-          // If frame rate is struggling under 38 FPS during initial idle/render, degrade gracefully to 'low'
-          if (fps < 38) {
-            console.warn(`[PERF-TIER] Low frame rate detected (${Math.round(fps)} FPS). Gracefully switching to low-spec mode.`);
-            setTier("low");
-            applyPerformanceTier("low");
-          }
-        }
-      };
-
-      animId = requestAnimationFrame(checkFps);
-      return () => cancelAnimationFrame(animId);
-    }
   }, []);
 
   const setManualTier = (pref: PerformancePreference) => {

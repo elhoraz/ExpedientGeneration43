@@ -12,123 +12,99 @@ export default function LandingInteractivity({ totalAlumni }: LandingInteractivi
   const { isLowPerf } = usePerformanceTier();
   const spotlightRef = useRef<HTMLDivElement | null>(null);
 
+  // 1. STATS COUNT-UP ANIMATION
   useEffect(() => {
-    // =========================================================================
-    // 1. STATS COUNT-UP ANIMATION (ON SCROLL INTO VIEW)
-    // =========================================================================
-    const animateValue = (el: HTMLElement, start: number, end: number, duration: number, suffix = "") => {
+    const ribbonEl = document.querySelector(".tuku-stats-ribbon");
+    if (!ribbonEl) return;
+
+    const alumniEl = document.getElementById("counterAlumni");
+    if (!alumniEl) return;
+
+    const targetVal = totalAlumni || 240;
+
+    if (isLowPerf) {
+      alumniEl.innerText = `${targetVal}`;
+      return;
+    }
+
+    const animateValue = (el: HTMLElement, start: number, end: number, duration: number) => {
       let startTimestamp: number | null = null;
+      let frameId: number;
       const step = (timestamp: number) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        // Easing: easeOutExpo
         const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
         const current = Math.floor(easeProgress * (end - start) + start);
-        el.innerText = `${current}${suffix}`;
+        el.innerText = `${current}`;
         if (progress < 1) {
-          window.requestAnimationFrame(step);
+          frameId = window.requestAnimationFrame(step);
         } else {
-          el.innerText = `${end}${suffix}`;
+          el.innerText = `${end}`;
         }
       };
-      window.requestAnimationFrame(step);
+      frameId = window.requestAnimationFrame(step);
+      return () => window.cancelAnimationFrame(frameId);
     };
 
-    const ribbonEl = document.querySelector(".tuku-stats-ribbon");
-    if (ribbonEl) {
-      if (isLowPerf) {
-        // Low-spec: Immediately set numbers without requestAnimationFrame churn
-        const alumniEl = document.getElementById("counterAlumni");
-        if (alumniEl) alumniEl.innerText = `${totalAlumni || 240}`;
-      } else {
-        const statsObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                const alumniEl = document.getElementById("counterAlumni");
-                if (alumniEl) {
-                  animateValue(alumniEl, 0, totalAlumni || 240, 1600);
-                }
-                statsObserver.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.2 }
-        );
-        statsObserver.observe(ribbonEl);
-      }
-    }
-
-    // =========================================================================
-    // 2. SCROLL REVEAL (STAGGERED ENTRANCES)
-    // =========================================================================
-    const revealTargets = document.querySelectorAll(
-      ".section-header, .history-spotlight-card, .wisdom-card, .mockup-showcase-wrap, .polaroid-tape-card, .tuku-wisdom-card, .heritage-video-container"
+    let cancelAnim: (() => void) | undefined;
+    const statsObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            cancelAnim = animateValue(alumniEl, 0, targetVal, 1600);
+            statsObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.2 }
     );
 
-    if (isLowPerf) {
-      // Low-spec: Immediately reveal all elements without transition lag
-      revealTargets.forEach((el) => {
-        el.classList.add("landing-revealed-instant");
-      });
-    } else {
-      const revealObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("landing-revealed");
-              revealObserver.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
-      );
+    statsObserver.observe(ribbonEl);
 
-      revealTargets.forEach((el) => {
-        el.classList.add("landing-reveal-init");
-        revealObserver.observe(el);
-      });
-    }
+    return () => {
+      statsObserver.disconnect();
+      if (cancelAnim) cancelAnim();
+    };
+  }, [isLowPerf, totalAlumni]);
 
-    // =========================================================================
-    // 3. INTERACTIVE MOUSE SPOTLIGHT (DESKTOP HIGH-PERF ONLY)
-    // =========================================================================
+  // 2. INTERACTIVE MOUSE SPOTLIGHT (DESKTOP HIGH-PERF ONLY)
+  useEffect(() => {
+    if (isLowPerf) return;
     const isTouch = typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    if (isTouch) return;
+
     const spotlight = spotlightRef.current;
+    if (!spotlight) return;
 
     let mouseX = -9999;
     let mouseY = -9999;
     let currentX = -9999;
     let currentY = -9999;
-    let rafId: number | null = null;
+    let rafId: number;
 
-    if (!isLowPerf && !isTouch && spotlight) {
-      const onMouseMove = (e: MouseEvent) => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-      };
+    const onMouseMove = (e: MouseEvent) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    };
 
-      const animateSpotlight = () => {
-        if (mouseX > 0 && mouseY > 0) {
-          currentX += (mouseX - currentX) * 0.12;
-          currentY += (mouseY - currentY) * 0.12;
-          if (spotlight) {
-            spotlight.style.transform = `translate3d(${currentX - 250}px, ${currentY - 250}px, 0)`;
-            spotlight.style.opacity = "1";
-          }
-        }
-        rafId = requestAnimationFrame(animateSpotlight);
-      };
-
-      window.addEventListener("mousemove", onMouseMove, { passive: true });
+    const animateSpotlight = () => {
+      if (mouseX > 0 && mouseY > 0) {
+        currentX += (mouseX - currentX) * 0.12;
+        currentY += (mouseY - currentY) * 0.12;
+        spotlight.style.transform = `translate3d(${currentX - 250}px, ${currentY - 250}px, 0)`;
+        spotlight.style.opacity = "1";
+      }
       rafId = requestAnimationFrame(animateSpotlight);
+    };
 
-      return () => {
-        window.removeEventListener("mousemove", onMouseMove);
-        if (rafId) cancelAnimationFrame(rafId);
-      };
-    }
-  }, [isLowPerf, totalAlumni]);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    rafId = requestAnimationFrame(animateSpotlight);
+
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      cancelAnimationFrame(rafId);
+    };
+  }, [isLowPerf]);
 
   // ===========================================================================
   // 4. INTERACTIVE STAMP CLICK BURST & HAPTIC

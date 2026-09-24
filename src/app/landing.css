@@ -1424,6 +1424,64 @@
   transform: translateY(-4px);
 }
 
+.bento-mini-card-preview {
+  margin: 14px 0 10px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #131b24 0%, #080c10 50%, #030508 100%);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bento-card:hover .bento-mini-card-preview {
+  transform: translateY(-2px) scale(1.02);
+  border-color: #ffd700;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.35);
+}
+
+.mini-card-chip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mini-card-chip {
+  width: 24px;
+  height: 18px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #fef08a 0%, #ca8a04 70%, #854d0e 100%);
+  border: 1px solid #fef08a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.mini-card-hologram {
+  font-size: 0.85rem;
+  filter: drop-shadow(0 0 4px #ffd700);
+}
+
+.mini-card-digits {
+  font-family: 'Courier New', monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.mini-card-holder {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  color: #d4af37;
+  font-weight: 700;
+}
+
 .bento-badge {
   display: inline-flex;
   align-items: center;
@@ -2822,42 +2880,130 @@
   z-index: 0;
 }
 
+/* =========================================================
+   LUXURY TITANIUM SMARTPHONE CHASSIS (PHYSICAL REALISM)
+   ========================================================= */
 .phone-chassis {
   position: relative;
   z-index: 1;
-  width: 290px;
-  height: 580px;
-  border-radius: 46px;
-  background: #020617;
-  border: 5px solid #1e293b;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.2);
+  width: 310px;
+  height: 620px;
+  border-radius: 48px;
+  background: #080c10;
+  border: 4px solid #334155;
+  box-shadow: 
+    0 30px 80px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+    0 0 35px rgba(212, 175, 55, 0.25);
   padding: 10px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
+.phone-chassis:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 
+    0 35px 90px rgba(0, 0, 0, 0.95),
+    0 0 0 1.5px rgba(212, 175, 55, 0.4) inset,
+    0 0 45px rgba(212, 175, 55, 0.35);
+}
+
+/* Outer Hardware Buttons */
+.chassis-button {
+  position: absolute;
+  background: linear-gradient(180deg, #475569, #1e293b);
+  border-radius: 3px;
+  box-shadow: -1px 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.chassis-button.btn-action {
+  left: -7px;
+  top: 96px;
+  width: 4px;
+  height: 24px;
+}
+
+.chassis-button.btn-vol-up {
+  left: -7px;
+  top: 132px;
+  width: 4px;
+  height: 44px;
+}
+
+.chassis-button.btn-vol-down {
+  left: -7px;
+  top: 188px;
+  width: 4px;
+  height: 44px;
+}
+
+.chassis-button.btn-power {
+  right: -7px;
+  top: 140px;
+  width: 4px;
+  height: 60px;
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Antenna Bands */
+.antenna-band {
+  position: absolute;
+  background: rgba(148, 163, 184, 0.35);
+  z-index: 2;
+}
+.antenna-band.top-left { left: 42px; top: -4px; width: 4px; height: 4px; }
+.antenna-band.top-right { right: 42px; top: -4px; width: 4px; height: 4px; }
+.antenna-band.bottom-left { left: 42px; bottom: -4px; width: 4px; height: 4px; }
+.antenna-band.bottom-right { right: 42px; bottom: -4px; width: 4px; height: 4px; }
+
+/* Dynamic Island */
 .phone-dynamic-island {
   position: absolute;
   top: 14px;
   left: 50%;
   transform: translateX(-50%);
-  width: 80px;
-  height: 20px;
+  width: 90px;
+  height: 24px;
   border-radius: 20px;
   background: #000000;
-  z-index: 10;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 8px;
+  padding-right: 12px;
+  gap: 6px;
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.15);
 }
 
 .camera-lens {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #1e293b;
+  background: radial-gradient(circle at 35% 35%, #1e293b 0%, #020617 70%);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 0 4px rgba(56, 189, 248, 0.2);
+}
+
+.camera-ambient-sensor {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #0f172a;
+}
+
+/* Glass Glare Sweep */
+.phone-glass-glare {
+  position: absolute;
+  top: 0;
+  left: -20%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.08) 45%, transparent 60%);
+  pointer-events: none;
+  z-index: 15;
+  border-radius: 46px;
 }
 
 .phone-status-bar {
@@ -2878,8 +3024,8 @@
 
 .phone-screen-content {
   flex: 1;
-  border-radius: 34px;
-  background: #060b14;
+  border-radius: 36px;
+  background: #04070c;
   overflow: hidden;
   padding: 12px;
   position: relative;
@@ -2919,92 +3065,550 @@
   font-weight: 700;
 }
 
-/* Screen 1: Mock KTA */
-.mock-card-card {
-  padding: 14px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border: 1px solid rgba(212, 175, 55, 0.5);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-  margin-top: 16px;
+/* =========================================================
+   REAL PHYSICAL KTA CARD SHOWCASE (ULTRA HD & REALISM)
+   ========================================================= */
+.real-kta-showcase-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.real-kta-card-perspective {
+  perspective: 1200px;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+}
+
+.real-kta-card-inner {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.586;
+  border-radius: 16px;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.85),
+    0 0 20px rgba(212, 175, 55, 0.2);
+}
+
+.real-kta-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+/* Front Face */
+.real-kta-front {
+  background: 
+    radial-gradient(ellipse at 85% 15%, rgba(212, 175, 55, 0.15) 0%, transparent 60%),
+    linear-gradient(135deg, #131b24 0%, #090e14 55%, #030508 100%);
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  box-shadow: 
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+.real-kta-guilloche-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  background-image: 
+    radial-gradient(circle at 50% 50%, #d4af37 1px, transparent 1px),
+    linear-gradient(45deg, rgba(212, 175, 55, 0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(212, 175, 55, 0.1) 25%, transparent 25%);
+  background-size: 8px 8px, 16px 16px, 16px 16px;
+  pointer-events: none;
+}
+
+.real-kta-holographic-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: color-dodge;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.real-kta-gloss-shine {
+  position: absolute;
+  top: -60%;
+  left: -40%;
+  width: 180%;
+  height: 220%;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.14) 50%, transparent 60%);
+  pointer-events: none;
+  z-index: 11;
+}
+
+/* Header */
+.real-kta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.real-kta-brand-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.real-kta-logo-emblem {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.kta-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.real-kta-sovereign-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  background: linear-gradient(135deg, #ffd700, #d4af37, #fef08a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1.1;
+}
+
+.real-kta-institution-sub {
+  font-family: monospace;
+  font-size: 0.42rem;
+  letter-spacing: 0.6px;
+  color: #94a3b8;
+}
+
+.real-kta-contactless-mark {
+  opacity: 0.85;
+}
+
+/* Chip & Hologram Row */
+.real-kta-chip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* Authentic Gold EMV Chip */
+.real-emv-chip {
+  width: 28px;
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #fef08a 0%, #eab308 30%, #ca8a04 70%, #854d0e 100%);
+  border: 1px solid #fef08a;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.6), inset 0 0 3px rgba(255, 255, 255, 0.4);
   position: relative;
   overflow: hidden;
 }
 
-.mock-card-gold-shine {
+.emv-pad-lines {
   position: absolute;
   inset: 0;
-  background: linear-gradient(45deg, transparent 40%, rgba(212, 175, 55, 0.15) 50%, transparent 60%);
-  pointer-events: none;
 }
 
-.mock-card-top {
+.emv-pad {
+  position: absolute;
+  border: 1px solid rgba(133, 77, 14, 0.75);
+}
+
+.emv-pad.pad-tl { top: 0; left: 0; width: 12px; height: 9px; border-top: none; border-left: none; }
+.emv-pad.pad-tr { top: 0; right: 0; width: 12px; height: 9px; border-top: none; border-right: none; }
+.emv-pad.pad-bl { bottom: 0; left: 0; width: 12px; height: 9px; border-bottom: none; border-left: none; }
+.emv-pad.pad-br { bottom: 0; right: 0; width: 12px; height: 9px; border-bottom: none; border-right: none; }
+.emv-core-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid rgba(133, 77, 14, 0.75);
+}
+
+/* Hologram Security Seal */
+.real-kta-hologram-seal {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fde047 10%, #38bdf8 45%, #ec4899 75%, #a855f7 100%);
+  padding: 1.5px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  animation: sealRotate 10s linear infinite;
+}
+
+@keyframes sealRotate {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+.hologram-seal-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.85);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
-.mock-brand {
-  font-family: 'Playfair Display', serif;
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: #d4af37;
+.hologram-seal-star {
+  font-size: 0.55rem;
+  line-height: 1;
 }
 
-.mock-chip-row {
+.hologram-seal-text {
+  font-size: 0.22rem;
+  letter-spacing: 0.4px;
+  font-weight: 800;
+  color: #ffd700;
+}
+
+/* Embossed Stamped Numbers */
+.real-kta-embossed-num {
   display: flex;
-  align-items: center;
   gap: 8px;
-  margin: 12px 0 10px 0;
-}
-
-.mock-sim-chip {
-  width: 26px;
-  height: 18px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #ca8a04, #eab308);
-}
-
-.nfc-icon {
-  color: #d4af37;
-  font-size: 0.8rem;
-}
-
-.mock-card-num {
   font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 1.8px;
   color: #ffffff;
-  letter-spacing: 2px;
-  margin-bottom: 12px;
+  text-shadow: 
+    0 1px 0 rgba(0, 0, 0, 0.9),
+    0 -1px 0 rgba(255, 255, 255, 0.35);
+  margin: 3px 0;
+  position: relative;
+  z-index: 2;
 }
 
-.mock-card-footer {
+.real-kta-embossed-num .gold-highlight {
+  color: #ffd700;
+}
+
+/* Footer Bio & Photo */
+.real-kta-footer {
   display: flex;
   justify-content: space-between;
-  font-size: 0.58rem;
+  align-items: flex-end;
+  position: relative;
+  z-index: 2;
 }
 
-.mock-lbl {
+.bio-field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.bio-label {
+  font-size: 0.42rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #d4af37;
+  text-transform: uppercase;
+}
+
+.bio-value {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: #ffffff;
+}
+
+.bio-meta-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.bio-value-small {
+  font-size: 0.48rem;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.bio-value-small.gold {
+  color: #ffd700;
+}
+
+/* Photo Box */
+.real-kta-photo-box {
+  width: 40px;
+  height: 48px;
+  border-radius: 5px;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #ffd700, #92400e);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
+}
+
+.photo-inner-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #0f172a;
+}
+
+.alumni-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-watermark-stamp {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.32rem;
+  font-weight: 900;
+  color: rgba(255, 215, 0, 0.9);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 1px 3px;
+  border-radius: 2px;
+}
+
+/* =========================================================
+   BACK FACE (MAGNETIC STRIPE & VERIFICATION)
+   ========================================================= */
+.real-kta-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, #0e1218 0%, #07090d 100%);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  padding: 12px 14px;
+}
+
+.real-kta-magnetic-stripe {
+  width: calc(100% + 28px);
+  height: 28px;
+  margin: -12px -14px 6px -14px;
+  background: linear-gradient(180deg, #18181b 0%, #09090b 50%, #27272a 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.mag-gloss-sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 40%, rgba(255, 255, 255, 0.08) 50%, transparent 60%);
+}
+
+.real-kta-signature-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.real-kta-signature-strip {
+  width: 100%;
+  height: 22px;
+  background: #f8fafc;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.sig-security-pattern {
+  position: absolute;
+  inset: 0;
+  font-size: 0.3rem;
+  line-height: 1;
+  color: rgba(148, 163, 184, 0.35);
+  font-family: monospace;
+  overflow: hidden;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sig-handwritten {
+  position: relative;
+  font-family: 'Playfair Display', cursive, serif;
+  font-size: 0.65rem;
+  font-style: italic;
+  font-weight: 700;
+  color: #1e293b;
+  z-index: 2;
+}
+
+.sig-cvv {
+  position: relative;
+  font-family: monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #0f172a;
+  background: #ffffff;
+  padding: 1px 3px;
+  border: 1px solid #cbd5e1;
+  border-radius: 2px;
+  z-index: 2;
+}
+
+.sig-notice {
+  font-size: 0.35rem;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  text-align: right;
+}
+
+.real-kta-back-body {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 3px;
+}
+
+.back-info-col {
+  flex: 1;
+}
+
+.institution-legal-text {
+  font-size: 0.38rem;
+  line-height: 1.3;
+  color: #94a3b8;
+  margin: 0 0 3px 0;
+}
+
+.institution-address strong {
   display: block;
+  font-size: 0.44rem;
+  color: #d4af37;
+}
+
+.institution-address span {
+  font-size: 0.35rem;
+  color: #64748b;
+}
+
+.real-kta-qr-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.qr-code-box {
+  padding: 2.5px;
+  background: #ffffff;
+  border-radius: 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.qr-caption {
+  font-size: 0.35rem;
+  font-weight: 800;
+  color: #ffd700;
+  letter-spacing: 0.5px;
+}
+
+.real-kta-barcode-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 3px;
+  margin-top: 3px;
+}
+
+.barcode-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 12px;
+}
+
+.b-bar {
+  background: #ffffff;
+  height: 100%;
+}
+.b-bar.b-1 { width: 1.5px; }
+.b-bar.b-2 { width: 2.5px; }
+.b-bar.b-3 { width: 4px; }
+
+.barcode-num {
+  font-family: monospace;
+  font-size: 0.42rem;
   color: #94a3b8;
 }
 
-.mock-val {
-  font-weight: 700;
-  color: #fef08a;
+/* Control Toolbar Under Card */
+.real-kta-controls {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
 }
 
-.mock-action-pill {
-  margin-top: 18px;
-  padding: 8px;
-  border-radius: 10px;
+.btn-kta-flip {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
   background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  color: #d4af37;
-  font-size: 0.7rem;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  color: #ffd700;
+  font-size: 0.68rem;
   font-weight: 700;
-  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-kta-flip:hover {
+  background: rgba(212, 175, 55, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-kta-explore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.25s ease;
+}
+
+.btn-kta-explore:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
 }
 
 /* Screen 2: Mock Quran */
@@ -3795,8 +4399,16 @@
   height: 200px;
   position: relative;
   background: #1a1a1a;
-  border-radius: 2px;
   overflow: hidden;
+}
+
+.polaroid-photo-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 45%, rgba(0, 0, 0, 0.15) 100%);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .polaroid-img {
@@ -3957,41 +4569,51 @@
   background: radial-gradient(circle, rgba(184, 151, 47, 0.1) 0%, rgba(184, 151, 47, 0.03) 45%, transparent 70%);
 }
 
-/* 2. Scroll-Driven Entrance Reveals */
+/* 2. Scroll-Driven Entrance Reveals (Safe fallback: never trap elements in opacity 0) */
 .landing-reveal-init {
-  opacity: 0;
-  transform: translateY(28px);
+  opacity: 1;
   transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
 }
 
 .landing-revealed {
   opacity: 1 !important;
-  transform: translateY(0) !important;
+  transform: none !important;
 }
 
 .landing-revealed-instant {
   opacity: 1 !important;
   transform: none !important;
-  transition: none !important;
 }
 
-/* 3. Interactive Pesantren Stamp */
+/* 3. Interactive Pesantren Stamp (Physical Wax Seal & Stamped Ink) */
 .tuku-interactive-stamp {
   cursor: pointer;
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  background: radial-gradient(circle at 35% 30%, #854d0e 0%, #3f2208 50%, #1a0f03 100%) !important;
+  border: 2px solid #ffd700 !important;
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.7),
+    inset 0 2px 4px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.8),
+    0 0 20px rgba(212, 175, 55, 0.3) !important;
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease !important;
   user-select: none;
 }
 
 .tuku-interactive-stamp:hover {
-  transform: scale(1.1) rotate(14deg);
-  box-shadow: 0 0 35px rgba(212, 175, 55, 0.5);
+  transform: scale(1.14) rotate(14deg) !important;
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.8),
+    inset 0 2px 5px rgba(255, 255, 255, 0.6),
+    0 0 35px rgba(212, 175, 55, 0.6) !important;
 }
 
 .tuku-interactive-stamp:active,
 .tuku-interactive-stamp.stamp-pulse-active {
-  transform: scale(0.92) rotate(-10deg);
-  box-shadow: 0 0 55px rgba(212, 175, 55, 0.85);
+  transform: scale(0.92) rotate(-8deg) !important;
+  box-shadow: 
+    0 4px 15px rgba(0, 0, 0, 0.9),
+    inset 0 4px 8px rgba(0, 0, 0, 0.9),
+    0 0 50px rgba(212, 175, 55, 0.9) !important;
 }
 
 .stamp-gold-spark {
@@ -4238,15 +4860,6 @@
 /* ==========================================================================
    LOW-SPEC & BUDGET DEVICE OPTIMIZATIONS (0 LAG GUARANTEED)
    ========================================================================== */
-html.low-perf-mode *,
-html.low-perf-mode *::before,
-html.low-perf-mode *::after {
-  /* Disable expensive continuous animations on low-spec */
-  animation-duration: 0.001s !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.15s !important;
-}
-
 html.low-perf-mode .celestial-canvas-wrap {
   display: none !important;
 }
@@ -4271,17 +4884,6 @@ html.low-perf-mode .perf-menu-dropdown {
 :root[data-theme="light"] html.low-perf-mode .wisdom-card,
 :root[data-theme="light"] html.low-perf-mode .perf-menu-dropdown {
   background: rgba(255, 255, 255, 0.98) !important;
-}
-
-html.low-perf-mode .landing-reveal-init {
-  opacity: 1 !important;
-  transform: none !important;
-  transition: none !important;
-}
-
-html.low-perf-mode .tuku-ticker-track {
-  animation: none !important;
-  overflow-x: auto;
 }
 
 

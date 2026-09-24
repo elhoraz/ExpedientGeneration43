@@ -428,6 +428,15 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <div className="bento-content">
                 <h3 className="bento-title">{t.ecosystem.b2_title}</h3>
                 <p className="bento-desc">{t.ecosystem.b2_desc}</p>
+                {/* Mini Realistic Card Graphic Preview */}
+                <div className="bento-mini-card-preview" title="Kartu Anggota Resmi 3D Sovereign">
+                  <div className="mini-card-chip-row">
+                    <div className="mini-card-chip"></div>
+                    <div className="mini-card-hologram">⚜️</div>
+                  </div>
+                  <div className="mini-card-digits">4325 •••• •••• 088</div>
+                  <div className="mini-card-holder">EXPEDIENT SOVEREIGN</div>
+                </div>
               </div>
               <div className="bento-action">
                 <Link href="/sovereign" className="bento-link">
