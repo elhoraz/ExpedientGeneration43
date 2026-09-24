@@ -3932,4 +3932,762 @@
   }
 }
 
+/* ==========================================================================
+   SCROLL INTERACTION & VISUAL MASTERY SUITE — EXPEDIENT 43
+   ========================================================================== */
+
+/* 1. Top Gold Heritage Scroll Progress Line */
+.landing-top-progress-line {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #d4af37 0%, #fff2b2 50%, #d4af37 100%);
+  transform-origin: 0 50%;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.7), 0 0 20px rgba(212, 175, 55, 0.4);
+  z-index: 99999;
+  pointer-events: none;
+  transition: transform 0.08s ease-out, opacity 0.3s ease;
+  will-change: transform;
+}
+
+:root[data-theme="light"] .landing-top-progress-line {
+  background: linear-gradient(90deg, #b8860b 0%, #d4af37 50%, #996515 100%);
+  box-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+/* 2. Scroll Reveal Transitions (GPU Accelerated) */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0.05s; }
+.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.15s; }
+.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.25s; }
+.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.35s; }
+.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 0.45s; }
+.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 0.55s; }
+.reveal-stagger.is-visible > *:nth-child(7) { transition-delay: 0.65s; }
+.reveal-stagger.is-visible > *:nth-child(8) { transition-delay: 0.75s; }
+
+.reveal-stagger.is-visible > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 3. Scrolly-Reading Manifesto (Illuminating Philosophy Text) */
+.scrolly-manifesto-container {
+  position: relative;
+  text-align: center;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+
+.scrolly-manifesto-text {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.25rem, 3.2vw, 1.85rem);
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.7;
+  letter-spacing: -0.2px;
+  margin: 0 auto 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.scrolly-word {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.26);
+  opacity: 0.7;
+  transition: color 0.4s ease, opacity 0.4s ease, text-shadow 0.4s ease;
+  will-change: color, opacity;
+}
+
+:root[data-theme="light"] .scrolly-word {
+  color: rgba(15, 23, 42, 0.22);
+  opacity: 0.7;
+}
+
+.scrolly-word.lit {
+  color: #ffffff;
+  opacity: 1;
+  text-shadow: 0 0 16px rgba(212, 175, 55, 0.55), 0 0 30px rgba(212, 175, 55, 0.25);
+}
+
+:root[data-theme="light"] .scrolly-word.lit {
+  color: #0f172a;
+  opacity: 1;
+  text-shadow: 0 0 14px rgba(184, 134, 11, 0.35);
+}
+
+.scrolly-source-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  color: #d4af37;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+/* 4. Stats Ribbon Glow on Animation Finish */
+.stats-glow-complete .tuku-stat-num {
+  text-shadow: 0 0 14px rgba(212, 175, 55, 0.65);
+  transition: text-shadow 0.6s ease;
+}
+
+/* 5. 3D Perspective & Subtle Interactive Depth for Phone Chassis */
+.phone-mockup-wrapper {
+  perspective: 1200px;
+}
+
+.phone-chassis {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.6s ease;
+  transform: rotateY(-5deg) rotateX(3deg);
+}
+
+.phone-mockup-wrapper:hover .phone-chassis {
+  transform: rotateY(0deg) rotateX(0deg) scale(1.02);
+  box-shadow: 0 35px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(212, 175, 55, 0.4);
+}
+
+/* 6. Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll,
+  .reveal-stagger > *,
+  .phone-chassis {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .scrolly-word {
+    color: inherit !important;
+    opacity: 1 !important;
+  }
+}
+
+/* ==========================================================================
+   UI / UX ELEVATION SUITE (DESKTOP & MOBILE MASTERY)
+   ========================================================================== */
+
+/* 1. Desktop Floating Nav Active State & Scrollspy Glow */
+.nav-link.active {
+  color: #d4af37 !important;
+}
+
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: #d4af37;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.8), 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+/* 2. Mobile Drawer Active Link Highlight & Dot Indicator */
+.drawer-nav-link.active {
+  color: #d4af37 !important;
+  background: rgba(212, 175, 55, 0.12) !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  font-weight: 700 !important;
+}
+
+.drawer-active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d4af37;
+  box-shadow: 0 0 8px #d4af37;
+  margin-left: auto;
+}
+
+/* 3. Wisdom Category Filter Pills (Desktop & Mobile Swipeable) */
+.wisdom-filter-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 auto 34px auto;
+  max-width: 900px;
+  padding: 4px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wisdom-filter-track::-webkit-scrollbar {
+  display: none;
+}
+
+.wisdom-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.wisdom-filter-btn:hover {
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(212, 175, 55, 0.3);
+  transform: translateY(-1px);
+}
+
+.wisdom-filter-btn:active {
+  transform: scale(0.96);
+}
+
+.wisdom-filter-btn.active {
+  color: #0d1410;
+  background: linear-gradient(135deg, #d4af37 0%, #f7e28d 100%);
+  border-color: #d4af37;
+  font-weight: 700;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.35);
+}
+
+:root[data-theme="light"] .wisdom-filter-btn {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #475569;
+}
+
+:root[data-theme="light"] .wisdom-filter-btn:hover {
+  background: rgba(212, 175, 55, 0.12);
+  color: #8c6d1f;
+}
+
+:root[data-theme="light"] .wisdom-filter-btn.active {
+  color: #ffffff;
+  background: linear-gradient(135deg, #996515 0%, #b8860b 100%);
+  border-color: #996515;
+}
+
+/* 4. Desktop Navigation Arrows for Polaroid Reel */
+.polaroid-wrapper-rel {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.polaroid-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(12, 18, 15, 0.85);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 15px rgba(212, 175, 55, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.polaroid-nav-btn:hover {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: #d4af37;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 12px 28px rgba(212, 175, 55, 0.4);
+}
+
+.polaroid-nav-btn:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.polaroid-nav-btn.prev {
+  left: -20px;
+}
+
+.polaroid-nav-btn.next {
+  right: -20px;
+}
+
+:root[data-theme="light"] .polaroid-nav-btn {
+  background: rgba(255, 255, 255, 0.9);
+  color: #8c6d1f;
+  border-color: rgba(184, 151, 47, 0.4);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.polaroid-mobile-hint {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  margin-top: 14px;
+  text-transform: uppercase;
+}
+
+/* 5. Hero Button Ergonomics & Micro-Interactions */
+.btn-tuku-primary {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.btn-tuku-primary::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: rotate(25deg);
+  transition: left 0.75s ease;
+}
+
+.btn-tuku-primary:hover::after {
+  left: 120%;
+}
+
+.btn-tuku-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.45);
+}
+
+.btn-tuku-primary:active,
+.btn-tuku-secondary:active {
+  transform: scale(0.97);
+}
+
+.btn-tuku-secondary {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-tuku-secondary:hover {
+  border-color: #d4af37;
+  background: rgba(212, 175, 55, 0.12);
+  transform: translateY(-2px);
+}
+
+/* 6. Mobile Refinements (< 768px) */
+@media (max-width: 768px) {
+  /* Hide desktop polaroid nav buttons on touch devices */
+  .polaroid-nav-btn {
+    display: none !important;
+  }
+
+  .polaroid-mobile-hint {
+    display: flex;
+  }
+
+  /* Compact 2x2 Stats Ribbon on Mobile */
+  .tuku-stats-ribbon {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px 12px !important;
+    padding: 12px 14px !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    max-width: 380px !important;
+    background: rgba(12, 18, 15, 0.65) !important;
+    border: 1px solid rgba(212, 175, 55, 0.2) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+  }
+
+  :root[data-theme="light"] .tuku-stats-ribbon {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-color: rgba(184, 151, 47, 0.25) !important;
+  }
+
+  .tuku-stat-divider {
+    display: none !important;
+  }
+
+  .tuku-stat-item {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    padding: 8px 6px !important;
+    border-radius: 10px !important;
+    background: rgba(212, 175, 55, 0.05) !important;
+    gap: 2px !important;
+  }
+
+  .tuku-stat-num {
+    font-size: 1.2rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .tuku-stat-lbl {
+    font-size: 0.64rem !important;
+    letter-spacing: 0.5px !important;
+    opacity: 0.85 !important;
+  }
+
+  /* App Phone Mockup Mobile Rescaling */
+  .app-mockup-col {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+  }
+
+  .phone-mockup-wrapper {
+    transform: scale(0.92);
+    transform-origin: top center;
+    margin-bottom: -40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .phone-mockup-wrapper {
+    transform: scale(0.85);
+    margin-bottom: -80px;
+  }
+}
+
+/* ==========================================================================
+   AESTHETIC MASTERY SUITE — EXPEDIENT 43
+   Spotlight, Arabesque Sacred Geometry, Live Radar Sonar, & Interactive Audio
+   ========================================================================== */
+
+/* 1. Global Ambient Spotlight */
+.global-ambient-spotlight {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(
+    650px circle at var(--spot-x, -1000px) var(--spot-y, -1000px),
+    rgba(212, 175, 55, 0.065),
+    transparent 80%
+  );
+  transition: opacity 0.4s ease;
+  will-change: background;
+}
+
+:root[data-theme="light"] .global-ambient-spotlight {
+  background: radial-gradient(
+    600px circle at var(--spot-x, -1000px) var(--spot-y, -1000px),
+    rgba(184, 134, 11, 0.045),
+    transparent 80%
+  );
+}
+
+/* 2. Rotating Arabesque Khatam Sulayman Watermark */
+.arabesque-watermark-layer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 900px;
+  height: 900px;
+  pointer-events: none;
+  z-index: 0;
+  color: #d4af37;
+  opacity: 0.038;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:root[data-theme="light"] .arabesque-watermark-layer {
+  color: #8c6d1f;
+  opacity: 0.028;
+}
+
+.arabesque-watermark-svg {
+  width: 100%;
+  height: 100%;
+  animation: rotateArabesque 120s linear infinite;
+}
+
+@keyframes rotateArabesque {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 3. Quick Search Trigger Button (Navbar Ctrl+K) */
+.nav-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-search-trigger:hover {
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.12);
+  border-color: #d4af37;
+  transform: translateY(-1px);
+}
+
+.nav-search-trigger:active {
+  transform: scale(0.95);
+}
+
+.search-shortcut-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+:root[data-theme="light"] .search-shortcut-pill {
+  color: #8c6d1f;
+  border-color: rgba(140, 109, 31, 0.3);
+}
+
+/* 4. Enhanced Mahfuzhat Widget Interactive Actions */
+.wisdom-arabic-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.btn-listen-arabic {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #d4af37;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.btn-listen-arabic:hover {
+  background: #d4af37;
+  color: #0b110e;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.5);
+}
+
+.btn-listen-arabic.speaking {
+  background: #d4af37;
+  color: #0b110e;
+  animation: speakingPulse 1s ease-in-out infinite;
+}
+
+@keyframes speakingPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(212, 175, 55, 0.5); }
+  50% { transform: scale(1.15); box-shadow: 0 0 18px rgba(212, 175, 55, 0.8); }
+}
+
+.btn-wisdom-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.btn-wisdom-action:hover {
+  color: #d4af37;
+  border-color: rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.08);
+  transform: translateY(-1px);
+}
+
+.btn-wisdom-action.copied {
+  color: #22c55e !important;
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+}
+
+.btn-wisdom-wa:hover {
+  color: #25d366 !important;
+  border-color: #25d366 !important;
+  background: rgba(37, 211, 102, 0.1) !important;
+}
+
+/* 5. Live Sonar Radar Graphic for Bento 1 */
+.bento-radar-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-sonar-viewport {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 260px;
+  height: 260px;
+  pointer-events: none;
+  border-radius: 50%;
+  opacity: 0.65;
+  mask-image: radial-gradient(circle, black 45%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle, black 45%, transparent 70%);
+}
+
+.sonar-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed rgba(212, 175, 55, 0.25);
+}
+
+.sonar-ring.ring-1 { width: 80px; height: 80px; }
+.sonar-ring.ring-2 { width: 150px; height: 150px; }
+.sonar-ring.ring-3 { width: 220px; height: 220px; border-style: solid; border-color: rgba(212, 175, 55, 0.12); }
+
+.sonar-sweep-beam {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  transform-origin: top left;
+  background: conic-gradient(from 0deg at 0% 0%, rgba(212, 175, 55, 0.35) 0deg, transparent 60deg);
+  animation: sweepRadar 5s linear infinite;
+}
+
+@keyframes sweepRadar {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.sonar-blip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sonar-blip.blip-slahung { top: 48%; left: 46%; }
+.sonar-blip.blip-kairo { top: 28%; left: 68%; }
+.sonar-blip.blip-jakarta { top: 68%; left: 35%; }
+
+.blip-ping {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d4af37;
+  box-shadow: 0 0 10px #d4af37;
+  animation: pingGlow 2s ease-in-out infinite;
+}
+
+@keyframes pingGlow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.6; }
+}
+
+.blip-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #d4af37;
+}
+
+/* 6. Holographic Foil Sheen on Bento 2 KTA */
+.bento-kta-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.bento-foil-sheen {
+  position: absolute;
+  inset: -100%;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(212, 175, 55, 0.12) 40%,
+    rgba(255, 240, 168, 0.25) 50%,
+    rgba(212, 175, 55, 0.12) 60%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  pointer-events: none;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-kta-card:hover .bento-foil-sheen {
+  transform: translateX(100%);
+}
+
+/* 7. Live Waqf Pulse Badge */
+.bento-live-pulse-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+
+
 

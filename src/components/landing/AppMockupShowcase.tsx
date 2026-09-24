@@ -13,7 +13,7 @@ export default function AppMockupShowcase() {
 
   return (
     <section className="app-showcase-section" id="aplikasi">
-      <div className="section-header">
+      <div className="section-header reveal-on-scroll">
         <div className="landing-prestige-badge" style={{ marginBottom: "14px" }}>
           <i className="fa-brands fa-android"></i>
           <span>{t.app_showcase.badge}</span>
@@ -26,7 +26,7 @@ export default function AppMockupShowcase() {
         </p>
       </div>
 
-      <div className="app-showcase-container">
+      <div className="app-showcase-container reveal-on-scroll">
         {/* Left / Info Column */}
         <div className="app-info-col">
           <div className="app-pill-feature">

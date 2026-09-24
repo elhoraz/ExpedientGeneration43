@@ -15,8 +15,16 @@ const WISDOM_METAS: Record<string, { avatarBg: string; initials: string }> = {
 };
 
 export default function WisdomAsatidz() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [activeTab, setActiveTab] = useState<string>("all");
+
+  const categories = [
+    { id: "all", label: locale === "ar" ? "جميع الكلمات" : locale === "en" ? "All Wisdom" : "Semua Nasihat", icon: "fa-solid fa-layer-group" },
+    { id: "pendiri", label: locale === "ar" ? "المؤسس" : locale === "en" ? "Founders" : "Pendiri", icon: "fa-solid fa-monument" },
+    { id: "pimpinan", label: locale === "ar" ? "القيادة" : locale === "en" ? "Leadership" : "Pimpinan", icon: "fa-solid fa-crown" },
+    { id: "kmi", label: locale === "ar" ? "المعهد العلمي" : locale === "en" ? "Academics" : "KMI", icon: "fa-solid fa-graduation-cap" },
+    { id: "pengasuhan", label: locale === "ar" ? "رعاية الطلاب" : locale === "en" ? "Mentorship" : "Pengasuhan", icon: "fa-solid fa-hands-holding" },
+  ];
 
   const list = (t.wisdom_items && t.wisdom_items.length > 0 ? t.wisdom_items : []).map(item => ({
     ...item,
@@ -28,7 +36,7 @@ export default function WisdomAsatidz() {
 
   return (
     <section className="wisdom-section" id="nasehat">
-      <div className="section-header">
+      <div className="section-header reveal-on-scroll">
         <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
           <span className="badge-bullet">📜</span>
           <span>{t.wisdom_section.badge}</span>
@@ -41,7 +49,25 @@ export default function WisdomAsatidz() {
         </p>
       </div>
 
-      <div className="wisdom-grid">
+      {/* Interactive Category Filter Pills (Desktop & Mobile Swipeable) */}
+      <div className="wisdom-filter-track reveal-on-scroll">
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            className={`wisdom-filter-btn ${activeTab === cat.id ? "active" : ""}`}
+            onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(8);
+              setActiveTab(cat.id);
+            }}
+          >
+            <i className={cat.icon}></i>
+            <span>{cat.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="wisdom-grid reveal-stagger">
         {filtered.map((item) => (
           <TiltCard key={item.id} className="wisdom-card">
             <div className="wisdom-card-glow"></div>

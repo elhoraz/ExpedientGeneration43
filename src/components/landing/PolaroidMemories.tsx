@@ -28,6 +28,7 @@ export default function PolaroidMemories() {
   const { t, locale } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
 
   const list = (t.memories_snaps && t.memories_snaps.length > 0 ? t.memories_snaps : []).map(snap => ({
     ...snap,
@@ -35,6 +36,16 @@ export default function PolaroidMemories() {
     rotation: MEMORY_ASSETS[snap.id]?.rotation || "0deg",
     alt: snap.caption,
   }));
+
+  const scrollReel = (direction: "left" | "right") => {
+    if (!trackRef.current) return;
+    if (navigator.vibrate) navigator.vibrate(10);
+    const scrollAmount = 340;
+    trackRef.current.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
@@ -52,7 +63,7 @@ export default function PolaroidMemories() {
 
   return (
     <section className="polaroid-section" id="kenangan">
-      <div className="section-header">
+      <div className="section-header reveal-on-scroll">
         <div className="tuku-heritage-badge" style={{ marginBottom: "12px" }}>
           <span className="badge-bullet">🎞️</span>
           <span>{t.memories_section.badge}</span>
@@ -96,38 +107,64 @@ export default function PolaroidMemories() {
         </div>
       </div>
 
-      {/* Swipeable Polaroid Cards Track */}
-      <div className="polaroid-scroll-container">
-        <div className="polaroid-track">
-          {list.map((item, idx) => (
-            <div
-              key={item.id}
-              className="polaroid-card"
-              style={{ "--rotate-deg": item.rotation } as React.CSSProperties}
-            >
-              {idx % 2 === 0 ? (
-                <div className="polaroid-tape" title={locale === "ar" ? "شريط الذكريات" : locale === "en" ? "Memory Tape" : "Selotip Kenangan Santri"}></div>
-              ) : (
-                <div className="polaroid-pin" title={locale === "ar" ? "دبوس ذهبي" : locale === "en" ? "Golden Pin" : "Pin Peniti Emas"}></div>
-              )}
-              <div className="polaroid-tag">{item.tag}</div>
-              <div className="polaroid-photo-frame">
-                <Image
-                  src={item.imgSrc}
-                  alt={item.alt}
-                  width={340}
-                  height={240}
-                  className="polaroid-img"
-                  loading="lazy"
-                />
+      {/* Swipeable Polaroid Cards Track with Desktop Navigation */}
+      <div className="polaroid-wrapper-rel reveal-on-scroll">
+        <button
+          type="button"
+          className="polaroid-nav-btn prev"
+          onClick={() => scrollReel("left")}
+          aria-label="Foto Sebelumnya"
+        >
+          <i className="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <div className="polaroid-scroll-container" ref={trackRef}>
+          <div className="polaroid-track">
+            {list.map((item, idx) => (
+              <div
+                key={item.id}
+                className="polaroid-card"
+                style={{ "--rotate-deg": item.rotation } as React.CSSProperties}
+              >
+                {idx % 2 === 0 ? (
+                  <div className="polaroid-tape" title={locale === "ar" ? "شريط الذكريات" : locale === "en" ? "Memory Tape" : "Selotip Kenangan Santri"}></div>
+                ) : (
+                  <div className="polaroid-pin" title={locale === "ar" ? "دبوس ذهبي" : locale === "en" ? "Golden Pin" : "Pin Peniti Emas"}></div>
+                )}
+                <div className="polaroid-tag">{item.tag}</div>
+                <div className="polaroid-photo-frame">
+                  <Image
+                    src={item.imgSrc}
+                    alt={item.alt}
+                    width={340}
+                    height={240}
+                    className="polaroid-img"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="polaroid-caption-area">
+                  <h3 className="polaroid-caption-title">{item.caption}</h3>
+                  <p className="polaroid-caption-sub">{item.sub}</p>
+                </div>
               </div>
-              <div className="polaroid-caption-area">
-                <h3 className="polaroid-caption-title">{item.caption}</h3>
-                <p className="polaroid-caption-sub">{item.sub}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+
+        <button
+          type="button"
+          className="polaroid-nav-btn next"
+          onClick={() => scrollReel("right")}
+          aria-label="Foto Berikutnya"
+        >
+          <i className="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+      {/* Mobile Swipe Guidance Hint */}
+      <div className="polaroid-mobile-hint">
+        <i className="fa-solid fa-arrows-left-right"></i>
+        <span>{locale === "ar" ? "اسحب لمشاهدة الذكريات" : locale === "en" ? "Swipe horizontally to explore" : "Geser layar untuk menelusuri kenangan"}</span>
       </div>
 
       {/* Footer Callout to Full Digital Museum */}

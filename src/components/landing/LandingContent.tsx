@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import "@/app/landing.css";
@@ -17,6 +17,11 @@ import MobileDrawer from "@/components/landing/MobileDrawer";
 import ScrollToTopIndicator from "@/components/landing/ScrollToTopIndicator";
 import DailyWisdomWidget from "@/components/landing/DailyWisdomWidget";
 import PolaroidMemories from "@/components/landing/PolaroidMemories";
+import AnimatedStatsRibbon from "@/components/landing/AnimatedStatsRibbon";
+import ScrollyManifesto from "@/components/landing/ScrollyManifesto";
+import ScrollRevealInit from "@/components/landing/ScrollRevealInit";
+import GlobalMouseSpotlight from "@/components/landing/GlobalMouseSpotlight";
+import ArabesqueWatermark from "@/components/landing/ArabesqueWatermark";
 
 interface LandingContentProps {
   totalAlumni: number;
@@ -33,12 +38,53 @@ function getCms(contents: any[] | undefined, key: string, defaultValue: string) 
 export default function LandingContent({ totalAlumni, cms = [] }: LandingContentProps) {
   const { t, locale, isRTL } = useLanguage();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("beranda");
   const currentYear = new Date().getFullYear();
+
+  // Real-time Scrollspy for Desktop Navigation and Mobile Drawer
+  useEffect(() => {
+    const sectionIds = ["beranda", "sejarah", "nasehat", "almamater", "aplikasi", "ekosistem"];
+    const handleScrollSpy = () => {
+      const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
+      const scrollPos = (wrapper ? wrapper.scrollTop : window.scrollY) + 160;
+
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const id = sectionIds[i];
+        const el = document.getElementById(id);
+        if (el) {
+          const top = wrapper ? el.offsetTop : el.getBoundingClientRect().top + window.scrollY;
+          if (scrollPos >= top) {
+            setActiveSection(id);
+            break;
+          }
+        }
+      }
+    };
+
+    const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
+    if (wrapper) wrapper.addEventListener("scroll", handleScrollSpy, { passive: true });
+    window.addEventListener("scroll", handleScrollSpy, { passive: true, capture: true });
+    handleScrollSpy();
+
+    return () => {
+      if (wrapper) wrapper.removeEventListener("scroll", handleScrollSpy);
+      window.removeEventListener("scroll", handleScrollSpy, { capture: true });
+    };
+  }, []);
 
   const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(t.cta.share_wa_text)}`;
 
   return (
     <>
+      {/* Dynamic Ambient Mouse Cursor Glow for Desktop */}
+      <GlobalMouseSpotlight />
+
+      {/* Majestic Rotating 8-Point Islamic Star Watermark */}
+      <ArabesqueWatermark />
+
+      {/* Scroll Reveal Observer for Dynamic Page Entrances */}
+      <ScrollRevealInit />
+
       {/* ====== FLOATING ISLAND NAVIGATION BAR ====== */}
       <header className="landing-nav-island">
         <Link href="/" className="nav-brand">
@@ -58,19 +104,44 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </Link>
 
-        {/* Desktop Nav Links */}
+        {/* Desktop Nav Links with Active Indicator */}
         <nav className="nav-links">
-          <a href="#sejarah" className="nav-link">{t.nav.sejarah}</a>
-          <a href="#nasehat" className="nav-link">{t.nav.nasehat}</a>
-          <a href="#almamater" className="nav-link">{t.nav.almamater}</a>
-          <a href="#aplikasi" className="nav-link">{t.nav.apk}</a>
-          <a href="#ekosistem" className="nav-link">{t.nav.ecosystem}</a>
+          <a href="#sejarah" className={`nav-link ${activeSection === "sejarah" ? "active" : ""}`}>
+            {t.nav.sejarah}
+          </a>
+          <a href="#nasehat" className={`nav-link ${activeSection === "nasehat" ? "active" : ""}`}>
+            {t.nav.nasehat}
+          </a>
+          <a href="#almamater" className={`nav-link ${activeSection === "almamater" ? "active" : ""}`}>
+            {t.nav.almamater}
+          </a>
+          <a href="#aplikasi" className={`nav-link ${activeSection === "aplikasi" ? "active" : ""}`}>
+            {t.nav.apk}
+          </a>
+          <a href="#ekosistem" className={`nav-link ${activeSection === "ekosistem" ? "active" : ""}`}>
+            {t.nav.ecosystem}
+          </a>
           <Link href="/radar" className="nav-link nav-link-highlight">
             <i className="fa-solid fa-map-location-dot"></i> {t.nav.radar}
           </Link>
         </nav>
 
         <div className="nav-actions">
+          {/* Quick Search Shortcut Trigger (Ctrl+K) */}
+          <button
+            type="button"
+            className="nav-search-trigger"
+            onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(8);
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+            }}
+            title="Pencarian Instan (Ctrl+K)"
+            aria-label="Cari Cepat"
+          >
+            <i className="fa-solid fa-magnifying-glass"></i>
+            <span className="search-shortcut-pill">⌘K</span>
+          </button>
+
           <div className="landing-desktop-lang">
             <LanguageSwitcher variant="pill" />
           </div>
@@ -88,7 +159,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           <button
             type="button"
             className="nav-hamburger-btn"
-            onClick={() => setIsDrawerOpen(true)}
+            onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(8);
+              setIsDrawerOpen(true);
+            }}
             aria-label={t.nav.open_nav}
           >
             <i className="fa-solid fa-bars-staggered"></i>
@@ -96,8 +170,12 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </div>
       </header>
 
-      {/* Mobile Drawer Sheet */}
-      <MobileDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+      {/* Mobile Drawer Sheet with Active Section Sync */}
+      <MobileDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        activeSection={activeSection}
+      />
 
       <main className="landing-wrapper">
         {/* ====== HERO SECTION ====== */}
@@ -178,28 +256,15 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             </Link>
           </div>
 
-          {/* Compact Single-Row Stats Ribbon (Bebas Sesak di HP) */}
-          <div className="tuku-stats-ribbon">
-            <div className="tuku-stat-item">
-              <span className="tuku-stat-num" id="counterAlumni">{totalAlumni || 240}</span>
-              <span className="tuku-stat-lbl">{t.hero.stat_alumni_label}</span>
-            </div>
-            <div className="tuku-stat-divider">/</div>
-            <div className="tuku-stat-item">
-              <span className="tuku-stat-num">{t.hero.stat_grad_year}</span>
-              <span className="tuku-stat-lbl">{t.hero.stat_grad_label}</span>
-            </div>
-            <div className="tuku-stat-divider">/</div>
-            <div className="tuku-stat-item">
-              <span className="tuku-stat-num">43</span>
-              <span className="tuku-stat-lbl">{locale === "ar" ? "دفعة" : locale === "en" ? "Generation" : "Generasi"}</span>
-            </div>
-            <div className="tuku-stat-divider">/</div>
-            <div className="tuku-stat-item">
-              <span className="tuku-stat-num">100%</span>
-              <span className="tuku-stat-lbl">{locale === "ar" ? "أخوة" : locale === "en" ? "Brotherhood" : "Ukhuwah"}</span>
-            </div>
-          </div>
+          {/* Interactive Animated Stats Ribbon (Odometer ticking on scroll) */}
+          <AnimatedStatsRibbon
+            totalAlumni={totalAlumni}
+            alumniLabel={t.hero.stat_alumni_label}
+            gradYear={t.hero.stat_grad_year}
+            gradLabel={t.hero.stat_grad_label}
+            generationLabel={locale === "ar" ? "دفعة" : locale === "en" ? "Generation" : "Generasi"}
+            ukhuwahLabel={locale === "ar" ? "أخوة" : locale === "en" ? "Brotherhood" : "Ukhuwah"}
+          />
 
           <div className="scroll-hint">
             <span>{t.hero.scroll_hint}</span>
@@ -298,7 +363,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
         {/* ====== SECTION 3: ALMAMATER HERITAGE (BUMI SLAHUNG) ====== */}
         <section className="heritage-section" id="almamater">
-          <div className="section-header">
+          <div className="section-header reveal-on-scroll">
             <p className="section-eyebrow">{t.almamater.eyebrow}</p>
             <h2 className="section-title">
               {t.almamater.title}
@@ -308,7 +373,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             </p>
           </div>
 
-          <div className="heritage-pillars-grid">
+          <div className="heritage-pillars-grid reveal-stagger">
             <TiltCard className="pillar-card">
               <div className="pillar-icon-wrap">
                 <i className="fa-solid fa-globe"></i>
@@ -338,7 +403,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
 
           {/* Video Dokumenter Profil & Suasana Almamater */}
-          <div className="heritage-video-container">
+          <div className="heritage-video-container reveal-on-scroll">
             <HeritageVideoPlayer />
           </div>
         </section>
@@ -348,23 +413,21 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
         {/* ====== SECTION 5: THE PHILOSOPHY OF EXPEDIENT (IDENTITAS 43) ====== */}
         <section className="philosophy-section" id="filosofi">
-          <div className="section-header">
+          <div className="section-header reveal-on-scroll">
             <p className="section-eyebrow">{t.philosophy.eyebrow}</p>
             <h2 className="section-title">{t.philosophy.title}</h2>
           </div>
 
-          {/* Grand Epigraph Banner */}
-          <div className="epigraph-card">
-            <div className="epigraph-quote-mark">&ldquo;</div>
-            <blockquote className="epigraph-text">
-              {t.philosophy.epigraph_body}
-            </blockquote>
-            <div className="epigraph-author">
-              {t.philosophy.epigraph_author}
-            </div>
+          {/* Grand Epigraph Banner with Scrolly-Reading Text Illumination */}
+          <div className="epigraph-card reveal-on-scroll">
+            <ScrollyManifesto
+              text={t.philosophy.epigraph_body}
+              sourceText={t.philosophy.epigraph_author}
+              isRTL={isRTL}
+            />
           </div>
 
-          <div className="philosophy-cards-row">
+          <div className="philosophy-cards-row reveal-stagger">
             <div className="philo-card">
               <div className="philo-icon">
                 <i className="fa-solid fa-bolt-lightning"></i>
@@ -385,15 +448,35 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
         {/* ====== SECTION 6: BENTO GRID EKOSISTEM DIGITAL ====== */}
         <section className="bento-section" id="ekosistem">
-          <div className="section-header">
+          <div className="section-header reveal-on-scroll">
             <p className="section-eyebrow">{t.ecosystem.eyebrow}</p>
             <h2 className="section-title">{t.ecosystem.title}</h2>
             <p className="section-lead">{t.ecosystem.lead}</p>
           </div>
 
-          <div className="bento-grid">
-            {/* Bento 1: Radar Alumni (Wide Card) */}
-            <div className="bento-card bento-wide">
+          <div className="bento-grid reveal-stagger">
+            {/* Bento 1: Radar Alumni (Wide Card with Live Sonar Radar Graphic) */}
+            <div className="bento-card bento-wide bento-radar-card">
+              {/* Dynamic Radar Sonar Viewport */}
+              <div className="bento-sonar-viewport" aria-hidden="true">
+                <div className="sonar-ring ring-1"></div>
+                <div className="sonar-ring ring-2"></div>
+                <div className="sonar-ring ring-3"></div>
+                <div className="sonar-sweep-beam"></div>
+                <div className="sonar-blip blip-slahung" title="Bumi Slahung">
+                  <span className="blip-ping"></span>
+                  <span className="blip-label">SLAHUNG</span>
+                </div>
+                <div className="sonar-blip blip-kairo" title="Kairo, Mesir">
+                  <span className="blip-ping"></span>
+                  <span className="blip-label">KAIRO</span>
+                </div>
+                <div className="sonar-blip blip-jakarta" title="Jakarta">
+                  <span className="blip-ping"></span>
+                  <span className="blip-label">JKT</span>
+                </div>
+              </div>
+
               <div className="bento-badge">
                 <span className="radar-live-dot"></span>
                 <span>{t.ecosystem.b1_badge}</span>
@@ -402,8 +485,8 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 <h3 className="bento-title">{t.ecosystem.b1_title}</h3>
                 <p className="bento-desc">{t.ecosystem.b1_desc}</p>
                 <div className="bento-meta-strip">
-                  <span><i className="fa-solid fa-satellite"></i> {t.ecosystem.b1_meta1}</span>
-                  <span><i className="fa-solid fa-location-crosshairs"></i> {t.ecosystem.b1_meta2}</span>
+                  <span><i className="fa-solid fa-satellite"></i> 7.9892° S, 111.4392° E</span>
+                  <span><i className="fa-solid fa-earth-asia"></i> 240+ Alumni Global</span>
                 </div>
               </div>
               <div className="bento-action">
@@ -414,7 +497,8 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             </div>
 
             {/* Bento 2: Sovereign 3D KTA */}
-            <TiltCard className="bento-card">
+            <TiltCard className="bento-card bento-kta-card">
+              <div className="bento-foil-sheen" aria-hidden="true"></div>
               <div className="bento-badge">
                 <i className="fa-solid fa-cube"></i>
                 <span>{t.ecosystem.b2_badge}</span>
@@ -448,10 +532,11 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             </TiltCard>
 
             {/* Bento 4: Baitul Maal & Sinergi */}
-            <TiltCard className="bento-card">
+            <TiltCard className="bento-card bento-amal-card">
               <div className="bento-badge">
                 <i className="fa-solid fa-hand-holding-dollar"></i>
                 <span>{t.ecosystem.b4_badge}</span>
+                <span className="bento-live-pulse-badge">Aktif</span>
               </div>
               <div className="bento-content">
                 <h3 className="bento-title">{t.ecosystem.b4_title}</h3>
@@ -485,7 +570,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
         {/* ====== SECTION 7: CALL TO ACTION ====== */}
         <section className="cta-banner-section">
-          <div className="cta-banner-box">
+          <div className="cta-banner-box reveal-on-scroll">
             <div className="cta-glow-circle"></div>
             <p className="cta-banner-eyebrow">{t.cta.eyebrow}</p>
             <h2 className="cta-banner-title">

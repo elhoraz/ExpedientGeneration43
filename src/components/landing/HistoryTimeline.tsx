@@ -36,7 +36,7 @@ export default function HistoryTimeline() {
 
   return (
     <section className="history-section" id="sejarah">
-      <div className="section-header">
+      <div className="section-header reveal-on-scroll">
         <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
           <span className="badge-bullet">🏛️</span>
           <span>{t.history_section.badge}</span>
@@ -50,13 +50,16 @@ export default function HistoryTimeline() {
       </div>
 
       {/* Interactive Year Selector Tabs */}
-      <div className="history-tabs-track">
+      <div className="history-tabs-track reveal-on-scroll">
         {eras.map((era, idx) => (
           <button
             key={era.year}
             type="button"
             className={`history-tab-item ${activeIdx === idx ? "active" : ""}`}
-            onClick={() => setActiveIdx(idx)}
+            onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(8);
+              setActiveIdx(idx);
+            }}
           >
             <span className="tab-year-pill">{era.year}</span>
             <span className="tab-title-text">{era.badge.split("&")[0]}</span>
@@ -66,8 +69,8 @@ export default function HistoryTimeline() {
       </div>
 
       {/* Main Active Era Spotlight Card */}
-      <div className="history-spotlight-wrapper">
-        <div className="history-spotlight-card">
+      <div className="history-spotlight-wrapper reveal-on-scroll">
+        <div className="history-spotlight-card" key={active.year}>
           <div className="history-spotlight-header">
             <div className="history-badge-row">
               <span className="history-badge-gold">

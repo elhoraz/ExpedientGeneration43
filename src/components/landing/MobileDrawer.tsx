@@ -10,22 +10,32 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 interface MobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  activeSection?: string;
 }
 
-export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
+export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda" }: MobileDrawerProps) {
   const { t } = useLanguage();
 
-  // Lock body scroll when drawer is open
+  // Lock body and landing-wrapper scroll when drawer is open
   useEffect(() => {
+    const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      if (wrapper) wrapper.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      if (wrapper) wrapper.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
+      if (wrapper) wrapper.style.overflow = "";
     };
   }, [isOpen]);
+
+  const handleLinkClick = () => {
+    if (navigator.vibrate) navigator.vibrate(8);
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -51,7 +61,10 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           <button
             type="button"
             className="drawer-close-btn"
-            onClick={onClose}
+            onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(8);
+              onClose();
+            }}
             aria-label={t.drawer.close_aria}
           >
             <i className="fa-solid fa-xmark"></i>
@@ -70,29 +83,59 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           <div className="drawer-nav-section">
             <span className="drawer-section-label">{t.drawer.section_landing}</span>
             <div className="drawer-links-list">
-              <a href="#beranda" className="drawer-nav-link" onClick={onClose}>
+              <a
+                href="#beranda"
+                className={`drawer-nav-link ${activeSection === "beranda" ? "active" : ""}`}
+                onClick={handleLinkClick}
+              >
                 <i className="fa-solid fa-house"></i>
                 <span>{t.drawer.nav_home}</span>
+                {activeSection === "beranda" && <span className="drawer-active-dot" />}
               </a>
-              <a href="#sejarah" className="drawer-nav-link" onClick={onClose}>
+              <a
+                href="#sejarah"
+                className={`drawer-nav-link ${activeSection === "sejarah" ? "active" : ""}`}
+                onClick={handleLinkClick}
+              >
                 <i className="fa-solid fa-landmark"></i>
                 <span>{t.drawer.nav_sejarah}</span>
+                {activeSection === "sejarah" && <span className="drawer-active-dot" />}
               </a>
-              <a href="#nasehat" className="drawer-nav-link" onClick={onClose}>
+              <a
+                href="#nasehat"
+                className={`drawer-nav-link ${activeSection === "nasehat" ? "active" : ""}`}
+                onClick={handleLinkClick}
+              >
                 <i className="fa-solid fa-feather-pointed"></i>
                 <span>{t.drawer.nav_nasehat}</span>
+                {activeSection === "nasehat" && <span className="drawer-active-dot" />}
               </a>
-              <a href="#almamater" className="drawer-nav-link" onClick={onClose}>
+              <a
+                href="#almamater"
+                className={`drawer-nav-link ${activeSection === "almamater" ? "active" : ""}`}
+                onClick={handleLinkClick}
+              >
                 <i className="fa-solid fa-mosque"></i>
                 <span>{t.drawer.nav_almamater}</span>
+                {activeSection === "almamater" && <span className="drawer-active-dot" />}
               </a>
-              <a href="#aplikasi" className="drawer-nav-link" onClick={onClose}>
+              <a
+                href="#aplikasi"
+                className={`drawer-nav-link ${activeSection === "aplikasi" ? "active" : ""}`}
+                onClick={handleLinkClick}
+              >
                 <i className="fa-brands fa-android"></i>
                 <span>{t.drawer.nav_apk}</span>
+                {activeSection === "aplikasi" && <span className="drawer-active-dot" />}
               </a>
-              <a href="#ekosistem" className="drawer-nav-link" onClick={onClose}>
+              <a
+                href="#ekosistem"
+                className={`drawer-nav-link ${activeSection === "ekosistem" ? "active" : ""}`}
+                onClick={handleLinkClick}
+              >
                 <i className="fa-solid fa-cubes"></i>
                 <span>{t.drawer.nav_ecosystem}</span>
+                {activeSection === "ekosistem" && <span className="drawer-active-dot" />}
               </a>
             </div>
           </div>
