@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendWhatsAppMessage, sendWhatsAppMessageWithDetail } from "@/lib/whatsapp";
 
 const jsonResponse = (
   status: "success" | "error",
@@ -217,21 +217,21 @@ Buka kartu ucapan spesial angkatan untukmu:
 
 Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
 
-      const isSuccess = await sendWhatsAppMessage(celebrant.no_whatsapp, message);
+      const sendRes = await sendWhatsAppMessageWithDetail(celebrant.no_whatsapp, message);
 
       await adminSupabase.from("whatsapp_queue").insert([{
         no_whatsapp: celebrant.no_whatsapp,
         message,
-        status: isSuccess ? "sent" : "failed",
-        error_message: isSuccess ? null : "Gagal terkirim via provider WhatsApp",
+        status: sendRes.success ? "sent" : "failed",
+        error_message: sendRes.success ? null : (sendRes.reason || "Gagal terkirim via provider WhatsApp"),
       }]);
 
-      if (isSuccess) {
+      if (sendRes.success) {
         sent++;
         details.push({ name, phone: celebrant.no_whatsapp, status: "sent" });
       } else {
         failed++;
-        details.push({ name, phone: celebrant.no_whatsapp, status: "failed" });
+        details.push({ name, phone: celebrant.no_whatsapp, status: "failed", reason: sendRes.reason });
       }
     }
 

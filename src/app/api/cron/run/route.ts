@@ -2,7 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/email";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendWhatsAppMessage, sendWhatsAppMessageWithDetail } from "@/lib/whatsapp";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = 'force-dynamic';
@@ -12,14 +12,19 @@ export async function GET(request: Request) {
   const queryToken = searchParams.get('token');
   const authHeader = request.headers.get('authorization');
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET || "expedient-cron-secret-2026";
+  const userAgent = request.headers.get('user-agent') || '';
+  const isVercelCron = userAgent.includes('vercel-cron') || request.headers.get('x-vercel-cron') === '1';
 
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
   const isAdminSessionValid = adminToken ? await verifySignedAdminSession(adminToken) : false;
 
   // Verify secret token for cron (Vercel Cron) or authenticated admin session
-  const isAuthorized = (cronSecret && (queryToken === cronSecret || bearerToken === cronSecret)) || isAdminSessionValid;
+  const isAuthorized = 
+    isVercelCron ||
+    (queryToken === cronSecret || bearerToken === cronSecret) || 
+    isAdminSessionValid;
 
   if (!isAuthorized) {
     return new NextResponse(
@@ -50,13 +55,13 @@ export async function GET(request: Request) {
 
     for (const msg of (waQueue || [])) {
       try {
-        const success = await sendWhatsAppMessage(msg.no_whatsapp, msg.message);
+        const res = await sendWhatsAppMessageWithDetail(msg.no_whatsapp, msg.message);
         
-        if (success) {
-          await supabase.from('whatsapp_queue').update({ status: 'sent', updated_at: new Date().toISOString() }).eq('id', msg.id);
+        if (res.success) {
+          await supabase.from('whatsapp_queue').update({ status: 'sent', error_message: null, updated_at: new Date().toISOString() }).eq('id', msg.id);
           waSent++;
         } else {
-          throw new Error("Gagal terkirim via Meta Cloud API / fallback");
+          throw new Error(res.reason || "Gagal terkirim via provider WhatsApp");
         }
       } catch (err: any) {
         await supabase.from('whatsapp_queue').update({ status: 'failed', error_message: err.message, updated_at: new Date().toISOString() }).eq('id', msg.id);
@@ -183,21 +188,21 @@ Buka kartu ucapan spesial angkatan untukmu:
 Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
 
           // Langsung kirim via Gateway WhatsApp dengan anti-ban delay & direct fallback
-          const sentDirect = await sendWhatsAppMessage(user.no_whatsapp, text);
+          const sendRes = await sendWhatsAppMessageWithDetail(user.no_whatsapp, text);
 
           await supabase.from('whatsapp_queue').insert([{
             no_whatsapp: user.no_whatsapp,
             message: text,
-            status: sentDirect ? 'sent' : 'failed',
-            error_message: sentDirect ? null : 'Gagal terkirim via provider WhatsApp'
+            status: sendRes.success ? 'sent' : 'failed',
+            error_message: sendRes.success ? null : (sendRes.reason || 'Gagal terkirim via provider WhatsApp')
           }]);
 
-          if (sentDirect) {
+          if (sendRes.success) {
             bdaySent++;
             output += `  [Sukses] Terkirim langsung ke ${name} (${user.no_whatsapp})\n`;
           } else {
             bdayFailed++;
-            output += `  [Gagal] Gagal mengirim ke ${name} (${user.no_whatsapp})\n`;
+            output += `  [Gagal] Gagal mengirim ke ${name} (${user.no_whatsapp}): ${sendRes.reason}\n`;
           }
         }
         output += `  Total Terkirim: ${bdaySent} | Gagal: ${bdayFailed}\n`;

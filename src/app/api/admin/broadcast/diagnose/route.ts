@@ -6,7 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 type FonnteDeviceResponse = {
   status?: boolean;
   device?: string;
+  device_status?: string;
   reason?: string;
+  quota?: string | number;
+  package?: string;
+  expired?: string;
 };
 
 const jsonResponse = (
@@ -41,12 +45,24 @@ export async function GET() {
         headers: { ["Authorization"]: token },
       });
       const data = await res.json() as FonnteDeviceResponse;
-      const reason = data.status
-        ? data.device || "Connected"
-        : data.reason || "Device not connected";
+      
+      const isConnected = Boolean(data.status && data.device_status === "connect");
+      let reason = "";
+      if (isConnected) {
+        reason = `Terhubung (${data.device}) · Kuota: ${data.quota ?? 'N/A'}`;
+      } else if (data.device_status === "disconnect") {
+        reason = `WhatsApp Terputus (${data.device || 'Device'}) · Silakan scan QR ulang di fonnte.com`;
+      } else if (data.device_status === "pairing") {
+        reason = `Menunggu Scan QR (${data.device || 'Device'}) · Buka fonnte.com untuk scan`;
+      } else {
+        reason = data.reason || `Status device: ${data.device_status || 'Tidak diketahui'}`;
+      }
 
       return jsonResponse("success", reason, {
-        api_ok: Boolean(data.status),
+        api_ok: isConnected,
+        device_status: data.device_status,
+        device: data.device,
+        quota: data.quota,
         reason,
         token_value: "******" + token.slice(-4),
       });

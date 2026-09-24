@@ -5,7 +5,10 @@
  * Secondary: Meta WhatsApp Cloud API (Fallback).
  */
 
-export async function sendWhatsAppMessage(target: string, message: string): Promise<boolean> {
+export async function sendWhatsAppMessageWithDetail(
+  target: string, 
+  message: string
+): Promise<{ success: boolean; reason?: string; provider?: 'fonnte' | 'meta' | 'none' }> {
   // 1. Normalisasi nomor telepon ke format internasional (628...)
   let num = String(target || "").replace(/\D/g, "");
   if (num.startsWith("0")) {
@@ -15,13 +18,14 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
   }
 
   // Anti-Ban Guard: Validasi nomor seluler Indonesia (628 + 8-12 digit angka)
-  // Menghindari pengiriman ke nomor tidak valid yang bisa memicu penalti anti-spam WhatsApp
   if (!/^628[0-9]{8,12}$/.test(num)) {
-    console.warn(`[WA-VALIDATION-SKIP] Nomor tidak valid diabaikan: ${num}`);
-    return false;
+    const reason = `Nomor seluler tidak valid untuk format Indonesia (harus 628xxx): ${num}`;
+    console.warn(`[WA-VALIDATION-SKIP] ${reason}`);
+    return { success: false, reason, provider: 'none' };
   }
 
   const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
+  let fonnteError = "";
 
   // 1. PRIMARY: Fonnte API dengan Parameter Anti-Ban Resmi
   if (fonnteToken) {
@@ -29,10 +33,7 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
       const params = new URLSearchParams();
       params.append("target", num);
       params.append("message", message);
-      // Parameter Anti-Ban:
-      // 1. delay: memberi jeda pengiriman 2 detik agar menyerupai ritme manusia
       params.append("delay", "2");
-      // 2. typing: mengaktifkan simulasi status "sedang mengetik..." di WhatsApp penerima
       params.append("typing", "true");
       params.append("countryCode", "62");
 
@@ -47,18 +48,23 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
       const result = await response.json().catch(() => ({}));
       if (response.ok && Boolean(result.status)) {
         console.log(`[FONNTE-SUCCESS] Pesan WhatsApp terkirim ke ${num} | Status: ${result.detail || "Sent"}`);
-        return true;
+        return { success: true, provider: 'fonnte' };
       }
 
-      console.warn("[FONNTE-WARN] Respon Fonnte:", result.reason || result);
-    } catch (fonnteErr) {
+      fonnteError = result.reason || (typeof result === "string" ? result : JSON.stringify(result));
+      console.warn("[FONNTE-WARN] Respon Fonnte:", fonnteError);
+    } catch (fonnteErr: any) {
+      fonnteError = fonnteErr.message || "Network exception";
       console.error("[FONNTE-EXCEPTION]:", fonnteErr);
     }
+  } else {
+    fonnteError = "FONNTE_TOKEN belum diset di environment";
   }
 
   // 2. SECONDARY FALLBACK: Meta WhatsApp Cloud API
   const metaPhoneId = process.env.META_WA_PHONE_NUMBER_ID || "";
   const metaToken = (process.env.META_WA_ACCESS_TOKEN || "").trim();
+  let metaError = "";
 
   if (metaPhoneId && metaToken) {
     try {
@@ -83,15 +89,28 @@ export async function sendWhatsAppMessage(target: string, message: string): Prom
       const data = await response.json().catch(() => ({}));
       if (response.ok && data?.messages?.[0]?.id) {
         console.log(`[META-WA-SUCCESS] Pesan terkirim via Meta Cloud ke ${num}`);
-        return true;
+        return { success: true, provider: 'meta' };
       }
-    } catch (metaErr) {
+      metaError = data?.error?.message || "Meta API error";
+    } catch (metaErr: any) {
+      metaError = metaErr.message || "Meta network exception";
       console.error("[META-WA-EXCEPTION]:", metaErr);
     }
+  } else {
+    metaError = "Kredensial Meta WhatsApp belum lengkap";
   }
 
-  console.error(`[WA-FAILED] Seluruh provider WhatsApp gagal mengirim ke ${num}`);
-  return false;
+  const finalReason = fonnteError.includes("disconnected")
+    ? `Fonnte: Device WhatsApp terputus (disconnected). Harap scan QR di web fonnte.com`
+    : `Fonnte: ${fonnteError || 'Gagal'} | Meta: ${metaError || 'Gagal'}`;
+
+  console.error(`[WA-FAILED] Seluruh provider WhatsApp gagal mengirim ke ${num}: ${finalReason}`);
+  return { success: false, reason: finalReason, provider: 'none' };
+}
+
+export async function sendWhatsAppMessage(target: string, message: string): Promise<boolean> {
+  const res = await sendWhatsAppMessageWithDetail(target, message);
+  return res.success;
 }
 
 /**
