@@ -44,6 +44,33 @@ export default function RealKtaCard({ standalone = false }: RealKtaCardProps) {
     setGlarePos((prev) => ({ ...prev, opacity: 0 }));
   };
 
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!cardRef.current || e.touches.length === 0) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotX = ((y - centerY) / centerY) * -16;
+    const rotY = ((x - centerX) / centerX) * 16;
+
+    setRotateX(rotX);
+    setRotateY(rotY);
+    setGlarePos({
+      x: Math.max(0, Math.min(100, (x / rect.width) * 100)),
+      y: Math.max(0, Math.min(100, (y / rect.height) * 100)),
+      opacity: 0.65,
+    });
+  };
+
+  const handleTouchEnd = () => {
+    setRotateX(0);
+    setRotateY(0);
+    setGlarePos((prev) => ({ ...prev, opacity: 0 }));
+  };
+
   const handleFlip = () => {
     triggerHaptic([20, 30]);
     setIsFlipped((prev) => !prev);
@@ -56,6 +83,8 @@ export default function RealKtaCard({ standalone = false }: RealKtaCardProps) {
         className="real-kta-card-perspective"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onClick={handleFlip}
         title={locale === "ar" ? "انقر لقلب البطاقة" : locale === "en" ? "Click to flip card" : "Klik untuk membalik kartu (Depan / Belakang)"}
       >

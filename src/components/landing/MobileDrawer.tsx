@@ -14,7 +14,7 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -87,6 +87,10 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
               <a href="#almamater" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-solid fa-mosque"></i>
                 <span>{t.drawer.nav_almamater}</span>
+              </a>
+              <a href="#kta" className="drawer-nav-link" onClick={onClose}>
+                <i className="fa-solid fa-id-card"></i>
+                <span>{locale === "ar" ? "بطاقة KTA" : locale === "en" ? "KTA Card" : "Kartu KTA Fisik"}</span>
               </a>
               <a href="#aplikasi" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-brands fa-android"></i>
