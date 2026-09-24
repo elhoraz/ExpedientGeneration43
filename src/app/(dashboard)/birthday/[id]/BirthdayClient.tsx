@@ -54,9 +54,27 @@ const decos = ['confetti','stars','balloons','sparkles','ribbons','floral'];
 const anims = ['cascade','bounce','bloom','burst'];
 
 function getZodiak(dateStr: string, locale: string = "id") {
-    const date = new Date(dateStr);
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
+    let day = 1;
+    let month = 1;
+
+    if (dateStr) {
+      const parts = dateStr.trim().split(/[-/]/);
+      if (parts.length === 3) {
+        if (parts[2].length === 4) {
+          day = parseInt(parts[0], 10);
+          month = parseInt(parts[1], 10);
+        } else {
+          month = parseInt(parts[1], 10);
+          day = parseInt(parts[2], 10);
+        }
+      } else {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          day = date.getDate();
+          month = date.getMonth() + 1;
+        }
+      }
+    }
 
     let key = "pisces";
     let icon = "♓";
@@ -88,9 +106,40 @@ function getZodiak(dateStr: string, locale: string = "id") {
       pisces: { id: "Pisces", en: "Pisces", ar: "برج الحوت" },
     };
 
-    const trans = names[key];
+    const trans = names[key] || names.pisces;
     const nama = locale === "ar" ? trans.ar : locale === "en" ? trans.en : trans.id;
     return { nama, icon };
+}
+
+function formatBirthDate(dateStr: string, locale: string = "id") {
+  if (!dateStr) return "";
+  let year = 2000, month = 1, day = 1;
+  const parts = dateStr.trim().split(/[-/]/);
+  if (parts.length === 3) {
+    if (parts[2].length === 4) {
+      day = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+      year = parseInt(parts[2], 10);
+    } else {
+      year = parseInt(parts[0], 10);
+      month = parseInt(parts[1], 10);
+      day = parseInt(parts[2], 10);
+    }
+    const localDate = new Date(year, month - 1, day);
+    return localDate.toLocaleDateString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  }
+  const fallback = new Date(dateStr);
+  return !isNaN(fallback.getTime())
+    ? fallback.toLocaleDateString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      })
+    : dateStr;
 }
 
 export default function BirthdayClient({ userProfile, age, seed }: { userProfile: any, age: number, seed: number }) {
@@ -263,10 +312,10 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
       <button 
         type="button" 
         onClick={() => {
-          if (typeof window !== "undefined" && window.history.length > 1) {
+          if (typeof window !== "undefined" && window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
             window.history.back();
           } else {
-            window.location.href = "/beranda";
+            window.location.href = "/birthday";
           }
         }} 
         className="bday-back" 
@@ -325,7 +374,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
           <div className="bday-anim-el">
               <div className="bday-date-badge bday-body bday-text">
-                  {new Date(userProfile.tanggal_lahir).toLocaleDateString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                  {formatBirthDate(userProfile.tanggal_lahir, locale)}
               </div>
           </div>
 

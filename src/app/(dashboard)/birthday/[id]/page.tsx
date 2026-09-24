@@ -2,9 +2,26 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import BirthdayClient from "./BirthdayClient";
 
-export const metadata = {
-  title: "Selamat Ulang Tahun!",
-};
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const supabase = await createClient();
+  const { data: userProfile } = await supabase
+    .from("profiles")
+    .select("nama_panggilan, nama_lengkap, foto_profil")
+    .eq("id", resolvedParams.id)
+    .single();
+
+  const name = (userProfile?.nama_panggilan || userProfile?.nama_lengkap || "Sahabat").trim();
+  return {
+    title: `Selamat Ulang Tahun, ${name}! 🎉 | Expedient 43`,
+    description: `Barakallahu fii umrik ${name}! Buka kartu ucapan spesial angkatan ke-43 Pondok Modern Arrisalah dan kirimkan doa terbaikmu.`,
+    openGraph: {
+      title: `Selamat Ulang Tahun, ${name}! 🎂🎉`,
+      description: `Buka kartu ucapan spesial angkatan untuk ${name}.`,
+      images: userProfile?.foto_profil ? [{ url: userProfile.foto_profil }] : [],
+    },
+  };
+}
 
 export default async function BirthdayPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;

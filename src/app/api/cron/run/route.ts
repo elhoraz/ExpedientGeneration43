@@ -108,9 +108,9 @@ export async function GET(request: Request) {
   if (searchParams.get('run_birthday') === 'true') {
     output += `\n[3] Mengirim Ucapan Ulang Tahun...\n`;
     try {
-      const today = new Date();
-      const currentMonth = today.getMonth() + 1;
-      const currentDay = today.getDate();
+      const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+      const currentMonth = nowWib.getMonth() + 1;
+      const currentDay = nowWib.getDate();
 
       const { data: users } = await supabase
         .from('profiles')
@@ -122,22 +122,37 @@ export async function GET(request: Request) {
         if (!u.tanggal_lahir || !u.no_whatsapp) return false;
         const parts = u.tanggal_lahir.split(/[-/]/);
         if (parts.length < 3) return false;
-        const month = parseInt(parts[1], 10);
-        const day = parseInt(parts[2], 10);
+        let month = parseInt(parts[1], 10);
+        let day = parseInt(parts[2], 10);
+        if (parts[2].length === 4) {
+          day = parseInt(parts[0], 10);
+          month = parseInt(parts[1], 10);
+        }
         return month === currentMonth && day === currentDay;
       });
 
       if (birthdayUsers.length === 0) {
         output += `  Tidak ada yang berulang tahun hari ini.\n`;
       } else {
-        const startOfDay = new Date();
-        startOfDay.setHours(0, 0, 0, 0);
+        const startOfDay = new Date(nowWib.getFullYear(), nowWib.getMonth(), nowWib.getDate(), 0, 0, 0);
 
         for (const user of birthdayUsers) {
           const parts = user.tanggal_lahir.split(/[-/]/);
-          const birthYear = parseInt(parts[0], 10);
-          const rawAge = today.getFullYear() - birthYear;
-          const isAgeValid = rawAge > 0 && rawAge < 120 && birthYear < today.getFullYear();
+          let birthYear = parseInt(parts[0], 10);
+          let birthMonth = parseInt(parts[1], 10);
+          let birthDay = parseInt(parts[2], 10);
+          if (parts[2].length === 4) {
+            birthYear = parseInt(parts[2], 10);
+            birthMonth = parseInt(parts[1], 10);
+            birthDay = parseInt(parts[0], 10);
+          }
+
+          let rawAge = nowWib.getFullYear() - birthYear;
+          const m = (nowWib.getMonth() + 1) - birthMonth;
+          if (m < 0 || (m === 0 && nowWib.getDate() < birthDay)) {
+            rawAge--;
+          }
+          const isAgeValid = rawAge > 0 && rawAge < 120 && birthYear < nowWib.getFullYear();
           const name = user.nama_panggilan || user.nama_lengkap;
 
           // Anti-duplication: Cek apakah hari ini sudah pernah dikirim ucapan ke nomor ini

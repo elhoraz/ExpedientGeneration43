@@ -64,7 +64,7 @@ export default function BerandaClient({
     
     // Animate birthday toast if celebrants exist today
     let bdayTimer: NodeJS.Timeout | null = null;
-    if (isLoggedIn && birthdayUsers && birthdayUsers.length > 0) {
+    if (birthdayUsers && birthdayUsers.length > 0) {
       bdayTimer = setTimeout(() => {
         const toast = document.getElementById("bdayToast");
         if (toast) {
@@ -536,7 +536,7 @@ export default function BerandaClient({
               )}
           </section>
 
-          {isLoggedIn && birthdayUsers.length > 0 && (
+          {birthdayUsers.length > 0 && (
               <div id="bdayToast" style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%) translateY(150px)', width: '90%', maxWidth: '400px', background: 'var(--glass-bg)', backdropFilter: 'blur(30px)', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '16px', padding: '20px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', gap: '15px', opacity: 0, transition: '0.8s cubic-bezier(0.16,1,0.3,1)' }}>
                   <div style={{ width: '50px', height: '50px', background: 'rgba(212,175,55,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', fontSize: '1.5rem', flexShrink: 0 }}>
                       <i className="fa-solid fa-cake-candles"></i>
@@ -546,7 +546,7 @@ export default function BerandaClient({
                       <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.4 }}>
                           {tLang.beranda.bday_today_is} <strong>{birthdayUsers[0].nama_panggilan || birthdayUsers[0].nama_lengkap}</strong>
                           {birthdayUsers.length > 1 ? (locale === 'ar' ? ' وآخرون' : locale === 'en' ? ` and ${birthdayUsers.length - 1} other alumni` : ` dan ${birthdayUsers.length - 1} alumni lainnya`) : ''}. <br/>
-                          <Link href="/birthday" style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>{tLang.beranda.bday_send_wish} <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
+                          <Link href={birthdayUsers.length === 1 ? `/birthday/${birthdayUsers[0].id}` : "/birthday"} style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>{tLang.beranda.bday_send_wish} <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
                       </div>
                   </div>
                   <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 800); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px' }}><i className="fa-solid fa-times"></i></button>

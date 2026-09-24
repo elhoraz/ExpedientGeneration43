@@ -23,10 +23,11 @@ export default async function FiturPage() {
 
   const emptyResult = { data: null, error: null } as any;
 
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentDay = today.getDate();
-  const todayDateStr = today.toISOString().split("T")[0];
+  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+  const todayDateStr = `${now.getFullYear()}-${String(currentMonth).padStart(2, "0")}-${String(currentDay).padStart(2, "0")}`;
 
   const [
     profileResult,
@@ -74,39 +75,44 @@ export default async function FiturPage() {
   const events = eventsResult.status === "fulfilled" ? (eventsResult.value.data || []) : [];
 
   // 1. Data Ulang Tahun (Hari Ini & Terdekat)
-  const todayBirthdays = allProfiles.filter((p: any) => {
-    if (!p.tanggal_lahir) return false;
+  const todayBirthdays: any[] = [];
+  const upcomingBirthdays: any[] = [];
+
+  allProfiles.forEach((p: any) => {
+    if (!p.tanggal_lahir) return;
     const parts = p.tanggal_lahir.split(/[-/]/);
-    if (parts.length < 3) return false;
-    return parseInt(parts[1], 10) === currentMonth && parseInt(parts[2], 10) === currentDay;
+    if (parts.length < 3) return;
+    let m = parseInt(parts[1], 10);
+    let d = parseInt(parts[2], 10);
+    if (parts[2].length === 4) {
+      d = parseInt(parts[0], 10);
+      m = parseInt(parts[1], 10);
+    }
+    if (isNaN(m) || isNaN(d) || m < 1 || m > 12 || d < 1 || d > 31) return;
+
+    let thisYearBday = new Date(now.getFullYear(), m - 1, d);
+    let diffMs = thisYearBday.getTime() - todayMidnight.getTime();
+    let daysLeft = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    if (daysLeft < 0) {
+      let nextYearBday = new Date(now.getFullYear() + 1, m - 1, d);
+      daysLeft = Math.round((nextYearBday.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    if (daysLeft === 0) {
+      todayBirthdays.push({ ...p, daysLeft });
+    } else {
+      upcomingBirthdays.push({ ...p, day: d, daysLeft });
+    }
   });
 
-  let nextBirthday: any = null;
-  if (todayBirthdays.length === 0) {
-    const upcoming = allProfiles
-      .map((p: any) => {
-        if (!p.tanggal_lahir) return null;
-        const parts = p.tanggal_lahir.split(/[-/]/);
-        if (parts.length < 3) return null;
-        const m = parseInt(parts[1], 10);
-        const d = parseInt(parts[2], 10);
-        if (m === currentMonth && d > currentDay) {
-          return { ...p, day: d, daysLeft: d - currentDay };
-        }
-        return null;
-      })
-      .filter(Boolean)
-      .sort((a: any, b: any) => a.daysLeft - b.daysLeft);
-
-    if (upcoming.length > 0) {
-      nextBirthday = upcoming[0];
-    }
-  }
+  upcomingBirthdays.sort((a: any, b: any) => a.daysLeft - b.daysLeft);
+  const nextBirthday = todayBirthdays.length === 0 && upcomingBirthdays.length > 0 ? upcomingBirthdays[0] : null;
 
   // 2. Data Kas Baitul Maal
   let totalKas = 0;
   let hasPaidThisMonth = false;
-  const currentYearMonth = `${today.getFullYear()}-${String(currentMonth).padStart(2, "0")}`;
+  const currentYearMonth = `${now.getFullYear()}-${String(currentMonth).padStart(2, "0")}`;
 
   kasTransactions.forEach((t: any) => {
     const isOut = t.transaction_type === "OUT" || t.transaction_type === "pengeluaran";
