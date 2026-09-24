@@ -14,7 +14,7 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda" }: MobileDrawerProps) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
   // Lock body and landing-wrapper scroll when drawer is open
   useEffect(() => {
@@ -78,6 +78,22 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
             <LanguageSwitcher variant="pill" />
             <ThemeToggle />
           </div>
+
+          {/* Quick Search Shortcut for Mobile */}
+          <button
+            type="button"
+            className="drawer-search-trigger"
+            onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(8);
+              onClose();
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+            }}
+            title="Buka Pencarian Instan"
+          >
+            <i className="fa-solid fa-magnifying-glass"></i>
+            <span>{locale === "ar" ? "ابحث عن الأعضاء أو المحتوى..." : locale === "en" ? "Search alumni, features, content..." : "Cari alumni, fitur, atau khazanah..."}</span>
+            <span className="drawer-search-badge">CARI</span>
+          </button>
 
           {/* Section 1: Halaman Landing Anchor Links */}
           <div className="drawer-nav-section">

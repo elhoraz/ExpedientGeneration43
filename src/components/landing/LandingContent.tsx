@@ -273,7 +273,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </section>
 
         {/* ====== TUKU-STYLE RUNNING TICKER RIBBON (CSS-ONLY, ULTRA LIGHTWEIGHT) ====== */}
-        <div className="tuku-running-ribbon" aria-hidden="true">
+        <div className="tuku-running-ribbon reveal-on-scroll" aria-hidden="true">
           <div className="tuku-ticker-track">
             <span className="ticker-segment">⚜️ {t.ticker.seg_expedient}</span>
             <span className="ticker-dot">✦</span>
@@ -304,12 +304,12 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </div>
 
         {/* Daily Wisdom Note (Secarik Nasihat Mahfuzhat Santri) */}
-        <div className="tuku-wisdom-section">
+        <div className="tuku-wisdom-section reveal-on-scroll">
           <DailyWisdomWidget />
         </div>
 
         {/* Islamic Heritage Flourish Divider 1 */}
-        <div className="islamic-flourish-divider" aria-hidden="true">
+        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
@@ -323,7 +323,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <HistoryTimeline />
 
         {/* Islamic Heritage Flourish Divider 2 */}
-        <div className="islamic-flourish-divider" aria-hidden="true">
+        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
@@ -337,7 +337,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <PolaroidMemories />
 
         {/* Islamic Heritage Flourish Divider 3 */}
-        <div className="islamic-flourish-divider" aria-hidden="true">
+        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
@@ -351,7 +351,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <WisdomAsatidz />
 
         {/* Islamic Heritage Flourish Divider 4 */}
-        <div className="islamic-flourish-divider" aria-hidden="true">
+        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
@@ -603,7 +603,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </section>
 
         {/* ====== FOOTER (BERBOBOT ALMAMATER) ====== */}
-        <footer className="landing-footer">
+        <footer className="landing-footer reveal-on-scroll">
           <div className="footer-top-grid">
             <div className="footer-brand-col">
               <div className="footer-logo-row">

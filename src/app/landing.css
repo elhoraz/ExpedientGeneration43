@@ -31,27 +31,28 @@
 /* ====== 1. FLOATING ISLAND NAVIGATION BAR ====== */
 .landing-nav-island {
   position: fixed;
-  top: 16px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
   width: calc(100% - 32px);
-  max-width: 1100px;
+  max-width: 1200px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 20px;
+  padding: 8px 18px;
   border-radius: 999px;
-  background: rgba(8, 12, 10, 0.72);
+  background: rgba(8, 12, 10, 0.78);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.08);
-  transition: all 0.4s ease;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.08);
+  transition: all 0.35s ease;
+  box-sizing: border-box;
 }
 
 :root[data-theme="light"] .landing-nav-island {
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.88);
   border-color: rgba(212, 175, 55, 0.4);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
@@ -59,24 +60,26 @@
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .nav-logo-wrap {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle, rgba(212, 175, 55, 0.25), transparent);
   border: 1px solid rgba(212, 175, 55, 0.4);
+  flex-shrink: 0;
 }
 
 .nav-logo-img {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
 }
 
@@ -88,23 +91,27 @@
 .brand-title {
   font-family: 'Playfair Display', serif;
   font-weight: 800;
-  font-size: 0.95rem;
-  letter-spacing: 2px;
+  font-size: 0.92rem;
+  letter-spacing: 1.5px;
   color: #d4af37;
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .brand-subtitle {
   font-family: 'Courier New', monospace;
-  font-size: 0.58rem;
-  letter-spacing: 1.5px;
+  font-size: 0.54rem;
+  letter-spacing: 1.2px;
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .nav-links {
   display: none;
   align-items: center;
-  gap: 24px;
+  gap: clamp(8px, 1.3vw, 18px);
+  margin: 0 8px;
+  flex-shrink: 1;
 }
 
 @media (min-width: 860px) {
@@ -116,12 +123,13 @@
 .nav-link {
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
-  transition: all 0.3s ease;
+  transition: all 0.25s ease;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -132,11 +140,12 @@
   color: #d4af37;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 4px 10px;
   border-radius: 20px;
   background: rgba(212, 175, 55, 0.12);
   border: 1px solid rgba(212, 175, 55, 0.3);
+  font-size: 0.75rem;
 }
 
 .nav-link-highlight:hover {
@@ -146,36 +155,223 @@
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.landing-nav-island .theme-widget,
+/* Quick Search Trigger inside Desktop Island */
+.nav-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.nav-search-trigger:hover {
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.12);
+  border-color: #d4af37;
+  transform: translateY(-1px);
+}
+
+.search-shortcut-pill {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(212, 175, 55, 0.15);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  letter-spacing: 0.5px;
+}
+
+/* Desktop Language Pill inside Island */
+.landing-desktop-lang {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .landing-nav-island .lang-widget {
   position: static !important;
   top: auto !important;
   right: auto !important;
+  height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  color: #d4af37 !important;
+  font-size: 0.74rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box;
 }
 
-.nav-btn-portal {
+.landing-nav-island .lang-widget:hover {
+  background: rgba(212, 175, 55, 0.14) !important;
+  border-color: #d4af37 !important;
+  transform: translateY(-1px) !important;
+}
+
+.landing-nav-island .lang-widget .icon-orb {
+  display: none !important;
+}
+
+.landing-nav-island .lang-widget::before {
+  content: "\f0ac";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.78rem;
+  color: #d4af37;
+}
+
+/* Theme Toggle Button inside Desktop Island */
+.landing-nav-island .theme-widget {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(212, 175, 55, 0.1) !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  color: #d4af37 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  transition: all 0.25s ease !important;
+  box-sizing: border-box;
+}
+
+.landing-nav-island .theme-widget:hover {
+  background: rgba(212, 175, 55, 0.22) !important;
+  border-color: #d4af37 !important;
+  transform: scale(1.06) !important;
+}
+
+.landing-nav-island .theme-widget .widget-text {
+  display: none !important;
+}
+
+.landing-nav-island .theme-widget .icon-orb {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font-size: 0.88rem !important;
+}
+
+/* Nav Login Link */
+.landing-nav-island .nav-login-link {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.landing-nav-island .nav-login-link:hover {
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.08);
+}
+
+/* Nav Portal Button */
+.landing-nav-island .nav-btn-portal {
   background: linear-gradient(135deg, #d4af37, #c9a029);
   color: #060b14;
   text-decoration: none;
-  padding: 8px 18px;
+  height: 34px;
+  padding: 0 14px;
   border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
+  gap: 6px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
-.nav-btn-portal:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.55);
+.landing-nav-island .nav-btn-portal:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.55);
+}
+
+/* Desktop suppression of hamburger button */
+@media (min-width: 860px) {
+  .landing-nav-island .nav-hamburger-btn,
+  .nav-hamburger-btn {
+    display: none !important;
+  }
+}
+
+/* Intermediate Laptop / Tablet Landscape (860px - 1080px) */
+@media (min-width: 860px) and (max-width: 1080px) {
+  .landing-nav-island {
+    padding: 6px 12px;
+  }
+  .landing-nav-island .nav-links {
+    gap: 10px;
+  }
+  .landing-nav-island .nav-link {
+    font-size: 0.72rem;
+  }
+  .landing-nav-island .nav-login-link span {
+    display: none;
+  }
+  .landing-nav-island .nav-btn-portal span {
+    display: none;
+  }
+  .landing-nav-island .nav-btn-portal {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+  }
 }
 
 /* ====== 2. HERO SECTION ====== */
@@ -1819,7 +2015,9 @@
   .landing-nav-island .lang-widget,
   .landing-nav-island .lang-compact-group,
   .landing-nav-island .lang-switcher-container,
-  .landing-nav-island .nav-login-link {
+  .landing-nav-island .nav-login-link,
+  .landing-nav-island .nav-search-trigger,
+  .nav-search-trigger {
     display: none !important;
   }
 
@@ -1874,6 +2072,7 @@
     justify-content: center !important;
     flex-shrink: 0 !important;
     margin: 0 !important;
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3) !important;
   }
 
   .landing-nav-island .nav-btn-portal span {
@@ -1898,20 +2097,24 @@
     justify-content: center !important;
     flex-shrink: 0 !important;
     margin: 0 !important;
+    background: rgba(212, 175, 55, 0.12) !important;
+    border: 1px solid rgba(212, 175, 55, 0.35) !important;
+    color: #d4af37 !important;
+    font-size: 0.92rem !important;
+    cursor: pointer !important;
   }
 }
 
-@media (max-width: 768px), (pointer: coarse) {
-
+@media (max-width: 768px) {
   .pillar-card,
   .bento-card,
   .philo-card,
   .epigraph-card,
   .cta-banner-box {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background: rgba(12, 18, 15, 0.96);
-    transform: none !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    background: rgba(12, 18, 15, 0.82);
+    border: 1px solid rgba(212, 175, 55, 0.28);
   }
 
   :root[data-theme="light"] .pillar-card,
@@ -1919,7 +2122,8 @@
   :root[data-theme="light"] .philo-card,
   :root[data-theme="light"] .epigraph-card,
   :root[data-theme="light"] .cta-banner-box {
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(212, 175, 55, 0.35);
   }
 }
 
@@ -3957,38 +4161,58 @@
   box-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
 }
 
-/* 2. Scroll Reveal Transitions (GPU Accelerated) */
+/* 2. Bidirectional Scroll Reveal Transitions (GPU Accelerated) */
 .reveal-on-scroll {
   opacity: 0;
   transform: translateY(28px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
-}
-
-.reveal-on-scroll.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.reveal-stagger > * {
-  opacity: 0;
-  transform: translateY(26px);
   transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, transform;
 }
 
-.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0.05s; }
-.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.15s; }
-.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.25s; }
-.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.35s; }
-.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 0.45s; }
-.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 0.55s; }
-.reveal-stagger.is-visible > *:nth-child(7) { transition-delay: 0.65s; }
-.reveal-stagger.is-visible > *:nth-child(8) { transition-delay: 0.75s; }
+[data-scroll-dir="down"] .reveal-on-scroll:not(.is-visible) {
+  transform: translateY(28px);
+  opacity: 0;
+}
+
+[data-scroll-dir="up"] .reveal-on-scroll:not(.is-visible) {
+  transform: translateY(-24px);
+  opacity: 0;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+[data-scroll-dir="down"] .reveal-stagger:not(.is-visible) > * {
+  transform: translateY(24px);
+  opacity: 0;
+}
+
+[data-scroll-dir="up"] .reveal-stagger:not(.is-visible) > * {
+  transform: translateY(-20px);
+  opacity: 0;
+}
+
+.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0.04s; }
+.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.12s; }
+.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.20s; }
+.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.28s; }
+.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 0.36s; }
+.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 0.44s; }
+.reveal-stagger.is-visible > *:nth-child(7) { transition-delay: 0.52s; }
+.reveal-stagger.is-visible > *:nth-child(8) { transition-delay: 0.60s; }
 
 .reveal-stagger.is-visible > * {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 /* 3. Scrolly-Reading Manifesto (Illuminating Philosophy Text) */
@@ -4686,6 +4910,403 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* ==========================================================================
+   MOBILE ELEGANCE & LUXURY AESTHETIC SUITE (CLEAN, MINIMAL, ZERO-BUG)
+   ========================================================================== */
+
+/* 8. Mobile Drawer Search Trigger Button */
+.drawer-search-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.drawer-search-trigger:hover,
+.drawer-search-trigger:active {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: #d4af37;
+  color: #d4af37;
+}
+
+.drawer-search-trigger i {
+  color: #d4af37;
+  font-size: 0.88rem;
+  flex-shrink: 0;
+}
+
+.drawer-search-trigger span:first-of-type {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drawer-search-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #d4af37;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  flex-shrink: 0;
+}
+
+/* 9. Comprehensive Mobile Responsive Overhauls (< 768px) */
+@media (max-width: 768px) {
+  /* Prevent any horizontal page slippage */
+  .landing-wrapper {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* Daily Wisdom Parchment Card on Mobile */
+  .daily-wisdom-banner {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 16px 14px !important;
+    margin: 20px auto 0 auto !important;
+    border-radius: 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  .memo-dog-ear {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .memo-dog-ear::before {
+    border-width: 0 20px 20px 0 !important;
+  }
+
+  .memo-dog-ear::after {
+    border-width: 18px 18px 0 0 !important;
+  }
+
+  .memo-masking-tape {
+    width: 72px !important;
+    height: 18px !important;
+    top: -9px !important;
+  }
+
+  .wisdom-banner-content {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+
+  .wisdom-banner-left {
+    min-width: 0 !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .wisdom-calendar-tag {
+    justify-content: center !important;
+    font-size: 0.68rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .wisdom-arabic-row {
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+
+  .wisdom-arabic-text {
+    font-size: clamp(1.2rem, 5vw, 1.45rem) !important;
+    line-height: 1.5 !important;
+    text-align: center !important;
+  }
+
+  .wisdom-translation-row {
+    justify-content: center !important;
+    text-align: center !important;
+    font-size: 0.8rem !important;
+    line-height: 1.55 !important;
+  }
+
+  .wisdom-banner-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+
+  .btn-next-wisdom,
+  .btn-wisdom-action {
+    padding: 8px 6px !important;
+    font-size: 0.72rem !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    white-space: nowrap !important;
+  }
+
+  .btn-explore-mahfuzhat {
+    grid-column: 1 / -1 !important;
+    justify-content: center !important;
+    padding: 9px 12px !important;
+    font-size: 0.75rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* History Era Navigation & Spotlight on Mobile */
+  .history-section {
+    padding: 50px 14px 40px !important;
+  }
+
+  .history-tabs-track {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+    padding: 4px 6px 12px 6px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .history-tabs-track::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .history-tab-item {
+    flex-shrink: 0 !important;
+    min-width: 105px !important;
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .tab-year-pill {
+    font-size: 1rem !important;
+  }
+
+  .tab-title-text {
+    font-size: 0.62rem !important;
+  }
+
+  .history-spotlight-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+
+  .history-spotlight-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .history-year-large {
+    font-size: 1.55rem !important;
+  }
+
+  .history-card-title {
+    font-size: 1.3rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .history-card-sub {
+    font-size: 0.8rem !important;
+    margin-bottom: 14px !important;
+  }
+
+  .history-desc-paragraphs p {
+    font-size: 0.86rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .photobooth-feature-box {
+    padding: 18px 14px !important;
+    border-radius: 18px !important;
+  }
+
+  /* Kalam Hikmah Asatidz on Mobile */
+  .wisdom-section {
+    padding: 50px 14px !important;
+  }
+
+  .wisdom-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .wisdom-card {
+    padding: 20px 16px !important;
+    border-radius: 18px !important;
+  }
+
+  /* Almamater & Pillars on Mobile */
+  .heritage-section {
+    padding: 50px 14px !important;
+  }
+
+  .pillar-card {
+    padding: 22px 18px !important;
+    border-radius: 18px !important;
+  }
+
+  .pillar-icon-wrap {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 1.25rem !important;
+    margin-bottom: 14px !important;
+  }
+
+  .pillar-title {
+    font-size: 1.15rem !important;
+  }
+
+  .pillar-desc {
+    font-size: 0.86rem !important;
+    line-height: 1.65 !important;
+  }
+
+  /* Philosophy Scrolly Section on Mobile */
+  .philosophy-section {
+    padding: 50px 14px !important;
+  }
+
+  .epigraph-card {
+    padding: 26px 16px !important;
+    border-radius: 18px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .epigraph-quote-mark {
+    font-size: 3.5rem !important;
+    top: 2px !important;
+    left: 8px !important;
+    opacity: 0.15 !important;
+  }
+
+  .scrolly-manifesto-text {
+    font-size: clamp(1.1rem, 4.6vw, 1.4rem) !important;
+    line-height: 1.65 !important;
+  }
+
+  .philo-card {
+    padding: 22px 18px !important;
+    border-radius: 18px !important;
+  }
+
+  /* Bento Grid Mobile Viewport & Sonar Scaling */
+  .bento-section {
+    padding: 50px 14px !important;
+  }
+
+  .bento-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .bento-card {
+    padding: 22px 18px !important;
+    border-radius: 18px !important;
+  }
+
+  .bento-sonar-viewport {
+    width: 140px !important;
+    height: 140px !important;
+    top: -10px !important;
+    right: -10px !important;
+    opacity: 0.25 !important;
+  }
+
+  .sonar-sweep-beam {
+    width: 70px !important;
+    height: 70px !important;
+  }
+
+  .sonar-ring.ring-1 { width: 45px !important; height: 45px !important; }
+  .sonar-ring.ring-2 { width: 90px !important; height: 90px !important; }
+  .sonar-ring.ring-3 { width: 130px !important; height: 130px !important; }
+
+  .bento-title {
+    font-size: 1.15rem !important;
+  }
+
+  .bento-desc {
+    font-size: 0.84rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .bento-meta-strip {
+    gap: 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* CTA Banner Mobile */
+  .cta-banner-section {
+    padding: 40px 14px 60px !important;
+  }
+
+  .cta-banner-box {
+    padding: 34px 18px !important;
+    border-radius: 20px !important;
+  }
+
+  .cta-banner-title {
+    font-size: clamp(1.5rem, 5.8vw, 2.1rem) !important;
+  }
+
+  .cta-banner-desc {
+    font-size: 0.86rem !important;
+    line-height: 1.65 !important;
+    margin-bottom: 24px !important;
+  }
+
+  .cta-banner-buttons {
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .cta-banner-buttons .btn-primary,
+  .cta-banner-buttons .btn-secondary {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: unset !important;
+    padding: 12px 16px !important;
+    font-size: 0.82rem !important;
+  }
+
+  /* Footer Mobile */
+  .landing-footer {
+    padding: 40px 14px 24px !important;
+  }
+
+  .footer-top-grid {
+    gap: 28px !important;
+    margin-bottom: 28px !important;
+  }
+
+  .footer-brand-name {
+    font-size: 1rem !important;
+  }
+
+  .footer-address {
+    font-size: 0.78rem !important;
+    line-height: 1.6 !important;
+  }
+}
+
 
 
 
