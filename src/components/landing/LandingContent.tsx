@@ -17,9 +17,6 @@ import MobileDrawer from "@/components/landing/MobileDrawer";
 import ScrollToTopIndicator from "@/components/landing/ScrollToTopIndicator";
 import DailyWisdomWidget from "@/components/landing/DailyWisdomWidget";
 import PolaroidMemories from "@/components/landing/PolaroidMemories";
-import LandingInteractivity from "@/components/landing/LandingInteractivity";
-import PerformanceToggle from "@/components/layout/PerformanceToggle";
-import KtaShowcaseSection from "@/components/landing/KtaShowcaseSection";
 
 interface LandingContentProps {
   totalAlumni: number;
@@ -61,45 +58,40 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </Link>
 
-        {/* Desktop Nav Links (Visible on Wide Displays >= 1240px) */}
+        {/* Desktop Nav Links */}
         <nav className="nav-links">
           <a href="#sejarah" className="nav-link">{t.nav.sejarah}</a>
           <a href="#nasehat" className="nav-link">{t.nav.nasehat}</a>
           <a href="#almamater" className="nav-link">{t.nav.almamater}</a>
-          <a href="#kta" className="nav-link">{locale === "ar" ? "بطاقة KTA" : locale === "en" ? "KTA Card" : "Kartu KTA"}</a>
           <a href="#aplikasi" className="nav-link">{t.nav.apk}</a>
           <a href="#ekosistem" className="nav-link">{t.nav.ecosystem}</a>
+          <Link href="/radar" className="nav-link nav-link-highlight">
+            <i className="fa-solid fa-map-location-dot"></i> {t.nav.radar}
+          </Link>
         </nav>
 
-        {/* Streamlined Nav Actions (Guaranteed 0 Overflow on all screen resolutions) */}
         <div className="nav-actions">
-          <Link href="/radar" className="nav-radar-pill" title={t.nav.radar}>
-            <span className="radar-live-dot"></span>
-            <span className="nav-radar-label">{t.nav.radar}</span>
-          </Link>
-
+          <div className="landing-desktop-lang">
+            <LanguageSwitcher variant="pill" />
+          </div>
           <ThemeToggle />
-
           <Link href="/login" className="nav-link nav-login-link" title={t.hero.cta_login}>
             <i className="fa-solid fa-circle-user"></i>
             <span>{t.nav.login}</span>
           </Link>
-
           <Link href="/beranda" className="nav-btn-portal" id="navCtaExplore">
             <i className="fa-solid fa-landmark"></i>
             <span>{t.nav.explore_museum}</span>
           </Link>
 
-          {/* Unified Luxury Menu Button (Accessible on both Desktop and Mobile!) */}
+          {/* Mobile Hamburger Button */}
           <button
             type="button"
-            className="nav-menu-btn"
+            className="nav-hamburger-btn"
             onClick={() => setIsDrawerOpen(true)}
             aria-label={t.nav.open_nav}
-            title="Buka Menu Lengkap"
           >
             <i className="fa-solid fa-bars-staggered"></i>
-            <span className="nav-menu-label">Menu</span>
           </button>
         </div>
       </header>
@@ -108,9 +100,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
       <MobileDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
 
       <main className="landing-wrapper">
-        {/* Dynamic Interactivity & Ambient Spotlight */}
-        <LandingInteractivity totalAlumni={totalAlumni} />
-
         {/* ====== HERO SECTION ====== */}
         <section className="landing-content" id="beranda">
           {/* 60 FPS Lightweight Celestial Canvas Background */}
@@ -354,21 +343,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </section>
 
-        {/* Islamic Heritage Flourish Divider */}
-        <div className="islamic-flourish-divider" aria-hidden="true">
-          <div className="flourish-line"></div>
-          <div className="flourish-center">
-            <span className="flourish-star">✦</span>
-            <span className="flourish-emblem">💳</span>
-            <span className="flourish-star">✦</span>
-          </div>
-          <div className="flourish-line"></div>
-        </div>
-
-        {/* ====== SECTION 4: THE SOVEREIGN ULTRA-HD PHYSICAL KTA SHOWCASE ====== */}
-        <KtaShowcaseSection />
-
-        {/* ====== SECTION 5: SHOWCASE APLIKASI MOBILE 3D MOCKUP ====== */}
+        {/* ====== SECTION 4: SHOWCASE APLIKASI MOBILE 3D MOCKUP ====== */}
         <AppMockupShowcase />
 
         {/* ====== SECTION 5: THE PHILOSOPHY OF EXPEDIENT (IDENTITAS 43) ====== */}
@@ -447,15 +422,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <div className="bento-content">
                 <h3 className="bento-title">{t.ecosystem.b2_title}</h3>
                 <p className="bento-desc">{t.ecosystem.b2_desc}</p>
-                {/* Mini Realistic Card Graphic Preview */}
-                <div className="bento-mini-card-preview" title="Kartu Anggota Resmi 3D Sovereign">
-                  <div className="mini-card-chip-row">
-                    <div className="mini-card-chip"></div>
-                    <div className="mini-card-hologram">⚜️</div>
-                  </div>
-                  <div className="mini-card-digits">4325 •••• •••• 088</div>
-                  <div className="mini-card-holder">EXPEDIENT SOVEREIGN</div>
-                </div>
               </div>
               <div className="bento-action">
                 <Link href="/sovereign" className="bento-link">

@@ -5,8 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
-import RealKtaCard from "./RealKtaCard";
-
 type ScreenPreview = "kta" | "quran" | "radar";
 
 export default function AppMockupShowcase() {
@@ -122,27 +120,11 @@ export default function AppMockupShowcase() {
             {/* Ambient Gold Glow Behind Device */}
             <div className="phone-ambient-glow"></div>
 
-            {/* Smartphone Chassis with Physical Hardware Details */}
+            {/* Smartphone Chassis */}
             <div className="phone-chassis">
-              {/* Outer Physical Buttons */}
-              <div className="chassis-button btn-action" title="Action Button"></div>
-              <div className="chassis-button btn-vol-up"></div>
-              <div className="chassis-button btn-vol-down"></div>
-              <div className="chassis-button btn-power"></div>
-
-              {/* Antenna Bands */}
-              <div className="antenna-band top-left"></div>
-              <div className="antenna-band top-right"></div>
-              <div className="antenna-band bottom-left"></div>
-              <div className="antenna-band bottom-right"></div>
-
-              {/* Realistic Glass Glare Overlay */}
-              <div className="phone-glass-glare"></div>
-
               {/* Speaker / Dynamic Island */}
               <div className="phone-dynamic-island">
                 <span className="camera-lens"></span>
-                <span className="camera-ambient-sensor"></span>
               </div>
 
               {/* Status Bar */}
@@ -157,7 +139,7 @@ export default function AppMockupShowcase() {
 
               {/* App Screen Content */}
               <div className="phone-screen-content">
-                {/* Screen 1: KTA 3D Physical Realistic Card */}
+                {/* Screen 1: KTA 3D */}
                 {activeScreen === "kta" && (
                   <div className="screen-view screen-kta">
                     <div className="screen-header">
@@ -167,8 +149,36 @@ export default function AppMockupShowcase() {
                       </span>
                     </div>
 
-                    {/* Ultra-realistic Physical KTA Component */}
-                    <RealKtaCard />
+                    <div className="mock-card-card">
+                      <div className="mock-card-gold-shine"></div>
+                      <div className="mock-card-top">
+                        <span className="mock-brand">EXPEDIENT 43</span>
+                        <i className="fa-solid fa-shield-cat gold-icon"></i>
+                      </div>
+                      <div className="mock-chip-row">
+                        <div className="mock-sim-chip"></div>
+                        <i className="fa-solid fa-wifi nfc-icon"></i>
+                      </div>
+                      <div className="mock-card-num">43.2026.001.088</div>
+                      <div className="mock-card-footer">
+                        <div>
+                          <span className="mock-lbl">
+                            {locale === "ar" ? "اسم العضو" : locale === "en" ? "MEMBER NAME" : "NAMA SANTRI"}
+                          </span>
+                          <span className="mock-val">AHMAD ARRISALAH</span>
+                        </div>
+                        <div>
+                          <span className="mock-lbl">
+                            {locale === "ar" ? "المعهد" : locale === "en" ? "ALMAMATER" : "ALMAMATER"}
+                          </span>
+                          <span className="mock-val">SLAHUNG</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mock-action-pill">
+                      <i className="fa-solid fa-qrcode"></i> {locale === "ar" ? "مسح رمز التحقق" : locale === "en" ? "Scan QR Verification" : "Scan QR Verifikasi"}
+                    </div>
                   </div>
                 )}
 

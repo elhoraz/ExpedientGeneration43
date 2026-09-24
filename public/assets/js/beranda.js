@@ -3,25 +3,6 @@ const initBeranda = () => {
     if (window.__berandaInitialized) return;
     window.__berandaInitialized = true;
 
-    // Deteksi Spesifikasi Rendah / Hemat Daya untuk Zero-Lag Mode
-    const checkIsLowPerf = () => {
-        return document.documentElement.classList.contains('low-perf-mode') ||
-            document.documentElement.getAttribute('data-perf-tier') === 'low' ||
-            (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ||
-            (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4 && window.innerWidth <= 768) ||
-            (navigator.deviceMemory && navigator.deviceMemory <= 4);
-    };
-    let isLowPerf = checkIsLowPerf();
-    window.addEventListener('performance-tier-changed', () => {
-        isLowPerf = checkIsLowPerf();
-        if (isLowPerf) {
-            swapToStatic();
-            if (ctxConstel && constelCanvas) ctxConstel.clearRect(0, 0, constelCanvas.width, constelCanvas.height);
-        } else {
-            swapToSequence();
-        }
-    });
-
     gsap.config({ force3D: true });
     gsap.registerPlugin(ScrollTrigger);
 
@@ -141,7 +122,6 @@ const initBeranda = () => {
     let _constellationFrame = 0;
 
     const drawConstellation = () => {
-        if (isLowPerf) return; // 0-lag: Matikan loop partikel di perangkat spesifikasi rendah
         _constellationFrame++;
         const isMobileNow = mq.matches;
         // Di mobile: skip setiap frame kedua (render ~30fps bukan 60fps)
@@ -366,53 +346,6 @@ const initBeranda = () => {
     };
 
     const preloadImages = () => {
-        if (isLowPerf) {
-            // Low-spec / Zero-lag mode: Skip 2,688 WebP sequence downloads!
-            const container = document.getElementById('shardsContainer');
-            if (container && container.children.length === 0) {
-                assetsData.shards.forEach((shard) => {
-                    shard.images = [];
-                    frameData.shards[shard.id] = 0;
-                    const wrap = document.createElement('div');
-                    wrap.className = 'shard-wrapper hover-trigger cursor-bind';
-                    wrap.id = `shardWrap_${shard.id}`;
-                    const statImg = document.createElement('img');
-                    statImg.src = shard.static;
-                    statImg.className = 'shard-static';
-                    statImg.style.display = 'block';
-                    statImg.style.opacity = '1';
-                    statImg.id = `shardStatic_${shard.id}`;
-                    wrap.appendChild(statImg);
-                    container.appendChild(wrap);
-
-                    wrap.addEventListener('mousedown', (e) => handleDragStart(e, shard.id));
-                    wrap.addEventListener('touchstart', (e) => handleDragStart(e, shard.id), { passive: false });
-                    wrap.addEventListener('click', (e) => {
-                        if (!isScattered || isAnimating || hasDragged) return;
-                        document.getElementById('modalTitle').innerText = shard.title;
-                        document.getElementById('modalDesc').innerText = shard.desc;
-                        document.getElementById('philModal').classList.add('active');
-                    });
-                });
-            }
-            const fullBox = document.getElementById('fullLogoBox');
-            if (fullBox) {
-                fullBox.addEventListener('mousedown', (e) => handleDragStart(e, 'full'));
-                fullBox.addEventListener('touchstart', (e) => handleDragStart(e, 'full'), { passive: false });
-            }
-
-            swapToStatic();
-            clearInterval(loreInterval);
-            const loader = document.getElementById('loader');
-            if (loader) {
-                loader.style.opacity = '0';
-                loader.style.display = 'none';
-            }
-            gsap.set('#fullLogoBox', { scale: layout.fullScale || (layout.scale * 1.5) });
-            isPlaying = true;
-            return;
-        }
-
         const isMobile = mq.matches;
         assetsData.full.images = new Array(TOTAL_FRAMES).fill(null);
 
@@ -611,7 +544,7 @@ const initBeranda = () => {
     // Frame counter untuk throttle canvas render di mobile
     let _autoPlayFrame = 0;
     const autoPlayEngine = () => {
-        if (!isPlaying || isLowPerf) return;
+        if (!isPlaying) return;
         _autoPlayFrame++;
         const isMobileNow = mq.matches;
         // Mobile: render canvas setiap 2 frame (~30fps) untuk hemat baterai & GPU
@@ -702,7 +635,6 @@ const initBeranda = () => {
     const isMobileDevice = mq.matches;
     const swapToStatic = () => { gsap.set('.shard-canvas, #fullLogoCanvas', { display: 'none' }); gsap.set('.shard-static, #fullLogoStatic', { display: 'block', opacity: 1 }); };
     const swapToSequence = () => {
-        if (isLowPerf) return; // Pertahankan mode statis pada perangkat spesifikasi rendah
         gsap.set('.shard-static, #fullLogoStatic', { display: 'none' });
         gsap.set('.shard-canvas, #fullLogoCanvas', { display: 'block', opacity: 1 });
     };

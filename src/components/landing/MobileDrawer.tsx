@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
-import PerformanceToggle from "@/components/layout/PerformanceToggle";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface MobileDrawerProps {
@@ -14,7 +13,7 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
-  const { t, locale } = useLanguage();
+  const { t } = useLanguage();
 
   // Lock body scroll when drawer is open
   useEffect(() => {
@@ -65,7 +64,6 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
           <div className="drawer-quick-actions">
             <LanguageSwitcher variant="pill" />
             <ThemeToggle />
-            <PerformanceToggle />
           </div>
 
           {/* Section 1: Halaman Landing Anchor Links */}
@@ -87,10 +85,6 @@ export default function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
               <a href="#almamater" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-solid fa-mosque"></i>
                 <span>{t.drawer.nav_almamater}</span>
-              </a>
-              <a href="#kta" className="drawer-nav-link" onClick={onClose}>
-                <i className="fa-solid fa-id-card"></i>
-                <span>{locale === "ar" ? "بطاقة KTA" : locale === "en" ? "KTA Card" : "Kartu KTA Fisik"}</span>
               </a>
               <a href="#aplikasi" className="drawer-nav-link" onClick={onClose}>
                 <i className="fa-brands fa-android"></i>
