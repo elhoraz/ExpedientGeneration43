@@ -22,20 +22,27 @@ export default function GlobalMouseSpotlight() {
     let targetY = -1000;
     let currentX = -1000;
     let currentY = -1000;
-    let isRunning = true;
-    let rafId: number;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
-    };
+    let isMoving = false;
+    let rafId: number | null = null;
 
     const render = () => {
-      if (!isRunning) return;
+      const dx = targetX - currentX;
+      const dy = targetY - currentY;
 
-      // Smooth lerp (linear interpolation) for fluid light trailing
-      currentX += (targetX - currentX) * 0.15;
-      currentY += (targetY - currentY) * 0.15;
+      // When settled, update one last time and sleep RAF loop to save GPU
+      if (Math.abs(dx) < 0.25 && Math.abs(dy) < 0.25) {
+        currentX = targetX;
+        currentY = targetY;
+        el.style.setProperty("--spot-x", `${currentX.toFixed(1)}px`);
+        el.style.setProperty("--spot-y", `${currentY.toFixed(1)}px`);
+        isMoving = false;
+        rafId = null;
+        return;
+      }
+
+      // Smooth lerp (linear interpolation)
+      currentX += dx * 0.18;
+      currentY += dy * 0.18;
 
       el.style.setProperty("--spot-x", `${currentX.toFixed(1)}px`);
       el.style.setProperty("--spot-y", `${currentY.toFixed(1)}px`);
@@ -43,12 +50,19 @@ export default function GlobalMouseSpotlight() {
       rafId = requestAnimationFrame(render);
     };
 
+    const handleMouseMove = (e: MouseEvent) => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      if (!isMoving) {
+        isMoving = true;
+        rafId = requestAnimationFrame(render);
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    rafId = requestAnimationFrame(render);
 
     return () => {
-      isRunning = false;
-      cancelAnimationFrame(rafId);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       window.removeEventListener("mousemove", handleMouseMove);
     };
   }, []);

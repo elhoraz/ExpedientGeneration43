@@ -104,7 +104,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
         </Link>
 
-        {/* Desktop Nav Links with Active Indicator */}
+        {/* Desktop Nav Links with Active Indicator (Hick's Law: 4 core anchors) */}
         <nav className="nav-links">
           <a href="#sejarah" className={`nav-link ${activeSection === "sejarah" ? "active" : ""}`}>
             {t.nav.sejarah}
@@ -115,19 +115,13 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           <a href="#almamater" className={`nav-link ${activeSection === "almamater" ? "active" : ""}`}>
             {t.nav.almamater}
           </a>
-          <a href="#aplikasi" className={`nav-link ${activeSection === "aplikasi" ? "active" : ""}`}>
-            {t.nav.apk}
-          </a>
           <a href="#ekosistem" className={`nav-link ${activeSection === "ekosistem" ? "active" : ""}`}>
             {t.nav.ecosystem}
           </a>
-          <Link href="/radar" className="nav-link nav-link-highlight">
-            <i className="fa-solid fa-map-location-dot"></i> {t.nav.radar}
-          </Link>
         </nav>
 
         <div className="nav-actions">
-          {/* Quick Search Shortcut Trigger (Ctrl+K) */}
+          {/* Quick Search Trigger Icon */}
           <button
             type="button"
             className="nav-search-trigger"
@@ -139,20 +133,29 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             aria-label="Cari Cepat"
           >
             <i className="fa-solid fa-magnifying-glass"></i>
-            <span className="search-shortcut-pill">⌘K</span>
           </button>
 
+          {/* Desktop Language Switcher */}
           <div className="landing-desktop-lang">
             <LanguageSwitcher variant="pill" />
           </div>
+
+          {/* Desktop Theme Toggle */}
           <ThemeToggle />
-          <Link href="/login" className="nav-link nav-login-link" title={t.hero.cta_login}>
+
+          {/* Visual Separator (Law of Proximity & Grouping) */}
+          <div className="nav-action-divider" aria-hidden="true"></div>
+
+          {/* Secondary Action: Login */}
+          <Link href="/login" className="nav-login-link" title={t.hero.cta_login}>
             <i className="fa-solid fa-circle-user"></i>
             <span>{t.nav.login}</span>
           </Link>
+
+          {/* Primary Action Button: Fitts's Law Distinct Golden CTA */}
           <Link href="/beranda" className="nav-btn-portal" id="navCtaExplore">
-            <i className="fa-solid fa-landmark"></i>
             <span>{t.nav.explore_museum}</span>
+            <i className="fa-solid fa-arrow-right"></i>
           </Link>
 
           {/* Mobile Hamburger Button */}
@@ -273,7 +276,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </section>
 
         {/* ====== TUKU-STYLE RUNNING TICKER RIBBON (CSS-ONLY, ULTRA LIGHTWEIGHT) ====== */}
-        <div className="tuku-running-ribbon reveal-on-scroll" aria-hidden="true">
+        <div className="tuku-running-ribbon" aria-hidden="true">
           <div className="tuku-ticker-track">
             <span className="ticker-segment">⚜️ {t.ticker.seg_expedient}</span>
             <span className="ticker-dot">✦</span>
@@ -309,7 +312,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         </div>
 
         {/* Islamic Heritage Flourish Divider 1 */}
-        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
+        <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
@@ -323,7 +326,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <HistoryTimeline />
 
         {/* Islamic Heritage Flourish Divider 2 */}
-        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
+        <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
@@ -337,7 +340,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <PolaroidMemories />
 
         {/* Islamic Heritage Flourish Divider 3 */}
-        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
+        <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
@@ -351,7 +354,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <WisdomAsatidz />
 
         {/* Islamic Heritage Flourish Divider 4 */}
-        <div className="islamic-flourish-divider reveal-on-scroll" aria-hidden="true">
+        <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
