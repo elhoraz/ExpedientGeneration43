@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import "../birthday.css";
 
 const palettes = [
     ['#ff6b6b','#feca57','#ff9ff3','#ffffff','#ffffffcc'],
@@ -295,12 +296,18 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
   useEffect(() => {
     document.body.classList.add("page-birthday");
+    return () => {
+      document.body.classList.remove("page-birthday");
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!fontUrl) return;
     const link = document.createElement("link");
     link.href = fontUrl;
     link.rel = "stylesheet";
     document.head.appendChild(link);
     return () => {
-      document.body.classList.remove("page-birthday");
       if (document.head.contains(link)) {
         document.head.removeChild(link);
       }

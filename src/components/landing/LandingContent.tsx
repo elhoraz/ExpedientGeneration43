@@ -46,13 +46,16 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
     const sectionIds = ["beranda", "sejarah", "nasehat", "almamater", "aplikasi", "ekosistem"];
     const handleScrollSpy = () => {
       const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
-      const scrollPos = (wrapper ? wrapper.scrollTop : window.scrollY) + 160;
+      const isMobile = window.innerWidth <= 1024;
+      const scrollPos = (isMobile ? window.scrollY : (wrapper?.scrollTop ?? window.scrollY)) + 160;
 
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const id = sectionIds[i];
         const el = document.getElementById(id);
         if (el) {
-          const top = wrapper ? el.offsetTop : el.getBoundingClientRect().top + window.scrollY;
+          const top = isMobile
+            ? el.getBoundingClientRect().top + window.scrollY
+            : (wrapper ? el.offsetTop : el.getBoundingClientRect().top + window.scrollY);
           if (scrollPos >= top) {
             setActiveSection(id);
             break;

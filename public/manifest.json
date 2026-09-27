@@ -1,11 +1,11 @@
 {
   "name": "Expedient Generation",
   "short_name": "Expedient",
-  "description": "Platform komunitas alumni eksklusif Pondok Modern Arrisalah Angkatan ke-42.",
+  "description": "Platform komunitas alumni eksklusif Pondok Modern Arrisalah Angkatan ke-43.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#050505",
-  "theme_color": "#050505",
+  "background_color": "#060b14",
+  "theme_color": "#060b14",
   "icons": [
     {
       "src": "/images/logo-utuh.webp",

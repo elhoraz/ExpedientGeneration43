@@ -1,12 +1,12 @@
 {
   "name": "Expedient Generation",
   "short_name": "Expedient",
-  "description": "Platform Silaturahmi dan Jaringan Profesional Angkatan",
+  "description": "Platform Silaturahmi dan Jaringan Profesional Angkatan 43",
   "lang": "id",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "background_color": "#060b14",
   "theme_color": "#d4af37",
   "icons": [

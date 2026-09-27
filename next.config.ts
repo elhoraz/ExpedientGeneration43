@@ -4,6 +4,16 @@ import withPWAInit from "@ducanh2912/next-pwa";
 const withPWA = withPWAInit({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
+  publicExcludes: [
+    "!noprecache/**/*",
+    "!assets/audio/**/*",
+    "!assets/foto_putra/**/*",
+    "!assets/foto_putri/**/*",
+    "!assets/gallery/**/*",
+    "!assets/models/**/*",
+    "!sequence/**/*",
+    "!uploads/**/*",
+  ],
 });
 
 const nextConfig: NextConfig = {

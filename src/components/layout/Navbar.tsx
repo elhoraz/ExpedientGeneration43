@@ -39,26 +39,28 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
   useEffect(() => {
-    // 1. Service Worker & Push Notification Subscription
+    // 1. Service Worker & Push Notification Subscription (Hanya subscribe otomatis jika izin sudah diberikan pengguna)
     if ('serviceWorker' in navigator && 'PushManager' in window && VAPID_PUBLIC_KEY) {
-      navigator.serviceWorker.register('/sw.js').then(async () => {
-        try {
-          const registration = await navigator.serviceWorker.ready;
-          const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-          });
+      if (typeof window !== "undefined" && 'Notification' in window && Notification.permission === 'granted') {
+        navigator.serviceWorker.register('/sw.js').then(async () => {
+          try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            });
 
-          // Send subscription to server
-          await fetch('/api/push/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(subscription),
-          });
-        } catch (error) {
-          console.error('Push subscription failed:', error);
-        }
-      });
+            // Send subscription to server
+            await fetch('/api/push/subscribe', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(subscription),
+            });
+          } catch (error) {
+            console.error('Push subscription sync failed:', error);
+          }
+        });
+      }
     }
     // Fetch recent lounge chats
     const fetchChatsAndUser = async () => {

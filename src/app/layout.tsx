@@ -44,7 +44,9 @@ export const viewport: Viewport = {
   colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 5,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
@@ -149,16 +151,19 @@ export default async function RootLayout({
                   var t = localStorage.getItem('expedient_theme') || 'dark';
                   document.documentElement.setAttribute('data-theme', t);
 
-                  // Deteksi hardware, RAM, dan perangkat mobile secara presisi
-                  var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-                  var isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                  var isSmallScreen = window.innerWidth <= 1024 || (window.screen && window.screen.width <= 1024);
-                  var isMobile = isTouch || isMobileUA || isSmallScreen;
+                  // Deteksi hardware dan perangkat mobile secara presisi tanpa salah mengenali laptop touchscreen
+                  var hasFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+                  var isCoarseOnly = window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches;
+                  var isMobileUA = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Silk/i.test(navigator.userAgent);
+                  var isSmallScreen = (window.innerWidth && window.innerWidth <= 1024) || (window.screen && window.screen.width <= 1024);
+                  
+                  // Perangkat mobile murni adalah HP berlayar sentuh tanpa mouse, atau Mobile UA dengan layar kecil
+                  var isMobile = isMobileUA || (isSmallScreen && (isCoarseOnly || !hasFinePointer));
 
-                  var ram = navigator.deviceMemory || (isMobile ? 3 : 8);
+                  var ram = navigator.deviceMemory || (isMobile ? 4 : 8);
                   var cpu = navigator.hardwareConcurrency || (isMobile ? 4 : 8);
                   var isSaveData = Boolean(navigator.connection && navigator.connection.saveData);
-                  var isLowEnd = isMobile || ram <= 4 || cpu <= 4 || isSaveData;
+                  var isLowEnd = isSaveData || (isMobile && (ram <= 3 || cpu <= 4));
 
                   document.documentElement.setAttribute('data-perf', isLowEnd ? 'lite' : 'high');
                   document.documentElement.setAttribute('data-device', isMobile ? 'mobile' : 'desktop');
@@ -167,8 +172,8 @@ export default async function RootLayout({
                   document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
                   if (savedLang === 'ar') document.documentElement.classList.add('rtl-mode');
                 } catch(e) {
-                  document.documentElement.setAttribute('data-perf', 'lite');
-                  document.documentElement.setAttribute('data-device', 'mobile');
+                  document.documentElement.setAttribute('data-perf', 'high');
+                  document.documentElement.setAttribute('data-device', 'desktop');
                 }
               })();
             `,

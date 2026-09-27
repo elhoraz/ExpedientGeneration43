@@ -457,11 +457,11 @@ export default function KontemplasiClient({ initialJournals, userId }: { initial
           </div>
       </div>
 
-      <video id="audio-rain" loop preload="auto" playsInline style={{ display: 'none' }}><source src="/assets/audio/rain.mp4" type="video/mp4" /></video>
-      <video id="audio-ocean" loop preload="auto" playsInline style={{ display: 'none' }}><source src="/assets/audio/ocean.mp4" type="video/mp4" /></video>
-      <video id="audio-space" loop preload="auto" playsInline style={{ display: 'none' }}><source src="/assets/audio/space.mp4" type="video/mp4" /></video>
-      <video id="audio-zen" loop preload="auto" playsInline style={{ display: 'none' }}><source src="/assets/audio/zen.mp4" type="video/mp4" /></video>
-      <audio id="audio-quran" loop preload="auto"><source src="https://server8.mp3quran.net/afs/055.mp3?v=3" type="audio/mpeg" /></audio>
+      <audio id="audio-rain" loop preload="none"><source src="/assets/audio/rain.m4a" type="audio/mp4" /></audio>
+      <audio id="audio-ocean" loop preload="none"><source src="/assets/audio/ocean.m4a" type="audio/mp4" /></audio>
+      <audio id="audio-space" loop preload="none"><source src="/assets/audio/space.m4a" type="audio/mp4" /></audio>
+      <audio id="audio-zen" loop preload="none"><source src="/assets/audio/zen.m4a" type="audio/mp4" /></audio>
+      <audio id="audio-quran" loop preload="none"><source src="https://server8.mp3quran.net/afs/055.mp3?v=3" type="audio/mpeg" /></audio>
 
     </div>
   );

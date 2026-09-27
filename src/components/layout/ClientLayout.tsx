@@ -123,8 +123,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // 2. Custom Cursor (Hanya Desktop / Non-touch)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-    if (window.innerWidth <= 1024 || isTouch) return;
+    const isCoarseOnly = window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches;
+    const hasFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    if (window.innerWidth <= 1024 || isCoarseOnly || !hasFinePointer) return;
     
     const isLite = document.documentElement.getAttribute("data-perf") === "lite";
     if (isLite) return;
@@ -185,8 +186,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     if (typeof window === "undefined") return;
 
     const perfMode = document.documentElement.getAttribute("data-perf");
-    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
-    const isLite = perfMode === "lite" || window.innerWidth <= 1024 || isTouch;
+    const isCoarseOnly = window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches;
+    const isLite = perfMode === "lite" || (window.innerWidth <= 1024 && isCoarseOnly);
 
     const canvas = document.getElementById("particles-js") as HTMLCanvasElement;
     if (!canvas) return;

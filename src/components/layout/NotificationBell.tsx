@@ -30,6 +30,46 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"quest" | "notif">("quest");
   const [completedQuests, setCompletedQuests] = useState<Set<string>>(new Set(["login"]));
+  const [pushStatus, setPushStatus] = useState<"granted" | "default" | "denied" | "unsupported">("granted");
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setPushStatus(Notification.permission);
+    } else {
+      setPushStatus("unsupported");
+    }
+  }, []);
+
+  const enablePush = async () => {
+    if (typeof window === "undefined" || !("Notification" in window) || !("serviceWorker" in navigator)) return;
+    try {
+      const permission = await Notification.requestPermission();
+      setPushStatus(permission);
+      if (permission === "granted") {
+        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (vapidKey) {
+          const reg = await navigator.serviceWorker.ready;
+          const padding = "=".repeat((4 - (vapidKey.length % 4)) % 4);
+          const base64 = (vapidKey + padding).replace(/-/g, "+").replace(/_/g, "/");
+          const rawData = window.atob(base64);
+          const outputArray = new Uint8Array(rawData.length);
+          for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+
+          const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: outputArray,
+          });
+          await fetch("/api/push/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(sub),
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Enable push error:", err);
+    }
+  };
 
   const quests: QuestItem[] = [
     {
@@ -468,6 +508,46 @@ export default function NotificationBell({ userId }: { userId: string }) {
                   </button>
                 )}
               </div>
+
+              {pushStatus === "default" && (
+                <div style={{
+                  margin: "8px 14px",
+                  padding: "10px 14px",
+                  borderRadius: "12px",
+                  background: "rgba(212, 175, 55, 0.08)",
+                  border: "1px solid rgba(212, 175, 55, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "10px"
+                }}>
+                  <div style={{ fontSize: "0.78rem", color: "var(--text-primary)" }}>
+                    <i className="fa-solid fa-bell" style={{ color: "#d4af37", marginRight: "6px" }}></i>
+                    <span>{locale === "ar" ? "تفعيل التنبيهات على الجهاز" : locale === "en" ? "Enable push notifications" : "Aktifkan notifikasi perangkat"}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      enablePush();
+                    }}
+                    style={{
+                      background: "#d4af37",
+                      color: "#060b14",
+                      border: "none",
+                      borderRadius: "20px",
+                      padding: "4px 12px",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      flexShrink: 0
+                    }}
+                  >
+                    {locale === "ar" ? "تفعيل" : locale === "en" ? "Enable" : "Aktifkan"}
+                  </button>
+                </div>
+              )}
+
               <div className="notif-body">
                 {notifications.length > 0 ? (
                   notifications.map((n) => (

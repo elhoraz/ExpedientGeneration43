@@ -658,5 +658,12 @@ body {
   box-shadow: 0 6px 18px rgba(170, 119, 28, 0.18) !important;
 }
 
-
+/* Prevent iOS Safari from forced auto-zooming inputs on focus when font-size < 16px */
+@media screen and (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
 
