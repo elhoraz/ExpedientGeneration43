@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { handleAdminAutoRemediation } from "@/lib/sentinel/autoRemediator";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "expedient_meta_token_2026";
 
@@ -22,104 +22,157 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST Handler: Menerima pesan masuk dari pengguna WhatsApp & Menjalankan Bot Penjawab Otomatis
+ * POST Handler: Menerima pesan masuk dari Fonnte / Meta WhatsApp Gateway
+ * Mendukung Auto-Remediasi 24 Jam saat Admin membalas pesan peringatan (PERBAIKI / !fix / !status)
  */
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    console.log("[META WEBHOOK INCOMING]:", JSON.stringify(body, null, 2));
+    const contentType = request.headers.get("content-type") || "";
+    const incomingList: Array<{
+      sender: string;
+      messageText: string;
+      senderName?: string;
+      device?: string;
+    }> = [];
 
-    const adminSupabase = createAdminClient();
+    // 1. Parsing JSON Payload (Fonnte atau Meta)
+    if (contentType.includes("application/json")) {
+      const body = await request.json().catch(() => ({}));
 
-    const entry = body.entry?.[0];
-    const changes = entry?.changes?.[0];
-    const value = changes?.value;
+      // A. Format Webhook Fonnte
+      if (body.sender || body.message || body.text) {
+        incomingList.push({
+          sender: String(body.sender || ""),
+          messageText: String(body.message || body.text || ""),
+          senderName: String(body.name || ""),
+          device: String(body.device || ""),
+        });
+      }
+      // B. Format Webhook Resmi Meta Cloud API
+      else if (body.entry?.[0]?.changes?.[0]?.value?.messages) {
+        const value = body.entry[0].changes[0].value;
+        const contact = value.contacts?.[0];
+        const metaSenderName = contact?.profile?.name || "";
 
-    if (value && value.messages && value.messages.length > 0) {
-      const contact = value.contacts?.[0];
-      const metaSenderName = contact?.profile?.name || "";
-
-      for (const msg of value.messages) {
-        const fromRaw = String(msg.from || "").trim();
-        let messageText = "";
-
-        if (msg.type === "text") {
-          messageText = msg.text?.body || "";
-        } else if (msg.type === "interactive") {
-          messageText = msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || "[Respon Interaktif]";
-        } else if (msg.type === "button") {
-          messageText = msg.button?.text || "[Pilihan Tombol]";
-        } else if (msg.type === "image") {
-          messageText = msg.image?.caption || "[Gambar Terkirim]";
-        } else if (msg.type === "audio") {
-          messageText = "[Pesan Suara / Voice Note]";
-        } else if (msg.type === "document") {
-          messageText = msg.document?.filename || "[Dokumen Terkirim]";
-        } else {
-          messageText = `[Pesan ${msg.type || "Media"}]`;
-        }
-
-        if (!fromRaw || !messageText) continue;
-
-        // Normalisasi nomor telepon
-        let numNorm = fromRaw.replace(/\D/g, "");
-        if (numNorm.startsWith("0")) numNorm = "62" + numNorm.substring(1);
-        const altLocalNum = numNorm.startsWith("62") ? "0" + numNorm.substring(2) : numNorm;
-
-        // Cari profil alumni
-        const { data: matchedProfiles } = await adminSupabase
-          .from("profiles")
-          .select("id, nama_lengkap, nama_panggilan, role")
-          .or(`no_whatsapp.eq.${numNorm},no_whatsapp.eq.${altLocalNum}`)
-          .limit(1);
-
-        const matchedUser = matchedProfiles?.[0];
-        const userDisplayName = matchedUser?.nama_panggilan || matchedUser?.nama_lengkap || metaSenderName || "Sahabat";
-        const senderTag = matchedUser
-          ? `${userDisplayName} (${matchedUser.role || "Alumni"})`
-          : metaSenderName || `Pengguna WhatsApp`;
-
-        // 1. Simpan pesan masuk ke antrean
-        await adminSupabase.from("whatsapp_queue").insert([
-          {
-            no_whatsapp: numNorm,
-            message: messageText,
-            status: "received",
-            error_message: `Nama: ${senderTag}`,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ]);
-
-        console.log(`[META-WA-INCOMING] Pesan dari ${numNorm} (${senderTag}): "${messageText}" diterima.`);
-
-        // Notifikasi Lonceng Admin
-        try {
-          const { data: adminProfiles } = await adminSupabase
-            .from("profiles")
-            .select("id")
-            .in("role", ["admin", "superadmin"]);
-
-          if (adminProfiles && adminProfiles.length > 0) {
-            const notifRecords = adminProfiles.map((adm) => ({
-              user_id: adm.id,
-              title: `💬 WA Masuk: ${userDisplayName}`,
-              message: messageText.length > 80 ? messageText.substring(0, 77) + "..." : messageText,
-              link: "/admin/broadcast",
-              is_read: false,
-              created_at: new Date().toISOString(),
-            }));
-            await adminSupabase.from("notifications").insert(notifRecords);
+        for (const msg of value.messages) {
+          let text = "";
+          if (msg.type === "text") {
+            text = msg.text?.body || "";
+          } else if (msg.type === "interactive") {
+            text = msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || "[Interaktif]";
+          } else if (msg.type === "button") {
+            text = msg.button?.text || "[Pilihan Tombol]";
+          } else if (msg.type === "image") {
+            text = msg.image?.caption || "[Gambar Terkirim]";
+          } else {
+            text = `[Pesan ${msg.type || "Media"}]`;
           }
-        } catch (notifErr) {
-          console.warn("[META-WA-NOTIF-ERROR]: Gagal membuat notifikasi admin:", notifErr);
+
+          incomingList.push({
+            sender: String(msg.from || ""),
+            messageText: text,
+            senderName: metaSenderName,
+          });
         }
       }
     }
+    // 2. Parsing Form-Data / URL-Encoded (Fonnte default POST)
+    else if (contentType.includes("form-data") || contentType.includes("urlencoded")) {
+      const formData = await request.formData().catch(() => null);
+      if (formData) {
+        incomingList.push({
+          sender: String(formData.get("sender") || ""),
+          messageText: String(formData.get("message") || formData.get("text") || ""),
+          senderName: String(formData.get("name") || ""),
+          device: String(formData.get("device") || ""),
+        });
+      }
+    }
 
-    return NextResponse.json({ status: "EVENT_RECEIVED" });
+    const adminPhoneEnv = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
+    const adminSupabase = createAdminClient();
+
+    for (const item of incomingList) {
+      const rawSender = item.sender.trim();
+      const messageText = item.messageText.trim();
+      if (!rawSender || !messageText) continue;
+
+      let numNorm = rawSender.replace(/\D/g, "");
+      if (numNorm.startsWith("0")) numNorm = "62" + numNorm.substring(1);
+
+      // Cek apakah pesan berasal dari Nomor WhatsApp Admin
+      const isSenderAdmin =
+        numNorm === adminPhoneEnv ||
+        numNorm.endsWith(adminPhoneEnv.slice(-9)) ||
+        adminPhoneEnv.endsWith(numNorm.slice(-9));
+
+      if (isSenderAdmin) {
+        console.log(`[SENTINEL-ADMIN-INCOMING] Pesan dari Admin (${numNorm}): "${messageText}"`);
+
+        // Jalankan engine auto-remediasi jika ini instruksi perbaikan / kontrol
+        const remediationResult = await handleAdminAutoRemediation(numNorm, messageText);
+        if (remediationResult.action !== "not_a_sentinel_command") {
+          console.log(`[SENTINEL-REMEDIATION-EXECUTED]: ${remediationResult.action} - ${remediationResult.success}`);
+          return NextResponse.json({
+            status: "REMEDIATION_EXECUTED",
+            reply: remediationResult.message,
+          });
+        }
+      }
+
+      // Jika pesan dari pengunjung biasa / alumni: Simpan ke antrean dan buat notifikasi
+      const altLocalNum = numNorm.startsWith("62") ? "0" + numNorm.substring(2) : numNorm;
+      const { data: matchedProfiles } = await adminSupabase
+        .from("profiles")
+        .select("id, nama_lengkap, nama_panggilan, role")
+        .or(`no_whatsapp.eq.${numNorm},no_whatsapp.eq.${altLocalNum}`)
+        .limit(1);
+
+      const matchedUser = matchedProfiles?.[0];
+      const userDisplayName = matchedUser?.nama_panggilan || matchedUser?.nama_lengkap || item.senderName || "Sahabat";
+      const senderTag = matchedUser
+        ? `${userDisplayName} (${matchedUser.role || "Alumni"})`
+        : item.senderName || `Pengguna WhatsApp`;
+
+      await adminSupabase.from("whatsapp_queue").insert([
+        {
+          no_whatsapp: numNorm,
+          message: messageText,
+          status: "received",
+          error_message: `Nama: ${senderTag}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      console.log(`[WA-INCOMING] Pesan dari ${numNorm} (${senderTag}): "${messageText}"`);
+
+      // Notifikasi Lonceng In-App untuk Admin Dashboard
+      try {
+        const { data: adminProfiles } = await adminSupabase
+          .from("profiles")
+          .select("id")
+          .in("role", ["admin", "superadmin"]);
+
+        if (adminProfiles && adminProfiles.length > 0) {
+          const notifRecords = adminProfiles.map((adm) => ({
+            user_id: adm.id,
+            title: `💬 WA Masuk: ${userDisplayName}`,
+            message: messageText.length > 80 ? messageText.substring(0, 77) + "..." : messageText,
+            link: "/admin/broadcast",
+            is_read: false,
+            created_at: new Date().toISOString(),
+          }));
+          await adminSupabase.from("notifications").insert(notifRecords);
+        }
+      } catch (notifErr) {
+        console.warn("[WA-NOTIF-ERROR]: Gagal membuat notifikasi admin:", notifErr);
+      }
+    }
+
+    return NextResponse.json({ status: "SUCCESS" });
   } catch (error) {
-    console.error("[META WEBHOOK ERROR]:", error);
+    console.error("[WHATSAPP WEBHOOK ERROR]:", error);
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 }

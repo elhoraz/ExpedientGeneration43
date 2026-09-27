@@ -45,6 +45,22 @@ let lastGlobalWaDispatch = 0;
 const DEDUP_WINDOW_MS = 10 * 60 * 1000; // 10 minutes deduplication
 const GLOBAL_THROTTLE_MS = 25 * 1000;   // 25 seconds between WhatsApp messages
 
+let lastIncident: TelemetryEvent | null = null;
+const recentIncidents: TelemetryEvent[] = [];
+
+export function getLastIncident(): TelemetryEvent | null {
+  return lastIncident;
+}
+
+export function getRecentIncidents(): TelemetryEvent[] {
+  return recentIncidents;
+}
+
+export function clearThrottleCache(): void {
+  errorThrottleCache.clear();
+  lastGlobalWaDispatch = 0;
+}
+
 function getCategoryBadge(category: AlertCategory): string {
   switch (category) {
     case "dead_click":
@@ -152,10 +168,20 @@ export async function dispatchSystemAlert(event: TelemetryEvent): Promise<{
     waMessage += `🔍 *Call Stack:*\n\`\`\`\n${cleanStack}\n\`\`\`\n\n`;
   }
 
+  // Record incident for auto-remediation memory
+  lastIncident = { ...event, timestamp: now };
+  recentIncidents.unshift(lastIncident);
+  if (recentIncidents.length > 20) recentIncidents.pop();
+
   if (occurrenceCount > 1) {
     waMessage += `🔁 *Frekuensi:* Terjadi ${occurrenceCount}x dalam beberapa menit terakhir.\n\n`;
   }
 
+  waMessage += `----------------------------------------\n`;
+  waMessage += `⚡ *AKSI CEPAT (Balas Chat Ini):*\n`;
+  waMessage += `• Ketik *PERBAIKI* atau *!fix* untuk perbaikan otomatis (revalidate cache, reset error, cek gateway)\n`;
+  waMessage += `• Ketik *!status* untuk cek kondisi server saat ini\n`;
+  waMessage += `• Ketik *!revalidate* untuk refresh halaman web\n`;
   waMessage += `----------------------------------------\n`;
   waMessage += `_Sistem Pemantauan Otomatis 24 Jam Aegis Sentinel_`;
 
