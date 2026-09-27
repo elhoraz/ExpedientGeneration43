@@ -6,6 +6,7 @@ import {
   clearThrottleCache,
   checkFonnteHealthAndAlert,
 } from "@/lib/sentinel/telemetryAlert";
+import { executeAutonomousAiFix } from "@/lib/sentinel/aiCodeFixer";
 
 export interface AutoRemediationResult {
   action: string;
@@ -50,7 +51,24 @@ export async function handleAdminAutoRemediation(
 
   const cleanCmd = rawMessage.trim().toLowerCase();
 
-  // 1. COMMAND: PERBAIKI / FIX
+  // 1. COMMAND: PERBAIKI KODE (Autonomous AI Code Repair via Gemini 3.8 Flash & GitHub)
+  if (
+    cleanCmd.includes("kode") ||
+    cleanCmd.startsWith("!ai") ||
+    cleanCmd.includes("ai-fix") ||
+    cleanCmd.includes("aifix") ||
+    cleanCmd === "fix code" ||
+    cleanCmd.startsWith("fix code")
+  ) {
+    const aiResult = await executeAutonomousAiFix(adminPhoneEnv, rawMessage);
+    return {
+      action: "ai_code_fix",
+      success: aiResult.success,
+      message: aiResult.message,
+    };
+  }
+
+  // 2. COMMAND: PERBAIKI / FIX (Operasional Server, Cache, Gateway, Queue)
   if (
     cleanCmd.startsWith("!fix") ||
     cleanCmd === "perbaiki" ||
@@ -109,7 +127,8 @@ export async function handleAdminAutoRemediation(
     const msg =
       `🤖 *[AEGIS SENTINEL COMMAND CENTER]*\n\n` +
       `Halo Admin! Perintah kendali otomatis yang dapat Anda ketik via WA:\n\n` +
-      `• *PERBAIKI* / *!fix* : Jalankan pemulihan otomatis (revalidate cache halaman, cek DB, reconnect gateway, reset throttle)\n` +
+      `• *PERBAIKI* : Pemulihan server cepat (revalidate cache, reset error, cek DB & Fonnte)\n` +
+      `• *PERBAIKI KODE* / *!ai-fix* : Perbaikan kode otomatis oleh Gemini 3.8 Flash & push ke GitHub/Vercel!\n` +
       `• *STATUS* / *!status* : Cek kesehatan server, database Supabase, dan kuota Fonnte\n` +
       `• *!revalidate /path* : Bersihkan cache halaman spesifik (contoh: \`!revalidate /galeri\`)\n` +
       `• *!queue* : Cek & kirim ulang antrean pesan WhatsApp yang sempat tertunda\n\n` +
@@ -225,11 +244,9 @@ async function executeAutoFix(adminPhone: string, rawCmd: string): Promise<AutoR
   });
 
   replyMsg += `\n----------------------------------------\n`;
-  replyMsg += `💡 *Catatan untuk Bug / Kode Program:*\n`;
-  replyMsg += `Jika kendala berupa perubahan logika kode atau styling tampilan:\n`;
-  replyMsg += `Buka sesi asisten coding (Antigravity) dan ketik:\n`;
-  replyMsg += `_"Perbaiki error di ${targetRoute}"_\n`;
-  replyMsg += `AI akan langsung mengedit file, menjalankan test build, dan push commit ke Vercel!`;
+  replyMsg += `💡 *Ingin AI Memperbaiki Kodenya Langsung?*\n`;
+  replyMsg += `Balas: *PERBAIKI KODE* di WhatsApp ini!\n`;
+  replyMsg += `Gemini 3.8 Flash akan otomatis menganalisis file, merevisi bug, dan men-deploy perbaikan ke GitHub & Vercel dalam 1 menit!`;
 
   await sendWhatsAppMessageWithDetail(adminPhone, replyMsg);
   return {

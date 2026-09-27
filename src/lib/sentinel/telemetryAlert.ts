@@ -179,9 +179,9 @@ export async function dispatchSystemAlert(event: TelemetryEvent): Promise<{
 
   waMessage += `----------------------------------------\n`;
   waMessage += `⚡ *AKSI CEPAT (Balas Chat Ini):*\n`;
-  waMessage += `• Ketik *PERBAIKI* atau *!fix* untuk perbaikan otomatis (revalidate cache, reset error, cek gateway)\n`;
+  waMessage += `• Ketik *PERBAIKI* untuk pemulihan server & refresh cache instan\n`;
+  waMessage += `• Ketik *PERBAIKI KODE* untuk perbaikan kode otomatis oleh Gemini 3.8 Flash & push ke GitHub\n`;
   waMessage += `• Ketik *!status* untuk cek kondisi server saat ini\n`;
-  waMessage += `• Ketik *!revalidate* untuk refresh halaman web\n`;
   waMessage += `----------------------------------------\n`;
   waMessage += `_Sistem Pemantauan Otomatis 24 Jam Aegis Sentinel_`;
 
