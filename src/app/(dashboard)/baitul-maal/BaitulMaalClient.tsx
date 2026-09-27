@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./baitul-maal.css";
@@ -744,10 +743,7 @@ export default function BaitulMaalClient({
       <div className="maal-wrapper">
         {/* HEADER */}
         <header className="maal-header">
-          <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left-long"></i> {t.baitul_maal.back_btn}
-          </Link>
-          <div style={{ textAlign: "right" }}>
+          <div>
             <h1 className="page-title">{t.baitul_maal.title}</h1>
             <p className="page-subtitle">{t.baitul_maal.subtitle}</p>
           </div>

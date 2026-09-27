@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-import Link from "next/link";
 import "./event.css";
 
 interface EventItem {
@@ -144,9 +143,6 @@ export default function EventClient({ initialEvents }: { initialEvents: EventIte
         </div>
       )}
 
-      <Link href="/fitur" className="btn-back">
-        <i className="fa-solid fa-arrow-left"></i> {tLang.common.back}
-      </Link>
 
       <div className="event-header">
         <h1 className="event-title">{tLang.event.title}</h1>

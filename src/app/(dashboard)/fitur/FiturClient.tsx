@@ -522,12 +522,7 @@ export default function FiturClient({
           1. MOBILE VIEW: BENTO WIDGET HUB (<= 900PX SCREEN)
           ========================================================================= */}
       <div className="mobile-widget-hub">
-        <div style={{ marginBottom: "12px" }}>
-          <Link href="/beranda" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i>
-            <span>{t.common?.back || "Beranda"}</span>
-          </Link>
-        </div>
+
         {/* WIDGET 1: PROFIL & KTA DIGITAL (2 Kolom / Full Width) */}
         <div className="mobile-bento-card widget-profile-card">
           <div className="widget-profile-header">
@@ -773,12 +768,7 @@ export default function FiturClient({
           2. DESKTOP VIEW: THE SOVEREIGN VAULT (SUPER KEREN & SINEMATIK > 900PX)
           ========================================================================= */}
       <div className="desktop-vault-view">
-        <div style={{ marginBottom: "20px" }}>
-          <Link href="/beranda" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i>
-            <span>{t.common.back}</span>
-          </Link>
-        </div>
+
         <div className="desktop-header">
           <div className="vault-emblem">
             <i className="fa-solid fa-shield-halved"></i>

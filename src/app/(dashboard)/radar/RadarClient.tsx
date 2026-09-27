@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from "react";
 import Script from "next/script";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { mountRadar2D, destroyRadar2D } from "./radar2dEngine";
@@ -104,13 +103,6 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
 
   return (
     <>
-        {/* Back Button to Beranda */}
-        <div style={{ position: 'fixed', top: 'max(16px, env(safe-area-inset-top, 16px))', left: 'max(16px, env(safe-area-inset-left, 16px))', zIndex: 100 }}>
-          <Link href="/beranda" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i>
-            <span>{t.common?.back || "Beranda"}</span>
-          </Link>
-        </div>
 
         <div id="radarLoading" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#060b14', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'opacity 1.5s ease' }}>
             <div className="rl-ring" style={{ width: '80px', height: '80px', border: '2px solid rgba(212,175,55,0.15)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'rlSpin 1s linear infinite', marginBottom: '30px' }}></div>

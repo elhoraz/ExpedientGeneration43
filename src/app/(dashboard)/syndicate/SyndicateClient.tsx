@@ -94,12 +94,6 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
 
   return (
     <div className="syndicate-page">
-      <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
-        <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-arrow-left"></i>
-          <span>{t.common.back}</span>
-        </Link>
-      </div>
 
       {/* Title Header */}
       <div style={{ textAlign: "center", marginBottom: "35px" }}>

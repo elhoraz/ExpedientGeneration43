@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   POPULAR_CITIES,
@@ -222,12 +221,6 @@ export default function KiblatClient() {
       <div className="kiblat-bg-ambient"></div>
 
       <div className="kiblat-container">
-        {/* Top Bar */}
-        <div className="kiblat-nav-bar">
-          <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> {t.kiblat.back_to_features}
-          </Link>
-        </div>
 
         {/* Title & Badge */}
         <div className="kiblat-header-box">

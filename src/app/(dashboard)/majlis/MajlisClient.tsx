@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import gsap from "gsap";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
@@ -627,9 +626,6 @@ function MajlisClient({ currentUser, initialTopics }: { currentUser: any, initia
         <div className="bg-wave"></div>
 
         <header className="majlis-header">
-            <Link href="/fitur" className="btn-back">
-                <i className="fa-solid fa-chevron-left"></i> {t.common.back}
-            </Link>
             <div className="room-info">
                 <h1 className="room-title">{t.majlis.title}</h1>
                 <div className="room-status">

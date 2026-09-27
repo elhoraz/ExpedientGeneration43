@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import gsap from "gsap";
 import { createClient } from "@/lib/supabase/client";
@@ -195,9 +194,6 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
     <div className="wasiat-page-wrapper">
       <div className="vault-wrapper">
         <header className="vault-header">
-          <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left-long"></i> {t.common.back}
-          </Link>
           <div className="header-titles">
             <h1 className="page-title">{t.wasiat.title}</h1>
             <div className="status-badge"><i className="fa-solid fa-feather-pointed"></i> {t.wasiat.subtitle}</div>

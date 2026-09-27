@@ -138,10 +138,6 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
     <div className="nexus-page-wrapper">
       <div className="nexus-wrapper">
 
-      <Link href="/fitur" className="btn-back">
-        <i className="fa-solid fa-arrow-left"></i> {t.common.back}
-      </Link>
-
       <div className="nexus-header">
         <h1 className="nexus-title">{t.nexus.title}</h1>
         <p className="nexus-subtitle">{t.nexus.subtitle}</p>

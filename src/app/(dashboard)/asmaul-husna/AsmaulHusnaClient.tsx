@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   ASMAUL_HUSNA_DATA,
@@ -577,12 +576,6 @@ export default function AsmaulHusnaClient() {
       </svg>
 
       <div className="asma-container">
-        {/* Top Back Action */}
-        <div className="asma-top-actions">
-          <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> {t.asmaul_husna.back_to_features}
-          </Link>
-        </div>
 
         {/* Header */}
         <header className="asma-header">

@@ -1209,34 +1209,16 @@ export default function GaleriClient({
           {/* YEARBOOK BUNDLE EXPORT MODAL (TASK B-5) */}
           {isExportModalOpen && (
             <div
+              className="yearbook-export-modal-backdrop"
               onClick={() => setIsExportModalOpen(false)}
-              style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 999999,
-                background: "rgba(0, 0, 0, 0.88)",
-                backdropFilter: "blur(14px)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "20px",
-              }}
             >
               <div
+                className="yearbook-export-modal-card"
                 onClick={(e) => e.stopPropagation()}
-                style={{
-                  background: "var(--bg-secondary, #0c120f)",
-                  border: "1px solid rgba(212, 175, 55, 0.4)",
-                  borderRadius: "24px",
-                  padding: "32px 28px",
-                  maxWidth: "460px",
-                  width: "100%",
-                  boxShadow: "0 25px 60px rgba(0,0,0,0.8)",
-                }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                   <div>
-                    <span style={{ fontFamily: "Courier New, monospace", color: "#d4af37", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase" }}>
+                    <span style={{ fontFamily: "Courier New, monospace", color: "var(--gold-main, #d4af37)", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase" }}>
                       {t.galeri_extra.album_yearbook}
                     </span>
                     <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", color: "var(--text-primary)", margin: "4px 0 0 0" }}>
@@ -1257,19 +1239,9 @@ export default function GaleriClient({
                 </p>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
-                  <div
-                    style={{
-                      background: "rgba(212, 175, 55, 0.06)",
-                      border: "1px solid rgba(212, 175, 55, 0.3)",
-                      borderRadius: "16px",
-                      padding: "16px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
+                  <div className="export-edition-box">
                     <div>
-                      <div style={{ fontWeight: "bold", fontSize: "0.95rem", color: "#f3e5ab" }}>
+                      <div className="export-edition-title">
                         <i className="fa-solid fa-mars" style={{ color: "#00bfff", marginRight: "6px" }}></i> {locale === 'ar' ? 'طبعة البنين (The Syndicate)' : locale === 'en' ? 'Boys Edition (The Syndicate)' : 'Edisi Putra (The Syndicate)'}
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
@@ -1278,41 +1250,19 @@ export default function GaleriClient({
                     </div>
                     <button
                       type="button"
+                      className="export-edition-btn"
                       onClick={() => {
                         setIsExportModalOpen(false);
                         handleOpenPrintView("putra");
-                      }}
-                      style={{
-                        background: "rgba(212, 175, 55, 0.2)",
-                        border: "1px solid #d4af37",
-                        color: "#d4af37",
-                        padding: "8px 16px",
-                        borderRadius: "20px",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
                       }}
                     >
                       <i className="fa-solid fa-print"></i> {t.galeri.export_btn}
                     </button>
                   </div>
 
-                  <div
-                    style={{
-                      background: "rgba(212, 175, 55, 0.06)",
-                      border: "1px solid rgba(212, 175, 55, 0.3)",
-                      borderRadius: "16px",
-                      padding: "16px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
+                  <div className="export-edition-box">
                     <div>
-                      <div style={{ fontWeight: "bold", fontSize: "0.95rem", color: "#f3e5ab" }}>
+                      <div className="export-edition-title">
                         <i className="fa-solid fa-venus" style={{ color: "#ff69b4", marginRight: "6px" }}></i> {locale === 'ar' ? 'طبعة البنات (Omega Dynasty)' : locale === 'en' ? 'Girls Edition (Omega Dynasty)' : 'Edisi Putri (Omega Dynasty)'}
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
@@ -1321,22 +1271,10 @@ export default function GaleriClient({
                     </div>
                     <button
                       type="button"
+                      className="export-edition-btn"
                       onClick={() => {
                         setIsExportModalOpen(false);
                         handleOpenPrintView("putri");
-                      }}
-                      style={{
-                        background: "rgba(212, 175, 55, 0.2)",
-                        border: "1px solid #d4af37",
-                        color: "#d4af37",
-                        padding: "8px 16px",
-                        borderRadius: "20px",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
                       }}
                     >
                       <i className="fa-solid fa-print"></i> {t.galeri.export_btn}

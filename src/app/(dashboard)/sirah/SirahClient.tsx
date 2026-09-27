@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   SIRAH_PLACES,
@@ -687,12 +686,6 @@ export default function SirahClient() {
       <div className="sirah-bg-ambient" />
 
       <div className="sirah-container">
-        {/* Top Action / Back Button */}
-        <div className="sirah-top-actions">
-          <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> {t.sirah.back_to_features}
-          </Link>
-        </div>
 
         {/* Header */}
         <header className="sirah-header">

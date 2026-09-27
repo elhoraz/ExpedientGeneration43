@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -47,11 +46,6 @@ export default function BukuTamuClient({ initialMessages, userId }: { initialMes
   return (
     <div className="buku-tamu-wrapper">
 
-      <div style={{ width: "100%", maxWidth: "800px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
-        <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-arrow-left"></i> {t.common.back}
-        </Link>
-      </div>
 
       <h1 className="bt-title">{t.buku_tamu.title}</h1>
       <p className="bt-subtitle">{t.buku_tamu.subtitle}</p>

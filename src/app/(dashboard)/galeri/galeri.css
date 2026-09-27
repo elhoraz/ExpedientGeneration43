@@ -1502,3 +1502,264 @@ body.mode-yearbook .dimension-shift-btn,
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
+/* Light Theme Overrides for Visual Vault Lightbox, Zoom & Modals */
+:root[data-theme="light"] .vault-lightbox-overlay,
+[data-theme="light"] .vault-lightbox-overlay {
+    background: rgba(248, 250, 252, 0.94);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+:root[data-theme="light"] .lightbox-counter,
+[data-theme="light"] .lightbox-counter {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .lightbox-counter span,
+[data-theme="light"] .lightbox-counter span {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .lightbox-action-btn,
+[data-theme="light"] .lightbox-action-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #1e293b;
+}
+
+:root[data-theme="light"] .lightbox-action-btn:hover,
+[data-theme="light"] .lightbox-action-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+    color: #aa771c;
+    border-color: #d4af37;
+}
+
+:root[data-theme="light"] .lightbox-action-btn.close-btn:hover,
+[data-theme="light"] .lightbox-action-btn.close-btn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+    border-color: #ef4444;
+}
+
+:root[data-theme="light"] .lightbox-nav-btn,
+[data-theme="light"] .lightbox-nav-btn {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #0f172a;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="light"] .lightbox-nav-btn:hover,
+[data-theme="light"] .lightbox-nav-btn:hover {
+    background: #d4af37;
+    color: #0b120e;
+    border-color: #b8860b;
+}
+
+:root[data-theme="light"] .lightbox-img-wrapper,
+[data-theme="light"] .lightbox-img-wrapper {
+    background: #ffffff;
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 0 25px rgba(212, 175, 55, 0.1);
+}
+
+:root[data-theme="light"] .lightbox-caption-text,
+[data-theme="light"] .lightbox-caption-text {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .lightbox-meta-uploader,
+[data-theme="light"] .lightbox-meta-uploader {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .lightbox-meta-uploader strong,
+[data-theme="light"] .lightbox-meta-uploader strong {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .lightbox-heart-btn,
+[data-theme="light"] .lightbox-heart-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #334155;
+}
+
+:root[data-theme="light"] .lightbox-heart-btn.liked,
+[data-theme="light"] .lightbox-heart-btn.liked {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: #ef4444;
+    color: #dc2626;
+}
+
+:root[data-theme="light"] .card-media-wrapper,
+[data-theme="light"] .card-media-wrapper {
+    background: #f1f5f9;
+}
+
+:root[data-theme="light"] .media-year-badge,
+[data-theme="light"] .media-year-badge {
+    background: rgba(255, 255, 255, 0.88);
+    color: #0f172a;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .story-avatar-box,
+[data-theme="light"] .story-avatar-box {
+    background: #ffffff;
+    border-color: #f8fafc;
+}
+
+:root[data-theme="light"] .story-title,
+[data-theme="light"] .story-title {
+    color: #475569;
+}
+
+:root[data-theme="light"] .story-capsule.active-story .story-title,
+[data-theme="light"] .story-capsule.active-story .story-title {
+    color: #aa771c;
+}
+
+/* Upload Bottom Sheet in Light Mode */
+:root[data-theme="light"] .upload-sheet-card,
+[data-theme="light"] .upload-sheet-card {
+    background: #ffffff;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .upload-dropzone,
+[data-theme="light"] .upload-dropzone {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(212, 175, 55, 0.4);
+}
+
+:root[data-theme="light"] .upload-dropzone:hover,
+[data-theme="light"] .upload-dropzone:hover {
+    background: rgba(212, 175, 55, 0.08);
+}
+
+:root[data-theme="light"] .dropzone-placeholder h4,
+[data-theme="light"] .dropzone-placeholder h4 {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .dropzone-placeholder p,
+[data-theme="light"] .dropzone-placeholder p {
+    color: #64748b;
+}
+
+:root[data-theme="light"] .upload-select-input,
+:root[data-theme="light"] .upload-text-input,
+:root[data-theme="light"] .upload-textarea,
+[data-theme="light"] .upload-select-input,
+[data-theme="light"] .upload-text-input,
+[data-theme="light"] .upload-textarea {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .btn-cancel-upload,
+[data-theme="light"] .btn-cancel-upload {
+    border-color: rgba(0, 0, 0, 0.2);
+    color: #475569;
+}
+
+/* Yearbook Export Modal Styles */
+.yearbook-export-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: rgba(0, 0, 0, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.yearbook-export-modal-card {
+    background: var(--bg-secondary, #0c120f);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+}
+
+.export-edition-box {
+    background: rgba(212, 175, 55, 0.06);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.export-edition-title {
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: #f3e5ab;
+}
+
+.export-edition-btn {
+    background: rgba(212, 175, 55, 0.2);
+    border: 1px solid #d4af37;
+    color: #d4af37;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.export-edition-btn:hover {
+    background: var(--gold-main, #d4af37);
+    color: #0b120e;
+}
+
+:root[data-theme="light"] .yearbook-export-modal-backdrop,
+[data-theme="light"] .yearbook-export-modal-backdrop {
+    background: rgba(248, 250, 252, 0.94);
+}
+
+:root[data-theme="light"] .yearbook-export-modal-card,
+[data-theme="light"] .yearbook-export-modal-card {
+    background: #ffffff;
+    border-color: rgba(212, 175, 55, 0.35);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+}
+
+:root[data-theme="light"] .export-edition-box,
+[data-theme="light"] .export-edition-box {
+    background: rgba(212, 175, 55, 0.06);
+    border-color: rgba(212, 175, 55, 0.25);
+}
+
+:root[data-theme="light"] .export-edition-title,
+[data-theme="light"] .export-edition-title {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .export-edition-btn,
+[data-theme="light"] .export-edition-btn {
+    background: rgba(212, 175, 55, 0.15);
+    border-color: #d4af37;
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .export-edition-btn:hover,
+[data-theme="light"] .export-edition-btn:hover {
+    background: #d4af37;
+    color: #0b120e;
+}
+

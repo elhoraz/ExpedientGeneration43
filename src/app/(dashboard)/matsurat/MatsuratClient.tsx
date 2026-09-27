@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   MATSURAT_ITEMS,
@@ -363,12 +362,6 @@ export default function MatsuratClient() {
       <div className="matsurat-bg-ambient"></div>
 
       <div className="matsurat-container">
-        {/* Top Back Action */}
-        <div className="matsurat-top-actions">
-          <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> {t.matsurat.back_to_features}
-          </Link>
-        </div>
 
         {/* Header Title & Badge */}
         <div className="matsurat-header">
@@ -789,16 +782,6 @@ export default function MatsuratClient() {
           </div>
         )}
 
-        {/* Back to Fitur Navigation Link */}
-        <div style={{ marginTop: "10px" }}>
-          <Link
-            href="/fitur"
-            className="btn-card-nav"
-            style={{ textDecoration: "none" }}
-          >
-            <i className="fa-solid fa-arrow-left"></i> {t.common.back}
-          </Link>
-        </div>
       </div>
 
       {/* Copy Feedback Toast */}

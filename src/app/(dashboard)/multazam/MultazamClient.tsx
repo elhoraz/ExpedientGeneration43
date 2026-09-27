@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import gsap from "gsap";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
@@ -98,9 +97,6 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
     <div className="multazam-page-wrapper">
       <div className="multazam-wrapper">
           <header className="multazam-header">
-              <Link href="/fitur" className="btn-back">
-                  <i className="fa-solid fa-chevron-left"></i> {t.common.back}
-              </Link>
               <div className="header-titles">
                   <h1 className="page-title">{t.multazam.title}</h1>
                   <div className="page-subtitle">{t.multazam.subtitle}</div>

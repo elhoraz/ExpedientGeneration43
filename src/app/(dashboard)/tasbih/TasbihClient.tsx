@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./tasbih.css";
 
@@ -288,12 +287,6 @@ export default function TasbihClient() {
       <div className="tasbih-bg-ambient"></div>
 
       <div className="tasbih-container">
-        {/* Navigation */}
-        <div className="tasbih-nav-bar">
-          <Link href="/fitur" className="btn-back">
-            <i className="fa-solid fa-arrow-left"></i> {t.tasbih.back_to_features}
-          </Link>
-        </div>
 
         {/* Header */}
         <div className="tasbih-header-box">

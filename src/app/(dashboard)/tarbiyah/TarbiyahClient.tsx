@@ -366,9 +366,6 @@ export default function TarbiyahClient({
   return (
     <div className="tarbiyah-page-wrapper">
       <div className="tarbiyah-wrapper">
-        <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-arrow-left"></i> {t.common.back}
-        </Link>
 
         {/* HEADER */}
         <div className="header-titles">

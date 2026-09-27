@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
@@ -1006,13 +1005,6 @@ export default function QuranClient({
 
   return (
     <div className="quran-page-root">
-      {/* Back Button to Features */}
-      <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto 14px auto", display: "flex", justifyContent: "flex-start" }}>
-        <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-arrow-left"></i>
-          <span>{t.quran.back_to_features}</span>
-        </Link>
-      </div>
 
       {/* Toast Notification */}
       {toastMessage && (

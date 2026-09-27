@@ -382,12 +382,6 @@ export default function DirektoriClient({
     <div className="direktori-container">
       <div className="ethereal-glow"></div>
 
-      <div style={{ width: "100%", maxWidth: "1280px", margin: "0 auto 16px auto", display: "flex", justifyContent: "flex-start" }}>
-        <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-arrow-left"></i>
-          <span>{t.common.back}</span>
-        </Link>
-      </div>
 
       {/* ================= HERO ARCHIVE HEADER ================= */}
       <div className="direktori-hero-header">
