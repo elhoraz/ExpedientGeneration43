@@ -42,6 +42,20 @@ body.page-birthday .bday-empty i,
 .bday-wrapper .bday-empty i { font-size: 4rem; color: rgba(212,175,55,0.2); margin-bottom: 20px; display: block; }
 
 /* Birthday Card Fullscreen Overrides when page-birthday is active */
+body.page-birthday {
+    background: #060b14 !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+}
+
+body.page-birthday .theme-widget,
+body.page-birthday .notif-wrapper,
+body.page-birthday .notif-widget,
+body.page-birthday .chat-widget,
+body.page-birthday .chat-dropdown,
+body.page-birthday .menu-toggle,
 body.page-birthday .sidebar,
 body.page-birthday .top-navbar,
 body.page-birthday .floating-help-btn,
@@ -49,37 +63,56 @@ body.page-birthday .scroll-top-btn,
 body.page-birthday #globalCallContainer,
 body.page-birthday .lang-floating-select {
     display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 body.page-birthday .main-wrapper {
-    left: 0 !important;
-    right: 0 !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-    height: 100vh !important;
-    min-height: 100vh !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 100dvh !important;
     padding: 0 !important;
     margin: 0 !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    z-index: 50 !important;
 }
 
 /* Dynamic Birthday Card Styles */
 body.page-birthday .bday-universe,
 .bday-universe {
-    position: relative; width: 100%; min-height: 100vh;
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
     background: linear-gradient(135deg, var(--p0) 0%, var(--p1) 100%);
-    display: flex; justify-content: center; align-items: center;
-    overflow: hidden; padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    padding: clamp(60px, 8vh, 80px) 20px 40px;
+    box-sizing: border-box;
 }
 
 body.page-birthday .bday-card-content,
 .bday-card-content,
 .bday-universe .bday-card-content {
-    position: relative; z-index: 10; width: 100%; max-width: 580px;
-    text-align: center; padding: 60px 40px;
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 520px;
+    text-align: center !important;
+    padding: clamp(30px, 4vh, 45px) 20px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
 }
 
 body.page-birthday .bday-heading,
@@ -96,9 +129,14 @@ body.page-birthday .bday-sub,
 body.page-birthday .bday-photo-wrap,
 .bday-photo-wrap,
 .bday-universe .bday-photo-wrap {
-    width: 160px; height: 160px; border-radius: 50%; margin: 0 auto 30px;
-    border: 4px solid var(--p2); overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: clamp(130px, 30vw, 160px);
+    height: clamp(130px, 30vw, 160px);
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    border: 4px solid var(--p2);
+    overflow: hidden;
+    box-shadow: 0 16px 45px rgba(0,0,0,0.3);
+    flex-shrink: 0;
 }
 body.page-birthday .bday-photo-wrap img,
 .bday-photo-wrap img,
@@ -111,57 +149,141 @@ body.page-birthday .bday-photo-placeholder,
 }
 
 body.page-birthday .bday-card-content .bday-pretitle,
-.bday-universe .bday-pretitle { font-size: clamp(0.7rem, 2vw, 0.9rem); letter-spacing: 6px; text-transform: uppercase; margin-bottom: 15px; opacity: 0.8; }
+.bday-universe .bday-pretitle {
+    font-size: clamp(0.72rem, 2.2vw, 0.82rem);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    opacity: 0.85;
+    text-align: center;
+    width: 100%;
+    line-height: 1.4;
+}
+
 body.page-birthday .bday-card-content .bday-name,
-.bday-universe .bday-name { font-size: clamp(2.5rem, 8vw, 5rem); line-height: 1.1; margin-bottom: 10px; text-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+.bday-universe .bday-name {
+    font-size: clamp(2.4rem, 7.5vw, 4.2rem);
+    line-height: 1.15;
+    margin-bottom: 8px;
+    text-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    text-align: center;
+    width: 100%;
+    word-break: break-word;
+}
+
 body.page-birthday .bday-card-content .bday-age,
-.bday-universe .bday-age { font-size: clamp(1.2rem, 3vw, 1.8rem); margin-bottom: 30px; opacity: 0.9; }
+.bday-universe .bday-age {
+    font-size: clamp(1.05rem, 2.8vw, 1.45rem);
+    margin-bottom: 20px;
+    opacity: 0.95;
+    text-align: center;
+    width: 100%;
+}
+
 body.page-birthday .bday-zodiak,
 .bday-universe .bday-zodiak {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 8px 20px; border-radius: 30px; font-size: 0.85rem;
-    background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2); margin-bottom: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 7px 18px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    background: rgba(255,255,255,0.16);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.25);
+    margin: 0 auto 20px;
 }
+
 body.page-birthday .bday-wishes,
-.bday-universe .bday-wishes { font-size: clamp(1rem, 2.5vw, 1.3rem); line-height: 1.8; max-width: 450px; margin: 0 auto 40px; opacity: 0.9; }
+.bday-universe .bday-wishes {
+    font-size: clamp(0.92rem, 2.4vw, 1.15rem);
+    line-height: 1.75;
+    max-width: 440px;
+    margin: 0 auto 28px;
+    opacity: 0.95;
+    text-align: center;
+    text-wrap: balance;
+}
+
 body.page-birthday .bday-card-content .bday-date-badge,
 .bday-universe .bday-card-content .bday-date-badge,
 .bday-universe .bday-date-badge {
-    display: inline-block; padding: 12px 30px; border-radius: 50px;
-    background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.3); font-size: 0.85rem;
-    letter-spacing: 3px; text-transform: uppercase; margin-bottom: 30px;
+    display: inline-block;
+    padding: 9px 24px;
+    border-radius: 50px;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.28);
+    font-size: 0.82rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0 auto 24px;
 }
+
 body.page-birthday .bday-share-btn,
 .bday-universe .bday-share-btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 14px 35px; border-radius: 50px; border: 2px solid var(--p2);
-    background: transparent; color: var(--p3); font-size: 0.85rem;
-    letter-spacing: 2px; text-transform: uppercase; cursor: pointer;
-    transition: 0.4s; text-decoration: none; font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 13px 28px;
+    border-radius: 50px;
+    border: 2px solid var(--p2);
+    background: transparent;
+    color: var(--p3);
+    font-size: 0.84rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+    font-weight: 600;
+    box-sizing: border-box;
 }
 body.page-birthday .bday-share-btn:hover,
-.bday-universe .bday-share-btn:hover { background: var(--p2); color: #111; transform: translateY(-3px); }
+.bday-universe .bday-share-btn:hover {
+    background: var(--p2);
+    color: #111;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
 
-body.page-birthday .layout-split-left .bday-card-content, 
-body.page-birthday .layout-split-right .bday-card-content,
-.bday-universe.layout-split-left .bday-card-content, 
-.bday-universe.layout-split-right .bday-card-content { text-align: left; max-width: 700px; }
-body.page-birthday .layout-split-right .bday-card-content,
-.bday-universe.layout-split-right .bday-card-content { text-align: right; }
-body.page-birthday .layout-diagonal .bday-card-content,
-.bday-universe.layout-diagonal .bday-card-content { transform: rotate(-2deg); }
-body.page-birthday .layout-diagonal .bday-card-content:hover,
-.bday-universe.layout-diagonal .bday-card-content:hover { transform: rotate(0deg); transition: 0.6s; }
+/* Card Visual Themes (All symmetrically centered) */
 body.page-birthday .layout-frame-overlay .bday-card-content,
-.bday-universe.layout-frame-overlay .bday-card-content { border: 3px solid var(--p2); border-radius: 30px; padding: 50px 40px; background: rgba(0,0,0,0.15); backdrop-filter: blur(20px); }
+.bday-universe.layout-frame-overlay .bday-card-content {
+    border: 2px solid rgba(255,255,255,0.28);
+    border-radius: 32px;
+    padding: clamp(35px, 5vh, 50px) clamp(20px, 4vw, 36px);
+    background: rgba(0,0,0,0.12);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+}
+
 body.page-birthday .layout-circle-focus .bday-photo-wrap,
-.bday-universe.layout-circle-focus .bday-photo-wrap { width: 200px; height: 200px; margin-bottom: 40px; }
-body.page-birthday .layout-fullbleed .bday-name,
-.bday-universe.layout-fullbleed .bday-name { font-size: clamp(3rem, 12vw, 7rem); letter-spacing: -2px; }
+.bday-universe.layout-circle-focus .bday-photo-wrap {
+    box-shadow: 0 0 0 6px rgba(255,255,255,0.25), 0 20px 50px rgba(0,0,0,0.3);
+}
+
 body.page-birthday .layout-card-float .bday-card-content,
-.bday-universe.layout-card-float .bday-card-content { background: rgba(255,255,255,0.1); backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.2); border-radius: 30px; box-shadow: 0 40px 80px rgba(0,0,0,0.3); padding: 60px 50px; }
+.bday-universe.layout-card-float .bday-card-content {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 32px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+    padding: clamp(35px, 5vh, 50px) clamp(20px, 4vw, 36px);
+}
+
+body.page-birthday .layout-fullbleed .bday-name,
+.bday-universe.layout-fullbleed .bday-name {
+    font-size: clamp(2.8rem, 9vw, 5rem);
+    letter-spacing: -0.5px;
+}
 
 body.page-birthday .deco-particle,
 .bday-universe .deco-particle { position: absolute; pointer-events: none; z-index: 5; }
@@ -224,23 +346,47 @@ body.page-birthday .bday-anim-el:nth-child(8),
 body.page-birthday .bday-back,
 .bday-back,
 .bday-universe ~ .bday-back {
-    position: fixed; top: 20px; left: 20px; z-index: 100;
-    width: 45px; height: 45px; border-radius: 50%;
-    background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2); color: #fff;
-    display: flex; justify-content: center; align-items: center;
-    text-decoration: none; font-size: 1.1rem; transition: 0.3s;
+    position: fixed;
+    top: max(16px, env(safe-area-inset-top, 16px));
+    left: max(16px, env(safe-area-inset-left, 16px));
+    z-index: 100;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 body.page-birthday .bday-back:hover,
-.bday-back:hover { background: rgba(0,0,0,0.6); transform: scale(1.1); }
+.bday-back:hover {
+    background: rgba(0,0,0,0.55);
+    transform: scale(1.08);
+}
 
 body.page-birthday .bday-watermark,
 .bday-watermark,
 .bday-universe .bday-watermark {
-    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-    font-size: 0.65rem; letter-spacing: 4px; text-transform: uppercase;
-    opacity: 0.3; z-index: 5; white-space: nowrap;
+    position: relative;
+    margin-top: 24px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0.45;
+    z-index: 5;
+    white-space: nowrap;
+    text-align: center;
 }
+
 
 
 /* ==========================================================================

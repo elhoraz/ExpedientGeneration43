@@ -50,7 +50,7 @@ const fonts = [
     ['Oswald','Merriweather','700'],
 ];
 
-const layouts = ['center-stack','split-left','split-right','diagonal','frame-overlay','circle-focus','fullbleed','card-float'];
+const layouts = ['center-stack', 'frame-overlay', 'circle-focus', 'card-float', 'fullbleed'];
 const decos = ['confetti','stars','balloons','sparkles','ribbons','floral'];
 const anims = ['cascade','bounce','bloom','burst'];
 
