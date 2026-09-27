@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { sendTelemetryAlert } from "@/lib/sentinel/clientWatcher";
 
 export default function DashboardError({
   error,
@@ -14,8 +15,13 @@ export default function DashboardError({
   const { locale } = useLanguage();
 
   useEffect(() => {
-    // Log the error to an error reporting service
     console.error("Dashboard Boundary Error:", error);
+    sendTelemetryAlert({
+      category: "react_error_boundary",
+      message: `Dashboard Error: ${error?.message || "Render exception"}`,
+      detail: error?.digest ? `Digest ID: ${error.digest}` : undefined,
+      stack: error?.stack,
+    });
   }, [error]);
 
   return (

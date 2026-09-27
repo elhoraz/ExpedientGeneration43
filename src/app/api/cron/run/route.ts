@@ -39,8 +39,18 @@ export async function GET(request: Request) {
   let output = `===== EXPEDIENT CRON RUNNER =====\n`;
   output += `Waktu : ${new Date().toISOString()}\n\n`;
 
+  // 0. Aegis Sentinel Fonnte Gateway Health Check (24 Jam)
+  output += `[0] Memeriksa Status WhatsApp Gateway (Fonnte)...\n`;
+  try {
+    const { checkFonnteHealthAndAlert } = await import("@/lib/sentinel/telemetryAlert");
+    const fonnteRes = await checkFonnteHealthAndAlert();
+    output += `Status Fonnte: ${fonnteRes.status} (Device: ${fonnteRes.device || "N/A"}, Kuota: ${fonnteRes.quota ?? "N/A"})\n`;
+  } catch (fonnteErr: any) {
+    output += `Peringatan Fonnte Check: ${fonnteErr.message}\n`;
+  }
+
   // 1. Process WhatsApp Queue
-  output += `[1] Memproses Antrian WhatsApp...\n`;
+  output += `\n[1] Memproses Antrian WhatsApp...\n`;
   try {
     const { data: waQueue, error: waError } = await supabase
       .from('whatsapp_queue')

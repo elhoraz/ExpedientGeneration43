@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { sendTelemetryAlert } from "@/lib/sentinel/clientWatcher";
 
 export default function GlobalError({
   error,
@@ -23,6 +24,13 @@ export default function GlobalError({
         sessionStorage.setItem("chunk_reload_retry", String(now));
         window.location.reload();
       }
+    } else {
+      sendTelemetryAlert({
+        category: "react_error_boundary",
+        message: `React Page Crash: ${error?.message || "Render exception"}`,
+        detail: error?.digest ? `Digest ID: ${error.digest}` : undefined,
+        stack: error?.stack,
+      });
     }
   }, [error]);
 

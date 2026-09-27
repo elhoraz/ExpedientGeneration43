@@ -9,6 +9,7 @@ import { ConfirmProvider } from "./AegisConfirm";
 import gsap from "gsap";
 
 import { createClient } from "@/lib/supabase/client";
+import { initAegisSentinelWatcher } from "@/lib/sentinel/clientWatcher";
 
 if (typeof window !== "undefined") {
   (window as any).gsap = gsap;
@@ -17,6 +18,11 @@ if (typeof window !== "undefined") {
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isOffline, setIsOffline] = useState(false);
+
+  // Inisialisasi 24/7 Automated Error Watchdog (Aegis Sentinel)
+  useEffect(() => {
+    initAegisSentinelWatcher();
+  }, []);
 
   // Handle Supabase Auth Hash Fragment verification (solves implicit flow and email redirects)
   useEffect(() => {

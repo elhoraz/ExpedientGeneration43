@@ -1,4 +1,6 @@
 "use client";
+import { useEffect } from "react";
+import { sendTelemetryAlert } from "@/lib/sentinel/clientWatcher";
 
 export default function GlobalRootError({
   error,
@@ -7,6 +9,15 @@ export default function GlobalRootError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    console.error("Root Crash Error:", error);
+    sendTelemetryAlert({
+      category: "react_error_boundary",
+      message: `Root HTML Crash: ${error?.message || "Critical layout rendering failure"}`,
+      detail: error?.digest ? `Digest ID: ${error.digest}` : undefined,
+      stack: error?.stack,
+    });
+  }, [error]);
   return (
     <html lang="id">
       <body
