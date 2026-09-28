@@ -95,48 +95,6 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
             <span className="drawer-search-badge">CARI</span>
           </button>
 
-          {/* Quick Test Heads-up System Notification */}
-          <button
-            type="button"
-            className="drawer-test-notif-btn"
-            onClick={() => {
-              if (navigator.vibrate) navigator.vibrate([40, 40, 40]);
-              window.dispatchEvent(
-                new CustomEvent("expedient_trigger_test_notif", {
-                  detail: {
-                    title: "🔔 Expedient 43 — Notifikasi Berhasil!",
-                    message: "Notifikasi melayang dengan suara & getaran sistem berfungsi sempurna di HP Anda.",
-                    url: "/kiblat",
-                  },
-                })
-              );
-            }}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              borderRadius: "12px",
-              background: "linear-gradient(135deg, rgba(212, 175, 55, 0.18) 0%, rgba(212, 175, 55, 0.06) 100%)",
-              border: "1px solid rgba(212, 175, 55, 0.4)",
-              color: "#f3ba2f",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              fontSize: "0.82rem",
-              fontWeight: 600,
-              cursor: "pointer",
-              marginBottom: "1rem",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <i className="fa-solid fa-bell" style={{ fontSize: "1rem" }} />
-              <span>{locale === "ar" ? "تجربة الإشعار المنبثق" : locale === "en" ? "Test Heads-Up Notification" : "Uji Notifikasi Melayang"}</span>
-            </div>
-            <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "999px", background: "rgba(212, 175, 55, 0.25)", color: "#fff" }}>
-              TES
-            </span>
-          </button>
-
           {/* Section 1: Halaman Landing Anchor Links */}
           <div className="drawer-nav-section">
             <span className="drawer-section-label">{t.drawer.section_landing}</span>

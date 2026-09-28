@@ -5,7 +5,6 @@ import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
-  sendSystemNotification,
   requestSystemNotificationPermission,
   isAndroidNativeApp,
   hasSystemNotificationPermission,
@@ -80,15 +79,6 @@ export default function NotificationBell({ userId }: { userId: string }) {
     } catch (err) {
       console.error("Enable push error:", err);
     }
-  };
-
-  const handleTestSystemNotification = async () => {
-    await requestSystemNotificationPermission();
-    await sendSystemNotification({
-      title: "Expedient 43",
-      message: "🔔 Notifikasi sistem berhasil diterima! Suara, getaran, dan heads-up banner aktif.",
-      url: "/beranda",
-    });
   };
 
   const quests: QuestItem[] = [
@@ -567,44 +557,6 @@ export default function NotificationBell({ userId }: { userId: string }) {
                   </button>
                 </div>
               )}
-
-              {/* Test System Notification Bar */}
-              <div style={{
-                margin: "4px 14px 10px 14px",
-                padding: "8px 12px",
-                borderRadius: "10px",
-                background: "rgba(255, 255, 255, 0.03)",
-                border: "1px dashed rgba(212, 175, 55, 0.25)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "8px"
-              }}>
-                <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>
-                  <i className="fa-solid fa-mobile-screen-button" style={{ color: "var(--gold-main)", marginRight: "6px" }}></i>
-                  <span>{locale === "ar" ? "تجربة الإشعار الفعلي" : locale === "en" ? "Test system heads-up notification" : "Uji notifikasi sistem (Heads-up banner)"}</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleTestSystemNotification();
-                  }}
-                  style={{
-                    background: "rgba(212, 175, 55, 0.15)",
-                    border: "1px solid var(--gold-main)",
-                    color: "var(--gold-main)",
-                    borderRadius: "16px",
-                    padding: "3px 10px",
-                    fontSize: "0.7rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  🔔 Tes Notif
-                </button>
-              </div>
 
               <div className="notif-body">
                 {notifications.length > 0 ? (
