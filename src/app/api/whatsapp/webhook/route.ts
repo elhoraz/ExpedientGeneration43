@@ -134,7 +134,7 @@ export async function POST(request: Request) {
       const altLocalNum = numNorm.startsWith("62") ? "0" + numNorm.substring(2) : numNorm;
       const { data: matchedProfiles } = await adminSupabase
         .from("profiles")
-        .select("id, nama_lengkap, nama_panggilan, role, kelas, is_active")
+        .select("id, nama_lengkap, nama_panggilan, role, is_active")
         .or(`no_whatsapp.eq.${numNorm},no_whatsapp.eq.${altLocalNum}`)
         .limit(1);
 

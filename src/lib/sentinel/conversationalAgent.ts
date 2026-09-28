@@ -43,7 +43,7 @@ export async function callGeminiResilient(
   apiKey: string,
   preferredModel: string = "gemini-3.8-flash"
 ): Promise<any> {
-  const modelsToTry = [preferredModel, "gemini-3.7-flash", "gemini-flash-latest"];
+  const modelsToTry = [preferredModel, "gemini-3.7-flash", "gemini-3.5-flash", "gemini-flash-latest"];
   let lastError: any = null;
 
   for (const model of modelsToTry) {
@@ -126,24 +126,32 @@ function tryFastIntentMatch(message: string): IntentAnalysis | null {
     };
   }
 
-  // 3. Pencarian Nama Alumni Tertentu
+  // 3. Pencarian Nama Alumni Tertentu / Pertanyaan Usia / Profil
+  let searchTarget = "";
   const searchMatch = lower.match(/(?:cari|cek nomor|siapa|profil|wa-nya|kontak)\s+(?:alumni\s+)?(?:bernama|nama(?:nya)?|atas nama)?\s+([a-zA-Z\s]{3,})/i);
   if (searchMatch && !lower.includes("server") && !lower.includes("fitur") && !lower.includes("error") && !lower.includes("website")) {
-    const searchTarget = searchMatch[1].trim();
-    if (searchTarget.length >= 3) {
-      return {
-        intent: "DATABASE",
-        reply: `Sedang mencari alumni bernama "${searchTarget}" di database...`,
-        dbPlan: {
-          table: "profiles",
-          operation: "select",
-          selectFields: "id, nama_lengkap, nama_panggilan, no_whatsapp, role, is_active",
-          filters: [{ column: "nama_lengkap", operator: "ilike", value: `%${searchTarget}%` }],
-          limit: 5,
-          purpose: `Cari alumni "${searchTarget}"`,
-        },
-      };
+    searchTarget = searchMatch[1].trim();
+  } else if ((lower.includes("umur") || lower.includes("usia") || lower.includes("lahir") || lower.includes("asal")) && !lower.includes("server") && !lower.includes("error")) {
+    // Ekstrak nama jika formatnya "sekarang [nama] umur berapa" dsb
+    const words = lower.replace(/[^\w\s]/g, " ").split(/\s+/).filter(w => !["sekarang", "umur", "umurnya", "berapa", "usia", "usianya", "kapan", "lahir", "asal", "di", "mana"].includes(w));
+    if (words.length > 0 && words[0].length >= 3) {
+      searchTarget = words[0];
     }
+  }
+
+  if (searchTarget && searchTarget.length >= 3) {
+    return {
+      intent: "DATABASE",
+      reply: `Sedang mencari alumni bernama "${searchTarget}" di database...`,
+      dbPlan: {
+        table: "profiles",
+        operation: "select",
+        selectFields: "id, nama_lengkap, nama_panggilan, no_whatsapp, role, is_active, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita",
+        filters: [{ column: "nama_lengkap", operator: "ilike", value: `%${searchTarget}%` }],
+        limit: 5,
+        purpose: `Cari info alumni "${searchTarget}"`,
+      },
+    };
   }
 
   // 4. Antrean WhatsApp Gagal / Pending

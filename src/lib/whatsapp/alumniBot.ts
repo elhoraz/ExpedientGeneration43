@@ -11,69 +11,101 @@ interface UserProfileContext {
   is_active?: boolean;
 }
 
-/**
- * Peta Konteks Publik Alumni & Angkatan Expedient Generation 43
- */
-const PUBLIC_DB_INFO = `
-KONTEN & DATABASE ANGKATAN (Expedient Generation 43 - Pondok Modern Arrisalah Slahung):
-- Profil Angkatan: Angkatan 43 Alumni Pondok Modern Arrisalah Slahung Ponorogo.
-- Website Resmi: https://expedientgeneration.vercel.app
-- Fitur Website:
-  • Direktori Alumni (/direktori): Pencarian profil sahabat seangkatan, foto, domisili, dan kontak.
-  • Galeri Digital (/galeri): Arsip foto & video kenangan masa pondok.
-  • 3D Virtual Museum (/sovereign): Museum virtual 3D kilas balik masa perjuangan di pondok.
-  • Buku Tamu (/buku-tamu): Tempat menitipkan salam dan pesan antar alumni.
-  • Baitul Maal (/baitul-maal): Program infaq dan dana sosial alumni.
-  • Photobooth AI (/photobooth): Abadikan kenangan dengan bingkai digital angkatan.
-- Tabel yang dapat diakses (Read-Only):
-  • profiles: Data alumni (nama_lengkap, nama_panggilan, jenis_kelamin, domisili, cita_cita, no_whatsapp, kelas).
-  • site_content: Informasi filosofi, sejarah, dan pengumuman resmi.
-  • events: Agenda reuni atau kegiatan alumni.
-  • buku_tamu: Pesan-pesan kenangan dari sesama sahabat.
-`.trim();
+const STOPWORDS = new Set([
+  "sekarang", "umur", "umurnya", "berapa", "usia", "usianya", "kapan", "dimana", "di", "mana",
+  "siapa", "apa", "itu", "yang", "dan", "atau", "dari", "ke", "ada",
+  "gak", "ga", "nih", "dong", "sih", "lah", "ya", "kan", "tahu", "tahukah",
+  "kamu", "bisa", "tolong", "cek", "info", "tentang", "sahabat", "alumni",
+  "teman", "kawan", "halo", "hai", "assalamu'alaikum", "assalamualaikum",
+  "ananda", "akhi", "ukhti", "ustadz", "ustadzah", "mas", "mbak", "punya",
+  "nomor", "kontak", "wa", "whatsapp", "lahir", "lahirnya", "tanggal", "tempat",
+  "alamat", "rumahnya", "asal", "tinggal", "tinggalnya", "kerja", "status", "foto", "si"
+]);
 
 /**
- * Memeriksa apakah pesan pengguna membutuhkan data dari database Supabase
+ * Hitung usia akurat berdasarkan tanggal lahir (format: YYYY-MM-DD)
  */
-async function queryDatabaseForUser(
-  message: string,
-  userProfile?: UserProfileContext | null
-): Promise<{ queried: boolean; contextData: string }> {
+function calculateAge(birthDateStr: string): string {
+  try {
+    const birth = new Date(birthDateStr);
+    const now = new Date();
+    if (isNaN(birth.getTime())) return "";
+
+    let age = now.getFullYear() - birth.getFullYear();
+    const monthDiff = now.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+      age--;
+    }
+
+    const birthFormatted = new Intl.DateTimeFormat("id-ID", {
+      dateStyle: "long",
+      timeZone: "Asia/Jakarta",
+    }).format(birth);
+
+    return `${age} tahun (Lahir: ${birthFormatted})`;
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Pencarian Cerdas & Pengambilan Konteks Database Supabase
+ */
+async function queryDatabaseForUser(message: string): Promise<string> {
   const lower = message.trim().toLowerCase();
   const supabase = createAdminClient();
 
   try {
-    // 1. Tanya Total / Jumlah Alumni
+    // 1. Tanya Jumlah / Total Alumni
     if (
       lower.includes("berapa") &&
-      (lower.includes("alumni") || lower.includes("anggota") || lower.includes("sahabat") || lower.includes("kita") || lower.includes("teman"))
+      (lower.includes("alumni") || lower.includes("anggota") || lower.includes("sahabat") || lower.includes("kita") || lower.includes("teman") || lower.includes("terdaftar"))
     ) {
       const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-      return {
-        queried: true,
-        contextData: `Total alumni terdaftar di database saat ini: ${count || 78} alumni.`,
-      };
+      return `FAKTA DATABASE: Total alumni yang terdaftar di database saat ini ada ${count || 78} alumni.`;
     }
 
-    // 2. Tanya Sahabat Berdasarkan Nama / Kontak
-    const searchMatch = lower.match(/(?:siapa|cari|ada|kontak|nomor|profil)\s+(?:sahabat|alumni|teman)?\s*(?:bernama|nama(?:nya)?|atas nama)?\s+([a-zA-Z\s]{3,})/i);
-    if (searchMatch && !lower.includes("reuni") && !lower.includes("web") && !lower.includes("login")) {
-      const searchTarget = searchMatch[1].trim();
-      const { data: matchedUsers } = await supabase
-        .from("profiles")
-        .select("nama_lengkap, nama_panggilan, kelas, jenis_kelamin, alamat_lengkap, no_whatsapp")
-        .or(`nama_lengkap.ilike.%${searchTarget}%,nama_panggilan.ilike.%${searchTarget}%`)
-        .limit(3);
+    // 2. Ekstrak Calon Nama Alumni dari Kalimat
+    const cleanWords = message
+      .replace(/[^\w\s]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length >= 3 && !STOPWORDS.has(w.toLowerCase()));
 
-      if (matchedUsers && matchedUsers.length > 0) {
-        return {
-          queried: true,
-          contextData: `Hasil pencarian nama "${searchTarget}":\n` + JSON.stringify(matchedUsers, null, 2),
-        };
+    if (cleanWords.length > 0) {
+      for (const candidate of cleanWords) {
+        const { data: matchedProfiles, error: profileErr } = await supabase
+          .from("profiles")
+          .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat_lengkap, no_whatsapp, role, cita_cita, motivasi_hidup")
+          .or(`nama_lengkap.ilike.%${candidate}%,nama_panggilan.ilike.%${candidate}%`)
+          .limit(2);
+
+        if (profileErr) {
+          console.warn("[ALUMNI-BOT-PROFILE-QUERY-ERR]:", profileErr.message);
+          continue;
+        }
+
+        if (matchedProfiles && matchedProfiles.length > 0) {
+          const enriched = matchedProfiles.map((p) => {
+            const ageInfo = p.tanggal_lahir ? calculateAge(p.tanggal_lahir) : null;
+            return {
+              nama_lengkap: (p.nama_lengkap || "").trim(),
+              nama_panggilan: (p.nama_panggilan || "").trim(),
+              jenis_kelamin: p.jenis_kelamin,
+              tempat_lahir: (p.tempat_lahir || "").trim(),
+              tanggal_lahir: p.tanggal_lahir,
+              usia_saat_ini: ageInfo || "Belum dicantumkan",
+              alamat_asal: (p.alamat_lengkap || "").trim(),
+              no_whatsapp: p.no_whatsapp,
+              cita_cita: (p.cita_cita || "").trim(),
+            };
+          });
+
+          return `DATA PROFIL ALUMNI YANG DITEMUKAN UNTUK KATA KUNCI "${candidate}":\n` + JSON.stringify(enriched, null, 2);
+        }
       }
     }
 
-    // 3. Tanya Agenda / Reuni / Acara
+    // 3. Tanya Reuni / Agenda / Acara
     if (lower.includes("reuni") || lower.includes("acara") || lower.includes("agenda") || lower.includes("kapan")) {
       const { data: events } = await supabase
         .from("events")
@@ -82,15 +114,13 @@ async function queryDatabaseForUser(
         .limit(3);
 
       if (events && events.length > 0) {
-        return {
-          queried: true,
-          contextData: `Daftar agenda/acara angkatan terdekat:\n` + JSON.stringify(events, null, 2),
-        };
+        return `DATA AGENDA / ACARA ANGKATAN:\n` + JSON.stringify(events, null, 2);
       }
+      return "DATA AGENDA: Saat ini belum ada agenda acara resmi terdekat yang dijadwalkan di sistem.";
     }
 
-    // 4. Tanya Pesan Buku Tamu
-    if (lower.includes("buku tamu") || lower.includes("pesan terbaru")) {
+    // 4. Tanya Buku Tamu
+    if (lower.includes("buku tamu") || lower.includes("salam")) {
       const { data: guestbook } = await supabase
         .from("buku_tamu")
         .select("nama, pesan, created_at")
@@ -98,21 +128,18 @@ async function queryDatabaseForUser(
         .limit(3);
 
       if (guestbook && guestbook.length > 0) {
-        return {
-          queried: true,
-          contextData: `Pesan buku tamu terbaru:\n` + JSON.stringify(guestbook, null, 2),
-        };
+        return `DATA BUKU TAMU TERBARU:\n` + JSON.stringify(guestbook, null, 2);
       }
     }
   } catch (err: any) {
-    console.warn("[ALUMNI-BOT-DB-WARN]:", err.message);
+    console.warn("[ALUMNI-BOT-QUERY-ERROR]:", err.message);
   }
 
-  return { queried: false, contextData: "" };
+  return "";
 }
 
 /**
- * Otak AI Penjawab Pesan Pengguna / Alumni (Gemini 3.8 Flash High)
+ * Handler Utama: Bot WhatsApp Alumni yang Ringkas, Cerdas, dan Berdasarkan Data Faktual
  */
 export async function handleUserWhatsAppMessage(
   senderPhone: string,
@@ -122,65 +149,53 @@ export async function handleUserWhatsAppMessage(
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
 
-  // 1. Cek konteks database yang relevan
-  const { queried, contextData } = await queryDatabaseForUser(messageText, userProfile);
+  // 1. Ambil data faktual dari Supabase
+  const dbContext = await queryDatabaseForUser(messageText);
 
   const senderName = userProfile?.nama_panggilan || userProfile?.nama_lengkap || "Sahabat";
-  const senderGreeting = userProfile
-    ? `Sahabat ${senderName} (Alumni Terdaftar Expedient 43)`
-    : `Pengunjung / Calon Alumni`;
 
   const prompt = `
-You are the official, warm, dignified, and helpful AI Concierge of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo).
-You are conversing with an alumnus or visitor on WhatsApp.
+You are the helpful, respectful, and friendly WhatsApp AI Assistant of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo).
+Current Date/Year Context: 2026.
 
-SENDER IDENTITY:
-- Name/Status: ${senderGreeting}
-- WhatsApp Number: ${senderPhone}
+SENDER:
+- Name: ${senderName}
+- WhatsApp: ${senderPhone}
 
-SENDER'S MESSAGE:
+SENDER'S QUESTION / MESSAGE:
 "${messageText}"
 
-KNOWLEDGE BASE & COHORT CONTEXT:
-${PUBLIC_DB_INFO}
+DATABASE REAL DATA:
+${dbContext || "No specific database entry found. Answer as general courteous conversation or provide guidance."}
 
-DATABASE QUERY RESULT (if needed for this question):
-${contextData || "No database query was needed for this message (conversation / small talk)."}
-
-YOUR INSTRUCTIONS:
-1. Tone: Friendly, brotherly (ukhuwah Islamiyah), polite, respectful, and enthusiastic. Use Indonesian with occasional warm terms like "Sahabat", "Akhi", "Ukhti", or "Barakallahu fiik".
-2. If it is casual conversation / basa-basi ("Halo", "Apa kabar?", "Kamu siapa?"):
-   - Greet warmly, introduce yourself as the digital assistant of Expedient 43, and ask how you can assist them today.
-3. If it asks about Cohort data (number of alumni, searching a friend, events, website links):
-   - Answer accurately based on the database query result or public info provided.
-   - If searching a friend, provide their name, class, and contact politely.
-   - If data is not found, politely let them know and encourage them to check the full digital directory at: https://expedientgeneration.vercel.app/direktori
-4. If it asks how to login, register, or technical help:
-   - Provide the exact link: https://expedientgeneration.vercel.app/login or /register.
-5. Formatting: Use neat WhatsApp formatting (*bold*, _italic_, bullet points). Keep paragraphs concise and easy to read on mobile.
-6. Privacy: Never reveal sensitive database secrets, passwords, or internal system configurations.
+STRICT RESPONSE RULES:
+1. RINGKAS & TO THE POINT: Keep answers concise, natural, and friendly (1 to 3 sentences maximum!). DO NOT write long paragraphs, essays, or repetitive introductions on every message!
+2. FACTUAL ACCURACY: If asked about a person (e.g., age, birth date, origin, class), use the exact DATABASE REAL DATA provided above.
+   - Example format for age: "Sahabat *[Nama]* lahir pada [Tanggal Lahir] di [Tempat] dan saat ini berusia *[Usia]*."
+3. If no matching person/data is found in database: Politely say the data for that person wasn't found in the directory yet, and recommend checking: https://expedientgeneration.vercel.app/direktori
+4. For casual conversation / basa-basi: Answer warmly, casually, and briefly like a real friend.
+5. Use clean WhatsApp formatting (*bold* for names, ages, key info).
 `.trim();
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      temperature: 0.3,
+      temperature: 0.2,
     },
   };
 
   try {
     const data = await callGeminiResilient(body, geminiApiKey, geminiModel);
     const replyText =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      `Assalamu'alaikum Sahabat! Terima kasih telah menghubungi bot resmi Expedient Generation 43. Silakan kunjungi website resmi kita di https://expedientgeneration.vercel.app untuk info lengkapnya ya!`;
+      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+      `Assalamu'alaikum ${senderName}! Silakan kunjungi website resmi kita di https://expedientgeneration.vercel.app ya!`;
 
     // Kirim balasan langsung ke WhatsApp pengguna
     const waRes = await sendWhatsAppMessageWithDetail(senderPhone, replyText);
     return { success: waRes.success, replyText };
   } catch (err: any) {
     console.error("[ALUMNI-BOT-EXCEPTION]:", err);
-    const fallback =
-      `Assalamu'alaikum ${senderName}! Terima kasih sudah menyapa bot Expedient 43. Mari jelajahi arsip kenangan dan direktori sahabat kita di https://expedientgeneration.vercel.app ya! 🙏`;
+    const fallback = `Assalamu'alaikum ${senderName}! Maaf sempat ada kendala koneksi. Silakan cek informasi lengkap di web https://expedientgeneration.vercel.app ya.`;
     await sendWhatsAppMessageWithDetail(senderPhone, fallback);
     return { success: true, replyText: fallback };
   }
