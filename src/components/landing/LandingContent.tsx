@@ -22,7 +22,6 @@ import ScrollyManifesto from "@/components/landing/ScrollyManifesto";
 import ScrollRevealInit from "@/components/landing/ScrollRevealInit";
 import GlobalMouseSpotlight from "@/components/landing/GlobalMouseSpotlight";
 import ArabesqueWatermark from "@/components/landing/ArabesqueWatermark";
-import QuickSearchModal from "@/components/features/QuickSearchModal";
 
 interface LandingContentProps {
   totalAlumni: number;
@@ -39,22 +38,8 @@ function getCms(contents: any[] | undefined, key: string, defaultValue: string) 
 export default function LandingContent({ totalAlumni, cms = [] }: LandingContentProps) {
   const { t, locale, isRTL } = useLanguage();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("beranda");
   const currentYear = new Date().getFullYear();
-
-  // Global Ctrl+K / Cmd+K listener to trigger search modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setIsSearchOpen((prev) => !prev);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   // Real-time Scrollspy for Desktop Navigation and Mobile Drawer
   useEffect(() => {
@@ -103,9 +88,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
       {/* Scroll Reveal Observer for Dynamic Page Entrances */}
       <ScrollRevealInit />
 
-      {/* Quick Search Modal triggered by Ctrl+K or search button */}
-      <QuickSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
-
       {/* ====== FLOATING ISLAND NAVIGATION BAR ====== */}
       <header className="landing-nav-island">
         <Link href="/" className="nav-brand">
@@ -148,7 +130,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             className="nav-search-trigger"
             onClick={() => {
               if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8);
-              setIsSearchOpen(true);
+              window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
             }}
             title="Pencarian Instan (Ctrl+K)"
             aria-label="Cari Cepat"

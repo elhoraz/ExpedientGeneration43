@@ -460,16 +460,32 @@ async function pushToGitHub(
  */
 export async function handleAdminConversationalMessage(
   adminPhone: string,
-  messageText: string
+  messageText: string,
+  channel: "whatsapp" | "telegram" = "whatsapp"
 ): Promise<{ success: boolean; replySent: boolean }> {
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
   const githubToken = (process.env.GITHUB_TOKEN || "").trim();
   const githubRepo = (process.env.GITHUB_REPO || "elhoraz/ExpedientGeneration43").trim();
 
+  const sendChannelReply = async (msg: string) => {
+    if (channel === "telegram") {
+      const { sendTelegramMessage } = await import("@/lib/telegram");
+      let html = msg
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      html = html.replace(/\*([^*\n]+)\*/g, "<b>$1</b>");
+      html = html.replace(/_([^_\n]+)_/g, "<i>$1</i>");
+      html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+      await sendTelegramMessage(html, { parse_mode: "HTML" });
+    } else {
+      await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    }
+  };
+
   if (!geminiApiKey) {
-    await sendWhatsAppMessageWithDetail(
-      adminPhone,
+    await sendChannelReply(
       "⚠️ *[AEGIS SENTINEL]* Kunci `GEMINI_API_KEY` belum diset di server environment."
     );
     return { success: false, replySent: true };
@@ -486,7 +502,7 @@ export async function handleAdminConversationalMessage(
       geminiModel
     );
 
-    console.log(`[AI-AGENT-INTENT] Deteksi Niat: ${analysis.intent}`);
+    console.log(`[AI-AGENT-INTENT] Deteksi Niat: ${analysis.intent} (via ${channel})`);
 
     // A. INTENT: DATABASE ACCESS (QUERY, COUNT, SEARCH, UPDATE SUPABASE DATA)
     if (analysis.intent === "DATABASE" && analysis.dbPlan) {
@@ -495,7 +511,7 @@ export async function handleAdminConversationalMessage(
 
       if (!dbResult.success) {
         const errorReply = `⚠️ *[DATABASE QUERY TERKENDALA]*\nTabel: \`${analysis.dbPlan.table}\`\nDetail: ${dbResult.error || "Gagal query data"}`;
-        await sendWhatsAppMessageWithDetail(adminPhone, errorReply);
+        await sendChannelReply(errorReply);
         return { success: false, replySent: true };
       }
 
@@ -508,13 +524,13 @@ export async function handleAdminConversationalMessage(
         geminiModel
       );
 
-      await sendWhatsAppMessageWithDetail(adminPhone, synthesizedAnswer);
+      await sendChannelReply(synthesizedAnswer);
       return { success: true, replySent: true };
     }
 
     // B. INTENT: CHAT BIASA / DISKUSI / TANYA-JAWAB
     if (analysis.intent === "CHAT") {
-      await sendWhatsAppMessageWithDetail(adminPhone, analysis.reply);
+      await sendChannelReply(analysis.reply);
       return { success: true, replySent: true };
     }
 
@@ -547,7 +563,7 @@ export async function handleAdminConversationalMessage(
         statusReply += `• Status Masalah: Nihil (Sistem Bersih)`;
       }
 
-      await sendWhatsAppMessageWithDetail(adminPhone, statusReply);
+      await sendChannelReply(statusReply);
       return { success: true, replySent: true };
     }
 
@@ -570,7 +586,7 @@ export async function handleAdminConversationalMessage(
       opReply += `2. Memory error throttle di-reset (OK)\n`;
       opReply += `3. Gateway Fonnte & Supabase disegarkan (OK)`;
 
-      await sendWhatsAppMessageWithDetail(adminPhone, opReply);
+      await sendChannelReply(opReply);
       return { success: true, replySent: true };
     }
 
@@ -582,11 +598,10 @@ export async function handleAdminConversationalMessage(
       const ackMsg =
         `${analysis.reply}\n\n` +
         `⏳ *Status:* Sedang membuka file \`${targetFile}\` di GitHub dan menyusun perubahannya... Tunggu sekitar 10-15 detik ya.`;
-      await sendWhatsAppMessageWithDetail(adminPhone, ackMsg);
+      await sendChannelReply(ackMsg);
 
       if (!githubToken) {
-        await sendWhatsAppMessageWithDetail(
-          adminPhone,
+        await sendChannelReply(
           `⚠️ *[GITHUB TOKEN MISSING]*\nVariabel \`GITHUB_TOKEN\` belum diset di server.`
         );
         return { success: false, replySent: true };
@@ -610,7 +625,7 @@ export async function handleAdminConversationalMessage(
       );
 
       // Commit & Push ke GitHub main
-      const commitMsg = `feat(ai-agent): ${analysis.editDescription || "code update via WhatsApp"} (Gemini 3.8 Flash)`;
+      const commitMsg = `feat(ai-agent): ${analysis.editDescription || "code update via " + channel} (Gemini 3.8 Flash)`;
       const { commitSha, htmlUrl } = await pushToGitHub(
         targetFile,
         modifiedCode,
@@ -635,15 +650,14 @@ export async function handleAdminConversationalMessage(
         `🌐 *Cek Hasil Commit:* ${htmlUrl}\n\n` +
         `_Ada hal lain yang ingin kamu tambahkan atau ubah? Tinggal chat saja ya!_`;
 
-      await sendWhatsAppMessageWithDetail(adminPhone, successFinalMsg);
+      await sendChannelReply(successFinalMsg);
       return { success: true, replySent: true };
     }
 
     return { success: true, replySent: false };
   } catch (err: any) {
     console.error("[CONVERSATIONAL-AGENT-ERROR]:", err);
-    await sendWhatsAppMessageWithDetail(
-      adminPhone,
+    await sendChannelReply(
       `⚠️ *[MAAF ADA KENDALA]*\n\nTerjadi kesalahan saat memproses pesan: ${err.message || "Unknown error"}\n\n_Silakan coba sampaikan kembali instruksi Anda._`
     );
     return { success: false, replySent: true };

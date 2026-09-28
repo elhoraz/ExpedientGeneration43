@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       // A. Tombol: Perbaiki Operasional (Cache, DB, Queue)
       if (actionData === "fix_op") {
         await answerTelegramCallbackQuery(cb.id, "🛠️ Menjalankan pemulihan operasional...");
-        const result = await executeAutoFix(adminWaPhone, "PERBAIKI");
+        const result = await executeAutoFix(senderId, "PERBAIKI", "telegram");
 
         let replyHtml = `🛠️ <b>[AEGIS SENTINEL - AUTO-REPAIR COMPLETED]</b>\n\n`;
         replyHtml += `Langkah yang telah dijalankan:\n`;
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
           { parse_mode: "HTML" }
         );
 
-        const aiResult = await executeAutonomousAiFix(adminWaPhone, "Perbaiki bug yang dilaporkan pada insiden terakhir");
+        const aiResult = await executeAutonomousAiFix(senderId, "Perbaiki bug yang dilaporkan pada insiden terakhir", "telegram");
         await sendTelegramMessage(aiResult.message.replace(/\*/g, "<b>").replace(/\*/g, "</b>"), {
           parse_mode: "HTML",
         });
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
       // C. Tombol: Cek Status Server
       if (actionData === "check_status") {
         await answerTelegramCallbackQuery(cb.id, "📊 Memeriksa kondisi server live...");
-        const statusRes = await executeStatusCheck(adminWaPhone);
+        const statusRes = await executeStatusCheck(senderId, "telegram");
         await sendTelegramMessage(statusRes.message.replace(/\*/g, "<b>").replace(/\*/g, "</b>"), {
           parse_mode: "HTML",
         });
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       if (text === "/start" || text === "/help" || text.toLowerCase() === "menu") {
         const welcomeHtml =
           `🤖 <b>[AEGIS SENTINEL DEVOPS & AI ENGINEER]</b>\n\n` +
-          `Halo Admin! Bot ini khusus memantau kesehatan server 24 jam, melakukan perbaikan kode, dan menambahkan fitur baru di website <b>Expedient Generation 43</b>.\n\n` +
+          `Halo Admin! Bot Telegram ini khusus memantau kesehatan server 24 jam, melakukan perbaikan kode, dan menambahkan fitur baru di website <b>Expedient Generation 43</b>.\n\n` +
           `<b>Perintah Cepat:</b>\n` +
           `• <code>/status</code> : Cek kesehatan server, Supabase, dan deployment\n` +
           `• <code>/fix</code> : Pemulihan server cepat (revalidate cache & reset error)\n` +
@@ -118,9 +118,31 @@ export async function POST(request: Request) {
         return NextResponse.json({ ok: true });
       }
 
+      // Command cepat /status
+      if (text === "/status") {
+        const statusRes = await executeStatusCheck(senderId, "telegram");
+        await sendTelegramMessage(statusRes.message.replace(/\*/g, "<b>").replace(/\*/g, "</b>"), {
+          parse_mode: "HTML",
+        });
+        return NextResponse.json({ ok: true });
+      }
+
+      // Command cepat /fix
+      if (text === "/fix") {
+        const result = await executeAutoFix(senderId, "PERBAIKI", "telegram");
+        let replyHtml = `🛠️ <b>[AEGIS SENTINEL - AUTO-REPAIR COMPLETED]</b>\n\n`;
+        if (result.details?.actionsTaken) {
+          result.details.actionsTaken.forEach((act: string, idx: number) => {
+            replyHtml += `${idx + 1}. ${act.replace(/\*/g, "")}\n`;
+          });
+        }
+        await sendTelegramMessage(replyHtml, { parse_mode: "HTML" });
+        return NextResponse.json({ ok: true });
+      }
+
       // Jalankan Otak Conversational AI (Gemini 3.8 Flash High)
-      // Yang memahami obrolan santai, perbaikan bug, penambahan fitur, dan query database!
-      const convResult = await handleAdminConversationalMessage(adminWaPhone, text);
+      // Balasan dikirim langsung ke Telegram (bukan ke WhatsApp!)
+      const convResult = await handleAdminConversationalMessage(senderId, text, "telegram");
 
       return NextResponse.json({ ok: true, processed: convResult.success });
     }

@@ -224,32 +224,48 @@ async function commitFixedCodeToGitHub(
  */
 export async function executeAutonomousAiFix(
   adminPhone: string,
-  userInstruction: string = ""
+  userInstruction: string = "",
+  channel: "whatsapp" | "telegram" = "whatsapp"
 ): Promise<{ success: boolean; message: string }> {
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
   const githubToken = (process.env.GITHUB_TOKEN || "").trim();
   const githubRepo = (process.env.GITHUB_REPO || "elhoraz/ExpedientGeneration43").trim();
 
+  const notifyFixProgress = async (msg: string) => {
+    if (channel === "telegram") {
+      const { sendTelegramMessage } = await import("@/lib/telegram");
+      let html = msg
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      html = html.replace(/\*([^*\n]+)\*/g, "<b>$1</b>");
+      html = html.replace(/_([^_\n]+)_/g, "<i>$1</i>");
+      html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+      await sendTelegramMessage(html, { parse_mode: "HTML" });
+    } else {
+      await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    }
+  };
+
   // Validasi Kredensial
   if (!geminiApiKey) {
     const msg = `⚠️ *[AI AUTO-FIX GAGAL]*\n\nVariabel \`GEMINI_API_KEY\` belum diset di Vercel / server environment.`;
-    await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    await notifyFixProgress(msg);
     return { success: false, message: msg };
   }
 
   if (!githubToken) {
     const msg = `⚠️ *[AI AUTO-FIX GAGAL]*\n\nVariabel \`GITHUB_TOKEN\` belum diset di Vercel / server environment.`;
-    await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    await notifyFixProgress(msg);
     return { success: false, message: msg };
   }
 
   const lastIncident = getLastIncident();
   const targetFilePath = resolveTargetFilePath(lastIncident, userInstruction);
 
-  // 1. Kirim notifikasi progres awal ke WhatsApp Admin
-  await sendWhatsAppMessageWithDetail(
-    adminPhone,
+  // 1. Kirim notifikasi progres awal
+  await notifyFixProgress(
     `🧠 *[SENTINEL AI AUTO-FIX INITIATED]*\n\n` +
       `Model: *Gemini 3.8 Flash High*\n` +
       `Target File: \`${targetFilePath}\`\n` +
@@ -277,7 +293,7 @@ export async function executeAutonomousAiFix(
     );
 
     // 4. Lakukan Git Commit & Push ke GitHub main branch
-    const commitMsg = `fix(sentinel-ai): automated repair for ${targetFilePath} via WhatsApp (Gemini 3.8 Flash)`;
+    const commitMsg = `fix(sentinel-ai): automated repair for ${targetFilePath} via ${channel === "telegram" ? "Telegram" : "WhatsApp"} (Gemini 3.8 Flash)`;
     console.log(`[AI-FIX] Melakukan commit & push ke GitHub...`);
     const { commitSha, htmlUrl } = await commitFixedCodeToGitHub(
       targetFilePath,
@@ -311,7 +327,7 @@ export async function executeAutonomousAiFix(
       `🚀 *Status Deploy:* Vercel telah mendeteksi commit baru ini dan sedang membangun ulang website (~60 detik).\n\n` +
       `🌐 *Lihat Perubahan:* ${htmlUrl}`;
 
-    await sendWhatsAppMessageWithDetail(adminPhone, successMsg);
+    await notifyFixProgress(successMsg);
     return { success: true, message: successMsg };
   } catch (err: any) {
     console.error("[AI-FIX-EXCEPTION]:", err);
@@ -320,7 +336,7 @@ export async function executeAutonomousAiFix(
       `Target File: \`${targetFilePath}\`\n` +
       `Detail Error: ${err.message || "Unknown error"}\n\n` +
       `_Silakan gunakan asisten coding di IDE jika memerlukan penanganan manual._`;
-    await sendWhatsAppMessageWithDetail(adminPhone, failureMsg);
+    await notifyFixProgress(failureMsg);
     return { success: false, message: failureMsg };
   }
 }

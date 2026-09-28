@@ -143,7 +143,11 @@ export async function handleAdminAutoRemediation(
 /**
  * Eksekusi Perbaikan Otomatis Komprehensif
  */
-export async function executeAutoFix(adminPhone: string, rawCmd: string): Promise<AutoRemediationResult> {
+export async function executeAutoFix(
+  adminPhone: string,
+  rawCmd: string,
+  channel: "whatsapp" | "telegram" = "whatsapp"
+): Promise<AutoRemediationResult> {
   const startTime = Date.now();
   const lastIncident = getLastIncident();
   const targetRoute = lastIncident?.route || "/";
@@ -248,7 +252,9 @@ export async function executeAutoFix(adminPhone: string, rawCmd: string): Promis
   replyMsg += `Balas: *PERBAIKI KODE* di WhatsApp ini!\n`;
   replyMsg += `Gemini 3.8 Flash akan otomatis menganalisis file, merevisi bug, dan men-deploy perbaikan ke GitHub & Vercel dalam 1 menit!`;
 
-  await sendWhatsAppMessageWithDetail(adminPhone, replyMsg);
+  if (channel === "whatsapp") {
+    await sendWhatsAppMessageWithDetail(adminPhone, replyMsg);
+  }
   return {
     action: "auto_fix",
     success: true,
@@ -260,7 +266,10 @@ export async function executeAutoFix(adminPhone: string, rawCmd: string): Promis
 /**
  * Pemeriksaan Status Real-time
  */
-export async function executeStatusCheck(adminPhone: string): Promise<AutoRemediationResult> {
+export async function executeStatusCheck(
+  adminPhone: string,
+  channel: "whatsapp" | "telegram" = "whatsapp"
+): Promise<AutoRemediationResult> {
   const lastIncident = getLastIncident();
   const fonnteRes = await checkFonnteHealthAndAlert();
 
@@ -306,14 +315,19 @@ export async function executeStatusCheck(adminPhone: string): Promise<AutoRemedi
 
   statusMsg += `\n_Ketik *PERBAIKI* untuk menjalankan pemulihan otomatis kapan saja._`;
 
-  await sendWhatsAppMessageWithDetail(adminPhone, statusMsg);
+  if (channel === "whatsapp") {
+    await sendWhatsAppMessageWithDetail(adminPhone, statusMsg);
+  }
   return { action: "status_check", success: true, message: statusMsg };
 }
 
 /**
  * Pemrosesan Ulang Antrean WhatsApp
  */
-async function executeRetryQueue(adminPhone: string): Promise<AutoRemediationResult> {
+async function executeRetryQueue(
+  adminPhone: string,
+  channel: "whatsapp" | "telegram" = "whatsapp"
+): Promise<AutoRemediationResult> {
   try {
     const adminSupabase = createAdminClient();
     const { data: failedMsgs, count } = await adminSupabase
@@ -330,16 +344,22 @@ async function executeRetryQueue(adminPhone: string): Promise<AutoRemediationRes
         .in("id", failedMsgs.map((m) => m.id));
 
       const msg = `✅ *[ANTREAN WA DIPULIHKAN]*\n\nSebanyak *${totalFailed} pesan* yang sempat gagal telah dikembalikan ke status 'pending' untuk segera dikirim ulang oleh sistem background cron.`;
-      await sendWhatsAppMessageWithDetail(adminPhone, msg);
+      if (channel === "whatsapp") {
+        await sendWhatsAppMessageWithDetail(adminPhone, msg);
+      }
       return { action: "retry_queue", success: true, message: msg };
     }
 
     const msg = `ℹ️ *[ANTREAN WA BERSIH]*\n\nTidak ditemukan pesan dengan status 'failed' pada antrean database. Semua pesan telah terkirim normal.`;
-    await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    if (channel === "whatsapp") {
+      await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    }
     return { action: "retry_queue", success: true, message: msg };
   } catch (err: any) {
     const msg = `❌ *[RETRY QUEUE GAGAL]*\nError: ${err.message}`;
-    await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    if (channel === "whatsapp") {
+      await sendWhatsAppMessageWithDetail(adminPhone, msg);
+    }
     return { action: "retry_queue", success: false, message: msg };
   }
 }
