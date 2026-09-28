@@ -212,14 +212,98 @@
     align-items: center;
     gap: 20px;
     position: relative;
-    padding: 20px 0;
+    padding: 10px 0 24px 0;
+    width: 100%;
+}
+
+/* Bezel Wrapper holding Lubber Line and Compass */
+.astrolabe-bezel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+}
+
+.astrolabe-bezel:active {
+    cursor: grabbing;
+}
+
+/* Top Lubber Line / Forward Heading Hub (Device Axis) */
+.astrolabe-lubber-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: -10px;
+    z-index: 40;
+    pointer-events: none;
+}
+
+.lubber-hud-badge {
+    background: rgba(12, 18, 30, 0.88);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 5px 14px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.lubber-hud-badge.aligned {
+    border-color: #2bb97c;
+    background: rgba(10, 40, 25, 0.92);
+    box-shadow: 0 0 20px rgba(43, 185, 124, 0.5);
+}
+
+.lubber-hud-badge .hud-deg {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--gold-main, #d4af37);
+    min-width: 44px;
+    text-align: right;
+}
+
+.lubber-hud-badge.aligned .hud-deg {
+    color: #2bb97c;
+}
+
+.lubber-hud-badge .hud-dir {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-primary);
+}
+
+.lubber-pointer-triangle {
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 14px solid var(--gold-main, #d4af37);
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+    transition: all 0.3s ease;
+}
+
+.lubber-pointer-triangle.aligned {
+    border-top-color: #2bb97c;
+    filter: drop-shadow(0 0 12px #2bb97c);
 }
 
 /* The Golden Astrolabe Outer Rim */
 .astrolabe-rim {
     position: relative;
-    width: clamp(280px, 70vw, 360px);
-    height: clamp(280px, 70vw, 360px);
+    width: clamp(280px, 72vw, 340px);
+    height: clamp(280px, 72vw, 340px);
     border-radius: 50%;
     background: radial-gradient(circle at center, #070d18 0%, #05080f 70%, #151a14 100%);
     border: 6px solid var(--gold-main, #d4af37);
@@ -229,14 +313,29 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
     transition: box-shadow 0.4s ease, border-color 0.4s ease;
 }
 
 .astrolabe-rim.aligned {
     border-color: #2bb97c !important;
-    box-shadow: 0 0 60px rgba(43, 185, 124, 0.5),
-                inset 0 0 40px rgba(43, 185, 124, 0.3),
-                0 0 30px rgba(212, 175, 55, 0.3) !important;
+    box-shadow: 0 0 60px rgba(43, 185, 124, 0.6),
+                inset 0 0 45px rgba(43, 185, 124, 0.3),
+                0 0 35px rgba(212, 175, 55, 0.35) !important;
+}
+
+/* The Rotating Astrolabe Rose Plate (Rotates by -heading) */
+.astrolabe-dial-plate {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform;
+    transition: transform 0.12s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+.astrolabe-dial-plate.no-transition {
+    transition: none !important;
 }
 
 /* Arabesque Geometric Ring Background */
@@ -251,7 +350,7 @@
 .astrolabe-ring-pattern::before {
     content: '';
     position: absolute;
-    inset: 18px;
+    inset: 16px;
     border-radius: 50%;
     border: 1px solid rgba(212, 175, 55, 0.2);
 }
@@ -259,52 +358,89 @@
 .astrolabe-ring-pattern::after {
     content: '';
     position: absolute;
-    inset: 36px;
+    inset: 34px;
     border-radius: 50%;
     border: 1px dotted rgba(212, 175, 55, 0.25);
 }
 
-/* Cardinal Directions (Fixed on Outer Rim) */
-.astrolabe-cardinal {
+/* Degree ticks and numbers on rotating dial */
+.degree-tick-label {
     position: absolute;
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--gold-main, #d4af37);
+    top: 50%;
+    left: 50%;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: rgba(212, 175, 55, 0.55);
     user-select: none;
-}
-
-.cardinal-n { top: 14px; left: 50%; transform: translateX(-50%); color: #ff5252; font-weight: 800; }
-.cardinal-e { right: 16px; top: 50%; transform: translateY(-50%); }
-.cardinal-s { bottom: 14px; left: 50%; transform: translateX(-50%); }
-.cardinal-w { left: 16px; top: 50%; transform: translateY(-50%); }
-
-/* The Rotating Compass Dial */
-.astrolabe-rotating-dial {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
     pointer-events: none;
 }
 
-/* Qibla Marker on the Dial */
-.qibla-marker-arrow {
+/* Cardinal & Intercardinal Points on Rotating Dial */
+.cardinal-point {
     position: absolute;
-    top: 18px;
+    top: 50%;
     left: 50%;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--gold-main, #d4af37);
+    user-select: none;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cardinal-point.pt-n {
+    color: #ff4d4d;
+    font-weight: 900;
+    font-size: 1.05rem;
+    text-shadow: 0 0 10px rgba(255, 77, 77, 0.6);
+}
+
+.cardinal-point.pt-sub {
+    font-size: 0.68rem;
+    color: rgba(212, 175, 55, 0.7);
+}
+
+/* Qibla Indicator / Kaaba Marker on Dial Plate */
+.astrolabe-qibla-pointer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    transform-origin: 0 0;
+    pointer-events: none;
+    z-index: 25;
+}
+
+.qibla-ray-line {
+    position: absolute;
+    top: -142px;
+    left: -1.5px;
+    width: 3px;
+    height: 142px;
+    background: linear-gradient(180deg, #ffd700 0%, rgba(212, 175, 55, 0.5) 60%, transparent 100%);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.qibla-target-head {
+    position: absolute;
+    top: -150px;
+    left: 0;
     transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    z-index: 20;
 }
 
 .qibla-kaaba-icon {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     color: var(--gold-main, #d4af37);
-    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.8));
+    filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.9));
     animation: pulseKaaba 2s infinite alternate;
 }
 
@@ -313,8 +449,8 @@
     100% { transform: scale(1.18); filter: drop-shadow(0 0 16px rgba(255, 215, 0, 1)); }
 }
 
-.qibla-tag {
-    background: var(--gold-main, #d4af37);
+.qibla-tag-pill {
+    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
     color: #000;
     font-size: 0.62rem;
     font-weight: 800;
@@ -322,9 +458,14 @@
     border-radius: 8px;
     letter-spacing: 1px;
     text-transform: uppercase;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 3px;
 }
 
-/* Center Core (Brass Needle Pin) */
+/* Center Core Brass Pivot */
 .astrolabe-center-core {
     position: absolute;
     width: 48px;
@@ -338,39 +479,42 @@
     align-items: center;
     justify-content: center;
     color: #000;
-    font-size: 0.85rem;
-}
-
-/* Center Needle Line */
-.astrolabe-needle-line {
-    position: absolute;
-    top: 36px;
-    bottom: 50%;
-    width: 3px;
-    background: linear-gradient(180deg, #ffd700 0%, rgba(212, 175, 55, 0.3) 100%);
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.7);
+    font-size: 0.9rem;
+    pointer-events: none;
 }
 
 /* Alignment Indicator Badge */
 .kiblat-aligned-badge {
-    padding: 8px 24px;
-    border-radius: 20px;
-    font-size: 0.82rem;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-size: 0.84rem;
     font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    text-align: center;
+    max-width: 90vw;
 }
 
 .kiblat-aligned-badge.locked {
     background: rgba(43, 185, 124, 0.25);
-    border: 1px solid #2bb97c;
+    border: 1.5px solid #2bb97c;
     color: #2bb97c;
-    box-shadow: 0 0 20px rgba(43, 185, 124, 0.4);
+    box-shadow: 0 0 25px rgba(43, 185, 124, 0.4);
     animation: bounceLock 0.5s ease;
+}
+
+.turn-icon-pulse {
+    font-size: 1.1rem;
+    color: var(--gold-main, #d4af37);
+    animation: pulseTurn 1.2s infinite ease-in-out;
+}
+
+@keyframes pulseTurn {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.25); }
 }
 
 @keyframes bounceLock {
@@ -382,7 +526,7 @@
 .kiblat-aligned-badge.searching {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    color: var(--text-secondary);
+    color: var(--text-primary);
 }
 
 /* Degree & Distance Readout */
@@ -416,23 +560,66 @@
     letter-spacing: 1px;
 }
 
-/* Calibration & Manual Simulation Slider for Desktop */
-.kiblat-sim-box {
+/* Desktop Simulation Controls Box */
+.desktop-sim-controls {
     width: 100%;
-    max-width: 450px;
+    max-width: 480px;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    padding: 14px 18px;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 16px;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    text-align: center;
+    gap: 12px;
 }
 
-.kiblat-sim-box label {
-    font-size: 0.75rem;
+.desktop-sim-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
     color: var(--text-secondary);
+}
+
+.desktop-presets-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-preset-snap {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-preset-snap:hover {
+    border-color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.15);
+    color: var(--gold-main, #d4af37);
+}
+
+.btn-preset-snap.active {
+    background: rgba(43, 185, 124, 0.2);
+    border-color: #2bb97c;
+    color: #2bb97c;
+}
+
+.desktop-notice-pill {
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.5;
 }
 
 .kiblat-slider {
@@ -786,14 +973,70 @@
     border-color: rgba(170, 119, 28, 0.25);
 }
 
-:root[data-theme="light"] .astrolabe-cardinal,
-[data-theme="light"] .astrolabe-cardinal {
+:root[data-theme="light"] .lubber-hud-badge,
+[data-theme="light"] .lubber-hud-badge {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(170, 119, 28, 0.35);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="light"] .lubber-hud-badge.aligned,
+[data-theme="light"] .lubber-hud-badge.aligned {
+    border-color: #10b981;
+    background: rgba(236, 253, 245, 0.95);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+}
+
+:root[data-theme="light"] .lubber-hud-badge .hud-deg,
+[data-theme="light"] .lubber-hud-badge .hud-deg {
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .lubber-hud-badge.aligned .hud-deg,
+[data-theme="light"] .lubber-hud-badge.aligned .hud-deg {
+    color: #059669;
+}
+
+:root[data-theme="light"] .lubber-hud-badge .hud-dir,
+[data-theme="light"] .lubber-hud-badge .hud-dir {
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .lubber-pointer-triangle,
+[data-theme="light"] .lubber-pointer-triangle {
+    border-top-color: #aa771c;
+}
+
+:root[data-theme="light"] .lubber-pointer-triangle.aligned,
+[data-theme="light"] .lubber-pointer-triangle.aligned {
+    border-top-color: #10b981;
+}
+
+:root[data-theme="light"] .cardinal-point,
+[data-theme="light"] .cardinal-point {
     color: #8c5d0f;
 }
 
-:root[data-theme="light"] .cardinal-n,
-[data-theme="light"] .cardinal-n {
+:root[data-theme="light"] .cardinal-point.pt-n,
+[data-theme="light"] .cardinal-point.pt-n {
     color: #dc2626;
+    text-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+}
+
+:root[data-theme="light"] .cardinal-point.pt-sub,
+[data-theme="light"] .cardinal-point.pt-sub {
+    color: rgba(140, 93, 15, 0.7);
+}
+
+:root[data-theme="light"] .degree-tick-label,
+[data-theme="light"] .degree-tick-label {
+    color: rgba(140, 93, 15, 0.6);
+}
+
+:root[data-theme="light"] .qibla-ray-line,
+[data-theme="light"] .qibla-ray-line {
+    background: linear-gradient(180deg, #aa771c 0%, rgba(170, 119, 28, 0.4) 60%, transparent 100%);
+    box-shadow: 0 0 8px rgba(170, 119, 28, 0.6);
 }
 
 :root[data-theme="light"] .qibla-kaaba-icon,
@@ -802,9 +1045,9 @@
     filter: drop-shadow(0 0 8px rgba(170, 119, 28, 0.5));
 }
 
-:root[data-theme="light"] .qibla-tag,
-[data-theme="light"] .qibla-tag {
-    background: #aa771c;
+:root[data-theme="light"] .qibla-tag-pill,
+[data-theme="light"] .qibla-tag-pill {
+    background: linear-gradient(135deg, #aa771c 0%, #8c5d0f 100%);
     color: #ffffff;
 }
 
@@ -816,17 +1059,11 @@
     box-shadow: 0 0 15px rgba(184, 134, 11, 0.6);
 }
 
-:root[data-theme="light"] .astrolabe-needle-line,
-[data-theme="light"] .astrolabe-needle-line {
-    background: linear-gradient(180deg, #b8860b 0%, rgba(184, 134, 11, 0.3) 100%);
-    box-shadow: 0 0 6px rgba(184, 134, 11, 0.5);
-}
-
 :root[data-theme="light"] .kiblat-aligned-badge.searching,
 [data-theme="light"] .kiblat-aligned-badge.searching {
     background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.12);
-    color: #475569;
+    color: #0f172a;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -855,16 +1092,37 @@
     color: #64748b;
 }
 
-:root[data-theme="light"] .kiblat-sim-box,
-[data-theme="light"] .kiblat-sim-box {
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+:root[data-theme="light"] .desktop-sim-controls,
+[data-theme="light"] .desktop-sim-controls {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(170, 119, 28, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
 }
 
-:root[data-theme="light"] .kiblat-sim-box label,
-[data-theme="light"] .kiblat-sim-box label {
+:root[data-theme="light"] .desktop-sim-header,
+[data-theme="light"] .desktop-sim-header {
     color: #475569;
+}
+
+:root[data-theme="light"] .btn-preset-snap,
+[data-theme="light"] .btn-preset-snap {
+    background: #f8fafc;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+}
+
+:root[data-theme="light"] .btn-preset-snap:hover,
+[data-theme="light"] .btn-preset-snap:hover {
+    border-color: #aa771c;
+    background: rgba(170, 119, 28, 0.1);
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .btn-preset-snap.active,
+[data-theme="light"] .btn-preset-snap.active {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: #10b981;
+    color: #059669;
 }
 
 :root[data-theme="light"] .prayer-section-title,

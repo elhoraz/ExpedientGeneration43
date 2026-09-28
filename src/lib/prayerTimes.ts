@@ -236,3 +236,50 @@ export function getNextPrayer(schedule: PrayerSchedule, now: Date = new Date()):
     isImminent,
   };
 }
+
+export interface CardinalDirection {
+  code: string;
+  name: string;
+}
+
+export function getCompassDirection(deg: number, locale: string = "id"): CardinalDirection {
+  const normalized = ((deg % 360) + 360) % 360;
+  const index = Math.round(normalized / 45) % 8;
+
+  const namesId = [
+    { code: "U", name: "Utara" },
+    { code: "TL", name: "Timur Laut" },
+    { code: "T", name: "Timur" },
+    { code: "TG", name: "Tenggara" },
+    { code: "S", name: "Selatan" },
+    { code: "BD", name: "Barat Daya" },
+    { code: "B", name: "Barat" },
+    { code: "BL", name: "Barat Laut" },
+  ];
+
+  const namesEn = [
+    { code: "N", name: "North" },
+    { code: "NE", name: "North East" },
+    { code: "E", name: "East" },
+    { code: "SE", name: "South East" },
+    { code: "S", name: "South" },
+    { code: "SW", name: "South West" },
+    { code: "W", name: "West" },
+    { code: "NW", name: "North West" },
+  ];
+
+  const namesAr = [
+    { code: "ش", name: "الشمال" },
+    { code: "ش.ق", name: "الشمال الشرقي" },
+    { code: "ق", name: "الشرق" },
+    { code: "ج.ق", name: "الجنوب الشرقي" },
+    { code: "ج", name: "الجنوب" },
+    { code: "ج.غ", name: "الجنوب الغربي" },
+    { code: "غ", name: "الغرب" },
+    { code: "ش.غ", name: "الشمال الغربي" },
+  ];
+
+  if (locale === "ar") return namesAr[index];
+  if (locale === "en") return namesEn[index];
+  return namesId[index];
+}

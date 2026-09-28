@@ -837,6 +837,12 @@ export const arDictionary: Dictionary = {
     play_adzan: "استماع للأذان الشجي",
     pause_adzan: "إيقاف الأذان",
     adzan_playing: "صدى الأذان يرفع الآن...",
+    turn_right: "أدر الهاتف لليمين",
+    turn_left: "أدر الهاتف لليسار",
+    turn_degrees: "درجة",
+    desktop_mode_note: "وضع المحاكاة (الحواسيب/دون مستشعر): قم بتدوير البوصلة بالسحب أو عبر شريط التمرير.",
+    snap_qibla: "توجيه نحو الكعبة",
+    snap_north: "توجيه نحو الشمال (٠°)",
   },
   download: {
     title: "تحميل تطبيق دفعة إكسبيدينت ٤٣",

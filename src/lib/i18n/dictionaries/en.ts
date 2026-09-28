@@ -837,6 +837,12 @@ export const enDictionary: Dictionary = {
     play_adzan: "Play Melodious Adhan",
     pause_adzan: "Pause Adhan",
     adzan_playing: "Broadcasting Adhan...",
+    turn_right: "Turn phone right",
+    turn_left: "Turn phone left",
+    turn_degrees: "more",
+    desktop_mode_note: "Simulation Mode (Desktop/Non-Sensor): Rotate compass using mouse drag, slider, or presets.",
+    snap_qibla: "Snap to Kaaba",
+    snap_north: "Point North (0°)",
   },
   download: {
     title: "Download Expedient 43 App",

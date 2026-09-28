@@ -837,6 +837,12 @@ export const idDictionary: Dictionary = {
     play_adzan: "Putar Adzan Merdu",
     pause_adzan: "Jeda Adzan",
     adzan_playing: "Sedang Mengumandangkan Adzan...",
+    turn_right: "Putar HP ke kanan",
+    turn_left: "Putar HP ke kiri",
+    turn_degrees: "lagi",
+    desktop_mode_note: "Mode Simulasi (Desktop/Non-Sensor): Geser kompas dengan mouse, slider, atau tombol preset.",
+    snap_qibla: "Arahkan ke Ka'bah",
+    snap_north: "Hadap Utara (0°)",
   },
   download: {
     title: "Download Aplikasi Expedient 43",

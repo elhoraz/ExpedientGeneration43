@@ -871,6 +871,12 @@ export interface Dictionary {
     play_adzan: string;
     pause_adzan: string;
     adzan_playing: string;
+    turn_right: string;
+    turn_left: string;
+    turn_degrees: string;
+    desktop_mode_note: string;
+    snap_qibla: string;
+    snap_north: string;
   };
   download: {
     title: string;
