@@ -109,7 +109,7 @@ export async function POST(request: Request) {
       if (isSenderAdmin) {
         console.log(`[SENTINEL-ADMIN-INCOMING] Pesan dari Admin (${numNorm}): "${messageText}"`);
 
-        // Jalankan engine auto-remediasi jika ini instruksi perbaikan / kontrol
+        // 1. Jalankan engine reflex perbaikan cepat (jika perintah keyword spesifik)
         const remediationResult = await handleAdminAutoRemediation(numNorm, messageText);
         if (remediationResult.action !== "not_a_sentinel_command") {
           console.log(`[SENTINEL-REMEDIATION-EXECUTED]: ${remediationResult.action} - ${remediationResult.success}`);
@@ -118,6 +118,15 @@ export async function POST(request: Request) {
             reply: remediationResult.message,
           });
         }
+
+        // 2. Jika pesan percakapan bebas / permintaan fitur / pertanyaan santai:
+        // Gunakan AI Conversational Agent (Gemini 3.8 Flash)
+        const { handleAdminConversationalMessage } = await import("@/lib/sentinel/conversationalAgent");
+        const convResult = await handleAdminConversationalMessage(numNorm, messageText);
+        return NextResponse.json({
+          status: "CONVERSATIONAL_AI_PROCESSED",
+          success: convResult.success,
+        });
       }
 
       // Jika pesan dari pengunjung biasa / alumni: Simpan ke antrean dan buat notifikasi
