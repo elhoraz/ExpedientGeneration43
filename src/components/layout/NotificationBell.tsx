@@ -8,6 +8,7 @@ import {
   requestSystemNotificationPermission,
   isAndroidNativeApp,
   hasSystemNotificationPermission,
+  sendSystemNotification,
 } from "@/lib/notificationHelper";
 import "./notifications.css";
 
@@ -248,6 +249,14 @@ export default function NotificationBell({ userId }: { userId: string }) {
           setActiveTab("notif");
           playNotificationChime();
           if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+
+          // Trigger high-priority native system heads-up notification
+          sendSystemNotification({
+            title: newNotif.title || "Pemberitahuan Baru",
+            message: newNotif.message || "Ada pemberitahuan baru di portal alumni.",
+            url: newNotif.link || "/beranda",
+            tag: `notif-${newNotif.id}`,
+          });
         }
       )
       .on(
@@ -258,7 +267,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
           table: "chat_messages",
           filter: `receiver_id=eq.${userId}`,
         },
-        (payload) => {
+        async (payload) => {
           const newMsg = payload.new as any;
           if (newMsg && !newMsg.is_lounge) {
             // If already in that exact personal chat, skip alert
@@ -268,6 +277,32 @@ export default function NotificationBell({ userId }: { userId: string }) {
             fetchNotifications();
             playNotificationChime();
             if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+
+            // Trigger instant system heads-up notification with sender name preview
+            try {
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("nama_panggilan, nama_lengkap")
+                .eq("id", newMsg.sender_id)
+                .maybeSingle();
+
+              const senderName = profile?.nama_panggilan || profile?.nama_lengkap || "Rekan Alumni";
+              const preview = newMsg.message || (newMsg.image_url ? "📷 Mengirim gambar" : newMsg.audio_url ? "🎤 Pesan suara" : "Mengirim lampiran");
+
+              sendSystemNotification({
+                title: `💬 Pesan Baru: ${senderName}`,
+                message: preview,
+                url: `/chat/personal/${newMsg.sender_id}`,
+                tag: `chat-${newMsg.sender_id}`,
+              });
+            } catch {
+              sendSystemNotification({
+                title: "💬 Pesan Chat Baru",
+                message: newMsg.message || "Anda menerima pesan obrolan baru.",
+                url: `/chat/personal/${newMsg.sender_id}`,
+                tag: `chat-${newMsg.sender_id}`,
+              });
+            }
           }
         }
       )

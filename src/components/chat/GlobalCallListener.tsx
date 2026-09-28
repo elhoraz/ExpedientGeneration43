@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getAvatarUrl } from "@/lib/avatar";
+import { sendSystemNotification } from "@/lib/notificationHelper";
 
 /**
  * GlobalCallListener — mounted in dashboard layout.
@@ -121,6 +122,14 @@ export default function GlobalCallListener() {
             callType: data.callType || "voice",
           });
           startRingtone();
+
+          // Trigger high-priority native system notification with banner, sound & vibration
+          sendSystemNotification({
+            title: `📞 Panggilan ${data.callType === "video" ? "Video" : "Suara"} Masuk`,
+            message: `${callerName} sedang menelepon Anda. Ketuk untuk menjawab.`,
+            url: `/chat/personal/${data.callerId}?callAction=accept&type=${data.callType || "voice"}`,
+            tag: `call-${data.callerId}`,
+          });
         })
         .on("broadcast", { event: "cancel_call" }, (payload) => {
           const data = payload?.payload;

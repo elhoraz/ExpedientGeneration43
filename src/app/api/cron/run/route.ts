@@ -214,6 +214,19 @@ Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
             bdayFailed++;
             output += `  [Gagal] Gagal mengirim ke ${name} (${user.no_whatsapp}): ${sendRes.reason}\n`;
           }
+
+          // Insert in-app & push notification
+          try {
+            await supabase.from('notifications').insert([{
+              user_id: user.id,
+              title: `🎉 Barakallahu Fii Umrik, ${name}!`,
+              message: `Selamat Ulang Tahun${ageStr}! Semoga Allah SWT senantiasa melimpahkan keberkahan dan kebaikan.`,
+              link: `/birthday/${user.id}`,
+              is_read: false,
+            }]);
+          } catch (notifErr) {
+            console.warn("Failed to insert birthday in-app notif:", notifErr);
+          }
         }
         output += `  Total Terkirim: ${bdaySent} | Gagal: ${bdayFailed}\n`;
       }
@@ -280,6 +293,18 @@ Jazakumullah khairan katsiran. Semoga Allah melapangkan rezeki antum sekeluarga.
           no_whatsapp: u.no_whatsapp,
           message: message
         }]);
+
+        // In-app & push notification
+        try {
+          await supabase.from('notifications').insert([{
+            user_id: u.id,
+            title: `💰 Kas Rutin & Ta'awun ${currentMonthName}`,
+            message: `Mengingatkan ladang amal jariyah kita di awal bulan ${currentMonthName} (Baitul Maal Expedient).`,
+            link: "/baitul-maal",
+            is_read: false,
+          }]);
+        } catch {}
+
         infaqSent++;
       }
       output += `  Total Pengingat Infaq Dimasukkan Antrian: ${infaqSent}\n`;
