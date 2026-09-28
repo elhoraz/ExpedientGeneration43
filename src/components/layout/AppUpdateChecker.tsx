@@ -26,10 +26,13 @@ export default function AppUpdateChecker() {
     const checkUpdate = async () => {
       try {
         const isApk = isAndroidNativeApp();
+        // Hanya tampilkan pop-up pembaruan APK jika sedang berjalan di dalam aplikasi APK
+        if (!isApk) return;
+
         let installedCode = 1;
         let installedName = "1.0.0";
 
-        if (isApk && (window as any).ExpedientNativeBridge?.getAppVersionCode) {
+        if ((window as any).ExpedientNativeBridge?.getAppVersionCode) {
           try {
             installedCode = Number((window as any).ExpedientNativeBridge.getAppVersionCode()) || 1;
             installedName = String((window as any).ExpedientNativeBridge.getAppVersionName?.() || "1.0.0");
@@ -77,8 +80,8 @@ export default function AppUpdateChecker() {
       }
     }
 
-    // Fallback: direct browser download
-    window.open(versionData.apkUrl, "_blank");
+    // Jika APK versi lama belum memiliki bridge installApk, buka Pusat Unduhan langsung
+    window.location.href = "/download";
   };
 
   const handleDismiss = () => {
@@ -207,20 +210,40 @@ export default function AppUpdateChecker() {
         {isUpdating ? (
           <div
             style={{
-              padding: "1rem",
+              padding: "1.2rem",
               background: "rgba(212, 175, 55, 0.1)",
               border: "1px solid rgba(212, 175, 55, 0.3)",
               borderRadius: "14px",
               textAlign: "center",
             }}
           >
-            <i className="fa-solid fa-spinner fa-spin" style={{ color: "#f3ba2f", fontSize: "1.25rem", marginBottom: "0.5rem" }} />
-            <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#fff" }}>
-              Mengunduh Pembaruan APK...
+            <i className="fa-solid fa-spinner fa-spin" style={{ color: "#f3ba2f", fontSize: "1.35rem", marginBottom: "0.5rem" }} />
+            <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#fff" }}>
+              Menyiapkan Pembaruan APK...
             </div>
-            <div style={{ fontSize: "0.78rem", color: "#94a3b8", marginTop: "4px" }}>
-              File APK sedang diunduh di latar belakang. Saat selesai, jendela instalasi Android akan otomatis terbuka di layar HP Anda.
+            <div style={{ fontSize: "0.8rem", color: "#94a3b8", marginTop: "4px" }}>
+              Mengalihkan ke unduhan APK terbaru... Jika tidak terbuka otomatis, ketuk tombol di bawah:
             </div>
+            <a
+              href="/download"
+              onClick={() => setUpdateAvailable(false)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                marginTop: "12px",
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #d4af37 0%, #f3ba2f 100%)",
+                color: "#060b14",
+                fontSize: "0.82rem",
+                fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              <i className="fa-solid fa-download" />
+              <span>Buka Pusat Unduhan APK</span>
+            </a>
           </div>
         ) : (
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>

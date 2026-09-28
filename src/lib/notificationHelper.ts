@@ -13,7 +13,7 @@ export type SystemNotificationOptions = {
  */
 export function isAndroidNativeApp(): boolean {
   if (typeof window === "undefined") return false;
-  return Boolean((window as any).ExpedientNativeBridge?.isNative?.());
+  return Boolean((window as any).ExpedientNativeBridge);
 }
 
 /**
