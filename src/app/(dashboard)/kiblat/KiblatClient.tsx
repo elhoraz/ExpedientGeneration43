@@ -73,6 +73,9 @@ export default function KiblatClient() {
     isGps: false,
   });
 
+  // Device Mode: "desktop" (Auto-aligned & manual drag) vs "mobile" (Real-time physical sensors)
+  const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
+
   // Automatically start locked directly onto Ka'bah for Desktop / default view!
   const [heading, setHeading] = useState<number>(initialQibla.bearing);
   const [manualOffset, setManualOffset] = useState<number>(0);
@@ -81,14 +84,29 @@ export default function KiblatClient() {
   const [needsIosPermission, setNeedsIosPermission] = useState<boolean>(false);
   const [isGpsLoading, setIsGpsLoading] = useState<boolean>(false);
   const [now, setNow] = useState<Date>(new Date());
-  const [isPlayingAdzan, setIsPlayingAdzan] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"compass" | "map">("compass");
+
+  // Genuine Adzan Audio Player state
+  const [adzanVersion, setAdzanVersion] = useState<"makkah" | "madinah">("makkah");
+  const [isPlayingAdzan, setIsPlayingAdzan] = useState<boolean>(false);
+  const [audioCurrentTime, setAudioCurrentTime] = useState<number>(0);
+  const [audioDuration, setAudioDuration] = useState<number>(0);
+  const [showDoaAdzan, setShowDoaAdzan] = useState<boolean>(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const startPointerAngleRef = useRef<number>(0);
   const startContinuousHeadingRef = useRef<number>(initialQibla.bearing);
+
+  // Auto-detect mobile device on client mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+      (window.innerWidth < 768 && window.matchMedia("(pointer: coarse)").matches);
+    setDeviceMode(isMobile ? "mobile" : "desktop");
+  }, []);
 
   // Qibla calculations (Bearing, Distance, Falak angles, DMS)
   const qiblaInfo = calculateQibla(currentLocation.lat, currentLocation.lng);
@@ -150,17 +168,56 @@ export default function KiblatClient() {
     return () => clearInterval(timer);
   }, []);
 
-  // Audio setup
+  // Setup authentic Adzan Audio (Makkah & Madinah) with local static asset and fallback
+  const adzanSources: Record<string, string> = {
+    makkah: "/assets/audio/adzan_makkah.mp3",
+    madinah: "/assets/audio/adzan_madinah.mp3",
+  };
+
   useEffect(() => {
-    const audio = new Audio("https://audio.qurancdn.com/Alafasy/mp3/001001.mp3");
-    audio.onended = () => setIsPlayingAdzan(false);
+    const audio = new Audio(adzanSources[adzanVersion]);
+    audio.preload = "metadata";
+
+    const onLoadedMetadata = () => {
+      if (audio.duration && !isNaN(audio.duration)) {
+        setAudioDuration(audio.duration);
+      }
+    };
+    const onTimeUpdate = () => {
+      setAudioCurrentTime(audio.currentTime);
+    };
+    const onEnded = () => {
+      setIsPlayingAdzan(false);
+      setAudioCurrentTime(0);
+    };
+    const onError = () => {
+      console.warn("Local adzan playback error, switching to CDN fallback...");
+      const fallbackUrl =
+        adzanVersion === "makkah"
+          ? "https://www.islamcan.com/audio/adhan/azan1.mp3"
+          : "https://www.islamcan.com/audio/adhan/azan2.mp3";
+      if (audio.src !== fallbackUrl) {
+        audio.src = fallbackUrl;
+      }
+    };
+
+    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("timeupdate", onTimeUpdate);
+    audio.addEventListener("ended", onEnded);
+    audio.addEventListener("error", onError);
+
     audioRef.current = audio;
 
     return () => {
+      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("timeupdate", onTimeUpdate);
+      audio.removeEventListener("ended", onEnded);
+      audio.removeEventListener("error", onError);
       audio.pause();
+      audio.src = "";
       audioRef.current = null;
     };
-  }, []);
+  }, [adzanVersion]);
 
   const toggleAdzanAudio = () => {
     if (!audioRef.current) return;
@@ -171,8 +228,34 @@ export default function KiblatClient() {
       audioRef.current
         .play()
         .then(() => setIsPlayingAdzan(true))
-        .catch((e) => console.log("Audio play notice:", e));
+        .catch((e) => {
+          console.warn("Audio play prevented:", e);
+          setIsPlayingAdzan(false);
+        });
     }
+  };
+
+  const handleSeekAudio = (newTime: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = newTime;
+      setAudioCurrentTime(newTime);
+    }
+  };
+
+  const handleStopAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsPlayingAdzan(false);
+      setAudioCurrentTime(0);
+    }
+  };
+
+  const formatAudioTime = (sec: number) => {
+    if (isNaN(sec) || sec <= 0) return "00:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   // Robust Device Orientation Event Handler
@@ -462,6 +545,38 @@ export default function KiblatClient() {
           <p className="kiblat-subtitle">{t.kiblat.subtitle}</p>
         </div>
 
+        {/* Device Mode Switcher Bar: Mode Desktop vs Mode Mobile */}
+        <div className="device-mode-switcher-bar">
+          <div className="device-mode-pills">
+            <button
+              type="button"
+              className={`device-mode-pill ${deviceMode === "desktop" ? "active" : ""}`}
+              onClick={() => {
+                setDeviceMode("desktop");
+                setIsSensorActive(false);
+              }}
+            >
+              <i className="fa-solid fa-desktop"></i>
+              <span>{t.kiblat.mode_desktop}</span>
+              <span className="mode-sub-tag">Auto-Lock</span>
+            </button>
+            <button
+              type="button"
+              className={`device-mode-pill ${deviceMode === "mobile" ? "active" : ""}`}
+              onClick={() => {
+                setDeviceMode("mobile");
+                if (!isSensorActive) {
+                  activateCompassSensor();
+                }
+              }}
+            >
+              <i className="fa-solid fa-mobile-screen-button"></i>
+              <span>{t.kiblat.mode_mobile}</span>
+              <span className="mode-sub-tag">Sensor Fisik</span>
+            </button>
+          </div>
+        </div>
+
         {/* View Mode Switcher: Compass vs Satellite Map */}
         <div className="kiblat-view-tabs">
           <button
@@ -528,24 +643,97 @@ export default function KiblatClient() {
             ========================================================================= */}
         {viewMode === "compass" && (
           <div className="astrolabe-stage">
-            {/* Desktop Auto-Align Bar */}
-            <div className="desktop-auto-bar">
-              <button
-                type="button"
-                className={`btn-auto-align ${isAligned ? "is-locked" : ""}`}
-                onClick={handleAutoAlignQibla}
-              >
-                <i className={`fa-solid ${isAligned ? "fa-circle-check" : "fa-crosshairs"}`}></i>
-                <span>
-                  {isAligned
-                    ? `✓ Terkunci Tepat ke Arah Ka'bah (${qiblaInfo.bearing}° ${currentDirection.name})`
-                    : `Arahkan Otomatis ke Kiblat (${qiblaInfo.bearing}°)`}
-                </span>
-              </button>
-              <span className="desktop-auto-hint">
-                Mode Desktop: Arah kiblat otomatis diselaraskan secara akurat ({qiblaInfo.bearing}° {currentDirection.name}). Anda juga dapat memutar kompas dengan drag mouse ke kanan/kiri.
-              </span>
-            </div>
+            {/* 1. Mode Desktop Panel */}
+            {deviceMode === "desktop" && (
+              <div className="desktop-mode-panel animate-fade-in">
+                <div className="desktop-mode-header">
+                  <div className="desktop-mode-icon-circle">
+                    <i className="fa-solid fa-desktop"></i>
+                  </div>
+                  <div className="desktop-mode-text">
+                    <div className="desktop-mode-badge-title">
+                      <strong>Mode Desktop (Auto-Aligned)</strong>
+                      <span className="desktop-sensor-note">Sensor magnetik fisik tidak tersedia di PC/Laptop</span>
+                    </div>
+                    <p className="desktop-mode-desc">
+                      Kompas otomatis diselaraskan secara akurat menghadap Ka&apos;bah (<strong>{qiblaInfo.bearing}° {currentDirection.name}</strong>). Anda dapat memutar kompas piringan 360° via drag mouse (kanan = kanan, kiri = kiri) atau menggunakan peta satelit.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="desktop-auto-actions">
+                  <button
+                    type="button"
+                    className={`btn-auto-align ${isAligned ? "is-locked" : ""}`}
+                    onClick={handleAutoAlignQibla}
+                  >
+                    <i className={`fa-solid ${isAligned ? "fa-circle-check" : "fa-crosshairs"}`}></i>
+                    <span>
+                      {isAligned
+                        ? `✓ Terkunci Tepat ke Arah Ka'bah (${qiblaInfo.bearing}° ${currentDirection.name})`
+                        : `🎯 Kunci Otomatis ke Kiblat (${qiblaInfo.bearing}°)`}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* 2. Mode Mobile Panel */}
+            {deviceMode === "mobile" && (
+              <div className="mobile-mode-panel animate-fade-in">
+                <div className="mobile-sensor-status-card">
+                  <div className="mobile-status-indicator">
+                    <span className={`status-dot ${isSensorActive ? "active-pulse" : "idle"}`}></span>
+                    <div className="status-label-group">
+                      <strong>
+                        {isSensorActive
+                          ? "🟢 Sensor Kompas Ponsel Aktif (Real-Time)"
+                          : "🔴 Sensor Belum Aktif / Perlu Izin"}
+                      </strong>
+                      <small>
+                        {isSensorActive
+                          ? "Kompas bergerak real-time mengikuti orientasi fisik perangkat Anda."
+                          : "Ketuk tombol di samping untuk mengaktifkan sensor gerak ponsel Anda."}
+                      </small>
+                    </div>
+                  </div>
+
+                  {!isSensorActive && (
+                    <button
+                      type="button"
+                      className="btn-activate-sensor"
+                      onClick={activateCompassSensor}
+                    >
+                      <i className="fa-solid fa-compass"></i> Aktifkan Sensor HP
+                    </button>
+                  )}
+                </div>
+
+                <div className="mobile-guide-grid">
+                  <div className="mobile-guide-item">
+                    <i className="fa-solid fa-arrows-down-to-line"></i>
+                    <div>
+                      <strong>1. Pegang HP Mendatar</strong>
+                      <p>Posisikan ponsel sejajar lantai agar jarum kompas tidak terdistorsi gravitasi.</p>
+                    </div>
+                  </div>
+                  <div className="mobile-guide-item">
+                    <i className="fa-solid fa-arrows-rotate"></i>
+                    <div>
+                      <strong>2. Putar Tubuh Anda</strong>
+                      <p>Putar perlahan hingga jarum emas sejajar dengan puncak dan bergetar hijau.</p>
+                    </div>
+                  </div>
+                  <div className="mobile-guide-item">
+                    <i className="fa-solid fa-infinity"></i>
+                    <div>
+                      <strong>3. Kalibrasi Angka 8</strong>
+                      <p>Ayunkan ponsel membentuk pola angka 8 (∞) di udara jika kompas melenceng.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Bezel housing Forward Lubber Line and Compass */}
             <div
@@ -553,11 +741,9 @@ export default function KiblatClient() {
               ref={stageRef}
               onPointerDown={handlePointerDown}
               title={
-                locale === "ar"
-                  ? "اسحب لتدوير البوصلة يدوياً"
-                  : locale === "en"
-                  ? "Drag to rotate compass naturally"
-                  : "Klik & geser mouse untuk memutar kompas"
+                deviceMode === "desktop"
+                  ? "Klik & geser mouse untuk memutar kompas"
+                  : "Pegang ponsel mendatar sejajar lantai"
               }
             >
               {/* Top Lubber Line / Forward Heading Hub (Device Axis) */}
@@ -837,27 +1023,133 @@ export default function KiblatClient() {
               </span>
             </div>
 
-            <button
-              type="button"
-              onClick={toggleAdzanAudio}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 18px",
-                borderRadius: "30px",
-                background: isPlayingAdzan ? "rgba(212, 175, 55, 0.22)" : "rgba(255, 255, 255, 0.06)",
-                border: isPlayingAdzan ? "1px solid var(--gold-main)" : "1px solid rgba(255, 255, 255, 0.15)",
-                color: isPlayingAdzan ? "var(--gold-main)" : "var(--text-primary)",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-            >
-              <i className={`fa-solid ${isPlayingAdzan ? "fa-volume-high" : "fa-bell"}`}></i>
-              <span>{isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}</span>
-            </button>
+          </div>
+
+          {/* Authentic Adzan Player Card */}
+          <div className="adzan-player-card">
+            <div className="adzan-card-header">
+              <div className="adzan-badge-title">
+                <div className="adzan-pulse-icon">
+                  <i className={`fa-solid ${isPlayingAdzan ? "fa-volume-high" : "fa-bell"}`}></i>
+                </div>
+                <div>
+                  <h3 className="adzan-card-title">
+                    {locale === "ar" ? "أذان الصلاة الشجي" : locale === "en" ? "Melodious Call to Prayer (Adhan)" : "Kumandang Adzan Merdu"}
+                  </h3>
+                  <span className="adzan-card-subtitle">
+                    {adzanVersion === "makkah" ? t.kiblat.adzan_makkah : t.kiblat.adzan_madinah}
+                  </span>
+                </div>
+              </div>
+
+              {/* Version Selector: Makkah vs Madinah */}
+              <div className="adzan-version-pills">
+                <button
+                  type="button"
+                  className={`adzan-pill-btn ${adzanVersion === "makkah" ? "active" : ""}`}
+                  onClick={() => {
+                    if (adzanVersion !== "makkah") {
+                      setAdzanVersion("makkah");
+                      setIsPlayingAdzan(false);
+                      setAudioCurrentTime(0);
+                    }
+                  }}
+                >
+                  🕋 Makkah
+                </button>
+                <button
+                  type="button"
+                  className={`adzan-pill-btn ${adzanVersion === "madinah" ? "active" : ""}`}
+                  onClick={() => {
+                    if (adzanVersion !== "madinah") {
+                      setAdzanVersion("madinah");
+                      setIsPlayingAdzan(false);
+                      setAudioCurrentTime(0);
+                    }
+                  }}
+                >
+                  🕌 Madinah
+                </button>
+              </div>
+            </div>
+
+            {/* Audio Controls and Live Wave/Duration */}
+            <div className="adzan-player-body">
+              <div className="adzan-controls-main">
+                <button
+                  type="button"
+                  className={`adzan-play-btn ${isPlayingAdzan ? "is-playing" : ""}`}
+                  onClick={toggleAdzanAudio}
+                  aria-label={isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}
+                  title={isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}
+                >
+                  <i className={`fa-solid ${isPlayingAdzan ? "fa-pause" : "fa-play"}`}></i>
+                </button>
+
+                <button
+                  type="button"
+                  className="adzan-stop-btn"
+                  onClick={handleStopAudio}
+                  title="Stop / Reset"
+                >
+                  <i className="fa-solid fa-stop"></i>
+                </button>
+
+                <div className="adzan-track-container">
+                  <div className="adzan-time-row">
+                    <span className="adzan-time-current">{formatAudioTime(audioCurrentTime)}</span>
+                    {isPlayingAdzan && (
+                      <div className="adzan-wave-bars">
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                      </div>
+                    )}
+                    <span className="adzan-time-duration">
+                      {formatAudioTime(audioDuration || (adzanVersion === "makkah" ? 192 : 165))}
+                    </span>
+                  </div>
+
+                  <input
+                    type="range"
+                    min="0"
+                    max={audioDuration || (adzanVersion === "makkah" ? 192 : 165)}
+                    value={audioCurrentTime}
+                    onChange={(e) => handleSeekAudio(Number(e.target.value))}
+                    className="adzan-seek-bar"
+                  />
+                </div>
+              </div>
+
+              {/* Doa Setelah Adzan Collapsible */}
+              <div className="adzan-doa-toggle-wrap">
+                <button
+                  type="button"
+                  className="btn-toggle-doa"
+                  onClick={() => setShowDoaAdzan((v) => !v)}
+                >
+                  <i className="fa-solid fa-hands-praying"></i>
+                  <span>{showDoaAdzan ? "Tutup Doa Setelah Adzan" : t.kiblat.doa_after_adzan}</span>
+                  <i className={`fa-solid ${showDoaAdzan ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
+                </button>
+
+                {showDoaAdzan && (
+                  <div className="doa-adzan-card animate-fade-in">
+                    <div className="doa-arabic" dir="rtl">
+                      اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ
+                    </div>
+                    <div className="doa-latin">
+                      &quot;Allaahumma rabba haadzihid-da&apos;watit-taammah, wash-shalaatil qaa-imah, aati muhammadanil wasiilata wal fadhiilah, wab&apos;atshu maqaamam mahmuudanil-ladzii wa&apos;adtah.&quot;
+                    </div>
+                    <div className="doa-translation">
+                      <strong>Artinya:</strong> &quot;Ya Allah, Tuhan Pemilik seruan yang sempurna ini dan shalat yang didirikan, berilah Nabi Muhammad wasilah dan keutamaan, serta tempatkanlah beliau pada kedudukan terpuji yang telah Engkau janjikan.&quot; (HR. Bukhari)
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Live Next Prayer Countdown Banner */}

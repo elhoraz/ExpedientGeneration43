@@ -843,6 +843,11 @@ export const enDictionary: Dictionary = {
     desktop_mode_note: "Simulation Mode (Desktop/Non-Sensor): Rotate compass using mouse drag, slider, or presets.",
     snap_qibla: "Snap to Kaaba",
     snap_north: "Point North (0°)",
+    mode_desktop: "Desktop Mode (Auto-Align)",
+    mode_mobile: "Mobile Mode (Physical Sensor)",
+    adzan_makkah: "Makkah Adhan (Masjid al-Haram)",
+    adzan_madinah: "Madinah Adhan (Al-Masjid an-Nabawi)",
+    doa_after_adzan: "Supplication After Adhan",
   },
   download: {
     title: "Download Expedient 43 App",

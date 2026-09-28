@@ -877,6 +877,11 @@ export interface Dictionary {
     desktop_mode_note: string;
     snap_qibla: string;
     snap_north: string;
+    mode_desktop: string;
+    mode_mobile: string;
+    adzan_makkah: string;
+    adzan_madinah: string;
+    doa_after_adzan: string;
   };
   download: {
     title: string;

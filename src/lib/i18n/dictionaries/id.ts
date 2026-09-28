@@ -843,6 +843,11 @@ export const idDictionary: Dictionary = {
     desktop_mode_note: "Mode Simulasi (Desktop/Non-Sensor): Geser kompas dengan mouse, slider, atau tombol preset.",
     snap_qibla: "Arahkan ke Ka'bah",
     snap_north: "Hadap Utara (0°)",
+    mode_desktop: "Mode Desktop (Auto-Align)",
+    mode_mobile: "Mode Ponsel (Sensor Fisik)",
+    adzan_makkah: "Adzan Makkah (Masjidil Haram)",
+    adzan_madinah: "Adzan Madinah (Masjid Nabawi)",
+    doa_after_adzan: "Doa Setelah Adzan",
   },
   download: {
     title: "Download Aplikasi Expedient 43",
