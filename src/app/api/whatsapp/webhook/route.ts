@@ -129,11 +129,12 @@ export async function POST(request: Request) {
         });
       }
 
-      // Jika pesan dari pengunjung biasa / alumni: Simpan ke antrean dan buat notifikasi
+      // Jika pesan dari pengunjung biasa / alumni:
+      // Berikan respons otomatis ramah 24 jam dengan akses database & Gemini 3.8 Flash!
       const altLocalNum = numNorm.startsWith("62") ? "0" + numNorm.substring(2) : numNorm;
       const { data: matchedProfiles } = await adminSupabase
         .from("profiles")
-        .select("id, nama_lengkap, nama_panggilan, role")
+        .select("id, nama_lengkap, nama_panggilan, role, kelas, is_active")
         .or(`no_whatsapp.eq.${numNorm},no_whatsapp.eq.${altLocalNum}`)
         .limit(1);
 
@@ -143,20 +144,25 @@ export async function POST(request: Request) {
         ? `${userDisplayName} (${matchedUser.role || "Alumni"})`
         : item.senderName || `Pengguna WhatsApp`;
 
+      console.log(`[WA-USER-INCOMING] Pesan dari ${numNorm} (${senderTag}): "${messageText}"`);
+
+      // 1. Eksekusi AI Concierge Alumni (Gemini 3.8 Flash + Supabase Database Query)
+      const { handleUserWhatsAppMessage } = await import("@/lib/whatsapp/alumniBot");
+      const userAiRes = await handleUserWhatsAppMessage(numNorm, messageText, matchedUser);
+
+      // 2. Simpan riwayat interaksi ke antrean database
       await adminSupabase.from("whatsapp_queue").insert([
         {
           no_whatsapp: numNorm,
           message: messageText,
-          status: "received",
-          error_message: `Nama: ${senderTag}`,
+          status: "replied",
+          error_message: `Dibalas AI: "${userAiRes.replyText.slice(0, 150)}" (User: ${senderTag})`,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         },
       ]);
 
-      console.log(`[WA-INCOMING] Pesan dari ${numNorm} (${senderTag}): "${messageText}"`);
-
-      // Notifikasi Lonceng In-App untuk Admin Dashboard
+      // 3. Notifikasi Lonceng In-App untuk Admin Dashboard
       try {
         const { data: adminProfiles } = await adminSupabase
           .from("profiles")
@@ -166,7 +172,7 @@ export async function POST(request: Request) {
         if (adminProfiles && adminProfiles.length > 0) {
           const notifRecords = adminProfiles.map((adm) => ({
             user_id: adm.id,
-            title: `💬 WA Masuk: ${userDisplayName}`,
+            title: `💬 WA Alumni: ${userDisplayName}`,
             message: messageText.length > 80 ? messageText.substring(0, 77) + "..." : messageText,
             link: "/admin/broadcast",
             is_read: false,
@@ -177,6 +183,11 @@ export async function POST(request: Request) {
       } catch (notifErr) {
         console.warn("[WA-NOTIF-ERROR]: Gagal membuat notifikasi admin:", notifErr);
       }
+
+      return NextResponse.json({
+        status: "USER_MESSAGE_REPLIED",
+        reply: userAiRes.replyText,
+      });
     }
 
     return NextResponse.json({ status: "SUCCESS" });
