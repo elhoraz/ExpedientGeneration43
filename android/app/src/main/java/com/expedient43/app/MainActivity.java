@@ -1,8 +1,14 @@
 package com.expedient43.app;
 
+import android.Manifest;
 import android.app.DownloadManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,13 +22,36 @@ import android.webkit.URLUtil;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import com.getcapacitor.BridgeActivity;
 import java.io.OutputStream;
 
 public class MainActivity extends BridgeActivity {
+    public static final String NOTIFICATION_CHANNEL_ID = "expedient_main_channel";
+    public static final String NOTIFICATION_CHANNEL_NAME = "Notifikasi Expedient 43";
+    private static final int NOTIF_PERMISSION_CODE = 101;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // 1. Create High-Priority Notification Channel (Android 8.0+)
+        createNotificationChannel();
+
+        // 2. Request Notification Permission on Android 13+ (API 33+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    NOTIF_PERMISSION_CODE
+                );
+            }
+        }
+
+        // 3. Handle Notification Intent if opened from notification tap
+        handleNotificationIntent(getIntent());
 
         WebView webView = getBridge().getWebView();
         if (webView != null) {
@@ -177,6 +206,115 @@ public class MainActivity extends BridgeActivity {
                 e.printStackTrace();
             }
             return false;
+        }
+
+        @JavascriptInterface
+        public boolean hasNotificationPermission() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                return checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+            }
+            return true;
+        }
+
+        @JavascriptInterface
+        public void requestNotificationPermission() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                runOnUiThread(() -> {
+                    ActivityCompat.requestPermissions(
+                        MainActivity.this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIF_PERMISSION_CODE
+                    );
+                });
+            }
+        }
+
+        @JavascriptInterface
+        public void showNotification(String title, String message, String targetUrl) {
+            runOnUiThread(() -> {
+                try {
+                    NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    if (manager == null) return;
+
+                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    if (targetUrl != null && !targetUrl.trim().isEmpty()) {
+                        intent.putExtra("navigate_to", targetUrl);
+                    }
+
+                    int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        flags |= PendingIntent.FLAG_IMMUTABLE;
+                    }
+
+                    PendingIntent pendingIntent = PendingIntent.getActivity(
+                        MainActivity.this,
+                        (int) (System.currentTimeMillis() % 100000),
+                        intent,
+                        flags
+                    );
+
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(MainActivity.this, NOTIFICATION_CHANNEL_ID)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle(title != null ? title : "Expedient 43")
+                        .setContentText(message != null ? message : "Pemberitahuan baru")
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(message != null ? message : ""))
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setDefaults(NotificationCompat.DEFAULT_ALL)
+                        .setAutoCancel(true)
+                        .setContentIntent(pendingIntent);
+
+                    manager.notify((int) (System.currentTimeMillis() % 100000), builder.build());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+    }
+
+    /**
+     * Create high-importance Android Notification Channel with sound, vibration, and gold LED
+     */
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                NOTIFICATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifikasi resmi alumni, pesan chat, jadwal adzan, dan pengumuman angkatan.");
+            channel.enableLights(true);
+            channel.setLightColor(0xFFD4AF37); // Golden color
+            channel.enableVibration(true);
+            channel.setVibrationPattern(new long[]{0, 250, 150, 250});
+            channel.setShowBadge(true);
+
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleNotificationIntent(intent);
+    }
+
+    private void handleNotificationIntent(Intent intent) {
+        if (intent != null && intent.hasExtra("navigate_to")) {
+            String url = intent.getStringExtra("navigate_to");
+            if (url != null && !url.trim().isEmpty()) {
+                WebView webView = getBridge().getWebView();
+                if (webView != null) {
+                    if (url.startsWith("/")) {
+                        webView.loadUrl("https://expedientgeneration.vercel.app" + url);
+                    } else {
+                        webView.loadUrl(url);
+                    }
+                }
+            }
         }
     }
 
