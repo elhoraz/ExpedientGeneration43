@@ -41,6 +41,26 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
   const [activeSection, setActiveSection] = useState<string>("beranda");
   const currentYear = new Date().getFullYear();
 
+  // Ensure document body & html can scroll freely on mobile and desktop
+  useEffect(() => {
+    document.body.classList.add("page-landing");
+    document.documentElement.classList.add("page-landing");
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevBodyHeight = document.body.style.height;
+
+    document.body.style.overflowY = "auto";
+    document.body.style.height = "auto";
+    document.documentElement.style.overflowY = "auto";
+    document.documentElement.style.height = "auto";
+
+    return () => {
+      document.body.classList.remove("page-landing");
+      document.documentElement.classList.remove("page-landing");
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.height = prevBodyHeight;
+    };
+  }, []);
+
   // Real-time Scrollspy for Desktop Navigation and Mobile Drawer
   useEffect(() => {
     const sectionIds = ["beranda", "sejarah", "nasehat", "almamater", "aplikasi", "ekosistem"];

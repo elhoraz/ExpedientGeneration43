@@ -25,8 +25,13 @@ export default function AppUpdateChecker() {
 
     const checkUpdate = async () => {
       try {
-        const isApk = isAndroidNativeApp();
-        // Hanya tampilkan pop-up pembaruan APK jika sedang berjalan di dalam aplikasi APK
+        const isApk =
+          isAndroidNativeApp() ||
+          Boolean((window as any).ExpedientNativeBridge) ||
+          Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
+          /wv|Capacitor|Expedient/i.test(navigator.userAgent);
+
+        // Hanya tampilkan jika di lingkungan aplikasi / WebView mobile
         if (!isApk) return;
 
         let installedCode = 1;
@@ -49,10 +54,6 @@ export default function AppUpdateChecker() {
 
         // Check if there is a newer versionCode
         if (data.latestVersionCode > installedCode) {
-          const dismissedVersion = sessionStorage.getItem("dismissed_update_version");
-          if (!data.forceUpdate && dismissedVersion === String(data.latestVersionCode)) {
-            return;
-          }
           setVersionData(data);
           setUpdateAvailable(true);
         }
@@ -62,7 +63,7 @@ export default function AppUpdateChecker() {
     };
 
     // Run check after initial load
-    const timer = setTimeout(checkUpdate, 2500);
+    const timer = setTimeout(checkUpdate, 1200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -70,7 +71,12 @@ export default function AppUpdateChecker() {
     if (!versionData) return;
     setIsUpdating(true);
 
-    const isApk = isAndroidNativeApp();
+    const isApk =
+      isAndroidNativeApp() ||
+      Boolean((window as any).ExpedientNativeBridge) ||
+      Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
+      /wv|Capacitor|Expedient/i.test(navigator.userAgent);
+
     if (isApk && (window as any).ExpedientNativeBridge?.installApk) {
       try {
         (window as any).ExpedientNativeBridge.installApk(versionData.apkUrl);
@@ -85,8 +91,6 @@ export default function AppUpdateChecker() {
   };
 
   const handleDismiss = () => {
-    if (!versionData) return;
-    sessionStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
     setIsDismissed(true);
     setUpdateAvailable(false);
   };
