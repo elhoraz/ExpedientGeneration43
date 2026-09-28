@@ -6,7 +6,7 @@ import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 export default function DownloadClient() {
   const { t, isRTL: isRtl, dir } = useLanguage();
-  const apkDownloadUrl = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "/Expedient43-v1.0.apk";
+  const apkDownloadUrl = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.1.0/Expedient43-v1.0.apk";
 
   return (
     <div
@@ -182,6 +182,15 @@ export default function DownloadClient() {
               href={apkDownloadUrl}
               download="Expedient43-v1.0.apk"
               id="btnDownloadApk"
+              onClick={(e) => {
+                if (typeof window !== "undefined" && (window as any).ExpedientNativeBridge?.installApk) {
+                  e.preventDefault();
+                  (window as any).ExpedientNativeBridge.installApk(apkDownloadUrl);
+                  return;
+                }
+                // Paksa navigasi window untuk WebView dan browser Android agar unduhan langsung berjalan
+                window.location.href = apkDownloadUrl;
+              }}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -196,6 +205,7 @@ export default function DownloadClient() {
                 textDecoration: "none",
                 boxShadow: "0 8px 20px rgba(212, 175, 55, 0.3)",
                 transition: "all 0.2s ease",
+                cursor: "pointer",
               }}
             >
               <i className="fa-solid fa-download" /> {t.download_center.apk_btn_download}

@@ -1456,7 +1456,7 @@ export const idDictionary: Dictionary = {
     tab_apk: "File APK Android",
     tab_pwa: "iPhone (iOS) & PWA",
     apk_badge: "Versi 1.0.0 Produksi • Aman & Bebas Iklan",
-    apk_version_label: "Versi 1.0.0 (Build 43)",
+    apk_version_label: "Versi 1.1.0 (Build 44 — Notifikasi Melayang & Auto-Update)",
     apk_size_label: "Ukuran: ~98.7 MB",
     apk_btn_download: "Unduh Expedient43-v1.0.apk",
     recommended_badge: "Rekomendasi",

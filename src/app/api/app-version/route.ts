@@ -8,7 +8,7 @@ export async function GET() {
     latestVersionCode: 2,
     latestVersionName: "1.1.0",
     releaseDate: "2026-09-28",
-    apkUrl: process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "/Expedient43-v1.0.apk",
+    apkUrl: process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.1.0/Expedient43-v1.0.apk",
     title: "Pembaruan Expedient 43 v1.1.0",
     releaseNotes: [
       "Notifikasi Heads-Up Banner melayang dengan suara & getaran resmi",

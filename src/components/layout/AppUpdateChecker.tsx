@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { isAndroidNativeApp } from "@/lib/notificationHelper";
 
 interface AppVersionData {
@@ -14,6 +15,7 @@ interface AppVersionData {
 }
 
 export default function AppUpdateChecker() {
+  const pathname = usePathname();
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [versionData, setVersionData] = useState<AppVersionData | null>(null);
   const [currentVersion, setCurrentVersion] = useState({ code: 1, name: "1.0.0" });
@@ -86,8 +88,13 @@ export default function AppUpdateChecker() {
       }
     }
 
-    // Jika APK versi lama belum memiliki bridge installApk, buka Pusat Unduhan langsung
-    window.location.href = "/download";
+    // Unduh langsung file APK resmi dari GitHub Release CDN
+    window.location.href = versionData.apkUrl;
+
+    setTimeout(() => {
+      setUpdateAvailable(false);
+      setIsUpdating(false);
+    }, 2500);
   };
 
   const handleDismiss = () => {
@@ -95,7 +102,10 @@ export default function AppUpdateChecker() {
     setUpdateAvailable(false);
   };
 
-  if (!updateAvailable || isDismissed || !versionData) return null;
+  // Jangan pernah tampilkan pop-up pembaruan jika pengguna sedang berada di halaman /download
+  if (pathname === "/download" || pathname?.startsWith("/download/") || !updateAvailable || isDismissed || !versionData) {
+    return null;
+  }
 
   return (
     <div

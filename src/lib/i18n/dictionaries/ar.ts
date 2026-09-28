@@ -1456,7 +1456,7 @@ export const arDictionary: Dictionary = {
     tab_apk: "ملف APK لأجهزة أندرويد",
     tab_pwa: "آيفون (iOS) وتطبيق الويب",
     apk_badge: "الإصدار 1.0.0 النهائي • آمن وبلا إعلانات",
-    apk_version_label: "الإصدار 1.0.0 (البناء 43)",
+    apk_version_label: "الإصدار 1.1.0 (البناء 44 — الإشعارات المباشرة والتحديث التلقائي)",
     apk_size_label: "الحجم: ~٩٨.٧ ميجابايت",
     apk_btn_download: "تنزيل Expedient43-v1.0.apk",
     recommended_badge: "موصى به",

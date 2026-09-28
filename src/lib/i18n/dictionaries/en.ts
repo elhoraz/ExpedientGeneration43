@@ -1456,7 +1456,7 @@ export const enDictionary: Dictionary = {
     tab_apk: "Android APK File",
     tab_pwa: "iPhone (iOS) & PWA",
     apk_badge: "Production v1.0.0 • Secure & Ad-Free",
-    apk_version_label: "Version 1.0.0 (Build 43)",
+    apk_version_label: "Version 1.1.0 (Build 44 — Heads-Up Notifications & Auto-Update)",
     apk_size_label: "Size: ~98.7 MB",
     apk_btn_download: "Download Expedient43-v1.0.apk",
     recommended_badge: "Recommended",
