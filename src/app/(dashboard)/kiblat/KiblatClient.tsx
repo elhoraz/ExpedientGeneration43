@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
   POPULAR_CITIES,
@@ -13,6 +14,27 @@ import {
   NextPrayerInfo,
 } from "@/lib/prayerTimes";
 import "./kiblat.css";
+
+// Dynamic import for Leaflet Qibla Map to prevent SSR errors
+const QiblaMap = dynamic(() => import("./QiblaMap"), {
+  ssr: false,
+  loading: () => (
+    <div
+      style={{
+        height: "360px",
+        borderRadius: "14px",
+        background: "rgba(12, 18, 30, 0.6)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "var(--gold-main)",
+        gap: "10px",
+      }}
+    >
+      <i className="fa-solid fa-spinner fa-spin"></i> Memuat Peta Satelit Presisi...
+    </div>
+  ),
+});
 
 // 12 Degree mark labels every 30 deg
 const DEGREE_LABELS = [
@@ -49,6 +71,7 @@ export default function KiblatClient() {
   });
 
   const [heading, setHeading] = useState<number>(0);
+  const [manualOffset, setManualOffset] = useState<number>(0);
   const [continuousHeading, setContinuousHeading] = useState<number>(0);
   const [isSensorActive, setIsSensorActive] = useState<boolean>(false);
   const [needsIosPermission, setNeedsIosPermission] = useState<boolean>(false);
@@ -56,10 +79,12 @@ export default function KiblatClient() {
   const [now, setNow] = useState<Date>(new Date());
   const [isPlayingAdzan, setIsPlayingAdzan] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<"compass" | "map">("compass");
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
 
-  // Qibla and Prayer calculations
+  // Qibla calculations (Bearing, Distance, Falak angles, DMS)
   const qiblaInfo = calculateQibla(currentLocation.lat, currentLocation.lng);
   const prayerSchedule: PrayerSchedule = calculatePrayerTimes(
     currentLocation.lat,
@@ -69,14 +94,16 @@ export default function KiblatClient() {
   );
   const nextPrayer: NextPrayerInfo = getNextPrayer(prayerSchedule, now);
 
+  // Effective Heading taking into account any manual magnetic calibration offset
+  const effectiveHeading = (heading + manualOffset + 360) % 360;
+
   // Direction info for device heading
-  const currentDirection = getCompassDirection(heading, locale);
+  const currentDirection = getCompassDirection(effectiveHeading, locale);
 
   // Shortest angular turn difference from current heading to target Qibla bearing:
-  // Value between -180 and +180:
   // Positive means user should turn RIGHT (Clockwise)
   // Negative means user should turn LEFT (Counter-Clockwise)
-  const turnDiff = ((qiblaInfo.bearing - heading + 540) % 360) - 180;
+  const turnDiff = ((qiblaInfo.bearing - effectiveHeading + 540) % 360) - 180;
   const absTurnDiff = Math.abs(Math.round(turnDiff));
   const isAligned = absTurnDiff <= 3;
   const prevAlignedRef = useRef<boolean>(false);
@@ -136,54 +163,47 @@ export default function KiblatClient() {
     }
   };
 
-  // Orientation Event Handler
-  const handleOrientation = useCallback((e: DeviceOrientationEvent) => {
-    let compass: number | null = null;
+  // Robust Device Orientation Event Handler
+  const handleOrientation = useCallback(
+    (e: DeviceOrientationEvent) => {
+      let compass: number | null = null;
 
-    // 1. iOS Safari (native tilt-compensated webkitCompassHeading)
-    if ((e as any).webkitCompassHeading !== undefined) {
-      compass = (e as any).webkitCompassHeading;
-    }
-    // 2. Android deviceorientationabsolute or standard absolute
-    else if (e.alpha !== null) {
-      // If relative orientation event and absolute exists, ignore relative
-      if (e.absolute === false && typeof window !== "undefined" && "ondeviceorientationabsolute" in window) {
-        return;
+      // 1. iOS Safari (native tilt-compensated webkitCompassHeading 0-360)
+      if ((e as any).webkitCompassHeading !== undefined && (e as any).webkitCompassHeading !== null) {
+        compass = (e as any).webkitCompassHeading;
+      }
+      // 2. Android Chrome / Standard DeviceOrientation
+      else if (e.alpha !== null && e.alpha !== undefined) {
+        // Ignore non-absolute relative events if absolute is supported
+        const win = typeof window !== "undefined" ? (window as any) : null;
+        if (e.absolute === false && win && "ondeviceorientationabsolute" in win) {
+          return;
+        }
+
+        // Standard azimuth: alpha is counter-clockwise rotation from North
+        let calculatedHeading = (360 - e.alpha) % 360;
+
+        // Apply tilt adjustment if device is pitched (beta) or rolled (gamma) in hand
+        if (e.beta !== null && e.gamma !== null) {
+          if (Math.abs(e.beta) > 5 || Math.abs(e.gamma) > 5) {
+            let comp = -(e.alpha + (e.beta * e.gamma) / 90);
+            comp -= Math.floor(comp / 360) * 360;
+            calculatedHeading = comp;
+          }
+        }
+
+        compass = (calculatedHeading + 360) % 360;
       }
 
-      // Android Euler tilt compensation
-      if (e.beta !== null && e.gamma !== null) {
-        const degToRad = Math.PI / 180;
-        const x = e.beta * degToRad; // pitch
-        const y = e.gamma * degToRad; // roll
-        const z = e.alpha * degToRad; // yaw
-
-        const cX = Math.cos(x);
-        const cY = Math.cos(y);
-        const cZ = Math.cos(z);
-        const sX = Math.sin(x);
-        const sY = Math.sin(y);
-        const sZ = Math.sin(z);
-
-        // Vector representing device top axis
-        const vX = -cZ * sY - sZ * sX * cY;
-        const vY = -sZ * sY + cZ * sX * cY;
-
-        let headingRad = Math.atan2(vX, vY);
-        if (headingRad < 0) headingRad += 2 * Math.PI;
-        compass = headingRad * (180 / Math.PI);
-      } else {
-        compass = (360 - e.alpha) % 360;
+      if (compass !== null && !isNaN(compass)) {
+        updateHeading(compass);
+        setIsSensorActive(true);
       }
-    }
+    },
+    [updateHeading]
+  );
 
-    if (compass !== null && !isNaN(compass)) {
-      updateHeading(compass);
-      setIsSensorActive(true);
-    }
-  }, [updateHeading]);
-
-  // Activate Sensor (required user gesture on iOS Safari)
+  // Activate Sensor (User gesture required on iOS Safari)
   const activateCompassSensor = async () => {
     if (
       typeof DeviceOrientationEvent !== "undefined" &&
@@ -211,13 +231,44 @@ export default function KiblatClient() {
   };
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let sensorInstance: any = null;
+
+    // Check Generic Sensor API (AbsoluteOrientationSensor) on modern Android Chrome
+    const win = window as any;
+    if ("AbsoluteOrientationSensor" in win) {
+      try {
+        const sensor = new win.AbsoluteOrientationSensor({ frequency: 60 });
+        sensor.addEventListener("reading", () => {
+          const q = sensor.quaternion;
+          if (q && q.length === 4) {
+            const [x, y, z, w] = q;
+            const siny_cosp = 2 * (w * z + x * y);
+            const cosy_cosp = 1 - 2 * (y * y + z * z);
+            let yaw = Math.atan2(siny_cosp, cosy_cosp) * (180 / Math.PI);
+            yaw = (360 - yaw) % 360;
+            updateHeading(yaw);
+            setIsSensorActive(true);
+          }
+        });
+        sensor.addEventListener("error", (err: any) => {
+          console.log("AbsoluteOrientationSensor fallback to events:", err);
+        });
+        sensor.start();
+        sensorInstance = sensor;
+      } catch (e) {
+        console.log("AbsoluteOrientationSensor initialization notice:", e);
+      }
+    }
+
+    // Standard DOM Event listener setup
     if (
       typeof DeviceOrientationEvent !== "undefined" &&
       typeof (DeviceOrientationEvent as any).requestPermission === "function"
     ) {
       setNeedsIosPermission(true);
-    } else if (typeof window !== "undefined") {
-      const win = window as any;
+    } else {
       if ("ondeviceorientationabsolute" in win) {
         win.addEventListener("deviceorientationabsolute", handleOrientation, true);
       } else {
@@ -226,15 +277,17 @@ export default function KiblatClient() {
     }
 
     return () => {
-      if (typeof window !== "undefined") {
-        const win = window as any;
-        win.removeEventListener("deviceorientationabsolute", handleOrientation, true);
-        win.removeEventListener("deviceorientation", handleOrientation, true);
+      if (sensorInstance) {
+        try {
+          sensorInstance.stop();
+        } catch (_) {}
       }
+      win.removeEventListener("deviceorientationabsolute", handleOrientation, true);
+      win.removeEventListener("deviceorientation", handleOrientation, true);
     };
-  }, [handleOrientation]);
+  }, [handleOrientation, updateHeading]);
 
-  // GPS Geolocation Handler
+  // High-accuracy GPS Geolocation Handler
   const handleDetectGps = () => {
     if (!navigator.geolocation) {
       alert(
@@ -251,7 +304,6 @@ export default function KiblatClient() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        // Detect accurate timezone offset in hours
         const tzOffset = Math.round(-new Date().getTimezoneOffset() / 60);
         setCurrentLocation({
           name: locale === "ar" ? "موقع GPS الخاص بك" : locale === "en" ? "Your GPS Location" : "Lokasi GPS Anda",
@@ -273,7 +325,7 @@ export default function KiblatClient() {
             : "Tidak dapat mengakses GPS. Pastikan izin lokasi telah diaktifkan."
         );
       },
-      { enableHighAccuracy: true, timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   };
 
@@ -293,18 +345,21 @@ export default function KiblatClient() {
   };
 
   // Interactive Drag-to-Rotate for Desktop & Touch
-  const updateFromPointer = useCallback((clientX: number, clientY: number) => {
-    if (!stageRef.current) return;
-    const rect = stageRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = clientX - centerX;
-    const dy = clientY - centerY;
-    // Angle clockwise from top (12 o'clock)
-    let angle = Math.atan2(dx, -dy) * (180 / Math.PI);
-    if (angle < 0) angle += 360;
-    updateHeading(angle);
-  }, [updateHeading]);
+  const updateFromPointer = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!stageRef.current) return;
+      const rect = stageRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const dx = clientX - centerX;
+      const dy = clientY - centerY;
+      // Angle clockwise from top (12 o'clock)
+      let angle = Math.atan2(dx, -dy) * (180 / Math.PI);
+      if (angle < 0) angle += 360;
+      updateHeading(angle);
+    },
+    [updateHeading]
+  );
 
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
@@ -359,6 +414,26 @@ export default function KiblatClient() {
           <p className="kiblat-subtitle">{t.kiblat.subtitle}</p>
         </div>
 
+        {/* View Mode Switcher: Compass vs Satellite Map */}
+        <div className="kiblat-view-tabs">
+          <button
+            type="button"
+            className={`kiblat-tab-btn ${viewMode === "compass" ? "active" : ""}`}
+            onClick={() => setViewMode("compass")}
+          >
+            <i className="fa-solid fa-compass"></i>
+            <span>{locale === "ar" ? "بوصلة الأسطرلاب" : locale === "en" ? "Astrolabe Compass" : "Kompas Astrolabe"}</span>
+          </button>
+          <button
+            type="button"
+            className={`kiblat-tab-btn ${viewMode === "map" ? "active" : ""}`}
+            onClick={() => setViewMode("map")}
+          >
+            <i className="fa-solid fa-satellite-dish"></i>
+            <span>{locale === "ar" ? "خريطة الأقمار الصناعية" : locale === "en" ? "Satellite Qibla Map" : "Peta Garis Kiblat Satelit"}</span>
+          </button>
+        </div>
+
         {/* Location Selector Bar */}
         <div className="kiblat-location-bar">
           <div className="location-current-info">
@@ -401,232 +476,287 @@ export default function KiblatClient() {
         </div>
 
         {/* =========================================================================
-            ASTROLABE COMPASS STAGE
+            VIEW MODE 1: ASTROLABE COMPASS STAGE
             ========================================================================= */}
-        <div className="astrolabe-stage">
-          {/* Bezel housing Forward Lubber Line and Compass */}
-          <div
-            className="astrolabe-bezel"
-            ref={stageRef}
-            onPointerDown={handlePointerDown}
-            title={
-              locale === "ar"
-                ? "اسحب لتدوير البوصلة يدوياً"
-                : locale === "en"
-                ? "Drag to rotate compass manually"
-                : "Klik & geser untuk memutar kompas manual"
-            }
-          >
-            {/* Top Lubber Line / Forward Heading Hub (Device Axis) */}
-            <div className="astrolabe-lubber-container">
-              <div className={`lubber-hud-badge ${isAligned ? "aligned" : ""}`}>
-                <span className="hud-deg">{Math.round(heading)}°</span>
-                <span className="hud-dir">
-                  {currentDirection.code} • {currentDirection.name}
-                </span>
+        {viewMode === "compass" && (
+          <div className="astrolabe-stage">
+            {/* Bezel housing Forward Lubber Line and Compass */}
+            <div
+              className="astrolabe-bezel"
+              ref={stageRef}
+              onPointerDown={handlePointerDown}
+              title={
+                locale === "ar"
+                  ? "اسحب لتدوير البوصلة يدوياً"
+                  : locale === "en"
+                  ? "Drag to rotate compass manually"
+                  : "Klik & geser untuk memutar kompas manual"
+              }
+            >
+              {/* Top Lubber Line / Forward Heading Hub (Device Axis) */}
+              <div className="astrolabe-lubber-container">
+                <div className={`lubber-hud-badge ${isAligned ? "aligned" : ""}`}>
+                  <span className="hud-deg">{Math.round(effectiveHeading)}°</span>
+                  <span className="hud-dir">
+                    {currentDirection.code} • {currentDirection.name}
+                  </span>
+                </div>
+                <div className={`lubber-pointer-triangle ${isAligned ? "aligned" : ""}`}></div>
               </div>
-              <div className={`lubber-pointer-triangle ${isAligned ? "aligned" : ""}`}></div>
-            </div>
 
-            {/* The Golden Astrolabe Outer Rim */}
-            <div className={`astrolabe-rim ${isAligned ? "aligned" : ""}`}>
-              {/* Rotating Astrolabe Rose Plate (Rotates by -continuousHeading) */}
-              <div
-                className={`astrolabe-dial-plate ${isDragging ? "no-transition" : ""}`}
-                style={{
-                  transform: `rotate(${-continuousHeading}deg)`,
-                }}
-              >
-                {/* Concentric Islamic geometric rings */}
-                <div className="astrolabe-ring-pattern"></div>
-
-                {/* Degree tick markers around perimeter */}
-                {DEGREE_LABELS.map((d) => (
-                  <span
-                    key={d.deg}
-                    className="degree-tick-label"
-                    style={{
-                      transform: `translate(-50%, -50%) rotate(${d.deg}deg) translateY(-145px) rotate(${-d.deg}deg)`,
-                    }}
-                  >
-                    {d.text}
-                  </span>
-                ))}
-
-                {/* 8 Cardinal & Intercardinal Points on Rotating Dial */}
-                {cardinalPoints.map((pt) => (
-                  <span
-                    key={pt.deg}
-                    className={`cardinal-point ${pt.isNorth ? "pt-n" : ""} ${!pt.isPrimary ? "pt-sub" : ""}`}
-                    style={{
-                      transform: `translate(-50%, -50%) rotate(${pt.deg}deg) translateY(-120px) rotate(${-pt.deg}deg)`,
-                    }}
-                  >
-                    {pt.code}
-                  </span>
-                ))}
-
-                {/* Rotating Qibla Pointer attached to the dial plate at qiblaInfo.bearing */}
+              {/* The Golden Astrolabe Outer Rim */}
+              <div className={`astrolabe-rim ${isAligned ? "aligned" : ""}`}>
+                {/* Rotating Astrolabe Rose Plate (Rotates by -continuousHeading) */}
                 <div
-                  className="astrolabe-qibla-pointer"
+                  className={`astrolabe-dial-plate ${isDragging ? "no-transition" : ""}`}
                   style={{
-                    transform: `rotate(${qiblaInfo.bearing}deg)`,
+                    transform: `rotate(${-continuousHeading - manualOffset}deg)`,
                   }}
                 >
-                  <div className="qibla-ray-line"></div>
-                  <div className="qibla-target-head">
-                    <i className="fa-solid fa-kaaba qibla-kaaba-icon"></i>
-                    <div className="qibla-tag-pill">
-                      <span>{locale === "ar" ? "القبلة" : locale === "en" ? "Qibla" : "Kiblat"}</span>
-                      <strong>{qiblaInfo.bearing}°</strong>
+                  {/* Concentric Islamic geometric rings */}
+                  <div className="astrolabe-ring-pattern"></div>
+
+                  {/* Degree tick markers around perimeter */}
+                  {DEGREE_LABELS.map((d) => (
+                    <span
+                      key={d.deg}
+                      className="degree-tick-label"
+                      style={{
+                        transform: `translate(-50%, -50%) rotate(${d.deg}deg) translateY(-145px) rotate(${-d.deg}deg)`,
+                      }}
+                    >
+                      {d.text}
+                    </span>
+                  ))}
+
+                  {/* 8 Cardinal & Intercardinal Points on Rotating Dial */}
+                  {cardinalPoints.map((pt) => (
+                    <span
+                      key={pt.deg}
+                      className={`cardinal-point ${pt.isNorth ? "pt-n" : ""} ${!pt.isPrimary ? "pt-sub" : ""}`}
+                      style={{
+                        transform: `translate(-50%, -50%) rotate(${pt.deg}deg) translateY(-120px) rotate(${-pt.deg}deg)`,
+                      }}
+                    >
+                      {pt.code}
+                    </span>
+                  ))}
+
+                  {/* Rotating Qibla Pointer attached to the dial plate at qiblaInfo.bearing */}
+                  <div
+                    className="astrolabe-qibla-pointer"
+                    style={{
+                      transform: `rotate(${qiblaInfo.bearing}deg)`,
+                    }}
+                  >
+                    <div className="qibla-ray-line"></div>
+                    <div className="qibla-target-head">
+                      <i className="fa-solid fa-kaaba qibla-kaaba-icon"></i>
+                      <div className="qibla-tag-pill">
+                        <span>{locale === "ar" ? "القبلة" : locale === "en" ? "Qibla" : "Kiblat"}</span>
+                        <strong>{qiblaInfo.bearing}°</strong>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Center Core Brass Pin with Star and Crescent */}
+                <div className="astrolabe-center-core">
+                  <i className="fa-solid fa-star-and-crescent"></i>
+                </div>
               </div>
-
-              {/* Center Core Brass Pin with Star and Crescent */}
-              <div className="astrolabe-center-core">
-                <i className="fa-solid fa-star-and-crescent"></i>
-              </div>
             </div>
-          </div>
 
-          {/* Alignment Status Banner with Dynamic Left/Right turn directions */}
-          <div className={`kiblat-aligned-badge ${isAligned ? "locked" : "searching"}`}>
-            {isAligned ? (
-              <>
-                <i className="fa-solid fa-circle-check" style={{ color: "#2bb97c" }}></i>
-                <span>
-                  {t.kiblat.aligned_success} ({qiblaInfo.bearing}° {currentDirection.name})
-                </span>
-              </>
-            ) : turnDiff > 0 ? (
-              <>
-                <i className="fa-solid fa-arrow-rotate-right turn-icon-pulse"></i>
-                <span>
-                  {t.kiblat.turn_right} <strong>{absTurnDiff}°</strong> {t.kiblat.turn_degrees}
-                </span>
-              </>
-            ) : (
-              <>
-                <i className="fa-solid fa-arrow-rotate-left turn-icon-pulse"></i>
-                <span>
-                  {t.kiblat.turn_left} <strong>{absTurnDiff}°</strong> {t.kiblat.turn_degrees}
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Readout Numbers */}
-          <div className="kiblat-readout-row">
-            <div className="kiblat-readout-box">
-              <div className="kiblat-readout-val">{qiblaInfo.bearing}°</div>
-              <div className="kiblat-readout-lbl">{t.kiblat.bearing_label}</div>
+            {/* Alignment Status Banner with Dynamic Left/Right turn directions */}
+            <div className={`kiblat-aligned-badge ${isAligned ? "locked" : "searching"}`}>
+              {isAligned ? (
+                <>
+                  <i className="fa-solid fa-circle-check" style={{ color: "#2bb97c" }}></i>
+                  <span>
+                    {t.kiblat.aligned_success} ({qiblaInfo.bearing}° {currentDirection.name})
+                  </span>
+                </>
+              ) : turnDiff > 0 ? (
+                <>
+                  <i className="fa-solid fa-arrow-rotate-right turn-icon-pulse"></i>
+                  <span>
+                    {t.kiblat.turn_right} <strong>{absTurnDiff}°</strong> {t.kiblat.turn_degrees}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <i className="fa-solid fa-arrow-rotate-left turn-icon-pulse"></i>
+                  <span>
+                    {t.kiblat.turn_left} <strong>{absTurnDiff}°</strong> {t.kiblat.turn_degrees}
+                  </span>
+                </>
+              )}
             </div>
-            <div className="kiblat-readout-box">
-              <div className="kiblat-readout-val">{heading}°</div>
-              <div className="kiblat-readout-lbl">{t.kiblat.phone_heading_label}</div>
-            </div>
-            <div className="kiblat-readout-box">
-              <div className="kiblat-readout-val">
-                {qiblaInfo.distanceKm.toLocaleString(
-                  locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID"
-                )}{" "}
-                <small style={{ fontSize: "0.8rem" }}>KM</small>
-              </div>
-              <div className="kiblat-readout-lbl">{t.kiblat.distance_to_makkah}</div>
-            </div>
-          </div>
 
-          {/* iOS Sensor Permission CTA */}
-          {needsIosPermission && !isSensorActive && (
-            <button
-              type="button"
-              className="btn-gps"
-              onClick={activateCompassSensor}
-              style={{
-                padding: "12px 28px",
-                fontSize: "0.9rem",
-                marginTop: "6px",
-                boxShadow: "0 0 20px rgba(43, 185, 124, 0.3)",
-              }}
-            >
-              <i className="fa-solid fa-mobile-screen"></i> {t.kiblat.activate_sensor_btn}
-            </button>
-          )}
-
-          {/* Desktop Simulation & Calibration Controls */}
-          <div className="desktop-sim-controls">
-            <div className="desktop-sim-header">
+            {/* Calibration & Magnetic Offset Adjustment Bar */}
+            <div className="calibration-offset-bar">
               <span>
-                <i className="fa-solid fa-sliders"></i> {t.kiblat.sim_slider_label}
+                <i className="fa-solid fa-magnet" style={{ color: "var(--gold-main)" }}></i> Kalibrasi Offset Magnetik:{" "}
+                <strong>{manualOffset > 0 ? `+${manualOffset}` : manualOffset}°</strong>
               </span>
-              <strong style={{ color: "var(--gold-main)" }}>{heading}°</strong>
+              <div className="calibration-buttons">
+                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o - 5)}>
+                  -5°
+                </button>
+                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o - 1)}>
+                  -1°
+                </button>
+                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset(0)}>
+                  Reset (0°)
+                </button>
+                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o + 1)}>
+                  +1°
+                </button>
+                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o + 5)}>
+                  +5°
+                </button>
+              </div>
             </div>
 
-            <input
-              type="range"
-              min="0"
-              max="359"
-              value={heading}
-              onChange={(e) => {
-                setIsSensorActive(false);
-                updateHeading(Number(e.target.value));
-              }}
-              className="kiblat-slider"
-            />
-
-            <div className="desktop-presets-row">
+            {/* iOS Sensor Permission CTA */}
+            {needsIosPermission && !isSensorActive && (
               <button
                 type="button"
-                className={`btn-preset-snap ${isAligned ? "active" : ""}`}
-                onClick={() => {
-                  setIsSensorActive(false);
-                  updateHeading(qiblaInfo.bearing);
+                className="btn-gps"
+                onClick={activateCompassSensor}
+                style={{
+                  padding: "12px 28px",
+                  fontSize: "0.9rem",
+                  marginTop: "6px",
+                  boxShadow: "0 0 20px rgba(43, 185, 124, 0.3)",
                 }}
               >
-                <i className="fa-solid fa-kaaba"></i> {t.kiblat.snap_qibla} ({qiblaInfo.bearing}°)
+                <i className="fa-solid fa-mobile-screen"></i> {t.kiblat.activate_sensor_btn}
               </button>
+            )}
 
-              <button
-                type="button"
-                className="btn-preset-snap"
-                onClick={() => {
-                  setIsSensorActive(false);
-                  updateHeading(0);
-                }}
-              >
-                <i className="fa-solid fa-arrow-up"></i> {t.kiblat.snap_north}
-              </button>
+            {/* Desktop Simulation & Calibration Controls */}
+            <div className="desktop-sim-controls">
+              <div className="desktop-sim-header">
+                <span>
+                  <i className="fa-solid fa-sliders"></i> {t.kiblat.sim_slider_label}
+                </span>
+                <strong style={{ color: "var(--gold-main)" }}>{heading}°</strong>
+              </div>
 
-              <button
-                type="button"
-                className="btn-preset-snap"
-                onClick={() => {
+              <input
+                type="range"
+                min="0"
+                max="359"
+                value={heading}
+                onChange={(e) => {
                   setIsSensorActive(false);
-                  updateHeading(270);
+                  updateHeading(Number(e.target.value));
                 }}
-              >
-                <i className="fa-solid fa-arrow-left"></i>{" "}
-                {locale === "ar" ? "الغرب (٢٧٠°)" : locale === "en" ? "West (270°)" : "Barat (270°)"}
-              </button>
+                className="kiblat-slider"
+              />
 
-              <button
-                type="button"
-                className="btn-preset-snap"
-                onClick={() => {
-                  setIsSensorActive(false);
-                  updateHeading(90);
-                }}
-              >
-                <i className="fa-solid fa-arrow-right"></i>{" "}
-                {locale === "ar" ? "الشرق (٩٠°)" : locale === "en" ? "East (90°)" : "Timur (90°)"}
-              </button>
+              <div className="desktop-presets-row">
+                <button
+                  type="button"
+                  className={`btn-preset-snap ${isAligned ? "active" : ""}`}
+                  onClick={() => {
+                    setIsSensorActive(false);
+                    updateHeading(qiblaInfo.bearing);
+                  }}
+                >
+                  <i className="fa-solid fa-kaaba"></i> {t.kiblat.snap_qibla} ({qiblaInfo.bearing}°)
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-preset-snap"
+                  onClick={() => {
+                    setIsSensorActive(false);
+                    updateHeading(0);
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-up"></i> {t.kiblat.snap_north}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-preset-snap"
+                  onClick={() => {
+                    setIsSensorActive(false);
+                    updateHeading(270);
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-left"></i>{" "}
+                  {locale === "ar" ? "الغرب (٢٧٠°)" : locale === "en" ? "West (270°)" : "Barat (270°)"}
+                </button>
+
+                <button
+                  type="button"
+                  className="btn-preset-snap"
+                  onClick={() => {
+                    setIsSensorActive(false);
+                    updateHeading(90);
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-right"></i>{" "}
+                  {locale === "ar" ? "الشرق (٩٠°)" : locale === "en" ? "East (90°)" : "Timur (90°)"}
+                </button>
+              </div>
+
+              <p className="desktop-notice-pill">
+                <i className="fa-solid fa-circle-info"></i> {t.kiblat.desktop_mode_note}
+              </p>
             </div>
+          </div>
+        )}
 
-            <p className="desktop-notice-pill">
-              <i className="fa-solid fa-circle-info"></i> {t.kiblat.desktop_mode_note}
-            </p>
+        {/* =========================================================================
+            VIEW MODE 2: SATELLITE QIBLA MAP STAGE
+            ========================================================================= */}
+        {viewMode === "map" && (
+          <QiblaMap
+            userLat={currentLocation.lat}
+            userLng={currentLocation.lng}
+            userName={currentLocation.name}
+            bearing={qiblaInfo.bearing}
+            distanceKm={qiblaInfo.distanceKm}
+            angleFromWest={qiblaInfo.angleFromWest}
+            locale={locale}
+          />
+        )}
+
+        {/* =========================================================================
+            FALAKIYAH DETAILS & GEODETIC DATA CARDS
+            ========================================================================= */}
+        <div className="falak-details-grid">
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">Azimuth Kiblat (Utara Sejati)</span>
+            <div className="falak-detail-value">{qiblaInfo.bearing}°</div>
+            <span className="falak-detail-sub">{qiblaInfo.dms}</span>
+          </div>
+
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">Sudut dari Barat (Standar Falak)</span>
+            <div className="falak-detail-value">{qiblaInfo.angleFromWest}° U-B</div>
+            <span className="falak-detail-sub">Miring ke kanan (Utara) dari Barat</span>
+          </div>
+
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">Arah Hadap Ponsel Saat Ini</span>
+            <div className="falak-detail-value">{effectiveHeading}°</div>
+            <span className="falak-detail-sub">
+              {currentDirection.code} • {currentDirection.name}
+            </span>
+          </div>
+
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">Jarak Geodesik ke Ka&apos;bah</span>
+            <div className="falak-detail-value">
+              {qiblaInfo.distanceKm.toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")}{" "}
+              <small style={{ fontSize: "0.8rem" }}>KM</small>
+            </div>
+            <span className="falak-detail-sub">Masjidil Haram, Makkah</span>
           </div>
         </div>
 

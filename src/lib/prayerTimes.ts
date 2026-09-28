@@ -29,6 +29,9 @@ export const POPULAR_CITIES: CityPreset[] = [
 export interface QiblaInfo {
   bearing: number; // 0 - 360 deg clockwise from True North
   distanceKm: number;
+  angleFromWest: number; // e.g. 24.5° dari Barat ke Utara
+  angleFromNorth: number; // e.g. 65.5° dari Utara ke Barat
+  dms: string; // e.g. 294° 27' 45"
 }
 
 export interface PrayerSchedule {
@@ -68,9 +71,21 @@ export function calculateQibla(lat: number, lng: number): QiblaInfo {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distanceKm = Math.round(R * c);
 
+  const dmsDeg = Math.floor(q);
+  const dmsMinFloat = (q - dmsDeg) * 60;
+  const dmsMin = Math.floor(dmsMinFloat);
+  const dmsSec = Math.round((dmsMinFloat - dmsMin) * 60);
+  const dms = `${dmsDeg}° ${dmsMin}' ${dmsSec}"`;
+
+  const angleFromWest = Math.round(((q - 270 + 360) % 360) * 10) / 10;
+  const angleFromNorth = Math.round(((360 - q + 360) % 360) * 10) / 10;
+
   return {
     bearing: Math.round(q * 10) / 10,
     distanceKm,
+    angleFromWest,
+    angleFromNorth,
+    dms,
   };
 }
 
