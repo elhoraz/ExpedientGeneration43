@@ -22,9 +22,14 @@ import android.webkit.URLUtil;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import com.getcapacitor.BridgeActivity;
+import java.io.File;
 import java.io.OutputStream;
 
 public class MainActivity extends BridgeActivity {
@@ -267,6 +272,122 @@ public class MainActivity extends BridgeActivity {
                     manager.notify((int) (System.currentTimeMillis() % 100000), builder.build());
                 } catch (Exception e) {
                     e.printStackTrace();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public int getAppVersionCode() {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    return (int) getPackageManager().getPackageInfo(getPackageName(), 0).getLongVersionCode();
+                } else {
+                    return getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+                }
+            } catch (Exception e) {
+                return 1;
+            }
+        }
+
+        @JavascriptInterface
+        public String getAppVersionName() {
+            try {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            } catch (Exception e) {
+                return "1.0.0";
+            }
+        }
+
+        @JavascriptInterface
+        public void installApk(String apkUrl) {
+            runOnUiThread(() -> {
+                try {
+                    if (apkUrl == null || apkUrl.trim().isEmpty()) return;
+
+                    Toast.makeText(MainActivity.this, "📥 Mengunduh pembaruan APK Expedient 43...", Toast.LENGTH_SHORT).show();
+
+                    DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                    Uri downloadUri = Uri.parse(apkUrl);
+
+                    DownloadManager.Request request = new DownloadManager.Request(downloadUri);
+                    request.setTitle("Expedient 43 Update");
+                    request.setDescription("Mengunduh versi terbaru...");
+                    request.setMimeType("application/vnd.android.package-archive");
+
+                    File destFile = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "expedient_update.apk");
+                    if (destFile.exists()) {
+                        destFile.delete();
+                    }
+                    request.setDestinationInExternalFilesDir(MainActivity.this, Environment.DIRECTORY_DOWNLOADS, "expedient_update.apk");
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+                    long downloadId = downloadManager.enqueue(request);
+
+                    BroadcastReceiver onComplete = new BroadcastReceiver() {
+                        @Override
+                        public void onReceive(Context context, Intent intent) {
+                            long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                            if (id == downloadId) {
+                                try {
+                                    unregisterReceiver(this);
+                                } catch (Exception ignored) {}
+
+                                try {
+                                    File file = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "expedient_update.apk");
+                                    if (file.exists()) {
+                                        Uri contentUri = FileProvider.getUriForFile(
+                                            MainActivity.this,
+                                            getPackageName() + ".fileprovider",
+                                            file
+                                        );
+
+                                        Intent installIntent = new Intent(Intent.ACTION_VIEW);
+                                        installIntent.setDataAndType(contentUri, "application/vnd.android.package-archive");
+                                        installIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                        installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                            if (!getPackageManager().canRequestPackageInstalls()) {
+                                                Toast.makeText(MainActivity.this, "Silakan aktifkan izin pasang aplikasi tidak dikenal untuk memperbarui", Toast.LENGTH_LONG).show();
+                                                Intent settingsIntent = new Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                                                settingsIntent.setData(Uri.parse("package:" + getPackageName()));
+                                                settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                startActivity(settingsIntent);
+                                                return;
+                                            }
+                                        }
+
+                                        startActivity(installIntent);
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
+                                    browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    startActivity(browserIntent);
+                                }
+                            }
+                        }
+                    };
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        ContextCompat.registerReceiver(
+                            MainActivity.this,
+                            onComplete,
+                            new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                            ContextCompat.RECEIVER_EXPORTED
+                        );
+                    } else {
+                        registerReceiver(onComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    try {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(apkUrl));
+                        browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(browserIntent);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
             });
         }
