@@ -81,9 +81,9 @@ export async function sendSystemNotification({
   if (typeof window === "undefined") return false;
 
   // 1. Android APK Native Bridge: Instant high-importance native Android Notification
-  if (isAndroidNativeApp()) {
+  if ((window as any).ExpedientNativeBridge?.showNotification) {
     try {
-      (window as any).ExpedientNativeBridge.showNotification?.(title, message, url);
+      (window as any).ExpedientNativeBridge.showNotification(title, message, url);
       return true;
     } catch (e) {
       console.warn("Failed to trigger Android native notification:", e);

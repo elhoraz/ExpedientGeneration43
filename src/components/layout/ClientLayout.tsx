@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import LoadingScreen from "./LoadingScreen";
 import AppUpdateChecker from "./AppUpdateChecker";
+import AppNotificationManager from "./AppNotificationManager";
 import DynamicPageTranslator from "@/components/i18n/DynamicPageTranslator";
 import { ToastProvider } from "./AegisToast";
 import { ConfirmProvider } from "./AegisConfirm";
@@ -299,6 +300,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         )}
         <LoadingScreen />
         <AppUpdateChecker />
+        <AppNotificationManager />
         <DynamicPageTranslator />
         {children}
       </ToastProvider>

@@ -1135,6 +1135,28 @@ export default function KiblatClient() {
                   <i className={`fa-solid ${showDoaAdzan ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
                 </button>
 
+                <button
+                  type="button"
+                  className="btn-toggle-doa"
+                  style={{ marginTop: "8px", border: "1px solid rgba(212, 175, 55, 0.4)", color: "#f3ba2f" }}
+                  onClick={() => {
+                    if (navigator.vibrate) navigator.vibrate([40, 40, 40]);
+                    window.dispatchEvent(
+                      new CustomEvent("expedient_trigger_test_notif", {
+                        detail: {
+                          title: `🕌 Waktu Shalat ${nextPrayer.name} Telah Tiba`,
+                          message: `Telah masuk waktu shalat ${nextPrayer.name} (${nextPrayer.time} WIB). Mari dirikan shalat berjamaah tepat waktu.`,
+                          url: "/kiblat",
+                        },
+                      })
+                    );
+                  }}
+                  title="Tes notifikasi adzan melayang dengan suara & getaran"
+                >
+                  <i className="fa-solid fa-bell"></i>
+                  <span>Uji Notifikasi Adzan Melayang</span>
+                </button>
+
                 {showDoaAdzan && (
                   <div className="doa-adzan-card animate-fade-in">
                     <div className="doa-arabic" dir="rtl">

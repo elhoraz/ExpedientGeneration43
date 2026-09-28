@@ -107,6 +107,27 @@ export default function AppMockupShowcase() {
               <i className="fa-brands fa-android"></i>
               <span>{t.cta.btn_apk}</span>
             </Link>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([40, 40, 40]);
+                window.dispatchEvent(
+                  new CustomEvent("expedient_trigger_test_notif", {
+                    detail: {
+                      title: "🔔 Expedient 43 — Uji Notifikasi Berhasil!",
+                      message: "Notifikasi melayang dengan suara & getaran sistem berfungsi sempurna di HP Anda.",
+                      url: "/kiblat",
+                    },
+                  })
+                );
+              }}
+              style={{ cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "8px" }}
+              title="Kirim notifikasi melayang ke bilah notifikasi HP"
+            >
+              <i className="fa-solid fa-bell"></i>
+              <span>{locale === "ar" ? "تجربة الإشعار" : locale === "en" ? "Test Notification" : "Uji Notifikasi Melayang"}</span>
+            </button>
             <Link href="/download" className="btn-secondary">
               <i className="fa-solid fa-circle-question"></i>
               <span>{locale === "ar" ? "دليل التثبيت" : locale === "en" ? "Installation Guide" : "Panduan Instalasi"}</span>
