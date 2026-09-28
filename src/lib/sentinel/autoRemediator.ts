@@ -143,7 +143,7 @@ export async function handleAdminAutoRemediation(
 /**
  * Eksekusi Perbaikan Otomatis Komprehensif
  */
-async function executeAutoFix(adminPhone: string, rawCmd: string): Promise<AutoRemediationResult> {
+export async function executeAutoFix(adminPhone: string, rawCmd: string): Promise<AutoRemediationResult> {
   const startTime = Date.now();
   const lastIncident = getLastIncident();
   const targetRoute = lastIncident?.route || "/";
@@ -260,7 +260,7 @@ async function executeAutoFix(adminPhone: string, rawCmd: string): Promise<AutoR
 /**
  * Pemeriksaan Status Real-time
  */
-async function executeStatusCheck(adminPhone: string): Promise<AutoRemediationResult> {
+export async function executeStatusCheck(adminPhone: string): Promise<AutoRemediationResult> {
   const lastIncident = getLastIncident();
   const fonnteRes = await checkFonnteHealthAndAlert();
 

@@ -185,7 +185,60 @@ export async function dispatchSystemAlert(event: TelemetryEvent): Promise<{
   waMessage += `----------------------------------------\n`;
   waMessage += `_Sistem Pemantauan Otomatis 24 Jam Aegis Sentinel_`;
 
-  // Attempt dispatch via primary WhatsApp Gateway (Fonnte) with Meta WA fallback
+  // 1. PRIMARY DEVOPS & INCIDENT CHANNEL: Telegram (Official Bot API with Interactive Inline Buttons)
+  const tgToken = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  const tgChatId = (process.env.TELEGRAM_ADMIN_CHAT_ID || "").trim();
+
+  if (tgToken && tgChatId) {
+    let tgHtml = `🚨 <b>[AEGIS SENTINEL - SYSTEM ALERT]</b> 🚨\n`;
+    tgHtml += `<i>Expedient Generation 43 Web App</i>\n\n`;
+    tgHtml += `🔴 <b>Kategori:</b> ${categoryBadge}\n`;
+    tgHtml += `📍 <b>Halaman:</b> <code>${route}</code>\n`;
+    tgHtml += `⏱ <b>Waktu:</b> ${timeStr} WIB\n`;
+    tgHtml += `📱 <b>Perangkat:</b> ${deviceType} (${browserInfo})\n`;
+    tgHtml += `👤 <b>User:</b> ${user}\n\n`;
+    tgHtml += `⚠️ <b>Detail Masalah:</b>\n<code>${event.message.trim()}</code>\n\n`;
+
+    if (event.selector) {
+      tgHtml += `🎯 <b>Elemen:</b> <code>${event.selector.slice(0, 150)}</code>\n\n`;
+    }
+
+    if (event.stack) {
+      const cleanStack = event.stack.split("\n").slice(0, 4).join("\n").slice(0, 250);
+      tgHtml += `🔍 <b>Call Stack:</b>\n<pre>${cleanStack}</pre>\n\n`;
+    }
+
+    if (occurrenceCount > 1) {
+      tgHtml += `🔁 <b>Frekuensi:</b> Terjadi ${occurrenceCount}x dalam 10 menit terakhir.\n\n`;
+    }
+
+    tgHtml += `<i>Klik tombol di bawah untuk perbaikan instan:</i>`;
+
+    const inlineKeyboard = [
+      [
+        { text: "🛠️ Perbaiki Cepat (Cache/DB)", callback_data: "fix_op" },
+        { text: "🧠 AI Code Fix (Gemini 3.8 Flash)", callback_data: "fix_ai" },
+      ],
+      [
+        { text: "📊 Cek Status Server", callback_data: "check_status" },
+        { text: "🌐 Buka Web", url: `https://expedientgeneration.vercel.app${route}` },
+      ],
+    ];
+
+    const { sendTelegramMessage } = await import("@/lib/telegram");
+    const tgRes = await sendTelegramMessage(tgHtml, {
+      parse_mode: "HTML",
+      inlineKeyboard,
+      disable_web_page_preview: true,
+    });
+
+    if (tgRes.success) {
+      console.log(`[AEGIS-SENTINEL-DISPATCH] Alert ${event.category} terkirim via Telegram Bot ke admin!`);
+      return { success: true, provider: "telegram" };
+    }
+  }
+
+  // 2. SECONDARY CHANNEL: WhatsApp Gateway (Fonnte) with Meta WA fallback
   const waResult = await sendWhatsAppMessageWithDetail(adminWa, waMessage);
 
   if (waResult.success) {
