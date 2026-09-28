@@ -7,13 +7,15 @@ import {
   TelemetryEvent,
 } from "@/lib/sentinel/telemetryAlert";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { DbQueryPlan, DB_SCHEMA_DOC, executeSupabasePlan } from "@/lib/sentinel/databaseAgent";
 
 interface IntentAnalysis {
-  intent: "CHAT" | "STATUS" | "OPERATION" | "CODE_EDIT";
+  intent: "CHAT" | "STATUS" | "OPERATION" | "CODE_EDIT" | "DATABASE";
   reply: string;
   targetFile?: string;
   editDescription?: string;
   actionSummary?: string;
+  dbPlan?: DbQueryPlan;
 }
 
 /**
@@ -34,9 +36,9 @@ const SYSTEM_FILE_MAP: Record<string, string> = {
 };
 
 /**
- * Helper Pemanggil Gemini dengan Auto-Retry & Smart Fallback
+ * Helper Pemanggil Gemini dengan Exponential Backoff & Resilience
  */
-async function callGeminiResilient(
+export async function callGeminiResilient(
   bodyPayload: any,
   apiKey: string,
   preferredModel: string = "gemini-3.8-flash"
@@ -63,19 +65,120 @@ async function callGeminiResilient(
         lastError = new Error(`Gemini (${model}) ${errStatus}: ${errText}`);
 
         if (errStatus === 503 || errStatus === 429) {
-          await new Promise((r) => setTimeout(r, 1200));
+          await new Promise((r) => setTimeout(r, 2000 * (attempt + 1)));
           continue;
         } else {
-          break; // Coba model fallback berikutnya
+          break;
         }
       } catch (err: any) {
         lastError = err;
-        await new Promise((r) => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1500));
       }
     }
   }
 
   throw lastError;
+}
+
+/**
+ * Fast-Match Intent Heuristik: Mengeksekusi Query Database Populer Tanpa Menunggu LLM
+ */
+function tryFastIntentMatch(message: string): IntentAnalysis | null {
+  const lower = message.trim().toLowerCase();
+
+  // 1. Total Alumni Terdaftar
+  if (
+    lower.includes("berapa") &&
+    (lower.includes("alumni") ||
+      lower.includes("anggota") ||
+      lower.includes("user") ||
+      lower.includes("member") ||
+      lower.includes("terdaftar") ||
+      lower.includes("pengguna"))
+  ) {
+    return {
+      intent: "DATABASE",
+      reply: "Sedang mengambil data total alumni dari database Supabase...",
+      dbPlan: {
+        table: "profiles",
+        operation: "count",
+        purpose: "Hitung total alumni terdaftar di profiles",
+      },
+    };
+  }
+
+  // 2. Alumni Belum Aktivasi / Akun Nonaktif
+  if (
+    (lower.includes("siapa") || lower.includes("berapa") || lower.includes("cek") || lower.includes("daftar")) &&
+    (lower.includes("belum aktif") || lower.includes("belum aktivasi") || lower.includes("tidak aktif") || lower.includes("nonaktif"))
+  ) {
+    return {
+      intent: "DATABASE",
+      reply: "Sedang mencari daftar alumni yang belum melakukan aktivasi akun...",
+      dbPlan: {
+        table: "profiles",
+        operation: "select",
+        selectFields: "id, nama_lengkap, nama_panggilan, no_whatsapp, role, is_active",
+        filters: [{ column: "is_active", operator: "eq", value: false }],
+        limit: 10,
+        purpose: "Daftar alumni yang belum aktivasi akun",
+      },
+    };
+  }
+
+  // 3. Pencarian Nama Alumni Tertentu
+  const searchMatch = lower.match(/(?:cari|cek nomor|siapa|profil|wa-nya|kontak)\s+(?:alumni\s+)?(?:bernama|nama(?:nya)?|atas nama)?\s+([a-zA-Z\s]{3,})/i);
+  if (searchMatch && !lower.includes("server") && !lower.includes("fitur") && !lower.includes("error") && !lower.includes("website")) {
+    const searchTarget = searchMatch[1].trim();
+    if (searchTarget.length >= 3) {
+      return {
+        intent: "DATABASE",
+        reply: `Sedang mencari alumni bernama "${searchTarget}" di database...`,
+        dbPlan: {
+          table: "profiles",
+          operation: "select",
+          selectFields: "id, nama_lengkap, nama_panggilan, no_whatsapp, role, is_active",
+          filters: [{ column: "nama_lengkap", operator: "ilike", value: `%${searchTarget}%` }],
+          limit: 5,
+          purpose: `Cari alumni "${searchTarget}"`,
+        },
+      };
+    }
+  }
+
+  // 4. Antrean WhatsApp Gagal / Pending
+  if (lower.includes("antrean") || (lower.includes("pesan") && (lower.includes("gagal") || lower.includes("nyangkut") || lower.includes("pending")))) {
+    return {
+      intent: "DATABASE",
+      reply: "Sedang memeriksa status antrean pesan WhatsApp...",
+      dbPlan: {
+        table: "whatsapp_queue",
+        operation: "select",
+        selectFields: "id, no_whatsapp, message, status, error_message, created_at",
+        filters: [{ column: "status", operator: "eq", value: "failed" }],
+        limit: 5,
+        purpose: "Pemeriksaan pesan WhatsApp gagal",
+      },
+    };
+  }
+
+  // 5. Log Aktivitas Terbaru
+  if (lower.includes("log") || lower.includes("aktivitas") || lower.includes("siapa yang login") || lower.includes("riwayat")) {
+    return {
+      intent: "DATABASE",
+      reply: "Sedang mengambil catatan log aktivitas terbaru...",
+      dbPlan: {
+        table: "activity_logs",
+        operation: "select",
+        selectFields: "action, details, created_at",
+        order: { column: "created_at", ascending: false },
+        limit: 5,
+        purpose: "Cek catatan log aktivitas",
+      },
+    };
+  }
+
+  return null;
 }
 
 /**
@@ -87,9 +190,15 @@ async function analyzeAdminIntentWithGemini(
   geminiApiKey: string,
   geminiModel: string
 ): Promise<IntentAnalysis> {
+  // Cek fast-match heuristik terlebih dahulu untuk respons sub-second
+  const fastMatch = tryFastIntentMatch(adminMessage);
+  if (fastMatch) {
+    return fastMatch;
+  }
+
   const prompt = `
-You are Aegis Sentinel AI, the personal Lead AI Software Engineer for "Expedient Generation 43" (an elite alumni digital museum web app built with Next.js 15, React 19, TypeScript, Tailwind CSS, Supabase, Vercel).
-You are chatting directly with the Creator/Admin on WhatsApp.
+You are Aegis Sentinel AI, the personal Lead AI Software Engineer & Database Administrator for "Expedient Generation 43" (built with Next.js 15, React 19, TypeScript, Tailwind CSS, Supabase, Vercel).
+You are chatting directly with the Project Creator/Admin on WhatsApp.
 
 ADMIN'S MESSAGE ON WHATSAPP:
 "${adminMessage}"
@@ -100,28 +209,52 @@ ${lastIncident ? JSON.stringify(lastIncident, null, 2) : "None (System running n
 AVAILABLE KEY FILES:
 ${JSON.stringify(SYSTEM_FILE_MAP, null, 2)}
 
+DATABASE SCHEMA:
+${DB_SCHEMA_DOC}
+
 YOUR TASK:
-Determine what the admin wants and categorize into ONE of 4 intents:
-1. "CHAT": Asking questions, greeting, UX/design advice, discussion about the web, or explaining why something happened.
-2. "STATUS": Asking for server status, health check, database ping, or quota ("cek web", "kondisi server gimana?", "aman ga?").
-3. "OPERATION": Asking to fix server issues, flush cache, retry WhatsApp queue, reconnect gateway, or revalidate paths without changing source code ("perbaiki server", "refresh web", "bersihkan cache", "proses ulang wa").
-4. "CODE_EDIT": Asking to MODIFY source code, ADD a new feature, ADD a new button, CHANGE styles, or FIX a code bug directly in GitHub ("tambahkan tombol wa di galeri", "perbaiki error kode tadi", "ubah warna judul jadi emas", "buatkan countdown reuni di beranda").
+Determine what the admin wants and categorize into ONE of 5 intents:
+1. "DATABASE": The admin is asking to QUERY, SEARCH, COUNT, or MODIFY real data in Supabase database tables!
+   Examples:
+   - "berapa alumni yang sudah terdaftar?" -> table: "profiles", operation: "count"
+   - "siapa yang belum aktivasi akun?" -> table: "profiles", operation: "select", selectFields: "id, nama_lengkap, no_whatsapp, role, is_active", filters: [{"column": "is_active", "operator": "eq", "value": false}]
+   - "cari nomor WA alumni namanya Ahmad" -> table: "profiles", operation: "select", selectFields: "nama_lengkap, no_whatsapp, role", filters: [{"column": "nama_lengkap", "operator": "ilike", "value": "%Ahmad%"}]
+   - "cek antrean pesan WA yang gagal" -> table: "whatsapp_queue", operation: "select", filters: [{"column": "status", "operator": "eq", "value": "failed"}]
+   - "aktifkan akun alumni dengan nomor 08..." -> table: "profiles", operation: "update", updateData: {"is_active": true}, filters: [{"column": "no_whatsapp", "operator": "ilike", "value": "%08...%"}]
+   - "siapa 5 alumni yang baru mendaftar?" -> table: "profiles", operation: "select", selectFields: "nama_lengkap, role, created_at", order: {"column": "created_at", "ascending": false}, limit: 5
+   - "berapa saldo baitul maal?" -> table: "baitul_maal", operation: "select", selectFields: "amount, type, status"
+
+2. "CHAT": Asking general questions, greeting, design advice, or discussing web ideas.
+3. "STATUS": Asking for server health, database ping latency, Vercel status, or Fonnte quota.
+4. "OPERATION": Asking to fix server issues, flush cache, retry WhatsApp queue, reconnect gateway, or revalidate paths without changing source code ("perbaiki server", "refresh web", "bersihkan cache").
+5. "CODE_EDIT": Asking to MODIFY source code, ADD a new feature, ADD a new button, CHANGE styles, or FIX a code bug in GitHub.
 
 OUTPUT FORMAT:
 Return ONLY a valid JSON object:
 {
-  "intent": "CHAT" | "STATUS" | "OPERATION" | "CODE_EDIT",
-  "reply": "Friendly, responsive, and natural Indonesian response to send back to the admin via WhatsApp.",
-  "targetFile": "exact path to the file like src/app/(dashboard)/galeri/GaleriClient.tsx if CODE_EDIT",
-  "editDescription": "Clear English summary of what to modify in the code if CODE_EDIT",
-  "actionSummary": "Short action label if OPERATION"
+  "intent": "CHAT" | "STATUS" | "OPERATION" | "CODE_EDIT" | "DATABASE",
+  "reply": "Friendly, responsive Indonesian acknowledgment to send to the admin.",
+  "targetFile": "exact path if CODE_EDIT",
+  "editDescription": "summary if CODE_EDIT",
+  "dbPlan": {
+    "table": "profiles | whatsapp_queue | activity_logs | site_content | baitul_maal | notifications | buku_tamu | wasiats",
+    "operation": "select | count | update | insert",
+    "selectFields": "comma-separated columns",
+    "filters": [
+      { "column": "string", "operator": "eq | neq | ilike | is | in", "value": "any" }
+    ],
+    "order": { "column": "created_at", "ascending": false },
+    "limit": 10,
+    "updateData": { ... },
+    "purpose": "short summary"
+  }
 }
 `.trim();
 
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      temperature: 0.3,
+      temperature: 0.2,
       responseMimeType: "application/json",
     },
   };
@@ -129,6 +262,68 @@ Return ONLY a valid JSON object:
   const data = await callGeminiResilient(body, geminiApiKey, geminiModel);
   const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
   return JSON.parse(textOutput) as IntentAnalysis;
+}
+
+/**
+ * Sintesis Hasil Query Database Menjadi Pesan Ramah WhatsApp
+ */
+async function synthesizeDatabaseAnswerWithGemini(
+  adminMessage: string,
+  dbPlan: DbQueryPlan,
+  queryResult: any,
+  geminiApiKey: string,
+  geminiModel: string
+): Promise<string> {
+  // Jika hanya count sederhana, format langsung secara instan (< 10ms)
+  if (dbPlan.operation === "count" && dbPlan.table === "profiles") {
+    return `📊 *[DATA DATABASE SUPABASE]*\n\nSaat ini tercatat ada total *${queryResult.count ?? 0} alumni* yang telah terdaftar di database Expedient Generation 43.\n\n_Ada data alumni tertentu yang ingin Anda cari? Cukup sebutkan namanya ya!_`;
+  }
+
+  const prompt = `
+You are Aegis Sentinel AI. The Admin asked a database question on WhatsApp:
+"${adminMessage}"
+
+DATABASE QUERY EXECUTED:
+Table: ${dbPlan.table}
+Operation: ${dbPlan.operation}
+Filters: ${JSON.stringify(dbPlan.filters || [])}
+
+ACTUAL SUPABASE DATABASE RESULT:
+${JSON.stringify(queryResult, null, 2)}
+
+TASK:
+Provide a crystal-clear, highly accurate, conversational Indonesian response detailing the exact database findings.
+Rules:
+1. Always state the real data facts (exact numbers, exact names, exact phone numbers if requested).
+2. If data is empty or not found, politely state that no matching record exists in the database.
+3. Use WhatsApp markdown (*bold*, _italic_, \`code\`, bullet points) so it looks clean and readable on a phone screen.
+4. Keep the tone friendly, professional, and confident.
+`.trim();
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.2,
+    },
+  };
+
+  try {
+    const data = await callGeminiResilient(body, geminiApiKey, geminiModel);
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Data database telah berhasil diperiksa.";
+  } catch {
+    // Fallback format jika LLM timeout
+    if (queryResult.count !== undefined) {
+      return `📊 *[DATA DATABASE]*\nTotal ditemukan: *${queryResult.count} data* pada tabel \`${dbPlan.table}\`.`;
+    }
+    if (Array.isArray(queryResult.data) && queryResult.data.length > 0) {
+      let fallbackText = `📊 *[DATA DITEMUKAN PADA ${dbPlan.table.toUpperCase()}]*\n\n`;
+      queryResult.data.slice(0, 5).forEach((item: any, idx: number) => {
+        fallbackText += `${idx + 1}. *${item.nama_lengkap || item.nama || item.action || "Item"}* ${item.no_whatsapp ? `(\`${item.no_whatsapp}\`)` : ""}\n`;
+      });
+      return fallbackText;
+    }
+    return `ℹ️ *[HASIL DATABASE]*\nTidak ditemukan data yang cocok pada tabel \`${dbPlan.table}\`.`;
+  }
 }
 
 /**
@@ -275,7 +470,7 @@ export async function handleAdminConversationalMessage(
   const lastIncident = getLastIncident();
 
   try {
-    // 1. Analisis Niat Percakapan dengan Gemini 3.8 Flash (dengan auto-retry resilience)
+    // 1. Analisis Niat Percakapan dengan Gemini 3.8 Flash (dengan fast-match & auto-retry)
     const analysis = await analyzeAdminIntentWithGemini(
       messageText,
       lastIncident,
@@ -285,13 +480,37 @@ export async function handleAdminConversationalMessage(
 
     console.log(`[AI-AGENT-INTENT] Deteksi Niat: ${analysis.intent}`);
 
-    // A. INTENT: CHAT BIASA / DISKUSI / TANYA-JAWAB
+    // A. INTENT: DATABASE ACCESS (QUERY, COUNT, SEARCH, UPDATE SUPABASE DATA)
+    if (analysis.intent === "DATABASE" && analysis.dbPlan) {
+      console.log(`[AI-AGENT-DB] Menjalankan Supabase Plan pada tabel: ${analysis.dbPlan.table} (${analysis.dbPlan.operation})`);
+      const dbResult = await executeSupabasePlan(analysis.dbPlan);
+
+      if (!dbResult.success) {
+        const errorReply = `⚠️ *[DATABASE QUERY TERKENDALA]*\nTabel: \`${analysis.dbPlan.table}\`\nDetail: ${dbResult.error || "Gagal query data"}`;
+        await sendWhatsAppMessageWithDetail(adminPhone, errorReply);
+        return { success: false, replySent: true };
+      }
+
+      // Sintesis hasil nyata database dengan Gemini 3.8 Flash menjadi bahasa manusia
+      const synthesizedAnswer = await synthesizeDatabaseAnswerWithGemini(
+        messageText,
+        analysis.dbPlan,
+        dbResult,
+        geminiApiKey,
+        geminiModel
+      );
+
+      await sendWhatsAppMessageWithDetail(adminPhone, synthesizedAnswer);
+      return { success: true, replySent: true };
+    }
+
+    // B. INTENT: CHAT BIASA / DISKUSI / TANYA-JAWAB
     if (analysis.intent === "CHAT") {
       await sendWhatsAppMessageWithDetail(adminPhone, analysis.reply);
       return { success: true, replySent: true };
     }
 
-    // B. INTENT: STATUS / KONDISI SERVER
+    // C. INTENT: STATUS / KONDISI SERVER
     if (analysis.intent === "STATUS") {
       const fonnteRes = await checkFonnteHealthAndAlert();
       let dbLatency = 0;
@@ -324,7 +543,7 @@ export async function handleAdminConversationalMessage(
       return { success: true, replySent: true };
     }
 
-    // C. INTENT: PEMULIHAN OPERASIONAL (CACHE / GATEWAY / QUEUE)
+    // D. INTENT: PEMULIHAN OPERASIONAL (CACHE / GATEWAY / QUEUE)
     if (analysis.intent === "OPERATION") {
       const targetRoute = lastIncident?.route || "/";
       try {
@@ -347,7 +566,7 @@ export async function handleAdminConversationalMessage(
       return { success: true, replySent: true };
     }
 
-    // D. INTENT: CODE_EDIT (TAMBAH FITUR / REVISI TAMPILAN / PERBAIKAN KODE)
+    // E. INTENT: CODE_EDIT (TAMBAH FITUR / REVISI TAMPILAN / PERBAIKAN KODE)
     if (analysis.intent === "CODE_EDIT") {
       const targetFile = analysis.targetFile || SYSTEM_FILE_MAP["/galeri"];
 
