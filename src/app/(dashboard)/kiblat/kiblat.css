@@ -1508,3 +1508,73 @@
     color: #475569;
 }
 
+/* Desktop Auto-Align Bar */
+.desktop-auto-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.btn-auto-align {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%);
+    border: 1.5px solid var(--gold-main, #d4af37);
+    color: var(--gold-main, #ffd700);
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+    transition: all 0.25s ease;
+}
+
+.btn-auto-align:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+    background: var(--gold-main, #d4af37);
+    color: #000;
+}
+
+.btn-auto-align.is-locked {
+    background: rgba(43, 185, 124, 0.22);
+    border-color: #2bb97c;
+    color: #2bb97c;
+    box-shadow: 0 0 20px rgba(43, 185, 124, 0.35);
+}
+
+.desktop-auto-hint {
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.5;
+}
+
+:root[data-theme="light"] .btn-auto-align,
+[data-theme="light"] .btn-auto-align {
+    background: rgba(170, 119, 28, 0.1);
+    border-color: #aa771c;
+    color: #aa771c;
+}
+
+:root[data-theme="light"] .btn-auto-align:hover,
+[data-theme="light"] .btn-auto-align:hover {
+    background: #aa771c;
+    color: #fff;
+}
+
+:root[data-theme="light"] .btn-auto-align.is-locked,
+[data-theme="light"] .btn-auto-align.is-locked {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: #10b981;
+    color: #059669;
+}
+
+

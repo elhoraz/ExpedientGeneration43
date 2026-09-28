@@ -55,7 +55,10 @@ const DEGREE_LABELS = [
 export default function KiblatClient() {
   const { t, locale } = useLanguage();
   // Default to Ponorogo (Almamater Arrisalah)
-  const [selectedCity, setSelectedCity] = useState<CityPreset>(POPULAR_CITIES[1]);
+  const defaultCity = POPULAR_CITIES[1];
+  const initialQibla = calculateQibla(defaultCity.lat, defaultCity.lng);
+
+  const [selectedCity, setSelectedCity] = useState<CityPreset>(defaultCity);
   const [currentLocation, setCurrentLocation] = useState<{
     name: string;
     lat: number;
@@ -63,16 +66,17 @@ export default function KiblatClient() {
     timezone: number;
     isGps: boolean;
   }>({
-    name: POPULAR_CITIES[1].name,
-    lat: POPULAR_CITIES[1].lat,
-    lng: POPULAR_CITIES[1].lng,
-    timezone: POPULAR_CITIES[1].timezone,
+    name: defaultCity.name,
+    lat: defaultCity.lat,
+    lng: defaultCity.lng,
+    timezone: defaultCity.timezone,
     isGps: false,
   });
 
-  const [heading, setHeading] = useState<number>(0);
+  // Automatically start locked directly onto Ka'bah for Desktop / default view!
+  const [heading, setHeading] = useState<number>(initialQibla.bearing);
   const [manualOffset, setManualOffset] = useState<number>(0);
-  const [continuousHeading, setContinuousHeading] = useState<number>(0);
+  const [continuousHeading, setContinuousHeading] = useState<number>(initialQibla.bearing);
   const [isSensorActive, setIsSensorActive] = useState<boolean>(false);
   const [needsIosPermission, setNeedsIosPermission] = useState<boolean>(false);
   const [isGpsLoading, setIsGpsLoading] = useState<boolean>(false);
@@ -83,6 +87,8 @@ export default function KiblatClient() {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const startPointerAngleRef = useRef<number>(0);
+  const startContinuousHeadingRef = useRef<number>(initialQibla.bearing);
 
   // Qibla calculations (Bearing, Distance, Falak angles, DMS)
   const qiblaInfo = calculateQibla(currentLocation.lat, currentLocation.lng);
@@ -119,6 +125,12 @@ export default function KiblatClient() {
       return prev + delta;
     });
   }, []);
+
+  // Auto-align helper: snaps heading directly to accurate Qibla bearing
+  const handleAutoAlignQibla = useCallback(() => {
+    setIsSensorActive(false);
+    updateHeading(qiblaInfo.bearing);
+  }, [qiblaInfo.bearing, updateHeading]);
 
   // Haptic feedback when locking onto Ka'bah
   useEffect(() => {
@@ -313,6 +325,12 @@ export default function KiblatClient() {
           isGps: true,
         });
         setIsGpsLoading(false);
+
+        // Auto-align compass to the GPS location's accurate Qibla bearing on desktop!
+        if (!isSensorActive) {
+          const newQibla = calculateQibla(latitude, longitude);
+          updateHeading(newQibla.bearing);
+        }
       },
       (err) => {
         console.warn("GPS error:", err);
@@ -329,22 +347,47 @@ export default function KiblatClient() {
     );
   };
 
-  // City Dropdown Change
+  // City Dropdown Change with automatic Qibla auto-alignment on Desktop
   const handleCityChange = (cityName: string) => {
     const city = POPULAR_CITIES.find((c) => c.name === cityName);
     if (city) {
       setSelectedCity(city);
-      setCurrentLocation({
+      const newLoc = {
         name: city.name,
         lat: city.lat,
         lng: city.lng,
         timezone: city.timezone,
         isGps: false,
-      });
+      };
+      setCurrentLocation(newLoc);
+
+      // Auto-align compass directly to the chosen city's Qibla bearing if not driven by mobile hardware sensor!
+      if (!isSensorActive) {
+        const newQibla = calculateQibla(newLoc.lat, newLoc.lng);
+        updateHeading(newQibla.bearing);
+      }
     }
   };
 
-  // Interactive Drag-to-Rotate for Desktop & Touch
+  // Natural Drag-to-Rotate for Desktop (Drag Right = Turns Right, Drag Left = Turns Left)
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (!stageRef.current) return;
+    setIsDragging(true);
+    setIsSensorActive(false);
+
+    const rect = stageRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = e.clientX - centerX;
+    const dy = e.clientY - centerY;
+
+    let angle = Math.atan2(dx, -dy) * (180 / Math.PI);
+    if (angle < 0) angle += 360;
+
+    startPointerAngleRef.current = angle;
+    startContinuousHeadingRef.current = continuousHeading;
+  };
+
   const updateFromPointer = useCallback(
     (clientX: number, clientY: number) => {
       if (!stageRef.current) return;
@@ -353,19 +396,24 @@ export default function KiblatClient() {
       const centerY = rect.top + rect.height / 2;
       const dx = clientX - centerX;
       const dy = clientY - centerY;
-      // Angle clockwise from top (12 o'clock)
-      let angle = Math.atan2(dx, -dy) * (180 / Math.PI);
-      if (angle < 0) angle += 360;
-      updateHeading(angle);
-    },
-    [updateHeading]
-  );
 
-  const handlePointerDown = (e: React.PointerEvent) => {
-    setIsDragging(true);
-    setIsSensorActive(false);
-    updateFromPointer(e.clientX, e.clientY);
-  };
+      let currentPointerAngle = Math.atan2(dx, -dy) * (180 / Math.PI);
+      if (currentPointerAngle < 0) currentPointerAngle += 360;
+
+      // Delta of mouse movement clockwise:
+      let delta = (currentPointerAngle - startPointerAngleRef.current + 540) % 360 - 180;
+
+      // Because dial plate rotates by (-continuousHeading), to rotate the dial clockwise by delta,
+      // continuousHeading must decrease by delta. This ensures 1:1 direct manipulation where the
+      // compass turns in the EXACT same direction as the mouse drag!
+      const newContinuous = startContinuousHeadingRef.current - delta;
+      const normalized = ((newContinuous % 360) + 360) % 360;
+
+      setHeading(Math.round(normalized));
+      setContinuousHeading(newContinuous);
+    },
+    []
+  );
 
   useEffect(() => {
     if (!isDragging) return;
@@ -480,6 +528,25 @@ export default function KiblatClient() {
             ========================================================================= */}
         {viewMode === "compass" && (
           <div className="astrolabe-stage">
+            {/* Desktop Auto-Align Bar */}
+            <div className="desktop-auto-bar">
+              <button
+                type="button"
+                className={`btn-auto-align ${isAligned ? "is-locked" : ""}`}
+                onClick={handleAutoAlignQibla}
+              >
+                <i className={`fa-solid ${isAligned ? "fa-circle-check" : "fa-crosshairs"}`}></i>
+                <span>
+                  {isAligned
+                    ? `✓ Terkunci Tepat ke Arah Ka'bah (${qiblaInfo.bearing}° ${currentDirection.name})`
+                    : `Arahkan Otomatis ke Kiblat (${qiblaInfo.bearing}°)`}
+                </span>
+              </button>
+              <span className="desktop-auto-hint">
+                Mode Desktop: Arah kiblat otomatis diselaraskan secara akurat ({qiblaInfo.bearing}° {currentDirection.name}). Anda juga dapat memutar kompas dengan drag mouse ke kanan/kiri.
+              </span>
+            </div>
+
             {/* Bezel housing Forward Lubber Line and Compass */}
             <div
               className="astrolabe-bezel"
@@ -489,8 +556,8 @@ export default function KiblatClient() {
                 locale === "ar"
                   ? "اسحب لتدوير البوصلة يدوياً"
                   : locale === "en"
-                  ? "Drag to rotate compass manually"
-                  : "Klik & geser untuk memutar kompas manual"
+                  ? "Drag to rotate compass naturally"
+                  : "Klik & geser mouse untuk memutar kompas"
               }
             >
               {/* Top Lubber Line / Forward Heading Hub (Device Axis) */}
@@ -660,10 +727,7 @@ export default function KiblatClient() {
                 <button
                   type="button"
                   className={`btn-preset-snap ${isAligned ? "active" : ""}`}
-                  onClick={() => {
-                    setIsSensorActive(false);
-                    updateHeading(qiblaInfo.bearing);
-                  }}
+                  onClick={handleAutoAlignQibla}
                 >
                   <i className="fa-solid fa-kaaba"></i> {t.kiblat.snap_qibla} ({qiblaInfo.bearing}°)
                 </button>
