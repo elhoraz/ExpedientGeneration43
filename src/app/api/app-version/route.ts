@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  // Versi rilis APK terbaru dari Expedient Generation 43
+  // Versi rilis APK terbaru dari Expedient Generation 43 (Build 1 / v1.0.0)
   return NextResponse.json({
-    latestVersionCode: 2,
-    latestVersionName: "1.1.0",
+    latestVersionCode: 1,
+    latestVersionName: "1.0.0",
     releaseDate: "2026-09-28",
     apkUrl: process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.1.0/Expedient43-v1.0.apk",
-    title: "Pembaruan Expedient 43 v1.1.0",
+    title: "Expedient 43 v1.0.0",
     releaseNotes: [
       "Notifikasi Heads-Up Banner melayang dengan suara & getaran resmi",
       "Permintaan izin notifikasi sistem otomatis untuk Android 13+",

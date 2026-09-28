@@ -41,41 +41,54 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
   const [activeSection, setActiveSection] = useState<string>("beranda");
   const currentYear = new Date().getFullYear();
 
-  // Ensure document body & html can scroll freely on mobile and desktop
+  // Manage page-landing class on body and html
   useEffect(() => {
     document.body.classList.add("page-landing");
     document.documentElement.classList.add("page-landing");
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevBodyHeight = document.body.style.height;
-
-    document.body.style.overflowY = "auto";
-    document.body.style.height = "auto";
-    document.documentElement.style.overflowY = "auto";
-    document.documentElement.style.height = "auto";
 
     return () => {
       document.body.classList.remove("page-landing");
       document.documentElement.classList.remove("page-landing");
-      document.body.style.overflow = prevBodyOverflow;
-      document.body.style.height = prevBodyHeight;
     };
   }, []);
 
-  // Real-time Scrollspy for Desktop Navigation and Mobile Drawer
+  // Smooth scroll handler for anchor links within landing-wrapper
+  useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
+      const href = target.getAttribute("href");
+      if (href && href.startsWith("#") && href.length > 1) {
+        const targetId = href.substring(1);
+        const targetEl = document.getElementById(targetId);
+        const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
+        if (targetEl && wrapper) {
+          e.preventDefault();
+          wrapper.scrollTo({
+            top: targetEl.offsetTop - 70,
+            behavior: "smooth",
+          });
+        }
+      }
+    };
+
+    document.addEventListener("click", handleAnchorClick);
+    return () => document.removeEventListener("click", handleAnchorClick);
+  }, []);
+
+  // Real-time Scrollspy for Navigation and Mobile Drawer
   useEffect(() => {
     const sectionIds = ["beranda", "sejarah", "nasehat", "almamater", "aplikasi", "ekosistem"];
     const handleScrollSpy = () => {
       const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
-      const isMobile = window.innerWidth <= 1024;
-      const scrollPos = (isMobile ? window.scrollY : (wrapper?.scrollTop ?? window.scrollY)) + 160;
+      const currentScroll = wrapper ? wrapper.scrollTop : (window.scrollY || 0);
+      const scrollPos = currentScroll + 160;
 
       for (let i = sectionIds.length - 1; i >= 0; i--) {
         const id = sectionIds[i];
         const el = document.getElementById(id);
         if (el) {
-          const top = isMobile
-            ? el.getBoundingClientRect().top + window.scrollY
-            : (wrapper ? el.offsetTop : el.getBoundingClientRect().top + window.scrollY);
+          const top = wrapper ? el.offsetTop : (el.getBoundingClientRect().top + window.scrollY);
           if (scrollPos >= top) {
             setActiveSection(id);
             break;

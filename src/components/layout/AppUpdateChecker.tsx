@@ -56,6 +56,17 @@ export default function AppUpdateChecker() {
 
         // Check if there is a newer versionCode
         if (data.latestVersionCode > installedCode) {
+          try {
+            const dismissedVer = localStorage.getItem("dismissed_update_version");
+            const dismissedTime = Number(localStorage.getItem("dismissed_update_time") || 0);
+            if (
+              dismissedVer === String(data.latestVersionCode) &&
+              Date.now() - dismissedTime < 24 * 60 * 60 * 1000
+            ) {
+              return;
+            }
+          } catch {}
+
           setVersionData(data);
           setUpdateAvailable(true);
         }
@@ -72,6 +83,11 @@ export default function AppUpdateChecker() {
   const handleUpdate = () => {
     if (!versionData) return;
     setIsUpdating(true);
+
+    try {
+      localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
+      localStorage.setItem("dismissed_update_time", String(Date.now()));
+    } catch {}
 
     const isApk =
       isAndroidNativeApp() ||
@@ -100,6 +116,12 @@ export default function AppUpdateChecker() {
   const handleDismiss = () => {
     setIsDismissed(true);
     setUpdateAvailable(false);
+    try {
+      if (versionData) {
+        localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
+        localStorage.setItem("dismissed_update_time", String(Date.now()));
+      }
+    } catch {}
   };
 
   // Jangan pernah tampilkan pop-up pembaruan jika pengguna sedang berada di halaman /download
