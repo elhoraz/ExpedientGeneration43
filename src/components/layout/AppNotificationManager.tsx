@@ -58,13 +58,11 @@ export default function AppNotificationManager() {
 
     setupNotifications();
 
-    // 3. Automated Prayer Schedule Check (Every 45 seconds)
+    // 3. Automated Prayer Schedule Check with Grace Period Window & Immediate Execution
     const checkPrayerSchedule = async () => {
       try {
         const now = new Date();
-        const hours = String(now.getHours()).padStart(2, "0");
-        const minutes = String(now.getMinutes()).padStart(2, "0");
-        const currentTimeStr = `${hours}:${minutes}`;
+        const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
         const dateStr = now.toISOString().slice(0, 10);
 
         // Default to Arrisalah Slahung Ponorogo coordinates (-7.9866, 111.4328)
@@ -82,7 +80,10 @@ export default function AppNotificationManager() {
           }
         } catch {}
 
-        const schedule: PrayerSchedule = calculatePrayerTimes(lat, lng, 7, now);
+        // Calculate dynamic timezone offset from device (e.g. UTC+7 for WIB is 7)
+        const tzOffset = -now.getTimezoneOffset() / 60 || 7;
+
+        const schedule: PrayerSchedule = calculatePrayerTimes(lat, lng, tzOffset, now);
         const prayerList: Array<{ name: string; time: string; icon: string }> = [
           { name: "Subuh", time: schedule.subuh, icon: "🌅" },
           { name: "Dzuhur", time: schedule.dzuhur, icon: "☀️" },
@@ -91,14 +92,43 @@ export default function AppNotificationManager() {
           { name: "Isya", time: schedule.isya, icon: "🌙" },
         ];
 
+        // Register native Android alarms if running inside APK Native Bridge
+        if ((window as any).ExpedientNativeBridge?.schedulePrayerAlarm) {
+          try {
+            for (const prayer of prayerList) {
+              const [pHours, pMins] = prayer.time.split(":").map(Number);
+              (window as any).ExpedientNativeBridge.schedulePrayerAlarm(
+                prayer.name,
+                pHours,
+                pMins,
+                `${prayer.icon} Waktu Shalat ${prayer.name} (${prayer.time})`,
+                `Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari dirikan shalat tepat waktu.`
+              );
+            }
+          } catch (bridgeErr) {
+            console.warn("Native prayer alarm registration notice:", bridgeErr);
+          }
+        }
+
+        // Active notification check with 50-minute grace period window
         for (const prayer of prayerList) {
-          if (prayer.time === currentTimeStr) {
+          const [pHours, pMins] = prayer.time.split(":").map(Number);
+          const prayerTotalMinutes = pHours * 60 + pMins;
+
+          // Grace period window: dari tepat waktu shalat sampai 50 menit setelahnya.
+          // Ini memastikan jika layar HP baru dibuka/dinyalakan saat Subuh (meski lewat beberapa menit),
+          // notifikasi tidak terlewat dan tetap langsung muncul.
+          const isWithinWindow =
+            currentTotalMinutes >= prayerTotalMinutes &&
+            currentTotalMinutes <= prayerTotalMinutes + 50;
+
+          if (isWithinWindow) {
             const notifKey = `prayer_notif_${prayer.name}_${dateStr}`;
             if (!localStorage.getItem(notifKey)) {
               localStorage.setItem(notifKey, "1");
 
               await sendSystemNotification({
-                title: `${prayer.icon} Waktu Shalat ${prayer.name} Telah Tiba`,
+                title: `${prayer.icon} Waktu Shalat ${prayer.name} (${prayer.time})`,
                 message: `Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari dirikan shalat tepat waktu.`,
                 url: "/kiblat",
               });
@@ -111,7 +141,19 @@ export default function AppNotificationManager() {
       }
     };
 
-    const prayerInterval = setInterval(checkPrayerSchedule, 45000);
+    // Run immediately on app load
+    checkPrayerSchedule();
+
+    // Re-check every 30 seconds
+    const prayerInterval = setInterval(checkPrayerSchedule, 30000);
+
+    // Re-check immediately when phone screen turns on or user switches back to app
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkPrayerSchedule();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // 4. Global Test Notification Trigger (Custom event & Window helper)
     const handleTriggerTest = async (e?: Event) => {
@@ -139,6 +181,7 @@ export default function AppNotificationManager() {
 
     return () => {
       clearInterval(prayerInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("expedient_trigger_test_notif", handleTriggerTest);
       delete (window as any).triggerExpedientNotification;
     };

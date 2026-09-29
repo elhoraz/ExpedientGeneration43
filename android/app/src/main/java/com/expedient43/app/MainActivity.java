@@ -1,10 +1,12 @@
 package com.expedient43.app;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.DownloadManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import java.util.Calendar;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -279,6 +281,47 @@ public class MainActivity extends BridgeActivity {
                     e.printStackTrace();
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void schedulePrayerAlarm(String prayerName, int hour, int minute, String title, String message) {
+            try {
+                AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                if (alarmManager == null) return;
+
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.HOUR_OF_DAY, hour);
+                calendar.set(Calendar.MINUTE, minute);
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+
+                // If alarm time has already passed today, schedule for tomorrow
+                if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
+                    calendar.add(Calendar.DAY_OF_YEAR, 1);
+                }
+
+                Intent intent = new Intent(MainActivity.this, PrayerAlarmReceiver.class);
+                intent.putExtra("title", title);
+                intent.putExtra("message", message);
+                intent.putExtra("prayerName", prayerName);
+                intent.putExtra("targetUrl", "/kiblat");
+
+                int requestCode = Math.abs(prayerName.hashCode());
+                int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    flags |= PendingIntent.FLAG_IMMUTABLE;
+                }
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, requestCode, intent, flags);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                } else {
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         @JavascriptInterface
