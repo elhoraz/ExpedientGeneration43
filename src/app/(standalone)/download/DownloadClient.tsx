@@ -6,7 +6,7 @@ import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 
 export default function DownloadClient() {
   const { t, isRTL: isRtl, dir } = useLanguage();
-  const apkDownloadUrl = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.2.0/Expedient43-v1.2.0.apk";
+  const apkDownloadUrl = process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.2.1/Expedient43-v1.2.1.apk";
 
   return (
     <div
@@ -173,14 +173,14 @@ export default function DownloadClient() {
                   lineHeight: 1.6,
                 }}
               >
-                <li><code>Expedient43-v1.2.0.apk</code> (v1.2.0 Terbaru - Google FCM & Alarm Adzan)</li>
+                <li><code>Expedient43-v1.2.1.apk</code> (v1.2.1 Terbaru - Panggilan Interaktif & Alarm Adzan)</li>
                 <li>{t.download_center.apk_size_label} (~120 MB)</li>
                 <li>{t.download_center.apk_support_label}</li>
               </ul>
             </div>
             <a
               href={apkDownloadUrl}
-              download="Expedient43-v1.2.0.apk"
+              download="Expedient43-v1.2.1.apk"
               id="btnDownloadApk"
               onClick={(e) => {
                 if (typeof window !== "undefined" && (window as any).ExpedientNativeBridge?.installApk) {
