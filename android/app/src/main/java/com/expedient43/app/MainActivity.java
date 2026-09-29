@@ -64,6 +64,9 @@ public class MainActivity extends BridgeActivity {
         // 3. Handle Notification Intent if opened from notification tap
         handleNotificationIntent(getIntent());
 
+        // 4. Initialize Firebase Cloud Messaging (FCM) & fetch device token
+        initFirebaseMessaging();
+
         WebView webView = getBridge().getWebView();
         if (webView != null) {
             WebSettings settings = webView.getSettings();
@@ -394,6 +397,19 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public String getFcmToken() {
+            if (currentFcmToken != null && !currentFcmToken.isEmpty()) {
+                return currentFcmToken;
+            }
+            try {
+                android.content.SharedPreferences prefs = getSharedPreferences("expedient_fcm_prefs", Context.MODE_PRIVATE);
+                return prefs.getString("fcm_token", "");
+            } catch (Exception e) {
+                return "";
+            }
+        }
+
+        @JavascriptInterface
         public void installApk(String apkUrl) {
             runOnUiThread(() -> {
                 try {
@@ -558,6 +574,39 @@ public class MainActivity extends BridgeActivity {
                     }
                 }
             }
+        }
+    }
+
+    private String currentFcmToken = "";
+
+    private void initFirebaseMessaging() {
+        try {
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful() || task.getResult() == null) {
+                        return;
+                    }
+                    currentFcmToken = task.getResult();
+                    android.util.Log.d("ExpedientFCM", "Current FCM Token: " + currentFcmToken);
+
+                    // Persist locally
+                    getSharedPreferences("expedient_fcm_prefs", Context.MODE_PRIVATE)
+                        .edit().putString("fcm_token", currentFcmToken).apply();
+
+                    // Send token to WebView if available
+                    WebView webView = getBridge().getWebView();
+                    if (webView != null && currentFcmToken != null && !currentFcmToken.isEmpty()) {
+                        runOnUiThread(() -> {
+                            webView.evaluateJavascript(
+                                "if (window.onExpedientFcmToken) { window.onExpedientFcmToken('" + currentFcmToken + "'); }" +
+                                "window.dispatchEvent(new CustomEvent('expedient_fcm_token', { detail: { token: '" + currentFcmToken + "' } }));",
+                                null
+                            );
+                        });
+                    }
+                });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

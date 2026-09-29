@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "849649433875",
+    "project_id": "expedient-43",
+    "storage_bucket": "expedient-43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:849649433875:android:0d1101ea06551f917aeee6",
+        "android_client_info": {
+          "package_name": "com.expedient43.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCw5CLa3N2DECHQlprF23wNZoB1BtVqG48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

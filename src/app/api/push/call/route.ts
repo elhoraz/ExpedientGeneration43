@@ -91,6 +91,48 @@ export async function POST(req: Request) {
 
     let sentCount = 0;
     const sendPromises = subscriptions.map((sub) => {
+      // 1. Native Android Firebase Cloud Messaging (FCM)
+      if (sub.endpoint.startsWith("fcm:")) {
+        const fcmToken = sub.endpoint.replace("fcm:", "");
+        const serverKey = process.env.FIREBASE_SERVER_KEY;
+        if (!serverKey) {
+          console.warn("FCM Server Key not configured in FIREBASE_SERVER_KEY environment variable.");
+          return Promise.resolve();
+        }
+
+        return fetch("https://fcm.googleapis.com/fcm/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `key=${serverKey}`,
+          },
+          body: JSON.stringify({
+            to: fcmToken,
+            priority: "high",
+            data: {
+              title: `📞 Panggilan ${callTypeLabel} Masuk`,
+              body: `${callerName || "Seseorang"} sedang menelepon Anda`,
+              url: callUrl,
+              type: "call",
+              callType: callType || "voice",
+              callerId: user.id,
+            },
+          }),
+        })
+          .then(async (res) => {
+            if (res.ok) {
+              sentCount++;
+            } else {
+              const errText = await res.text();
+              console.warn("FCM push send error response:", res.status, errText);
+            }
+          })
+          .catch((e) => {
+            console.error("FCM push send failed:", e);
+          });
+      }
+
+      // 2. Standard Web Push (PWA & Web Browsers)
       const pushSubscription = {
         endpoint: sub.endpoint,
         keys: {

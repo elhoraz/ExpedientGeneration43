@@ -97,6 +97,38 @@ export async function POST(req: Request) {
 
           await Promise.allSettled(
             subscriptions.map(async (sub) => {
+              // 1. Native Android Firebase Cloud Messaging (FCM)
+              if (sub.endpoint.startsWith("fcm:")) {
+                const fcmToken = sub.endpoint.replace("fcm:", "");
+                const serverKey = process.env.FIREBASE_SERVER_KEY;
+                if (!serverKey) return;
+
+                try {
+                  await fetch("https://fcm.googleapis.com/fcm/send", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `key=${serverKey}`,
+                    },
+                    body: JSON.stringify({
+                      to: fcmToken,
+                      priority: "high",
+                      data: {
+                        title: `💬 Pesan Baru dari ${senderName}`,
+                        body: previewText,
+                        url: `/chat/personal/${user.id}`,
+                        type: "chat",
+                        senderId: user.id,
+                      },
+                    }),
+                  });
+                } catch (fcmErr) {
+                  console.error("FCM chat send error:", fcmErr);
+                }
+                return;
+              }
+
+              // 2. Standard Web Push
               try {
                 await webpush.sendNotification(
                   {

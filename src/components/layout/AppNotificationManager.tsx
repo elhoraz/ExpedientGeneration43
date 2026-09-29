@@ -229,11 +229,62 @@ export default function AppNotificationManager() {
     (window as any).triggerExpedientNotification = handleTriggerTest;
     window.addEventListener("expedient_trigger_test_notif", handleTriggerTest);
 
+    // 5. Automatic Native Android FCM Device Token Registration
+    const syncNativeFcmToken = async () => {
+      try {
+        let token = "";
+        if ((window as any).ExpedientNativeBridge?.getFcmToken) {
+          token = (window as any).ExpedientNativeBridge.getFcmToken();
+        }
+        if (token && token.trim().length > 10) {
+          const lastToken = localStorage.getItem("expedient_synced_fcm_token");
+          if (lastToken !== token) {
+            console.log("Syncing native Android FCM device token to server...");
+            const res = await fetch("/api/push/subscribe", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                endpoint: "fcm:" + token,
+                keys: {
+                  p256dh: "fcm",
+                  auth: "fcm",
+                },
+              }),
+            });
+            if (res.ok) {
+              localStorage.setItem("expedient_synced_fcm_token", token);
+              console.log("FCM device token synced successfully.");
+            }
+          }
+        }
+      } catch (fcmErr) {
+        console.warn("FCM token sync notice:", fcmErr);
+      }
+    };
+
+    // Check token on mount and after delay
+    syncNativeFcmToken();
+    const fcmTimer = setTimeout(syncNativeFcmToken, 3000);
+
+    const handleFcmTokenEvent = (e: any) => {
+      const newToken = e?.detail?.token;
+      if (newToken) {
+        syncNativeFcmToken();
+      }
+    };
+    window.addEventListener("expedient_fcm_token", handleFcmTokenEvent);
+    (window as any).onExpedientFcmToken = (token: string) => {
+      syncNativeFcmToken();
+    };
+
     return () => {
       clearInterval(prayerInterval);
+      clearTimeout(fcmTimer);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("expedient_trigger_test_notif", handleTriggerTest);
+      window.removeEventListener("expedient_fcm_token", handleFcmTokenEvent);
       delete (window as any).triggerExpedientNotification;
+      delete (window as any).onExpedientFcmToken;
     };
   }, [showToast]);
 
