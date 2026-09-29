@@ -12,6 +12,7 @@ interface AppVersionData {
   title: string;
   releaseNotes: string[];
   forceUpdate?: boolean;
+  minSupportedVersionCode?: number;
 }
 
 export default function AppUpdateChecker() {
@@ -56,16 +57,23 @@ export default function AppUpdateChecker() {
 
         // Check if there is a newer versionCode
         if (data.latestVersionCode > installedCode) {
-          try {
-            const dismissedVer = localStorage.getItem("dismissed_update_version");
-            const dismissedTime = Number(localStorage.getItem("dismissed_update_time") || 0);
-            if (
-              dismissedVer === String(data.latestVersionCode) &&
-              Date.now() - dismissedTime < 24 * 60 * 60 * 1000
-            ) {
-              return;
-            }
-          } catch {}
+          const isMandatory = Boolean(
+            data.forceUpdate ||
+            (data.minSupportedVersionCode && installedCode < data.minSupportedVersionCode)
+          );
+
+          if (!isMandatory) {
+            try {
+              const dismissedVer = localStorage.getItem("dismissed_update_version");
+              const dismissedTime = Number(localStorage.getItem("dismissed_update_time") || 0);
+              if (
+                dismissedVer === String(data.latestVersionCode) &&
+                Date.now() - dismissedTime < 24 * 60 * 60 * 1000
+              ) {
+                return;
+              }
+            } catch {}
+          }
 
           setVersionData(data);
           setUpdateAvailable(true);
@@ -117,7 +125,7 @@ export default function AppUpdateChecker() {
     setIsDismissed(true);
     setUpdateAvailable(false);
     try {
-      if (versionData) {
+      if (versionData && !versionData.forceUpdate) {
         localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
         localStorage.setItem("dismissed_update_time", String(Date.now()));
       }
@@ -197,7 +205,7 @@ export default function AppUpdateChecker() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#fff" }}>
-                Pembaruan Tersedia
+                {versionData.forceUpdate ? "Pembaruan Wajib Aplikasi" : "Pembaruan Tersedia"}
               </h3>
               <span
                 style={{
@@ -213,11 +221,37 @@ export default function AppUpdateChecker() {
                 v{versionData.latestVersionName}
               </span>
             </div>
-            <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", color: "#94a3b8" }}>
-              Versi Anda saat ini: <strong style={{ color: "#cbd5e1" }}>v{currentVersion.name}</strong>
+            <p style={{ margin: "3px 0 0 0", fontSize: "0.82rem", color: "#94a3b8" }}>
+              Versi Anda saat ini:{" "}
+              <strong style={{ color: versionData.latestVersionCode > currentVersion.code ? "#f87171" : "#cbd5e1" }}>
+                v{currentVersion.name} {versionData.latestVersionCode > currentVersion.code ? "(Versi Lama)" : ""}
+              </strong>
             </p>
           </div>
         </div>
+
+        {versionData.latestVersionCode > currentVersion.code && (
+          <div
+            style={{
+              padding: "0.75rem 1rem",
+              borderRadius: "12px",
+              background: "rgba(239, 68, 68, 0.12)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+              color: "#fca5a5",
+              fontSize: "0.8rem",
+              lineHeight: 1.5,
+              marginBottom: "1rem",
+              display: "flex",
+              alignItems: "flex-start",
+              gap: "8px",
+            }}
+          >
+            <i className="fa-solid fa-triangle-exclamation" style={{ color: "#ef4444", marginTop: "3px", flexShrink: 0 }} />
+            <span>
+              Perangkat Anda masih menggunakan versi lama. Harap <strong>perbarui terlebih dahulu</strong> ke versi terbaru agar dapat menerima panggilan suara/video, notifikasi pesan saat layar mati, dan kumandang alarm adzan otomatis.
+            </span>
+          </div>
+        )}
 
         {/* Release Notes */}
         <div
@@ -283,26 +317,24 @@ export default function AppUpdateChecker() {
           </div>
         ) : (
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            {!versionData.forceUpdate && (
-              <button
-                type="button"
-                onClick={handleDismiss}
-                style={{
-                  flex: "1",
-                  padding: "0.8rem 1rem",
-                  borderRadius: "12px",
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.12)",
-                  color: "#94a3b8",
-                  fontSize: "0.88rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                Nanti Saja
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleDismiss}
+              style={{
+                flex: "1",
+                padding: "0.8rem 0.9rem",
+                borderRadius: "12px",
+                background: "rgba(255, 255, 255, 0.05)",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                color: "#94a3b8",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {versionData.forceUpdate ? "Lanjut Sementara" : "Nanti Saja"}
+            </button>
             <button
               type="button"
               onClick={handleUpdate}
@@ -324,8 +356,8 @@ export default function AppUpdateChecker() {
                 transition: "transform 0.15s ease",
               }}
             >
-              <i className="fa-solid fa-bolt" />
-              <span>Perbarui Sekarang</span>
+              <i className="fa-solid fa-cloud-arrow-down" />
+              <span>Perbarui Sekarang (v{versionData.latestVersionName})</span>
             </button>
           </div>
         )}

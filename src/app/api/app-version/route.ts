@@ -3,21 +3,21 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  // Versi rilis APK terbaru dari Expedient Generation 43 (Build 1 / v1.0.0)
+  // Versi rilis APK terbaru dari Expedient Generation 43 (Build 2 / v1.2.0)
   return NextResponse.json({
-    latestVersionCode: 1,
-    latestVersionName: "1.0.0",
-    releaseDate: "2026-09-28",
-    apkUrl: process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.1.0/Expedient43-v1.0.apk",
-    title: "Expedient 43 v1.0.0",
+    latestVersionCode: 2,
+    latestVersionName: "1.2.0",
+    releaseDate: "2026-09-30",
+    apkUrl: process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.2.0/Expedient43-v1.2.0.apk",
+    title: "Expedient 43 v1.2.0 (Pembaruan Utama)",
     releaseNotes: [
-      "Notifikasi Heads-Up Banner melayang dengan suara & getaran resmi",
-      "Permintaan izin notifikasi sistem otomatis untuk Android 13+",
-      "Peningkatan akurasi sensor arah kiblat & kompas otomatis",
-      "Pembaruan audio Adzan Makkah & Madinah durasi penuh",
-      "Fitur In-App Auto-Update untuk pembaruan instan"
+      "🕌 Kumandang Suara Adzan Makkah & Alarm Shalat Otomatis di Layar Kunci",
+      "📞 Notifikasi Panggilan Video & Suara Real-time (Google FCM Cloud)",
+      "💬 Notifikasi Pesan Chat Masuk saat Aplikasi Ditutup Total",
+      "⚡ Sinkronisasi otomatis token perangkat & peningkatan stabilitas",
+      "🔔 Suara notifikasi resmi alumni dengan prioritas sistem tertinggi"
     ],
-    forceUpdate: false,
-    minSupportedVersionCode: 1,
+    forceUpdate: true,
+    minSupportedVersionCode: 2,
   });
 }
