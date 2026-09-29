@@ -101,8 +101,8 @@ export default function AppNotificationManager() {
                 prayer.name,
                 pHours,
                 pMins,
-                `${prayer.icon} Waktu Shalat ${prayer.name} (${prayer.time})`,
-                `Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari dirikan shalat tepat waktu.`
+                `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
+                `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`
               );
             }
           } catch (bridgeErr) {
@@ -170,9 +170,16 @@ export default function AppNotificationManager() {
             if (!localStorage.getItem(notifKey)) {
               localStorage.setItem(notifKey, "1");
 
+              // Play adzan sound if app is currently in foreground
+              try {
+                const adzanAudio = new Audio("/assets/audio/adzan_makkah.mp3");
+                adzanAudio.volume = 1.0;
+                adzanAudio.play().catch(() => {});
+              } catch {}
+
               await sendSystemNotification({
-                title: `${prayer.icon} Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
-                message: `Sedang masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
+                title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
+                message: `Allahu Akbar, Allahu Akbar... Sedang masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
                 url: "/kiblat",
               });
               break;

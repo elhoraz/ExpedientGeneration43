@@ -33,10 +33,14 @@ import androidx.core.content.FileProvider;
 import com.getcapacitor.BridgeActivity;
 import java.io.File;
 import java.io.OutputStream;
+import android.media.AudioAttributes;
+import android.content.ContentResolver;
 
 public class MainActivity extends BridgeActivity {
     public static final String NOTIFICATION_CHANNEL_ID = "expedient_main_channel";
     public static final String NOTIFICATION_CHANNEL_NAME = "Notifikasi Expedient 43";
+    public static final String ADZAN_CHANNEL_ID = "expedient_adzan_channel_v2";
+    public static final String ADZAN_CHANNEL_NAME = "Panggilan Adzan & Waktu Shalat";
     private static final int NOTIF_PERMISSION_CODE = 101;
 
     @Override
@@ -326,6 +330,48 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public void testPrayerAlarm(int delaySeconds) {
+            try {
+                AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+                if (alarmManager == null) return;
+
+                int seconds = delaySeconds > 0 ? delaySeconds : 5;
+                long triggerAtMillis = System.currentTimeMillis() + (seconds * 1000L);
+
+                Intent intent = new Intent(MainActivity.this, PrayerAlarmReceiver.class);
+                intent.putExtra("title", "🕌 Uji Kumandang Adzan & Notifikasi");
+                intent.putExtra("message", "Allahu Akbar, Allahu Akbar... Notifikasi suara adzan siap berkumandang saat waktu shalat tiba.");
+                intent.putExtra("prayerName", "Uji Adzan");
+                intent.putExtra("targetUrl", "/kiblat");
+
+                int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    flags |= PendingIntent.FLAG_IMMUTABLE;
+                }
+
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 9999, intent, flags);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (alarmManager.canScheduleExactAlarms()) {
+                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+                    } else {
+                        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+                    }
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+                } else {
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+                }
+
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "⏳ Alarm adzan akan berbunyi dalam " + seconds + " detik. Anda bisa langsung kunci layar HP sekarang untuk mencoba.", Toast.LENGTH_LONG).show();
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @JavascriptInterface
         public int getAppVersionCode() {
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -447,21 +493,48 @@ public class MainActivity extends BridgeActivity {
      */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager == null) return;
+
+            // 1. General notification channel (Chat, Calls, Announcements)
             NotificationChannel channel = new NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
                 NOTIFICATION_CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
             );
-            channel.setDescription("Notifikasi resmi alumni, pesan chat, jadwal adzan, dan pengumuman angkatan.");
+            channel.setDescription("Notifikasi resmi alumni, pesan chat, dan pengumuman angkatan.");
             channel.enableLights(true);
             channel.setLightColor(0xFFD4AF37); // Golden color
             channel.enableVibration(true);
             channel.setVibrationPattern(new long[]{0, 250, 150, 250});
             channel.setShowBadge(true);
+            manager.createNotificationChannel(channel);
 
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
+            // 2. Dedicated Adzan Channel with authentic Adzan audio & alarm usage
+            try {
+                Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + getPackageName() + "/" + R.raw.adzan);
+                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .build();
+
+                NotificationChannel adzanChannel = new NotificationChannel(
+                    ADZAN_CHANNEL_ID,
+                    ADZAN_CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_HIGH
+                );
+                adzanChannel.setDescription("Kumandang suara adzan merdu dan pengingat waktu shalat 5 waktu.");
+                adzanChannel.enableLights(true);
+                adzanChannel.setLightColor(0xFF00FF7F);
+                adzanChannel.enableVibration(true);
+                adzanChannel.setVibrationPattern(new long[]{0, 500, 250, 500, 250, 500});
+                adzanChannel.setSound(soundUri, audioAttributes);
+                adzanChannel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
+                adzanChannel.setBypassDnd(true);
+                adzanChannel.setShowBadge(true);
+                manager.createNotificationChannel(adzanChannel);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }
