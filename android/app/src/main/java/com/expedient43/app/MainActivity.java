@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.view.WindowManager;
 import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
@@ -39,13 +40,41 @@ import android.content.ContentResolver;
 public class MainActivity extends BridgeActivity {
     public static final String NOTIFICATION_CHANNEL_ID = "expedient_main_channel";
     public static final String NOTIFICATION_CHANNEL_NAME = "Notifikasi Expedient 43";
-    public static final String ADZAN_CHANNEL_ID = "expedient_adzan_channel_v2";
+    public static final String ADZAN_CHANNEL_ID = "expedient_adzan_channel_v3";
     public static final String ADZAN_CHANNEL_NAME = "Panggilan Adzan & Waktu Shalat";
     private static final int NOTIF_PERMISSION_CODE = 101;
+
+    private static String pendingNavigateUrl = null;
+    private String currentFcmToken = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Turn on screen and show over keyguard (lockscreen support)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        } else {
+            getWindow().addFlags(
+                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
+                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
+                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+            );
+        }
+
+        // Stop active call ringtone & dismiss call notification if opened
+        ExpedientFirebaseService.stopCallRingtone();
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.cancel(888);
+        }
+
+        // Store pending navigation URL if launched from notification
+        if (getIntent() != null && getIntent().hasExtra("navigate_to")) {
+            pendingNavigateUrl = getIntent().getStringExtra("navigate_to");
+        }
 
         // 1. Create High-Priority Notification Channel (Android 8.0+)
         createNotificationChannel();
@@ -61,10 +90,7 @@ public class MainActivity extends BridgeActivity {
             }
         }
 
-        // 3. Handle Notification Intent if opened from notification tap
-        handleNotificationIntent(getIntent());
-
-        // 4. Initialize Firebase Cloud Messaging (FCM) & fetch device token
+        // 3. Initialize Firebase Cloud Messaging (FCM) & fetch device token
         initFirebaseMessaging();
 
         WebView webView = getBridge().getWebView();
@@ -84,8 +110,15 @@ public class MainActivity extends BridgeActivity {
             cookieManager.setAcceptCookie(true);
             cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-            // Register Native Download & MediaStore Bridge for direct in-app saving
+            // Register Native Bridge
             webView.addJavascriptInterface(new NativeDownloadBridge(), "ExpedientNativeBridge");
+
+            // Delayed evaluation of pending navigation to ensure webapp has loaded
+            webView.postDelayed(() -> {
+                if (pendingNavigateUrl != null && !pendingNavigateUrl.isEmpty()) {
+                    navigateToUrlInWebView(pendingNavigateUrl);
+                }
+            }, 2200);
 
             // Handle file downloads (Photobooth photos/live videos, vCard, receipts, attachments)
             webView.setDownloadListener(new DownloadListener() {
@@ -138,7 +171,6 @@ public class MainActivity extends BridgeActivity {
                             }
                         }
 
-                        // Fallback: Open in external browser or handler only if DownloadManager failed completely
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(Uri.parse(url));
                         startActivity(intent);
@@ -154,6 +186,64 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        ExpedientFirebaseService.stopCallRingtone();
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.cancel(888);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        ExpedientFirebaseService.stopCallRingtone();
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.cancel(888);
+        }
+
+        if (intent != null && intent.hasExtra("navigate_to")) {
+            String url = intent.getStringExtra("navigate_to");
+            pendingNavigateUrl = url;
+            navigateToUrlInWebView(url);
+        }
+    }
+
+    public void navigateToUrlInWebView(String url) {
+        if (url == null || url.trim().isEmpty()) return;
+        WebView webView = getBridge().getWebView();
+        if (webView != null) {
+            runOnUiThread(() -> {
+                String targetPath = url;
+                if (targetPath.startsWith("http://") || targetPath.startsWith("https://")) {
+                    try {
+                        Uri parsed = Uri.parse(targetPath);
+                        targetPath = parsed.getPath();
+                        if (parsed.getQuery() != null) {
+                            targetPath += "?" + parsed.getQuery();
+                        }
+                    } catch (Exception ignored) {}
+                }
+                if (targetPath == null || targetPath.trim().isEmpty()) {
+                    targetPath = "/beranda";
+                }
+                final String finalPath = targetPath;
+                String js = "(function() { " +
+                    "  var path = '" + finalPath + "'; " +
+                    "  if (window.expedientNavigate) { " +
+                    "    window.expedientNavigate(path); " +
+                    "  } else { " +
+                    "    window.location.href = path; " +
+                    "  } " +
+                    "})();";
+                webView.evaluateJavascript(js, null);
+            });
+        }
+    }
+
     /**
      * Native Javascript Interface for direct in-app saving to Android Gallery & MediaStore
      */
@@ -161,6 +251,23 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public boolean isNative() {
             return true;
+        }
+
+        @JavascriptInterface
+        public String getPendingNavigateUrl() {
+            String url = pendingNavigateUrl;
+            pendingNavigateUrl = null; // consume once
+            return url != null ? url : "";
+        }
+
+        @JavascriptInterface
+        public void stopAdzan() {
+            PrayerAlarmReceiver.stopAdzanAudio();
+        }
+
+        @JavascriptInterface
+        public void stopCallRingtone() {
+            ExpedientFirebaseService.stopCallRingtone();
         }
 
         @JavascriptInterface
@@ -251,7 +358,7 @@ public class MainActivity extends BridgeActivity {
                     if (manager == null) return;
 
                     Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     if (targetUrl != null && !targetUrl.trim().isEmpty()) {
                         intent.putExtra("navigate_to", targetUrl);
                     }
@@ -297,7 +404,6 @@ public class MainActivity extends BridgeActivity {
                 calendar.set(Calendar.SECOND, 0);
                 calendar.set(Calendar.MILLISECOND, 0);
 
-                // If alarm time has already passed today, schedule for tomorrow
                 if (calendar.getTimeInMillis() <= System.currentTimeMillis()) {
                     calendar.add(Calendar.DAY_OF_YEAR, 1);
                 }
@@ -316,12 +422,12 @@ public class MainActivity extends BridgeActivity {
 
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, requestCode, intent, flags);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    if (alarmManager.canScheduleExactAlarms()) {
-                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-                    } else {
-                        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-                    }
+                // Use setAlarmClock to guarantee execution even in deep Doze Mode
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    alarmManager.setAlarmClock(
+                        new AlarmManager.AlarmClockInfo(calendar.getTimeInMillis(), pendingIntent),
+                        pendingIntent
+                    );
                 } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
                 } else {
@@ -354,12 +460,12 @@ public class MainActivity extends BridgeActivity {
 
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 9999, intent, flags);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    if (alarmManager.canScheduleExactAlarms()) {
-                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
-                    } else {
-                        alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
-                    }
+                // Use setAlarmClock to guarantee execution at exact second
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    alarmManager.setAlarmClock(
+                        new AlarmManager.AlarmClockInfo(triggerAtMillis, pendingIntent),
+                        pendingIntent
+                    );
                 } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
                 } else {
@@ -505,14 +611,14 @@ public class MainActivity extends BridgeActivity {
     }
 
     /**
-     * Create high-importance Android Notification Channel with sound, vibration, and gold LED
+     * Create high-importance Android Notification Channels
      */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager == null) return;
 
-            // 1. General notification channel (Chat, Calls, Announcements)
+            // 1. General notification channel
             NotificationChannel channel = new NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
                 NOTIFICATION_CHANNEL_NAME,
@@ -520,7 +626,7 @@ public class MainActivity extends BridgeActivity {
             );
             channel.setDescription("Notifikasi resmi alumni, pesan chat, dan pengumuman angkatan.");
             channel.enableLights(true);
-            channel.setLightColor(0xFFD4AF37); // Golden color
+            channel.setLightColor(0xFFD4AF37);
             channel.enableVibration(true);
             channel.setVibrationPattern(new long[]{0, 250, 150, 250});
             channel.setShowBadge(true);
@@ -554,30 +660,6 @@ public class MainActivity extends BridgeActivity {
             }
         }
     }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        handleNotificationIntent(intent);
-    }
-
-    private void handleNotificationIntent(Intent intent) {
-        if (intent != null && intent.hasExtra("navigate_to")) {
-            String url = intent.getStringExtra("navigate_to");
-            if (url != null && !url.trim().isEmpty()) {
-                WebView webView = getBridge().getWebView();
-                if (webView != null) {
-                    if (url.startsWith("/")) {
-                        webView.loadUrl("https://expedientgeneration.vercel.app" + url);
-                    } else {
-                        webView.loadUrl(url);
-                    }
-                }
-            }
-        }
-    }
-
-    private String currentFcmToken = "";
 
     private void initFirebaseMessaging() {
         try {

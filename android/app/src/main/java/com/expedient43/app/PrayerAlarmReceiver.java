@@ -10,8 +10,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
+import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 /**
@@ -19,28 +22,106 @@ import androidx.core.app.NotificationCompat;
  * with authentic Adzan audio even when the screen is locked and app is closed (Doze Mode).
  */
 public class PrayerAlarmReceiver extends BroadcastReceiver {
+    private static final String TAG = "ExpedientAdzan";
+    private static MediaPlayer activeMediaPlayer = null;
+
+    public static synchronized void playAdzanAudio(Context context) {
+        try {
+            stopAdzanAudio();
+            activeMediaPlayer = MediaPlayer.create(context.getApplicationContext(), R.raw.adzan);
+            if (activeMediaPlayer != null) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build();
+                    activeMediaPlayer.setAudioAttributes(audioAttributes);
+                } else {
+                    activeMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+                }
+                activeMediaPlayer.setVolume(1.0f, 1.0f);
+                activeMediaPlayer.setOnCompletionListener(mp -> {
+                    Log.d(TAG, "Adzan playback completed.");
+                    stopAdzanAudio();
+                });
+                activeMediaPlayer.start();
+                Log.d(TAG, "Adzan audio playback started on ALARM stream.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error playing adzan audio: " + e.getMessage(), e);
+        }
+    }
+
+    public static synchronized void stopAdzanAudio() {
+        try {
+            if (activeMediaPlayer != null) {
+                if (activeMediaPlayer.isPlaying()) {
+                    activeMediaPlayer.stop();
+                }
+                activeMediaPlayer.release();
+                activeMediaPlayer = null;
+                Log.d(TAG, "Adzan audio stopped and released.");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error stopping adzan audio: " + e.getMessage(), e);
+        }
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         try {
+            Log.d(TAG, "Prayer alarm broadcast received!");
+
+            // 1. Wake screen up immediately (turn on screen even if device is asleep/locked)
+            try {
+                PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                if (pm != null) {
+                    PowerManager.WakeLock wakeLock = pm.newWakeLock(
+                        PowerManager.SCREEN_BRIGHT_WAKE_LOCK |
+                        PowerManager.ACQUIRE_CAUSES_WAKEUP |
+                        PowerManager.ON_AFTER_RELEASE,
+                        "expedient:prayer_alarm_wake"
+                    );
+                    wakeLock.acquire(90000); // 1.5 minutes wake lock
+                }
+            } catch (Exception wakeEx) {
+                Log.w(TAG, "WakeLock notice: " + wakeEx.getMessage());
+            }
+
+            // 2. Play Adzan audio directly using MediaPlayer on ALARM stream
+            playAdzanAudio(context);
+
+            // 3. Prepare notification details and intents
             String title = intent.getStringExtra("title");
             String message = intent.getStringExtra("message");
             String targetUrl = intent.getStringExtra("targetUrl");
+            if (targetUrl == null || targetUrl.trim().isEmpty()) {
+                targetUrl = "/kiblat";
+            }
 
             Intent launchIntent = new Intent(context, MainActivity.class);
-            launchIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            if (targetUrl != null && !targetUrl.trim().isEmpty()) {
-                launchIntent.putExtra("navigate_to", targetUrl);
-            }
+            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            launchIntent.putExtra("navigate_to", targetUrl);
 
             int flags = PendingIntent.FLAG_UPDATE_CURRENT;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 flags |= PendingIntent.FLAG_IMMUTABLE;
             }
 
-            PendingIntent pendingIntent = PendingIntent.getActivity(
+            PendingIntent contentPendingIntent = PendingIntent.getActivity(
                 context,
-                (int) (System.currentTimeMillis() % 100000),
+                7771,
                 launchIntent,
+                flags
+            );
+
+            // Action: Hentikan Adzan button
+            Intent stopIntent = new Intent(context, AdzanActionReceiver.class);
+            stopIntent.setAction("ACTION_STOP_ADZAN");
+            PendingIntent stopPendingIntent = PendingIntent.getBroadcast(
+                context,
+                7772,
+                stopIntent,
                 flags
             );
 
@@ -79,15 +160,17 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                     .setPriority(NotificationCompat.PRIORITY_MAX)
                     .setCategory(NotificationCompat.CATEGORY_ALARM)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                    .setSound(soundUri, AudioManager.STREAM_ALARM)
-                    .setVibrate(new long[]{0, 500, 250, 500, 250, 500})
+                    .setOngoing(false)
                     .setAutoCancel(true)
-                    .setContentIntent(pendingIntent);
+                    .setContentIntent(contentPendingIntent)
+                    .setFullScreenIntent(contentPendingIntent, true)
+                    .addAction(R.mipmap.ic_launcher, "⏹ Hentikan Adzan", stopPendingIntent)
+                    .addAction(R.mipmap.ic_launcher, "🕌 Buka Kiblat", contentPendingIntent);
 
                 manager.notify(777, builder.build());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error in PrayerAlarmReceiver: " + e.getMessage(), e);
         }
     }
 }

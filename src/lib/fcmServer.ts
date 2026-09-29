@@ -164,32 +164,41 @@ export async function sendFcmNotification({
 
   try {
     const channelId = isCall
-      ? "expedient_incoming_calls_channel"
+      ? "expedient_incoming_calls_v3"
       : "expedient_chat_channel";
 
-    const payload = {
-      message: {
-        token,
-        notification: {
-          title,
-          body,
-        },
-        data: {
-          ...data,
-          title,
-          body,
-        },
-        android: {
-          priority: "HIGH",
-          notification: {
-            channel_id: channelId,
-            notification_priority: "PRIORITY_MAX",
-            default_sound: true,
-            default_vibrate_timings: true,
-            visibility: "PUBLIC",
-          },
-        },
+    const fcmMessage: any = {
+      token,
+      data: {
+        ...data,
+        title,
+        body,
+        type: data.type || (isCall ? "call" : "chat"),
       },
+      android: {
+        priority: "HIGH",
+      },
+    };
+
+    // For non-call messages (chat/announcements), include notification object for standard tray display
+    // For incoming calls, DATA-ONLY message ensures Android wakes up ExpedientFirebaseService.onMessageReceived
+    // so custom ringtones, WakeLock, and WhatsApp-style Accept/Decline action buttons always execute!
+    if (!isCall) {
+      fcmMessage.notification = {
+        title,
+        body,
+      };
+      fcmMessage.android.notification = {
+        channel_id: channelId,
+        notification_priority: "PRIORITY_MAX",
+        default_sound: true,
+        default_vibrate_timings: true,
+        visibility: "PUBLIC",
+      };
+    }
+
+    const payload = {
+      message: fcmMessage,
     };
 
     const response = await fetch(

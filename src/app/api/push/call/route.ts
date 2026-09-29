@@ -77,8 +77,9 @@ export async function POST(req: Request) {
     }
 
     // Build push URL — callee will be redirected to caller's chat page
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
-    const callUrl = `${siteUrl}/chat/personal/${user.id}?callAction=accept&type=${callType || "voice"}`;
+    const callPath = `/chat/personal/${user.id}?callAction=accept&type=${callType || "voice"}`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
+    const callUrl = `${siteUrl}${callPath}`;
 
     const callTypeLabel = callType === "video" ? "Video" : "Suara";
     const payload = JSON.stringify({
@@ -101,9 +102,11 @@ export async function POST(req: Request) {
           body: `${callerName || "Seseorang"} sedang menelepon Anda. Ketuk untuk menjawab.`,
           data: {
             url: callUrl,
+            path: callPath,
             type: "call",
             callType: callType || "voice",
             callerId: user.id,
+            callerName: callerName || "Seseorang",
           },
           isCall: true,
         });

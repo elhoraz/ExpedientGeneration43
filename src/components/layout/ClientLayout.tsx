@@ -26,6 +26,88 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     initAegisSentinelWatcher();
   }, []);
 
+  // Handle Native Android Push Notification Tap & Pending Navigation
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkPendingNavigation = () => {
+      try {
+        if ((window as any).ExpedientNativeBridge?.getPendingNavigateUrl) {
+          const pendingUrl = (window as any).ExpedientNativeBridge.getPendingNavigateUrl();
+          if (pendingUrl && pendingUrl.trim().length > 0) {
+            console.log("[NativeBridge] Redirecting to pending notification URL:", pendingUrl);
+            let target = pendingUrl.trim();
+            if (target.startsWith("http://") || target.startsWith("https://")) {
+              try {
+                const u = new URL(target);
+                target = u.pathname + u.search + u.hash;
+              } catch {}
+            }
+            if (target && window.location.pathname + window.location.search !== target) {
+              window.location.href = target;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Error checking pending navigation:", e);
+      }
+    };
+
+    checkPendingNavigation();
+    const t1 = setTimeout(checkPendingNavigation, 600);
+    const t2 = setTimeout(checkPendingNavigation, 1600);
+
+    // Global listener for onNewIntent navigation
+    (window as any).expedientNavigate = (path: string) => {
+      if (path && window.location.pathname + window.location.search !== path) {
+        window.location.href = path;
+      }
+    };
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      delete (window as any).expedientNavigate;
+    };
+  }, []);
+
+  // Auto-redirect authenticated APK users from public landing page to /beranda
+  useEffect(() => {
+    if (typeof window === "undefined" || pathname !== "/") return;
+
+    const checkApkUserSession = async () => {
+      try {
+        const isApk = Boolean((window as any).ExpedientNativeBridge);
+        if (isApk) {
+          const supabase = createClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            let pendingUrl = "";
+            if ((window as any).ExpedientNativeBridge?.getPendingNavigateUrl) {
+              pendingUrl = (window as any).ExpedientNativeBridge.getPendingNavigateUrl();
+            }
+            if (pendingUrl && pendingUrl.trim().length > 0) {
+              let target = pendingUrl.trim();
+              if (target.startsWith("http://") || target.startsWith("https://")) {
+                try {
+                  const u = new URL(target);
+                  target = u.pathname + u.search + u.hash;
+                } catch {}
+              }
+              window.location.href = target;
+            } else {
+              window.location.href = "/beranda";
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("APK session check error:", err);
+      }
+    };
+
+    checkApkUserSession();
+  }, [pathname]);
+
   // Handle Supabase Auth Hash Fragment verification (solves implicit flow and email redirects)
   useEffect(() => {
     if (typeof window === "undefined") return;
