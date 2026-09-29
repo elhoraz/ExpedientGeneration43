@@ -69,38 +69,62 @@ export default function GlobalCallReceiver({ userId }: GlobalCallReceiverProps) 
   useEffect(() => {
     if (!userId) return;
 
-    // Listen on user-specific incoming call notification channel
-    const channel = supabase
-      .channel(`user_call_notification_${userId}`)
-      .on("broadcast", { event: "incoming_call_notify" }, async (payload) => {
-        const data = payload?.payload;
-        if (!data || data.receiverId !== userId) return;
+    const handleCall = async (payload: any) => {
+      const data = payload?.payload;
+      if (!data) return;
+      if (data.receiverId && data.receiverId !== userId) return;
 
-        // Fetch caller profile info
+      // Fetch caller profile info
+      let callerName = data.callerName || "Seseorang";
+      let callerAvatar = "";
+      try {
         const { data: profile } = await supabase
           .from("profiles")
           .select("nama_panggilan, nama_lengkap, foto_profil")
           .eq("id", data.callerId)
           .single();
+        if (profile) {
+          callerName = profile.nama_panggilan || profile.nama_lengkap || callerName;
+          callerAvatar = getAvatarUrl(profile.foto_profil, callerName);
+        }
+      } catch {}
 
-        setIncomingCall({
-          callerId: data.callerId,
-          callerName: profile?.nama_panggilan || profile?.nama_lengkap || "Seseorang",
-          callerAvatar: getAvatarUrl(profile?.foto_profil, profile?.nama_panggilan || profile?.nama_lengkap || "Seseorang"),
-          callType: data.callType || "voice",
-        });
+      setIncomingCall({
+        callerId: data.callerId,
+        callerName,
+        callerAvatar: callerAvatar || getAvatarUrl(null, callerName),
+        callType: data.callType || "voice",
+      });
 
-        startRingtone();
-      })
-      .on("broadcast", { event: "cancel_call_notify" }, () => {
-        stopRingtone();
-        setIncomingCall(null);
-      })
+      startRingtone();
+    };
+
+    const handleCancel = () => {
+      stopRingtone();
+      setIncomingCall(null);
+    };
+
+    // Listen on user-specific incoming call notification channels
+    const channel1 = supabase
+      .channel(`user_call_notification_${userId}`)
+      .on("broadcast", { event: "incoming_call_notify" }, handleCall)
+      .on("broadcast", { event: "incoming_call" }, handleCall)
+      .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
+      .on("broadcast", { event: "cancel_call" }, handleCancel)
+      .subscribe();
+
+    const channel2 = supabase
+      .channel(`user_call_notify_${userId}`)
+      .on("broadcast", { event: "incoming_call_notify" }, handleCall)
+      .on("broadcast", { event: "incoming_call" }, handleCall)
+      .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
+      .on("broadcast", { event: "cancel_call" }, handleCancel)
       .subscribe();
 
     return () => {
       stopRingtone();
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channel1);
+      supabase.removeChannel(channel2);
     };
   }, [userId, supabase, startRingtone, stopRingtone]);
 

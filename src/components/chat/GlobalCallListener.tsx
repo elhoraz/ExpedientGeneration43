@@ -24,6 +24,7 @@ export default function GlobalCallListener() {
   const supabase = createClient();
   const router = useRouter();
   const channelRef = useRef<any>(null);
+  const legacyChannelRef = useRef<any>(null);
   const userIdRef = useRef<string | null>(null);
   const ringtoneRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -79,68 +80,80 @@ export default function GlobalCallListener() {
 
       userIdRef.current = user.id;
 
+      const handleIncoming = async (data: any) => {
+        if (!data || !mounted) return;
+        if (data.receiverId && data.receiverId !== user.id) return;
+
+        console.log("[GlobalCallListener] Incoming call received:", data);
+
+        // Only skip if a call modal is ALREADY actively visible on screen
+        if (typeof document !== "undefined") {
+          const activeModal = document.querySelector(".chat-call-modal-root, [data-call-active='true']");
+          if (activeModal) {
+            console.log("[GlobalCallListener] Call modal already active on screen, skipping overlay.");
+            return;
+          }
+        }
+
+        // Fetch caller profile info
+        let callerName = data.callerName || "Seseorang";
+        let callerAvatar = "";
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("nama_panggilan, foto_profil")
+            .eq("id", data.callerId)
+            .single();
+          if (profile) {
+            callerName = profile.nama_panggilan || callerName;
+            callerAvatar = getAvatarUrl(profile.foto_profil, callerName);
+          }
+        } catch { /* use defaults */ }
+
+        if (!callerAvatar) {
+          callerAvatar = getAvatarUrl(null, callerName);
+        }
+
+        setIncomingCall({
+          callerId: data.callerId,
+          callerName,
+          callerAvatar,
+          callType: data.callType || "voice",
+        });
+        startRingtone();
+
+        // Trigger high-priority native system notification with banner, sound & vibration
+        sendSystemNotification({
+          title: `📞 Panggilan ${data.callType === "video" ? "Video" : "Suara"} Masuk`,
+          message: `${callerName} sedang menelepon Anda. Ketuk untuk menjawab.`,
+          url: `/chat/personal/${data.callerId}?callAction=accept&type=${data.callType || "voice"}`,
+          tag: `call-${data.callerId}`,
+        });
+      };
+
+      const handleCancel = () => {
+        stopRingtone();
+        setIncomingCall(null);
+      };
+
       const channel = supabase
         .channel(`user_call_notify_${user.id}`)
-        .on("broadcast", { event: "incoming_call" }, async (payload) => {
-          const data = payload?.payload;
-          if (!data || !mounted) return;
+        .on("broadcast", { event: "incoming_call" }, (payload) => handleIncoming(payload?.payload))
+        .on("broadcast", { event: "incoming_call_notify" }, (payload) => handleIncoming(payload?.payload))
+        .on("broadcast", { event: "cancel_call" }, handleCancel)
+        .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
+        .subscribe();
 
-          console.log("[GlobalCallListener] Incoming call:", data);
-
-          // Check if we're already on the caller's chat page
-          if (typeof window !== "undefined") {
-            const path = window.location.pathname;
-            if (path.includes(`/chat/personal/${data.callerId}`)) {
-              // Already on the right chat page — ChatCallModal handles it
-              return;
-            }
-          }
-
-          // Fetch caller profile info
-          let callerName = data.callerName || "Seseorang";
-          let callerAvatar = "";
-          try {
-            const { data: profile } = await supabase
-              .from("profiles")
-              .select("nama_panggilan, foto_profil")
-              .eq("id", data.callerId)
-              .single();
-            if (profile) {
-              callerName = profile.nama_panggilan || callerName;
-              callerAvatar = getAvatarUrl(profile.foto_profil, callerName);
-            }
-          } catch { /* use defaults */ }
-
-          if (!callerAvatar) {
-            callerAvatar = getAvatarUrl(null, callerName);
-          }
-
-          setIncomingCall({
-            callerId: data.callerId,
-            callerName,
-            callerAvatar,
-            callType: data.callType || "voice",
-          });
-          startRingtone();
-
-          // Trigger high-priority native system notification with banner, sound & vibration
-          sendSystemNotification({
-            title: `📞 Panggilan ${data.callType === "video" ? "Video" : "Suara"} Masuk`,
-            message: `${callerName} sedang menelepon Anda. Ketuk untuk menjawab.`,
-            url: `/chat/personal/${data.callerId}?callAction=accept&type=${data.callType || "voice"}`,
-            tag: `call-${data.callerId}`,
-          });
-        })
-        .on("broadcast", { event: "cancel_call" }, (payload) => {
-          const data = payload?.payload;
-          if (!data) return;
-          // Caller cancelled or hangup
-          stopRingtone();
-          setIncomingCall(null);
-        })
+      const legacyChannel = supabase
+        .channel(`user_call_notification_${user.id}`)
+        .on("broadcast", { event: "incoming_call" }, (payload) => handleIncoming(payload?.payload))
+        .on("broadcast", { event: "incoming_call_notify" }, (payload) => handleIncoming(payload?.payload))
+        .on("broadcast", { event: "cancel_call" }, handleCancel)
+        .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
         .subscribe();
 
       channelRef.current = channel;
+      legacyChannelRef.current = legacyChannel;
     };
 
     setup();
@@ -151,6 +164,10 @@ export default function GlobalCallListener() {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
+      }
+      if (legacyChannelRef.current) {
+        supabase.removeChannel(legacyChannelRef.current);
+        legacyChannelRef.current = null;
       }
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

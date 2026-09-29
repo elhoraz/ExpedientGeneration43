@@ -10,17 +10,27 @@ function base64url(input: string | Buffer): string {
     .replace(/\//g, "_");
 }
 
-let cachedToken: { token: string; expiresAt: number } | null = null;
+import { createAdminClient } from "@/lib/supabase/admin";
 
-function getServiceAccountCredentials(): {
+let cachedToken: { token: string; expiresAt: number } | null = null;
+let cachedCredentials: {
   project_id: string;
   client_email: string;
   private_key: string;
-} | null {
+} | null = null;
+
+async function getServiceAccountCredentials(): Promise<{
+  project_id: string;
+  client_email: string;
+  private_key: string;
+} | null> {
+  if (cachedCredentials) return cachedCredentials;
+
   // 1. Try environment variable (Vercel production)
   if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     try {
-      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      cachedCredentials = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      return cachedCredentials;
     } catch (e) {
       console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY env:", e);
     }
@@ -36,11 +46,29 @@ function getServiceAccountCredentials(): {
     if (fs.existsSync(filePath)) {
       try {
         const content = fs.readFileSync(filePath, "utf8");
-        return JSON.parse(content);
+        cachedCredentials = JSON.parse(content);
+        return cachedCredentials;
       } catch (e) {
         console.error("Failed to read local firebase service account file:", e);
       }
     }
+  }
+
+  // 3. Fallback to Supabase site_content table (Always accessible on Vercel)
+  try {
+    const adminClient = createAdminClient();
+    const { data } = await adminClient
+      .from("site_content")
+      .select("content_value")
+      .eq("content_key", "firebase_service_account_key")
+      .maybeSingle();
+
+    if (data?.content_value) {
+      cachedCredentials = JSON.parse(data.content_value);
+      return cachedCredentials;
+    }
+  } catch (dbErr) {
+    console.warn("Could not load Firebase Service Account from DB:", dbErr);
   }
 
   return null;
@@ -55,7 +83,7 @@ export async function getGoogleFcmAccessToken(): Promise<string | null> {
     return cachedToken.token;
   }
 
-  const creds = getServiceAccountCredentials();
+  const creds = await getServiceAccountCredentials();
   if (!creds || !creds.client_email || !creds.private_key) {
     console.warn("Firebase Service Account credentials not found.");
     return null;
@@ -131,7 +159,7 @@ export async function sendFcmNotification({
     return false;
   }
 
-  const creds = getServiceAccountCredentials();
+  const creds = await getServiceAccountCredentials();
   const projectId = creds?.project_id || "expedient-43";
 
   try {

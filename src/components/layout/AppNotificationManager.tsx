@@ -10,6 +10,8 @@ import {
 import { calculatePrayerTimes, PrayerSchedule } from "@/lib/prayerTimes";
 import { useToast } from "./AegisToast";
 
+import { createClient } from "@/lib/supabase/client";
+
 export default function AppNotificationManager() {
   const { showToast } = useToast();
   const initRef = useRef(false);
@@ -17,6 +19,8 @@ export default function AppNotificationManager() {
   useEffect(() => {
     if (typeof window === "undefined" || initRef.current) return;
     initRef.current = true;
+
+    const supabase = createClient();
 
     const setupNotifications = async () => {
       try {
@@ -38,14 +42,16 @@ export default function AppNotificationManager() {
           setTimeout(async () => {
             const success = await sendSystemNotification({
               title: "⚜️ Expedient Generation 43",
-              message: "Notifikasi melayang aktif! Jadwal shalat, agenda reuni, dan kabar alumni siap dikirimkan.",
+              message: "Notifikasi melayang aktif! Jadwal shalat, panggilan video/suara, dan kabar alumni siap diterima.",
               url: "/kiblat",
             });
 
-            if (success && !isApk) {
+            if (success) {
               showToast(
-                "Notifikasi Sistem Aktif",
-                "Notifikasi melayang dan pengingat waktu shalat siap berjalan.",
+                "Notifikasi & Alarm Aktif",
+                isApk
+                  ? "Aplikasi terhubung dengan sistem notifikasi resmi. Panggilan dan alarm adzan siap berbunyi."
+                  : "Notifikasi melayang dan pengingat waktu shalat siap berjalan.",
                 "success"
               );
             }
@@ -110,12 +116,6 @@ export default function AppNotificationManager() {
           }
         }
 
-        // Definisi jendela waktu shalat penuh sesuai durasi waktu shalat:
-        // - Subuh: Dari masuk Subuh sampai Syuruq (+20 menit toleransi)
-        // - Dzuhur: Dari masuk Dzuhur (11:26) sampai masuk Ashar (14:37)
-        // - Ashar: Dari masuk Ashar (14:37) sampai masuk Maghrib (17:31)
-        // - Maghrib: Dari masuk Maghrib (17:31) sampai masuk Isya (18:40)
-        // - Isya: Dari masuk Isya (18:40) sampai tengah malam (23:59)
         const parseMinutes = (timeStr: string) => {
           const [h, m] = timeStr.split(":").map(Number);
           return h * 60 + m;
@@ -201,6 +201,7 @@ export default function AppNotificationManager() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         checkPrayerSchedule();
+        syncNativeFcmToken();
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -226,45 +227,105 @@ export default function AppNotificationManager() {
       );
     };
 
-    (window as any).triggerExpedientNotification = handleTriggerTest;
-    window.addEventListener("expedient_trigger_test_notif", handleTriggerTest);
+    // 5. Global Adzan Lockscreen Alarm Test Trigger
+    const handleTestAdzanAlarm = (seconds: number = 5) => {
+      if ((window as any).ExpedientNativeBridge?.testPrayerAlarm) {
+        try {
+          (window as any).ExpedientNativeBridge.testPrayerAlarm(seconds);
+          showToast(
+            "Alarm Adzan Diuji",
+            `Alarm adzan disetel dalam ${seconds} detik. Anda bisa langsung kunci layar HP sekarang untuk mencoba kumandang adzan di layar kunci!`,
+            "success"
+          );
+          return;
+        } catch (e) {
+          console.error("Native testPrayerAlarm error:", e);
+        }
+      }
 
-    // 5. Automatic Native Android FCM Device Token Registration
+      // Web Fallback: Play Adzan audio directly
+      try {
+        const audio = new Audio("/assets/audio/adzan_makkah.mp3");
+        audio.volume = 1.0;
+        audio.play().catch(() => {});
+        sendSystemNotification({
+          title: "🕌 Kumandang Adzan Makkah",
+          message: "Allahu Akbar, Allahu Akbar... Kumandang adzan shalat berhasil diuji.",
+          url: "/kiblat",
+        });
+        showToast(
+          "Kumandang Adzan Berbunyi",
+          "Suara adzan Makkah sedang diputar secara real-time.",
+          "success"
+        );
+      } catch (err) {
+        console.error("Web audio adzan error:", err);
+      }
+    };
+
+    (window as any).triggerExpedientNotification = handleTriggerTest;
+    (window as any).testAdzanAlarm = handleTestAdzanAlarm;
+    window.addEventListener("expedient_trigger_test_notif", handleTriggerTest);
+    window.addEventListener("expedient_test_adzan_alarm", () => handleTestAdzanAlarm(5));
+
+    // 6. Automatic Native Android FCM Device Token Registration with User Binding
     const syncNativeFcmToken = async () => {
       try {
         let token = "";
         if ((window as any).ExpedientNativeBridge?.getFcmToken) {
           token = (window as any).ExpedientNativeBridge.getFcmToken();
         }
-        if (token && token.trim().length > 10) {
-          const lastToken = localStorage.getItem("expedient_synced_fcm_token");
-          if (lastToken !== token) {
-            console.log("Syncing native Android FCM device token to server...");
-            const res = await fetch("/api/push/subscribe", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                endpoint: "fcm:" + token,
-                keys: {
-                  p256dh: "fcm",
-                  auth: "fcm",
-                },
-              }),
-            });
-            if (res.ok) {
-              localStorage.setItem("expedient_synced_fcm_token", token);
-              console.log("FCM device token synced successfully.");
-            }
-          }
+
+        if (!token || token.trim().length < 10) return;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          // If not logged in yet, token will be registered once user logs in
+          return;
+        }
+
+        const userSyncKey = `expedient_synced_fcm_${user.id}`;
+        const lastTokenForUser = localStorage.getItem(userSyncKey);
+
+        if (lastTokenForUser === token) {
+          return; // Already registered for this user
+        }
+
+        console.log("[FCM] Registering device push token for user:", user.id);
+        const res = await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            endpoint: "fcm:" + token,
+            keys: {
+              p256dh: "fcm",
+              auth: "fcm",
+            },
+          }),
+        });
+
+        if (res.ok) {
+          localStorage.setItem(userSyncKey, token);
+          console.log("[FCM] Successfully registered device push token to database for user:", user.id);
+        } else {
+          console.warn("[FCM] Failed to register push token:", res.status);
         }
       } catch (fcmErr) {
-        console.warn("FCM token sync notice:", fcmErr);
+        console.warn("[FCM] Token sync notice:", fcmErr);
       }
     };
 
-    // Check token on mount and after delay
+    // Check token on mount and retry after delay
     syncNativeFcmToken();
-    const fcmTimer = setTimeout(syncNativeFcmToken, 3000);
+    const fcmTimer1 = setTimeout(syncNativeFcmToken, 1500);
+    const fcmTimer2 = setTimeout(syncNativeFcmToken, 5000);
+
+    // Re-sync on auth state changes (login, token refresh)
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        syncNativeFcmToken();
+      }
+    });
 
     const handleFcmTokenEvent = (e: any) => {
       const newToken = e?.detail?.token;
@@ -279,11 +340,14 @@ export default function AppNotificationManager() {
 
     return () => {
       clearInterval(prayerInterval);
-      clearTimeout(fcmTimer);
+      clearTimeout(fcmTimer1);
+      clearTimeout(fcmTimer2);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("expedient_trigger_test_notif", handleTriggerTest);
       window.removeEventListener("expedient_fcm_token", handleFcmTokenEvent);
+      authListener?.subscription?.unsubscribe();
       delete (window as any).triggerExpedientNotification;
+      delete (window as any).testAdzanAlarm;
       delete (window as any).onExpedientFcmToken;
     };
   }, [showToast]);

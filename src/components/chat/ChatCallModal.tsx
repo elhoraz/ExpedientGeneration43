@@ -398,21 +398,37 @@ export default function ChatCallModal({
       }
 
       // ── Also broadcast to callee's global notification channel ──
-      const notifyChannel = supabase.channel(`user_call_notify_${contact.id}`);
-      notifyChannel.subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await notifyChannel.send({
-            type: "broadcast",
-            event: "incoming_call",
-            payload: {
-              callerId: userId,
-              callerName: "", // GlobalCallListener will fetch profile
-              callType,
-            },
-          });
-          console.log("[Call] Caller: global notification sent to", contact.id);
+      const broadcastPayload = {
+        callerId: userId,
+        receiverId: contact.id,
+        callerName: "", // GlobalCallListener will fetch profile
+        callType,
+      };
+
+      const sendToChannel = async (targetChan: any) => {
+        try {
+          if ((targetChan as any).state === "joined") {
+            await targetChan.send({ type: "broadcast", event: "incoming_call", payload: broadcastPayload });
+            await targetChan.send({ type: "broadcast", event: "incoming_call_notify", payload: broadcastPayload });
+            console.log("[Call] Caller: immediate broadcast sent to", contact.id);
+          } else {
+            targetChan.subscribe(async (status: string) => {
+              if (status === "SUBSCRIBED") {
+                await targetChan.send({ type: "broadcast", event: "incoming_call", payload: broadcastPayload });
+                await targetChan.send({ type: "broadcast", event: "incoming_call_notify", payload: broadcastPayload });
+                console.log("[Call] Caller: global notification sent to", contact.id);
+              }
+            });
+          }
+        } catch (chanErr) {
+          console.warn("[Call] Channel send warning:", chanErr);
         }
-      });
+      };
+
+      const notifyChannel1 = supabase.channel(`user_call_notify_${contact.id}`);
+      sendToChannel(notifyChannel1);
+      const notifyChannel2 = supabase.channel(`user_call_notification_${contact.id}`);
+      sendToChannel(notifyChannel2);
 
       // ── Send push notification for offline callee ──
       try {
