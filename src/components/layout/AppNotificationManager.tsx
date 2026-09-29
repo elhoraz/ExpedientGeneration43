@@ -110,17 +110,60 @@ export default function AppNotificationManager() {
           }
         }
 
-        // Active notification check with 50-minute grace period window
-        for (const prayer of prayerList) {
-          const [pHours, pMins] = prayer.time.split(":").map(Number);
-          const prayerTotalMinutes = pHours * 60 + pMins;
+        // Definisi jendela waktu shalat penuh sesuai durasi waktu shalat:
+        // - Subuh: Dari masuk Subuh sampai Syuruq (+20 menit toleransi)
+        // - Dzuhur: Dari masuk Dzuhur (11:26) sampai masuk Ashar (14:37)
+        // - Ashar: Dari masuk Ashar (14:37) sampai masuk Maghrib (17:31)
+        // - Maghrib: Dari masuk Maghrib (17:31) sampai masuk Isya (18:40)
+        // - Isya: Dari masuk Isya (18:40) sampai tengah malam (23:59)
+        const parseMinutes = (timeStr: string) => {
+          const [h, m] = timeStr.split(":").map(Number);
+          return h * 60 + m;
+        };
 
-          // Grace period window: dari tepat waktu shalat sampai 50 menit setelahnya.
-          // Ini memastikan jika layar HP baru dibuka/dinyalakan saat Subuh (meski lewat beberapa menit),
-          // notifikasi tidak terlewat dan tetap langsung muncul.
+        const prayerWindows = [
+          {
+            name: "Subuh",
+            time: schedule.subuh,
+            startMinutes: parseMinutes(schedule.subuh),
+            endMinutes: parseMinutes(schedule.syuruq) + 20,
+            icon: "🌅",
+          },
+          {
+            name: "Dzuhur",
+            time: schedule.dzuhur,
+            startMinutes: parseMinutes(schedule.dzuhur),
+            endMinutes: parseMinutes(schedule.ashar),
+            icon: "☀️",
+          },
+          {
+            name: "Ashar",
+            time: schedule.ashar,
+            startMinutes: parseMinutes(schedule.ashar),
+            endMinutes: parseMinutes(schedule.maghrib),
+            icon: "🌤️",
+          },
+          {
+            name: "Maghrib",
+            time: schedule.maghrib,
+            startMinutes: parseMinutes(schedule.maghrib),
+            endMinutes: parseMinutes(schedule.isya),
+            icon: "🌇",
+          },
+          {
+            name: "Isya",
+            time: schedule.isya,
+            startMinutes: parseMinutes(schedule.isya),
+            endMinutes: 24 * 60 - 1, // hingga 23:59
+            icon: "🌙",
+          },
+        ];
+
+        // Active notification check: apakah sekarang berada di dalam waktu shalat aktif
+        for (const prayer of prayerWindows) {
           const isWithinWindow =
-            currentTotalMinutes >= prayerTotalMinutes &&
-            currentTotalMinutes <= prayerTotalMinutes + 50;
+            currentTotalMinutes >= prayer.startMinutes &&
+            currentTotalMinutes < prayer.endMinutes;
 
           if (isWithinWindow) {
             const notifKey = `prayer_notif_${prayer.name}_${dateStr}`;
@@ -128,8 +171,8 @@ export default function AppNotificationManager() {
               localStorage.setItem(notifKey, "1");
 
               await sendSystemNotification({
-                title: `${prayer.icon} Waktu Shalat ${prayer.name} (${prayer.time})`,
-                message: `Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari dirikan shalat tepat waktu.`,
+                title: `${prayer.icon} Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
+                message: `Sedang masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
                 url: "/kiblat",
               });
               break;
