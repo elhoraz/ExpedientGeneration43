@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import webpush from "web-push";
+import { sendFcmNotification } from "@/lib/fcmServer";
 
 // Configure Web Push with VAPID keys
 if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -100,31 +101,17 @@ export async function POST(req: Request) {
               // 1. Native Android Firebase Cloud Messaging (FCM)
               if (sub.endpoint.startsWith("fcm:")) {
                 const fcmToken = sub.endpoint.replace("fcm:", "");
-                const serverKey = process.env.FIREBASE_SERVER_KEY;
-                if (!serverKey) return;
-
-                try {
-                  await fetch("https://fcm.googleapis.com/fcm/send", {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      Authorization: `key=${serverKey}`,
-                    },
-                    body: JSON.stringify({
-                      to: fcmToken,
-                      priority: "high",
-                      data: {
-                        title: `💬 Pesan Baru dari ${senderName}`,
-                        body: previewText,
-                        url: `/chat/personal/${user.id}`,
-                        type: "chat",
-                        senderId: user.id,
-                      },
-                    }),
-                  });
-                } catch (fcmErr) {
-                  console.error("FCM chat send error:", fcmErr);
-                }
+                await sendFcmNotification({
+                  token: fcmToken,
+                  title: `💬 Pesan Baru dari ${senderName}`,
+                  body: previewText,
+                  data: {
+                    url: `/chat/personal/${user.id}`,
+                    type: "chat",
+                    senderId: user.id,
+                  },
+                  isCall: false,
+                });
                 return;
               }
 
