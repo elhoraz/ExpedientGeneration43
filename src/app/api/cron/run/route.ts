@@ -333,6 +333,28 @@ Jazakumullah khairan katsiran. Semoga Allah melapangkan rezeki antum sekeluarga.
     }
   }
 
+  // 6. Community Group Inactivity Icebreaker (Pemicu Obrolan 6 Jam Sepi)
+  if (
+    searchParams.get('run_icebreaker') === 'true' ||
+    !searchParams.toString() ||
+    isVercelCron
+  ) {
+    output += `\n[6] Memeriksa Keaktifan Grup Angkatan Non-Resmi (Inactivity 6 Jam)...\n`;
+    try {
+      const forceIcebreaker = searchParams.get('force_icebreaker') === 'true';
+      const { checkAndTriggerCommunityIcebreaker } = await import('@/lib/whatsapp/communityIcebreaker');
+      const iceRes = await checkAndTriggerCommunityIcebreaker(forceIcebreaker);
+      if (iceRes.triggered) {
+        output += `  Status   : Pemicu Obrolan Terkirim! (Hening ${iceRes.elapsedHours.toFixed(1)} jam)\n`;
+        output += `  Pesan    : "${iceRes.message?.slice(0, 100)}..."\n`;
+      } else {
+        output += `  Status   : Dilewati (${iceRes.reason})\n`;
+      }
+    } catch (e: any) {
+      output += `  ERROR Icebreaker: ${e.message}\n`;
+    }
+  }
+
   output += `\n===== SELESAI =====\n`;
 
   return new NextResponse(output, { 

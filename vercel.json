@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/run?run_birthday=true",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/run?run_icebreaker=true",
+      "schedule": "0 */2 * * *"
     }
   ]
 }

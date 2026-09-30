@@ -175,6 +175,13 @@ export async function POST(request: Request) {
         const { handleIncomingGroupMessage } = await import("@/lib/whatsapp/groupManager");
         const groupRes = await handleIncomingGroupMessage(targetGroupId, participantPhone, memberName, messageText);
 
+        // Catat aktivitas terbaru grup non-resmi untuk deteksi hening 6 jam
+        const { getCommunityGroupId } = await import("@/lib/whatsapp");
+        if (targetGroupId.includes("120363388633880584") || targetGroupId === getCommunityGroupId()) {
+          const { recordCommunityGroupActivity } = await import("@/lib/whatsapp/communityIcebreaker");
+          await recordCommunityGroupActivity(messageText, memberName, participantPhone);
+        }
+
         return NextResponse.json({
           status: groupRes.responded ? "GROUP_MESSAGE_REPLIED" : "GROUP_MESSAGE_IGNORED",
           reply: groupRes.replyText || null,
