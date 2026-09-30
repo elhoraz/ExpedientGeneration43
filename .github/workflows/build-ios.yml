@@ -47,15 +47,25 @@ jobs:
       - name: Build iOS Application
         run: |
           cd ios/App
+          set -o pipefail
           xcodebuild build \
             -project App.xcodeproj \
             -scheme App \
             -destination 'generic/platform=iOS' \
             -configuration Release \
             CONFIGURATION_BUILD_DIR=./build/output \
-            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGNING_ALLOWED=NO \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            DEVELOPMENT_TEAM="" 2>&1 | tee xcodebuild.log || {
+              echo "### ❌ Xcode Build Error" >> $GITHUB_STEP_SUMMARY
+              echo '```text' >> $GITHUB_STEP_SUMMARY
+              tail -n 120 xcodebuild.log >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              exit 1
+            }
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
