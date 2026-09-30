@@ -435,136 +435,29 @@ export async function handleIncomingGroupMessage(
   senderName: string,
   messageText: string
 ): Promise<{ responded: boolean; replyText?: string }> {
-  // Hanya respons jika dipanggil atau merupakan command
+  // Hanya respons jika dipanggil atau merupakan command / pertanyaan seputar angkatan
   if (!shouldGroupBotRespond(messageText)) {
     return { responded: false };
   }
 
-  const supabase = createAdminClient();
-  const lower = messageText.trim().toLowerCase();
-  let dbContext = "";
-
-  try {
-    // 1. Command / Pertanyaan Ulang Tahun
-    if (lower.includes("ultah") || lower.includes("ulang tahun") || lower.includes("milad")) {
-      const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-      const currentMonth = nowWib.getMonth() + 1;
-      const currentDay = nowWib.getDate();
-
-      const { data: celebrants } = await supabase
-        .from("profiles")
-        .select("nama_lengkap, nama_panggilan, tanggal_lahir")
-        .not("tanggal_lahir", "is", null);
-
-      if (celebrants && celebrants.length > 0) {
-        const todayList: string[] = [];
-        const monthList: string[] = [];
-
-        celebrants.forEach((p) => {
-          if (!p.tanggal_lahir) return;
-          const parts = p.tanggal_lahir.split(/[-/]/);
-          if (parts.length < 3) return;
-          const month = parseInt(parts[1], 10);
-          const day = parseInt(parts[2], 10);
-          const name = p.nama_panggilan || p.nama_lengkap || "Sahabat";
-
-          if (month === currentMonth && day === currentDay) {
-            todayList.push(name);
-          } else if (month === currentMonth) {
-            monthList.push(`${name} (tgl ${day})`);
-          }
-        });
-
-        if (todayList.length > 0) {
-          dbContext += `FAKTA ULTAH HARI INI: ${todayList.join(", ")}. Mohon beri ucapan selamat & doa berkah usia!\n`;
-        } else {
-          dbContext += `FAKTA ULTAH: Hari ini tidak ada alumni yang ulang tahun. Bulan ini yang milad: ${monthList.slice(0, 5).join(", ") || "Belum ada"}.\n`;
-        }
-      }
-    }
-
-    // 2. Command / Pertanyaan Reuni & Agenda
-    if (lower.includes("reuni") || lower.includes("agenda") || lower.includes("acara")) {
-      const { data: events } = await supabase
-        .from("events")
-        .select("title, event_date, location")
-        .order("event_date", { ascending: true })
-        .limit(2);
-
-      if (events && events.length > 0) {
-        dbContext += `FAKTA AGENDA RESMI: ${JSON.stringify(events)}\n`;
-      } else {
-        dbContext += `FAKTA AGENDA: Belum ada agenda reuni terdekat di sistem.\n`;
-      }
-    }
-
-    // 3. Command / Pertanyaan Total Alumni
-    if (lower.includes("total alumni") || lower.includes("berapa alumni") || lower.includes("anggota")) {
-      const { count } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-      dbContext += `FAKTA DATABASE: Total alumni yang terdaftar ada ${count || 78} alumni.\n`;
-    }
-
-    // 4. Command Cari Profil Teman: misal `!cari danang` atau `umur danang`
-    const searchMatch = lower.match(/(?:!cari|cari|siapa|profil|umur|wa)\s+([a-zA-Z]{3,})/i);
-    if (searchMatch && !lower.includes("reuni") && !lower.includes("ultah")) {
-      const candidate = searchMatch[1];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("nama_lengkap, nama_panggilan, tempat_lahir, tanggal_lahir, alamat_lengkap, no_whatsapp")
-        .or(`nama_lengkap.ilike.%${candidate}%,nama_panggilan.ilike.%${candidate}%`)
-        .limit(1);
-
-      if (profiles && profiles.length > 0) {
-        dbContext += `FAKTA PROFIL: ${JSON.stringify(profiles[0])}\n`;
-      }
-    }
-  } catch (err: any) {
-    console.warn("[GROUP-DB-QUERY-WARN]:", err.message);
-  }
-
-  // Panggil Gemini 3.8 Flash untuk respons yang pas di grup WhatsApp
-  const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
-  const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
-
   const callerName = senderName || "Sahabat";
-  const prompt = `
-You are the official friendly WhatsApp Bot of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo), responding inside an Alumni WhatsApp Community Group.
+  const { generateIntelligentCohortReply } = await import("@/lib/whatsapp/alumniIntelligence");
 
-SENDER: ${callerName}
-MESSAGE IN GROUP: "${messageText}"
-DATABASE CONTEXT:
-${dbContext || "No special database context. Answer warmly, politely, and casually as a helpful alumni companion."}
-
-STRICT GROUP CHAT RULES:
-1. EXTREMELY BRIEF & CONCISE: 1 to 2 sentences maximum! No long essays or repetitive greetings.
-2. TONE: Warm, friendly, polite, like a helpful cohort companion.
-3. Clean WhatsApp formatting (*bold* for names/dates).
-`.trim();
-
-  let replyText = "";
-
-  if (geminiApiKey) {
-    try {
-      const body = {
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2 },
-      };
-      const res = await callGeminiResilient(body, geminiApiKey, geminiModel);
-      replyText = res.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-    } catch (err: any) {
-      console.warn("[GROUP-GEMINI-WARN]:", err.message);
-    }
-  }
-
-  if (!replyText) {
-    replyText = `Halo Sahabat *${callerName}*! Ada yang bisa dibantu untuk informasi angkatan Expedient 43? Silakan cek juga di website kita https://expedientgeneration.vercel.app ya!`;
-  }
+  // Hasilkan respons cerdas bertenaga Gemini & fakta database Supabase
+  const replyText = await generateIntelligentCohortReply({
+    messageText,
+    senderPhone,
+    senderName: callerName,
+    isGroup: true,
+    groupId,
+  });
 
   // Kirim balasan ke grup WhatsApp
   const groupSendResult = await sendWhatsAppGroupMessage(groupId, replyText);
 
   // Catat riwayat grup ke database Supabase
   try {
+    const supabase = createAdminClient();
     await supabase.from("whatsapp_queue").insert([
       {
         no_whatsapp: groupId.slice(0, 20),

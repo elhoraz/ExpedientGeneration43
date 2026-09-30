@@ -146,56 +146,23 @@ export async function handleUserWhatsAppMessage(
   messageText: string,
   userProfile?: UserProfileContext | null
 ): Promise<{ success: boolean; replyText: string }> {
-  const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
-  const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
-
-  // 1. Ambil data faktual dari Supabase
-  const dbContext = await queryDatabaseForUser(messageText);
-
   const senderName = userProfile?.nama_panggilan || userProfile?.nama_lengkap || "Sahabat";
-
-  const prompt = `
-You are the helpful, respectful, and friendly WhatsApp AI Assistant of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo).
-Current Date/Year Context: 2026.
-
-SENDER:
-- Name: ${senderName}
-- WhatsApp: ${senderPhone}
-
-SENDER'S QUESTION / MESSAGE:
-"${messageText}"
-
-DATABASE REAL DATA:
-${dbContext || "No specific database entry found. Answer as general courteous conversation or provide guidance."}
-
-STRICT RESPONSE RULES:
-1. RINGKAS & TO THE POINT: Keep answers concise, natural, and friendly (1 to 3 sentences maximum!). DO NOT write long paragraphs, essays, or repetitive introductions on every message!
-2. FACTUAL ACCURACY: If asked about a person (e.g., age, birth date, origin, class), use the exact DATABASE REAL DATA provided above.
-   - Example format for age: "Sahabat *[Nama]* lahir pada [Tanggal Lahir] di [Tempat] dan saat ini berusia *[Usia]*."
-3. If no matching person/data is found in database: Politely say the data for that person wasn't found in the directory yet, and recommend checking: https://expedientgeneration.vercel.app/direktori
-4. For casual conversation / basa-basi: Answer warmly, casually, and briefly like a real friend.
-5. Use clean WhatsApp formatting (*bold* for names, ages, key info).
-`.trim();
-
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      temperature: 0.2,
-    },
-  };
+  const { generateIntelligentCohortReply } = await import("@/lib/whatsapp/alumniIntelligence");
 
   try {
-    const data = await callGeminiResilient(body, geminiApiKey, geminiModel);
-    const replyText =
-      data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
-      `Assalamu'alaikum ${senderName}! Silakan kunjungi website resmi kita di https://expedientgeneration.vercel.app ya!`;
+    const replyText = await generateIntelligentCohortReply({
+      messageText,
+      senderPhone,
+      senderName,
+      isGroup: false,
+    });
 
     // Kirim balasan langsung ke WhatsApp pengguna
     const waRes = await sendWhatsAppMessageWithDetail(senderPhone, replyText);
     return { success: waRes.success, replyText };
   } catch (err: any) {
     console.error("[ALUMNI-BOT-EXCEPTION]:", err);
-    const fallback = `Assalamu'alaikum ${senderName}! Maaf sempat ada kendala koneksi. Silakan cek informasi lengkap di web https://expedientgeneration.vercel.app ya.`;
+    const fallback = `Assalamu'alaikum Sahabat *${senderName}*! Maaf sempat ada penyesuaian sistem sejenak. Silakan cek informasi lengkap angkatan kita di https://expedientgeneration.vercel.app ya.`;
     await sendWhatsAppMessageWithDetail(senderPhone, fallback);
     return { success: true, replyText: fallback };
   }
