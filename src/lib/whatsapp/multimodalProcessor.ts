@@ -370,7 +370,10 @@ Bantu analisis dokumen / file ini dan berikan ringkasan poin-poin pentingnya sec
       ],
       generationConfig: {
         temperature: 0.35,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 2048,
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
       },
     };
 
