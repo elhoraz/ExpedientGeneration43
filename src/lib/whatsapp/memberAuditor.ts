@@ -210,21 +210,49 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
   let sentCount = 0;
   let failedCount = 0;
 
+  // Variasi Spintax agar setiap pesan memiliki teks berbeda (Lololos dari deteksi filter bulk Meta/WhatsApp)
+  const salamVariations = [
+    "Assalamu'alaikum Warahmatullahi Wabarakatuh, Sahabat! ✨",
+    "Assalamu'alaikum Wr. Wb. Salam hangat untuk Sahabat seperjuangan! 🌟",
+    "Assalamu'alaikum Sahabat tercinta keluarga besar Expedient 43! 💫",
+    "Bismillah, Assalamu'alaikum Warahmatullahi Wabarakatuh! 🙏✨",
+  ];
+
+  const introVariations = [
+    "Semoga antum senantiasa sehat dan dilimpahkan keberkahan.",
+    "Semoga kabar antum dan keluarga senantiasa dalam lindungan Allah SWT.",
+    "Semoga hari-hari antum selalu dilimpahi kemudahan dan kesuksesan.",
+    "Salam rindu dan silaturahmi hangat dari kami sesama alumni Arrisalah 2023.",
+  ];
+
+  const ctaVariations = [
+    "Yuk luangkan 1 menit untuk melengkapi profil & biodata antum di tautan resmi ini:",
+    "Monggo langsung bergabung dan aktifkan akun profil antum di link resmi berikut:",
+    "Bisa langsung klik tautan resmi di bawah ini untuk pendaftaran akun alumni antum:",
+    "Silakan daftarkan akun antum agar terhubung dalam direktori alumni terpadu kita:",
+  ];
+
   for (let i = 0; i < targetPhones.length; i++) {
     const phone = targetPhones[i];
 
+    // Pick random variations for Anti-Fingerprint
+    const salam = salamVariations[Math.floor(Math.random() * salamVariations.length)];
+    const intro = introVariations[Math.floor(Math.random() * introVariations.length)];
+    const cta = ctaVariations[Math.floor(Math.random() * ctaVariations.length)];
+    const refCode = `EG43-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const invitationMessage =
-      `Assalamu'alaikum Warahmatullahi Wabarakatuh, Sahabat! ✨\n\n` +
-      `Salam hangat dari keluarga besar *Expedient Generation 43* (Alumni Pondok Modern Arrisalah Slahung Ponorogo, Angkatan 2023).\n\n` +
-      `Mengingatkan kembali, portal resmi angkatan kita telah aktif untuk mempererat ukhuwah & silaturahmi:\n` +
+      `${salam}\n\n` +
+      `${intro} Mengingatkan kembali bahwa portal resmi *Expedient Generation 43* (Alumni Pondok Modern Arrisalah Slahung Ponorogo, Angkatan 2023) telah aktif untuk mempererat ukhuwah kita:\n\n` +
       `🌐 *https://expedientgeneration.vercel.app*\n\n` +
       `Di website ini antum bisa:\n` +
-      `• Mengisi biodata, foto, & direktori alumni se-Indonesia\n` +
+      `• Mengisi biodata, foto, & domisili direktori alumni se-Indonesia\n` +
       `• Melihat kalender milad sahabat & agenda reuni angkatan\n` +
       `• Mengakses Baitul Maal & transparansi kas ta'awun terbuka\n\n` +
-      `Yuk bergabung dan buat akun profil antum di tautan resmi ini:\n` +
+      `${cta}\n` +
       `👉 *https://expedientgeneration.vercel.app/register*\n\n` +
-      `_Pesan otomatis dari Pengurus Expedient Generation 43. Jika ada kendala pendaftaran, antum bisa langsung membalas pesan ini ya!_ 🙏✨`;
+      `_Pesan resmi dari Pengurus Expedient Generation 43. Jika ada kendala pendaftaran akun, antum bisa langsung membalas pesan ini ya!_ 🙏\n` +
+      `_Ref: #${refCode}_`;
 
     const res = await sendWhatsAppMessageWithDetail(phone, invitationMessage);
 
@@ -233,7 +261,7 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
       await supabase.from("whatsapp_queue").insert([
         {
           no_whatsapp: phone,
-          message: `[UNDANGAN REGISTRASI WEB] Terkirim ke ${phone}`,
+          message: `[UNDANGAN REGISTRASI WEB - ${refCode}] Terkirim ke ${phone}`,
           status: res.success ? "sent_invite" : "failed_invite",
           error_message: res.success ? null : res.reason,
           created_at: new Date().toISOString(),
@@ -248,10 +276,17 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
       failedCount++;
     }
 
-    // Jeda Anti-Ban Pacing: 3500ms - 5500ms antar pesan japri
+    // ULTRA-SAFE ANTI-BAN PACING:
     if (i < targetPhones.length - 1) {
-      const delayMs = Math.floor(3500 + Math.random() * 2000);
-      await new Promise((r) => setTimeout(r, delayMs));
+      // Setiap kelipatan 10 pesan, beri jeda istirahat (cooling break) selama 20-30 detik
+      if ((i + 1) % 10 === 0) {
+        const coolingDelay = Math.floor(20000 + Math.random() * 10000);
+        await new Promise((r) => setTimeout(r, coolingDelay));
+      } else {
+        // Jeda dinamis acak antar pesan: 7.000ms - 12.000ms (7 - 12 detik)
+        const delayMs = Math.floor(7000 + Math.random() * 5000);
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
     }
   }
 
@@ -265,7 +300,7 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
     `• Total Target: *${targetPhones.length} Sahabat*\n` +
     `• ✅ Berhasil Terkirim: *${sentCount} Pesan*\n` +
     `• ❌ Gagal: *${failedCount} Pesan*\n\n` +
-    `Alhamdulillah, seluruh sahabat yang belum terdaftar telah dikirimi pesan personal dan link registrasi! Terima kasih atas inisiatifnya, Akhi! 🙌✨`;
+    `Alhamdulillah, sistem anti-ban spintax & safe pacing telah tuntas dijalankan. Seluruh sahabat yang belum terdaftar telah menerima undangan personal! 🙌✨`;
 
   return {
     success: true,
