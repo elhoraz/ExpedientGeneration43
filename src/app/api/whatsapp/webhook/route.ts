@@ -117,6 +117,24 @@ export async function POST(request: Request) {
           }
         }
 
+        let finalMediaUrl = mediaUrl;
+        let finalExtension = extension;
+        let finalFilename = filename;
+
+        // Fallback: Jika Fonnte tidak mengirimkan attachment langsung, cek apakah teks memuat link gambar/media
+        if (!finalMediaUrl && msgText) {
+          const urlMatch = msgText.match(/(https?:\/\/[^\s]+(?:\.jpg|\.jpeg|\.png|\.webp|\.pdf|\.mp4)[^\s]*)/i);
+          if (urlMatch) {
+            finalMediaUrl = urlMatch[1];
+            const cleanUrl = finalMediaUrl.split("?")[0];
+            const extMatch = cleanUrl.match(/\.([a-z0-9]+)$/i);
+            if (extMatch) {
+              finalExtension = extMatch[1].toLowerCase();
+              finalFilename = cleanUrl.split("/").pop() || "media";
+            }
+          }
+        }
+
         incomingList.push({
           sender: senderStr,
           messageText: msgText,
@@ -125,9 +143,9 @@ export async function POST(request: Request) {
           member: memberStr,
           group: groupStr,
           isGroup: isGrp,
-          mediaUrl: mediaUrl || undefined,
-          filename: filename || undefined,
-          extension: extension || undefined,
+          mediaUrl: finalMediaUrl || undefined,
+          filename: finalFilename || undefined,
+          extension: finalExtension || undefined,
         });
       }
       // B. Format Webhook Resmi Meta Cloud API
