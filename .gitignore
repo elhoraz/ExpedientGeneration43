@@ -62,3 +62,7 @@ android/.idea/
 # Raw photos & temporary download archives
 /FOTO/
 *.zip
+
+# Baileys WhatsApp Session
+.baileys_auth/
+baileys_auth_info/

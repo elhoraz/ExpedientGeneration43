@@ -82,6 +82,25 @@ if (fs.existsSync(pushPluginPath)) {
   );
   fs.writeFileSync(pushPluginPath, content, 'utf8');
   console.log('✓ Patched PushNotificationsPlugin.swift');
+// 5. whatsapp-rust-bridge (Node 24 compatibility patch)
+const rustBridgePkgPath = path.join(__dirname, '../node_modules/whatsapp-rust-bridge/package.json');
+if (fs.existsSync(rustBridgePkgPath)) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(rustBridgePkgPath, 'utf8'));
+    if (!pkg.main) {
+      pkg.main = './dist/index.js';
+      pkg.exports = {
+        '.': {
+          import: './dist/index.js',
+          require: './dist/index.js',
+          default: './dist/index.js',
+          types: './dist/index.d.ts'
+        }
+      };
+      fs.writeFileSync(rustBridgePkgPath, JSON.stringify(pkg, null, 2), 'utf8');
+      console.log('✓ Patched whatsapp-rust-bridge package.json');
+    }
+  } catch (err) {}
 }
 
 console.log('[patch-ios-plugins] All plugin patches applied.');

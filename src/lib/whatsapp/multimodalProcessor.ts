@@ -226,38 +226,40 @@ async function downloadMediaAsBase64(
   }
 }
 
+export interface ProcessMultimodalBufferPayload {
+  base64Data: string;
+  category: MultimodalMediaCategory;
+  mimeType: string;
+  caption?: string;
+  senderPhone: string;
+  senderName: string;
+  isGroup: boolean;
+  groupId?: string;
+  filename?: string;
+}
+
 /**
- * Multimodal AI Engine: Memproses dan Menanggapi Gambar, Voice Note (VN), dan Video Note
+ * Multimodal AI Engine: Memproses Base64 Buffer media secara langsung (digunakan oleh Baileys / Self-Hosted Gateway)
  */
-export async function processMultimodalWhatsAppMessage(
-  payload: MultimodalMessagePayload
+export async function processMultimodalBuffer(
+  payload: ProcessMultimodalBufferPayload
 ): Promise<MultimodalProcessResult> {
   const {
-    mediaUrl,
-    filename,
-    extension,
+    base64Data,
+    category,
+    mimeType,
     caption = "",
     senderPhone,
     senderName,
     isGroup,
     groupId = "",
+    filename = "",
   } = payload;
 
   const displayName = senderName || "Sahabat";
   const inDesignGroup = isGroup && isDesignGroupId(groupId);
 
   try {
-    console.log(`[MULTIMODAL-PROCESS] Memulai download media: ${mediaUrl} | Pengirim: ${displayName} (${senderPhone}) | Grup: ${inDesignGroup ? "DESIGN STUDIO" : groupId || "1-ON-1"}`);
-
-    // 1. Download media & konversi ke Base64
-    const { base64Data, mimeType, category, sizeBytes } = await downloadMediaAsBase64(
-      mediaUrl,
-      extension,
-      filename
-    );
-
-    console.log(`[MULTIMODAL-DOWNLOADED] Ukuran: ${(sizeBytes / 1024).toFixed(1)} KB | MIME: ${mimeType} | Kategori: ${category}`);
-
     const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
     const preferredModel = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
 
@@ -476,6 +478,66 @@ Bantu analisis dokumen / file ini dan berikan ringkasan poin-poin pentingnya sec
     console.error("[MULTIMODAL-ERROR]:", error);
     const fallbackMessage =
       `Mohon maaf Sahabat *${displayName}*, media belum dapat diproses secara otomatis saat ini (` +
+      (error.message?.includes("terlalu besar") ? error.message : "koneksi gateway/server sedang padat") +
+      `). Silakan coba kirim ulang ya! 🙏`;
+
+    return {
+      success: false,
+      mediaType: "unknown",
+      replyText: fallbackMessage,
+    };
+  }
+}
+
+/**
+ * Multimodal AI Engine: Mengunduh media dari URL lalu memproses dengan processMultimodalBuffer
+ */
+export async function processMultimodalWhatsAppMessage(
+  payload: MultimodalMessagePayload
+): Promise<MultimodalProcessResult> {
+  const {
+    mediaUrl,
+    filename,
+    extension,
+    caption = "",
+    senderPhone,
+    senderName,
+    isGroup,
+    groupId = "",
+  } = payload;
+
+  const displayName = senderName || "Sahabat";
+
+  try {
+    console.log(
+      `[MULTIMODAL-PROCESS] Memulai download media: ${mediaUrl} | Pengirim: ${displayName} (${senderPhone}) | Grup: ${groupId || "1-ON-1"}`
+    );
+
+    const { base64Data, mimeType, category, sizeBytes } = await downloadMediaAsBase64(
+      mediaUrl,
+      extension,
+      filename
+    );
+
+    console.log(
+      `[MULTIMODAL-DOWNLOADED] Ukuran: ${(sizeBytes / 1024).toFixed(1)} KB | MIME: ${mimeType} | Kategori: ${category}`
+    );
+
+    return await processMultimodalBuffer({
+      base64Data,
+      category,
+      mimeType,
+      caption,
+      senderPhone,
+      senderName,
+      isGroup,
+      groupId,
+      filename,
+    });
+  } catch (error: any) {
+    console.error("[MULTIMODAL-DOWNLOAD-ERROR]:", error);
+    const fallbackMessage =
+      `Mohon maaf Sahabat *${displayName}*, media belum dapat diunduh/diproses secara otomatis saat ini (` +
       (error.message?.includes("terlalu besar") ? error.message : "koneksi gateway/server sedang padat") +
       `). Silakan coba kirim ulang ya! 🙏`;
 

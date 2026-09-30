@@ -13,7 +13,8 @@
     "cap:sync:all": "npx cap sync",
     "build:android": "next build && npx cap sync android",
     "build:ios": "next build && npx cap sync ios",
-    "postinstall": "node scripts/patch-ios-plugins.js"
+    "postinstall": "node scripts/patch-ios-plugins.js",
+    "wa:bot": "npx -y tsx --env-file=.env.local scripts/wa-gateway.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
@@ -35,6 +36,7 @@
     "@types/web-push": "^3.6.4",
     "@vercel/analytics": "^2.0.1",
     "@vladmandic/face-api": "^1.7.15",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
     "agora-rtc-react": "^2.5.1",
     "agora-rtc-sdk-ng": "^4.24.4",
     "agora-token": "^2.0.5",
@@ -47,7 +49,9 @@
     "next": "15.5.19",
     "nodemailer": "^10.0.0",
     "pg": "^8.21.0",
+    "pino": "^10.3.1",
     "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "sharp": "^0.35.4",
