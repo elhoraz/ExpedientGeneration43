@@ -30,7 +30,7 @@ jobs:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
       - name: Copy Web Assets to iOS
-        run: npx cap copy ios
+        run: npx cap copy ios --verbose
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
