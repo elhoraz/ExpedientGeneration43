@@ -495,6 +495,32 @@ export async function handleIncomingGroupMessage(
     return { responded: false };
   }
 
+  // A2. Cek Command Audit Member atau Kirim Undangan di Grup
+  const cleanCmd = messageText.trim().toLowerCase();
+  if (
+    cleanCmd.includes("cek-member") ||
+    cleanCmd.includes("cek member") ||
+    cleanCmd.includes("audit member") ||
+    cleanCmd.includes("cek nomor")
+  ) {
+    const { auditGroupMembersAgainstDatabase, formatAuditSummaryMessage } = await import("@/lib/whatsapp/memberAuditor");
+    const auditRes = await auditGroupMembersAgainstDatabase(messageText);
+    const replyText = formatAuditSummaryMessage(auditRes);
+    await sendWhatsAppGroupMessage(groupId, replyText);
+    return { responded: true, replyText };
+  }
+
+  if (
+    cleanCmd.includes("kirim undangan") ||
+    cleanCmd.includes("japri undangan") ||
+    cleanCmd === "!kirim-undangan"
+  ) {
+    const { executeMemberInvitations } = await import("@/lib/whatsapp/memberAuditor");
+    const inviteRes = await executeMemberInvitations(senderPhone);
+    await sendWhatsAppGroupMessage(groupId, inviteRes.message);
+    return { responded: true, replyText: inviteRes.message };
+  }
+
   const callerName = senderName || "Sahabat";
   const { generateIntelligentCohortReply } = await import("@/lib/whatsapp/alumniIntelligence");
 

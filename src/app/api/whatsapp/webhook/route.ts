@@ -235,7 +235,41 @@ export async function POST(request: Request) {
           });
         }
 
-        // B. Jalankan engine reflex perbaikan cepat (jika perintah keyword spesifik)
+        // B. Cek Perintah Audit Anggota Grup vs Database Website (CEK-MEMBER / KIRIM UNDANGAN)
+        if (
+          cleanAdminCmd.includes("cek-member") ||
+          cleanAdminCmd.includes("cek member") ||
+          cleanAdminCmd.includes("audit member") ||
+          cleanAdminCmd.includes("cek nomor")
+        ) {
+          const { auditGroupMembersAgainstDatabase, formatAuditSummaryMessage } = await import("@/lib/whatsapp/memberAuditor");
+          const auditRes = await auditGroupMembersAgainstDatabase(messageText);
+          const replyText = formatAuditSummaryMessage(auditRes);
+          const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
+          await sendWhatsAppMessageWithDetail(numNorm, replyText);
+          return NextResponse.json({
+            status: "MEMBER_AUDIT_COMPLETED",
+            reply: replyText,
+          });
+        }
+
+        if (
+          cleanAdminCmd.includes("kirim undangan") ||
+          cleanAdminCmd.includes("japri undangan") ||
+          cleanAdminCmd.includes("broadcast undangan") ||
+          cleanAdminCmd === "!kirim-undangan"
+        ) {
+          const { executeMemberInvitations } = await import("@/lib/whatsapp/memberAuditor");
+          const inviteRes = await executeMemberInvitations(numNorm);
+          const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
+          await sendWhatsAppMessageWithDetail(numNorm, inviteRes.message);
+          return NextResponse.json({
+            status: "MEMBER_INVITATIONS_EXECUTED",
+            reply: inviteRes.message,
+          });
+        }
+
+        // C. Jalankan engine reflex perbaikan cepat (jika perintah keyword spesifik)
         const remediationResult = await handleAdminAutoRemediation(numNorm, messageText);
         if (remediationResult.action !== "not_a_sentinel_command") {
           console.log(`[SENTINEL-REMEDIATION-EXECUTED]: ${remediationResult.action} - ${remediationResult.success}`);
