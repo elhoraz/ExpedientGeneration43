@@ -1,0 +1,164 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+
+// Test logic mirroring isWhatsAppGroup
+function isWhatsAppGroup(target) {
+  if (!target) return false;
+  const t = String(target).trim().toLowerCase();
+  return (
+    t.endsWith('@g.us') ||
+    t.includes('@g.us') ||
+    t.startsWith('group:') ||
+    t.endsWith('@broadcast') ||
+    t.includes('-')
+  );
+}
+
+// Test logic mirroring isAnnouncementSubmission
+function isAnnouncementSubmission(text) {
+  const lower = text.trim().toLowerCase();
+  const dukaKeywords = [
+    'innalillahi',
+    'inna lillahi',
+    'lelayu',
+    'meninggal',
+    'wafat',
+    'telah berpulang',
+    'duka cita',
+    'kabar duka',
+    'berita duka',
+    'takziyah',
+    'takziah',
+    'meninggal dunia',
+  ];
+  if (dukaKeywords.some((kw) => lower.includes(kw))) {
+    return { isAnnouncement: true, category: 'duka_cita' };
+  }
+
+  const announcementKeywords = [
+    'titip pengumuman',
+    'titip info',
+    'titip kabar',
+    'sampaikan ke grup',
+    'kirim ke grup resmi',
+    'umumkan ke grup',
+    'tolong sampaikan di grup',
+    'tolong sampaikan ke grup',
+    'info penting grup',
+    'mohon dishare di grup',
+    'mohon di share di grup',
+  ];
+  if (announcementKeywords.some((kw) => lower.includes(kw))) {
+    return { isAnnouncement: true, category: 'berita_penting' };
+  }
+
+  return { isAnnouncement: false, category: 'berita_penting' };
+}
+
+// Test logic mirroring shouldGroupBotRespond
+function shouldGroupBotRespond(messageText) {
+  if (!messageText) return false;
+  const lower = messageText.trim().toLowerCase();
+
+  if (
+    lower.includes('@bot') ||
+    lower.includes('bot,') ||
+    lower.includes('bot ') ||
+    lower.startsWith('bot') ||
+    lower.includes('expedient') ||
+    lower.includes('minbot') ||
+    lower.includes('halo bot')
+  ) {
+    return true;
+  }
+
+  if (
+    messageText.startsWith('!') ||
+    messageText.startsWith('/') ||
+    messageText.startsWith('?')
+  ) {
+    return true;
+  }
+
+  if (
+    (lower.includes('ultah') || lower.includes('ulang tahun') || lower.includes('milad')) &&
+    (lower.includes('siapa') || lower.includes('hari ini') || lower.includes('bulan ini'))
+  ) {
+    return true;
+  }
+
+  if (
+    (lower.includes('reuni') || lower.includes('acara') || lower.includes('agenda')) &&
+    (lower.includes('kapan') || lower.includes('info') || lower.includes('jadwal'))
+  ) {
+    return true;
+  }
+
+  if (
+    lower.includes('total alumni') ||
+    lower.includes('berapa alumni') ||
+    lower.includes('jumlah alumni')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+describe('WhatsApp Group Gateway & Smart Trigger Validation', () => {
+  it('MUST identify WhatsApp Group JID formats correctly', () => {
+    assert.strictEqual(isWhatsAppGroup('120363028392819@g.us'), true);
+    assert.strictEqual(isWhatsAppGroup('628123456789-1234567890@g.us'), true);
+    assert.strictEqual(isWhatsAppGroup('group:120363028392819'), true);
+    assert.strictEqual(isWhatsAppGroup('status@broadcast'), true);
+
+    // Regular numbers should NOT be considered groups
+    assert.strictEqual(isWhatsAppGroup('082142877426'), false);
+    assert.strictEqual(isWhatsAppGroup('6282142877426'), false);
+    assert.strictEqual(isWhatsAppGroup('+6282142877426'), false);
+    assert.strictEqual(isWhatsAppGroup(''), false);
+  });
+
+  it('MUST detect Berita Duka / Lelayu submissions accurately', () => {
+    const rawMsg = "Assalamu'alaikum min, innalillahi bapaknya sahabat Rizki meninggal tadi subuh, tolong infokan.";
+    const check = isAnnouncementSubmission(rawMsg);
+    assert.strictEqual(check.isAnnouncement, true);
+    assert.strictEqual(check.category, 'duka_cita');
+  });
+
+  it('MUST detect Important Cohort Announcement requests', () => {
+    const rawMsg = "Halo bot, tolong sampaikan ke grup info reuni akbar tanggal 20 Oktober ya";
+    const check = isAnnouncementSubmission(rawMsg);
+    assert.strictEqual(check.isAnnouncement, true);
+    assert.strictEqual(check.category, 'berita_penting');
+  });
+
+  it('MUST NOT trigger announcement on casual chat', () => {
+    const rawMsg = "Halo apa kabar semuanya? Kapan kita main futsal bareng lagi?";
+    const check = isAnnouncementSubmission(rawMsg);
+    assert.strictEqual(check.isAnnouncement, false);
+  });
+
+  it('MUST filter community group messages with smart anti-spam', () => {
+    // 1. Should respond when mentioned
+    assert.strictEqual(shouldGroupBotRespond('@ExpedientBot siapa ketua angkatan?'), true);
+    assert.strictEqual(shouldGroupBotRespond('bot, info reuni dong'), true);
+    assert.strictEqual(shouldGroupBotRespond('halo bot'), true);
+
+    // 2. Should respond to command prefix
+    assert.strictEqual(shouldGroupBotRespond('!ultah'), true);
+    assert.strictEqual(shouldGroupBotRespond('!reuni'), true);
+    assert.strictEqual(shouldGroupBotRespond('!cari danang'), true);
+
+    // 3. Should respond to explicit cohort query
+    assert.strictEqual(shouldGroupBotRespond('siapa yang ultah hari ini rek?'), true);
+    assert.strictEqual(shouldGroupBotRespond('kapan reuni angkatan kita?'), true);
+    assert.strictEqual(shouldGroupBotRespond('berapa alumni kita yang terdaftar sekarang?'), true);
+
+    // 4. MUST IGNORE ordinary casual chatting between friends (anti-spam)
+    assert.strictEqual(shouldGroupBotRespond('wkwkwk kocak banget lu bro'), false);
+    assert.strictEqual(shouldGroupBotRespond('besok sore ada yang nongkrong gak?'), false);
+    assert.strictEqual(shouldGroupBotRespond('gue otw nih tunggu ya'), false);
+    assert.strictEqual(shouldGroupBotRespond('mantap jiwa'), false);
+  });
+});

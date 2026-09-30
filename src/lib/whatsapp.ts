@@ -5,23 +5,54 @@
  * Secondary: Meta WhatsApp Cloud API (Fallback).
  */
 
+/**
+ * Memeriksa apakah target adalah ID Grup WhatsApp (contoh: 120363028392819@g.us atau 628123-xxx@g.us)
+ */
+export function isWhatsAppGroup(target: string): boolean {
+  if (!target) return false;
+  const t = String(target).trim().toLowerCase();
+  return (
+    t.endsWith("@g.us") ||
+    t.includes("@g.us") ||
+    t.startsWith("group:") ||
+    t.endsWith("@broadcast") ||
+    t.includes("-")
+  );
+}
+
+export function getOfficialGroupId(): string {
+  return (process.env.WA_GROUP_OFFICIAL_ID || "120363407294140739@g.us").trim();
+}
+
+export function getCommunityGroupId(): string {
+  return (process.env.WA_GROUP_COMMUNITY_ID || "120363388633880584@g.us").trim();
+}
+
 export async function sendWhatsAppMessageWithDetail(
   target: string, 
   message: string
 ): Promise<{ success: boolean; reason?: string; provider?: 'fonnte' | 'meta' | 'none' }> {
-  // 1. Normalisasi nomor telepon ke format internasional (628...)
-  let num = String(target || "").replace(/\D/g, "");
-  if (num.startsWith("0")) {
-    num = "62" + num.substring(1);
-  } else if (!num.startsWith("62")) {
-    num = "62" + num;
-  }
+  const isGroup = isWhatsAppGroup(target);
+  let finalTarget = "";
 
-  // Anti-Ban Guard: Validasi nomor seluler Indonesia (628 + 8-12 digit angka)
-  if (!/^628[0-9]{8,12}$/.test(num)) {
-    const reason = `Nomor seluler tidak valid untuk format Indonesia (harus 628xxx): ${num}`;
-    console.warn(`[WA-VALIDATION-SKIP] ${reason}`);
-    return { success: false, reason, provider: 'none' };
+  if (isGroup) {
+    finalTarget = String(target).trim().replace(/^group:/i, "");
+  } else {
+    // 1. Normalisasi nomor telepon ke format internasional (628...)
+    let num = String(target || "").replace(/\D/g, "");
+    if (num.startsWith("0")) {
+      num = "62" + num.substring(1);
+    } else if (!num.startsWith("62")) {
+      num = "62" + num;
+    }
+
+    // Anti-Ban Guard: Validasi nomor seluler Indonesia (628 + 8-12 digit angka)
+    if (!/^628[0-9]{8,12}$/.test(num)) {
+      const reason = `Nomor seluler tidak valid untuk format Indonesia (harus 628xxx): ${num}`;
+      console.warn(`[WA-VALIDATION-SKIP] ${reason}`);
+      return { success: false, reason, provider: 'none' };
+    }
+    finalTarget = num;
   }
 
   const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
@@ -31,7 +62,7 @@ export async function sendWhatsAppMessageWithDetail(
   if (fonnteToken) {
     try {
       const params = new URLSearchParams();
-      params.append("target", num);
+      params.append("target", finalTarget);
       params.append("message", message);
       params.append("delay", "2");
       params.append("typing", "true");
@@ -47,7 +78,7 @@ export async function sendWhatsAppMessageWithDetail(
 
       const result = await response.json().catch(() => ({}));
       if (response.ok && Boolean(result.status)) {
-        console.log(`[FONNTE-SUCCESS] Pesan WhatsApp terkirim ke ${num} | Status: ${result.detail || "Sent"}`);
+        console.log(`[FONNTE-SUCCESS] Pesan WhatsApp terkirim ke ${finalTarget} (${isGroup ? "GROUP" : "PERSONAL"}) | Status: ${result.detail || "Sent"}`);
         return { success: true, provider: 'fonnte' };
       }
 
@@ -61,12 +92,12 @@ export async function sendWhatsAppMessageWithDetail(
     fonnteError = "FONNTE_TOKEN belum diset di environment";
   }
 
-  // 2. SECONDARY FALLBACK: Meta WhatsApp Cloud API
+  // 2. SECONDARY FALLBACK: Meta WhatsApp Cloud API (Hanya untuk pesan personal / 1-on-1)
   const metaPhoneId = process.env.META_WA_PHONE_NUMBER_ID || "";
   const metaToken = (process.env.META_WA_ACCESS_TOKEN || "").trim();
   let metaError = "";
 
-  if (metaPhoneId && metaToken) {
+  if (!isGroup && metaPhoneId && metaToken) {
     try {
       const response = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneId}/messages`, {
         method: "POST",
@@ -77,7 +108,7 @@ export async function sendWhatsAppMessageWithDetail(
         body: JSON.stringify({
           messaging_product: "whatsapp",
           recipient_type: "individual",
-          to: num,
+          to: finalTarget,
           type: "text",
           text: {
             preview_url: false,
@@ -88,7 +119,7 @@ export async function sendWhatsAppMessageWithDetail(
 
       const data = await response.json().catch(() => ({}));
       if (response.ok && data?.messages?.[0]?.id) {
-        console.log(`[META-WA-SUCCESS] Pesan terkirim via Meta Cloud ke ${num}`);
+        console.log(`[META-WA-SUCCESS] Pesan terkirim via Meta Cloud ke ${finalTarget}`);
         return { success: true, provider: 'meta' };
       }
       metaError = data?.error?.message || "Meta API error";
@@ -96,6 +127,8 @@ export async function sendWhatsAppMessageWithDetail(
       metaError = metaErr.message || "Meta network exception";
       console.error("[META-WA-EXCEPTION]:", metaErr);
     }
+  } else if (isGroup) {
+    metaError = "Meta Cloud API tidak mendukung pengiriman ke WhatsApp Group";
   } else {
     metaError = "Kredensial Meta WhatsApp belum lengkap";
   }
@@ -104,13 +137,20 @@ export async function sendWhatsAppMessageWithDetail(
     ? `Fonnte: Device WhatsApp terputus (disconnected). Harap scan QR di web fonnte.com`
     : `Fonnte: ${fonnteError || 'Gagal'} | Meta: ${metaError || 'Gagal'}`;
 
-  console.error(`[WA-FAILED] Seluruh provider WhatsApp gagal mengirim ke ${num}: ${finalReason}`);
+  console.error(`[WA-FAILED] Seluruh provider WhatsApp gagal mengirim ke ${finalTarget}: ${finalReason}`);
   return { success: false, reason: finalReason, provider: 'none' };
 }
 
 export async function sendWhatsAppMessage(target: string, message: string): Promise<boolean> {
   const res = await sendWhatsAppMessageWithDetail(target, message);
   return res.success;
+}
+
+export async function sendWhatsAppGroupMessage(
+  groupId: string,
+  message: string
+): Promise<{ success: boolean; reason?: string }> {
+  return await sendWhatsAppMessageWithDetail(groupId, message);
 }
 
 /**

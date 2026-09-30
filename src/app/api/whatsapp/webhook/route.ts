@@ -33,6 +33,8 @@ export async function POST(request: Request) {
       messageText: string;
       senderName?: string;
       device?: string;
+      member?: string;
+      isGroup?: boolean;
     }> = [];
 
     // 1. Parsing JSON Payload (Fonnte atau Meta)
@@ -41,11 +43,17 @@ export async function POST(request: Request) {
 
       // A. Format Webhook Fonnte
       if (body.sender || body.message || body.text) {
+        const senderStr = String(body.sender || "");
+        const memberStr = String(body.member || "");
+        const isGrp = Boolean(memberStr || senderStr.includes("@g.us") || senderStr.includes("-"));
+
         incomingList.push({
-          sender: String(body.sender || ""),
+          sender: senderStr,
           messageText: String(body.message || body.text || ""),
           senderName: String(body.name || ""),
           device: String(body.device || ""),
+          member: memberStr,
+          isGroup: isGrp,
         });
       }
       // B. Format Webhook Resmi Meta Cloud API
@@ -80,11 +88,17 @@ export async function POST(request: Request) {
     else if (contentType.includes("form-data") || contentType.includes("urlencoded")) {
       const formData = await request.formData().catch(() => null);
       if (formData) {
+        const senderStr = String(formData.get("sender") || "");
+        const memberStr = String(formData.get("member") || "");
+        const isGrp = Boolean(memberStr || senderStr.includes("@g.us") || senderStr.includes("-"));
+
         incomingList.push({
-          sender: String(formData.get("sender") || ""),
+          sender: senderStr,
           messageText: String(formData.get("message") || formData.get("text") || ""),
           senderName: String(formData.get("name") || ""),
           device: String(formData.get("device") || ""),
+          member: memberStr,
+          isGroup: isGrp,
         });
       }
     }
@@ -97,6 +111,28 @@ export async function POST(request: Request) {
       const messageText = item.messageText.trim();
       if (!rawSender || !messageText) continue;
 
+      // =====================================================================
+      // 1. PENANGANAN PESAN DARI GRUP WHATSAPP (Grup Non-Resmi / Komunitas)
+      // =====================================================================
+      if (item.isGroup || rawSender.includes("@g.us")) {
+        const groupId = rawSender;
+        const memberPhone = item.member || rawSender;
+        const memberName = item.senderName || "Sahabat";
+
+        console.log(`[WA-GROUP-INCOMING] Grup: ${groupId} | Dari: ${memberPhone} (${memberName}): "${messageText}"`);
+
+        const { handleIncomingGroupMessage } = await import("@/lib/whatsapp/groupManager");
+        const groupRes = await handleIncomingGroupMessage(groupId, memberPhone, memberName, messageText);
+
+        return NextResponse.json({
+          status: groupRes.responded ? "GROUP_MESSAGE_REPLIED" : "GROUP_MESSAGE_IGNORED",
+          reply: groupRes.replyText || null,
+        });
+      }
+
+      // =====================================================================
+      // 2. PENANGANAN PESAN PERSONAL (1-ON-1)
+      // =====================================================================
       let numNorm = rawSender.replace(/\D/g, "");
       if (numNorm.startsWith("0")) numNorm = "62" + numNorm.substring(1);
 
@@ -109,7 +145,42 @@ export async function POST(request: Request) {
       if (isSenderAdmin) {
         console.log(`[SENTINEL-ADMIN-INCOMING] Pesan dari Admin (${numNorm}): "${messageText}"`);
 
-        // 1. Jalankan engine reflex perbaikan cepat (jika perintah keyword spesifik)
+        // A. Cek Perintah Approval Broadcast Resmi (KIRIM RESMI / TOLAK)
+        const cleanAdminCmd = messageText.trim().toLowerCase();
+        if (
+          cleanAdminCmd === "kirim resmi" ||
+          cleanAdminCmd === "post resmi" ||
+          cleanAdminCmd === "publish resmi" ||
+          cleanAdminCmd === "setujui" ||
+          cleanAdminCmd === "setuju"
+        ) {
+          const { approvePendingBroadcast } = await import("@/lib/whatsapp/groupManager");
+          const approveRes = await approvePendingBroadcast(numNorm);
+          const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
+          await sendWhatsAppMessageWithDetail(numNorm, approveRes.message);
+          return NextResponse.json({
+            status: "BROADCAST_APPROVED",
+            message: approveRes.message,
+          });
+        }
+
+        if (
+          cleanAdminCmd === "tolak" ||
+          cleanAdminCmd === "batal" ||
+          cleanAdminCmd === "batalkan" ||
+          cleanAdminCmd === "reject"
+        ) {
+          const { rejectPendingBroadcast } = await import("@/lib/whatsapp/groupManager");
+          const rejectRes = rejectPendingBroadcast(numNorm);
+          const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
+          await sendWhatsAppMessageWithDetail(numNorm, rejectRes.message);
+          return NextResponse.json({
+            status: "BROADCAST_REJECTED",
+            message: rejectRes.message,
+          });
+        }
+
+        // B. Jalankan engine reflex perbaikan cepat (jika perintah keyword spesifik)
         const remediationResult = await handleAdminAutoRemediation(numNorm, messageText);
         if (remediationResult.action !== "not_a_sentinel_command") {
           console.log(`[SENTINEL-REMEDIATION-EXECUTED]: ${remediationResult.action} - ${remediationResult.success}`);
@@ -119,7 +190,7 @@ export async function POST(request: Request) {
           });
         }
 
-        // 2. Jika pesan percakapan bebas / permintaan fitur / pertanyaan santai:
+        // C. Jika pesan percakapan bebas / permintaan fitur / pertanyaan santai:
         // Gunakan AI Conversational Agent (Gemini 3.8 Flash)
         const { handleAdminConversationalMessage } = await import("@/lib/sentinel/conversationalAgent");
         const convResult = await handleAdminConversationalMessage(numNorm, messageText);
@@ -129,8 +200,9 @@ export async function POST(request: Request) {
         });
       }
 
-      // Jika pesan dari pengunjung biasa / alumni:
-      // Berikan respons otomatis ramah 24 jam dengan akses database & Gemini 3.8 Flash!
+      // =====================================================================
+      // 3. PESAN DARI ALUMNI / PENGUNJUNG BIASA (1-ON-1)
+      // =====================================================================
       const altLocalNum = numNorm.startsWith("62") ? "0" + numNorm.substring(2) : numNorm;
       const { data: matchedProfiles } = await adminSupabase
         .from("profiles")
@@ -146,11 +218,104 @@ export async function POST(request: Request) {
 
       console.log(`[WA-USER-INCOMING] Pesan dari ${numNorm} (${senderTag}): "${messageText}"`);
 
-      // 1. Eksekusi AI Concierge Alumni (Gemini 3.8 Flash + Supabase Database Query)
+      // A. Cek apakah ini Berita Duka Cita / Permohonan Titip Pengumuman ke Grup Resmi
+      const {
+        isAnnouncementSubmission,
+        formatAnnouncementWithAi,
+        savePendingBroadcast,
+      } = await import("@/lib/whatsapp/groupManager");
+
+      const announcementCheck = isAnnouncementSubmission(messageText);
+
+      if (announcementCheck.isAnnouncement) {
+        console.log(`[WA-ANNOUNCEMENT-DETECTED] Kategori: ${announcementCheck.category} dari ${userDisplayName}`);
+
+        // 1. Format berita secara terstruktur menggunakan AI
+        const formattedAnnounce = await formatAnnouncementWithAi(
+          messageText,
+          userDisplayName,
+          announcementCheck.category
+        );
+
+        // 2. Simpan draf ke memory antrean pending
+        savePendingBroadcast(
+          numNorm,
+          userDisplayName,
+          messageText,
+          formattedAnnounce,
+          announcementCheck.category
+        );
+
+        // 3. Balas konfirmasi ke Alumni pelapor
+        const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
+        const ackMessage =
+          `Inna lillahi wa inna ilaihi raji'un.\n\n` +
+          `Terima kasih atas informasinya, Sahabat *${userDisplayName}*.\n\n` +
+          `Berita penting/duka cita ini telah dirapikan dan saat ini *DITERUSKAN KE PENGURUS/ADMIN ANGKATAN* untuk diverifikasi serta dipublikasikan ke *Grup Resmi Angkatan*.\n\n` +
+          `Semoga almarhum/almarhumah husnul khatimah dan keluarga yang ditinggalkan diberikan ketabahan serta keikhlasan. Aamiin ya Rabbal 'Alamin.`;
+
+        await sendWhatsAppMessageWithDetail(numNorm, ackMessage);
+
+        // 4. Kirim Alert + Draf ke Nomor WhatsApp Admin untuk Konfirmasi
+        const adminAlert =
+          `📢 *[PERSETUJUAN BROADCAST GRUP RESMI]*\n\n` +
+          `👤 *Pelapor:* Sahabat ${userDisplayName} (${numNorm})\n` +
+          `🏷️ *Kategori:* ${announcementCheck.category === "duka_cita" ? "Berita Duka Cita / Lelayu" : "Pengumuman Penting"}\n\n` +
+          `📝 *Draf Siap Kirim:*\n` +
+          `----------------------------------------\n` +
+          `${formattedAnnounce}\n` +
+          `----------------------------------------\n\n` +
+          `👉 Balas *KIRIM RESMI* untuk mempublikasikan langsung ke Grup Resmi Angkatan.\n` +
+          `👉 Balas *TOLAK* untuk membatalkan draf ini.`;
+
+        await sendWhatsAppMessageWithDetail(adminPhoneEnv, adminAlert);
+
+        // 5. Buat In-App Notification untuk Admin Dashboard
+        try {
+          const { data: adminProfiles } = await adminSupabase
+            .from("profiles")
+            .select("id")
+            .in("role", ["admin", "superadmin"]);
+
+          if (adminProfiles && adminProfiles.length > 0) {
+            const notifRecords = adminProfiles.map((adm) => ({
+              user_id: adm.id,
+              title: `📢 Berita Duka / Penting dari ${userDisplayName}`,
+              message: `Draf siap dibroadcast ke Grup Resmi WA. Menunggu konfirmasi.`,
+              link: "/admin/broadcast",
+              is_read: false,
+              created_at: new Date().toISOString(),
+            }));
+            await adminSupabase.from("notifications").insert(notifRecords);
+          }
+        } catch (notifErr) {
+          console.warn("[WA-NOTIF-ERROR]: Gagal membuat notifikasi admin:", notifErr);
+        }
+
+        // 6. Simpan riwayat ke antrean database
+        await adminSupabase.from("whatsapp_queue").insert([
+          {
+            no_whatsapp: numNorm,
+            message: messageText,
+            status: "pending_approval",
+            error_message: `Diteruskan ke Admin untuk approval broadcast grup resmi.`,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        ]);
+
+        return NextResponse.json({
+          status: "ANNOUNCEMENT_FORWARDED_TO_ADMIN",
+          reply: ackMessage,
+        });
+      }
+
+      // B. Jika pesan percakapan biasa / konsultasi / tanya data:
+      // Eksekusi AI Concierge Alumni (Gemini 3.8 Flash + Supabase Database Query)
       const { handleUserWhatsAppMessage } = await import("@/lib/whatsapp/alumniBot");
       const userAiRes = await handleUserWhatsAppMessage(numNorm, messageText, matchedUser);
 
-      // 2. Simpan riwayat interaksi ke antrean database
+      // Simpan riwayat interaksi ke antrean database
       await adminSupabase.from("whatsapp_queue").insert([
         {
           no_whatsapp: numNorm,
@@ -162,7 +327,7 @@ export async function POST(request: Request) {
         },
       ]);
 
-      // 3. Notifikasi Lonceng In-App untuk Admin Dashboard
+      // Notifikasi Lonceng In-App untuk Admin Dashboard
       try {
         const { data: adminProfiles } = await adminSupabase
           .from("profiles")

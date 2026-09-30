@@ -130,6 +130,7 @@ export async function handleAdminAutoRemediation(
       `• *PERBAIKI* : Pemulihan server cepat (revalidate cache, reset error, cek DB & Fonnte)\n` +
       `• *PERBAIKI KODE* / *!ai-fix* : Perbaikan kode otomatis oleh Gemini 3.8 Flash & push ke GitHub/Vercel!\n` +
       `• *STATUS* / *!status* : Cek kesehatan server, database Supabase, dan kuota Fonnte\n` +
+      `• *KIRIM RESMI* : Konfirmasi & publish pengumuman/berita duka titipan alumni ke Grup Resmi WA\n` +
       `• *!revalidate /path* : Bersihkan cache halaman spesifik (contoh: \`!revalidate /galeri\`)\n` +
       `• *!queue* : Cek & kirim ulang antrean pesan WhatsApp yang sempat tertunda\n\n` +
       `_Sistem aktif 24 jam memproses instruksi pemulihan secara real-time._`;
