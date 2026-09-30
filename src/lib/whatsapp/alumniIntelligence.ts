@@ -63,7 +63,29 @@ export async function resolveCohortContext(
   const lower = messageText.trim().toLowerCase();
 
   try {
-    // 1. TANYA KETUA ANGKATAN / PEMBUAT WEBSITE / TOKOH KUNCI
+    // 0. Cek apakah ada memori dinamis yang telah dipelajari bot yang cocok dengan pertanyaan
+  try {
+    const { getLearnedMemories } = await import("@/lib/whatsapp/botMemory");
+    const memories = await getLearnedMemories();
+    if (memories && memories.length > 0) {
+      const matched = memories.filter((m) => {
+        const top = m.topic.toLowerCase();
+        return lower.includes(top) || top.split(/\s+/).some((w) => w.length >= 3 && lower.includes(w));
+      });
+      if (matched.length > 0) {
+        const memList = matched.map((m) => `• ${m.fact} (Dipelajari dari Sahabat ${m.contributor})`).join("\n");
+        return {
+          category: "general",
+          summary: `FAKTA MEMORI TERBARU YANG DIPELAJARI BOT DARI OBROLAN ALUMNI:\n${memList}\n\nJawablah dengan percaya diri menggunakan memori yang telah kamu pelajari ini!`,
+          data: matched,
+        };
+      }
+    }
+  } catch (memErr) {
+    // Non-blocking
+  }
+
+  // 1. TANYA KETUA ANGKATAN / PEMBUAT WEBSITE / TOKOH KUNCI
     if (
       lower.includes("ketua angkatan") ||
       lower.includes("ketua") ||
@@ -299,6 +321,17 @@ export async function generateIntelligentCohortReply(options: {
   const { messageText, senderPhone, senderName, isGroup } = options;
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
+
+  // 0. Refleks Self-Learning: Periksa apakah pesan pengguna mengajari fakta baru atau mengoreksi data bot
+  try {
+    const { extractAndLearnFromMessage } = await import("@/lib/whatsapp/botMemory");
+    const learnRes = await extractAndLearnFromMessage(messageText, senderName);
+    if (learnRes.hasLearned && learnRes.acknowledgment) {
+      return learnRes.acknowledgment;
+    }
+  } catch (learnErr) {
+    // Non-blocking
+  }
 
   // 1. Dapatkan fakta database faktual
   const fact = await resolveCohortContext(messageText, senderName);

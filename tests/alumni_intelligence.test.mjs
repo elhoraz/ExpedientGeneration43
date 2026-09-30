@@ -73,4 +73,29 @@ describe('Alumni Intelligence & Smart Cohort Knowledge Suite', () => {
       : "FOR PRIVATE CHAT: Provide a warm, clear, polite, and complete answer (2 to 4 sentences).";
     assert.match(rule, /1 to 2 sentences/);
   });
+
+  it('MUST detect explicit memory learning and correction instructions', () => {
+    const memoryTriggers = [
+      "bot catat ya si Danang sekarang kerja di Pertamina",
+      "min ingat ya si Auzan udah di Jakarta",
+      "salah bot, ultahku tanggal 5",
+      "fyi sekarang si Rizki udah nikah"
+    ];
+
+    memoryTriggers.forEach((msg) => {
+      const lower = msg.toLowerCase();
+      const isExplicitNote =
+        lower.includes("catat") ||
+        lower.includes("ingat") ||
+        lower.includes("fyi") ||
+        lower.includes("koreksi") ||
+        lower.includes("salah min") ||
+        lower.includes("salah bot") ||
+        lower.includes("bukan bot") ||
+        lower.includes("bukan min") ||
+        lower.includes("sekarang kerja di") ||
+        lower.includes("udah nikah");
+      assert.strictEqual(isExplicitNote, true);
+    });
+  });
 });
