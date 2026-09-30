@@ -158,16 +158,6 @@ export default function GaleriClient({
   const lastTapRef = useRef<{ [photoId: string]: number }>({});
   const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Upload Photo Bottom Sheet
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
-  const [uploadCaption, setUploadCaption] = useState("");
-  const [uploadAlbumId, setUploadAlbumId] = useState("wisuda");
-  const [uploadYear, setUploadYear] = useState(new Date().getFullYear().toString());
-  const [isSubmittingUpload, setIsSubmittingUpload] = useState(false);
-  const [uploadStatusMsg, setUploadStatusMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Yearbook 3D State
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -350,94 +340,6 @@ export default function GaleriClient({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [lightboxIndex, handleLightboxPrev, handleLightboxNext]);
 
-  // Handle Photo File Selection for Upload
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 8 * 1024 * 1024) {
-        setUploadStatusMsg({ type: "error", text: "Ukuran foto maksimal 8 MB" });
-        return;
-      }
-      setUploadFile(file);
-      const url = URL.createObjectURL(file);
-      setUploadPreview(url);
-      setUploadStatusMsg(null);
-      triggerHaptic(12);
-    }
-  };
-
-  // Submit Upload to /api/upload and /api/galeri
-  const handleUploadSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!uploadFile) {
-      setUploadStatusMsg({ type: "error", text: "Silakan pilih foto terlebih dahulu" });
-      return;
-    }
-
-    setIsSubmittingUpload(true);
-    setUploadStatusMsg(null);
-    triggerHaptic(15);
-
-    try {
-      // Step 1: Upload binary to storage via /api/upload
-      const formData = new FormData();
-      formData.append("file", uploadFile);
-      formData.append("folder", "gallery");
-
-      const uploadRes = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const uploadJson = await uploadRes.json();
-
-      if (!uploadRes.ok || !uploadJson.url) {
-        throw new Error(uploadJson.error || "Gagal mengunggah foto ke server");
-      }
-
-      // Step 2: Save metadata to /api/galeri
-      const saveRes = await fetch("/api/galeri", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "upload_photo",
-          image_url: uploadJson.url,
-          caption: uploadCaption,
-          album_id: uploadAlbumId,
-          year: uploadYear,
-        }),
-      });
-      const saveJson = await saveRes.json();
-
-      if (!saveRes.ok || !saveJson.photo) {
-        throw new Error(saveJson.error || "Gagal mencatat foto di galeri angkatan");
-      }
-
-      // Prepend to local state
-      const newPhotoItem: PhotoItem = {
-        ...saveJson.photo,
-        uploader_name: "Saya",
-        uploader_avatar: null,
-        is_liked: false,
-      };
-      setPhotos((prev) => [newPhotoItem, ...prev]);
-
-      triggerHaptic(25);
-      setUploadStatusMsg({ type: "success", text: "Foto kenangan berhasil diabadikan!" });
-
-      // Reset & close after short delay
-      setTimeout(() => {
-        setIsUploadOpen(false);
-        setUploadFile(null);
-        setUploadPreview(null);
-        setUploadCaption("");
-        setUploadStatusMsg(null);
-      }, 1200);
-    } catch (err: any) {
-      setUploadStatusMsg({ type: "error", text: err.message || "Terjadi kesalahan saat mengunggah" });
-    } finally {
-      setIsSubmittingUpload(false);
-    }
-  };
 
   // ----------------------------------------------------
   // YEARBOOK 3D PRESERVED ELEMENTS
@@ -681,13 +583,6 @@ export default function GaleriClient({
                 <i className="fa-solid fa-images empty-icon"></i>
                 <h3>{t.galeri.empty_msg}</h3>
                 <p>{t.galeri.subtitle}</p>
-                <button
-                  type="button"
-                  className="btn-empty-upload"
-                  onClick={() => setIsUploadOpen(true)}
-                >
-                  <i className="fa-solid fa-cloud-arrow-up"></i> {t.galeri.upload_btn}
-                </button>
               </div>
             ) : (
               <div className="vault-masonry-grid">
@@ -795,19 +690,6 @@ export default function GaleriClient({
             )}
           </div>
 
-          {/* 4. MOBILE FLOATING ACTION BUTTON (FAB) `+ UNGGAH FOTO` */}
-          <button
-            type="button"
-            className="vault-fab-upload cursor-bind"
-            onClick={() => {
-              setIsUploadOpen(true);
-              triggerHaptic(18);
-            }}
-            title={t.galeri.upload_btn}
-          >
-            <i className="fa-solid fa-plus"></i>
-            <span className="fab-label">{t.galeri.upload_btn}</span>
-          </button>
 
           {/* 5. FULLSCREEN TOUCH GESTURE LIGHTBOX */}
           {lightboxIndex !== null && filteredPhotos[lightboxIndex] && (
@@ -949,146 +831,6 @@ export default function GaleriClient({
             </div>
           )}
 
-          {/* 6. UPLOAD PHOTO BOTTOM SHEET DIALOG */}
-          {isUploadOpen && (
-            <div className="sheet-backdrop" onClick={() => !isSubmittingUpload && setIsUploadOpen(false)}>
-              <div className="alumni-bottom-sheet upload-sheet-card" onClick={(e) => e.stopPropagation()}>
-                {/* Drag Handle */}
-                <div className="sheet-drag-handle" onClick={() => !isSubmittingUpload && setIsUploadOpen(false)}>
-                  <div className="drag-pill"></div>
-                </div>
-
-                {/* Header */}
-                <div className="sheet-header">
-                  <button
-                    type="button"
-                    className="sheet-close-btn"
-                    onClick={() => !isSubmittingUpload && setIsUploadOpen(false)}
-                  >
-                    <i className="fa-solid fa-xmark"></i>
-                  </button>
-                  <h3 className="sheet-user-name" style={{ marginTop: "4px" }}>
-                    {t.galeri.immortalize_photo}
-                  </h3>
-                  <div style={{ fontSize: "0.82rem", color: "var(--gold-main, #d4af37)" }}>
-                    {t.galeri.immortalize_sub}
-                  </div>
-                </div>
-
-                {/* Form Body */}
-                <form onSubmit={handleUploadSubmit} className="upload-form-body">
-                  {/* Status Banner */}
-                  {uploadStatusMsg && (
-                    <div className={`upload-status-banner ${uploadStatusMsg.type}`}>
-                      <i className={uploadStatusMsg.type === "success" ? "fa-solid fa-circle-check" : "fa-solid fa-circle-exclamation"}></i>
-                      <span>{uploadStatusMsg.text}</span>
-                    </div>
-                  )}
-
-                  {/* Dropzone & Preview */}
-                  <div
-                    className="upload-dropzone cursor-bind"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      style={{ display: "none" }}
-                      onChange={handleFileChange}
-                    />
-
-                    {uploadPreview ? (
-                      <div className="upload-preview-container">
-                        <img src={uploadPreview} alt="Pratinjau Foto" className="upload-preview-img" />
-                        <div className="change-photo-badge">
-                          <i className="fa-solid fa-rotate"></i> {t.register.btn_change_photo}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="dropzone-placeholder">
-                        <div className="dropzone-icon-ring">
-                          <i className="fa-solid fa-cloud-arrow-up"></i>
-                        </div>
-                        <h4>{t.galeri.choose_from_gallery}</h4>
-                        <p>{t.galeri.upload_file_hint}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Album Selector */}
-                  <div className="sheet-field-group">
-                    <label className="field-label">{t.galeri.choose_album}</label>
-                    <select
-                      className="upload-select-input"
-                      value={uploadAlbumId}
-                      onChange={(e) => setUploadAlbumId(e.target.value)}
-                    >
-                      <option value="wisuda">{locale === 'ar' ? 'حفل التخرج ٢٠٢٥' : locale === 'en' ? 'Graduation 2025' : 'Wisuda 2025'}</option>
-                      <option value="pg">{locale === 'ar' ? 'المسرح الاحتفالي (PG)' : locale === 'en' ? 'Grand Stage (PG)' : 'Panggung Gembira (PG)'}</option>
-                      <option value="reuni">{locale === 'ar' ? 'لقاء الأخوة ولمّ الشمل' : locale === 'en' ? 'Reunion & Gathering' : 'Reuni & Temu Kangen'}</option>
-                      <option value="keseharian">{locale === 'ar' ? 'يوميات السكن وذكرياته' : locale === 'en' ? 'Dorm Memories & Daily Life' : 'Nostalgia Asrama & Keseharian'}</option>
-                    </select>
-                  </div>
-
-                  {/* Year Selector */}
-                  <div className="sheet-field-group">
-                    <label className="field-label">{t.galeri.year_taken}</label>
-                    <input
-                      type="number"
-                      className="upload-text-input"
-                      value={uploadYear}
-                      onChange={(e) => setUploadYear(e.target.value)}
-                      placeholder="2025"
-                      min="2018"
-                      max="2030"
-                    />
-                  </div>
-
-                  {/* Caption Input */}
-                  <div className="sheet-field-group">
-                    <label className="field-label">{t.galeri.caption_label}</label>
-                    <textarea
-                      rows={3}
-                      className="upload-textarea"
-                      placeholder={t.galeri.caption_placeholder}
-                      value={uploadCaption}
-                      onChange={(e) => setUploadCaption(e.target.value)}
-                    ></textarea>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="upload-actions-row">
-                    <button
-                      type="button"
-                      className="btn-cancel-upload"
-                      onClick={() => setIsUploadOpen(false)}
-                      disabled={isSubmittingUpload}
-                    >
-                      {t.common.cancel}
-                    </button>
-                    <button
-                      type="submit"
-                      className="btn-submit-upload"
-                      disabled={isSubmittingUpload || !uploadFile}
-                    >
-                      {isSubmittingUpload ? (
-                        <>
-                          <i className="fa-solid fa-circle-notch fa-spin"></i>
-                          <span>{t.galeri.btn_saving}</span>
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-solid fa-cloud-arrow-up"></i>
-                          <span>{t.galeri.immortalize_photo}</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
