@@ -22,11 +22,17 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Sync Capacitor iOS Platform
-        run: npx cap sync ios
+      - name: Configure Xcode Developer Directory
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
-      - name: Verify Xcode Version
-        run: xcodebuild -version
+      - name: Sync Capacitor iOS Platform
+        run: npx cap sync ios --verbose
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
       - name: Build iOS Application
         run: |
@@ -40,6 +46,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
       - name: Package into IPA File
         run: |
