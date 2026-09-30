@@ -68,7 +68,7 @@ function shouldGroupBotRespond(messageText) {
     lower.includes("expedient") ||
     lower.includes("minbot") ||
     lower.includes("admin bot") ||
-    lower.startsWith("min") ||
+    /\bmin\b/i.test(lower) ||
     lower.includes("@")
   ) {
     return true;
@@ -101,21 +101,22 @@ function shouldGroupBotRespond(messageText) {
     return true;
   }
 
-  // 4. Pertanyaan Mengenai Sosok / Profil Alumni (Contoh: "siapa taufiqi", "siapakah elhoraz", "profil danang", "kontak taufiq")
+  // 4. Pertanyaan Sosok / Profil Alumni / Siapa
   if (
-    lower.startsWith("siapa ") ||
-    lower.includes("siapakah ") ||
+    lower.includes("siapa") ||
+    lower.includes("siapakah") ||
     lower.startsWith("profil ") ||
     lower.startsWith("kontak ") ||
     lower.startsWith("nomor ") ||
     lower.startsWith("alamat ") ||
+    lower.includes("tinggal di") ||
     lower.includes("info tentang ") ||
     lower.startsWith("tanya dong")
   ) {
     return true;
   }
 
-  // 5. Pertanyaan Spesifik Seputar Angkatan (Ulang Tahun, Reuni, Agenda, Total Alumni)
+  // 5. Pertanyaan Spesifik Seputar Angkatan & Website Portal
   if (
     lower.includes("ultah") ||
     lower.includes("ulang tahun") ||
@@ -125,7 +126,11 @@ function shouldGroupBotRespond(messageText) {
     lower.includes("acara") ||
     lower.includes("total alumni") ||
     lower.includes("berapa alumni") ||
-    lower.includes("jumlah alumni")
+    lower.includes("jumlah alumni") ||
+    lower.includes("website") ||
+    lower.includes("fitur") ||
+    lower.includes("portal") ||
+    lower.includes("link web")
   ) {
     return true;
   }
@@ -187,6 +192,8 @@ describe('WhatsApp Group Gateway & Smart Trigger Validation', () => {
     assert.strictEqual(shouldGroupBotRespond('kontak danang ada yang tau?'), true);
     assert.strictEqual(shouldGroupBotRespond('kapan reuni angkatan kita?'), true);
     assert.strictEqual(shouldGroupBotRespond('berapa alumni kita yang terdaftar sekarang?'), true);
+    assert.strictEqual(shouldGroupBotRespond('Alumni yang tinggal di Bandung siapa aja?'), true);
+    assert.strictEqual(shouldGroupBotRespond('Fitur website kita ada apa aja min?'), true);
 
     // 4. MUST IGNORE ordinary casual chatting between friends (anti-spam)
     assert.strictEqual(shouldGroupBotRespond('wkwkwk kocak banget lu bro'), false);

@@ -353,7 +353,7 @@ export function shouldGroupBotRespond(messageText: string): boolean {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot (Termasuk nomor bot 6289675010185 / 089675010185, tag @ kontak WhatsApp, atau nama)
+  // 1. Tag / Mention Bot (Termasuk nomor bot 6289675010185 / 089675010185, tag @ kontak WhatsApp, nama, atau panggilan min)
   if (
     lower.includes("89675010185") ||
     lower.includes("@bot") ||
@@ -361,7 +361,7 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     lower.includes("expedient") ||
     lower.includes("minbot") ||
     lower.includes("admin bot") ||
-    lower.startsWith("min") ||
+    /\bmin\b/i.test(lower) ||
     lower.includes("@") // Tag mention WhatsApp contact
   ) {
     return true;
@@ -394,21 +394,22 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     return true;
   }
 
-  // 4. Pertanyaan Mengenai Sosok / Profil Alumni (Contoh: "siapa taufiqi", "siapakah elhoraz", "profil danang", "kontak taufiq")
+  // 4. Pertanyaan Sosok / Profil Alumni / Siapa (Contoh: "siapa taufiqi", "alumni yang di bandung siapa aja", "kontak danang")
   if (
-    lower.startsWith("siapa ") ||
-    lower.includes("siapakah ") ||
+    lower.includes("siapa") ||
+    lower.includes("siapakah") ||
     lower.startsWith("profil ") ||
     lower.startsWith("kontak ") ||
     lower.startsWith("nomor ") ||
     lower.startsWith("alamat ") ||
+    lower.includes("tinggal di") ||
     lower.includes("info tentang ") ||
     lower.startsWith("tanya dong")
   ) {
     return true;
   }
 
-  // 5. Pertanyaan Spesifik Seputar Angkatan (Ulang Tahun, Reuni, Agenda, Total Alumni)
+  // 5. Pertanyaan Spesifik Seputar Angkatan & Website Portal
   if (
     lower.includes("ultah") ||
     lower.includes("ulang tahun") ||
@@ -418,7 +419,11 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     lower.includes("acara") ||
     lower.includes("total alumni") ||
     lower.includes("berapa alumni") ||
-    lower.includes("jumlah alumni")
+    lower.includes("jumlah alumni") ||
+    lower.includes("website") ||
+    lower.includes("fitur") ||
+    lower.includes("portal") ||
+    lower.includes("link web")
   ) {
     return true;
   }

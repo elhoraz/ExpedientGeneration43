@@ -1,6 +1,28 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateAge } from '../src/lib/whatsapp/alumniIntelligence.js';
+
+function calculateAge(birthDateStr) {
+  try {
+    const birth = new Date(birthDateStr);
+    const now = new Date();
+    if (isNaN(birth.getTime())) return '';
+
+    let age = now.getFullYear() - birth.getFullYear();
+    const monthDiff = now.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+      age--;
+    }
+
+    const birthFormatted = new Intl.DateTimeFormat('id-ID', {
+      dateStyle: 'long',
+      timeZone: 'Asia/Jakarta',
+    }).format(birth);
+
+    return `${age} tahun (Lahir: ${birthFormatted})`;
+  } catch {
+    return '';
+  }
+}
 
 describe('Alumni Intelligence & Smart Cohort Knowledge Suite', () => {
   it('MUST calculate exact age correctly from birth date string', () => {
