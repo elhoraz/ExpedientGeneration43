@@ -209,7 +209,7 @@ export async function resolveCohortContext(
           `• Total Alumni Terdaftar: *${count || 79} alumni*\n` +
           `• Alumni Putra: ${putraCount || 45} sahabat\n` +
           `• Alumni Putri: ${putriCount || 34} sahabat\n` +
-          `• Kelulusan: Pondok Modern Arrisalah Slahung Ponorogo (Tahun 2023)\n` +
+          `• Kelulusan: Pondok Modern Arrisalah Slahung Ponorogo (Tahun 2025)\n` +
           `• Direktori Lengkap: https://expedientgeneration.vercel.app/direktori`,
         data: { count, putraCount, putriCount },
       };
@@ -304,7 +304,7 @@ export async function resolveCohortContext(
 
   return {
     category: "general",
-    summary: `INFORMASI ANGKATAN:\nExpedient Generation 43 adalah ikatan alumni Pondok Modern Arrisalah Slahung Ponorogo lulusan tahun 2023. Motto: "The Successors" (Keluarga, Ukhuwah, & Prestasi). Portal resmi: https://expedientgeneration.vercel.app`,
+    summary: `INFORMASI ANGKATAN:\nExpedient Generation 43 adalah ikatan alumni Pondok Modern Arrisalah Slahung Ponorogo lulusan tahun 2025. Motto: "The Successors" (Keluarga, Ukhuwah, & Prestasi). Portal resmi: https://expedientgeneration.vercel.app`,
   };
 }
 
@@ -337,7 +337,7 @@ export async function generateIntelligentCohortReply(options: {
   const fact = await resolveCohortContext(messageText, senderName);
 
   const prompt = `
-You are the official, highly intelligent, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2023, known as "The Successors").
+You are the official, highly intelligent, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "The Successors").
 Current Year: 2026.
 
 USER CONTEXT:

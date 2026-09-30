@@ -284,7 +284,7 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
     "Semoga antum senantiasa sehat dan dilimpahkan keberkahan.",
     "Semoga kabar antum dan keluarga senantiasa dalam lindungan Allah SWT.",
     "Semoga hari-hari antum selalu dilimpahi kemudahan dan kesuksesan.",
-    "Salam rindu dan silaturahmi hangat dari kami sesama alumni Arrisalah 2023.",
+    "Salam rindu dan silaturahmi hangat dari kami sesama alumni Arrisalah 2025.",
   ];
 
   const ctaVariations = [
@@ -310,7 +310,7 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
 
     const invitationMessage =
       `${salam}\n\n` +
-      `${intro} Mengingatkan kembali bahwa portal resmi *Expedient Generation 43* (Alumni Pondok Modern Arrisalah Slahung Ponorogo, Angkatan 2023) telah aktif untuk mempererat ukhuwah kita:\n\n` +
+      `${intro} Mengingatkan kembali bahwa portal resmi *Expedient Generation 43* (Alumni Pondok Modern Arrisalah Slahung Ponorogo, Angkatan 2025) telah aktif untuk mempererat ukhuwah kita:\n\n` +
       `🌐 *https://expedientgeneration.vercel.app*\n\n` +
       `Di website ini antum bisa:\n` +
       `• Mengisi biodata, foto, & domisili direktori alumni se-Indonesia\n` +
