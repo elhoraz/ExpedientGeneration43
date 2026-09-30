@@ -29,8 +29,15 @@ jobs:
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
-      - name: Sync Capacitor iOS Platform
-        run: npx cap sync ios --verbose
+      - name: Copy Web Assets to iOS
+        run: npx cap copy ios
+        env:
+          DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+
+      - name: Resolve Swift Package Dependencies
+        run: |
+          cd ios/App
+          xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App
         env:
           DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 

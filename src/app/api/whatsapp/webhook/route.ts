@@ -104,6 +104,14 @@ export async function POST(request: Request) {
             msgText = "[Voice Note]";
           } else if (["mp4", "mov", "webm", "3gp"].includes(extension)) {
             msgText = "[Video Note]";
+          } else if (
+            extension === "webp" ||
+            extension === "sticker" ||
+            filename.toLowerCase().includes("sticker") ||
+            filename.toLowerCase().includes("stiker") ||
+            body.type === "sticker"
+          ) {
+            msgText = "[Stiker]";
           } else {
             msgText = "[Media / Gambar]";
           }
@@ -138,6 +146,8 @@ export async function POST(request: Request) {
             text = msg.button?.text || "[Pilihan Tombol]";
           } else if (msg.type === "image") {
             text = msg.image?.caption || "[Gambar Terkirim]";
+          } else if (msg.type === "sticker") {
+            text = "[Stiker]";
           } else {
             text = `[Pesan ${msg.type || "Media"}]`;
           }

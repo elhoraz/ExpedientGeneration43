@@ -14,9 +14,17 @@ export interface MultimodalMessagePayload {
   groupId?: string;
 }
 
+export type MultimodalMediaCategory =
+  | "image"
+  | "audio"
+  | "video"
+  | "document"
+  | "sticker"
+  | "unknown";
+
 export interface MultimodalProcessResult {
   success: boolean;
-  mediaType: "image" | "audio" | "video" | "document" | "unknown";
+  mediaType: MultimodalMediaCategory;
   replyText: string;
   transcription?: string;
   isTransferReceipt?: boolean;
@@ -29,7 +37,7 @@ export function resolveMimeType(
   extension?: string,
   filename?: string,
   headerContentType?: string
-): { mimeType: string; category: "image" | "audio" | "video" | "document" | "unknown" } {
+): { mimeType: string; category: MultimodalMediaCategory } {
   let ext = (extension || "").toLowerCase().replace(/^\./, "").trim();
   if (!ext && filename) {
     const parts = filename.split(".");
@@ -38,9 +46,22 @@ export function resolveMimeType(
     }
   }
 
+  // Khusus STIKER WhatsApp (.webp atau ekstensi sticker)
+  if (
+    ext === "sticker" ||
+    ext === "webp" ||
+    filename?.toLowerCase().includes("sticker") ||
+    filename?.toLowerCase().includes("stiker")
+  ) {
+    return { mimeType: "image/webp", category: "sticker" };
+  }
+
   // 1. Cek header Content-Type dari server jika spesifik
   if (headerContentType && headerContentType.includes("/")) {
     const cleanType = headerContentType.split(";")[0].trim().toLowerCase();
+    if (cleanType === "image/webp") {
+      return { mimeType: "image/webp", category: "sticker" };
+    }
     if (cleanType.startsWith("image/")) {
       return { mimeType: cleanType === "image/jpg" ? "image/jpeg" : cleanType, category: "image" };
     }
@@ -63,12 +84,15 @@ export function resolveMimeType(
       return { mimeType: "image/jpeg", category: "image" };
     case "png":
       return { mimeType: "image/png", category: "image" };
-    case "webp":
-      return { mimeType: "image/webp", category: "image" };
     case "heic":
       return { mimeType: "image/heic", category: "image" };
     case "heif":
       return { mimeType: "image/heif", category: "image" };
+
+    // STIKER WHATSAPP
+    case "webp":
+    case "sticker":
+      return { mimeType: "image/webp", category: "sticker" };
 
     // VOICE NOTE / AUDIO
     case "opus":
@@ -109,11 +133,11 @@ export function resolveMimeType(
  */
 export function shouldProcessGroupMedia(
   groupId: string,
-  category: "image" | "audio" | "video" | "document" | "unknown",
+  category: "image" | "audio" | "video" | "document" | "sticker" | "unknown",
   caption?: string
 ): boolean {
-  // 1. Di Grup Desain Grafis: Setiap gambar/poster SELALU direview otomatis
-  if (isDesignGroupId(groupId) && category === "image") {
+  // 1. Di Grup Desain Grafis: Setiap gambar/poster/stiker kreatif SELALU direview otomatis
+  if (isDesignGroupId(groupId) && (category === "image" || category === "sticker")) {
     return true;
   }
 
@@ -341,6 +365,34 @@ TUGAS KHUSUS VIDEO NOTE / REKAMAN VIDEO:
 PENTING:
 - Angkatan ini adalah ANGKATAN 2025.
 - Respon harus hidup, interaktif, dan bernuansa persaudaraan alumni santri Arrisalah.
+`.trim();
+    } else if (category === "sticker") {
+      // CABANG E: STIKER WHATSAPP (.WEBP / MEME / REAKSI EKSPRESI)
+      promptInstruction = `
+Kamu adalah Asisten Cerdas Multimodal "Expedient Generation 43" (Alumni Pondok Modern Arrisalah Slahung Ponorogo, ANGKATAN 2025).
+
+Pengirim: ${displayName} (${senderPhone})
+Tipe Media: STIKER WHATSAPP (.webp)
+Konteks: ${isGroup ? "Grup WhatsApp Angkatan" : "Chat Pribadi (1-on-1)"}
+Caption: "${caption || ""}"
+
+TUGAS UTAMA: BACA & TANGGAPI STIKER WHATSAPP INI
+1. Analisis isi visual stiker:
+   - BACA TEKS / TULISAN apa pun yang ada di stiker tersebut (jika ada).
+   - Kenali ekspresi visual, wajah, karakter meme (misal kucing, anime, tokoh, ekspresi kaget, ngakak, menangis komedi, santri, ustadz, stiker khas WA, dll).
+2. Berikan respons balasan WhatsApp yang cerdas, asyik, dan nyambung:
+   - JIKA STIKER BERISI SALAM / DOA (contoh: "Assalamu'alaikum", "Jazakallah Khair", "Barakallahu Fiik", "Bismillah", "Alhamdulillah"):
+     Jawab salam / aminkan doanya dengan sopan, ramah, dan santun khas santri Arrisalah angkatan 2025.
+   - JIKA STIKER MEME / REAKSI LUCU / SINDIRAN KOMEDI / GEMAS (contoh: muka melongo, ngakak, "terserah", "siap komandan", "puncak komedi", "capek batin", dll):
+     Balas dengan gaya witty, ceria, dan kocak ala obrolan santai antar sahabat santri seangkatan. Boleh ikut mengomentari ekspresi stikernya (contoh: "Muka lu pas denger bel marhalah bunyi wkwk", "Stiker dapet nemu di mana ini akhi 😂", "Wkwk ekspresinya mewakili banget!").
+   - JIKA STIKER BINGUNG / TANYA / TANDA TANYA:
+     Tanyakan santai ada apa atau tawarkan bantuan.
+3. Gaya bahasa:
+   - Santai, bersahabat, sedikit sentuhan santri (akhi, antum, mas, bro, wkwk), tidak kaku.
+   - Singkat dan pas untuk balasan stiker (1-2 kalimat padat, ekspresif, dan hidup).
+
+PENTING:
+- Angkatan ini adalah ANGKATAN 2025.
 `.trim();
     } else {
       // DOKUMEN / PDF / LAINNYA
