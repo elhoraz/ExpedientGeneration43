@@ -4,12 +4,20 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import webpush from "web-push";
 import { sendFcmNotification } from "@/lib/fcmServer";
 
-// Configure Web Push with VAPID Keys
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || "mailto:admin@expedientgeneration.com",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
-  process.env.VAPID_PRIVATE_KEY || ""
-);
+export const dynamic = "force-dynamic";
+
+// Configure Web Push with VAPID Keys if available
+if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || "mailto:admin@expedientgeneration.com",
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  } catch (err) {
+    console.warn("[Push] Failed to set VAPID details:", err);
+  }
+}
 
 /**
  * POST /api/push/call

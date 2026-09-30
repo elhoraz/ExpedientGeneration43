@@ -2,12 +2,20 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import webpush from "web-push";
 
-// Konfigurasi Web Push dengan VAPID Keys
-webpush.setVapidDetails(
-  process.env.VAPID_SUBJECT || "mailto:admin@expedientgeneration.com",
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
-  process.env.VAPID_PRIVATE_KEY || ""
-);
+export const dynamic = "force-dynamic";
+ 
+// Konfigurasi Web Push dengan VAPID Keys jika tersedia
+if (process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  try {
+    webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || "mailto:admin@expedientgeneration.com",
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+    );
+  } catch (err) {
+    console.warn("[Push] Failed to set VAPID details:", err);
+  }
+}
 
 export async function POST(req: Request) {
   try {

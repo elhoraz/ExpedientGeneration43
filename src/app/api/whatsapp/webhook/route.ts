@@ -36,6 +36,9 @@ export async function POST(request: Request) {
       member?: string;
       group?: string;
       isGroup?: boolean;
+      mediaUrl?: string;
+      filename?: string;
+      extension?: string;
     }> = [];
 
     let rawBody: any = null;
@@ -69,7 +72,7 @@ export async function POST(request: Request) {
       if (!body) continue;
 
       // A. Format Webhook Fonnte
-      if (body.sender || body.message || body.text) {
+      if (body.sender || body.message || body.text || body.url || body.file) {
         const senderStr = String(body.sender || "").trim();
         const memberStr = String(body.member || "").trim();
         const groupStr = String(body.group || body.group_id || body.chatid || "").trim();
@@ -82,13 +85,28 @@ export async function POST(request: Request) {
           groupStr.includes("@g.us")
         );
 
+        const mediaUrl = String(body.url || body.file || (body.message && body.message.url) || "").trim();
+        const filename = String(body.filename || "").trim();
+        const extension = String(body.extension || "").trim().toLowerCase();
+
         let msgText = "";
         if (typeof body.message === "string") {
           msgText = body.message;
         } else if (body.message && typeof body.message === "object") {
-          msgText = body.message.text || body.message.caption || JSON.stringify(body.message);
+          msgText = body.message.text || body.message.caption || "";
         } else {
           msgText = String(body.text || "");
+        }
+
+        // Jika ada media namun caption kosong, berikan label penanda
+        if (mediaUrl && !msgText) {
+          if (["opus", "ogg", "mp3", "m4a", "wav"].includes(extension)) {
+            msgText = "[Voice Note]";
+          } else if (["mp4", "mov", "webm", "3gp"].includes(extension)) {
+            msgText = "[Video Note]";
+          } else {
+            msgText = "[Media / Gambar]";
+          }
         }
 
         incomingList.push({
@@ -99,6 +117,9 @@ export async function POST(request: Request) {
           member: memberStr,
           group: groupStr,
           isGroup: isGrp,
+          mediaUrl: mediaUrl || undefined,
+          filename: filename || undefined,
+          extension: extension || undefined,
         });
       }
       // B. Format Webhook Resmi Meta Cloud API
@@ -136,10 +157,10 @@ export async function POST(request: Request) {
     for (const item of incomingList) {
       const rawSender = item.sender.trim();
       const messageText = item.messageText.trim();
-      if (!rawSender || !messageText) continue;
+      if (!rawSender || (!messageText && !item.mediaUrl)) continue;
 
       // =====================================================================
-      // 1. PENANGANAN PESAN DARI GRUP WHATSAPP (Grup Non-Resmi / Komunitas)
+      // RESOLUSI TARGET: GRUP vs PERSONAL
       // =====================================================================
       const communityGroupDefault = (process.env.WA_GROUP_COMMUNITY_ID || "120363388633880584@g.us").trim();
       let isGroupMsg = false;
@@ -168,6 +189,91 @@ export async function POST(request: Request) {
         targetGroupId = `${targetGroupId}@g.us`;
       }
 
+      let numNorm = rawSender.replace(/\D/g, "");
+      if (numNorm.startsWith("0")) numNorm = "62" + numNorm.substring(1);
+
+      // =====================================================================
+      // 0. PENANGANAN MEDIA MULTIMODAL (Gambar, Voice Note / VN, Video Note)
+      // =====================================================================
+      if (item.mediaUrl) {
+        const {
+          resolveMimeType,
+          shouldProcessGroupMedia,
+          processMultimodalWhatsAppMessage,
+        } = await import("@/lib/whatsapp/multimodalProcessor");
+
+        const { category } = resolveMimeType(item.extension, item.filename);
+
+        if (isGroupMsg && targetGroupId) {
+          const memberName = item.senderName || "Sahabat";
+          const shouldRespond = shouldProcessGroupMedia(targetGroupId, category, messageText);
+
+          if (shouldRespond) {
+            console.log(
+              `[MULTIMODAL-GROUP] Memproses ${category} dari ${participantPhone} (${memberName}) di grup ${targetGroupId}`
+            );
+            const multiRes = await processMultimodalWhatsAppMessage({
+              mediaUrl: item.mediaUrl,
+              filename: item.filename,
+              extension: item.extension,
+              caption: messageText.startsWith("[") ? "" : messageText,
+              senderPhone: participantPhone,
+              senderName: memberName,
+              isGroup: true,
+              groupId: targetGroupId,
+            });
+
+            const { sendWhatsAppGroupMessage, getCommunityGroupId } = await import("@/lib/whatsapp");
+            await sendWhatsAppGroupMessage(targetGroupId, multiRes.replyText);
+
+            if (targetGroupId.includes("120363388633880584") || targetGroupId === getCommunityGroupId()) {
+              const { recordCommunityGroupActivity } = await import("@/lib/whatsapp/communityIcebreaker");
+              await recordCommunityGroupActivity(`[Media ${category}] ${messageText}`, memberName, participantPhone);
+            }
+
+            return NextResponse.json({
+              status: "MULTIMODAL_GROUP_REPLIED",
+              mediaType: category,
+              reply: multiRes.replyText,
+            });
+          } else {
+            console.log(
+              `[MULTIMODAL-GROUP-SKIPPED] Media ${category} diabaikan (bukan grup desain & tidak tag bot).`
+            );
+            return NextResponse.json({
+              status: "MULTIMODAL_GROUP_SKIPPED",
+              mediaType: category,
+            });
+          }
+        } else {
+          // PESAN PERSONAL (1-ON-1): Selalu proses media masuk!
+          const senderDisplayName = item.senderName || "Sahabat";
+          console.log(`[MULTIMODAL-PERSONAL] Memproses ${category} dari ${numNorm} (${senderDisplayName})`);
+
+          const multiRes = await processMultimodalWhatsAppMessage({
+            mediaUrl: item.mediaUrl,
+            filename: item.filename,
+            extension: item.extension,
+            caption: messageText.startsWith("[") ? "" : messageText,
+            senderPhone: numNorm,
+            senderName: senderDisplayName,
+            isGroup: false,
+          });
+
+          const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
+          await sendWhatsAppMessageWithDetail(numNorm, multiRes.replyText);
+
+          return NextResponse.json({
+            status: "MULTIMODAL_PERSONAL_REPLIED",
+            mediaType: category,
+            reply: multiRes.replyText,
+          });
+        }
+      }
+
+      // =====================================================================
+      // 1. PENANGANAN PESAN TEKS DARI GRUP WHATSAPP (Grup Non-Resmi / Komunitas)
+      // =====================================================================
       if (isGroupMsg && targetGroupId) {
         const memberName = item.senderName || "Sahabat";
         console.log(`[WA-GROUP-INCOMING] Grup: ${targetGroupId} | Dari: ${participantPhone} (${memberName}): "${messageText}"`);
@@ -191,8 +297,6 @@ export async function POST(request: Request) {
       // =====================================================================
       // 2. PENANGANAN PESAN PERSONAL (1-ON-1)
       // =====================================================================
-      let numNorm = rawSender.replace(/\D/g, "");
-      if (numNorm.startsWith("0")) numNorm = "62" + numNorm.substring(1);
 
       // Cek apakah pesan berasal dari Nomor WhatsApp Admin
       const isSenderAdmin =
