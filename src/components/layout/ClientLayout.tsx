@@ -71,42 +71,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  // Auto-redirect authenticated APK users from public landing page to /beranda
-  useEffect(() => {
-    if (typeof window === "undefined" || pathname !== "/") return;
-
-    const checkApkUserSession = async () => {
-      try {
-        const isApk = Boolean((window as any).ExpedientNativeBridge);
-        if (isApk) {
-          const supabase = createClient();
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            let pendingUrl = "";
-            if ((window as any).ExpedientNativeBridge?.getPendingNavigateUrl) {
-              pendingUrl = (window as any).ExpedientNativeBridge.getPendingNavigateUrl();
-            }
-            if (pendingUrl && pendingUrl.trim().length > 0) {
-              let target = pendingUrl.trim();
-              if (target.startsWith("http://") || target.startsWith("https://")) {
-                try {
-                  const u = new URL(target);
-                  target = u.pathname + u.search + u.hash;
-                } catch {}
-              }
-              window.location.href = target;
-            } else {
-              window.location.href = "/beranda";
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("APK session check error:", err);
-      }
-    };
-
-    checkApkUserSession();
-  }, [pathname]);
 
   // Handle Supabase Auth Hash Fragment verification (solves implicit flow and email redirects)
   useEffect(() => {

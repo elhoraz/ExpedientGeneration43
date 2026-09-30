@@ -30,33 +30,6 @@ export default function AppNotificationManager() {
         if (isApk || ("Notification" in window && Notification.permission === "default")) {
           await requestSystemNotificationPermission();
         }
-
-        // 2. Send instant welcome/heads-up banner notification on first launch or new session
-        const sessionKey = "expedient_session_notif_sent";
-        const hasSent = sessionStorage.getItem(sessionKey);
-
-        if (!hasSent) {
-          sessionStorage.setItem(sessionKey, "1");
-
-          // Delay slightly so app UI is fully painted and visible
-          setTimeout(async () => {
-            const success = await sendSystemNotification({
-              title: "⚜️ Expedient Generation 43",
-              message: "Notifikasi melayang aktif! Jadwal shalat, panggilan video/suara, dan kabar alumni siap diterima.",
-              url: "/kiblat",
-            });
-
-            if (success) {
-              showToast(
-                "Notifikasi & Alarm Aktif",
-                isApk
-                  ? "Aplikasi terhubung dengan sistem notifikasi resmi. Panggilan dan alarm adzan siap berbunyi."
-                  : "Notifikasi melayang dan pengingat waktu shalat siap berjalan.",
-                "success"
-              );
-            }
-          }, 2000);
-        }
       } catch (err) {
         console.warn("Notification manager initialization notice:", err);
       }

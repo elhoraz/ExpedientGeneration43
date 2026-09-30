@@ -1123,44 +1123,6 @@ export default function KiblatClient() {
                 </div>
               </div>
 
-              {/* Uji Alarm Adzan di Layar Kunci */}
-              <div style={{ marginTop: "14px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (typeof window !== "undefined") {
-                      if ((window as any).testAdzanAlarm) {
-                        (window as any).testAdzanAlarm(5);
-                      } else if ((window as any).ExpedientNativeBridge?.testPrayerAlarm) {
-                        (window as any).ExpedientNativeBridge.testPrayerAlarm(5);
-                      }
-                    }
-                  }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    width: "100%",
-                    padding: "10px 16px",
-                    borderRadius: "12px",
-                    background: "linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.08) 100%)",
-                    border: "1px solid rgba(212, 175, 55, 0.5)",
-                    color: "#f3ba2f",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    boxShadow: "0 4px 15px rgba(212, 175, 55, 0.15)",
-                    transition: "all 0.2s ease",
-                  }}
-                >
-                  <i className="fa-solid fa-bell" />
-                  <span>Uji Alarm Adzan di Layar Kunci (5 Detik)</span>
-                </button>
-                <span style={{ fontSize: "0.72rem", color: "#94a3b8", textAlign: "center" }}>
-                  💡 Ketuk tombol ini lalu langsung kunci layar HP Anda untuk mencoba kumandang adzan otomatis saat layar mati!
-                </span>
-              </div>
 
               {/* Doa Setelah Adzan Collapsible */}
               <div className="adzan-doa-toggle-wrap">

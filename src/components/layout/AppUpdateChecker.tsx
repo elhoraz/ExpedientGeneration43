@@ -37,6 +37,11 @@ export default function AppUpdateChecker() {
         // Hanya tampilkan jika di lingkungan aplikasi / WebView mobile
         if (!isApk) return;
 
+        // Jangan pernah tampilkan jika sudah ditutup pada sesi ini
+        if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("dismissed_update_session") === "1") {
+          return;
+        }
+
         let installedCode = 1;
         let installedName = "1.0.0";
 
@@ -57,23 +62,17 @@ export default function AppUpdateChecker() {
 
         // Check if there is a newer versionCode
         if (data.latestVersionCode > installedCode) {
-          const isMandatory = Boolean(
-            data.forceUpdate ||
-            (data.minSupportedVersionCode && installedCode < data.minSupportedVersionCode)
-          );
-
-          if (!isMandatory) {
-            try {
-              const dismissedVer = localStorage.getItem("dismissed_update_version");
-              const dismissedTime = Number(localStorage.getItem("dismissed_update_time") || 0);
-              if (
-                dismissedVer === String(data.latestVersionCode) &&
-                Date.now() - dismissedTime < 24 * 60 * 60 * 1000
-              ) {
-                return;
-              }
-            } catch {}
-          }
+          try {
+            const dismissedVer = localStorage.getItem("dismissed_update_version");
+            const dismissedTime = Number(localStorage.getItem("dismissed_update_time") || 0);
+            // Jangan ganggu pengguna jika sudah ditutup dalam 3 hari terakhir
+            if (
+              dismissedVer === String(data.latestVersionCode) &&
+              Date.now() - dismissedTime < 3 * 24 * 60 * 60 * 1000
+            ) {
+              return;
+            }
+          } catch {}
 
           setVersionData(data);
           setUpdateAvailable(true);
@@ -84,7 +83,7 @@ export default function AppUpdateChecker() {
     };
 
     // Run check after initial load
-    const timer = setTimeout(checkUpdate, 1200);
+    const timer = setTimeout(checkUpdate, 2500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -93,6 +92,7 @@ export default function AppUpdateChecker() {
     setIsUpdating(true);
 
     try {
+      sessionStorage.setItem("dismissed_update_session", "1");
       localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
       localStorage.setItem("dismissed_update_time", String(Date.now()));
     } catch {}
@@ -125,15 +125,25 @@ export default function AppUpdateChecker() {
     setIsDismissed(true);
     setUpdateAvailable(false);
     try {
-      if (versionData && !versionData.forceUpdate) {
+      sessionStorage.setItem("dismissed_update_session", "1");
+      if (versionData) {
         localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
         localStorage.setItem("dismissed_update_time", String(Date.now()));
       }
     } catch {}
   };
 
-  // Jangan pernah tampilkan pop-up pembaruan jika pengguna sedang berada di halaman /download
-  if (pathname === "/download" || pathname?.startsWith("/download/") || !updateAvailable || isDismissed || !versionData) {
+  // Jangan pernah tampilkan pop-up jika pengguna di landing page, login, atau pusat unduhan
+  if (
+    pathname === "/" ||
+    pathname === "/download" ||
+    pathname?.startsWith("/download/") ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    !updateAvailable ||
+    isDismissed ||
+    !versionData
+  ) {
     return null;
   }
 
@@ -235,10 +245,10 @@ export default function AppUpdateChecker() {
             style={{
               padding: "0.75rem 1rem",
               borderRadius: "12px",
-              background: "rgba(239, 68, 68, 0.12)",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
-              color: "#fca5a5",
-              fontSize: "0.8rem",
+              background: "rgba(212, 175, 55, 0.1)",
+              border: "1px solid rgba(212, 175, 55, 0.25)",
+              color: "#f3ba2f",
+              fontSize: "0.82rem",
               lineHeight: 1.5,
               marginBottom: "1rem",
               display: "flex",
@@ -246,9 +256,9 @@ export default function AppUpdateChecker() {
               gap: "8px",
             }}
           >
-            <i className="fa-solid fa-triangle-exclamation" style={{ color: "#ef4444", marginTop: "3px", flexShrink: 0 }} />
+            <i className="fa-solid fa-sparkles" style={{ color: "#f3ba2f", marginTop: "3px", flexShrink: 0 }} />
             <span>
-              Perangkat Anda masih menggunakan versi lama. Harap <strong>perbarui terlebih dahulu</strong> ke versi terbaru agar dapat menerima panggilan suara/video, notifikasi pesan saat layar mati, dan kumandang alarm adzan otomatis.
+              Tersedia versi baru dengan pembaruan stabilitas dan fitur panggilan interaktif. Anda dapat memperbarui sekarang atau membukanya nanti di Pusat Unduhan.
             </span>
           </div>
         )}
@@ -333,7 +343,7 @@ export default function AppUpdateChecker() {
                 transition: "all 0.2s ease",
               }}
             >
-              {versionData.forceUpdate ? "Lanjut Sementara" : "Nanti Saja"}
+              Nanti Saja
             </button>
             <button
               type="button"

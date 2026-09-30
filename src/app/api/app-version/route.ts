@@ -17,7 +17,7 @@ export async function GET() {
       "🔔 Ringtone nada panggil telepon berulang secara otomatis dan berhenti saat dijawab atau ditolak",
       "⚡ Sinkronisasi otomatis session & keamanan koneksi latar belakang"
     ],
-    forceUpdate: true,
-    minSupportedVersionCode: 3,
+    forceUpdate: false,
+    minSupportedVersionCode: 1,
   });
 }
