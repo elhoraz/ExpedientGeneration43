@@ -19,11 +19,15 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install NPM Dependencies
-        run: npm ci
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
 
       - name: Build Web Application
-        run: npm run build
+        run: |
+          export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://dodcwulqgrhqpbldrlik.supabase.co}"
+          export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvZGN3dWxxZ3JocXBibGRybGlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NzQ1ODIsImV4cCI6MjA5NjU1MDU4Mn0.Z4xKO9aQ8NgGuD_c6_tIoTE_lhVkTprXRJzJ-_hkREc}"
+          export NEXT_PUBLIC_SITE_URL="https://expedientgeneration.vercel.app"
+          npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
@@ -31,24 +35,32 @@ jobs:
       - name: Sync Capacitor iOS Platform
         run: npx cap sync ios
 
-      - name: Setup Xcode
-        uses: maxim-lobenchenko/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+      - name: Verify Xcode Version
+        run: xcodebuild -version
 
-      - name: Build iOS Archive (Unsigned)
+      - name: Build iOS Application
         run: |
           cd ios/App
-          xcodebuild -scheme App \
+          xcodebuild build \
+            -project App.xcodeproj \
+            -scheme App \
             -destination 'generic/platform=iOS' \
-            -archivePath build/Expedient43.xcarchive \
-            archive \
+            -configuration Release \
+            CONFIGURATION_BUILD_DIR=./build/output \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
 
-      - name: Upload iOS Build Artifact
+      - name: Package into IPA File
+        run: |
+          cd ios/App
+          mkdir -p build/Payload
+          cp -r build/output/App.app build/Payload/
+          cd build
+          zip -r Expedient43-iOS.ipa Payload
+
+      - name: Upload iOS IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Expedient43-iOS-Archive
-          path: ios/App/build/Expedient43.xcarchive
+          name: Expedient43-iOS-IPA
+          path: ios/App/build/Expedient43-iOS.ipa
