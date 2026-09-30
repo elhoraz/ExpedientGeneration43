@@ -22,28 +22,26 @@ export function isDesignGroupId(groupId: string): boolean {
 
 /**
  * Filter Cerdas: Memeriksa apakah bot harus merespons di dalam Grup Graphic Design
+ * ATURAN MUTLAK: JANGAN ikut nimbrung jika TIDAK di-tag atau TIDAK dipanggil langsung!
+ * Anggota tim desainer bebas ngobrol santai antar mereka tanpa diganggu bot.
  */
 export function shouldDesignBotRespond(messageText: string): boolean {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot atau Panggilan Tim Desain
+  // 1. Tag / Mention Bot (@bot, @89675010185, @min, dsb)
   if (
     lower.includes("89675010185") ||
     lower.includes("@bot") ||
-    lower.includes("bot") ||
-    lower.includes("minbot") ||
-    /\bmin\b/i.test(lower) ||
-    lower.includes("editor") ||
-    lower.includes("desain") ||
-    lower.includes("design") ||
-    lower.includes("studio") ||
-    lower.includes("@")
+    lower.includes("@min") ||
+    lower.includes("@admin") ||
+    lower.includes("@expedient") ||
+    lower.includes("@") // Tag mention WhatsApp
   ) {
     return true;
   }
 
-  // 2. Command Prefix
+  // 2. Command Prefix (!, /, #, ?)
   if (
     messageText.startsWith("!") ||
     messageText.startsWith("/") ||
@@ -53,39 +51,31 @@ export function shouldDesignBotRespond(messageText: string): boolean {
     return true;
   }
 
-  // 3. Sapaan langsung / testing
+  // 3. Panggilan eksplisit kepada bot di awal atau akhir kalimat
   if (
-    lower === "tes" ||
-    lower === "test" ||
-    lower === "ping" ||
-    lower === "p" ||
-    lower.startsWith("p ") ||
-    lower.startsWith("halo") ||
-    lower.startsWith("hai") ||
-    lower.startsWith("assalamu")
+    lower.startsWith("bot ") ||
+    lower.startsWith("bot,") ||
+    lower.startsWith("min ") ||
+    lower.startsWith("min,") ||
+    lower === "bot" ||
+    lower === "min" ||
+    lower.startsWith("halo bot") ||
+    lower.startsWith("hai bot") ||
+    lower.startsWith("tes bot") ||
+    lower.startsWith("p bot") ||
+    /(^|\s)(bot|min)[?!,.]*$/i.test(lower)
   ) {
     return true;
   }
 
-  // 4. Kata Kunci Seputar Desain Grafis, Jadwal, Aset, Brainstorming
-  const designKeywords = [
-    "poster", "ide", "tema", "warna", "palet", "font", "tipografi",
-    "jadwal", "kalender", "agenda", "deadline", "ultah", "ulang tahun",
-    "milad", "brief", "aset", "foto", "canva", "photoshop", "illustrator",
-    "figma", "revisi", "draft", "karya", "g30s", "santri", "pahlawan",
-    "pancasila", "review", "mockup", "feed", "story", "banner", "pamflet",
-    "flyer", "ukuran", "resolusi", "gambar", "pinterest", "referensi", "konsep"
-  ];
-  if (designKeywords.some((kw) => lower.includes(kw))) {
-    return true;
-  }
-
+  // Jika anggota saling mengobrol santai atau berdiskusi antar sesama anggota:
+  // JANGAN NIMBRUNG! Biarkan mereka bebas berdiskusi & brainstorming santai.
   return false;
 }
 
 /**
  * Memformat pesan Alert Desain yang menyertakan tag @semua, copywriting siap pakai,
- * dan link 1-klik ke moodboard Pinterest & Google Images.
+ * link 1-klik ke moodboard Pinterest & Google Images, serta Aset Poster Siap Posting (Story & Feed).
  */
 export function formatDesignAlertMessage(item: UpcomingItem): string {
   const urgencyLabel =
@@ -118,6 +108,15 @@ export function formatDesignAlertMessage(item: UpcomingItem): string {
       `_(Buka link di atas untuk ambil foto profil kualitas tinggi sahabat yang milad!)_\n`;
   }
 
+  let readyPostersSection = "";
+  if (item.storyImageUrl || item.feedImageUrl) {
+    readyPostersSection =
+      `\n🖼️ *DESAIN POSTER SIAP UPLOAD (TINGGAL TERIMA JADI):*\n` +
+      (item.storyImageUrl ? `• 📱 *Story IG (9:16 / 1080x1920):*\n  🔗 ${item.storyImageUrl}\n` : "") +
+      (item.feedImageUrl ? `• 📸 *Feed IG (1:1 / 1080x1080):*\n  🔗 ${item.feedImageUrl}\n` : "") +
+      `_(Desain resmi sudah dibuat & siap langsung diposting ke medsos! Mantap!)_\n`;
+  }
+
   return (
     `📢 @semua *[CALL FOR EDITORS - EXPEDIENT CREATIVE STUDIO]* 🎨✨\n\n` +
     `${urgencyLabel}\n` +
@@ -128,12 +127,13 @@ export function formatDesignAlertMessage(item: UpcomingItem): string {
     `🎨 *Mood & Konsep Desain:*\n` +
     `• *Tema:* ${item.suggestedTheme}\n` +
     `• *Palet Warna (Hex):* ${paletteStr}\n` +
-    `• *Format Rasio:* Feed Instagram (1:1 / 1080x1080) & WhatsApp Story (9:16 / 1080x1920)\n` +
+    `• *Format Rasio:* Feed Instagram (1:1) & WhatsApp Story (9:16)\n` +
+    readyPostersSection +
     assetSection +
     `\n💡 *Moodboard & Referensi Visual Cepat (1-Klik):*\n` +
     `📌 *Pinterest Moodboard:* ${item.pinterestUrl}\n` +
     `🔍 *Google Images:* ${item.googleImagesUrl}\n\n` +
-    `Ayo tim desainer, siapa yang pegang poster ini? Jangan sampai mepet deadline ya sahabat! Semangat berkarya! 🚀🔥`
+    `Ayo tim desainer, yang mau edit atau langsung posting desain di atas monggo gaspol! Semangat berkarya! 🚀🔥`
   );
 }
 
@@ -156,7 +156,15 @@ export async function runDailyDesignAlerts(): Promise<{
 
   for (const item of targetItems) {
     const alertMsg = formatDesignAlertMessage(item);
-    const sendRes = await sendWhatsAppGroupMessage(designGroupId, alertMsg);
+    let sendRes: { success: boolean; reason?: string } = { success: false };
+
+    // Jika memiliki gambar poster siap jadi, kirim langsung sebagai media gambar WhatsApp!
+    if (item.storyImageUrl) {
+      const { sendWhatsAppGroupMedia } = await import("@/lib/whatsapp");
+      sendRes = await sendWhatsAppGroupMedia(designGroupId, alertMsg, item.storyImageUrl);
+    } else {
+      sendRes = await sendWhatsAppGroupMessage(designGroupId, alertMsg);
+    }
 
     if (sendRes.success) {
       alertsSent.push(`${item.title} (H-${item.daysLeft})`);
@@ -175,9 +183,9 @@ export async function runDailyDesignAlerts(): Promise<{
 
 /**
  * Handler Percakapan Cerdas Khusus Grup Graphic Design:
- * - Menjaga topik STRICT: Hanya desain grafis, visual, ide poster, tanggal kalender, dan brainstorming.
- * - Jika obrolan melenceng dari desain: Meminta maaf dengan sopan dan meluruskan kembali ke topik desain.
- * - Menyediakan fitur instan: jadwal poster, ide konsep, review poster, aset alumni.
+ * - Menjadi Art Director & Creative Partner yang asik, santai, dan solutif.
+ * - Mendukung obrolan santai tim sebagai bagian dari brainstorming alami (TIDAK kaku / tidak menyalahkan).
+ * - Menyediakan poster siap posting untuk Feed IG (1:1) dan Story IG (9:16) agar tim bisa terima jadi.
  */
 export async function handleDesignStudioConversation(options: {
   senderPhone: string;
@@ -202,7 +210,7 @@ export async function handleDesignStudioConversation(options: {
     if (upcoming.length === 0) {
       return (
         `Hai Sahabat *${senderName}*! 👋🎨\n\n` +
-        `Dalam 14 hari ke depan tidak ada agenda ultah atau hari besar nasional/Islam terdekat. Tetap siaga dan pantau terus ya! ✨`
+        `Dalam 14 hari ke depan tidak ada agenda ultah atau hari besar terdekat. Tetap santai dan pantau terus ya! ✨`
       );
     }
 
@@ -218,7 +226,12 @@ export async function handleDesignStudioConversation(options: {
           : `⏳ *H-${u.daysLeft}*`;
       summaryText += `${i + 1}. ${daysStr} — *${u.title}* (${u.dateStr})\n`;
       summaryText += `   Tema: _${u.suggestedTheme.split(",")[0]}_\n`;
-      summaryText += `   📌 Ref: ${u.pinterestUrl}\n\n`;
+      if (u.storyImageUrl) {
+        summaryText += `   🖼️ *Poster Siap Pakai:* ${u.storyImageUrl}\n`;
+      } else {
+        summaryText += `   📌 *Ref:* ${u.pinterestUrl}\n`;
+      }
+      summaryText += `\n`;
     });
 
     summaryText += `Ketik: *@bot brief [nama agenda]* untuk mendapatkan paket copywriting & palet warna lengkap! 🚀`;
@@ -260,53 +273,55 @@ export async function handleDesignStudioConversation(options: {
   // 3. AI Cognitive Engine: Head of Creative Design & Studio Lead
   if (!geminiApiKey) {
     return (
-      `Halo Sahabat *${senderName}*! Sebagai tim desain, pastikan poster dibuat dengan ukuran 1:1 untuk feed dan 9:16 untuk story ya. ` +
+      `Halo Sahabat *${senderName}*! Sebagai studio desain, poster kita siapkan untuk Story IG (9:16) dan Feed IG (1:1) ya. ` +
       `Ketik *jadwal* untuk melihat kalender poster terdekat! 🎨`
     );
   }
 
   // Ambil konteks event terdekat saat ini
   const upcoming = await getUpcomingDesignCalendar(7);
-  const eventContext = upcoming.slice(0, 3).map((e) => `- ${e.title} (${e.dateStr}, H-${e.daysLeft})`).join("\n");
+  const eventContext = upcoming.slice(0, 3).map((e) => {
+    let s = `- ${e.title} (${e.dateStr}, H-${e.daysLeft})`;
+    if (e.storyImageUrl) s += ` [Desain Siap Pakai Tersedia: Story & Feed]`;
+    return s;
+  }).join("\n");
 
   const prompt = `
-You are the official Creative Director, Art Director, and Studio Lead AI of "Expedient Generation 43" in their dedicated Graphic Design / Editors WhatsApp Group.
+You are the official Creative Studio Partner & Art Director AI of "Expedient Generation 43" in their dedicated Graphic Design / Editors WhatsApp Group.
 Your team consists of santri alumni graphic designers and editors who create posters for birthdays, national events (e.g. G30S/PKI, Kesaktian Pancasila, Sumpah Pemuda, Hari Santri, Hari Pahlawan), and Islamic holidays.
 
 USER CONTEXT:
 - Sender Name: ${senderName}
 - User Message: "${messageText}"
 
-UPCOMING EVENTS ON THE CALENDAR:
+UPCOMING EVENTS & READY-TO-POST POSTERS:
 ${eventContext || "Tidak ada event besar dalam 3 hari ke depan."}
+- Kesaktian Pancasila 1 Oktober:
+  • Story IG (9:16): https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_story.jpg
+  • Feed IG (1:1): https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_feed.jpg
+- Peringatan G30S/PKI 30 September:
+  • Story IG (9:16): https://expedientgeneration.vercel.app/images/posters/g30s_pki_story.jpg
+  • Feed IG (1:1): https://expedientgeneration.vercel.app/images/posters/g30s_pki_feed.jpg
 
-CRITICAL RULES & STRICT PERSONA:
-1. STRICT TOPIC ENFORCEMENT:
-   - This group is EXCLUSIVELY for Graphic Design, Visual Brainstorming, Poster Copywriting, Typography, Color Palette, Layout Compositions, Software Tips (Photoshop, Canva, Illustrator, Figma), and Content Scheduling/Deadlines.
-   - IF THE USER'S MESSAGE IS OFF-TOPIC (talking about politics, football, random jokes, personal gossip, or unrelated issues):
-     You MUST politely apologize, state that this group is strictly for design & creative production, and gently steer them back to creative poster topics.
-     Example off-topic response:
-     "Mohon maaf Sahabat ${senderName}, di grup Graphic Design ini kita fokus pada perancangan visual, ide konten poster, tanggal peringatan, dan brainstorming kreatif ya. Biar studio kita tetap produktif! 🎨 Yuk, ada konsep poster atau aset yang mau kita bedah bareng?"
+COMMUNICATION & PERSONALITY GUIDELINES:
+1. CASUAL CHAT & CHILL BRAINSTORMING:
+   - Obrolan santai, humor, kopi, bola, dan candaan antar sahabat adalah hal yang wajar dan bagian penting dari brainstorming kreatif tim!
+   - JANGAN PERNAH menyalahkan, menceramahi, atau meminta maaf kaku seperti "mohon maaf jangan bahas ini".
+   - Jika pengguna menyapa santai atau ngajak ngobrol santai, tanggapi dengan hangat, asik, akrab, dan santai layaknya teman nongkrong di studio desain.
 
-2. IF THE USER'S MESSAGE IS ON-TOPIC (asking for ideas, design feedback, colors, dates, concept brainstorming):
-   - Act like an enthusiastic, knowledgeable, and state-of-the-art Art Director.
-   - Provide concrete, visual advice:
-     • Suggested Color Palettes (give exact HEX codes or vivid color names)
-     • Recommended Typography (e.g. Bold Editorial Serif, Clean Geometric Sans, Brush Calligraphy)
-     • Composition / Layout tips (Margins, focal points, whitespace)
-     • Copywriting / Headlines ready to paste onto the poster
-   - Provide 1-click Pinterest or Google Images search links if relevant:
-     Pinterest: https://www.pinterest.com/search/pins/?q=[encoded+query]
-     Google: https://www.google.com/search?tbm=isch&q=[encoded+query]
-   - Tone: Energetic, friendly, appreciative of creative labor, with polite santri warmth ("Sahabat", "Mantap", "Keren", "Bismillah").
-   - Length: Concise, clean WhatsApp bullet points (3 to 6 lines max), easy to read on mobile.
+2. VISUAL ASSISTANCE & READY-TO-POST POSTERS ("TERIMA JADI"):
+   - Jika pengguna bertanya tentang poster, ide, atau desain:
+     • Berikan panduan visual keren: warna (kode HEX), tipografi, dan komposisi.
+     • Berikan copywriting siap tempel.
+     • Beritahukan bahwa poster resmi siap pakai (Feed 1:1 & Story 9:16) SUDAH TERSEDIA dan bisa langsung didownload & diposting ke medsos!
+   - Tulis dengan gaya santri modern yang bersemangat, suportif, dan ringkas (maksimal 3-6 baris rapi).
 `.trim();
 
   try {
     const body = {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.3,
+        temperature: 0.4,
       },
     };
 
@@ -320,7 +335,6 @@ CRITICAL RULES & STRICT PERSONA:
   }
 
   return (
-    `Halo Sahabat *${senderName}*! Sebagai Studio Desain Expedient, kita fokus pada karya visual, ide poster, dan jadwal produksi ya. ` +
-    `Ada ide konsep poster atau tanggal terdekat yang mau kita siapkan bareng? 🎨✨`
+    `Siap Sahabat *${senderName}*! Studio Desain Expedient siap sedia. Mau brainstorming ide santai atau butuh link poster siap posting? 🎨✨`
   );
 }

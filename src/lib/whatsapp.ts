@@ -201,3 +201,42 @@ export async function broadcastWhatsAppMessage(targets: string[], message: strin
 
   return successCount > 0;
 }
+
+/**
+ * Mengirim gambar/poster langsung ke Grup WhatsApp via Fonnte
+ */
+export async function sendWhatsAppGroupMedia(
+  groupId: string,
+  message: string,
+  mediaUrl: string
+): Promise<{ success: boolean; reason?: string }> {
+  const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
+  if (!fonnteToken) {
+    return { success: false, reason: "FONNTE_TOKEN tidak tersedia" };
+  }
+
+  try {
+    const params = new URLSearchParams();
+    params.append("target", groupId.replace(/^group:/i, ""));
+    params.append("message", message);
+    params.append("url", mediaUrl);
+    params.append("delay", "2");
+
+    const response = await fetch("https://api.fonnte.com/send", {
+      method: "POST",
+      headers: {
+        Authorization: fonnteToken,
+      },
+      body: params,
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (response.ok && Boolean(result.status)) {
+      console.log(`[FONNTE-MEDIA-SUCCESS] Media terkirim ke grup ${groupId}`);
+      return { success: true };
+    }
+    return { success: false, reason: result.reason || JSON.stringify(result) };
+  } catch (err: any) {
+    return { success: false, reason: err.message };
+  }
+}

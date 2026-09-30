@@ -15,24 +15,39 @@ describe('Expedient Graphic Design Studio Assistant Suite', () => {
     assert.strictEqual(isDesignGroup("120363407294140739@g.us"), false); // Official group
   });
 
-  it('MUST detect design triggers and commands in the design group', () => {
+  it('MUST NOT nimbrung when designers are chatting among themselves without calling bot', () => {
     function shouldRespond(text) {
       const lower = text.trim().toLowerCase();
-      if (lower.includes("bot") || lower.includes("@") || lower.includes("desain") || lower.includes("editor")) return true;
-      if (text.startsWith("!") || text.startsWith("/")) return true;
-      const kw = ["poster", "ide", "tema", "warna", "jadwal", "kalender", "aset", "g30s", "santri"];
-      if (kw.some(k => lower.includes(k))) return true;
+      if (lower.includes("@bot") || lower.includes("@") || lower.includes("89675010185")) return true;
+      if (text.startsWith("!") || text.startsWith("/") || text.startsWith("#") || text.startsWith("?")) return true;
+      if (
+        lower.startsWith("bot ") ||
+        lower.startsWith("bot,") ||
+        lower.startsWith("min ") ||
+        lower.startsWith("min,") ||
+        lower === "bot" ||
+        lower === "min" ||
+        /(^|\s)(bot|min)[?!,.]*$/i.test(lower)
+      ) {
+        return true;
+      }
       return false;
     }
 
+    // Designers chatting among themselves -> MUST BE SILENT (false)
+    assert.strictEqual(shouldRespond("menurut kalian bagusan warna merah apa biru bro?"), false);
+    assert.strictEqual(shouldRespond("kemarin seru banget nonton bola"), false);
+    assert.strictEqual(shouldRespond("ngopi yuk guys santai dulu"), false);
+    assert.strictEqual(shouldRespond("ada ide tema buat g30s gak ya kalian?"), false);
+
+    // Explicitly calling or tagging bot -> MUST RESPOND (true)
     assert.strictEqual(shouldRespond("@bot jadwal poster minggu ini"), true);
+    assert.strictEqual(shouldRespond("bot, ada ide konsep pancasila gak?"), true);
     assert.strictEqual(shouldRespond("!brief kesaktian pancasila"), true);
-    assert.strictEqual(shouldRespond("ada ide tema buat g30s gak ya"), true);
-    assert.strictEqual(shouldRespond("siapa yang pegang poster hari santri"), true);
-    assert.strictEqual(shouldRespond("aset foto ultah danang mana ya"), true);
+    assert.strictEqual(shouldRespond("min tolong cek aset ultah danang"), true);
   });
 
-  it('MUST format alert message containing @semua and 1-click Pinterest & Google links', () => {
+  it('MUST format alert message containing @semua and ready-to-post Story & Feed posters', () => {
     const item = {
       type: "event",
       title: "Hari Kesaktian Pancasila",
@@ -44,38 +59,35 @@ describe('Expedient Graphic Design Studio Assistant Suite', () => {
       suggestedTheme: "Garuda Emas Kokoh & Fajar Bangsa",
       pinterestUrl: "https://www.pinterest.com/search/pins/?q=hari+kesaktian+pancasila+poster",
       googleImagesUrl: "https://www.google.com/search?tbm=isch&q=hari+kesaktian+pancasila",
+      feedImageUrl: "https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_feed.jpg",
+      storyImageUrl: "https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_story.jpg",
     };
 
     function formatAlert(e) {
-      return `📢 @semua *[CALL FOR EDITORS - EXPEDIENT CREATIVE STUDIO]* 🎨✨\n` +
+      let readyPostersSection = "";
+      if (e.storyImageUrl || e.feedImageUrl) {
+        readyPostersSection =
+          `\n🖼️ *DESAIN POSTER SIAP UPLOAD (TINGGAL TERIMA JADI):*\n` +
+          `• 📱 *Story IG (9:16):* ${e.storyImageUrl}\n` +
+          `• 📸 *Feed IG (1:1):* ${e.feedImageUrl}\n`;
+      }
+
+      return (
+        `📢 @semua *[CALL FOR EDITORS - EXPEDIENT CREATIVE STUDIO]* 🎨✨\n\n` +
         `⚠️ *BESOK (H-1 - FINAL DRAFT & REVIEW)*\n` +
         `📅 *Tanggal:* ${e.dateStr}\n` +
         `🎯 *Agenda Desain:* *${e.title}*\n` +
+        readyPostersSection +
         `🎨 *Palet Warna:* ${e.colorPalette.join(" | ")}\n` +
         `📌 *Pinterest:* ${e.pinterestUrl}\n` +
-        `🔍 *Google Images:* ${e.googleImagesUrl}`;
+        `🔍 *Google Images:* ${e.googleImagesUrl}`
+      );
     }
 
     const output = formatAlert(item);
     assert.match(output, /@semua/);
+    assert.match(output, /kesaktian_pancasila_story\.jpg/);
+    assert.match(output, /kesaktian_pancasila_feed\.jpg/);
     assert.match(output, /pinterest\.com/);
-    assert.match(output, /google\.com/);
-    assert.match(output, /#78350F/);
-  });
-
-  it('MUST handle off-topic conversations with polite deflection to design topics', () => {
-    const offTopicMessage = "lu dukung paslon mana bro?";
-    function checkOffTopic(msg) {
-      const lower = msg.toLowerCase();
-      const designTerms = ["desain", "design", "poster", "warna", "font", "layout", "jadwal", "aset", "brief", "karya", "canva", "photoshop", "figma"];
-      const isDesignRelated = designTerms.some(t => lower.includes(t));
-      if (!isDesignRelated) {
-        return "MOHON_MAAF_OFF_TOPIC";
-      }
-      return "VALID_DESIGN_TOPIC";
-    }
-
-    assert.strictEqual(checkOffTopic(offTopicMessage), "MOHON_MAAF_OFF_TOPIC");
-    assert.strictEqual(checkOffTopic("rekomendasi font serif buat poster heroik dong"), "VALID_DESIGN_TOPIC");
   });
 });

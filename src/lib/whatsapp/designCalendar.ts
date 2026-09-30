@@ -10,6 +10,8 @@ export interface CommemorativeEvent {
   suggestedTheme: string;
   colorPalette: string[];
   suggestedKeywords: string;
+  feedImageUrl?: string;
+  storyImageUrl?: string;
 }
 
 /**
@@ -167,6 +169,8 @@ export const COMMEMORATIVE_EVENTS: CommemorativeEvent[] = [
     suggestedTheme: "Dark Heroic, Khidmat, Monokrom Charcoal, Siluet Lubang Buaya & Merah Gelap",
     colorPalette: ["#09090B", "#27272A", "#7F1D1D", "#E4E4E7"],
     suggestedKeywords: "g30s pki pahlawan revolusi tribute dark dramatic memorial poster",
+    feedImageUrl: "https://expedientgeneration.vercel.app/images/posters/g30s_pki_feed.jpg",
+    storyImageUrl: "https://expedientgeneration.vercel.app/images/posters/g30s_pki_story.jpg",
   },
   {
     id: "kesaktian-pancasila",
@@ -178,6 +182,8 @@ export const COMMEMORATIVE_EVENTS: CommemorativeEvent[] = [
     suggestedTheme: "Garuda Emas Kokoh, Cahaya Fajar Bangsa & Nuansa Patriotik Berwibawa",
     colorPalette: ["#78350F", "#B45309", "#1E293B", "#FFFBEB"],
     suggestedKeywords: "hari kesaktian pancasila garuda emas poster design dignity indonesia",
+    feedImageUrl: "https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_feed.jpg",
+    storyImageUrl: "https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_story.jpg",
   },
   {
     id: "hari-batik-nasional",
@@ -361,6 +367,8 @@ export interface UpcomingItem {
   suggestedTheme: string;
   pinterestUrl: string;
   googleImagesUrl: string;
+  feedImageUrl?: string;
+  storyImageUrl?: string;
   extraData?: {
     alumniId?: string;
     fullName?: string;
@@ -402,6 +410,8 @@ export async function getUpcomingDesignCalendar(daysAhead: number = 7): Promise<
         suggestedTheme: event.suggestedTheme,
         pinterestUrl: `https://www.pinterest.com/search/pins/?q=${pinQuery}`,
         googleImagesUrl: `https://www.google.com/search?tbm=isch&q=${gQuery}`,
+        feedImageUrl: event.feedImageUrl,
+        storyImageUrl: event.storyImageUrl,
       });
     }
   }
