@@ -3,10 +3,14 @@
 import { useEffect, useRef } from "react";
 import {
   isAndroidNativeApp,
+  isIosNativeApp,
+  initIosPushNotifications,
   requestSystemNotificationPermission,
   sendSystemNotification,
   hasSystemNotificationPermission,
 } from "@/lib/notificationHelper";
+import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import { calculatePrayerTimes, PrayerSchedule } from "@/lib/prayerTimes";
 import { useToast } from "./AegisToast";
 
@@ -25,9 +29,11 @@ export default function AppNotificationManager() {
     const setupNotifications = async () => {
       try {
         const isApk = isAndroidNativeApp();
+        const isIos = isIosNativeApp();
 
-        // 1. Request permission if running in APK or permission is default
-        if (isApk || ("Notification" in window && Notification.permission === "default")) {
+        if (isIos) {
+          await initIosPushNotifications();
+        } else if (isApk || ("Notification" in window && Notification.permission === "default")) {
           await requestSystemNotificationPermission();
         }
       } catch (err) {
@@ -86,6 +92,26 @@ export default function AppNotificationManager() {
             }
           } catch (bridgeErr) {
             console.warn("Native prayer alarm registration notice:", bridgeErr);
+          }
+        } else if (Capacitor.isNativePlatform()) {
+          // Register native alarms via Capacitor LocalNotifications on iOS
+          try {
+            const notifs = prayerList.map((prayer, idx) => {
+              const [pHours, pMins] = prayer.time.split(":").map(Number);
+              return {
+                id: 7000 + idx,
+                title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time})`,
+                body: `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
+                schedule: {
+                  on: { hour: pHours, minute: pMins },
+                  allowWhileIdle: true,
+                },
+                extra: { url: "/kiblat" },
+              };
+            });
+            await LocalNotifications.schedule({ notifications: notifs });
+          } catch (capAlarmErr) {
+            console.warn("Capacitor prayer alarm notice:", capAlarmErr);
           }
         }
 

@@ -9,11 +9,17 @@
     "lint": "eslint",
     "test": "node --test tests/*.test.mjs",
     "cap:sync": "npx cap sync android",
-    "build:android": "next build && npx cap sync android"
+    "cap:sync:ios": "npx cap sync ios",
+    "cap:sync:all": "npx cap sync",
+    "build:android": "next build && npx cap sync android",
+    "build:ios": "next build && npx cap sync ios"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
     "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.2",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/push-notifications": "^8.1.2",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@google/generative-ai": "^0.24.1",
     "@react-three/drei": "^10.7.7",
