@@ -133,7 +133,7 @@ export function resolveMimeType(
  */
 export function shouldProcessGroupMedia(
   groupId: string,
-  category: "image" | "audio" | "video" | "document" | "sticker" | "unknown",
+  category: MultimodalMediaCategory,
   caption?: string
 ): boolean {
   // 1. Di Grup Desain Grafis: Setiap gambar/poster/stiker kreatif SELALU direview otomatis
@@ -184,7 +184,7 @@ async function downloadMediaAsBase64(
   url: string,
   providedExtension?: string,
   providedFilename?: string
-): Promise<{ base64Data: string; mimeType: string; category: "image" | "audio" | "video" | "document" | "unknown"; sizeBytes: number }> {
+): Promise<{ base64Data: string; mimeType: string; category: MultimodalMediaCategory; sizeBytes: number }> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
 
