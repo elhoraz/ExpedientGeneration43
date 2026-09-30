@@ -98,4 +98,33 @@ describe('Alumni Intelligence & Smart Cohort Knowledge Suite', () => {
       assert.strictEqual(isExplicitNote, true);
     });
   });
+
+  it('MUST recognize natural organic statements WITHOUT any keywords like catat or ingat', () => {
+    function isPotentialFact(text) {
+      const lower = text.trim().toLowerCase();
+      const words = lower.split(/\s+/).filter(Boolean);
+      if (words.length < 3) return false;
+      if (/^(wkwk|haha|hehe|p|tes|ping)/i.test(lower) && words.length < 5) return false;
+      if (text.includes("?") || lower.startsWith("siapa ") || lower.startsWith("kapan ") || lower.startsWith("dimana ")) return false;
+      const factIndicators = [
+        "kerja di", "bekerja di", "kuliah di", "pindah ke", "tinggal di", "sekarang di", "buka usaha", "buka kafe", "udah nikah", "lulus", "cumlaude"
+      ];
+      if (factIndicators.some((ind) => lower.includes(ind))) return true;
+      if ((lower.includes("sekarang") || lower.includes("udah") || lower.includes("kemarin") || lower.includes("baru")) && words.length >= 4) return true;
+      return false;
+    }
+
+    // Natural conversation cases (NO "catat", NO "ingat")
+    assert.strictEqual(isPotentialFact("Danang sekarang kerja di Pertamina Balikpapan"), true);
+    assert.strictEqual(isPotentialFact("Auzan baru pindah dinas ke Jakarta"), true);
+    assert.strictEqual(isPotentialFact("Rizki udah buka kafe di Ponorogo"), true);
+    assert.strictEqual(isPotentialFact("Ihya kemarin lulus cumlaude di Malang"), true);
+
+    // Casual chat or questions (MUST NOT trigger learning)
+    assert.strictEqual(isPotentialFact("wkwkwk kocak banget lu bro"), false);
+    assert.strictEqual(isPotentialFact("siapa ketua angkatan kita?"), false);
+    assert.strictEqual(isPotentialFact("dimana Danang sekarang?"), false);
+    assert.strictEqual(isPotentialFact("halo min"), false);
+  });
 });
+

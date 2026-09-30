@@ -122,14 +122,14 @@ export function isPotentialFactStatement(messageText: string): boolean {
   // 3. Deteksi Predikat / Kabar Faktual Alami:
   // Karir, pekerjaan, pendidikan, domisili, usaha, pernikahan, prestasi, koreksi
   const factIndicators = [
-    "kerja di", "bekerja di", "kantor di", "dinas di", "keterima di", "keterima kerja",
-    "kuliah di", "studi di", "jurusan", "kampus", "skripsi", "tesis", "wisuda", "lulus",
-    "pindah ke", "tinggal di", "sekarang di", "domisili di", "udah di", "merantau ke",
-    "buka usaha", "punya usaha", "buka toko", "buka warung", "buka kafe", "jualan", "bisnis",
-    "udah nikah", "sudah nikah", "menikah dengan", "nikah sama", "punya anak",
-    "menang lomba", "juara", "prestasi", "promosi jabatan", "naik jabatan",
-    "aslinya anak", "sebenarnya", "bukan di", "koreksi", "salah min", "salah bot", "fyi", "kabar",
-    "catat", "ingat", "note"
+    "kerja di", "bekerja di", "kantor di", "dinas di", "keterima di", "keterima kerja", "kerja",
+    "kuliah di", "studi di", "jurusan", "kampus", "skripsi", "tesis", "wisuda", "lulus", "cumlaude", "yudisium",
+    "pindah ke", "tinggal di", "sekarang di", "domisili di", "udah di", "merantau ke", "stay di",
+    "buka usaha", "punya usaha", "buka toko", "buka warung", "buka kafe", "jualan", "bisnis", "toko",
+    "udah nikah", "sudah nikah", "menikah dengan", "nikah sama", "punya anak", "tunangan", "lamaran",
+    "menang lomba", "juara", "prestasi", "promosi jabatan", "naik jabatan", "pns", "asn", "bumn",
+    "mondok", "nyantri", "ngabdi", "pengabdian", "guru di", "dosen di", "ustadz di",
+    "aslinya anak", "sebenarnya", "bukan di", "koreksi", "salah min", "salah bot", "fyi", "kabar"
   ];
 
   if (factIndicators.some((indicator) => lower.includes(indicator))) {
@@ -138,7 +138,7 @@ export function isPotentialFactStatement(messageText: string): boolean {
 
   // 4. Kalimat deklaratif yang menyebut status terkini ("sekarang" / "udah" / "kemarin") dengan konteks
   if (
-    (lower.includes("sekarang") || lower.includes("udah") || lower.includes("sudah") || lower.includes("kemarin")) &&
+    (lower.includes("sekarang") || lower.includes("udah") || lower.includes("sudah") || lower.includes("kemarin") || lower.includes("baru")) &&
     words.length >= 4 &&
     !lower.startsWith("apa") &&
     !lower.startsWith("gimana")
@@ -195,7 +195,7 @@ OUTPUT FORMAT (JSON ONLY):
   "isFact": true | false,
   "topic": "Name or subject (1-3 words, e.g. 'Danang' or 'Auzan')",
   "fact": "Clear, concise fact statement in Indonesian",
-  "acknowledgment": "Warm, natural Indonesian reply like a real friend (1 to 2 sentences) expressing joy/congratulations or polite confirmation that you have remembered this update. Do NOT sound robotic."
+  "acknowledgment": "Warm, enthusiastic, natural Indonesian reply like a close friend (1 to 2 sentences max!). Express genuine happiness, congratulations, or gratitude for sharing the news. CRITICAL: Never say robotic phrases like 'sudah kucatat di database/memori' or mention keywords—just speak naturally like a friend who is glad to know this update!"
 }
 If it is just general chat, jokes, or does not contain a factual update about an alumni or activity, return {"isFact": false}.
 `.trim();
@@ -217,7 +217,7 @@ If it is just general chat, jokes, or does not contain a factual update about an
       await saveLearnedMemory(parsed.topic, parsed.fact, contributor);
       const ack =
         parsed.acknowledgment ||
-        `Siap Sahabat *${contributor}*! Sudah kuingat dan kucatat di memori angkatan: *${parsed.fact}*. Terima kasih informasinya! 📝✨`;
+        `Wah alhamdulillah, makasih infonya ya Sahabat *${contributor}*! Sekarang aku jadi tahu kalau *${parsed.fact}*. Sukses terus buat sahabat kita! 🙌✨`;
 
       return {
         hasLearned: true,
