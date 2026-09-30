@@ -18,20 +18,20 @@ export interface PendingBroadcast {
   status: "pending" | "approved" | "rejected";
 }
 
-// In-memory cache untuk menampung draf berita penting yang menunggu approval Admin
+// In-memory cache untuk fallback cepat
 const pendingBroadcastsMap = new Map<string, PendingBroadcast>();
 let latestPendingBroadcastId: string | null = null;
 
 /**
- * Menyimpan draf berita duka / pengumuman penting yang diajukan oleh alumni
+ * Menyimpan draf berita duka / pengumuman penting yang diajukan oleh alumni ke Supabase & memory
  */
-export function savePendingBroadcast(
+export async function savePendingBroadcast(
   senderPhone: string,
   senderName: string,
   rawMessage: string,
   formattedMessage: string,
   category: "duka_cita" | "berita_penting" | "acara" = "duka_cita"
-): PendingBroadcast {
+): Promise<PendingBroadcast> {
   const id = `BC-${Date.now().toString(36).slice(-4).toUpperCase()}`;
   const record: PendingBroadcast = {
     id,
@@ -46,17 +46,67 @@ export function savePendingBroadcast(
 
   pendingBroadcastsMap.set(id, record);
   latestPendingBroadcastId = id;
+
+  // Persist ke Supabase announcements agar survive restart & stateless Serverless di Vercel!
+  try {
+    const supabase = createAdminClient();
+    await supabase.from("announcements").insert([
+      {
+        title: `[PENDING] ${category === "duka_cita" ? "Kabar Duka Cita" : "Pengumuman Resmi"} - ${senderName} (${senderPhone})`,
+        content: formattedMessage,
+        category: `pending_${category}`,
+        is_pinned: false,
+        published_at: null,
+      },
+    ]);
+  } catch (err: any) {
+    console.warn("[SAVE-PENDING-SUPABASE-ERR]:", err.message);
+  }
+
   return record;
 }
 
 /**
- * Mengambil draf pengumuman pending terbaru
+ * Mengambil draf pengumuman pending terbaru dari Supabase (atau fallback memory)
  */
-export function getLatestPendingBroadcast(): PendingBroadcast | null {
-  if (!latestPendingBroadcastId) return null;
-  const item = pendingBroadcastsMap.get(latestPendingBroadcastId);
-  if (!item || item.status !== "pending") return null;
-  return item;
+export async function getLatestPendingBroadcast(): Promise<PendingBroadcast | null> {
+  // 1. Coba ambil dari database Supabase terlebih dahulu
+  try {
+    const supabase = createAdminClient();
+    const { data: dbItem, error } = await supabase
+      .from("announcements")
+      .select("*")
+      .like("category", "pending_%")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!error && dbItem) {
+      const cat = dbItem.category.replace("pending_", "") as any;
+      const phoneMatch = dbItem.title.match(/\(([0-9+]+)\)/);
+      const phone = phoneMatch ? phoneMatch[1] : "";
+      return {
+        id: dbItem.id,
+        category: cat || "duka_cita",
+        senderPhone: phone,
+        senderName: dbItem.title.replace("[PENDING] ", "").replace(/\s*\([0-9+]+\)/, ""),
+        rawMessage: dbItem.content,
+        formattedMessage: dbItem.content,
+        createdAt: new Date(dbItem.created_at).getTime(),
+        status: "pending",
+      };
+    }
+  } catch (err: any) {
+    console.warn("[GET-PENDING-SUPABASE-ERR]:", err.message);
+  }
+
+  // 2. Fallback memory jika DB query gagal
+  if (latestPendingBroadcastId) {
+    const item = pendingBroadcastsMap.get(latestPendingBroadcastId);
+    if (item && item.status === "pending") return item;
+  }
+
+  return null;
 }
 
 /**
@@ -188,7 +238,7 @@ FORMATTING GUIDELINES:
 export async function approvePendingBroadcast(
   adminPhone: string
 ): Promise<{ success: boolean; message: string }> {
-  const pending = getLatestPendingBroadcast();
+  const pending = await getLatestPendingBroadcast();
 
   if (!pending) {
     return {
@@ -200,24 +250,20 @@ export async function approvePendingBroadcast(
   const officialGroupId = getOfficialGroupId();
   const supabase = createAdminClient();
 
-  // 1. Simpan pengumuman ke database Supabase agar otomatis tayang di Web
+  // 1. Update status announcement di Supabase menjadi terbit (publish)
   try {
-    const titleCategory =
-      pending.category === "duka_cita"
-        ? "Kabar Duka Cita"
-        : "Pengumuman Resmi Angkatan";
-
-    await supabase.from("announcements").insert([
-      {
-        title: titleCategory,
-        content: pending.formattedMessage,
-        category: pending.category === "duka_cita" ? "duka_cita" : "urgent",
+    const finalCategory = pending.category === "duka_cita" ? "duka_cita" : "urgent";
+    await supabase
+      .from("announcements")
+      .update({
+        title: pending.category === "duka_cita" ? "Kabar Duka Cita" : "Pengumuman Resmi Angkatan",
+        category: finalCategory,
         is_pinned: true,
         published_at: new Date().toISOString(),
-      },
-    ]);
+      })
+      .eq("id", pending.id);
   } catch (dbErr: any) {
-    console.warn("[ANNOUNCEMENT-DB-INSERT-WARN]:", dbErr.message);
+    console.warn("[ANNOUNCEMENT-DB-UPDATE-WARN]:", dbErr.message);
   }
 
   // 2. Kirim pesan ke Grup WhatsApp Resmi
@@ -232,19 +278,23 @@ export async function approvePendingBroadcast(
     groupReason = "WA_GROUP_OFFICIAL_ID belum diset di environment variables server.";
   }
 
-  // 3. Update status pending record
+  // 3. Update status in-memory
   pending.status = "approved";
+  pendingBroadcastsMap.delete(pending.id);
+  latestPendingBroadcastId = null;
 
   // 4. Kirim konfirmasi balik ke alumni pelapor
-  try {
-    const ackToReporter =
-      `Alhamdulillah Sahabat *${pending.senderName}*,\n\n` +
-      `Berita yang Anda sampaikan telah resmi *DIVERIFIKASI & DIPUBLIKASIKAN* ke Grup Resmi Angkatan dan portal website oleh Pengurus.\n\n` +
-      `Jazakumullahu khairan katsiran atas informasinya. Semoga membawa kebaikan bersama.`;
+  if (pending.senderPhone) {
+    try {
+      const ackToReporter =
+        `Alhamdulillah Sahabat,\n\n` +
+        `Berita yang Anda sampaikan telah resmi *DIVERIFIKASI & DIPUBLIKASIKAN* ke Grup Resmi Angkatan dan portal website oleh Pengurus.\n\n` +
+        `Jazakumullahu khairan katsiran atas informasinya. Semoga membawa kebaikan bersama.`;
 
-    await sendWhatsAppMessageWithDetail(pending.senderPhone, ackToReporter);
-  } catch (ackErr) {
-    console.warn("[ANNOUNCEMENT-REPORTER-ACK-ERR]:", ackErr);
+      await sendWhatsAppMessageWithDetail(pending.senderPhone, ackToReporter);
+    } catch (ackErr) {
+      console.warn("[ANNOUNCEMENT-REPORTER-ACK-ERR]:", ackErr);
+    }
   }
 
   if (groupSent) {
@@ -252,16 +302,14 @@ export async function approvePendingBroadcast(
       success: true,
       message:
         `✅ *[SUKSES BROADCAST GRUP RESMI]*\n\n` +
-        `Berita telah berhasil dikirim ke Grup WhatsApp Resmi Angkatan (*${officialGroupId}*) serta disimpan di website.\n` +
-        `Sahabat *${pending.senderName}* juga telah diberi notifikasi konfirmasi.`,
+        `Berita telah berhasil dikirim ke Grup WhatsApp Resmi Angkatan (*${officialGroupId}*) serta disimpan di website.`,
     };
   } else {
     return {
       success: true,
       message:
-        `⚠️ *[DISIMPAN DI WEBSITE, GRUP MENUNGGU ID]*\n\n` +
-        `Pengumuman telah sukses dipublikasikan ke Portal Website. Namun pengiriman ke grup WA belum terlaksana: ${groupReason}\n\n` +
-        `_Tip: Masukkan ID Grup Resmi Anda di environment variable \`WA_GROUP_OFFICIAL_ID\`._`,
+        `⚠️ *[DISIMPAN DI WEBSITE, GRUP MENUNGGU]*\n\n` +
+        `Pengumuman telah sukses dipublikasikan ke Portal Website. Namun pengiriman ke grup WA belum terlaksana: ${groupReason}`,
     };
   }
 }
@@ -269,10 +317,10 @@ export async function approvePendingBroadcast(
 /**
  * Membatalkan draf pengumuman pending
  */
-export function rejectPendingBroadcast(
+export async function rejectPendingBroadcast(
   adminPhone: string
-): { success: boolean; message: string } {
-  const pending = getLatestPendingBroadcast();
+): Promise<{ success: boolean; message: string }> {
+  const pending = await getLatestPendingBroadcast();
   if (!pending) {
     return {
       success: false,
@@ -280,10 +328,21 @@ export function rejectPendingBroadcast(
     };
   }
 
+  // Hapus dari Supabase agar tidak tertinggal sebagai pending
+  try {
+    const supabase = createAdminClient();
+    await supabase.from("announcements").delete().eq("id", pending.id);
+  } catch (dbErr: any) {
+    console.warn("[REJECT-SUPABASE-ERR]:", dbErr.message);
+  }
+
   pending.status = "rejected";
+  pendingBroadcastsMap.delete(pending.id);
+  latestPendingBroadcastId = null;
+
   return {
     success: true,
-    message: `❌ Draf pengumuman dari Sahabat *${pending.senderName}* telah dibatalkan oleh Admin.`,
+    message: `❌ Draf pengumuman telah dibatalkan dan dihapus dari antrean oleh Admin.`,
   };
 }
 
@@ -294,29 +353,46 @@ export function shouldGroupBotRespond(messageText: string): boolean {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot
+  // 1. Tag / Mention Bot (Termasuk nomor bot 6289675010185 / 089675010185, tag @ kontak WhatsApp, atau nama)
   if (
+    lower.includes("89675010185") ||
     lower.includes("@bot") ||
-    lower.includes("bot,") ||
-    lower.includes("bot ") ||
-    lower.startsWith("bot") ||
+    lower.includes("bot") ||
     lower.includes("expedient") ||
     lower.includes("minbot") ||
-    lower.includes("halo bot")
+    lower.includes("admin bot") ||
+    lower.startsWith("min") ||
+    lower.includes("@") // Tag mention WhatsApp contact
   ) {
     return true;
   }
 
-  // 2. Command Prefix (!, /, ?)
+  // 2. Command Prefix (!, /, ?, #)
   if (
     messageText.startsWith("!") ||
     messageText.startsWith("/") ||
-    messageText.startsWith("?")
+    messageText.startsWith("?") ||
+    messageText.startsWith("#")
   ) {
     return true;
   }
 
-  // 3. Pertanyaan Spesifik Seputar Angkatan
+  // 3. Sapaan langsung / testing bot di grup
+  if (
+    lower === "tes" ||
+    lower === "test" ||
+    lower === "ping" ||
+    lower.startsWith("tes bot") ||
+    lower.startsWith("test bot") ||
+    lower.startsWith("halo bot") ||
+    lower.startsWith("hai bot") ||
+    lower.startsWith("p ") ||
+    lower === "p"
+  ) {
+    return true;
+  }
+
+  // 4. Pertanyaan Spesifik Seputar Angkatan
   if (
     (lower.includes("ultah") || lower.includes("ulang tahun") || lower.includes("milad")) &&
     (lower.includes("siapa") || lower.includes("hari ini") || lower.includes("bulan ini"))
@@ -477,6 +553,25 @@ STRICT GROUP CHAT RULES:
   }
 
   // Kirim balasan ke grup WhatsApp
-  await sendWhatsAppGroupMessage(groupId, replyText);
+  const groupSendResult = await sendWhatsAppGroupMessage(groupId, replyText);
+
+  // Catat riwayat grup ke database Supabase
+  try {
+    await supabase.from("whatsapp_queue").insert([
+      {
+        no_whatsapp: groupId.slice(0, 20),
+        message: `[GRUP] Dari ${callerName}: "${messageText.slice(0, 80)}"`,
+        status: groupSendResult.success ? "replied_group" : "failed_group",
+        error_message: groupSendResult.success
+          ? `Dibalas: "${replyText.slice(0, 150)}"`
+          : `Gagal kirim grup: ${groupSendResult.reason || "Unknown"}`,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+    ]);
+  } catch (logErr) {
+    console.warn("[GROUP-QUEUE-LOG-WARN]:", logErr);
+  }
+
   return { responded: true, replyText };
 }

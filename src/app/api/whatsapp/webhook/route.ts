@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       senderName?: string;
       device?: string;
       member?: string;
+      group?: string;
       isGroup?: boolean;
     }> = [];
 
@@ -45,7 +46,14 @@ export async function POST(request: Request) {
       if (body.sender || body.message || body.text) {
         const senderStr = String(body.sender || "");
         const memberStr = String(body.member || "");
-        const isGrp = Boolean(memberStr || senderStr.includes("@g.us") || senderStr.includes("-"));
+        const groupStr = String(body.group || body.group_id || body.chatid || "");
+        const isGrp = Boolean(
+          memberStr ||
+          groupStr ||
+          senderStr.includes("@g.us") ||
+          memberStr.includes("@g.us") ||
+          groupStr.includes("@g.us")
+        );
 
         incomingList.push({
           sender: senderStr,
@@ -53,6 +61,7 @@ export async function POST(request: Request) {
           senderName: String(body.name || ""),
           device: String(body.device || ""),
           member: memberStr,
+          group: groupStr,
           isGroup: isGrp,
         });
       }
@@ -90,7 +99,14 @@ export async function POST(request: Request) {
       if (formData) {
         const senderStr = String(formData.get("sender") || "");
         const memberStr = String(formData.get("member") || "");
-        const isGrp = Boolean(memberStr || senderStr.includes("@g.us") || senderStr.includes("-"));
+        const groupStr = String(formData.get("group") || formData.get("group_id") || formData.get("chatid") || "");
+        const isGrp = Boolean(
+          memberStr ||
+          groupStr ||
+          senderStr.includes("@g.us") ||
+          memberStr.includes("@g.us") ||
+          groupStr.includes("@g.us")
+        );
 
         incomingList.push({
           sender: senderStr,
@@ -98,6 +114,7 @@ export async function POST(request: Request) {
           senderName: String(formData.get("name") || ""),
           device: String(formData.get("device") || ""),
           member: memberStr,
+          group: groupStr,
           isGroup: isGrp,
         });
       }
@@ -114,15 +131,35 @@ export async function POST(request: Request) {
       // =====================================================================
       // 1. PENANGANAN PESAN DARI GRUP WHATSAPP (Grup Non-Resmi / Komunitas)
       // =====================================================================
-      if (item.isGroup || rawSender.includes("@g.us")) {
-        const groupId = rawSender;
-        const memberPhone = item.member || rawSender;
-        const memberName = item.senderName || "Sahabat";
+      const communityGroupDefault = (process.env.WA_GROUP_COMMUNITY_ID || "120363388633880584@g.us").trim();
+      let isGroupMsg = false;
+      let targetGroupId = "";
+      let participantPhone = "";
 
-        console.log(`[WA-GROUP-INCOMING] Grup: ${groupId} | Dari: ${memberPhone} (${memberName}): "${messageText}"`);
+      if (rawSender.includes("@g.us")) {
+        isGroupMsg = true;
+        targetGroupId = rawSender;
+        participantPhone = item.member || rawSender;
+      } else if (item.member && item.member.includes("@g.us")) {
+        isGroupMsg = true;
+        targetGroupId = item.member;
+        participantPhone = rawSender;
+      } else if (item.group && item.group.includes("@g.us")) {
+        isGroupMsg = true;
+        targetGroupId = item.group;
+        participantPhone = rawSender;
+      } else if (item.isGroup) {
+        isGroupMsg = true;
+        targetGroupId = communityGroupDefault;
+        participantPhone = item.member || rawSender;
+      }
+
+      if (isGroupMsg && targetGroupId) {
+        const memberName = item.senderName || "Sahabat";
+        console.log(`[WA-GROUP-INCOMING] Grup: ${targetGroupId} | Dari: ${participantPhone} (${memberName}): "${messageText}"`);
 
         const { handleIncomingGroupMessage } = await import("@/lib/whatsapp/groupManager");
-        const groupRes = await handleIncomingGroupMessage(groupId, memberPhone, memberName, messageText);
+        const groupRes = await handleIncomingGroupMessage(targetGroupId, participantPhone, memberName, messageText);
 
         return NextResponse.json({
           status: groupRes.responded ? "GROUP_MESSAGE_REPLIED" : "GROUP_MESSAGE_IGNORED",
@@ -148,11 +185,13 @@ export async function POST(request: Request) {
         // A. Cek Perintah Approval Broadcast Resmi (KIRIM RESMI / TOLAK)
         const cleanAdminCmd = messageText.trim().toLowerCase();
         if (
-          cleanAdminCmd === "kirim resmi" ||
-          cleanAdminCmd === "post resmi" ||
-          cleanAdminCmd === "publish resmi" ||
-          cleanAdminCmd === "setujui" ||
-          cleanAdminCmd === "setuju"
+          cleanAdminCmd.includes("kirim resmi") ||
+          cleanAdminCmd.includes("post resmi") ||
+          cleanAdminCmd.includes("publish resmi") ||
+          cleanAdminCmd.includes("setujui") ||
+          cleanAdminCmd === "setuju" ||
+          cleanAdminCmd === "ya" ||
+          cleanAdminCmd === "kirim"
         ) {
           const { approvePendingBroadcast } = await import("@/lib/whatsapp/groupManager");
           const approveRes = await approvePendingBroadcast(numNorm);
@@ -165,13 +204,15 @@ export async function POST(request: Request) {
         }
 
         if (
-          cleanAdminCmd === "tolak" ||
-          cleanAdminCmd === "batal" ||
-          cleanAdminCmd === "batalkan" ||
-          cleanAdminCmd === "reject"
+          cleanAdminCmd.includes("tolak") ||
+          cleanAdminCmd.includes("batal") ||
+          cleanAdminCmd.includes("batalkan") ||
+          cleanAdminCmd.includes("reject") ||
+          cleanAdminCmd === "tidak" ||
+          cleanAdminCmd === "jangan"
         ) {
           const { rejectPendingBroadcast } = await import("@/lib/whatsapp/groupManager");
-          const rejectRes = rejectPendingBroadcast(numNorm);
+          const rejectRes = await rejectPendingBroadcast(numNorm);
           const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
           await sendWhatsAppMessageWithDetail(numNorm, rejectRes.message);
           return NextResponse.json({
@@ -237,8 +278,8 @@ export async function POST(request: Request) {
           announcementCheck.category
         );
 
-        // 2. Simpan draf ke memory antrean pending
-        savePendingBroadcast(
+        // 2. Simpan draf ke memory antrean pending & Supabase
+        await savePendingBroadcast(
           numNorm,
           userDisplayName,
           messageText,

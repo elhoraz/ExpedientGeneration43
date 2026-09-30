@@ -60,44 +60,64 @@ function shouldGroupBotRespond(messageText) {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
+  // 1. Tag / Mention Bot
   if (
-    lower.includes('@bot') ||
-    lower.includes('bot,') ||
-    lower.includes('bot ') ||
-    lower.startsWith('bot') ||
-    lower.includes('expedient') ||
-    lower.includes('minbot') ||
-    lower.includes('halo bot')
+    lower.includes("89675010185") ||
+    lower.includes("@bot") ||
+    lower.includes("bot") ||
+    lower.includes("expedient") ||
+    lower.includes("minbot") ||
+    lower.includes("admin bot") ||
+    lower.startsWith("min") ||
+    lower.includes("@")
+  ) {
+    return true;
+  }
+
+  // 2. Command Prefix (!, /, ?, #)
+  if (
+    messageText.startsWith("!") ||
+    messageText.startsWith("/") ||
+    messageText.startsWith("?") ||
+    messageText.startsWith("#")
+  ) {
+    return true;
+  }
+
+  // 3. Sapaan langsung / testing bot di grup
+  if (
+    lower === "tes" ||
+    lower === "test" ||
+    lower === "ping" ||
+    lower.startsWith("tes bot") ||
+    lower.startsWith("test bot") ||
+    lower.startsWith("halo bot") ||
+    lower.startsWith("hai bot") ||
+    lower.startsWith("p ") ||
+    lower === "p"
+  ) {
+    return true;
+  }
+
+  // 4. Pertanyaan Spesifik Seputar Angkatan
+  if (
+    (lower.includes("ultah") || lower.includes("ulang tahun") || lower.includes("milad")) &&
+    (lower.includes("siapa") || lower.includes("hari ini") || lower.includes("bulan ini"))
   ) {
     return true;
   }
 
   if (
-    messageText.startsWith('!') ||
-    messageText.startsWith('/') ||
-    messageText.startsWith('?')
+    (lower.includes("reuni") || lower.includes("acara") || lower.includes("agenda")) &&
+    (lower.includes("kapan") || lower.includes("info") || lower.includes("jadwal"))
   ) {
     return true;
   }
 
   if (
-    (lower.includes('ultah') || lower.includes('ulang tahun') || lower.includes('milad')) &&
-    (lower.includes('siapa') || lower.includes('hari ini') || lower.includes('bulan ini'))
-  ) {
-    return true;
-  }
-
-  if (
-    (lower.includes('reuni') || lower.includes('acara') || lower.includes('agenda')) &&
-    (lower.includes('kapan') || lower.includes('info') || lower.includes('jadwal'))
-  ) {
-    return true;
-  }
-
-  if (
-    lower.includes('total alumni') ||
-    lower.includes('berapa alumni') ||
-    lower.includes('jumlah alumni')
+    lower.includes("total alumni") ||
+    lower.includes("berapa alumni") ||
+    lower.includes("jumlah alumni")
   ) {
     return true;
   }
@@ -139,11 +159,14 @@ describe('WhatsApp Group Gateway & Smart Trigger Validation', () => {
     assert.strictEqual(check.isAnnouncement, false);
   });
 
-  it('MUST filter community group messages with smart anti-spam', () => {
-    // 1. Should respond when mentioned
+  it('MUST filter community group messages with smart anti-spam and support phone tags', () => {
+    // 1. Should respond when mentioned by name or phone tag
     assert.strictEqual(shouldGroupBotRespond('@ExpedientBot siapa ketua angkatan?'), true);
+    assert.strictEqual(shouldGroupBotRespond('@6289675010185 halo apa kabar'), true);
     assert.strictEqual(shouldGroupBotRespond('bot, info reuni dong'), true);
     assert.strictEqual(shouldGroupBotRespond('halo bot'), true);
+    assert.strictEqual(shouldGroupBotRespond('tes'), true);
+    assert.strictEqual(shouldGroupBotRespond('ping'), true);
 
     // 2. Should respond to command prefix
     assert.strictEqual(shouldGroupBotRespond('!ultah'), true);
