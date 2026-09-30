@@ -22,16 +22,6 @@ jobs:
       - name: Install Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build Web Application
-        run: |
-          export NEXT_PUBLIC_SUPABASE_URL="${NEXT_PUBLIC_SUPABASE_URL:-https://dodcwulqgrhqpbldrlik.supabase.co}"
-          export NEXT_PUBLIC_SUPABASE_ANON_KEY="${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvZGN3dWxxZ3JocXBibGRybGlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NzQ1ODIsImV4cCI6MjA5NjU1MDU4Mn0.Z4xKO9aQ8NgGuD_c6_tIoTE_lhVkTprXRJzJ-_hkREc}"
-          export NEXT_PUBLIC_SITE_URL="https://expedientgeneration.vercel.app"
-          npm run build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
       - name: Sync Capacitor iOS Platform
         run: npx cap sync ios
 
