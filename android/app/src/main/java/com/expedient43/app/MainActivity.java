@@ -271,6 +271,18 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public boolean isDeviceSilent() {
+            try {
+                android.media.AudioManager am = (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                if (am != null) {
+                    int mode = am.getRingerMode();
+                    return mode == android.media.AudioManager.RINGER_MODE_SILENT || mode == android.media.AudioManager.RINGER_MODE_VIBRATE;
+                }
+            } catch (Exception ignored) {}
+            return false;
+        }
+
+        @JavascriptInterface
         public boolean saveBase64(String base64Data, String filename, String mimeType) {
             try {
                 if (base64Data == null || base64Data.trim().isEmpty()) return false;
@@ -652,7 +664,7 @@ public class MainActivity extends BridgeActivity {
                 adzanChannel.setVibrationPattern(new long[]{0, 500, 250, 500, 250, 500});
                 adzanChannel.setSound(soundUri, audioAttributes);
                 adzanChannel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
-                adzanChannel.setBypassDnd(true);
+                adzanChannel.setBypassDnd(false);
                 adzanChannel.setShowBadge(true);
                 manager.createNotificationChannel(adzanChannel);
             } catch (Exception e) {

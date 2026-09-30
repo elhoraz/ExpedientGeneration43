@@ -18,8 +18,8 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 /**
- * Native Android BroadcastReceiver to wake up device and fire prayer alerts
- * with authentic Adzan audio even when the screen is locked and app is closed (Doze Mode).
+ * Native Android BroadcastReceiver to wake up device and fire prayer alerts.
+ * Automatically respects device Silent / Vibrate mode so loud audio is not blasted during meetings/classes.
  */
 public class PrayerAlarmReceiver extends BroadcastReceiver {
     private static final String TAG = "ExpedientAdzan";
@@ -28,6 +28,17 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
     public static synchronized void playAdzanAudio(Context context) {
         try {
             stopAdzanAudio();
+
+            // Check if device is set to Silent or Vibrate mode
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager != null) {
+                int ringerMode = audioManager.getRingerMode();
+                if (ringerMode == AudioManager.RINGER_MODE_SILENT || ringerMode == AudioManager.RINGER_MODE_VIBRATE) {
+                    Log.d(TAG, "Device is in Silent or Vibrate mode (ringerMode=" + ringerMode + "). Suppressing loud adzan audio.");
+                    return;
+                }
+            }
+
             activeMediaPlayer = MediaPlayer.create(context.getApplicationContext(), R.raw.adzan);
             if (activeMediaPlayer != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -45,7 +56,7 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                     stopAdzanAudio();
                 });
                 activeMediaPlayer.start();
-                Log.d(TAG, "Adzan audio playback started on ALARM stream.");
+                Log.d(TAG, "Adzan audio playback started.");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error playing adzan audio: " + e.getMessage(), e);
@@ -88,8 +99,25 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                 Log.w(TAG, "WakeLock notice: " + wakeEx.getMessage());
             }
 
-            // 2. Play Adzan audio directly using MediaPlayer on ALARM stream
-            playAdzanAudio(context);
+            // 2. Check if device is in Silent or Vibrate mode
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            boolean isSilent = false;
+            boolean isVibrate = false;
+            if (audioManager != null) {
+                int ringerMode = audioManager.getRingerMode();
+                if (ringerMode == AudioManager.RINGER_MODE_SILENT) {
+                    isSilent = true;
+                } else if (ringerMode == AudioManager.RINGER_MODE_VIBRATE) {
+                    isVibrate = true;
+                }
+            }
+
+            // Only play loud adzan audio if device is in Normal mode
+            if (!isSilent && !isVibrate) {
+                playAdzanAudio(context);
+            } else {
+                Log.d(TAG, "Device is in Silent or Vibrate mode. Skipping loud adzan audio playback.");
+            }
 
             // 3. Prepare notification details and intents
             String title = intent.getStringExtra("title");
@@ -147,7 +175,7 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                         .build();
                     channel.setSound(soundUri, audioAttributes);
                     channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-                    channel.setBypassDnd(true);
+                    channel.setBypassDnd(false); // Do not bypass DND/silent mode
                     channel.setShowBadge(true);
                     manager.createNotificationChannel(channel);
                 }
@@ -163,9 +191,18 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                     .setOngoing(false)
                     .setAutoCancel(true)
                     .setContentIntent(contentPendingIntent)
-                    .setFullScreenIntent(contentPendingIntent, true)
-                    .addAction(R.mipmap.ic_launcher, "⏹ Hentikan Adzan", stopPendingIntent)
-                    .addAction(R.mipmap.ic_launcher, "🕌 Buka Kiblat", contentPendingIntent);
+                    .setFullScreenIntent(contentPendingIntent, true);
+
+                if (isSilent) {
+                    builder.setVibrate(new long[]{0});
+                } else if (isVibrate) {
+                    builder.setVibrate(new long[]{0, 500, 250, 500, 250, 500});
+                } else {
+                    builder.setVibrate(new long[]{0, 500, 250, 500, 250, 500})
+                           .addAction(R.mipmap.ic_launcher, "⏹ Hentikan Adzan", stopPendingIntent);
+                }
+
+                builder.addAction(R.mipmap.ic_launcher, "🕌 Buka Kiblat", contentPendingIntent);
 
                 manager.notify(777, builder.build());
             }

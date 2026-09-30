@@ -143,12 +143,16 @@ export default function AppNotificationManager() {
             if (!localStorage.getItem(notifKey)) {
               localStorage.setItem(notifKey, "1");
 
-              // Play adzan sound if app is currently in foreground
-              try {
-                const adzanAudio = new Audio("/assets/audio/adzan_makkah.mp3");
-                adzanAudio.volume = 1.0;
-                adzanAudio.play().catch(() => {});
-              } catch {}
+              // In native APK or silent mode, suppress web audio so native receiver handles audio appropriately
+              const isNative = Boolean((window as any).ExpedientNativeBridge);
+              const isSilent = Boolean((window as any).ExpedientNativeBridge?.isDeviceSilent?.());
+              if (!isNative && !isSilent) {
+                try {
+                  const adzanAudio = new Audio("/assets/audio/adzan_makkah.mp3");
+                  adzanAudio.volume = 1.0;
+                  adzanAudio.play().catch(() => {});
+                } catch {}
+              }
 
               await sendSystemNotification({
                 title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,

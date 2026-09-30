@@ -28,8 +28,8 @@ android {
         applicationId "com.expedient43.app"
         minSdkVersion rootProject.ext.minSdkVersion ?: 24
         targetSdkVersion rootProject.ext.targetSdkVersion ?: 35
-        versionCode 3
-        versionName "1.2.1"
+        versionCode 4
+        versionName "1.2.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets inside the APK
