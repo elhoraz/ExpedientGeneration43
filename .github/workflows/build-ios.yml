@@ -19,8 +19,10 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm install --legacy-peer-deps
+      - name: Install Dependencies & Patch Plugins
+        run: |
+          npm install --legacy-peer-deps
+          node scripts/patch-ios-plugins.js
 
       - name: Configure Xcode Developer Directory
         run: |

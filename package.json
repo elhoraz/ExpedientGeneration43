@@ -12,7 +12,8 @@
     "cap:sync:ios": "npx cap sync ios",
     "cap:sync:all": "npx cap sync",
     "build:android": "next build && npx cap sync android",
-    "build:ios": "next build && npx cap sync ios"
+    "build:ios": "next build && npx cap sync ios",
+    "postinstall": "node scripts/patch-ios-plugins.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
