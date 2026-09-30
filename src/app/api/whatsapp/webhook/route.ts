@@ -38,26 +38,62 @@ export async function POST(request: Request) {
       isGroup?: boolean;
     }> = [];
 
-    // 1. Parsing JSON Payload (Fonnte atau Meta)
-    if (contentType.includes("application/json")) {
-      const body = await request.json().catch(() => ({}));
+    let rawBody: any = null;
+    try {
+      if (contentType.includes("application/json")) {
+        rawBody = await request.json().catch(() => ({}));
+      } else if (contentType.includes("form-data") || contentType.includes("urlencoded")) {
+        const formData = await request.formData().catch(() => null);
+        if (formData) {
+          rawBody = {};
+          for (const [k, v] of formData.entries()) {
+            rawBody[k] = v;
+          }
+        }
+      } else {
+        const rawText = await request.text().catch(() => "");
+        try {
+          rawBody = JSON.parse(rawText);
+        } catch {
+          const params = new URLSearchParams(rawText);
+          rawBody = Object.fromEntries(params.entries());
+        }
+      }
+    } catch (parseErr) {
+      console.warn("[WEBHOOK-PARSE-ERR]", parseErr);
+      rawBody = {};
+    }
+
+    const bodies = Array.isArray(rawBody) ? rawBody : [rawBody];
+    for (const body of bodies) {
+      if (!body) continue;
 
       // A. Format Webhook Fonnte
       if (body.sender || body.message || body.text) {
-        const senderStr = String(body.sender || "");
-        const memberStr = String(body.member || "");
-        const groupStr = String(body.group || body.group_id || body.chatid || "");
+        const senderStr = String(body.sender || "").trim();
+        const memberStr = String(body.member || "").trim();
+        const groupStr = String(body.group || body.group_id || body.chatid || "").trim();
         const isGrp = Boolean(
           memberStr ||
           groupStr ||
           senderStr.includes("@g.us") ||
+          senderStr.startsWith("120363") ||
           memberStr.includes("@g.us") ||
           groupStr.includes("@g.us")
         );
 
+        let msgText = "";
+        if (typeof body.message === "string") {
+          msgText = body.message;
+        } else if (body.message && typeof body.message === "object") {
+          msgText = body.message.text || body.message.caption || JSON.stringify(body.message);
+        } else {
+          msgText = String(body.text || "");
+        }
+
         incomingList.push({
           sender: senderStr,
-          messageText: String(body.message || body.text || ""),
+          messageText: msgText,
           senderName: String(body.name || ""),
           device: String(body.device || ""),
           member: memberStr,
@@ -93,32 +129,6 @@ export async function POST(request: Request) {
         }
       }
     }
-    // 2. Parsing Form-Data / URL-Encoded (Fonnte default POST)
-    else if (contentType.includes("form-data") || contentType.includes("urlencoded")) {
-      const formData = await request.formData().catch(() => null);
-      if (formData) {
-        const senderStr = String(formData.get("sender") || "");
-        const memberStr = String(formData.get("member") || "");
-        const groupStr = String(formData.get("group") || formData.get("group_id") || formData.get("chatid") || "");
-        const isGrp = Boolean(
-          memberStr ||
-          groupStr ||
-          senderStr.includes("@g.us") ||
-          memberStr.includes("@g.us") ||
-          groupStr.includes("@g.us")
-        );
-
-        incomingList.push({
-          sender: senderStr,
-          messageText: String(formData.get("message") || formData.get("text") || ""),
-          senderName: String(formData.get("name") || ""),
-          device: String(formData.get("device") || ""),
-          member: memberStr,
-          group: groupStr,
-          isGroup: isGrp,
-        });
-      }
-    }
 
     const adminPhoneEnv = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
     const adminSupabase = createAdminClient();
@@ -136,22 +146,26 @@ export async function POST(request: Request) {
       let targetGroupId = "";
       let participantPhone = "";
 
-      if (rawSender.includes("@g.us")) {
+      if (rawSender.includes("@g.us") || rawSender.startsWith("120363")) {
         isGroupMsg = true;
-        targetGroupId = rawSender;
+        targetGroupId = rawSender.includes("@g.us") ? rawSender : `${rawSender}@g.us`;
         participantPhone = item.member || rawSender;
-      } else if (item.member && item.member.includes("@g.us")) {
+      } else if (item.member && (item.member.includes("@g.us") || item.member.startsWith("120363"))) {
         isGroupMsg = true;
-        targetGroupId = item.member;
+        targetGroupId = item.member.includes("@g.us") ? item.member : `${item.member}@g.us`;
         participantPhone = rawSender;
-      } else if (item.group && item.group.includes("@g.us")) {
+      } else if (item.group && (item.group.includes("@g.us") || item.group.startsWith("120363"))) {
         isGroupMsg = true;
-        targetGroupId = item.group;
+        targetGroupId = item.group.includes("@g.us") ? item.group : `${item.group}@g.us`;
         participantPhone = rawSender;
       } else if (item.isGroup) {
         isGroupMsg = true;
         targetGroupId = communityGroupDefault;
         participantPhone = item.member || rawSender;
+      }
+
+      if (targetGroupId && !targetGroupId.includes("@g.us")) {
+        targetGroupId = `${targetGroupId}@g.us`;
       }
 
       if (isGroupMsg && targetGroupId) {
@@ -319,7 +333,7 @@ export async function POST(request: Request) {
             .in("role", ["admin", "superadmin"]);
 
           if (adminProfiles && adminProfiles.length > 0) {
-            const notifRecords = adminProfiles.map((adm) => ({
+            const notifRecords = adminProfiles.map((adm: { id: string }) => ({
               user_id: adm.id,
               title: `📢 Berita Duka / Penting dari ${userDisplayName}`,
               message: `Draf siap dibroadcast ke Grup Resmi WA. Menunggu konfirmasi.`,
@@ -376,7 +390,7 @@ export async function POST(request: Request) {
           .in("role", ["admin", "superadmin"]);
 
         if (adminProfiles && adminProfiles.length > 0) {
-          const notifRecords = adminProfiles.map((adm) => ({
+          const notifRecords = adminProfiles.map((adm: { id: string }) => ({
             user_id: adm.id,
             title: `💬 WA Alumni: ${userDisplayName}`,
             message: messageText.length > 80 ? messageText.substring(0, 77) + "..." : messageText,

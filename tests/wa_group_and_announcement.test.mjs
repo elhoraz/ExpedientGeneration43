@@ -94,27 +94,35 @@ function shouldGroupBotRespond(messageText) {
     lower.startsWith("halo bot") ||
     lower.startsWith("hai bot") ||
     lower.startsWith("p ") ||
-    lower === "p"
+    lower === "p" ||
+    lower.startsWith("assalamu'alaikum bot") ||
+    lower.startsWith("assalamualaikum bot")
   ) {
     return true;
   }
 
-  // 4. Pertanyaan Spesifik Seputar Angkatan
+  // 4. Pertanyaan Mengenai Sosok / Profil Alumni (Contoh: "siapa taufiqi", "siapakah elhoraz", "profil danang", "kontak taufiq")
   if (
-    (lower.includes("ultah") || lower.includes("ulang tahun") || lower.includes("milad")) &&
-    (lower.includes("siapa") || lower.includes("hari ini") || lower.includes("bulan ini"))
+    lower.startsWith("siapa ") ||
+    lower.includes("siapakah ") ||
+    lower.startsWith("profil ") ||
+    lower.startsWith("kontak ") ||
+    lower.startsWith("nomor ") ||
+    lower.startsWith("alamat ") ||
+    lower.includes("info tentang ") ||
+    lower.startsWith("tanya dong")
   ) {
     return true;
   }
 
+  // 5. Pertanyaan Spesifik Seputar Angkatan (Ulang Tahun, Reuni, Agenda, Total Alumni)
   if (
-    (lower.includes("reuni") || lower.includes("acara") || lower.includes("agenda")) &&
-    (lower.includes("kapan") || lower.includes("info") || lower.includes("jadwal"))
-  ) {
-    return true;
-  }
-
-  if (
+    lower.includes("ultah") ||
+    lower.includes("ulang tahun") ||
+    lower.includes("milad") ||
+    lower.includes("reuni") ||
+    lower.includes("agenda") ||
+    lower.includes("acara") ||
     lower.includes("total alumni") ||
     lower.includes("berapa alumni") ||
     lower.includes("jumlah alumni")
@@ -174,7 +182,9 @@ describe('WhatsApp Group Gateway & Smart Trigger Validation', () => {
     assert.strictEqual(shouldGroupBotRespond('!cari danang'), true);
 
     // 3. Should respond to explicit cohort query
+    assert.strictEqual(shouldGroupBotRespond('Siapa Taufiqi itu'), true);
     assert.strictEqual(shouldGroupBotRespond('siapa yang ultah hari ini rek?'), true);
+    assert.strictEqual(shouldGroupBotRespond('kontak danang ada yang tau?'), true);
     assert.strictEqual(shouldGroupBotRespond('kapan reuni angkatan kita?'), true);
     assert.strictEqual(shouldGroupBotRespond('berapa alumni kita yang terdaftar sekarang?'), true);
 
