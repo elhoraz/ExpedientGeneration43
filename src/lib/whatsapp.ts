@@ -70,9 +70,6 @@ export async function sendWhatsAppMessageWithDetail(
       params.append("message", message);
       params.append("delay", "2");
       params.append("typing", "true");
-      if (!isGroup) {
-        params.append("countryCode", "62");
-      }
 
       const response = await fetch("https://api.fonnte.com/send", {
         method: "POST",
