@@ -28,6 +28,10 @@ export function getCommunityGroupId(): string {
   return (process.env.WA_GROUP_COMMUNITY_ID || "120363388633880584@g.us").trim();
 }
 
+export function getDesignGroupId(): string {
+  return (process.env.WA_GROUP_DESIGN_ID || "120363404648728200@g.us").trim();
+}
+
 export async function sendWhatsAppMessageWithDetail(
   target: string, 
   message: string

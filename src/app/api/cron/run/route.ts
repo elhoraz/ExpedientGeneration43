@@ -313,6 +313,26 @@ Jazakumullah khairan katsiran. Semoga Allah melapangkan rezeki antum sekeluarga.
     }
   }
 
+  // 5. Graphic Design Studio Alerts (H-3, H-1, Hari-H)
+  if (
+    searchParams.get('run_design_alert') === 'true' ||
+    searchParams.get('run_birthday') === 'true' ||
+    !searchParams.toString()
+  ) {
+    output += `\n[5] Memeriksa & Mengirim Alert Grup Graphic Design...\n`;
+    try {
+      const { runDailyDesignAlerts } = await import('@/lib/whatsapp/designGroupAssistant');
+      const designRes = await runDailyDesignAlerts();
+      output += `  Status   : Sukses\n`;
+      output += `  Terkirim : ${designRes.sentCount} alert\n`;
+      if (designRes.alerts.length > 0) {
+        output += `  Detail   : ${designRes.alerts.join(', ')}\n`;
+      }
+    } catch (e: any) {
+      output += `  ERROR Design Alert: ${e.message}\n`;
+    }
+  }
+
   output += `\n===== SELESAI =====\n`;
 
   return new NextResponse(output, { 

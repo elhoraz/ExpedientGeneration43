@@ -447,6 +447,49 @@ export async function handleIncomingGroupMessage(
   senderName: string,
   messageText: string
 ): Promise<{ responded: boolean; replyText?: string }> {
+  // =========================================================================
+  // 1. CABANG KHUSUS: GRUP GRAPHIC DESIGN / STUDIO EDITOR ANGKATAN
+  // =========================================================================
+  const { isDesignGroupId, handleDesignStudioConversation, shouldDesignBotRespond } = await import("@/lib/whatsapp/designGroupAssistant");
+  if (isDesignGroupId(groupId)) {
+    if (!shouldDesignBotRespond(messageText)) {
+      return { responded: false };
+    }
+
+    const callerName = senderName || "Sahabat Editor";
+    const replyText = await handleDesignStudioConversation({
+      senderPhone,
+      senderName: callerName,
+      messageText,
+      groupId,
+    });
+
+    const groupSendResult = await sendWhatsAppGroupMessage(groupId, replyText);
+
+    try {
+      const supabase = createAdminClient();
+      await supabase.from("whatsapp_queue").insert([
+        {
+          no_whatsapp: groupId.slice(0, 20),
+          message: `[GRUP DESAIN] Dari ${callerName}: "${messageText.slice(0, 80)}"`,
+          status: groupSendResult.success ? "replied_group" : "failed_group",
+          error_message: groupSendResult.success
+            ? `Dibalas: "${replyText.slice(0, 150)}"`
+            : `Gagal kirim grup desain: ${groupSendResult.reason || "Unknown"}`,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+    } catch (logErr) {
+      console.warn("[DESIGN-QUEUE-LOG-WARN]:", logErr);
+    }
+
+    return { responded: true, replyText };
+  }
+
+  // =========================================================================
+  // 2. CABANG REGULER: GRUP KOMUNITAS / ANGKATAN NON-RESMI
+  // =========================================================================
   // Hanya respons jika dipanggil atau merupakan command / pertanyaan seputar angkatan
   if (!shouldGroupBotRespond(messageText)) {
     return { responded: false };
