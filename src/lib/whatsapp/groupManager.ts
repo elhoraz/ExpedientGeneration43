@@ -428,6 +428,20 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     return true;
   }
 
+  // 6. Kabar / Update Alami Seputar Alumni (Self-Learning Alami Tanpa Keyword Catat)
+  // Contoh: "Danang sekarang kerja di Pertamina", "Auzan pindah ke Jakarta", "Rizki buka kafe di Ponorogo"
+  const naturalNewsIndicators = [
+    "kerja di", "bekerja di", "kantor di", "dinas di", "keterima di", "keterima kerja",
+    "kuliah di", "studi di", "jurusan", "kampus", "wisuda", "lulus",
+    "pindah ke", "tinggal di", "sekarang di", "domisili di", "merantau ke",
+    "buka usaha", "punya usaha", "buka toko", "buka kafe", "bisnis",
+    "udah nikah", "sudah nikah", "menikah dengan", "nikah sama", "punya anak",
+    "aslinya anak", "sebenarnya", "bukan di"
+  ];
+  if (naturalNewsIndicators.some((indicator) => lower.includes(indicator))) {
+    return true;
+  }
+
   return false;
 }
 

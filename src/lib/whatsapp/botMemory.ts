@@ -90,7 +90,67 @@ export async function saveLearnedMemory(
 }
 
 /**
- * AI Reflex: Menganalisis apakah pesan pengguna merupakan fakta baru, koreksi, atau instruksi untuk mengingat sesuatu
+ * Memeriksa apakah suatu kalimat secara alami berpotensi mengandung kabar / fakta baru seputar alumni
+ * TANPA memerlukan kata kunci kaku seperti "catat" atau "ingat".
+ */
+export function isPotentialFactStatement(messageText: string): boolean {
+  if (!messageText) return false;
+  const lower = messageText.trim().toLowerCase();
+
+  // 1. Abaikan pesan terlalu pendek (< 3 kata) atau tawa/salam biasa
+  const words = lower.split(/\s+/).filter(Boolean);
+  if (words.length < 3) return false;
+  if (/^(wkwk|haha|hehe|hihi|ckck|p|tes|ping|halo|hai|assalamu|wa'alaikum)/i.test(lower) && words.length < 5) {
+    return false;
+  }
+
+  // 2. Abaikan jika kalimat adalah PERTANYAAN murni (mengandung tanda tanya atau kata tanya pembuka)
+  if (
+    messageText.includes("?") ||
+    lower.startsWith("apakah ") ||
+    lower.startsWith("siapa ") ||
+    lower.startsWith("kapan ") ||
+    lower.startsWith("dimana ") ||
+    lower.startsWith("berapa ") ||
+    lower.startsWith("kenapa ") ||
+    lower.startsWith("mengapa ") ||
+    lower.startsWith("bagaimana ")
+  ) {
+    return false;
+  }
+
+  // 3. Deteksi Predikat / Kabar Faktual Alami:
+  // Karir, pekerjaan, pendidikan, domisili, usaha, pernikahan, prestasi, koreksi
+  const factIndicators = [
+    "kerja di", "bekerja di", "kantor di", "dinas di", "keterima di", "keterima kerja",
+    "kuliah di", "studi di", "jurusan", "kampus", "skripsi", "tesis", "wisuda", "lulus",
+    "pindah ke", "tinggal di", "sekarang di", "domisili di", "udah di", "merantau ke",
+    "buka usaha", "punya usaha", "buka toko", "buka warung", "buka kafe", "jualan", "bisnis",
+    "udah nikah", "sudah nikah", "menikah dengan", "nikah sama", "punya anak",
+    "menang lomba", "juara", "prestasi", "promosi jabatan", "naik jabatan",
+    "aslinya anak", "sebenarnya", "bukan di", "koreksi", "salah min", "salah bot", "fyi", "kabar",
+    "catat", "ingat", "note"
+  ];
+
+  if (factIndicators.some((indicator) => lower.includes(indicator))) {
+    return true;
+  }
+
+  // 4. Kalimat deklaratif yang menyebut status terkini ("sekarang" / "udah" / "kemarin") dengan konteks
+  if (
+    (lower.includes("sekarang") || lower.includes("udah") || lower.includes("sudah") || lower.includes("kemarin")) &&
+    words.length >= 4 &&
+    !lower.startsWith("apa") &&
+    !lower.startsWith("gimana")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * AI Reflex: Menganalisis apakah pesan pengguna merupakan fakta baru, koreksi, atau kabar alami tentang alumni
  */
 export async function extractAndLearnFromMessage(
   messageText: string,
@@ -101,27 +161,8 @@ export async function extractAndLearnFromMessage(
   fact?: string;
   acknowledgment?: string;
 }> {
-  const lower = messageText.trim().toLowerCase();
-
-  // Pemicu cepat: kata kunci eksplisit untuk mengingat atau mengoreksi
-  const isExplicitNote =
-    lower.includes("catat") ||
-    lower.includes("ingat") ||
-    lower.includes("fyi") ||
-    lower.includes("koreksi") ||
-    lower.includes("salah min") ||
-    lower.includes("salah bot") ||
-    lower.includes("bukan bot") ||
-    lower.includes("bukan min") ||
-    lower.startsWith("info baru:") ||
-    lower.startsWith("note:") ||
-    lower.includes("sekarang kerja di") ||
-    lower.includes("sekarang kuliah di") ||
-    lower.includes("udah nikah") ||
-    lower.includes("sudah menikah") ||
-    lower.includes("pindah ke");
-
-  if (!isExplicitNote) {
+  // Hanya evaluasi pesan yang berpotensi mengandung fakta agar hemat kuota AI
+  if (!isPotentialFactStatement(messageText)) {
     return { hasLearned: false };
   }
 
@@ -134,28 +175,29 @@ export async function extractAndLearnFromMessage(
 
   const prompt = `
 You are the Cognitive Memory Engine for the Expedient Generation 43 WhatsApp Bot.
-A user sent a message that may contain a NEW FACT, AN UPDATE, or A CORRECTION about an alumni member, event, business, or cohort activity.
+A user sent a natural message that may contain a NEW FACT, AN UPDATE, or A CORRECTION about an alumni member, event, business, or cohort activity.
+Note: Users talk naturally like friends; they DO NOT need to say robotic words like "catat" or "ingat"!
 
 MESSAGE: "${messageText}"
 CONTRIBUTOR: "${contributor}"
 
 TASK:
 Analyze if this message contains a concrete, valuable factual update worth remembering for future alumni questions.
-Examples of valuable facts:
-- Job updates ("Budi sekarang kerja di Pertamina") -> topic: "Budi", fact: "Budi sekarang bekerja di Pertamina"
-- Education updates ("Danang lanjut S2 di ITB") -> topic: "Danang", fact: "Danang sedang menempuh studi S2 di ITB"
-- Location updates ("Auzan pindah ke Jakarta bukan Bandung lagi") -> topic: "Auzan", fact: "Auzan saat ini berdomisili/dinas di Jakarta (sebelumnya di Bandung)"
-- Marriage/Family updates ("Fulan sudah menikah") -> topic: "Fulan", fact: "Fulan sudah menikah"
-- Business updates ("Rian buka warkop di Slahung") -> topic: "Rian", fact: "Rian memiliki usaha warkop di Slahung"
+Examples of natural updates:
+- "si Danang sekarang udah keterima kerja di Pertamina" -> topic: "Danang", fact: "Danang sekarang bekerja di Pertamina"
+- "Auzan kemarin baru pindah dinas ke Jakarta" -> topic: "Auzan", fact: "Auzan saat ini berdinas/domisili di Jakarta"
+- "Rizki baru buka kafe kopi di Ponorogo" -> topic: "Rizki", fact: "Rizki memiliki usaha kafe kopi di Ponorogo"
+- "Ihya alhamdulillah kemarin wisuda S1 di Malang" -> topic: "Ihya", fact: "Ihya telah lulus S1 dari kampus di Malang"
+- "bukan gitu bot, si Fulan aslinya anak Kediri" -> topic: "Fulan", fact: "Fulan berasal dari Kediri"
 
 OUTPUT FORMAT (JSON ONLY):
 {
   "isFact": true | false,
   "topic": "Name or subject (1-3 words, e.g. 'Danang' or 'Auzan')",
   "fact": "Clear, concise fact statement in Indonesian",
-  "acknowledgment": "Warm, polite Indonesian confirmation (1 sentence) acknowledging that the bot has saved this fact to its permanent memory."
+  "acknowledgment": "Warm, natural Indonesian reply like a real friend (1 to 2 sentences) expressing joy/congratulations or polite confirmation that you have remembered this update. Do NOT sound robotic."
 }
-If it is just casual chatter or an insult without concrete fact, return {"isFact": false}.
+If it is just general chat, jokes, or does not contain a factual update about an alumni or activity, return {"isFact": false}.
 `.trim();
 
   try {
