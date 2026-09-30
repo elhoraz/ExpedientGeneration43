@@ -177,8 +177,31 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
 }> {
   const supabase = createAdminClient();
 
-  // 1. Ambil antrean nomor dari Supabase
-  let targetPhones: string[] = [];
+  // 1. Cek Emergency Killswitch
+  try {
+    const { data: killData } = await supabase
+      .from("site_content")
+      .select("content_value")
+      .eq("content_key", "emergency_broadcast_killswitch")
+      .maybeSingle();
+
+    if (killData?.content_value) {
+      const parsed = JSON.parse(killData.content_value);
+      if (parsed.active) {
+        return {
+          success: false,
+          totalTarget: 0,
+          sentCount: 0,
+          failedCount: 0,
+          message: `🛑 *PENGIRIMAN DIBATALKAN (KILLSWITCH AKTIF)*\nSistem pengiriman broadcast/undangan sedang dimatikan darurat. Hubungi developer jika ingin mengaktifkan kembali.`,
+        };
+      }
+    }
+  } catch {}
+
+  // 2. Ambil antrean nomor dari Supabase dan LANGSUNG KOSONGKAN antrean
+  // Hal ini penting agar webhook retry dari Fonnte/Vercel TIDAK BISA memproses antrean ganda secara paralel!
+  let rawPhones: string[] = [];
   try {
     const { data } = await supabase
       .from("site_content")
@@ -188,13 +211,19 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
 
     if (data?.content_value) {
       const parsed = JSON.parse(data.content_value);
-      if (Array.isArray(parsed)) targetPhones = parsed;
+      if (Array.isArray(parsed)) rawPhones = parsed;
     }
+
+    // Langsung hapus antrean seketika (Atomic Pop) agar tidak dieksekusi dobel
+    await supabase.from("site_content").delete().eq("content_key", PENDING_INVITES_KEY);
   } catch (err: any) {
     console.warn("[FETCH-PENDING-INVITES-ERR]:", err.message);
   }
 
-  if (targetPhones.length === 0) {
+  // Deduplikasi internal dalam batch
+  const uniquePhones = Array.from(new Set(rawPhones));
+
+  if (uniquePhones.length === 0) {
     return {
       success: false,
       totalTarget: 0,
@@ -202,15 +231,48 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
       failedCount: 0,
       message:
         `⚠️ *Tidak ada antrean nomor yang belum terdaftar.*\n` +
-        `Silakan lakukan audit nomor terlebih dahulu dengan mengetik:\n` +
-        `*@bot cek-member: [daftar nomor telepon]*`,
+        `Antrean kosong atau sudah selesai diproses. Silakan ketik *@bot cek-member:* untuk audit ulang jika diperlukan.`,
+    };
+  }
+
+  // 3. DEDUPLIKASI KETAT HISTORIS: Periksa nomor mana saja yang sudah PERNAH dikirim undangan dalam 7 hari terakhir
+  const alreadySentSet = new Set<string>();
+  try {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: recentQueue } = await supabase
+      .from("whatsapp_queue")
+      .select("no_whatsapp")
+      .eq("status", "sent_invite")
+      .gte("created_at", sevenDaysAgo);
+
+    if (recentQueue) {
+      recentQueue.forEach((q) => {
+        if (q.no_whatsapp) alreadySentSet.add(q.no_whatsapp);
+      });
+    }
+  } catch (err: any) {
+    console.warn("[CHECK-DUPLICATES-ERR]:", err.message);
+  }
+
+  // Filter nomor yang benar-benar BELUM pernah menerima undangan
+  const targetPhones = uniquePhones.filter((p) => !alreadySentSet.has(p));
+
+  if (targetPhones.length === 0) {
+    return {
+      success: true,
+      totalTarget: uniquePhones.length,
+      sentCount: 0,
+      failedCount: 0,
+      message:
+        `✅ *Semua nomor dalam daftar (${uniquePhones.length}) sudah pernah menerima pesan undangan sebelumnya.*\n` +
+        `Pengiriman di-skip otomatis untuk mencegah pesan duplikat/spam ke sahabat alumni!`,
     };
   }
 
   let sentCount = 0;
   let failedCount = 0;
 
-  // Variasi Spintax agar setiap pesan memiliki teks berbeda (Lololos dari deteksi filter bulk Meta/WhatsApp)
+  // Variasi Spintax agar setiap pesan memiliki teks berbeda (Lolos dari deteksi filter bulk Meta/WhatsApp)
   const salamVariations = [
     "Assalamu'alaikum Warahmatullahi Wabarakatuh, Sahabat! ✨",
     "Assalamu'alaikum Wr. Wb. Salam hangat untuk Sahabat seperjuangan! 🌟",
@@ -235,6 +297,11 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
   for (let i = 0; i < targetPhones.length; i++) {
     const phone = targetPhones[i];
 
+    // Double check sebelum kirim jika nomor ini baru saja terkirim
+    if (alreadySentSet.has(phone)) {
+      continue;
+    }
+
     // Pick random variations for Anti-Fingerprint
     const salam = salamVariations[Math.floor(Math.random() * salamVariations.length)];
     const intro = introVariations[Math.floor(Math.random() * introVariations.length)];
@@ -251,7 +318,8 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
       `• Mengakses Baitul Maal & transparansi kas ta'awun terbuka\n\n` +
       `${cta}\n` +
       `👉 *https://expedientgeneration.vercel.app/register*\n\n` +
-      `_Pesan resmi dari Pengurus Expedient Generation 43. Jika ada kendala pendaftaran akun, antum bisa langsung membalas pesan ini ya!_ 🙏\n` +
+      `_Pesan resmi dari Pengurus Expedient Generation 43._\n` +
+      `*(Catatan: Jika antum sudah pernah mendaftar di website dengan nomor lain/email, atau menerima pesan ini lebih dari satu kali karena sinkronisasi sistem, mohon diabaikan ya Akhi. Afwan atas ketidaknyamanannya! 🙏)*\n` +
       `_Ref: #${refCode}_`;
 
     const res = await sendWhatsAppMessageWithDetail(phone, invitationMessage);
@@ -272,6 +340,7 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
 
     if (res.success) {
       sentCount++;
+      alreadySentSet.add(phone);
     } else {
       failedCount++;
     }
