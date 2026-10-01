@@ -15,6 +15,8 @@ import makeWASocket, {
 import pino from "pino";
 // @ts-ignore
 import qrcode from "qrcode-terminal";
+import QRCode from "qrcode";
+import { exec } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
 
@@ -59,23 +61,6 @@ if (pairingArgIndex !== -1) {
 }
 
 async function startBaileysGateway() {
-  // Bersihkan folder auth jika sebelumnya gagal pairing atau belum terdaftar
-  if (fs.existsSync(AUTH_FOLDER)) {
-    const credsPath = path.join(AUTH_FOLDER, "creds.json");
-    if (fs.existsSync(credsPath)) {
-      try {
-        const raw = fs.readFileSync(credsPath, "utf8");
-        const parsed = JSON.parse(raw);
-        if (!parsed.registered) {
-          console.log("🧹 Membersihkan residu sesi pairing lama yang belum aktif...");
-          fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
-        }
-      } catch (_) {
-        fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
-      }
-    }
-  }
-
   if (!fs.existsSync(AUTH_FOLDER)) {
     fs.mkdirSync(AUTH_FOLDER, { recursive: true });
   }
@@ -126,11 +111,60 @@ async function startBaileysGateway() {
         console.error("Gagal meminta pairing code:", err.message);
       }
     }
-    // 2. Jika mode QR biasa, cetak visual QR di terminal
+    // 2. Jika mode QR biasa, cetak visual QR di browser & terminal
     else if (qr && !pairingPhoneArg) {
+      // Buat file HTML QR beresolusi tinggi dan buka otomatis di browser
+      try {
+        const qrDataUrl = await QRCode.toDataURL(qr, { scale: 10, margin: 2 });
+        const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Scan WhatsApp Bot - Expedient 43</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0c1317; color: #e9edef; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .card { background: #111b21; padding: 36px 40px; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.6); text-align: center; border: 1px solid #222e35; max-width: 420px; width: 100%; }
+    h2 { margin: 0 0 8px; color: #25d366; font-size: 22px; }
+    p { margin: 6px 0; color: #8696a0; font-size: 14px; line-height: 1.5; }
+    .qr-container { background: #ffffff; padding: 18px; border-radius: 16px; margin: 24px auto; display: inline-block; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    img { display: block; width: 280px; height: 280px; }
+    .step-box { background: #1f2c34; border-radius: 12px; padding: 14px; margin-top: 16px; text-align: left; }
+    .step { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 13px; color: #d1d7db; }
+    .badge { background: #00a884; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="font-size: 40px; margin-bottom: 8px;">🤖</div>
+    <h2>Scan WhatsApp Bot</h2>
+    <p>Expedient Generation 43 Multi-Device</p>
+    
+    <div class="qr-container">
+      <img src="${qrDataUrl}" alt="WhatsApp QR Code" />
+    </div>
+
+    <div class="step-box">
+      <div class="step"><span class="badge">1</span> Buka WhatsApp di HP Anda</div>
+      <div class="step"><span class="badge">2</span> Buka Titik Tiga (Setelan) &rarr; <b>Perangkat Tertaut</b></div>
+      <div class="step"><span class="badge">3</span> Ketuk <b>Tautkan Perangkat</b> lalu arahkan kamera ke gambar QR ini</div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+        const qrHtmlPath = path.join(process.cwd(), "wa-qr.html");
+        fs.writeFileSync(qrHtmlPath, htmlContent, "utf8");
+
+        if (process.platform === "win32") {
+          exec(`start "" "${qrHtmlPath}"`);
+        } else if (process.platform === "darwin") {
+          exec(`open "${qrHtmlPath}"`);
+        }
+      } catch (_) {}
+
       console.log("\n=======================================================");
-      console.log("📲 SCAN QR CODE BERIKUT DENGAN WHATSAPP DI HP ANDA:");
-      console.log("   (WhatsApp -> Perangkat Tertaut -> Tautkan Perangkat)\n");
+      console.log("📲 GAMBAR QR CODE SUDAH DIBUKA DI BROWSER ANDA!");
+      console.log("   (Buka WhatsApp -> Perangkat Tertaut -> Scan gambar di browser)\n");
       try {
         qrcode.setErrorLevel("L");
         qrcode.generate(qr, { small: true });
@@ -138,8 +172,8 @@ async function startBaileysGateway() {
         console.log("QR Data:", qr);
       }
       console.log("=======================================================");
-      console.log("💡 Tips: Anda juga bisa memakai kode pairing 8 digit:");
-      console.log("   npm run wa:bot -- --pairing=6285151771289\n");
+      console.log("💡 Tips: Jika browser tidak terbuka otomatis, buka file 'wa-qr.html'");
+      console.log("   atau gunakan kode pairing: npm run wa:bot -- --pairing=6285151771289\n");
     }
 
     if (connection === "close") {
@@ -147,8 +181,9 @@ async function startBaileysGateway() {
       const isLoggedOut = statusCode === DisconnectReason.loggedOut;
       const isForbidden = statusCode === 403 || statusCode === 401;
       const isTimeout = statusCode === 408;
+      const isRestartRequired = statusCode === DisconnectReason.restartRequired || statusCode === 515;
 
-      console.warn(`[WA-DISCONNECT] Koneksi terputus. Status code: ${statusCode}`);
+      console.warn(`[WA-DISCONNECT] Status code: ${statusCode}`);
 
       // Hentikan listener lama agar tidak memory leak
       try {
@@ -157,28 +192,38 @@ async function startBaileysGateway() {
         sock.ev.removeAllListeners("creds.update");
       } catch (_) {}
 
+      // 1. RESTART REQUIRED (515) -> PAIRING BERHASIL! Reconnect langsung dalam 1 detik!
+      if (isRestartRequired) {
+        console.log("⚡ WhatsApp meminta restart sesi (Handshake/Pairing Berhasil!). Menyambungkan ulang sekarang...");
+        setTimeout(() => startBaileysGateway(), 1000);
+        return;
+      }
+
       if (isLoggedOut || isForbidden) {
-        if (!sock.authState.creds.registered) {
-          try {
-            fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
-          } catch (_) {}
-        }
-        console.error("❌ Akun terputus/logout dari WhatsApp (Status 401). Residu sesi dibersihkan otomatis.");
+        console.error("❌ Akun terputus/logout dari WhatsApp. Hapus folder .baileys_auth jika ingin scan ulang.");
         return;
       }
 
       if (isTimeout) {
-        console.warn("⚠️ QR Code / Sesi telah kedaluwarsa (Timeout). Menghubungkan ulang secara aman dalam 10 detik...");
-        setTimeout(() => startBaileysGateway(), 10000);
+        console.warn("⚠️ QR Code / Sesi telah kedaluwarsa. Mengambil QR baru dalam 5 detik...");
+        setTimeout(() => startBaileysGateway(), 5000);
         return;
       }
 
-      console.log("🔄 Menghubungkan ulang dalam 10 detik (Safe Anti-Spam Backoff)...");
-      setTimeout(() => startBaileysGateway(), 10000);
+      console.log("🔄 Menghubungkan ulang dalam 5 detik...");
+      setTimeout(() => startBaileysGateway(), 5000);
     } else if (connection === "open") {
-      console.log("\n✅ [WA-GATEWAY-CONNECTED] WhatsApp Bot BERHASIL TERHUBUNG!");
+      console.log("\n=======================================================");
+      console.log("✅ [WA-GATEWAY-CONNECTED] WhatsApp Bot BERHASIL TERHUBUNG!");
       console.log(`👤 Device ID: ${sock.user?.id || "Connected"}`);
       console.log("🚀 Fitur Multimodal (Gambar, Stiker, Voice Note, Video) SIAP 100% GRATIS!\n");
+      console.log("=======================================================\n");
+
+      // Bersihkan file HTML QR jika ada
+      try {
+        const qrHtmlPath = path.join(process.cwd(), "wa-qr.html");
+        if (fs.existsSync(qrHtmlPath)) fs.unlinkSync(qrHtmlPath);
+      } catch (_) {}
     }
   });
 
