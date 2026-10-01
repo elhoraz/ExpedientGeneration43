@@ -189,7 +189,49 @@ async function startBaileysGateway() {
           msgContent.documentMessage?.caption ||
           "";
 
-        // Deteksi Tipe Media
+        // Deteksi Konteks Pesan (Mention & Reply/Quote)
+        const contextInfo =
+          msgContent.extendedTextMessage?.contextInfo ||
+          msgContent.imageMessage?.contextInfo ||
+          msgContent.audioMessage?.contextInfo ||
+          msgContent.videoMessage?.contextInfo ||
+          msgContent.stickerMessage?.contextInfo;
+
+        const botPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");
+        const botShortPhone = botPhone.slice(-9);
+
+        const mentionedJids: string[] = contextInfo?.mentionedJid || [];
+        const quotedParticipant = (contextInfo?.participant || "").replace(/\D/g, "");
+
+        const isBotMentioned = mentionedJids.some((j: string) => {
+          const num = j.replace(/\D/g, "");
+          return num === botPhone || num.endsWith(botShortPhone) || num.includes("85151771289") || num.includes("89675010185");
+        });
+
+        const isBotQuoted =
+          (botPhone && (quotedParticipant === botPhone || quotedParticipant.endsWith(botShortPhone))) ||
+          quotedParticipant.includes("85151771289") ||
+          quotedParticipant.includes("89675010185");
+
+        const isDirectlyAddressed = isBotMentioned || isBotQuoted;
+
+        // Cek Quoted Media (jika user mereply foto/stiker/audio lama sambil tag bot)
+        const quotedMsgRaw = contextInfo?.quotedMessage;
+        const quotedMsg =
+          quotedMsgRaw?.viewOnceMessage?.message ||
+          quotedMsgRaw?.viewOnceMessageV2?.message ||
+          quotedMsgRaw?.ephemeralMessage?.message ||
+          quotedMsgRaw?.documentWithCaptionMessage?.message ||
+          quotedMsgRaw;
+
+        const quotedIsImage = Boolean(quotedMsg?.imageMessage);
+        const quotedIsSticker = Boolean(quotedMsg?.stickerMessage);
+        const quotedIsAudio = Boolean(quotedMsg?.audioMessage);
+        const quotedIsVideo = Boolean(quotedMsg?.videoMessage);
+        const quotedIsDocument = Boolean(quotedMsg?.documentMessage);
+        const quotedHasMedia = quotedIsImage || quotedIsSticker || quotedIsAudio || quotedIsVideo || quotedIsDocument;
+
+        // Deteksi Tipe Media Pesan Utama
         const isImage = Boolean(msgContent.imageMessage);
         const isSticker = Boolean(msgContent.stickerMessage);
         const isAudio = Boolean(msgContent.audioMessage);
@@ -198,7 +240,7 @@ async function startBaileysGateway() {
         const hasMedia = isImage || isSticker || isAudio || isVideo || isDocument;
 
         // =====================================================================
-        // 1. PENANGANAN MEDIA MASUK (Gambar, Stiker, Voice Note, Video Note)
+        // 1. PENANGANAN MEDIA LANGSUNG (Gambar, Stiker, Voice Note, Video Note)
         // =====================================================================
         if (hasMedia) {
           const category: MultimodalMediaCategory = isSticker
@@ -225,7 +267,7 @@ async function startBaileysGateway() {
 
           // Cek apakah bot harus merespons media ini
           const shouldRespond = isGroup
-            ? shouldProcessGroupMedia(remoteJid, category, messageText)
+            ? isDirectlyAddressed || shouldProcessGroupMedia(remoteJid, category, messageText)
             : true; // Di chat pribadi SELALU direspons!
 
           if (shouldRespond) {
@@ -274,14 +316,91 @@ async function startBaileysGateway() {
         }
 
         // =====================================================================
-        // 2. PENANGANAN PESAN TEKS BIASA
+        // 2. PENANGANAN MEDIA YANG DI-REPLY/QUOTE (misal reply poster lama & tag bot)
+        // =====================================================================
+        if (
+          !hasMedia &&
+          quotedHasMedia &&
+          (isDirectlyAddressed ||
+            (isGroup
+              ? isDesignGroupId(remoteJid)
+                ? shouldDesignBotRespond(messageText)
+                : shouldGroupBotRespond(messageText)
+              : true))
+        ) {
+          const category: MultimodalMediaCategory = quotedIsSticker
+            ? "sticker"
+            : quotedIsAudio
+            ? "audio"
+            : quotedIsVideo
+            ? "video"
+            : quotedIsImage
+            ? "image"
+            : "document";
+
+          const mimeType = quotedIsSticker
+            ? "image/webp"
+            : quotedIsAudio
+            ? "audio/ogg"
+            : quotedIsVideo
+            ? "video/mp4"
+            : quotedIsImage
+            ? quotedMsg?.imageMessage?.mimetype || "image/jpeg"
+            : "application/pdf";
+
+          console.log(`[BAILEYS-QUOTED-MEDIA] User mereply media ${category} dengan pesan: "${messageText}"`);
+          await sock.sendPresenceUpdate("composing", remoteJid);
+
+          try {
+            const fakeQuotedMsgObj = {
+              key: {
+                remoteJid,
+                id: contextInfo?.stanzaId,
+                participant: contextInfo?.participant,
+              },
+              message: quotedMsg,
+            };
+
+            const mediaBuffer = await downloadMediaMessage(
+              fakeQuotedMsgObj as any,
+              "buffer",
+              {},
+              { logger, reuploadRequest: sock.updateMediaMessage }
+            );
+
+            const multiRes = await processMultimodalBuffer({
+              base64Data: mediaBuffer.toString("base64"),
+              category,
+              mimeType,
+              caption: messageText,
+              senderPhone,
+              senderName,
+              isGroup,
+              groupId: remoteJid,
+              filename: `${category}_quoted_${Date.now()}`,
+            });
+
+            await sock.sendMessage(
+              remoteJid,
+              { text: multiRes.replyText },
+              { quoted: m }
+            );
+            continue;
+          } catch (err: any) {
+            console.warn("[QUOTED-MEDIA-DOWNLOAD-FAILED]:", err.message);
+            // fallback ke penanganan teks biasa di bawah
+          }
+        }
+
+        // =====================================================================
+        // 3. PENANGANAN PESAN TEKS & EMOJI
         // =====================================================================
         if (!messageText) continue;
 
         if (isGroup) {
           // CABANG A: GRUP GRAPHIC DESIGN
           if (isDesignGroupId(remoteJid)) {
-            if (shouldDesignBotRespond(messageText)) {
+            if (isDirectlyAddressed || shouldDesignBotRespond(messageText)) {
               await sock.sendPresenceUpdate("composing", remoteJid);
               const replyText = await handleDesignStudioConversation({
                 senderPhone,
@@ -294,7 +413,7 @@ async function startBaileysGateway() {
           }
           // CABANG B: GRUP KOMUNITAS / ANGKATAN
           else {
-            if (shouldGroupBotRespond(messageText)) {
+            if (isDirectlyAddressed || shouldGroupBotRespond(messageText)) {
               await sock.sendPresenceUpdate("composing", remoteJid);
               const replyText = await generateIntelligentCohortReply({
                 messageText,

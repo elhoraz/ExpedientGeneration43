@@ -136,8 +136,8 @@ export function shouldProcessGroupMedia(
   category: MultimodalMediaCategory,
   caption?: string
 ): boolean {
-  // 1. Di Grup Desain Grafis: Setiap gambar/poster/stiker kreatif SELALU direview otomatis
-  if (isDesignGroupId(groupId) && (category === "image" || category === "sticker")) {
+  // 1. Di Grup Desain Grafis: Setiap gambar, poster, stiker kreatif, dan Voice Note SELALU direview/ditranskrip otomatis
+  if (isDesignGroupId(groupId) && (category === "image" || category === "sticker" || category === "audio")) {
     return true;
   }
 

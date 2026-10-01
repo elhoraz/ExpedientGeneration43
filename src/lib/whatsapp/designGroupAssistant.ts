@@ -29,9 +29,10 @@ export function shouldDesignBotRespond(messageText: string): boolean {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot (@bot, @89675010185, @min, dsb)
+  // 1. Tag / Mention Bot (@bot, @89675010185, @85151771289, @min, dsb)
   if (
     lower.includes("89675010185") ||
+    lower.includes("85151771289") ||
     lower.includes("@bot") ||
     lower.includes("@min") ||
     lower.includes("@admin") ||
