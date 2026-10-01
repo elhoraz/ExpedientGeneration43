@@ -29,11 +29,15 @@ if (fs.existsSync(localPluginPath)) {
   let content = fs.readFileSync(localPluginPath, 'utf8');
   content = content.replace(
     'call.reject(error.message, error.code, underlying)',
-    'call.errorHandler?(CAPPluginCallError(message: error.message, code: error.code, error: underlying, data: nil))'
+    'call.resolve(["error": error.message])'
   );
   content = content.replace(
     'call.reject(error.message)',
-    'call.errorHandler?(CAPPluginCallError(message: error.message, code: error.code, error: underlying, data: nil))'
+    'call.resolve(["error": error.message])'
+  );
+  content = content.replace(
+    'call.errorHandler?(CAPPluginCallError(message: error.message, code: error.code, error: underlying, data: nil))',
+    'call.resolve(["error": error.message])'
   );
   content = content.replace(
     'let state = call.getString("state")',
