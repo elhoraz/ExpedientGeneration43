@@ -274,9 +274,6 @@ async function startBaileysGateway() {
           msgContent.videoMessage?.contextInfo ||
           msgContent.stickerMessage?.contextInfo;
 
-        const botPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");
-        const botShortPhone = botPhone.slice(-9);
-
         const mentionedJids: string[] = contextInfo?.mentionedJid || [];
         const quotedParticipant = (contextInfo?.participant || "").replace(/\D/g, "");
 
