@@ -21,6 +21,7 @@ import QRCode from "qrcode";
 import { exec } from "child_process";
 import * as path from "path";
 import * as fs from "fs";
+import * as http from "http";
 
 // Import AI Handlers dari codebase project
 import {
@@ -43,6 +44,10 @@ import { handleAdminAutoRemediation } from "../src/lib/sentinel/autoRemediator";
 import { recordCommunityGroupActivity } from "../src/lib/whatsapp/communityIcebreaker";
 import { getCommunityGroupId, getDesignGroupId } from "../src/lib/whatsapp";
 import { createAdminClient } from "../src/lib/supabase/admin";
+import {
+  backupSessionToSupabase,
+  restoreSessionFromSupabase,
+} from "../src/lib/whatsapp/sessionSync";
 
 const AUTH_FOLDER = path.join(process.cwd(), ".baileys_auth");
 const logger = pino({ level: "silent" });
@@ -67,6 +72,12 @@ let isReconnecting = false;
 async function startBaileysGateway() {
   if (!fs.existsSync(AUTH_FOLDER)) {
     fs.mkdirSync(AUTH_FOLDER, { recursive: true });
+  }
+
+  // Otomatis pulihkan sesi dari Supabase Storage jika dijalankan di cloud container
+  const credsFile = path.join(AUTH_FOLDER, "creds.json");
+  if (!fs.existsSync(credsFile)) {
+    await restoreSessionFromSupabase(AUTH_FOLDER);
   }
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_FOLDER);
@@ -135,8 +146,11 @@ async function startBaileysGateway() {
 
   let pairingCodeRequested = false;
 
-  // Simpan kredensial sesi saat ada pembaruan token
-  sock.ev.on("creds.update", saveCreds);
+  // Simpan kredensial sesi saat ada pembaruan token & sync ke Supabase
+  sock.ev.on("creds.update", async () => {
+    await saveCreds();
+    backupSessionToSupabase(AUTH_FOLDER).catch(() => {});
+  });
 
   // Monitor status koneksi WhatsApp
   sock.ev.on("connection.update", async (update) => {
@@ -273,6 +287,9 @@ async function startBaileysGateway() {
       console.log(`🆔 Device LID: ${sock.user?.lid || "None"}`);
       console.log("🚀 Fitur Multimodal (Gambar, Stiker, Voice Note, Video) SIAP 100% GRATIS!\n");
       console.log("=======================================================\n");
+
+      // Cadangkan sesi ke Supabase Storage secara otomatis saat terhubung
+      backupSessionToSupabase(AUTH_FOLDER).catch(() => {});
 
       // Bersihkan file HTML QR jika ada
       try {
@@ -644,6 +661,30 @@ async function startBaileysGateway() {
         console.error("[BAILEYS-MSG-ERROR]:", msgErr);
       }
     }
+  });
+
+  // HTTP Health Check Server untuk Cloud Hosting (Hugging Face Spaces / Koyeb / Render)
+  const HTTP_PORT = parseInt(process.env.PORT || "7860", 10);
+  const healthServer = http.createServer((req, res) => {
+    if (req.url === "/health" || req.url === "/") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          status: "online",
+          bot: "Expedient 43 WhatsApp Gateway",
+          device: sock.user?.id || "connected",
+          uptimeSeconds: Math.round(process.uptime()),
+          timestamp: new Date().toISOString(),
+        })
+      );
+    } else {
+      res.writeHead(404);
+      res.end("Not Found");
+    }
+  });
+
+  healthServer.listen(HTTP_PORT, () => {
+    console.log(`🌐 [CLOUD-KEEP-ALIVE] HTTP Health Server aktif di port ${HTTP_PORT} (Hugging Face / Koyeb 24/7 Ready)`);
   });
 
   return sock;
