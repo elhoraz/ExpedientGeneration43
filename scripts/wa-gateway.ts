@@ -135,21 +135,29 @@ async function startBaileysGateway() {
         const senderPhone = participantRaw.replace(/\D/g, "");
         const senderName = m.pushName || "Sahabat";
 
+        const rawMsg = m.message;
+        const msgContent =
+          rawMsg.viewOnceMessage?.message ||
+          rawMsg.viewOnceMessageV2?.message ||
+          rawMsg.ephemeralMessage?.message ||
+          rawMsg.documentWithCaptionMessage?.message ||
+          rawMsg;
+
         // Ekstraksi Teks Pesan
         const messageText =
-          m.message.conversation ||
-          m.message.extendedTextMessage?.text ||
-          m.message.imageMessage?.caption ||
-          m.message.videoMessage?.caption ||
-          m.message.documentMessage?.caption ||
+          msgContent.conversation ||
+          msgContent.extendedTextMessage?.text ||
+          msgContent.imageMessage?.caption ||
+          msgContent.videoMessage?.caption ||
+          msgContent.documentMessage?.caption ||
           "";
 
         // Deteksi Tipe Media
-        const isImage = Boolean(m.message.imageMessage);
-        const isSticker = Boolean(m.message.stickerMessage);
-        const isAudio = Boolean(m.message.audioMessage);
-        const isVideo = Boolean(m.message.videoMessage);
-        const isDocument = Boolean(m.message.documentMessage);
+        const isImage = Boolean(msgContent.imageMessage);
+        const isSticker = Boolean(msgContent.stickerMessage);
+        const isAudio = Boolean(msgContent.audioMessage);
+        const isVideo = Boolean(msgContent.videoMessage);
+        const isDocument = Boolean(msgContent.documentMessage);
         const hasMedia = isImage || isSticker || isAudio || isVideo || isDocument;
 
         // =====================================================================
@@ -173,7 +181,7 @@ async function startBaileysGateway() {
             : isVideo
             ? "video/mp4"
             : isImage
-            ? m.message.imageMessage?.mimetype || "image/jpeg"
+            ? msgContent.imageMessage?.mimetype || "image/jpeg"
             : "application/pdf";
 
           console.log(`[BAILEYS-MEDIA-INCOMING] Tipe: ${category.toUpperCase()} | Dari: ${senderName} (${senderPhone}) | Grup: ${isGroup ? remoteJid : "PERSONAL"}`);
