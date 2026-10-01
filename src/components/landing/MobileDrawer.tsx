@@ -245,8 +245,9 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
               </Link>
 
               <Link href="/download" className="drawer-feature-card" onClick={onClose}>
-                <div className="drawer-feat-icon icon-green">
+                <div className="drawer-feat-icon icon-green" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
                   <i className="fa-brands fa-android"></i>
+                  <i className="fa-brands fa-apple" style={{ fontSize: "0.85em" }}></i>
                 </div>
                 <div>
                   <strong>{t.drawer.download_title}</strong>

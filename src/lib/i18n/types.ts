@@ -1288,6 +1288,7 @@ export interface Dictionary {
     title: string;
     subtitle: string;
     tab_apk: string;
+    tab_ios: string;
     tab_pwa: string;
     apk_badge: string;
     apk_version_label: string;
@@ -1296,6 +1297,11 @@ export interface Dictionary {
     recommended_badge: string;
     apk_desc: string;
     apk_support_label: string;
+    ios_badge: string;
+    ios_desc: string;
+    ios_size_label: string;
+    ios_support_label: string;
+    ios_btn_download: string;
     pwa_desc: string;
     pwa_feature_1: string;
     pwa_feature_2: string;
@@ -1310,6 +1316,19 @@ export interface Dictionary {
     apk_step3_desc: string;
     apk_step4_title: string;
     apk_step4_desc: string;
+    ios_install_guide_title: string;
+    ios_method1_title: string;
+    ios_method1_desc: string;
+    ios_method2_title: string;
+    ios_method2_desc: string;
+    ios_step1_title: string;
+    ios_step1_desc: string;
+    ios_step2_title: string;
+    ios_step2_desc: string;
+    ios_step3_title: string;
+    ios_step3_desc: string;
+    ios_step4_title: string;
+    ios_step4_desc: string;
     pwa_guide_title: string;
     pwa_android_desc: string;
     pwa_ios_desc: string;
@@ -1318,6 +1337,8 @@ export interface Dictionary {
     faq_a1: string;
     faq_q2: string;
     faq_a2: string;
+    faq_q_ios: string;
+    faq_a_ios: string;
     security_notice_title: string;
     security_notice_desc: string;
     btn_login: string;

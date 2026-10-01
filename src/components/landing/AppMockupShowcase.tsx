@@ -14,9 +14,11 @@ export default function AppMockupShowcase() {
   return (
     <section className="app-showcase-section" id="aplikasi">
       <div className="section-header reveal-on-scroll">
-        <div className="landing-prestige-badge" style={{ marginBottom: "14px" }}>
-          <i className="fa-brands fa-android"></i>
-          <span>{t.app_showcase.badge}</span>
+        <div className="landing-prestige-badge" style={{ marginBottom: "14px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+          <i className="fa-brands fa-android" style={{ color: "#10b981" }}></i>
+          <span style={{ opacity: 0.4 }}>•</span>
+          <i className="fa-brands fa-apple" style={{ color: "#f8fafc" }}></i>
+          <span>{locale === "ar" ? "تطبيق رسمي متوفر لأجهزة أندرويد وآيفون" : locale === "en" ? "Official App for Android & iPhone" : "Tersedia untuk Android & iPhone (iOS)"}</span>
         </div>
         <h2 className="section-title">
           {t.app_showcase.title}
@@ -103,13 +105,14 @@ export default function AppMockupShowcase() {
 
           {/* CTA Buttons */}
           <div className="app-action-buttons">
-            <Link href="/download" className="btn-primary" id="btnDownloadApkLanding">
+            <Link href="/download" className="btn-primary" id="btnDownloadApkLanding" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
               <i className="fa-brands fa-android"></i>
-              <span>{t.cta.btn_apk}</span>
+              <i className="fa-brands fa-apple"></i>
+              <span>{locale === "ar" ? "تحميل التطبيق (Android & iOS)" : locale === "en" ? "Download App (Android & iOS)" : "Unduh App (Android & iOS)"}</span>
             </Link>
-            <Link href="/download" className="btn-secondary">
-              <i className="fa-solid fa-circle-question"></i>
-              <span>{locale === "ar" ? "دليل التثبيت" : locale === "en" ? "Installation Guide" : "Panduan Instalasi"}</span>
+            <Link href="/download" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+              <i className="fa-solid fa-list-check"></i>
+              <span>{locale === "ar" ? "دليل التثبيت الشامل" : locale === "en" ? "Installation Guide" : "Panduan Cara Pasang"}</span>
             </Link>
           </div>
         </div>

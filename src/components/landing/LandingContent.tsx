@@ -625,8 +625,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <Link href="/login" className="btn-secondary">
                 <i className="fa-solid fa-circle-user"></i> {t?.cta?.btn_member}
               </Link>
-              <Link href="/download" className="btn-secondary">
-                <i className="fa-brands fa-android"></i> {t?.cta?.btn_apk}
+              <Link href="/download" className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <i className="fa-brands fa-android"></i>
+                <i className="fa-brands fa-apple"></i>
+                <span>{locale === "ar" ? "تطبيق أندرويد و iOS" : locale === "en" ? "Android & iOS App" : "Aplikasi Android & iOS"}</span>
               </Link>
               <a
                 href={shareWaUrl}
@@ -702,7 +704,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 <li><Link href="/mahfuzhat">{t?.footer?.util_mahfuzhat}</Link></li>
                 <li><Link href="/photobooth">{t?.footer?.util_photobooth}</Link></li>
                 <li><Link href="/kiblat">{t?.footer?.util_kiblat}</Link></li>
-                <li><Link href="/download">{t?.footer?.srv_apk}</Link></li>
+                <li><Link href="/download">{locale === "ar" ? "تطبيق الموبايل (Android & iOS)" : locale === "en" ? "Mobile App (Android & iOS)" : "Aplikasi Mobile (Android & iOS)"}</Link></li>
               </ul>
             </div>
           </div>
@@ -714,7 +716,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             <div className="footer-meta-links">
               <LanguageSwitcher variant="pill" />
               <span>•</span>
-              <Link href="/download">{t?.footer?.link_apk}</Link>
+              <Link href="/download">{locale === "ar" ? "تحميل التطبيق (Android & iOS)" : locale === "en" ? "Download App (Android & iOS)" : "Unduh Aplikasi (Android & iOS)"}</Link>
               <span>•</span>
               <Link href="/delete-account">{t?.footer?.link_privacy}</Link>
             </div>
