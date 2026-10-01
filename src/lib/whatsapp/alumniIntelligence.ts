@@ -117,56 +117,116 @@ export async function resolveCohortContext(
     }
 
     // 2. TANYA ULANG TAHUN / MILAD (HARI INI / BULAN INI / TERDEKAT)
-    if (lower.includes("ultah") || lower.includes("ulang tahun") || lower.includes("milad")) {
+    // 2. TANYA ULANG TAHUN / MILAD (HARI INI / BULAN INI / TERDEKAT / SIAPA ULTAH)
+    if (
+      lower.includes("ultah") ||
+      lower.includes("ulang tahun") ||
+      lower.includes("milad") ||
+      lower.includes("hari lahir")
+    ) {
       const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+      const currentYear = nowWib.getFullYear();
       const currentMonth = nowWib.getMonth() + 1;
       const currentDay = nowWib.getDate();
+      const todayDate = new Date(currentYear, nowWib.getMonth(), nowWib.getDate());
 
       const { data: celebrants } = await supabase
         .from("profiles")
-        .select("nama_lengkap, nama_panggilan, tanggal_lahir, alamat_lengkap")
+        .select("id, nama_lengkap, nama_panggilan, tanggal_lahir, alamat_lengkap, foto_profil")
         .not("tanggal_lahir", "is", null);
 
       if (celebrants && celebrants.length > 0) {
-        const todayCelebrants: Array<{ name: string; age: string }> = [];
-        const thisMonthCelebrants: Array<{ name: string; day: number; age: string }> = [];
+        interface BdayItem {
+          name: string;
+          nick: string;
+          birthDay: number;
+          birthMonth: number;
+          dateStr: string;
+          daysLeft: number;
+          turningAge: number;
+          fullName: string;
+          profileId: string;
+        }
+
+        const todayCelebrants: BdayItem[] = [];
+        const upcomingCelebrants: BdayItem[] = [];
+
+        const monthNames = [
+          "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+          "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
 
         for (const p of celebrants) {
           if (!p.tanggal_lahir) continue;
           const parts = p.tanggal_lahir.split(/[-/]/);
           if (parts.length < 3) continue;
-          const m = parseInt(parts[1], 10);
-          const d = parseInt(parts[2], 10);
-          const name = (p.nama_panggilan || p.nama_lengkap || "").trim();
-          const ageStr = calculateAge(p.tanggal_lahir);
 
-          if (m === currentMonth && d === currentDay) {
-            todayCelebrants.push({ name, age: ageStr });
-          } else if (m === currentMonth) {
-            thisMonthCelebrants.push({ name, day: d, age: ageStr });
+          let birthYear = parseInt(parts[0], 10);
+          let birthMonth = parseInt(parts[1], 10);
+          let birthDay = parseInt(parts[2], 10);
+          if (parts[2].length === 4) {
+            birthYear = parseInt(parts[2], 10);
+            birthMonth = parseInt(parts[1], 10);
+            birthDay = parseInt(parts[0], 10);
+          }
+
+          if (!birthMonth || !birthDay) continue;
+
+          let bdayTargetYear = currentYear;
+          let bdayDate = new Date(bdayTargetYear, birthMonth - 1, birthDay);
+          let diffDays = Math.round((bdayDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (diffDays < 0) {
+            bdayTargetYear = currentYear + 1;
+            bdayDate = new Date(bdayTargetYear, birthMonth - 1, birthDay);
+            diffDays = Math.round((bdayDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
+          }
+
+          const turningAge = bdayTargetYear - birthYear;
+          const nick = (p.nama_panggilan || p.nama_lengkap.split(" ")[0] || "Sahabat").trim();
+          const item: BdayItem = {
+            name: nick,
+            nick,
+            birthDay,
+            birthMonth,
+            dateStr: `${birthDay} ${monthNames[birthMonth - 1]}`,
+            daysLeft: diffDays,
+            turningAge,
+            fullName: p.nama_lengkap,
+            profileId: p.id,
+          };
+
+          if (diffDays === 0) {
+            todayCelebrants.push(item);
+          } else {
+            upcomingCelebrants.push(item);
           }
         }
 
-        // Urutkan tanggal yang milad bulan ini
-        thisMonthCelebrants.sort((a, b) => a.day - b.day);
+        // Urutkan upcoming dari hari terdekat
+        upcomingCelebrants.sort((a, b) => a.daysLeft - b.daysLeft);
+
+        // Ringkasan fakta untuk Gemini AI
+        let summaryText = `FAKTA ULANG TAHUN ALUMNI EXPEDIENT 43 (HARI INI: ${currentDay} ${monthNames[currentMonth - 1]} ${currentYear}):\n`;
 
         if (todayCelebrants.length > 0) {
-          return {
-            category: "birthday",
-            summary: `FAKTA MILAD HARI INI (${currentDay}/${currentMonth}):\n` +
-              todayCelebrants.map((c) => `🎉 *${c.name}* (${c.age})`).join("\n") +
-              `\nDoa resmi: Barakallahu fii umrik, semoga panjang umur, dilipatgandakan rezekinya, dan selalu istiqomah! Aamiin.`,
-            data: { todayCelebrants, thisMonthCelebrants },
-          };
+          summaryText += `🎉 HARI INI BERULANG TAHUN:\n` +
+            todayCelebrants.map((c) => `• ${c.fullName} (${c.nick}) ke-${c.turningAge} tahun (Hari ini!)`).join("\n") +
+            `\n\n`;
         } else {
-          const listMonth = thisMonthCelebrants.slice(0, 6).map((c) => `• ${c.name} (tgl ${c.day})`).join("\n");
-          return {
-            category: "birthday",
-            summary: `FAKTA MILAD: Hari ini (${currentDay}/${currentMonth}) belum ada sahabat yang berulang tahun.\n` +
-              `Yang milad di bulan ini (${currentMonth}):\n${listMonth || "Belum ada data milad bulan ini"}.`,
-            data: { todayCelebrants, thisMonthCelebrants },
-          };
+          summaryText += `• Hari ini tidak ada yang berulang tahun.\n`;
         }
+
+        const topUpcoming = upcomingCelebrants.slice(0, 5);
+        summaryText += `🎂 DAFTAR ULANG TAHUN TERDEKAT MENDATANG:\n` +
+          topUpcoming.map((c, i) => `${i + 1}. *${c.nick}* (${c.fullName}) — Tanggal ${c.dateStr} (Kurang ${c.daysLeft} hari lagi / H-${c.daysLeft}, Usia ${c.turningAge} Th)`).join("\n") +
+          `\n\nJawablah dengan menyebutkan siapa yang paling terdekat secara jelas dan ramah!`;
+
+        return {
+          category: "birthday",
+          summary: summaryText,
+          data: { todayCelebrants, upcomingCelebrants: topUpcoming },
+        };
       }
     }
 

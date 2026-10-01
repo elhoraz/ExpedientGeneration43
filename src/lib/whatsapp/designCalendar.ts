@@ -419,13 +419,18 @@ export async function getUpcomingDesignCalendar(daysAhead: number = 7): Promise<
   // 2. Cek Ulang Tahun Sahabat Alumni dari Supabase
   try {
     const supabase = createAdminClient();
-    const { data: users } = await supabase
+    const { data: users, error: dbErr } = await supabase
       .from("profiles")
-      .select("id, nama_panggilan, nama_lengkap, no_whatsapp, tanggal_lahir, avatar_url")
+      .select("id, nama_panggilan, nama_lengkap, no_whatsapp, tanggal_lahir, foto_profil")
       .eq("is_active", true);
+
+    if (dbErr) {
+      console.warn("[DESIGN-CALENDAR-BDAY-DB-ERR]:", dbErr.message);
+    }
 
     if (users && users.length > 0) {
       const currentYear = nowWib.getFullYear();
+      const todayDate = new Date(currentYear, nowWib.getMonth(), nowWib.getDate());
 
       for (const u of users) {
         if (!u.tanggal_lahir) continue;
@@ -441,13 +446,24 @@ export async function getUpcomingDesignCalendar(daysAhead: number = 7): Promise<
           birthDay = parseInt(parts[0], 10);
         }
 
-        const bdayDateThisYear = new Date(currentYear, birthMonth - 1, birthDay);
-        const diffTime = bdayDateThisYear.getTime() - new Date(currentYear, nowWib.getMonth(), nowWib.getDate()).getTime();
+        if (!birthMonth || !birthDay) continue;
+
+        let bdayTargetYear = currentYear;
+        let bdayDate = new Date(bdayTargetYear, birthMonth - 1, birthDay);
+        let diffTime = bdayDate.getTime() - todayDate.getTime();
         let diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
+        // Jika ulang tahun tahun ini sudah terlewat, hitung untuk tahun depan
+        if (diffDays < 0) {
+          bdayTargetYear = currentYear + 1;
+          bdayDate = new Date(bdayTargetYear, birthMonth - 1, birthDay);
+          diffTime = bdayDate.getTime() - todayDate.getTime();
+          diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        }
+
         if (diffDays >= 0 && diffDays <= daysAhead) {
-          const rawAge = currentYear - birthYear;
-          const nick = u.nama_panggilan || u.nama_lengkap.split(" ")[0];
+          const rawAge = bdayTargetYear - birthYear;
+          const nick = (u.nama_panggilan || u.nama_lengkap.split(" ")[0]).trim();
           const pinQuery = encodeURIComponent("birthday poster graphic design minimalist typography luxury");
           const gQuery = encodeURIComponent(`desain poster ucapan ulang tahun sahabat islami`);
 
@@ -467,7 +483,7 @@ export async function getUpcomingDesignCalendar(daysAhead: number = 7): Promise<
               fullName: u.nama_lengkap,
               nickname: nick,
               profileUrl: `https://expedientgeneration.vercel.app/dossier/${u.id}`,
-              avatarUrl: u.avatar_url || `https://expedientgeneration.vercel.app/images/default-avatar.webp`,
+              avatarUrl: u.foto_profil || `https://expedientgeneration.vercel.app/images/default-avatar.webp`,
               age: rawAge,
             },
           });

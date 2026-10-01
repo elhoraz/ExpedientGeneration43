@@ -11,6 +11,8 @@ import makeWASocket, {
   fetchLatestBaileysVersion,
   Browsers,
   proto,
+  extractMessageContent,
+  normalizeMessageContent,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
 // @ts-ignore
@@ -330,12 +332,7 @@ async function startBaileysGateway() {
         if (m.key.fromMe && !isSelfChat) continue;
 
         const rawMsg = m.message;
-        const msgContent =
-          rawMsg.viewOnceMessage?.message ||
-          rawMsg.viewOnceMessageV2?.message ||
-          rawMsg.ephemeralMessage?.message ||
-          rawMsg.documentWithCaptionMessage?.message ||
-          rawMsg;
+        const msgContent = (normalizeMessageContent(extractMessageContent(rawMsg) || rawMsg) || {}) as proto.IMessage;
 
         // Ekstraksi Teks Pesan
         const messageText =
@@ -354,7 +351,8 @@ async function startBaileysGateway() {
           msgContent.imageMessage?.contextInfo ||
           msgContent.audioMessage?.contextInfo ||
           msgContent.videoMessage?.contextInfo ||
-          msgContent.stickerMessage?.contextInfo;
+          msgContent.stickerMessage?.contextInfo ||
+          msgContent.documentMessage?.contextInfo;
 
         const mentionedJids: string[] = contextInfo?.mentionedJid || [];
         const quotedParticipant = (contextInfo?.participant || "").replace(/\D/g, "");
@@ -376,30 +374,33 @@ async function startBaileysGateway() {
           quotedParticipant.includes("89675010185") ||
           (botLid && quotedParticipant === botLid);
 
-        const isDirectlyAddressed = isBotMentioned || isBotQuoted;
+        // ATURAN MUTLAK KECERDASAN GRUP:
+        // Di grup, bot HANYA merespons jika DI-TAG / DI-MENTION secara eksplisit (@bot/@nomor),
+        // atau namanya dipanggil langsung ("bot ...", "min ...", "!jadwal", "/menu").
+        // JANGAN PERNAH nimbrung / nyaut jika anggota sedang ngobrol santai antar sesama anggota!
+        const isDirectlyAddressed = isGroup
+          ? isBotMentioned
+          : isBotMentioned || isBotQuoted;
 
         // Cek Quoted Media (jika user mereply foto/stiker/audio lama sambil tag bot)
         const quotedMsgRaw = contextInfo?.quotedMessage;
-        const quotedMsg =
-          quotedMsgRaw?.viewOnceMessage?.message ||
-          quotedMsgRaw?.viewOnceMessageV2?.message ||
-          quotedMsgRaw?.ephemeralMessage?.message ||
-          quotedMsgRaw?.documentWithCaptionMessage?.message ||
-          quotedMsgRaw;
+        const quotedMsg = quotedMsgRaw
+          ? ((normalizeMessageContent(extractMessageContent(quotedMsgRaw) || quotedMsgRaw) || {}) as proto.IMessage)
+          : null;
 
-        const quotedIsImage = Boolean(quotedMsg?.imageMessage);
+        const quotedIsImage = Boolean(quotedMsg?.imageMessage || quotedMsg?.documentMessage?.mimetype?.startsWith("image/"));
         const quotedIsSticker = Boolean(quotedMsg?.stickerMessage);
         const quotedIsAudio = Boolean(quotedMsg?.audioMessage);
-        const quotedIsVideo = Boolean(quotedMsg?.videoMessage);
-        const quotedIsDocument = Boolean(quotedMsg?.documentMessage);
+        const quotedIsVideo = Boolean(quotedMsg?.videoMessage || quotedMsg?.ptvMessage);
+        const quotedIsDocument = Boolean(quotedMsg?.documentMessage && !quotedMsg?.documentMessage?.mimetype?.startsWith("image/"));
         const quotedHasMedia = quotedIsImage || quotedIsSticker || quotedIsAudio || quotedIsVideo || quotedIsDocument;
 
-        // Deteksi Tipe Media Pesan Utama
-        const isImage = Boolean(msgContent.imageMessage);
+        // Deteksi Tipe Media Pesan Utama (Mendukung foto, stiker, VN, video note, dan dokumen gambar)
+        const isImage = Boolean(msgContent.imageMessage || msgContent.documentMessage?.mimetype?.startsWith("image/"));
         const isSticker = Boolean(msgContent.stickerMessage);
         const isAudio = Boolean(msgContent.audioMessage);
-        const isVideo = Boolean(msgContent.videoMessage);
-        const isDocument = Boolean(msgContent.documentMessage);
+        const isVideo = Boolean(msgContent.videoMessage || msgContent.ptvMessage);
+        const isDocument = Boolean(msgContent.documentMessage && !msgContent.documentMessage?.mimetype?.startsWith("image/"));
         const hasMedia = isImage || isSticker || isAudio || isVideo || isDocument;
 
         console.log(`📩 [INCOMING-MSG] JID: ${remoteJid} | fromMe: ${m.key.fromMe} | Pengirim: ${senderName} (${senderPhone}) | Grup: ${isGroup} | Media: ${hasMedia} | Isi: "${messageText.slice(0, 60)}"`);
@@ -425,27 +426,46 @@ async function startBaileysGateway() {
             : isVideo
             ? "video/mp4"
             : isImage
-            ? msgContent.imageMessage?.mimetype || "image/jpeg"
+            ? msgContent.imageMessage?.mimetype || msgContent.documentMessage?.mimetype || "image/jpeg"
             : "application/pdf";
 
           console.log(`[BAILEYS-MEDIA-INCOMING] Tipe: ${category.toUpperCase()} | Dari: ${senderName} (${senderPhone}) | Grup: ${isGroup ? remoteJid : "PERSONAL"}`);
 
-          // Cek apakah bot harus merespons media ini
+          // Cek apakah bot harus merespons media ini:
+          // Di Grup Desain: Gambar/poster SELALU direview otomatis
+          // Di Grup Lain: Hanya jika di-tag atau diminta review
+          // Di Chat Pribadi: SELALU direspons!
           const shouldRespond = isGroup
             ? isDirectlyAddressed || shouldProcessGroupMedia(remoteJid, category, messageText)
-            : true; // Di chat pribadi SELALU direspons!
+            : true;
 
           if (shouldRespond) {
             await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
 
             try {
               // Download buffer media langsung dari server WhatsApp via Baileys
-              const mediaBuffer = await downloadMediaMessage(
-                m,
-                "buffer",
-                {},
-                { logger, reuploadRequest: sock.updateMediaMessage }
-              );
+              // Gunakan unboxed envelope agar Baileys tidak tertahan wrapper ephemeral
+              const unboxedMsg = {
+                key: m.key,
+                message: msgContent,
+              };
+
+              let mediaBuffer: Buffer;
+              try {
+                mediaBuffer = (await downloadMediaMessage(
+                  unboxedMsg as any,
+                  "buffer",
+                  {},
+                  { logger, reuploadRequest: sock.updateMediaMessage }
+                )) as Buffer;
+              } catch (_) {
+                mediaBuffer = (await downloadMediaMessage(
+                  m,
+                  "buffer",
+                  {},
+                  { logger, reuploadRequest: sock.updateMediaMessage }
+                )) as Buffer;
+              }
 
               console.log(`[BAILEYS-MEDIA-DOWNLOADED] Ukuran: ${(mediaBuffer.length / 1024).toFixed(1)} KB. Menganalisis dengan Gemini Multimodal...`);
 

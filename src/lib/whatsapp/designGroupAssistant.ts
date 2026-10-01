@@ -200,26 +200,54 @@ export async function handleDesignStudioConversation(options: {
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
 
-  // 1. FAST COMMAND: Jadwal / Kalender Poster
+  // 1. FAST COMMAND: Jadwal / Kalender Poster & Pertanyaan Ultah Terdekat
   if (
     lower.includes("jadwal") ||
     lower.includes("kalender") ||
     lower.includes("agenda poster") ||
     lower.includes("deadline") ||
-    lower.includes("siapa ultah")
+    lower.includes("ultah") ||
+    lower.includes("ulang tahun") ||
+    lower.includes("milad") ||
+    lower.includes("hari lahir")
   ) {
-    const upcoming = await getUpcomingDesignCalendar(14);
+    const upcoming = await getUpcomingDesignCalendar(30);
+    const bdays = upcoming.filter((u) => u.type === "birthday");
+
+    // Jika pertanyaannya spesifik tentang ulang tahun terdekat
+    if (lower.includes("ultah") || lower.includes("ulang tahun") || lower.includes("milad") || lower.includes("hari lahir")) {
+      if (bdays.length > 0) {
+        const nearest = bdays.slice(0, 4);
+        let bdayReply = `🎂 *AGENDA MILAD ALUMNI TERDEKAT (STUDIO DESAIN)* 🎨\n\n`;
+        bdayReply += `Sahabat yang milad paling dekat:\n`;
+        nearest.forEach((b, i) => {
+          const dStr =
+            b.daysLeft === 0
+              ? "🚨 *HARI INI!*"
+              : b.daysLeft === 1
+              ? "⚠️ *BESOK!*"
+              : `⏳ *${b.daysLeft} hari lagi (H-${b.daysLeft})*`;
+          bdayReply += `${i + 1}. *${b.title}*\n   📅 Tanggal: ${b.dateStr} (${dStr})\n`;
+          if (b.extraData?.fullName) {
+            bdayReply += `   👤 Nama: ${b.extraData.fullName}\n`;
+          }
+        });
+        bdayReply += `\n💡 *Aksi Tim Desain:*\nKetik: *@bot foto [nama]* untuk ambil foto profil HD sahabat yang milad untuk dimasukkan ke template poster! 🚀`;
+        return bdayReply;
+      }
+    }
+
     if (upcoming.length === 0) {
       return (
         `Hai Sahabat *${senderName}*! 👋🎨\n\n` +
-        `Dalam 14 hari ke depan tidak ada agenda ultah atau hari besar terdekat. Tetap santai dan pantau terus ya! ✨`
+        `Dalam 30 hari ke depan belum ada agenda ultah atau hari besar terdekat. Tetap santai dan pantau terus ya! ✨`
       );
     }
 
-    let summaryText = `📅 *AGENDA & JADWAL PRODUKSI POSTER (14 HARI KE DEPAN)* 🎨\n`;
+    let summaryText = `📅 *AGENDA & JADWAL PRODUKSI POSTER (30 HARI KE DEPAN)* 🎨\n`;
     summaryText += `_Studio Expedient Generation 43_\n\n`;
 
-    upcoming.forEach((u, i) => {
+    upcoming.slice(0, 8).forEach((u, i) => {
       const daysStr =
         u.daysLeft === 0
           ? "🚨 *HARI INI*"
@@ -236,11 +264,11 @@ export async function handleDesignStudioConversation(options: {
       summaryText += `\n`;
     });
 
-    summaryText += `Ketik: *@bot brief [nama agenda]* untuk mendapatkan paket copywriting & palet warna lengkap! 🚀`;
+    summaryText += `Ketik: *@bot brief [nama agenda]* untuk paket copywriting & palet warna, atau *@bot foto [nama]* untuk aset foto profil! 🚀`;
     return summaryText;
   }
 
-  // 2. FAST COMMAND: Cek Aset Alumni untuk Ultah
+  // 2. FAST COMMAND: Cek Aset Alumni untuk Ultah / Poster
   if (lower.startsWith("aset ") || lower.startsWith("foto ") || lower.includes("aset ultah") || lower.includes("foto ultah")) {
     const nameQuery = lower.replace(/^(aset|foto|aset ultah|foto ultah)\s+/i, "").trim();
     if (nameQuery) {
@@ -248,7 +276,7 @@ export async function handleDesignStudioConversation(options: {
         const supabase = createAdminClient();
         const { data: users } = await supabase
           .from("profiles")
-          .select("id, nama_lengkap, nama_panggilan, avatar_url, tanggal_lahir, asal_konsulat")
+          .select("id, nama_lengkap, nama_panggilan, foto_profil, tanggal_lahir, alamat_lengkap")
           .or(`nama_lengkap.ilike.%${nameQuery}%,nama_panggilan.ilike.%${nameQuery}%`)
           .limit(1);
 
@@ -260,8 +288,8 @@ export async function handleDesignStudioConversation(options: {
             `• *Nama Lengkap:* ${u.nama_lengkap}\n` +
             `• *Panggilan:* ${nick}\n` +
             `• *Tanggal Lahir:* ${u.tanggal_lahir || "Belum terdata"}\n` +
-            `• *Konsulat/Domisili:* ${u.asal_konsulat || "-"}\n\n` +
-            `🖼️ *Foto Profil Resmi (HD):*\n${u.avatar_url || "Belum ada avatar khusus"}\n\n` +
+            `• *Domisili:* ${u.alamat_lengkap || "-"}\n\n` +
+            `🖼️ *Foto Profil Resmi (HD):*\n${u.foto_profil || "Belum ada foto profil khusus"}\n\n` +
             `🔗 *Dossier Lengkap Alumni:*\nhttps://expedientgeneration.vercel.app/dossier/${u.id}\n\n` +
             `Tinggal download fotonya untuk dimasukkan ke template Canva/Photoshop ya sahabat editor! 🚀`
           );
@@ -280,9 +308,16 @@ export async function handleDesignStudioConversation(options: {
     );
   }
 
-  // Ambil konteks event terdekat saat ini
-  const upcoming = await getUpcomingDesignCalendar(7);
-  const eventContext = upcoming.slice(0, 3).map((e) => {
+  // Ambil konteks event terdekat & fakta database alumni
+  let cohortFactSummary = "";
+  try {
+    const { resolveCohortContext } = await import("@/lib/whatsapp/alumniIntelligence");
+    const cohortFact = await resolveCohortContext(messageText, senderName);
+    cohortFactSummary = cohortFact.summary;
+  } catch (_) {}
+
+  const upcoming = await getUpcomingDesignCalendar(14);
+  const eventContext = upcoming.slice(0, 5).map((e) => {
     let s = `- ${e.title} (${e.dateStr}, H-${e.daysLeft})`;
     if (e.storyImageUrl) s += ` [Desain Siap Pakai Tersedia: Story & Feed]`;
     return s;
@@ -290,14 +325,17 @@ export async function handleDesignStudioConversation(options: {
 
   const prompt = `
 You are the official Creative Studio Partner & Art Director AI of "Expedient Generation 43" in their dedicated Graphic Design / Editors WhatsApp Group.
-Your team consists of santri alumni graphic designers and editors who create posters for birthdays, national events (e.g. G30S/PKI, Kesaktian Pancasila, Sumpah Pemuda, Hari Santri, Hari Pahlawan), and Islamic holidays.
+Your team consists of santri alumni graphic designers and editors who create posters for birthdays, national events, and Islamic holidays.
 
 USER CONTEXT:
 - Sender Name: ${senderName}
 - User Message: "${messageText}"
 
+DATABASE & COHORT FACTS (USE FOR FACTUAL QUESTIONS):
+${cohortFactSummary || "Expedient Generation 43 Alumni 2025 Pondok Modern Arrisalah Slahung Ponorogo"}
+
 UPCOMING EVENTS & READY-TO-POST POSTERS:
-${eventContext || "Tidak ada event besar dalam 3 hari ke depan."}
+${eventContext || "Tidak ada event besar dalam 14 hari ke depan."}
 - Kesaktian Pancasila 1 Oktober:
   • Story IG (9:16): https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_story.jpg
   • Feed IG (1:1): https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_feed.jpg
@@ -306,24 +344,21 @@ ${eventContext || "Tidak ada event besar dalam 3 hari ke depan."}
   • Feed IG (1:1): https://expedientgeneration.vercel.app/images/posters/g30s_pki_feed.jpg
 
 COMMUNICATION & PERSONALITY GUIDELINES:
-1. CASUAL CHAT & CHILL BRAINSTORMING:
-   - Obrolan santai, humor, kopi, bola, dan candaan antar sahabat adalah hal yang wajar dan bagian penting dari brainstorming kreatif tim!
-   - JANGAN PERNAH menyalahkan, menceramahi, atau meminta maaf kaku seperti "mohon maaf jangan bahas ini".
-   - Jika pengguna menyapa santai atau ngajak ngobrol santai, tanggapi dengan hangat, asik, akrab, dan santai layaknya teman nongkrong di studio desain.
-
-2. VISUAL ASSISTANCE & READY-TO-POST POSTERS ("TERIMA JADI"):
-   - Jika pengguna bertanya tentang poster, ide, atau desain:
-     • Berikan panduan visual keren: warna (kode HEX), tipografi, dan komposisi.
-     • Berikan copywriting siap tempel.
-     • Beritahukan bahwa poster resmi siap pakai (Feed 1:1 & Story 9:16) SUDAH TERSEDIA dan bisa langsung didownload & diposting ke medsos!
-   - Tulis dengan gaya santri modern yang bersemangat, suportif, dan ringkas (maksimal 3-6 baris rapi).
+1. FACTUAL ACCURACY FIRST:
+   - If user asks about who has a birthday, who the leader is, member profiles, dates, statistics, or general questions:
+     ALWAYS ANSWER DIRECTLY AND ACCURATELY based on the DATABASE & COHORT FACTS above! Never give random jokes or deflect legitimate questions.
+2. CASUAL CHAT & CHILL BRAINSTORMING:
+   - For casual greetings, banter, or coffee chats, respond warmly and naturally as an editor studio peer.
+3. VISUAL ASSISTANCE & READY-TO-POST POSTERS ("TERIMA JADI"):
+   - For poster or design discussions, provide color codes, typography suggestions, and mention ready-to-post links when relevant.
+   - Keep answers concise, natural, and helpful (2-4 lines).
 `.trim();
 
   try {
     const body = {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        temperature: 0.4,
+        temperature: 0.3,
       },
     };
 
