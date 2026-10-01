@@ -29,7 +29,15 @@ if (fs.existsSync(localPluginPath)) {
   let content = fs.readFileSync(localPluginPath, 'utf8');
   content = content.replace(
     'call.reject(error.message, error.code, underlying)',
-    'call.reject(error.message)'
+    'call.errorHandler?(CAPPluginCallError(message: error.message, code: error.code, error: underlying, data: nil))'
+  );
+  content = content.replace(
+    'call.reject(error.message)',
+    'call.errorHandler?(CAPPluginCallError(message: error.message, code: error.code, error: underlying, data: nil))'
+  );
+  content = content.replace(
+    'let state = call.getString("state")',
+    'let state = call.getString("state", "")'
   );
   // Replace all occurrences of call.getArray("notifications", JSObject.self)
   content = content.replaceAll(
@@ -82,6 +90,8 @@ if (fs.existsSync(pushPluginPath)) {
   );
   fs.writeFileSync(pushPluginPath, content, 'utf8');
   console.log('✓ Patched PushNotificationsPlugin.swift');
+}
+
 // 5. whatsapp-rust-bridge (Node 24 compatibility patch)
 const rustBridgePkgPath = path.join(__dirname, '../node_modules/whatsapp-rust-bridge/package.json');
 if (fs.existsSync(rustBridgePkgPath)) {
