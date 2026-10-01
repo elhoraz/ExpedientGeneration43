@@ -63,6 +63,7 @@ export async function callGeminiResilient(
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.8-flash",
+    "gemini-flash-latest",
   ]
     .filter((m): m is string => Boolean(m && m.length > 0))
     .filter((m, idx, arr) => arr.indexOf(m) === idx);

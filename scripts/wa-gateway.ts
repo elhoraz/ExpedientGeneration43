@@ -108,6 +108,7 @@ async function startBaileysGateway() {
           if (first) sentMessageIds.delete(first);
         }
       }
+      console.log(`📤 [REPLY-SUCCESS] Berhasil terkirim ke ${targetJid}: "${text.slice(0, 55).replace(/\n/g, " ")}..."`);
       return res;
     } catch (err: any) {
       console.warn(`[SEND-REPLY-FALLBACK] Mencoba kirim tanpa quote ke ${targetJid}:`, err.message);
@@ -116,6 +117,7 @@ async function startBaileysGateway() {
         if (res?.key?.id) {
           sentMessageIds.add(res.key.id);
         }
+        console.log(`📤 [REPLY-SUCCESS-FALLBACK] Berhasil terkirim tanpa quote ke ${targetJid}: "${text.slice(0, 55).replace(/\n/g, " ")}..."`);
         return res;
       } catch (err2: any) {
         console.error(`[SEND-REPLY-FAILED] Gagal mengirim pesan ke ${targetJid}:`, err2.message);
