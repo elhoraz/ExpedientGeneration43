@@ -29,15 +29,16 @@ export function shouldDesignBotRespond(messageText: string): boolean {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot (@bot, @89675010185, @85151771289, @min, dsb)
+  // 1. Tag / Mention Bot SPESIFIK (@bot, @89675010185, @85151771289, @105240321908772, @min, @admin)
+  // JANGAN gunakan lower.includes("@") acak agar tidak ikut nimbrung saat anggota tag anggota lain!
   if (
-    lower.includes("89675010185") ||
+    lower.includes("105240321908772") ||
     lower.includes("85151771289") ||
+    lower.includes("89675010185") ||
     lower.includes("@bot") ||
     lower.includes("@min") ||
     lower.includes("@admin") ||
-    lower.includes("@expedient") ||
-    lower.includes("@") // Tag mention WhatsApp
+    lower.includes("@expedient")
   ) {
     return true;
   }
@@ -52,7 +53,7 @@ export function shouldDesignBotRespond(messageText: string): boolean {
     return true;
   }
 
-  // 3. Panggilan eksplisit kepada bot di awal atau akhir kalimat
+  // 3. Panggilan eksplisit kepada bot di awal kalimat atau panggilan langsung
   if (
     lower.startsWith("bot ") ||
     lower.startsWith("bot,") ||
@@ -69,8 +70,8 @@ export function shouldDesignBotRespond(messageText: string): boolean {
     return true;
   }
 
-  // Jika anggota saling mengobrol santai atau berdiskusi antar sesama anggota:
-  // JANGAN NIMBRUNG! Biarkan mereka bebas berdiskusi & brainstorming santai.
+  // Jika anggota saling mengobrol santai antar sesama anggota:
+  // JANGAN NIMBRUNG / DIAM! Biarkan mereka bebas berdiskusi & mengobrol santai.
   return false;
 }
 

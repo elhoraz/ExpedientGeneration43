@@ -136,21 +136,22 @@ export function shouldProcessGroupMedia(
   category: MultimodalMediaCategory,
   caption?: string
 ): boolean {
-  // 1. Di Grup Desain Grafis: Setiap gambar, poster, stiker kreatif, dan Voice Note SELALU direview/ditranskrip otomatis
-  if (isDesignGroupId(groupId) && (category === "image" || category === "sticker" || category === "audio")) {
+  // 1. Di Grup Desain Grafis: Setiap gambar / poster SELALU direview otomatis oleh Art Director AI
+  if (isDesignGroupId(groupId) && category === "image") {
     return true;
   }
 
   const text = (caption || "").trim().toLowerCase();
 
-  // 2. Mention / Tag Bot (nomor bot 6289675010185, 6285151771289, @bot, min, dsb)
+  // 2. Mention / Tag Bot spesifik (JANGAN gunakan text.includes("@") acak!)
   if (
-    text.includes("89675010185") ||
+    text.includes("105240321908772") ||
     text.includes("85151771289") ||
+    text.includes("89675010185") ||
     text.includes("@bot") ||
-    text.includes("bot") ||
-    text.includes("min") ||
-    text.includes("@") ||
+    text.includes("@min") ||
+    text.includes("@admin") ||
+    text.includes("@expedient") ||
     text.startsWith("!") ||
     text.startsWith("/") ||
     text.startsWith("?") ||
@@ -159,17 +160,15 @@ export function shouldProcessGroupMedia(
     return true;
   }
 
-  // 3. Kata kunci permintaan review/transkrip/bantuan
+  // 3. Kata kunci eksplisit meminta review / transkrip / feedback
   if (
     text.includes("review") ||
     text.includes("transkrip") ||
-    text.includes("dengar") ||
     text.includes("dengerin") ||
-    text.includes("apa ini") ||
-    text.includes("tolong") ||
-    text.includes("gimana") ||
+    text.includes("feedback") ||
     text.includes("bagus ga") ||
-    text.includes("feedback")
+    text.includes("gimana menurut") ||
+    text.includes("tolong dengar")
   ) {
     return true;
   }

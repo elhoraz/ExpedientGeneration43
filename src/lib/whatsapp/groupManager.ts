@@ -354,16 +354,15 @@ export function shouldGroupBotRespond(messageText: string): boolean {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot (Termasuk nomor bot 6289675010185 / 089675010185, tag @ kontak WhatsApp, nama, atau panggilan min)
+  // 1. Tag / Mention Bot SPESIFIK (JANGAN lower.includes("@") acak agar tidak nimbrung chat sesama anggota!)
   if (
+    lower.includes("105240321908772") ||
+    lower.includes("85151771289") ||
     lower.includes("89675010185") ||
     lower.includes("@bot") ||
-    lower.includes("bot") ||
-    lower.includes("expedient") ||
-    lower.includes("minbot") ||
-    lower.includes("admin bot") ||
-    /\bmin\b/i.test(lower) ||
-    lower.includes("@") // Tag mention WhatsApp contact
+    lower.includes("@min") ||
+    lower.includes("@admin") ||
+    lower.includes("@expedient")
   ) {
     return true;
   }
@@ -378,63 +377,28 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     return true;
   }
 
-  // 3. Sapaan langsung / testing bot di grup
+  // 3. Panggilan eksplisit kepada bot di awal kalimat atau panggilan sapaan bot
   if (
-    lower === "tes" ||
-    lower === "test" ||
-    lower === "ping" ||
+    lower === "tes bot" ||
+    lower === "test bot" ||
     lower.startsWith("tes bot") ||
     lower.startsWith("test bot") ||
     lower.startsWith("halo bot") ||
     lower.startsWith("hai bot") ||
-    lower.startsWith("p ") ||
-    lower === "p" ||
+    lower.startsWith("bot ") ||
+    lower.startsWith("bot,") ||
+    lower.startsWith("min ") ||
+    lower.startsWith("min,") ||
+    lower === "bot" ||
+    lower === "min" ||
     lower.startsWith("assalamu'alaikum bot") ||
-    lower.startsWith("assalamualaikum bot")
+    lower.startsWith("assalamualaikum bot") ||
+    /(^|\s)(bot|min)[?!,.]*$/i.test(lower)
   ) {
     return true;
   }
 
-  // 4. Pertanyaan Sosok / Profil Alumni / Siapa (Contoh: "siapa taufiqi", "alumni yang di bandung siapa aja", "kontak danang")
-  if (
-    lower.includes("siapa") ||
-    lower.includes("siapakah") ||
-    lower.startsWith("profil ") ||
-    lower.startsWith("kontak ") ||
-    lower.startsWith("nomor ") ||
-    lower.startsWith("alamat ") ||
-    lower.includes("tinggal di") ||
-    lower.includes("info tentang ") ||
-    lower.startsWith("tanya dong")
-  ) {
-    return true;
-  }
-
-  // 5. Pertanyaan Spesifik Seputar Angkatan & Website Portal
-  if (
-    lower.includes("ultah") ||
-    lower.includes("ulang tahun") ||
-    lower.includes("milad") ||
-    lower.includes("reuni") ||
-    lower.includes("agenda") ||
-    lower.includes("acara") ||
-    lower.includes("total alumni") ||
-    lower.includes("berapa alumni") ||
-    lower.includes("jumlah alumni") ||
-    lower.includes("website") ||
-    lower.includes("fitur") ||
-    lower.includes("portal") ||
-    lower.includes("link web")
-  ) {
-    return true;
-  }
-
-  // 6. Kabar / Update Alami Seputar Alumni (Self-Learning Alami 100% Bebas Keyword)
-  // Contoh: "Danang sekarang kerja di Pertamina", "Auzan pindah ke Jakarta", "Rizki buka kafe di Ponorogo"
-  if (isPotentialFactStatement(messageText)) {
-    return true;
-  }
-
+  // JANGAN NYAUT jika anggota grup mengobrol santai tanpa memanggil bot!
   return false;
 }
 

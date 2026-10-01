@@ -60,6 +60,8 @@ if (pairingArgIndex !== -1) {
   }
 }
 
+let isReconnecting = false;
+
 async function startBaileysGateway() {
   if (!fs.existsSync(AUTH_FOLDER)) {
     fs.mkdirSync(AUTH_FOLDER, { recursive: true });
@@ -86,6 +88,9 @@ async function startBaileysGateway() {
     browser: Browsers.ubuntu("Chrome"),
     syncFullHistory: false,
     markOnlineOnConnect: true,
+    keepAliveIntervalMs: 25000,
+    connectTimeoutMs: 60000,
+    defaultQueryTimeoutMs: 60000,
     generateHighQualityLinkPreview: true,
     getMessage: async (key) => {
       if (key.id && msgStore.has(key.id)) {
@@ -222,16 +227,16 @@ async function startBaileysGateway() {
       const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
       const isLoggedOut = statusCode === DisconnectReason.loggedOut;
       const isForbidden = statusCode === 403 || statusCode === 401;
-      const isTimeout = statusCode === 408;
       const isRestartRequired = statusCode === DisconnectReason.restartRequired || statusCode === 515;
 
       console.warn(`[WA-DISCONNECT] Status code: ${statusCode}`);
 
-      // Hentikan listener lama agar tidak memory leak
+      // Hentikan listener lama dan tutup socket lama agar tidak ada tumpang tindih
       try {
         sock.ev.removeAllListeners("connection.update");
         sock.ev.removeAllListeners("messages.upsert");
         sock.ev.removeAllListeners("creds.update");
+        sock.ws?.close();
       } catch (_) {}
 
       // 1. RESTART REQUIRED (515) -> PAIRING BERHASIL! Reconnect langsung dalam 1 detik!
@@ -246,15 +251,20 @@ async function startBaileysGateway() {
         return;
       }
 
-      if (isTimeout) {
-        console.warn("⚠️ QR Code / Sesi telah kedaluwarsa. Mengambil QR baru dalam 5 detik...");
-        setTimeout(() => startBaileysGateway(), 5000);
-        return;
-      }
+      // Cegah reconnect ganda yang menyebabkan tumpang tindih socket
+      if (isReconnecting) return;
+      isReconnecting = true;
 
-      console.log("🔄 Menghubungkan ulang dalam 5 detik...");
-      setTimeout(() => startBaileysGateway(), 5000);
+      console.log("🔄 Menghubungkan ulang dalam 3 detik...");
+      setTimeout(async () => {
+        try {
+          await startBaileysGateway();
+        } finally {
+          isReconnecting = false;
+        }
+      }, 3000);
     } else if (connection === "open") {
+      isReconnecting = false;
       console.log("\n=======================================================");
       console.log("✅ [WA-GATEWAY-CONNECTED] WhatsApp Bot BERHASIL TERHUBUNG!");
       console.log(`👤 Device ID: ${sock.user?.id || "Connected"}`);
