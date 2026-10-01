@@ -229,17 +229,25 @@ async function startBaileysGateway() {
 
   // Listener Pesan Masuk
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
-    if (type !== "notify") return;
+    if (type !== "notify" && type !== "append") return;
 
     for (const m of messages) {
       try {
-        if (!m.message || m.key.fromMe || m.key.remoteJid === "status@broadcast") continue;
-
         const remoteJid = m.key.remoteJid || "";
+        if (!m.message || remoteJid === "status@broadcast") continue;
+
         const isGroup = remoteJid.endsWith("@g.us");
         const participantRaw = isGroup ? m.key.participant || remoteJid : remoteJid;
         const senderPhone = participantRaw.replace(/\D/g, "");
         const senderName = m.pushName || "Sahabat";
+
+        const botPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");
+        const botShortPhone = botPhone.slice(-9);
+
+        // Jika pesan dikirim dari akun bot sendiri:
+        // Hanya izinkan jika user sedang testing via fitur 'Pesan ke Diri Sendiri' (Note to Self)
+        const isSelfChat = m.key.fromMe && !isGroup && (remoteJid.includes(botShortPhone) || remoteJid.includes("6285151771289"));
+        if (m.key.fromMe && !isSelfChat) continue;
 
         const rawMsg = m.message;
         const msgContent =
@@ -500,6 +508,7 @@ async function startBaileysGateway() {
           }
         } else {
           // CABANG C: CHAT PRIBADI (1-ON-1)
+          console.log(`[BAILEYS-PRIVATE-CHAT] Menerima pesan dari: ${senderName} (${senderPhone}) | Isi: "${messageText}"`);
           await sock.sendPresenceUpdate("composing", remoteJid);
 
           const adminPhoneEnv = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
@@ -508,32 +517,25 @@ async function startBaileysGateway() {
             senderPhone.endsWith(adminPhoneEnv.slice(-9)) ||
             adminPhoneEnv.endsWith(senderPhone.slice(-9));
 
-          if (isSenderAdmin) {
-            // Periksa auto-remediasi atau conversational admin
+          if (isSenderAdmin && (messageText.startsWith("!") || messageText.startsWith("/fix") || messageText.toLowerCase().includes("remediasi"))) {
+            // Periksa auto-remediasi jika diminta
             const remResult = await handleAdminAutoRemediation(senderPhone, messageText);
             if (remResult.action !== "not_a_sentinel_command") {
               await sock.sendMessage(remoteJid, { text: remResult.message }, { quoted: m });
-            } else {
-              const convResult = await handleAdminConversationalMessage(senderPhone, messageText);
-              // conversational agent already sends message if needed or returns reply
+              continue;
             }
-          } else {
-            // Cari data alumni di Supabase
-            let matchedUser: any = null;
-            try {
-              const supabase = createAdminClient();
-              const altLocalNum = senderPhone.startsWith("62") ? "0" + senderPhone.substring(2) : senderPhone;
-              const { data } = await supabase
-                .from("profiles")
-                .select("id, nama_lengkap, nama_panggilan, role, is_active")
-                .or(`no_whatsapp.eq.${senderPhone},no_whatsapp.eq.${altLocalNum}`)
-                .limit(1);
-              matchedUser = data?.[0] || null;
-            } catch (err) {}
-
-            const userAiRes = await handleUserWhatsAppMessage(senderPhone, messageText, matchedUser);
-            await sock.sendMessage(remoteJid, { text: userAiRes.replyText }, { quoted: m });
           }
+
+          // Untuk semua chat pribadi (Admin maupun Alumni): gunakan AI Intelligence resmi angkatan 2025 secara langsung via Baileys socket!
+          const replyText = await generateIntelligentCohortReply({
+            messageText,
+            senderPhone,
+            senderName,
+            isGroup: false,
+          });
+
+          await sock.sendMessage(remoteJid, { text: replyText }, { quoted: m });
+          console.log(`[BAILEYS-PRIVATE-REPLIED] Berhasil membalas chat pribadi ke ${remoteJid}`);
         }
       } catch (msgErr: any) {
         console.error("[BAILEYS-MSG-ERROR]:", msgErr);
