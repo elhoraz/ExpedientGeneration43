@@ -76,10 +76,24 @@ if (fs.existsSync(pushHandlerPath)) {
     'self.plugin?.getConfig().getArray("presentationOptions") as? [String]',
     'self.plugin?.getConfig().getConfigJSON()["presentationOptions"] as? [String]'
   );
-  content = content.replace(
-    'JSTypes.coerceDictionaryToJSObject(request.content.userInfo) ?? [:]',
-    '((request.content.userInfo as? JSObject) ?? (request.content.userInfo as? [String: Any]) ?? [:])'
-  );
+  const oldFuncPattern = /func makeNotificationRequestJSObject\(_ request: UNNotificationRequest\) -> JSObject \{[\s\S]*?return \[[\s\S]*?\]\s*\}/;
+  const newFunc = `func makeNotificationRequestJSObject(_ request: UNNotificationRequest) -> JSObject {
+        var data: JSObject = [:]
+        for (k, v) in request.content.userInfo {
+            if let key = k as? String, let val = v as? (any JSValue) {
+                data[key] = val
+            }
+        }
+        return [
+            "id": request.identifier,
+            "title": request.content.title,
+            "subtitle": request.content.subtitle,
+            "badge": request.content.badge ?? 1,
+            "body": request.content.body,
+            "data": data
+        ]
+    }`;
+  content = content.replace(oldFuncPattern, newFunc);
   fs.writeFileSync(pushHandlerPath, content, 'utf8');
   console.log('✓ Patched PushNotificationsHandler.swift');
 }
@@ -91,6 +105,22 @@ if (fs.existsSync(pushPluginPath)) {
   content = content.replace(
     'guard let notifications = call.getArray("notifications", JSObject.self) else {',
     'guard let notifications = (call.getArray("notifications", []) as? [JSObject]) else {'
+  );
+  content = content.replace(
+    'call.reject(err.localizedDescription)',
+    'call.resolve(["error": err.localizedDescription])'
+  );
+  content = content.replace(
+    'call.reject("unknown error in permissions request")',
+    'call.resolve(["error": "unknown error in permissions request"])'
+  );
+  content = content.replace(
+    'call.reject("Must supply notifications to remove")',
+    'call.resolve(["error": "Must supply notifications to remove"])'
+  );
+  content = content.replaceAll(
+    'call.reject("event capacitorDidRegisterForRemoteNotifications not called.  Visit https://capacitorjs.com/docs/apis/push-notifications for more information")',
+    'call.resolve(["error": "event capacitorDidRegisterForRemoteNotifications not called"])'
   );
   fs.writeFileSync(pushPluginPath, content, 'utf8');
   console.log('✓ Patched PushNotificationsPlugin.swift');
