@@ -125,15 +125,32 @@ async function startBaileysGateway() {
 
     if (connection === "close") {
       const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
-      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
-      console.warn(`[WA-DISCONNECT] Koneksi terputus. Status code: ${statusCode} | Reconnect: ${shouldReconnect}`);
+      const isLoggedOut = statusCode === DisconnectReason.loggedOut;
+      const isForbidden = statusCode === 403 || statusCode === 401;
+      const isTimeout = statusCode === 408;
 
-      if (shouldReconnect) {
-        console.log("🔄 Menghubungkan ulang dalam 3 detik...");
-        setTimeout(() => startBaileysGateway(), 3000);
-      } else {
-        console.error("❌ Akun telah logout dari HP. Silakan hapus folder .baileys_auth dan scan ulang.");
+      console.warn(`[WA-DISCONNECT] Koneksi terputus. Status code: ${statusCode}`);
+
+      // Hentikan listener lama agar tidak memory leak
+      try {
+        sock.ev.removeAllListeners("connection.update");
+        sock.ev.removeAllListeners("messages.upsert");
+        sock.ev.removeAllListeners("creds.update");
+      } catch (_) {}
+
+      if (isLoggedOut || isForbidden) {
+        console.error("❌ Akun terputus/logout dari WhatsApp. Hapus folder .baileys_auth jika ingin menautkan nomor baru.");
+        return;
       }
+
+      if (isTimeout) {
+        console.warn("⚠️ QR Code / Sesi telah kedaluwarsa (Timeout). Menghubungkan ulang secara aman dalam 10 detik...");
+        setTimeout(() => startBaileysGateway(), 10000);
+        return;
+      }
+
+      console.log("🔄 Menghubungkan ulang dalam 10 detik (Safe Anti-Spam Backoff)...");
+      setTimeout(() => startBaileysGateway(), 10000);
     } else if (connection === "open") {
       console.log("\n✅ [WA-GATEWAY-CONNECTED] WhatsApp Bot BERHASIL TERHUBUNG!");
       console.log(`👤 Device ID: ${sock.user?.id || "Connected"}`);
