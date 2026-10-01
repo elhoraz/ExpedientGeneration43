@@ -24,7 +24,9 @@ export function isAndroidNativeApp(): boolean {
 export function isIosNativeApp(): boolean {
   if (typeof window === "undefined") return false;
   try {
-    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
+    const isCapNative = (window as any).Capacitor?.isNativePlatform?.() || (typeof Capacitor !== "undefined" && Capacitor.isNativePlatform());
+    const platform = (window as any).Capacitor?.getPlatform?.() || (typeof Capacitor !== "undefined" && Capacitor.getPlatform());
+    return Boolean(isCapNative && platform === "ios");
   } catch {
     return false;
   }

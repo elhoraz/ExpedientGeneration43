@@ -9,6 +9,7 @@ export async function GET() {
     latestVersionName: "1.2.2",
     releaseDate: "2026-09-30",
     apkUrl: process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL || "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.2.2/Expedient43-v1.2.2.apk",
+    ipaUrl: process.env.NEXT_PUBLIC_IPA_DOWNLOAD_URL || "/Expedient43.ipa",
     title: "Expedient 43 v1.2.2 (Pembaruan Adzan Mode Hening)",
     releaseNotes: [
       "🔕 Mode Hening Otomatis: Suara adzan otomatis hening saat HP dalam mode Silent/Getar (hanya getaran & notifikasi visual)",

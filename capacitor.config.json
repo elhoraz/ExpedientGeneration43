@@ -9,6 +9,7 @@
     "cleartext": false,
     "allowNavigation": [
       "expedientgeneration.vercel.app",
+      "*.vercel.app",
       "*.supabase.co",
       "*.agora.io",
       "*.sd-rtn.com",

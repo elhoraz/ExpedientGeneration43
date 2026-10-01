@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { isAndroidNativeApp } from "@/lib/notificationHelper";
+import { isAndroidNativeApp, isIosNativeApp } from "@/lib/notificationHelper";
 
 interface AppVersionData {
   latestVersionCode: number;
   latestVersionName: string;
   releaseDate: string;
   apkUrl: string;
+  ipaUrl?: string;
   title: string;
   releaseNotes: string[];
   forceUpdate?: boolean;
@@ -110,6 +111,15 @@ export default function AppUpdateChecker() {
       } catch (e) {
         console.error("Native installApk error:", e);
       }
+    }
+
+    if (isIosNativeApp() || /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      window.location.href = versionData.ipaUrl || "/download";
+      setTimeout(() => {
+        setUpdateAvailable(false);
+        setIsUpdating(false);
+      }, 2500);
+      return;
     }
 
     // Unduh langsung file APK resmi dari GitHub Release CDN

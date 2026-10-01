@@ -61,10 +61,35 @@
     <h1 class="title">Expedient 43</h1>
     <p class="subtitle">Memuat aplikasi alumni...</p>
     <div class="spinner"></div>
+    <div id="offlineNotice" style="display: none; margin-top: 18px;">
+      <p style="color: #f87171; font-size: 13px; margin: 0 0 14px 0;">Tidak ada koneksi internet.</p>
+      <button onclick="tryConnect()" style="background: linear-gradient(135deg, #d4af37, #aa820a); color: #060b14; border: none; padding: 10px 22px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(212,175,55,0.3);">
+        Coba Lagi
+      </button>
+    </div>
   </div>
   <script>
-    if (window.location.protocol === "file:" || window.location.hostname === "localhost") {
-      window.location.replace("https://expedientgeneration.vercel.app");
+    function tryConnect() {
+      if (navigator.onLine) {
+        document.getElementById("offlineNotice").style.display = "none";
+        document.querySelector(".spinner").style.display = "block";
+        document.querySelector(".subtitle").innerText = "Memuat aplikasi alumni...";
+        window.location.replace("https://expedientgeneration.vercel.app");
+      } else {
+        document.getElementById("offlineNotice").style.display = "block";
+        document.querySelector(".spinner").style.display = "none";
+        document.querySelector(".subtitle").innerText = "Periksa koneksi internet Anda.";
+      }
+    }
+
+    if (!navigator.onLine) {
+      document.getElementById("offlineNotice").style.display = "block";
+      document.querySelector(".spinner").style.display = "none";
+      document.querySelector(".subtitle").innerText = "Periksa koneksi internet Anda.";
+    } else {
+      if (window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.origin.includes("localhost")) {
+        window.location.replace("https://expedientgeneration.vercel.app");
+      }
     }
   </script>
 </body>
