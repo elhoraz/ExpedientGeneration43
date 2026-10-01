@@ -57,13 +57,12 @@ export async function callGeminiResilient(
     .filter((k): k is string => Boolean(k && k.length > 10))
     .filter((k, idx, arr) => arr.indexOf(k) === idx);
 
-  // Model prioritas dengan kuota besar & performa tinggi
+  // Model prioritas dengan kuota besar & performa tinggi (gemini-3.5-flash respons instan <2 detik)
   const modelsToTry = [
     preferredModel,
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.8-flash",
-    "gemini-3.1-flash-lite",
   ]
     .filter((m): m is string => Boolean(m && m.length > 0))
     .filter((m, idx, arr) => arr.indexOf(m) === idx);
@@ -79,6 +78,7 @@ export async function callGeminiResilient(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(bodyPayload),
+            signal: AbortSignal.timeout(8000), // Timeout tangkas 8 detik agar bot tidak pernah hang
           });
 
           if (res.ok) {
@@ -89,23 +89,21 @@ export async function callGeminiResilient(
           const errText = await res.text();
           lastError = new Error(`Gemini (${model}) ${errStatus}: ${errText}`);
 
-          // Jika 429 (Resource Exhausted / Rate Limit):
-          // Jangan buang waktu retry model/key yang sama, langsung lompat ke model atau key berikutnya!
-          if (errStatus === 429) {
-            console.warn(`[GEMINI-429-FAILOVER] Model ${model} limit/exhausted. Beralih ke model/key cadangan...`);
+          // Jika 429 atau 404: langsung beralih ke model berikutnya tanpa retry
+          if (errStatus === 429 || errStatus === 404) {
             break;
           }
 
           if (errStatus === 503) {
-            await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+            await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
             continue;
           }
 
-          // Error lainnya (404/400) langsung coba model lain
           break;
         } catch (err: any) {
           lastError = err;
-          await new Promise((r) => setTimeout(r, 1000));
+          // Timeout atau error jaringan, coba model berikutnya
+          break;
         }
       }
     }

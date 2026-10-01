@@ -320,7 +320,7 @@ export async function generateIntelligentCohortReply(options: {
 }): Promise<string> {
   const { messageText, senderPhone, senderName, isGroup } = options;
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
-  const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
+  const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
 
   // 0. Refleks Self-Learning: Periksa apakah pesan pengguna mengajari fakta baru atau mengoreksi data bot
   try {
