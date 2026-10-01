@@ -9,6 +9,7 @@ import makeWASocket, {
   useMultiFileAuthState,
   downloadMediaMessage,
   fetchLatestBaileysVersion,
+  Browsers,
   proto,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
@@ -58,6 +59,23 @@ if (pairingArgIndex !== -1) {
 }
 
 async function startBaileysGateway() {
+  // Bersihkan folder auth jika sebelumnya gagal pairing atau belum terdaftar
+  if (fs.existsSync(AUTH_FOLDER)) {
+    const credsPath = path.join(AUTH_FOLDER, "creds.json");
+    if (fs.existsSync(credsPath)) {
+      try {
+        const raw = fs.readFileSync(credsPath, "utf8");
+        const parsed = JSON.parse(raw);
+        if (!parsed.registered) {
+          console.log("🧹 Membersihkan residu sesi pairing lama yang belum aktif...");
+          fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
+        }
+      } catch (_) {
+        fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
+      }
+    }
+  }
+
   if (!fs.existsSync(AUTH_FOLDER)) {
     fs.mkdirSync(AUTH_FOLDER, { recursive: true });
   }
@@ -76,7 +94,7 @@ async function startBaileysGateway() {
     logger,
     printQRInTerminal: false,
     auth: state,
-    browser: ["Expedient Generation 43", "Chrome", "120.0.0"],
+    browser: Browsers.ubuntu("Chrome"),
     syncFullHistory: false,
     generateHighQualityLinkPreview: true,
   });
