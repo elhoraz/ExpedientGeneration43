@@ -99,11 +99,20 @@ async function startBaileysGateway() {
     generateHighQualityLinkPreview: true,
   });
 
-  // Pairing code mode jika belum terdaftar dan nomor diberikan
-  if (pairingPhoneArg && !sock.authState.creds.registered) {
-    const cleanPhone = pairingPhoneArg.replace(/\D/g, "");
-    console.log(`⏳ Meminta Kode Pairing WhatsApp untuk nomor: ${cleanPhone}...`);
-    setTimeout(async () => {
+  let pairingCodeRequested = false;
+
+  // Simpan kredensial sesi saat ada pembaruan token
+  sock.ev.on("creds.update", saveCreds);
+
+  // Monitor status koneksi WhatsApp
+  sock.ev.on("connection.update", async (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    // 1. Jika mode pairing aktif, minta kode pairing saat soket siap (saat QR dipancarkan)
+    if (qr && pairingPhoneArg && !sock.authState.creds.registered && !pairingCodeRequested) {
+      pairingCodeRequested = true;
+      const cleanPhone = pairingPhoneArg.replace(/\D/g, "");
+      console.log(`\n⏳ Meminta Kode Pairing WhatsApp untuk nomor: ${cleanPhone}...`);
       try {
         const code = await sock.requestPairingCode(cleanPhone);
         console.log("\n=======================================================");
@@ -116,17 +125,9 @@ async function startBaileysGateway() {
       } catch (err: any) {
         console.error("Gagal meminta pairing code:", err.message);
       }
-    }, 4000);
-  }
-
-  // Simpan kredensial sesi saat ada pembaruan token
-  sock.ev.on("creds.update", saveCreds);
-
-  // Monitor status koneksi WhatsApp
-  sock.ev.on("connection.update", async (update) => {
-    const { connection, lastDisconnect, qr } = update;
-
-    if (qr && !pairingPhoneArg) {
+    }
+    // 2. Jika mode QR biasa, cetak visual QR di terminal
+    else if (qr && !pairingPhoneArg) {
       console.log("\n=======================================================");
       console.log("📲 SCAN QR CODE BERIKUT DENGAN WHATSAPP DI HP ANDA:");
       console.log("   (WhatsApp -> Perangkat Tertaut -> Tautkan Perangkat)\n");
@@ -137,7 +138,7 @@ async function startBaileysGateway() {
         console.log("QR Data:", qr);
       }
       console.log("=======================================================");
-      console.log("💡 Tips: Jika terminal sulit scan QR, gunakan kode pairing 8 digit:");
+      console.log("💡 Tips: Anda juga bisa memakai kode pairing 8 digit:");
       console.log("   npm run wa:bot -- --pairing=6285151771289\n");
     }
 
@@ -157,7 +158,12 @@ async function startBaileysGateway() {
       } catch (_) {}
 
       if (isLoggedOut || isForbidden) {
-        console.error("❌ Akun terputus/logout dari WhatsApp. Hapus folder .baileys_auth jika ingin menautkan nomor baru.");
+        if (!sock.authState.creds.registered) {
+          try {
+            fs.rmSync(AUTH_FOLDER, { recursive: true, force: true });
+          } catch (_) {}
+        }
+        console.error("❌ Akun terputus/logout dari WhatsApp (Status 401). Residu sesi dibersihkan otomatis.");
         return;
       }
 
