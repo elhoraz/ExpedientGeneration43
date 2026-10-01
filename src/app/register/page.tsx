@@ -1070,7 +1070,7 @@ function RegisterFormContent() {
                       }}
                     >
                       <i className="fa-solid fa-envelope" style={{ marginRight: "5px" }}></i>
-                      {tLang.register_extra.otp_no_wa_use_email}
+                      {tLang.register_extra?.otp_no_wa_use_email || "Tidak menerima WhatsApp? Kirim via Email"}
                     </button>
                   </div>
                 )}

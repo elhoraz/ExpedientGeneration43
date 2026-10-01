@@ -120,6 +120,44 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     setTimeout(() => setToast(null), 5000);
   };
 
+  // Validate fields for Step navigation
+  const handleNextStep = () => {
+    const form = document.getElementById("formUpdateProfile") as HTMLFormElement;
+    if (!form) return;
+    const formData = new FormData(form);
+
+    if (wizardStep === 1) {
+      const nama_lengkap = (formData.get("nama_lengkap") as string)?.trim();
+      const nama_panggilan = (formData.get("nama_panggilan") as string)?.trim();
+      const email = (formData.get("email") as string)?.trim();
+
+      if (!nama_lengkap) {
+        document.getElementById("inp_lengkap")?.focus();
+        showToast(locale === 'ar' ? 'يرجى إدخال الاسم الكامل' : locale === 'en' ? 'Full name is required' : 'Nama lengkap wajib diisi.', "error");
+        return;
+      }
+      if (!nama_panggilan) {
+        document.getElementById("inp_panggilan")?.focus();
+        showToast(locale === 'ar' ? 'يرجى إدخال اللقب' : locale === 'en' ? 'Nickname is required' : 'Nama panggilan wajib diisi.', "error");
+        return;
+      }
+      if (!email || !email.includes("@")) {
+        document.getElementById("inp_email")?.focus();
+        showToast(locale === 'ar' ? 'يرجى إدخال بريد إلكتروني صالح' : locale === 'en' ? 'Valid email is required' : 'Format email tidak valid.', "error");
+        return;
+      }
+      setWizardStep(2);
+    } else if (wizardStep === 2) {
+      const no_whatsapp = (formData.get("no_whatsapp") as string)?.trim();
+      if (!no_whatsapp) {
+        document.getElementById("inp_wa")?.focus();
+        showToast(locale === 'ar' ? 'يرجى إدخال رقم الواتساب' : locale === 'en' ? 'WhatsApp number is required' : 'Nomor WhatsApp wajib diisi.', "error");
+        return;
+      }
+      setWizardStep(3);
+    }
+  };
+
   // ========== PROFILE UPDATE ==========
   const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -128,16 +166,59 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     const form = e.currentTarget;
     const formData = new FormData(form);
 
+    const nama_panggilan = (formData.get("nama_panggilan") as string)?.trim() || "";
+    const nama_lengkap = (formData.get("nama_lengkap") as string)?.trim() || "";
+    const email = (formData.get("email") as string)?.trim() || "";
+    const no_whatsapp = (formData.get("no_whatsapp") as string)?.trim() || "";
+    const alamat_lengkap = (formData.get("alamat_lengkap") as string)?.trim() || null;
+    const motivasi_hidup = (formData.get("motivasi_hidup") as string)?.trim() || null;
+    const cita_cita = (formData.get("cita_cita") as string)?.trim() || null;
+    const akun_ig = (formData.get("akun_ig") as string)?.trim() || null;
+    const akun_tiktok = (formData.get("akun_tiktok") as string)?.trim() || null;
+
+    // Validate fields and automatically jump to the step where an input is missing
+    if (!nama_lengkap) {
+      setWizardStep(1);
+      setTimeout(() => document.getElementById("inp_lengkap")?.focus(), 150);
+      showToast(locale === 'ar' ? 'يرجى إدخال الاسم الكامل' : locale === 'en' ? 'Full name is required' : 'Nama lengkap wajib diisi.', "error");
+      setSaving(false);
+      return;
+    }
+
+    if (!nama_panggilan) {
+      setWizardStep(1);
+      setTimeout(() => document.getElementById("inp_panggilan")?.focus(), 150);
+      showToast(locale === 'ar' ? 'يرجى إدخال اللقب' : locale === 'en' ? 'Nickname is required' : 'Nama panggilan wajib diisi.', "error");
+      setSaving(false);
+      return;
+    }
+
+    if (!email || !email.includes("@")) {
+      setWizardStep(1);
+      setTimeout(() => document.getElementById("inp_email")?.focus(), 150);
+      showToast(locale === 'ar' ? 'يرجى إدخال بريد إلكتروني صالح' : locale === 'en' ? 'Valid email is required' : 'Format email tidak valid.', "error");
+      setSaving(false);
+      return;
+    }
+
+    if (!no_whatsapp) {
+      setWizardStep(2);
+      setTimeout(() => document.getElementById("inp_wa")?.focus(), 150);
+      showToast(locale === 'ar' ? 'يرجى إدخال رقم الواتساب' : locale === 'en' ? 'WhatsApp number is required' : 'Nomor WhatsApp wajib diisi.', "error");
+      setSaving(false);
+      return;
+    }
+
     const updateData: Record<string, any> = {
-      nama_panggilan: formData.get("nama_panggilan") as string,
-      nama_lengkap: formData.get("nama_lengkap") as string,
-      no_whatsapp: formData.get("no_whatsapp") as string,
-      alamat_lengkap: (formData.get("alamat_lengkap") as string) || null,
-      wa_notif_opt_in: waOptIn ? 1 : 0,
-      motivasi_hidup: formData.get("motivasi_hidup") as string,
-      cita_cita: formData.get("cita_cita") as string,
-      akun_ig: formData.get("akun_ig") as string,
-      akun_tiktok: formData.get("akun_tiktok") as string,
+      nama_panggilan,
+      nama_lengkap,
+      no_whatsapp,
+      alamat_lengkap,
+      wa_notif_opt_in: Boolean(waOptIn),
+      motivasi_hidup,
+      cita_cita,
+      akun_ig,
+      akun_tiktok,
     };
 
     // Handle photo upload via server-side storage API (Service Role)
@@ -169,16 +250,15 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
           return;
         }
       } catch (uploadErr: any) {
-        showToast(tLang.login_extra.toast_network_error_title + ": " + uploadErr.message, "error");
+        showToast((tLang.login_extra?.toast_network_error_title || "Error") + ": " + uploadErr.message, "error");
         setSaving(false);
         return;
       }
     }
 
-    // Update email if changed
-    const newEmail = formData.get("email") as string;
-    if (newEmail && newEmail !== user.email) {
-      const { error: emailError } = await supabase.auth.updateUser({ email: newEmail });
+    // Update email in Auth if changed
+    if (email && user.email && email.toLowerCase() !== user.email.toLowerCase()) {
+      const { error: emailError } = await supabase.auth.updateUser({ email });
       if (emailError) {
         showToast(tLang.common.error + ": " + emailError.message, "error");
         setSaving(false);
@@ -186,11 +266,21 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       }
     }
 
-    // Update profile in Supabase
-    const { error } = await supabase
+    // Update profile in Supabase with resilient fallback
+    let { error } = await supabase
       .from("profiles")
       .update(updateData)
       .eq("id", user.id);
+
+    // If wa_notif_opt_in ever raises a schema error, retry safely without it
+    if (error && error.message?.includes("wa_notif_opt_in")) {
+      const { wa_notif_opt_in, ...safePayload } = updateData;
+      const retryResult = await supabase
+        .from("profiles")
+        .update(safePayload)
+        .eq("id", user.id);
+      error = retryResult.error;
+    }
 
     if (error) {
       showToast(tLang.common.error + ": " + error.message, "error");
@@ -200,12 +290,18 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       }
       setCroppedAvatarFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      // Log activity
-      await supabase.from("activity_logs").insert([{
-        user_id: user.id,
-        action: "Perbarui Profil",
-        details: "Pengguna memperbarui data informasi profil eksekutif."
-      }]);
+      
+      // Log activity safely
+      try {
+        await supabase.from("activity_logs").insert([{
+          user_id: user.id,
+          action: "Perbarui Profil",
+          details: "Pengguna memperbarui data informasi profil eksekutif."
+        }]);
+      } catch (logErr) {
+        console.warn("Failed to log activity:", logErr);
+      }
+
       // Mark quest as complete
       if (typeof window !== "undefined") {
         localStorage.setItem("expedient_quest_profile", "true");
@@ -515,7 +611,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                 <div className="premium-panel stagger-item parallax-card">
                     <h2 className="panel-title"><i className="fa-regular fa-id-card"></i> {tLang.profil.step1}</h2>
                     
-                    <form onSubmit={handleProfileSubmit} id="formUpdateProfile">
+                    <form onSubmit={handleProfileSubmit} id="formUpdateProfile" noValidate>
 
                         {/* WIZARD PROGRESS & STEPPERS (UX-02) */}
                         <div className="wizard-stepper-container">
@@ -587,19 +683,19 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                             </div>
 
                             <div className="form-group">
-                                <input type="text" name="nama_panggilan" className="form-input" id="inp_panggilan" placeholder=" " defaultValue={user.nama_panggilan} required />
+                                <input type="text" name="nama_panggilan" className="form-input" id="inp_panggilan" placeholder=" " defaultValue={user.nama_panggilan || ""} />
                                 <label className="form-label" htmlFor="inp_panggilan">{tLang.profil.nickname_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
 
                             <div className="form-group">
-                                <input type="text" name="nama_lengkap" className="form-input" id="inp_lengkap" placeholder=" " defaultValue={user.nama_lengkap} required />
+                                <input type="text" name="nama_lengkap" className="form-input" id="inp_lengkap" placeholder=" " defaultValue={user.nama_lengkap || ""} />
                                 <label className="form-label" htmlFor="inp_lengkap">{tLang.profil.fullname_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
 
                             <div className="form-group">
-                                <input type="email" name="email" className="form-input" id="inp_email" placeholder=" " defaultValue={user.email} required />
+                                <input type="email" name="email" className="form-input" id="inp_email" placeholder=" " defaultValue={user.email || ""} />
                                 <label className="form-label" htmlFor="inp_email">{tLang.profil.email_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
@@ -608,7 +704,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                         {/* STEP 2: KONTAK & DOMISILI */}
                         <div className="wizard-step-section" style={{ display: wizardStep === 2 ? "block" : "none" }}>
                             <div className="form-group">
-                                <input type="number" name="no_whatsapp" className="form-input" id="inp_wa" placeholder=" " defaultValue={user.no_whatsapp} required />
+                                <input type="tel" name="no_whatsapp" className="form-input" id="inp_wa" placeholder=" " defaultValue={user.no_whatsapp || ""} />
                                 <label className="form-label" htmlFor="inp_wa">{tLang.profil.wa_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
@@ -642,25 +738,25 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                         <div className="wizard-step-section" style={{ display: wizardStep === 3 ? "block" : "none" }}>
                             <div className="form-row">
                                 <div className="form-group">
-                                    <input type="text" name="akun_ig" className="form-input" id="inp_ig" placeholder=" " defaultValue={user.akun_ig} />
+                                    <input type="text" name="akun_ig" className="form-input" id="inp_ig" placeholder=" " defaultValue={user.akun_ig || ""} />
                                     <label className="form-label" htmlFor="inp_ig">{tLang.profil.ig_field_label}</label>
                                     <div className="liquid-line"></div>
                                 </div>
                                 <div className="form-group">
-                                    <input type="text" name="akun_tiktok" className="form-input" id="inp_tt" placeholder=" " defaultValue={user.akun_tiktok} />
+                                    <input type="text" name="akun_tiktok" className="form-input" id="inp_tt" placeholder=" " defaultValue={user.akun_tiktok || ""} />
                                     <label className="form-label" htmlFor="inp_tt">{tLang.profil.tiktok_field_label}</label>
                                     <div className="liquid-line"></div>
                                 </div>
                             </div>
 
                             <div className="form-group">
-                                <textarea name="motivasi_hidup" className="form-input" id="inp_motivasi" placeholder=" " defaultValue={user.motivasi_hidup}></textarea>
+                                <textarea name="motivasi_hidup" className="form-input" id="inp_motivasi" placeholder=" " defaultValue={user.motivasi_hidup || ""}></textarea>
                                 <label className="form-label" htmlFor="inp_motivasi">{tLang.profil.vision_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
                             
                             <div className="form-group">
-                                <input type="text" name="cita_cita" className="form-input" id="inp_cita" placeholder=" " defaultValue={user.cita_cita} />
+                                <input type="text" name="cita_cita" className="form-input" id="inp_cita" placeholder=" " defaultValue={user.cita_cita || ""} />
                                 <label className="form-label" htmlFor="inp_cita">{tLang.profil.aspiration_field_label}</label>
                                 <div className="liquid-line"></div>
                             </div>
@@ -683,7 +779,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                                 {wizardStep < 3 && (
                                     <button
                                         type="button"
-                                        onClick={() => setWizardStep((prev) => (prev + 1) as any)}
+                                        onClick={handleNextStep}
                                         className="action-btn cursor-bind"
                                         style={{ background: "rgba(212,175,55,0.15)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)", gap: "8px" }}
                                     >

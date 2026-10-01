@@ -74,6 +74,10 @@ async function startBaileysGateway() {
   console.log(`📁 Auth Folder: ${AUTH_FOLDER}`);
   console.log("=======================================================\n");
 
+  // In-memory message store untuk retry handshake & pelacakan pesan terkirim
+  const msgStore = new Map<string, proto.IMessage>();
+  const sentMessageIds = new Set<string>();
+
   const sock = makeWASocket({
     version,
     logger,
@@ -81,8 +85,44 @@ async function startBaileysGateway() {
     auth: state,
     browser: Browsers.ubuntu("Chrome"),
     syncFullHistory: false,
+    markOnlineOnConnect: true,
     generateHighQualityLinkPreview: true,
+    getMessage: async (key) => {
+      if (key.id && msgStore.has(key.id)) {
+        return msgStore.get(key.id);
+      }
+      return proto.Message.fromObject({});
+    },
   });
+
+  // Helper pengiriman pesan yang aman & tahan banting (fallback otomatis tanpa quote jika quote bermasalah)
+  const sendReply = async (targetJid: string, text: string, quotedMessage?: any) => {
+    try {
+      const res = quotedMessage
+        ? await sock.sendMessage(targetJid, { text }, { quoted: quotedMessage })
+        : await sock.sendMessage(targetJid, { text });
+      if (res?.key?.id) {
+        sentMessageIds.add(res.key.id);
+        if (sentMessageIds.size > 2000) {
+          const first = sentMessageIds.values().next().value;
+          if (first) sentMessageIds.delete(first);
+        }
+      }
+      return res;
+    } catch (err: any) {
+      console.warn(`[SEND-REPLY-FALLBACK] Mencoba kirim tanpa quote ke ${targetJid}:`, err.message);
+      try {
+        const res = await sock.sendMessage(targetJid, { text });
+        if (res?.key?.id) {
+          sentMessageIds.add(res.key.id);
+        }
+        return res;
+      } catch (err2: any) {
+        console.error(`[SEND-REPLY-FAILED] Gagal mengirim pesan ke ${targetJid}:`, err2.message);
+        return null;
+      }
+    }
+  };
 
   let pairingCodeRequested = false;
 
@@ -216,6 +256,7 @@ async function startBaileysGateway() {
       console.log("\n=======================================================");
       console.log("✅ [WA-GATEWAY-CONNECTED] WhatsApp Bot BERHASIL TERHUBUNG!");
       console.log(`👤 Device ID: ${sock.user?.id || "Connected"}`);
+      console.log(`🆔 Device LID: ${sock.user?.lid || "None"}`);
       console.log("🚀 Fitur Multimodal (Gambar, Stiker, Voice Note, Video) SIAP 100% GRATIS!\n");
       console.log("=======================================================\n");
 
@@ -229,24 +270,51 @@ async function startBaileysGateway() {
 
   // Listener Pesan Masuk
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
-    if (type !== "notify" && type !== "append") return;
-
     for (const m of messages) {
       try {
+        const msgId = m.key.id;
+        // 1. Abaikan jika pesan ini baru saja dikirim oleh bot kita sendiri
+        if (msgId && sentMessageIds.has(msgId)) {
+          continue;
+        }
+
         const remoteJid = m.key.remoteJid || "";
         if (!m.message || remoteJid === "status@broadcast") continue;
 
+        // Simpan ke in-memory store untuk retry handshake WhatsApp
+        if (msgId && m.message) {
+          msgStore.set(msgId, m.message);
+          if (msgStore.size > 200) {
+            const firstKey = msgStore.keys().next().value;
+            if (firstKey) msgStore.delete(firstKey);
+          }
+        }
+
         const isGroup = remoteJid.endsWith("@g.us");
         const participantRaw = isGroup ? m.key.participant || remoteJid : remoteJid;
-        const senderPhone = participantRaw.replace(/\D/g, "");
+        let senderPhone = participantRaw.replace(/\D/g, "");
         const senderName = m.pushName || "Sahabat";
 
         const botPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");
         const botShortPhone = botPhone.slice(-9);
+        const botLid = sock.user?.lid ? sock.user.lid.split(":")[0] : "";
+        const botUserId = sock.user?.id ? sock.user.id.split(":")[0] : "";
 
-        // Jika pesan dikirim dari akun bot sendiri:
-        // Hanya izinkan jika user sedang testing via fitur 'Pesan ke Diri Sendiri' (Note to Self)
-        const isSelfChat = m.key.fromMe && !isGroup && (remoteJid.includes(botShortPhone) || remoteJid.includes("6285151771289"));
+        // Deteksi apakah user sedang menguji via fitur 'Pesan ke Diri Sendiri' (Note to Self)
+        const isSelfChat = !isGroup && (
+          remoteJid.includes(botShortPhone) ||
+          remoteJid.includes(botPhone) ||
+          (botLid && remoteJid.includes(botLid)) ||
+          (botUserId && remoteJid.includes(botUserId))
+        );
+
+        if (isSelfChat) {
+          senderPhone = botPhone;
+        }
+
+        // Jika pesan dikirim dari akun bot sendiri (m.key.fromMe):
+        // HANYA proses jika ini adalah chat pribadi ke akun bot sendiri (Self Test).
+        // Jangan proses jika pengguna sedang mengetik ke orang lain atau ke grup (agar tidak membalas chat manual manusia).
         if (m.key.fromMe && !isSelfChat) continue;
 
         const rawMsg = m.message;
@@ -264,6 +332,8 @@ async function startBaileysGateway() {
           msgContent.imageMessage?.caption ||
           msgContent.videoMessage?.caption ||
           msgContent.documentMessage?.caption ||
+          msgContent.editedMessage?.message?.protocolMessage?.editedMessage?.conversation ||
+          msgContent.editedMessage?.message?.protocolMessage?.editedMessage?.extendedTextMessage?.text ||
           "";
 
         // Deteksi Konteks Pesan (Mention & Reply/Quote)
@@ -279,13 +349,20 @@ async function startBaileysGateway() {
 
         const isBotMentioned = mentionedJids.some((j: string) => {
           const num = j.replace(/\D/g, "");
-          return num === botPhone || num.endsWith(botShortPhone) || num.includes("85151771289") || num.includes("89675010185");
+          return (
+            num === botPhone ||
+            num.endsWith(botShortPhone) ||
+            num.includes("85151771289") ||
+            num.includes("89675010185") ||
+            (botLid && j.includes(botLid))
+          );
         });
 
         const isBotQuoted =
           (botPhone && (quotedParticipant === botPhone || quotedParticipant.endsWith(botShortPhone))) ||
           quotedParticipant.includes("85151771289") ||
-          quotedParticipant.includes("89675010185");
+          quotedParticipant.includes("89675010185") ||
+          (botLid && quotedParticipant === botLid);
 
         const isDirectlyAddressed = isBotMentioned || isBotQuoted;
 
@@ -312,6 +389,8 @@ async function startBaileysGateway() {
         const isVideo = Boolean(msgContent.videoMessage);
         const isDocument = Boolean(msgContent.documentMessage);
         const hasMedia = isImage || isSticker || isAudio || isVideo || isDocument;
+
+        console.log(`📩 [INCOMING-MSG] JID: ${remoteJid} | fromMe: ${m.key.fromMe} | Pengirim: ${senderName} (${senderPhone}) | Grup: ${isGroup} | Media: ${hasMedia} | Isi: "${messageText.slice(0, 60)}"`);
 
         // =====================================================================
         // 1. PENANGANAN MEDIA LANGSUNG (Gambar, Stiker, Voice Note, Video Note)
@@ -345,44 +424,43 @@ async function startBaileysGateway() {
             : true; // Di chat pribadi SELALU direspons!
 
           if (shouldRespond) {
-            // Berikan indikator sedang mengetik di WhatsApp
-            await sock.sendPresenceUpdate("composing", remoteJid);
+            await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
 
-            // Download buffer media langsung dari server WhatsApp via Baileys
-            const mediaBuffer = await downloadMediaMessage(
-              m,
-              "buffer",
-              {},
-              { logger, reuploadRequest: sock.updateMediaMessage }
-            );
+            try {
+              // Download buffer media langsung dari server WhatsApp via Baileys
+              const mediaBuffer = await downloadMediaMessage(
+                m,
+                "buffer",
+                {},
+                { logger, reuploadRequest: sock.updateMediaMessage }
+              );
 
-            console.log(`[BAILEYS-MEDIA-DOWNLOADED] Ukuran: ${(mediaBuffer.length / 1024).toFixed(1)} KB. Menganalisis dengan Gemini Multimodal...`);
+              console.log(`[BAILEYS-MEDIA-DOWNLOADED] Ukuran: ${(mediaBuffer.length / 1024).toFixed(1)} KB. Menganalisis dengan Gemini Multimodal...`);
 
-            // Proses langsung dengan Gemini AI
-            const multiRes = await processMultimodalBuffer({
-              base64Data: mediaBuffer.toString("base64"),
-              category,
-              mimeType,
-              caption: messageText,
-              senderPhone,
-              senderName,
-              isGroup,
-              groupId: remoteJid,
-              filename: `${category}_${Date.now()}`,
-            });
+              // Proses langsung dengan Gemini AI
+              const multiRes = await processMultimodalBuffer({
+                base64Data: mediaBuffer.toString("base64"),
+                category,
+                mimeType,
+                caption: messageText,
+                senderPhone,
+                senderName,
+                isGroup,
+                groupId: remoteJid,
+                filename: `${category}_${Date.now()}`,
+              });
 
-            // Kirim balasan langsung ke WhatsApp
-            await sock.sendMessage(
-              remoteJid,
-              { text: multiRes.replyText },
-              { quoted: m }
-            );
+              // Kirim balasan langsung ke WhatsApp
+              await sendReply(remoteJid, multiRes.replyText, m);
+              console.log(`[BAILEYS-MEDIA-REPLIED] Berhasil membalas ${category} ke ${remoteJid}`);
 
-            console.log(`[BAILEYS-MEDIA-REPLIED] Berhasil membalas ${category} ke ${remoteJid}`);
-
-            // Rekam aktivitas jika di grup komunitas untuk icebreaker
-            if (remoteJid.includes("120363388633880584") || remoteJid === getCommunityGroupId()) {
-              recordCommunityGroupActivity(`[Media ${category}] ${messageText}`, senderName, senderPhone).catch(() => {});
+              // Rekam aktivitas jika di grup komunitas untuk icebreaker
+              if (remoteJid.includes("120363388633880584") || remoteJid === getCommunityGroupId()) {
+                recordCommunityGroupActivity(`[Media ${category}] ${messageText}`, senderName, senderPhone).catch(() => {});
+              }
+            } catch (mediaErr: any) {
+              console.error("[BAILEYS-MEDIA-ERROR]:", mediaErr.message);
+              await sendReply(remoteJid, "Maaf Sahabat, media tidak dapat diproses saat ini. Silakan kirimkan kembali ya!");
             }
 
             continue;
@@ -423,7 +501,7 @@ async function startBaileysGateway() {
             : "application/pdf";
 
           console.log(`[BAILEYS-QUOTED-MEDIA] User mereply media ${category} dengan pesan: "${messageText}"`);
-          await sock.sendPresenceUpdate("composing", remoteJid);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
 
           try {
             const fakeQuotedMsgObj = {
@@ -454,11 +532,7 @@ async function startBaileysGateway() {
               filename: `${category}_quoted_${Date.now()}`,
             });
 
-            await sock.sendMessage(
-              remoteJid,
-              { text: multiRes.replyText },
-              { quoted: m }
-            );
+            await sendReply(remoteJid, multiRes.replyText, m);
             continue;
           } catch (err: any) {
             console.warn("[QUOTED-MEDIA-DOWNLOAD-FAILED]:", err.message);
@@ -475,20 +549,20 @@ async function startBaileysGateway() {
           // CABANG A: GRUP GRAPHIC DESIGN
           if (isDesignGroupId(remoteJid)) {
             if (isDirectlyAddressed || shouldDesignBotRespond(messageText)) {
-              await sock.sendPresenceUpdate("composing", remoteJid);
+              await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
               const replyText = await handleDesignStudioConversation({
                 senderPhone,
                 senderName,
                 messageText,
                 groupId: remoteJid,
               });
-              await sock.sendMessage(remoteJid, { text: replyText }, { quoted: m });
+              await sendReply(remoteJid, replyText, m);
             }
           }
           // CABANG B: GRUP KOMUNITAS / ANGKATAN
           else {
             if (isDirectlyAddressed || shouldGroupBotRespond(messageText)) {
-              await sock.sendPresenceUpdate("composing", remoteJid);
+              await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
               const replyText = await generateIntelligentCohortReply({
                 messageText,
                 senderPhone,
@@ -496,7 +570,7 @@ async function startBaileysGateway() {
                 isGroup: true,
                 groupId: remoteJid,
               });
-              await sock.sendMessage(remoteJid, { text: replyText }, { quoted: m });
+              await sendReply(remoteJid, replyText, m);
 
               if (remoteJid.includes("120363388633880584") || remoteJid === getCommunityGroupId()) {
                 recordCommunityGroupActivity(messageText, senderName, senderPhone).catch(() => {});
@@ -505,8 +579,8 @@ async function startBaileysGateway() {
           }
         } else {
           // CABANG C: CHAT PRIBADI (1-ON-1)
-          console.log(`[BAILEYS-PRIVATE-CHAT] Menerima pesan dari: ${senderName} (${senderPhone}) | Isi: "${messageText}"`);
-          await sock.sendPresenceUpdate("composing", remoteJid);
+          console.log(`[BAILEYS-PRIVATE-CHAT] Menerima pesan pribadi dari: ${senderName} (${senderPhone}) | JID: ${remoteJid} | Isi: "${messageText}"`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
 
           const adminPhoneEnv = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
           const isSenderAdmin =
@@ -518,7 +592,7 @@ async function startBaileysGateway() {
             // Periksa auto-remediasi jika diminta
             const remResult = await handleAdminAutoRemediation(senderPhone, messageText);
             if (remResult.action !== "not_a_sentinel_command") {
-              await sock.sendMessage(remoteJid, { text: remResult.message }, { quoted: m });
+              await sendReply(remoteJid, remResult.message, m);
               continue;
             }
           }
@@ -531,7 +605,7 @@ async function startBaileysGateway() {
             isGroup: false,
           });
 
-          await sock.sendMessage(remoteJid, { text: replyText }, { quoted: m });
+          await sendReply(remoteJid, replyText, m);
           console.log(`[BAILEYS-PRIVATE-REPLIED] Berhasil membalas chat pribadi ke ${remoteJid}`);
         }
       } catch (msgErr: any) {
