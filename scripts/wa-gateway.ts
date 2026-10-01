@@ -14,8 +14,8 @@ import makeWASocket, {
 import pino from "pino";
 // @ts-ignore
 import qrcode from "qrcode-terminal";
-import path from "path";
-import fs from "fs";
+import * as path from "path";
+import * as fs from "fs";
 
 // Import AI Handlers dari codebase project
 import {
@@ -43,10 +43,19 @@ const AUTH_FOLDER = path.join(process.cwd(), ".baileys_auth");
 const logger = pino({ level: "silent" });
 
 // Nomor bot untuk pairing code (jika ingin pakai pairing code daripada scan QR)
-const pairingPhoneArg = process.argv.find((a) => a.startsWith("--pairing="))?.split("=")[1] ||
-  (process.argv.includes("--pairing") ? process.argv[process.argv.indexOf("--pairing") + 1] : "") ||
-  process.env.WA_BOT_PHONE ||
-  "";
+let pairingPhoneArg = "";
+const pairingArgIndex = process.argv.indexOf("--pairing");
+if (pairingArgIndex !== -1) {
+  const nextArg = process.argv[pairingArgIndex + 1];
+  pairingPhoneArg = nextArg && !nextArg.startsWith("-") ? nextArg : "6285151771289";
+} else {
+  const match = process.argv.find((a) => a.startsWith("--pairing="));
+  if (match) {
+    pairingPhoneArg = match.split("=")[1] || "6285151771289";
+  } else if (process.env.WA_BOT_PHONE) {
+    pairingPhoneArg = process.env.WA_BOT_PHONE;
+  }
+}
 
 async function startBaileysGateway() {
   if (!fs.existsSync(AUTH_FOLDER)) {
@@ -65,7 +74,7 @@ async function startBaileysGateway() {
   const sock = makeWASocket({
     version,
     logger,
-    printQRInTerminal: !pairingPhoneArg, // Jika ada nomor pairing, jangan print QR
+    printQRInTerminal: false,
     auth: state,
     browser: ["Expedient Generation 43", "Chrome", "120.0.0"],
     syncFullHistory: false,
@@ -100,7 +109,18 @@ async function startBaileysGateway() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr && !pairingPhoneArg) {
-      console.log("📲 Scan QR Code di atas menggunakan WhatsApp di HP Anda:");
+      console.log("\n=======================================================");
+      console.log("📲 SCAN QR CODE BERIKUT DENGAN WHATSAPP DI HP ANDA:");
+      console.log("   (WhatsApp -> Perangkat Tertaut -> Tautkan Perangkat)\n");
+      try {
+        qrcode.setErrorLevel("L");
+        qrcode.generate(qr, { small: true });
+      } catch (qrErr: any) {
+        console.log("QR Data:", qr);
+      }
+      console.log("=======================================================");
+      console.log("💡 Tips: Jika terminal sulit scan QR, gunakan kode pairing 8 digit:");
+      console.log("   npm run wa:bot -- --pairing=6285151771289\n");
     }
 
     if (connection === "close") {
