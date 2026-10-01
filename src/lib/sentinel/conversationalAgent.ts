@@ -68,7 +68,12 @@ export async function callGeminiResilient(
     .filter((m): m is string => Boolean(m && m.length > 0))
     .filter((m, idx, arr) => arr.indexOf(m) === idx);
 
-  let lastError: any = null;
+  // Deteksi payload multimodal (gambar, audio VN, stiker) butuh waktu inferensi lebih (40 detik vs 12 detik)
+  const isMultimodalPayload = Boolean(
+    bodyPayload?.contents?.[0]?.parts?.some((p: any) => Boolean(p.inlineData))
+  );
+  const timeoutMs = isMultimodalPayload ? 40000 : 12000;
+  let lastError: any = new Error("No Gemini models responded");
 
   for (const currentKey of apiKeysToTry) {
     for (const model of modelsToTry) {
@@ -79,7 +84,7 @@ export async function callGeminiResilient(
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(bodyPayload),
-            signal: AbortSignal.timeout(8000), // Timeout tangkas 8 detik agar bot tidak pernah hang
+            signal: AbortSignal.timeout(timeoutMs),
           });
 
           if (res.ok) {
