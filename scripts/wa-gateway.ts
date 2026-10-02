@@ -45,6 +45,7 @@ import {
 import {
   architectMasterpieceDesign,
   formatBlueprintForWhatsApp,
+  applyPinterestTypographyOverlay,
 } from "../src/lib/whatsapp/designPromptArchitect";
 import {
   shouldGroupBotRespond,
@@ -57,6 +58,7 @@ import {
   backupSessionToSupabase,
   restoreSessionFromSupabase,
 } from "../src/lib/whatsapp/sessionSync";
+import { createAdminClient } from "../src/lib/supabase/admin";
 
 const AUTH_FOLDER = path.join(process.cwd(), ".baileys_auth");
 const logger = pino({ level: "silent" });
@@ -254,7 +256,13 @@ async function startBaileysGateway() {
       officialTitle = "Peringatan G30S/PKI (30 September)";
     }
 
-    if (officialBuffer) {
+    const wantsOfficialTemplate =
+      lowerPrompt.includes("resmi") ||
+      lowerPrompt.includes("template") ||
+      lowerPrompt.includes("unduh") ||
+      lowerPrompt.includes("download");
+
+    if (wantsOfficialTemplate && officialBuffer) {
       addLog(`🖼️ [OFFICIAL-POSTER] Mengirimkan poster resmi siap pakai: "${officialTitle}" ke ${cleanJid}`);
       await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
       const caption =
@@ -368,22 +376,30 @@ async function startBaileysGateway() {
       }
 
       if (imgBuffer) {
+        try {
+          addLog(`✨ [PINTEREST-OVERLAY] Mengaplikasikan tipografi estetis Pinterest 9:16...`);
+          imgBuffer = await applyPinterestTypographyOverlay(imgBuffer, blueprint);
+        } catch (overlayErr: any) {
+          addLog(`⚠️ [OVERLAY-WARN] Gagal overlay teks: ${overlayErr?.message || overlayErr}`, "warn");
+        }
+
         const res = await sock.sendMessage(
           cleanJid,
           {
             image: imgBuffer,
             caption:
-              `📱 *VISUAL ARTWORK INSTAGRAM STORY (9:16)* 🖼️\n\n` +
+              `📱 *POSTER INSTAGRAM STORY AESTHETIC (9:16)* 🖼️\n\n` +
               `📌 *Konsep:* "${blueprint.title}"\n` +
               `✨ *Style:* ${blueprint.theme}\n` +
+              `🔤 *Tipografi:* Pinterest Editorial Magazine Style (Zero Typo)\n` +
               `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
-              `🏢 *Studio:* Expedient Generation 43 AI Studio (Powered by FLUX.1 Engine)\n\n` +
-              `_Visual sinematik bersih tanpa teks rusak. Siap dijadikan Story atau ditambah stiker teks di Instagram!_ 🚀✨`,
+              `🏢 *Studio:* Expedient Creative AI Studio (FLUX.1 + Pinterest Typography Engine)\n\n` +
+              `_Poster Instagram Story berdesain estetis ala Pinterest dengan tipografi resmi siap diposting langsung!_ 🚀✨`,
           },
           { quoted: quotedMessage }
         );
         if (res?.key?.id) sentMessageIds.add(res.key.id);
-        addLog(`📤 [IMAGE-SENT] Berhasil mengirim gambar AI FLUX.1 9:16 ke ${cleanJid}`, "success");
+        addLog(`📤 [IMAGE-SENT] Berhasil mengirim poster Pinterest 9:16 ke ${cleanJid}`, "success");
         return true;
       }
 

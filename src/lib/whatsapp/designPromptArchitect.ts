@@ -300,8 +300,173 @@ export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): st
     out += `  • ${blueprint.officialCdnAsset.storyUrl}\n\n`;
     out += `_Poster resmi di atas sudah dilengkapi tipografi 3D & lambang emas, siap diposting langsung ke IG Story!_ 🚀✨`;
   } else {
-    out += `💡 _Gambar visual bersih beresolusi tinggi sedang dikirim ke chat ini. Anda bisa langsung memakainya sebagai Story atau menambahkan stiker teks di Instagram!_ ✨`;
+    out += `💡 _Poster Instagram Story ala Pinterest lengkap dengan tipografi estetis sudah dirender dan dikirim ke chat ini!_ ✨`;
   }
 
   return out;
 }
+
+function escapeXml(unsafe: string): string {
+  return (unsafe || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function wrapSvgText(text: string, maxCharsPerLine = 32): string[] {
+  const words = (text || "").split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+
+  for (const word of words) {
+    if ((currentLine + " " + word).trim().length <= maxCharsPerLine) {
+      currentLine = (currentLine + " " + word).trim();
+    } else {
+      if (currentLine) lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines;
+}
+
+/**
+ * Mengaplikasikan Tipografi Estetis Khas Pinterest secara Otomatis (Format 9:16 Instagram Story)
+ * Menggunakan Sharp & Vector SVG Overlay beresolusi tinggi (Anti-Typo & Anti-Gibberish)
+ */
+export async function applyPinterestTypographyOverlay(
+  imageBuffer: Buffer,
+  blueprint: ArtDirectionBlueprint
+): Promise<Buffer> {
+  try {
+    const sharp = (await import("sharp")).default;
+    const W = 1080;
+    const H = 1920;
+
+    // Pastikan background visual di-scale ke resolusi ultra-HD 9:16 (1080x1920)
+    const bg = await sharp(imageBuffer)
+      .resize(W, H, { fit: "cover", position: "center" })
+      .toBuffer();
+
+    const margin = 55;
+    const innerW = W - margin * 2;
+    const innerH = H - margin * 2;
+    const accentColor = blueprint.colorPalette[1]?.hex || "#F59E0B";
+
+    const tagTop = escapeXml("EXPEDIENT ARCHIVE");
+    const editionStr = escapeXml("SPECIAL COMMEMORATIVE EDITION · VOL. 43");
+    const headline = escapeXml(blueprint.copywriting.headline || "DIRGAHAYU");
+    const subheadline = escapeXml(blueprint.copywriting.subheadline || blueprint.title || "EXPEDIENT 43");
+    const rawQuote = blueprint.copywriting.quoteOrBody || "";
+    const dateStr = escapeXml("05 OKTOBER 2026");
+
+    // Dynamic Sizing
+    const hSize = headline.length > 20 ? 26 : 34;
+    const hTracking = headline.length > 15 ? 8 : 12;
+
+    // Subheadline multi-line wrapping (max 2 lines)
+    const subLines = wrapSvgText(subheadline, 22).slice(0, 2);
+    const subSize = subLines.length > 1 ? 38 : 46;
+
+    // Quote multi-line wrapping (max 2 lines)
+    const quoteLines = rawQuote ? wrapSvgText(rawQuote, 42).slice(0, 2) : [];
+
+    const svg = `
+    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="topScrim" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#000000" stop-opacity="0.88" />
+          <stop offset="35%" stop-color="#000000" stop-opacity="0.6" />
+          <stop offset="70%" stop-color="#000000" stop-opacity="0.15" />
+          <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+        </linearGradient>
+
+        <linearGradient id="bottomScrim" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#000000" stop-opacity="0" />
+          <stop offset="30%" stop-color="#000000" stop-opacity="0.4" />
+          <stop offset="70%" stop-color="#000000" stop-opacity="0.85" />
+          <stop offset="100%" stop-color="#000000" stop-opacity="0.96" />
+        </linearGradient>
+
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.95" />
+        </filter>
+      </defs>
+
+      <!-- Scrim Gradients untuk Keterbacaan Kontras Tinggi -->
+      <rect x="0" y="0" width="${W}" height="680" fill="url(#topScrim)" />
+      <rect x="0" y="1220" width="${W}" height="700" fill="url(#bottomScrim)" />
+
+      <!-- Pinterest Editorial Minimalist Border Frame -->
+      <rect x="${margin}" y="${margin}" width="${innerW}" height="${innerH}" fill="none" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" rx="3" />
+
+      <!-- Top Editorial Typography Layout -->
+      <g filter="url(#shadow)">
+        <!-- Minimalist Pill Badge -->
+        <rect x="${W / 2 - 135}" y="${margin + 36}" width="270" height="34" rx="17" fill="#000000" fill-opacity="0.5" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1" />
+        <text x="${W / 2}" y="${margin + 58}" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="4" fill="#F8FAFC" text-anchor="middle">
+          ${tagTop}
+        </text>
+
+        <!-- Subtitle Tag -->
+        <text x="${W / 2}" y="${margin + 105}" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" letter-spacing="3" fill="${accentColor}" text-anchor="middle">
+          ${editionStr}
+        </text>
+
+        <line x1="${margin + 70}" y1="${margin + 128}" x2="${W - margin - 70}" y2="${margin + 128}" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1" />
+
+        <!-- Main Headline (Editorial Serif Pinterest Style) -->
+        <text x="${W / 2}" y="${margin + 195}" font-family="'Playfair Display', 'Bodoni MT', 'Didot', 'Georgia', serif" font-size="${hSize}" font-weight="400" letter-spacing="${hTracking}" fill="#FFFFFF" text-anchor="middle">
+          ${headline}
+        </text>
+
+        <!-- Subheadline (Bold Modern Sans Pinterest Style) -->
+        ${subLines.map((line, idx) => `
+          <text x="${W / 2}" y="${margin + 265 + idx * (subSize + 8)}" font-family="'Montserrat', 'Arial Black', Impact, sans-serif" font-size="${subSize}" font-weight="900" letter-spacing="4" fill="#F8FAFC" text-anchor="middle">
+            ${escapeXml(line)}
+          </text>
+        `).join("")}
+
+        <!-- Aesthetic Accent Divider & Dots -->
+        <circle cx="${W / 2 - 35}" cy="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" r="2.5" fill="${accentColor}" />
+        <line x1="${W / 2 - 20}" y1="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" x2="${W / 2 + 20}" y2="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" stroke="${accentColor}" stroke-width="2" />
+        <circle cx="${W / 2 + 35}" cy="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" r="2.5" fill="${accentColor}" />
+      </g>
+
+      <!-- Bottom Editorial Quote & Metadata -->
+      <g filter="url(#shadow)">
+        <line x1="${margin + 60}" y1="${H - margin - 210}" x2="${W - margin - 60}" y2="${H - margin - 210}" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1" />
+        <text x="${margin + 42}" y="${H - margin - 205}" font-family="monospace" font-size="14" fill="${accentColor}">+</text>
+        <text x="${W - margin - 52}" y="${H - margin - 205}" font-family="monospace" font-size="14" fill="${accentColor}">+</text>
+
+        <!-- Quote Lines -->
+        ${quoteLines.map((qLine, qIdx) => `
+          <text x="${W / 2}" y="${H - margin - 150 + qIdx * 30}" font-family="'Playfair Display', 'Georgia', serif" font-style="italic" font-size="20" font-weight="400" fill="#F1F5F9" text-anchor="middle">
+            ${qIdx === 0 && quoteLines.length === 1 ? `“${escapeXml(qLine)}”` : qIdx === 0 ? `“${escapeXml(qLine)}` : `${escapeXml(qLine)}”`}
+          </text>
+        `).join("")}
+
+        <!-- Date -->
+        <text x="${W / 2}" y="${H - margin - 75}" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
+          ${dateStr}
+        </text>
+
+        <!-- Signature Tag -->
+        <text x="${W / 2}" y="${H - margin - 35}" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="3" fill="${accentColor}" text-anchor="middle">
+          EXPEDIENT GENERATION 43 · OFFICIAL STUDIO
+        </text>
+      </g>
+    </svg>
+    `;
+
+    return await sharp(bg)
+      .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
+      .jpeg({ quality: 95 })
+      .toBuffer();
+  } catch (_) {
+    return imageBuffer;
+  }
+}
+
