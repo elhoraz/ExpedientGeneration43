@@ -169,8 +169,8 @@ export const COMMEMORATIVE_EVENTS: CommemorativeEvent[] = [
     suggestedTheme: "Dark Heroic, Khidmat, Monokrom Charcoal, Siluet Lubang Buaya & Merah Gelap",
     colorPalette: ["#09090B", "#27272A", "#7F1D1D", "#E4E4E7"],
     suggestedKeywords: "g30s pki pahlawan revolusi tribute dark dramatic memorial poster",
-    feedImageUrl: "https://expedientgeneration.vercel.app/images/posters/g30s_pki_feed.jpg",
-    storyImageUrl: "https://expedientgeneration.vercel.app/images/posters/g30s_pki_story.jpg",
+    feedImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/g30s_pki_feed.jpg",
+    storyImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/g30s_pki_story.jpg",
   },
   {
     id: "kesaktian-pancasila",
@@ -182,8 +182,8 @@ export const COMMEMORATIVE_EVENTS: CommemorativeEvent[] = [
     suggestedTheme: "Garuda Emas Kokoh, Cahaya Fajar Bangsa & Nuansa Patriotik Berwibawa",
     colorPalette: ["#78350F", "#B45309", "#1E293B", "#FFFBEB"],
     suggestedKeywords: "hari kesaktian pancasila garuda emas poster design dignity indonesia",
-    feedImageUrl: "https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_feed.jpg",
-    storyImageUrl: "https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_story.jpg",
+    feedImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/kesaktian_pancasila_feed.jpg",
+    storyImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/kesaktian_pancasila_story.jpg",
   },
   {
     id: "hari-batik-nasional",
@@ -206,8 +206,8 @@ export const COMMEMORATIVE_EVENTS: CommemorativeEvent[] = [
     suggestedTheme: "Military Camo Modern, Gagah, Siluet Matra Darat Laut Udara",
     colorPalette: ["#14532D", "#1E3A1E", "#78716C", "#F0FDF4"],
     suggestedKeywords: "military armed forces tni indonesia bold poster typography",
-    feedImageUrl: "https://expedientgeneration.vercel.app/images/posters/hut_tni_feed.jpg",
-    storyImageUrl: "https://expedientgeneration.vercel.app/images/posters/hut_tni_story.jpg",
+    feedImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hut_tni_feed.jpg",
+    storyImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hut_tni_story.jpg",
   },
   {
     id: "hari-santri-nasional",

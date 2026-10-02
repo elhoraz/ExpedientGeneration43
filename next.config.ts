@@ -47,6 +47,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/images/posters/:path*',
+        destination: 'https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/:path*',
+      },
+    ];
+  },
   async headers() {
     const isDev = process.env.NODE_ENV === 'development';
     if (isDev) {

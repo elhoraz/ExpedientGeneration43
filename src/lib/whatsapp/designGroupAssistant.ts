@@ -336,12 +336,15 @@ ${cohortFactSummary || "Expedient Generation 43 Alumni 2025 Pondok Modern Arrisa
 
 UPCOMING EVENTS & READY-TO-POST POSTERS:
 ${eventContext || "Tidak ada event besar dalam 14 hari ke depan."}
+- HUT TNI 5 Oktober:
+  • Story IG (9:16): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hut_tni_story.jpg
+  • Feed IG (1:1): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hut_tni_feed.jpg
 - Kesaktian Pancasila 1 Oktober:
-  • Story IG (9:16): https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_story.jpg
-  • Feed IG (1:1): https://expedientgeneration.vercel.app/images/posters/kesaktian_pancasila_feed.jpg
+  • Story IG (9:16): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/kesaktian_pancasila_story.jpg
+  • Feed IG (1:1): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/kesaktian_pancasila_feed.jpg
 - Peringatan G30S/PKI 30 September:
-  • Story IG (9:16): https://expedientgeneration.vercel.app/images/posters/g30s_pki_story.jpg
-  • Feed IG (1:1): https://expedientgeneration.vercel.app/images/posters/g30s_pki_feed.jpg
+  • Story IG (9:16): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/g30s_pki_story.jpg
+  • Feed IG (1:1): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/g30s_pki_feed.jpg
 
 COMMUNICATION & PERSONALITY GUIDELINES:
 1. FACTUAL ACCURACY FIRST:

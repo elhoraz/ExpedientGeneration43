@@ -208,7 +208,7 @@ async function startBaileysGateway() {
       "/opt/render/project/src/public/images/posters",
     ];
 
-    const findPosterBuffer = (filename: string): Buffer | null => {
+    const findPosterBuffer = async (filename: string): Promise<Buffer | null> => {
       for (const p of possiblePosterPaths) {
         const full = path.join(p, filename);
         if (fs.existsSync(full)) {
@@ -217,6 +217,17 @@ async function startBaileysGateway() {
           } catch (_) {}
         }
       }
+      // Fallback: Unduh langsung dari Supabase Storage CDN yang selalu aktif & 100% online
+      try {
+        const cdnUrl = `https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/${filename}`;
+        const res = await fetch(cdnUrl, { signal: AbortSignal.timeout(15000) });
+        if (res.ok) {
+          const ab = await res.arrayBuffer();
+          if (ab.byteLength > 1000) {
+            return Buffer.from(ab);
+          }
+        }
+      } catch (_) {}
       return null;
     };
 
@@ -224,13 +235,13 @@ async function startBaileysGateway() {
     let officialTitle = "";
 
     if (isHutTni) {
-      officialBuffer = findPosterBuffer("hut_tni_feed.jpg") || findPosterBuffer("hut_tni_story.jpg");
+      officialBuffer = (await findPosterBuffer("hut_tni_feed.jpg")) || (await findPosterBuffer("hut_tni_story.jpg"));
       officialTitle = "HUT TNI (5 Oktober 2026)";
     } else if (isPancasila) {
-      officialBuffer = findPosterBuffer("kesaktian_pancasila_feed.jpg") || findPosterBuffer("kesaktian_pancasila_story.jpg");
+      officialBuffer = (await findPosterBuffer("kesaktian_pancasila_feed.jpg")) || (await findPosterBuffer("kesaktian_pancasila_story.jpg"));
       officialTitle = "Hari Kesaktian Pancasila (1 Oktober)";
     } else if (isG30s) {
-      officialBuffer = findPosterBuffer("g30s_pki_feed.jpg") || findPosterBuffer("g30s_pki_story.jpg");
+      officialBuffer = (await findPosterBuffer("g30s_pki_feed.jpg")) || (await findPosterBuffer("g30s_pki_story.jpg"));
       officialTitle = "Peringatan G30S/PKI (30 September)";
     }
 

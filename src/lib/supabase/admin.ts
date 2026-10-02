@@ -1,4 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
+import WebSocket from "ws";
+
+// Polyfill WebSocket globally for Node.js environment
+if (typeof globalThis.WebSocket === "undefined") {
+  // @ts-ignore
+  globalThis.WebSocket = WebSocket;
+}
+if (typeof global !== "undefined" && typeof (global as any).WebSocket === "undefined") {
+  (global as any).WebSocket = WebSocket;
+}
 
 /**
  * Reusable Supabase Admin Client using Service Role Key.
@@ -20,6 +30,9 @@ export function createAdminClient(
     auth: {
       autoRefreshToken: false,
       persistSession: false,
+    },
+    realtime: {
+      transport: WebSocket,
     },
     ...options,
   });
