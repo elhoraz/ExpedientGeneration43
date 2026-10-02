@@ -206,6 +206,8 @@ export const COMMEMORATIVE_EVENTS: CommemorativeEvent[] = [
     suggestedTheme: "Military Camo Modern, Gagah, Siluet Matra Darat Laut Udara",
     colorPalette: ["#14532D", "#1E3A1E", "#78716C", "#F0FDF4"],
     suggestedKeywords: "military armed forces tni indonesia bold poster typography",
+    feedImageUrl: "https://expedientgeneration.vercel.app/images/posters/hut_tni_feed.jpg",
+    storyImageUrl: "https://expedientgeneration.vercel.app/images/posters/hut_tni_story.jpg",
   },
   {
     id: "hari-santri-nasional",
