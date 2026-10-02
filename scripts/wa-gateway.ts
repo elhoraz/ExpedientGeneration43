@@ -241,16 +241,16 @@ async function startBaileysGateway() {
     let officialTitle = "";
 
     if (isHutTni) {
-      officialBuffer = (await findPosterBuffer("hut_tni_feed.jpg")) || (await findPosterBuffer("hut_tni_story.jpg"));
+      officialBuffer = (await findPosterBuffer("hut_tni_story.jpg")) || (await findPosterBuffer("hut_tni_feed.jpg"));
       officialTitle = "HUT TNI (5 Oktober 2026)";
     } else if (isHariSantri) {
-      officialBuffer = (await findPosterBuffer("hari_santri_feed.jpg")) || (await findPosterBuffer("hari_santri_story.jpg"));
+      officialBuffer = (await findPosterBuffer("hari_santri_story.jpg")) || (await findPosterBuffer("hari_santri_feed.jpg"));
       officialTitle = "Hari Santri Nasional (22 Oktober 2026)";
     } else if (isPancasila) {
-      officialBuffer = (await findPosterBuffer("kesaktian_pancasila_feed.jpg")) || (await findPosterBuffer("kesaktian_pancasila_story.jpg"));
+      officialBuffer = (await findPosterBuffer("kesaktian_pancasila_story.jpg")) || (await findPosterBuffer("kesaktian_pancasila_feed.jpg"));
       officialTitle = "Hari Kesaktian Pancasila (1 Oktober)";
     } else if (isG30s) {
-      officialBuffer = (await findPosterBuffer("g30s_pki_feed.jpg")) || (await findPosterBuffer("g30s_pki_story.jpg"));
+      officialBuffer = (await findPosterBuffer("g30s_pki_story.jpg")) || (await findPosterBuffer("g30s_pki_feed.jpg"));
       officialTitle = "Peringatan G30S/PKI (30 September)";
     }
 
@@ -258,13 +258,13 @@ async function startBaileysGateway() {
       addLog(`🖼️ [OFFICIAL-POSTER] Mengirimkan poster resmi siap pakai: "${officialTitle}" ke ${cleanJid}`);
       await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
       const caption =
-        `🎨 *DESAIN POSTER RESMI EXPEDIENT 43 (SIAP PUBLISH)* 🖼️\n\n` +
+        `📱 *POSTER RESMI EXPEDIENT 43 (INSTAGRAM STORY 9:16)* 🖼️\n\n` +
         `📌 *Agenda:* ${officialTitle}\n` +
         `✨ *Konsep:* ${blueprint.theme}\n` +
         `🔤 *Headline:* "${blueprint.copywriting.headline}"\n` +
         `📝 *Slogan:* "${blueprint.copywriting.subheadline}"\n` +
         `🏢 *Studio:* Expedient Creative Graphic Design (Ultra-HD 8K)\n\n` +
-        `_Desain resmi sudah siap pakai & tinggal diunggah ke media sosial alumni!_ 🚀✨`;
+        `_Siap diposting langsung ke Instagram Story alumni!_ 🚀✨`;
 
       const res = await sock.sendMessage(
         cleanJid,
@@ -281,7 +281,7 @@ async function startBaileysGateway() {
 
     // 2. PEMBUATAN GAMBAR / POSTER AI ON-DEMAND DENGAN MASTERPIECE PROMPT ARCHITECT
     try {
-      addLog(`🎨 [GENERATE-IMAGE] Merancang & membuat gambar AI untuk: "${rawPrompt}"...`);
+      addLog(`🎨 [GENERATE-IMAGE] Merancang & membuat visual Instagram Story untuk: "${rawPrompt}"...`);
       await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
 
       // Kirim blueprint konsep desain & arahan artistik terlebih dahulu
@@ -298,7 +298,7 @@ async function startBaileysGateway() {
         Buffer.from("Y2Z1dF96VzJaelpMS2VEVFc0bHpsN2tGUjdrdzltTkFEa25NekJsS3Y2OXpWY2U0N2Q3NTI=", "base64").toString()
       ).trim();
 
-      // PRIORITAS 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - 100% GRATIS, ULTRA HD, FAST 2s)
+      // PRIORITAS 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - 100% GRATIS, ULTRA HD 9:16, FAST 2s)
       if (cfAccountId && cfToken) {
         try {
           addLog(`⚡ [CLOUDFLARE-AI] Menjalankan FLUX.1 Schnell untuk: "${blueprint.title}"...`);
@@ -344,8 +344,8 @@ async function startBaileysGateway() {
       if (!imgBuffer) {
         const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
         const candidateUrls = [
-          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=1024&height=1024&nologo=true`,
-          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1024&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1344&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=720&height=1280&nologo=true`,
           `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
         ];
 
@@ -374,16 +374,17 @@ async function startBaileysGateway() {
           {
             image: imgBuffer,
             caption:
-              `🎨 *HASIL DESAIN MAHASISWA STUDIO AI (FLUX.1)* 🖼️\n\n` +
+              `📱 *VISUAL ARTWORK INSTAGRAM STORY (9:16)* 🖼️\n\n` +
               `📌 *Konsep:* "${blueprint.title}"\n` +
               `✨ *Style:* ${blueprint.theme}\n` +
+              `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
               `🏢 *Studio:* Expedient Generation 43 AI Studio (Powered by FLUX.1 Engine)\n\n` +
-              `_Dibuat otomatis dan langsung dikirim ke chat!_ 🚀✨`,
+              `_Visual sinematik bersih tanpa teks rusak. Siap dijadikan Story atau ditambah stiker teks di Instagram!_ 🚀✨`,
           },
           { quoted: quotedMessage }
         );
         if (res?.key?.id) sentMessageIds.add(res.key.id);
-        addLog(`📤 [IMAGE-SENT] Berhasil mengirim gambar AI FLUX.1 ke ${cleanJid}`, "success");
+        addLog(`📤 [IMAGE-SENT] Berhasil mengirim gambar AI FLUX.1 9:16 ke ${cleanJid}`, "success");
         return true;
       }
 

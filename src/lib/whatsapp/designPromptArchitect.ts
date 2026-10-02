@@ -2,9 +2,9 @@
  * src/lib/whatsapp/designPromptArchitect.ts
  * AI Creative Art Director & Masterpiece Prompt Architect
  * 
- * Mengubah prompt atau permintaan pengguna yang sederhana menjadi konsep desain grafis
- * profesional tingkat studio (setara Behance / Dribbble / Midjourney / FLUX.1 Pro)
- * lengkap dengan arsitektur visual, tipografi, tata cahaya volumetrik, dan palet warna.
+ * Khusus Format Instagram Story (9:16) & Clean Visual (Anti-Gibberish).
+ * Mengubah setiap permintaan pengguna menjadi visual sinematik tanpa teks cacat,
+ * dilengkapi Kit Tipografi & Copywriting siap pakai untuk Instagram Story.
  */
 
 export interface ArtDirectionBlueprint {
@@ -24,13 +24,13 @@ export interface ArtDirectionBlueprint {
     quoteOrBody?: string;
   };
   officialCdnAsset?: {
-    feedUrl: string;
     storyUrl: string;
   };
 }
 
 /**
- * Menganalisis teks permintaan pengguna dan menghasilkan Blueprint Desain Grafis Mahakarya
+ * Menganalisis teks permintaan pengguna dan menghasilkan Blueprint Desain Instagram Story (9:16)
+ * dengan aturan ketat Clean Visual (Anti-Gibberish: no random text/typo)
  */
 export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionBlueprint {
   const clean = rawUserPrompt.trim();
@@ -46,9 +46,9 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
     lower.includes("kemiliteran")
   ) {
     return {
-      title: "Hari Ulang Tahun Tentara Nasional Indonesia (HUT TNI)",
+      title: "Peringatan Hari Ulang Tahun TNI (HUT TNI)",
       category: "military",
-      theme: "Heroic Modern Tactical, Tri-Matra Forces, Golden Hour Cinematic Lighting, 3D Typography",
+      theme: "Heroic Modern Tactical, Tri-Matra Forces, Golden Hour Sunset, Coastal Cinematic Lighting",
       colorPalette: [
         { hex: "#0F172A", name: "Midnight Navy Sky" },
         { hex: "#DC2626", name: "Patriot Red Ribbon" },
@@ -57,9 +57,9 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
         { hex: "#334155", name: "Charcoal Tactical Camo" },
       ],
       typography: {
-        primaryFont: "Bold Textured Block Sans-Serif (TNI PRIMA Style)",
+        primaryFont: "Bold Modern Block Sans-Serif (TNI PRIMA Style)",
         secondaryFont: "Geometric Tracked Modern Serif",
-        recommendedLayout: "Golden Tri-Matra Crest at Top, Giant 3D Ribbon Numeral, Over-the-shoulder Soldiers View, Coastal Twilight",
+        recommendedLayout: "Format Instagram Story 9:16: Tri-Matra Crest di Puncak, Prajurit 3 Matra Menghadap Senja Kepulauan, Formasi Sukhoi di Langit",
       },
       copywriting: {
         headline: "DIRGAHAYU TENTARA NASIONAL INDONESIA",
@@ -67,19 +67,17 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
         quoteOrBody: "Dengan Semangat Prima, Kita Wujudkan TNI Rakyat untuk Indonesia Maju dan Sejahtera. TNI Kuat, Indonesia Hebat.",
       },
       officialCdnAsset: {
-        feedUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hut_tni_feed.jpg",
         storyUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hut_tni_story.jpg",
       },
       enhancedPrompt:
-        "Official ultra-premium commemorative graphic design poster for Indonesian Armed Forces Day (HUT TNI 5 Oktober). " +
-        "Vertical 9:16 layout. At the top center, official golden Tri-Matra TNI crest with anchor, wings, and star, " +
-        "followed by clean tracked typography 'DIRGAHAYU TENTARA NASIONAL INDONESIA 5 OKTOBER 1945 - 2026'. " +
-        "In the center, giant bold 3D red-and-white ribbon wrapping over dynamic numerals, giant textured white block letters 'TNI', " +
-        "and subtext 'TNI PRIMA · TNI RAKYAT · INDONESIA MAJU'. " +
-        "Foreground features modern Indonesian soldiers in full combat gear viewed from behind looking out over the majestic coastal archipelago at golden sunset. " +
-        "Fluttering Indonesian national red and white flag on the left, three supersonic Sukhoi fighter jets soaring with smoke trails on the right, " +
-        "naval frigate battleship on the sea, and army combat tank. " +
-        "Volumetric rim lighting, Octane render 3D masterpiece, 8k resolution, award-winning Behance graphic design, photorealistic.",
+        "Cinematic vertical 9:16 Instagram Story photograph. " +
+        "Breathtaking visual of Indonesian soldiers in modern tactical digital camouflage and Kopassus red beret, " +
+        "viewed heroically from over-the-shoulder looking out over Indonesian archipelago coastline at golden sunset. " +
+        "Indonesian national red and white flag fluttering on flagpole on the left, " +
+        "three supersonic Sukhoi fighter jets soaring diagonally with sharp smoke trails in twilight sky, " +
+        "naval frigate battleship on the ocean waves, and combat tank on shore. " +
+        "Dramatic volumetric golden hour lighting, Octane render 3D, 8k resolution, extreme photorealism, " +
+        "clean cinematic artwork, absolutely no text, no words, no letters, no gibberish, no watermark, no logo.",
     };
   }
 
@@ -98,7 +96,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
     return {
       title: "Peringatan Hari Santri Nasional / Agenda Keislaman",
       category: "islamic",
-      theme: "Majestic Islamic Architecture, Royal Emerald & Gold, Intricate Calligraphy, Serene Twilight Glow",
+      theme: "Majestic Islamic Architecture, Royal Emerald & Warm Lantern Bokeh, Serene Twilight Glow",
       colorPalette: [
         { hex: "#064E3B", name: "Royal Emerald Green" },
         { hex: "#D97706", name: "Warm Gold Arabesque" },
@@ -109,7 +107,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
       typography: {
         primaryFont: "Bold 3D Emerald Block with Gold Trim & Arabic Arabesque Texture",
         secondaryFont: "Elegant Classical Calligraphic Serif",
-        recommendedLayout: "Islamic Star Emblem at Top, Grand Illuminated Mosque Domes in Background, Santri Row in Foreground",
+        recommendedLayout: "Format Instagram Story 9:16: Kubah Masjid Megah Menyala, Santri Berbaju Koko Putih & Sarung Batik Hijau, Lentera Emas Mengambang",
       },
       copywriting: {
         headline: "PERINGATAN HARI SANTRI NASIONAL",
@@ -117,17 +115,15 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
         quoteOrBody: "Menyambung Juang, Merengkuh Masa Depan: Dari Pesantren untuk Kemajuan Indonesia dan Peradaban Dunia.",
       },
       officialCdnAsset: {
-        feedUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hari_santri_feed.jpg",
         storyUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hari_santri_story.jpg",
       },
       enhancedPrompt:
-        "Ultra-high resolution official commemorative graphic design poster for Indonesian National Santri Day (Hari Santri Nasional). " +
-        "At the top center, elegant golden Islamic emblem and crescent, followed by clean spaced typography 'PERINGATAN HARI SANTRI NASIONAL 22 OKTOBER 2026'. " +
-        "In the center, giant bold 3D stylized emerald green and gold typography 'HARI SANTRI' with intricate Islamic geometric calligraphy patterns and ribbon. " +
-        "Indonesian Santri youths standing proud wearing pristine white baju koko, dark green batik sarong, and black songkok peci. " +
-        "Background features a magnificent grand illuminated Indonesian Islamic pesantren mosque with grand domes glowing in twilight blue hour sky, " +
-        "warm golden lantern bokeh lights, crescent moon, and fluttering Indonesian national red and white flag. " +
-        "Bottom typography 'JIHAD SANTRI JAYAKAN NEGERI - DARI PESANTREN UNTUK INDONESIA', Octane render 3D, volumetric lighting, 8k resolution, award-winning Behance poster design.",
+        "Cinematic vertical 9:16 Instagram Story photograph. " +
+        "Majestic grand illuminated Indonesian pesantren mosque with grand domes and minarets glowing in twilight blue hour sky, " +
+        "warm golden hanging lantern bokeh lights, crescent moon, and Indonesian national red and white flag. " +
+        "Heroic Indonesian Santri youths standing proud wearing pristine white baju koko, dark green batik sarong, and black songkok peci. " +
+        "Volumetric atmospheric lighting, Octane render 3D, 8k resolution, extreme photorealism, " +
+        "clean visual photography, absolutely no text, no words, no letters, no gibberish, no watermark, no logo.",
     };
   }
 
@@ -153,7 +149,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
       typography: {
         primaryFont: "Luxury High-Fashion Modern Serif (Cinzel / Bodoni)",
         secondaryFont: "Clean Geometric Sans (Outfit / Montserrat)",
-        recommendedLayout: "Gold Hexagonal Frame, Portrait Profile in Center, Floating Gold Foil Confetti, Formal Congratulatory Banner",
+        recommendedLayout: "Format Instagram Story 9:16: Hexagonal Gold Frame, Studio Portrait Center, Partikel Emas Melayang",
       },
       copywriting: {
         headline: "BARAKALLAH FII UMRIK",
@@ -161,10 +157,10 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
         quoteOrBody: "Semoga bertambahnya usia senantiasa membawa keberkahan, kemuliaan ilmu, kelapangan rezeki, dan kesuksesan dunia akhirat.",
       },
       enhancedPrompt:
-        `Masterpiece luxury congratulatory birthday poster for Indonesian alumni '${clean}', ` +
-        "dark obsidian marble background with floating golden dust bokeh particles, geometric gold foil borders, " +
-        "elegant typography 'BARAKALLAH FII UMRIK' in high-end metallic gold serif font, " +
-        "subtle Islamic geometric ornaments, warm studio softbox lighting, 8k resolution, award-winning luxury branding aesthetic, ultra-clean layout.",
+        `Cinematic vertical 9:16 Instagram Story visual for birthday celebration '${clean}'. ` +
+        "Dark obsidian marble background with floating sparkling golden dust bokeh particles, geometric gold foil minimalist frame, " +
+        "warm studio softbox rim lighting, cinematic depth of field, luxury celebratory atmosphere, 8k resolution, " +
+        "clean visual photography, absolutely no text, no words, no letters, no gibberish, no watermark, no logo.",
     };
   }
 
@@ -182,7 +178,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
     return {
       title: "Desain Poster / Banner Turnamen Olahraga & Futsal",
       category: "sports",
-      theme: "High-Energy Dynamic Sports, Cyber Neon Lighting, Motion Blur & Impact Textures",
+      theme: "High-Energy Dynamic Sports, Cyber Neon Lighting, Motion Blur & Stadium Floodlights",
       colorPalette: [
         { hex: "#0A0A0A", name: "Pitch Black Stadium" },
         { hex: "#2563EB", name: "Electric Cyan Blue" },
@@ -192,7 +188,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
       typography: {
         primaryFont: "Aggressive Slanted Condensed Display (Bebas Neue / Druk Bold)",
         secondaryFont: "High-Tech Monospace Subtitle",
-        recommendedLayout: "Center Hero Action Player, Exploding Particle Smoke, High-Contrast Stadium Floodlights, Bold Angled Match Title",
+        recommendedLayout: "Format Instagram Story 9:16: Pemain Utama Sedang Menendang Bola Dinamis, Sorot Lampu Stadion Megah, Partikel Asap Laser",
       },
       copywriting: {
         headline: "EXPEDIENT CHAMPIONSHIP CUP",
@@ -200,9 +196,11 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
         quoteOrBody: "Buktikan ketangguhan fisik dan kekompakan strategi di lapangan hijau. Satu Tekad, Satu Solidaritas!",
       },
       enhancedPrompt:
-        `High-energy action sports tournament poster for '${clean}', dynamic athlete in explosive motion kicking a ball, ` +
-        "dramatic stadium arena floodlights, volumetric haze and shattered glowing neon particles, " +
-        "bold aggressive slanted typography, intense rim lighting, high-contrast dark aesthetic, 8k resolution, Nike / Adidas commercial poster standard.",
+        `Cinematic vertical 9:16 Instagram Story action sports photography for '${clean}'. ` +
+        "Dynamic athlete in explosive athletic motion kicking a soccer ball, modern indoor stadium arena floodlights, " +
+        "volumetric haze and shattered glowing neon cyan and amber particles, intense rim lighting, high-contrast dark aesthetic, " +
+        "8k resolution, Nike commercial visual standard, " +
+        "clean visual photography, absolutely no text, no words, no letters, no gibberish, no watermark, no logo.",
     };
   }
 
@@ -219,7 +217,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
     return {
       title: "Poster Reuni & Temu Akbar Expedient Generation 43",
       category: "reunion",
-      theme: "Cinematic Warm Nostalgia, Golden Hour Skyline, Elegant Cohort Monogram, Timeless Heritage",
+      theme: "Cinematic Warm Nostalgia, Golden Hour Skyline, Silhouette of Friends, Timeless Heritage",
       colorPalette: [
         { hex: "#1E293B", name: "Deep Slate Blue" },
         { hex: "#D97706", name: "Warm Sunset Amber" },
@@ -229,7 +227,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
       typography: {
         primaryFont: "Timeless Heritage Serif (Playfair Display / Georgia)",
         secondaryFont: "Refined Modern Sans",
-        recommendedLayout: "Official Expedient 43 Golden Crest, Group Silhouette under Warm Sunset, Clean Event Schedule Block",
+        recommendedLayout: "Format Instagram Story 9:16: Siluet Sahabat di Puncak Bukit Menghadap Senja Kota, Sinar Matahari Hangat",
       },
       copywriting: {
         headline: "TEMU KANGEN & REUNI AKBAR",
@@ -237,18 +235,18 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
         quoteOrBody: "Waktu boleh terus berlalu, langkah kaki boleh merantau jauh, namun ikatan ukhuwah kita di Arrisalah akan abadi selamanya.",
       },
       enhancedPrompt:
-        `Heartwarming cinematic graphic poster for high school alumni reunion '${clean}', ` +
-        "silhouette of alumni friends standing together on a hill overlooking city skyline at golden hour sunset, " +
-        "warm amber sun rays, nostalgic cinematic color grade, golden Expedient 43 crest emblem at the top, " +
-        "clean elegant typography 'TEMU AKBAR ALUMNI', award-winning design, 8k resolution.",
+        `Cinematic vertical 9:16 Instagram Story visual for high school alumni reunion '${clean}'. ` +
+        "Silhouette of a group of alumni friends standing together on a hill overlooking city skyline at golden hour sunset, " +
+        "warm amber sun rays, nostalgic cinematic color grade, atmospheric haze, 35mm lens photography, 8k resolution, " +
+        "clean visual photography, absolutely no text, no words, no letters, no gibberish, no watermark, no logo.",
     };
   }
 
   // 6. DEFAULT / GENERAL: DESAIN GRAFIS PROFESIONAL TINGGI (BEHANCE / DRIBBBLE LEVEL)
   return {
-    title: `Desain Grafis Profesional: ${clean.slice(0, 30)}`,
+    title: `Desain Visual Profesional: ${clean.slice(0, 30)}`,
     category: "general",
-    theme: "Modern Swiss Graphic Layout, Octane 3D Elements, Balanced Negative Space, Studio Lighting",
+    theme: "Modern Vertical Story Layout, Octane 3D Elements, Balanced Negative Space, Studio Lighting",
     colorPalette: [
       { hex: "#0F172A", name: "Deep Space Slate" },
       { hex: "#3B82F6", name: "Modern Accent Blue" },
@@ -258,7 +256,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
     typography: {
       primaryFont: "Bold Minimalist Neo-Grotesque Display",
       secondaryFont: "Precision Clean Editorial Sans",
-      recommendedLayout: "Asymmetric Balanced Grid, 3D Hero Focal Point, High-Contrast Typography, Subtle Glassmorphism",
+      recommendedLayout: "Format Instagram Story 9:16: 3D Hero Focal Point di Tengah, Pencahayaan Studio Mewah, Area Kosong Rapi untuk Stiker Teks",
     },
     copywriting: {
       headline: clean.toUpperCase(),
@@ -266,47 +264,43 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
       quoteOrBody: "Visual excellence designed to inspire and captivate.",
     },
     enhancedPrompt:
-      `Award-winning graphic design poster about '${clean}', ` +
-      "ultra-modern minimalist aesthetic, 3D geometric centerpiece with glassmorphism and subtle metallic accents, " +
-      "clean asymmetric layout with bold typography, professional studio lighting with soft ambient occlusion, " +
-      "trending on Behance and Dribbble, 8k resolution, cinematic color grading, masterpiece graphic design.",
+      `Cinematic vertical 9:16 Instagram Story visual about '${clean}'. ` +
+      "Ultra-modern minimalist aesthetic, 3D geometric centerpiece with glassmorphism and subtle metallic accents, " +
+      "professional studio lighting with soft ambient occlusion, trending on Behance and Dribbble, 8k resolution, cinematic color grading, " +
+      "clean visual artwork, absolutely no text, no words, no letters, no gibberish, no watermark, no logo.",
   };
 }
 
 /**
- * Format penjelasan blueprint desain ke dalam pesan WhatsApp yang memukau
+ * Format penjelasan blueprint desain ke dalam pesan WhatsApp khusus Instagram Story
  */
 export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): string {
   const paletteStr = blueprint.colorPalette.map((c) => `  • \`${c.hex}\` (${c.name})`).join("\n");
 
-  let out = `🎨 *ART DIRECTION & BLUEPRINT DESAIN MASTERPIECE* 📐\n\n`;
+  let out = `📱 *BLUEPRINT DESAIN INSTAGRAM STORY (9:16)* 🎨\n\n`;
   out += `📌 *Proyek:* ${blueprint.title}\n`;
   out += `✨ *Konsep/Tema:* ${blueprint.theme}\n\n`;
 
   out += `🎨 *Palet Warna Harmonis:*\n${paletteStr}\n\n`;
 
-  out += `🔤 *Tipografi & Tata Letak:*\n`;
+  out += `🔤 *Rekomendasi Font:*\n`;
   out += `  • *Font Utama:* ${blueprint.typography.primaryFont}\n`;
-  out += `  • *Font Sekunder:* ${blueprint.typography.secondaryFont}\n`;
-  out += `  • *Komposisi:* ${blueprint.typography.recommendedLayout}\n\n`;
+  out += `  • *Font Sekunder:* ${blueprint.typography.secondaryFont}\n\n`;
 
-  out += `📝 *Konsep Teks / Copywriting:*\n`;
-  out += `  • *Headline:* "${blueprint.copywriting.headline}"\n`;
-  out += `  • *Subheadline:* "${blueprint.copywriting.subheadline}"\n`;
+  out += `📝 *Teks Siap Salin untuk Story:*\n`;
+  out += `  • *Judul:* "${blueprint.copywriting.headline}"\n`;
+  out += `  • *Subjudul:* "${blueprint.copywriting.subheadline}"\n`;
   if (blueprint.copywriting.quoteOrBody) {
     out += `  • *Kutipan:* _"${blueprint.copywriting.quoteOrBody}"_\n`;
   }
   out += `\n`;
 
   if (blueprint.officialCdnAsset) {
-    out += `🖼️ *ASET ULTRA-HD SIAP PAKAI (STUDIO EXPEDIENT):*\n`;
-    out += `  • *Story IG (9:16):* ${blueprint.officialCdnAsset.storyUrl}\n`;
-    out += `  • *Feed IG (1:1):* ${blueprint.officialCdnAsset.feedUrl}\n\n`;
-    out += `_Aset resmi di atas sudah dirender dalam kualitas 8K Octane 3D dan siap diunggah ke media sosial!_ 🚀✨`;
+    out += `🖼️ *ASET STORY RESMI ULTRA-HD (8K):*\n`;
+    out += `  • ${blueprint.officialCdnAsset.storyUrl}\n\n`;
+    out += `_Poster resmi di atas sudah dilengkapi tipografi 3D & lambang emas, siap diposting langsung ke IG Story!_ 🚀✨`;
   } else {
-    out += `💻 *Prompt Engine (Midjourney / FLUX.1 Pro / DALL-E 3):*\n`;
-    out += `\`\`\`${blueprint.enhancedPrompt}\`\`\`\n\n`;
-    out += `_Prompt di atas dirancang dengan parameter tata cahaya, komposisi visual, dan estetika resolusi 8K!_ ✨`;
+    out += `💡 _Gambar visual bersih beresolusi tinggi sedang dikirim ke chat ini. Anda bisa langsung memakainya sebagai Story atau menambahkan stiker teks di Instagram!_ ✨`;
   }
 
   return out;
