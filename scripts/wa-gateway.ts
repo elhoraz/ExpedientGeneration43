@@ -43,6 +43,10 @@ import {
   handleDesignStudioConversation,
 } from "../src/lib/whatsapp/designGroupAssistant";
 import {
+  architectMasterpieceDesign,
+  formatBlueprintForWhatsApp,
+} from "../src/lib/whatsapp/designPromptArchitect";
+import {
   shouldGroupBotRespond,
 } from "../src/lib/whatsapp/groupManager";
 import { generateIntelligentCohortReply } from "../src/lib/whatsapp/alumniIntelligence";
@@ -195,12 +199,6 @@ async function startBaileysGateway() {
     const cleanJid = targetJid.replace(/:\d+@/, "@");
     const lowerPrompt = rawPrompt.toLowerCase().trim();
 
-    // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
-    // Jika meminta agenda resmi (HUT TNI, Kesaktian Pancasila, G30S PKI, dll)
-    const isHutTni = lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
-    const isPancasila = lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian");
-    const isG30s = lowerPrompt.includes("g30s") || lowerPrompt.includes("pki");
-
     const possiblePosterPaths = [
       path.join(process.cwd(), "public", "images", "posters"),
       path.join(__dirname, "..", "public", "images", "posters"),
@@ -231,12 +229,23 @@ async function startBaileysGateway() {
       return null;
     };
 
+    // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
+    // Jika meminta agenda resmi (HUT TNI, Kesaktian Pancasila, G30S PKI, dll)
+    const blueprint = architectMasterpieceDesign(rawPrompt);
+    const isHutTni = blueprint.category === "military" || lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
+    const isHariSantri = blueprint.category === "islamic" || lowerPrompt.includes("santri") || lowerPrompt.includes("hsn");
+    const isPancasila = lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian");
+    const isG30s = lowerPrompt.includes("g30s") || lowerPrompt.includes("pki");
+
     let officialBuffer: Buffer | null = null;
     let officialTitle = "";
 
     if (isHutTni) {
       officialBuffer = (await findPosterBuffer("hut_tni_feed.jpg")) || (await findPosterBuffer("hut_tni_story.jpg"));
       officialTitle = "HUT TNI (5 Oktober 2026)";
+    } else if (isHariSantri) {
+      officialBuffer = (await findPosterBuffer("hari_santri_feed.jpg")) || (await findPosterBuffer("hari_santri_story.jpg"));
+      officialTitle = "Hari Santri Nasional (22 Oktober 2026)";
     } else if (isPancasila) {
       officialBuffer = (await findPosterBuffer("kesaktian_pancasila_feed.jpg")) || (await findPosterBuffer("kesaktian_pancasila_story.jpg"));
       officialTitle = "Hari Kesaktian Pancasila (1 Oktober)";
@@ -251,8 +260,10 @@ async function startBaileysGateway() {
       const caption =
         `🎨 *DESAIN POSTER RESMI EXPEDIENT 43 (SIAP PUBLISH)* 🖼️\n\n` +
         `📌 *Agenda:* ${officialTitle}\n` +
-        `✨ *Kualitas:* Ultra HD 1080p (Feed & Story Ready)\n` +
-        `🏢 *Studio:* Expedient Creative Graphic Design\n\n` +
+        `✨ *Konsep:* ${blueprint.theme}\n` +
+        `🔤 *Headline:* "${blueprint.copywriting.headline}"\n` +
+        `📝 *Slogan:* "${blueprint.copywriting.subheadline}"\n` +
+        `🏢 *Studio:* Expedient Creative Graphic Design (Ultra-HD 8K)\n\n` +
         `_Desain resmi sudah siap pakai & tinggal diunggah ke media sosial alumni!_ 🚀✨`;
 
       const res = await sock.sendMessage(
@@ -268,25 +279,36 @@ async function startBaileysGateway() {
       return true;
     }
 
-    // 2. PEMBUATAN GAMBAR / POSTER AI ON-DEMAND (POLLINATIONS AI)
+    // 2. PEMBUATAN GAMBAR / POSTER AI ON-DEMAND DENGAN MASTERPIECE PROMPT ARCHITECT
     try {
       addLog(`🎨 [GENERATE-IMAGE] Merancang & membuat gambar AI untuk: "${rawPrompt}"...`);
       await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
 
-      const encodedPrompt = encodeURIComponent(rawPrompt.trim());
+      // Kirim blueprint konsep desain & arahan artistik terlebih dahulu
+      const blueprintText = formatBlueprintForWhatsApp(blueprint);
+      await sendReply(cleanJid, blueprintText, quotedMessage);
+
+      // Gunakan enhanced prompt arsitektur mahakarya dalam bahasa visual tingkat tinggi
+      const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
+      const rawEncoded = encodeURIComponent(rawPrompt.trim());
       const pollKey = process.env.POLLINATIONS_API_KEY ? `&key=${process.env.POLLINATIONS_API_KEY}` : "";
 
       const candidateUrls = [
-        `https://gen.pollinations.ai/image/${encodedPrompt}?width=512&height=768&nologo=true${pollKey}`,
-        `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=768&nologo=true`,
-        `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true`,
-        `https://image.pollinations.ai/prompt/${encodedPrompt}?nologo=true`,
+        `https://image.pollinations.ai/prompt/${enhancedQuery}?width=1024&height=1024&nologo=true${pollKey}`,
+        `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1024&nologo=true`,
+        `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
+        `https://image.pollinations.ai/prompt/${rawEncoded}?width=768&height=768&nologo=true`,
       ];
 
       let imgBuffer: Buffer | null = null;
       for (const url of candidateUrls) {
         try {
-          const imgRes = await fetch(url, { signal: AbortSignal.timeout(30000) });
+          const imgRes = await fetch(url, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            },
+            signal: AbortSignal.timeout(30000)
+          });
           if (imgRes.ok) {
             const buf = Buffer.from(await imgRes.arrayBuffer());
             if (buf.byteLength > 1000) {
@@ -303,10 +325,11 @@ async function startBaileysGateway() {
           {
             image: imgBuffer,
             caption:
-              `🎨 *HASIL DESAIN POSTER / GAMBAR AI* 🖼️\n\n` +
-              `📌 *Konsep:* "${rawPrompt}"\n` +
-              `✨ *Studio:* Expedient Generation 43 AI Studio\n\n` +
-              `_Dibuat otomatis sebagai draf & referensi tim desainer!_`,
+              `🎨 *HASIL DRAF DESAIN MAHASISWA STUDIO AI* 🖼️\n\n` +
+              `📌 *Konsep:* "${blueprint.title}"\n` +
+              `✨ *Style:* ${blueprint.theme}\n` +
+              `🏢 *Studio:* Expedient Generation 43 AI Studio\n\n` +
+              `_Dibuat otomatis menggunakan AI Masterpiece Prompt Architecture!_ 🚀✨`,
           },
           { quoted: quotedMessage }
         );

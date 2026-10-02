@@ -219,6 +219,8 @@ export const COMMEMORATIVE_EVENTS: CommemorativeEvent[] = [
     suggestedTheme: "Santri Pesantren Megah, Hijau Botol Arrisalah, Ornamen Sarung/Peci & Kaligrafi Tegas",
     colorPalette: ["#064E3B", "#047857", "#D97706", "#ECFDF5"],
     suggestedKeywords: "hari santri nasional pesantren sarung peci islamic poster indonesia",
+    feedImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hari_santri_feed.jpg",
+    storyImageUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hari_santri_story.jpg",
   },
   {
     id: "sumpah-pemuda",
