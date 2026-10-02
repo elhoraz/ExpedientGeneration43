@@ -311,7 +311,6 @@ async function startBaileysGateway() {
             },
             body: JSON.stringify({
               prompt: blueprint.enhancedPrompt,
-              num_steps: 4,
             }),
             signal: AbortSignal.timeout(35000),
           });
