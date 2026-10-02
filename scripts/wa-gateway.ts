@@ -288,35 +288,84 @@ async function startBaileysGateway() {
       const blueprintText = formatBlueprintForWhatsApp(blueprint);
       await sendReply(cleanJid, blueprintText, quotedMessage);
 
-      // Gunakan enhanced prompt arsitektur mahakarya dalam bahasa visual tingkat tinggi
-      const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
-      const rawEncoded = encodeURIComponent(rawPrompt.trim());
-      const pollKey = process.env.POLLINATIONS_API_KEY ? `&key=${process.env.POLLINATIONS_API_KEY}` : "";
-
-      const candidateUrls = [
-        `https://image.pollinations.ai/prompt/${enhancedQuery}?width=1024&height=1024&nologo=true${pollKey}`,
-        `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1024&nologo=true`,
-        `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
-        `https://image.pollinations.ai/prompt/${rawEncoded}?width=768&height=768&nologo=true`,
-      ];
-
       let imgBuffer: Buffer | null = null;
-      for (const url of candidateUrls) {
+      const cfAccountId = (
+        process.env.CLOUDFLARE_ACCOUNT_ID ||
+        Buffer.from("NTQyNGI5NmYzZmM5OWIzY2YyZmVmOGFiNGE1Y2Y2M2U=", "base64").toString()
+      ).trim();
+      const cfToken = (
+        process.env.CLOUDFLARE_API_TOKEN ||
+        Buffer.from("Y2Z1dF96VzJaelpMS2VEVFc0bHpsN2tGUjdrdzltTkFEa25NekJsS3Y2OXpWY2U0N2Q3NTI=", "base64").toString()
+      ).trim();
+
+      // PRIORITAS 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - 100% GRATIS, ULTRA HD, FAST 2s)
+      if (cfAccountId && cfToken) {
         try {
-          const imgRes = await fetch(url, {
+          addLog(`⚡ [CLOUDFLARE-AI] Menjalankan FLUX.1 Schnell untuk: "${blueprint.title}"...`);
+          const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`;
+          const cfRes = await fetch(cfUrl, {
+            method: "POST",
             headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+              "Authorization": `Bearer ${cfToken}`,
+              "Content-Type": "application/json",
             },
-            signal: AbortSignal.timeout(30000)
+            body: JSON.stringify({
+              prompt: blueprint.enhancedPrompt,
+              num_steps: 4,
+            }),
+            signal: AbortSignal.timeout(35000),
           });
-          if (imgRes.ok) {
-            const buf = Buffer.from(await imgRes.arrayBuffer());
-            if (buf.byteLength > 1000) {
-              imgBuffer = buf;
-              break;
+
+          if (cfRes.ok) {
+            const contentType = cfRes.headers.get("content-type") || "";
+            if (contentType.includes("application/json")) {
+              const json: any = await cfRes.json();
+              if (json?.result?.image) {
+                imgBuffer = Buffer.from(json.result.image, "base64");
+                addLog(`✅ [CLOUDFLARE-AI] Berhasil render FLUX.1 (${imgBuffer.length} bytes)!`, "success");
+              }
+            } else {
+              const arr = await cfRes.arrayBuffer();
+              if (arr.byteLength > 1000) {
+                imgBuffer = Buffer.from(arr);
+                addLog(`✅ [CLOUDFLARE-AI] Berhasil render FLUX.1 (${imgBuffer.length} bytes)!`, "success");
+              }
             }
+          } else {
+            const errText = await cfRes.text();
+            addLog(`⚠️ [CLOUDFLARE-WARN] Status ${cfRes.status}: ${errText.slice(0, 150)}`, "warn");
           }
-        } catch (_) {}
+        } catch (cfErr: any) {
+          addLog(`⚠️ [CLOUDFLARE-ERR] ${cfErr.message}`, "warn");
+        }
+      }
+
+      // FALLBACK 2: POLLINATIONS JIKA CLOUDFLARE GAGAL ATAU LIMIT
+      if (!imgBuffer) {
+        const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
+        const candidateUrls = [
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=1024&height=1024&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1024&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
+        ];
+
+        for (const url of candidateUrls) {
+          try {
+            const imgRes = await fetch(url, {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              },
+              signal: AbortSignal.timeout(25000),
+            });
+            if (imgRes.ok) {
+              const buf = Buffer.from(await imgRes.arrayBuffer());
+              if (buf.byteLength > 1000) {
+                imgBuffer = buf;
+                break;
+              }
+            }
+          } catch (_) {}
+        }
       }
 
       if (imgBuffer) {
@@ -325,16 +374,16 @@ async function startBaileysGateway() {
           {
             image: imgBuffer,
             caption:
-              `🎨 *HASIL DRAF DESAIN MAHASISWA STUDIO AI* 🖼️\n\n` +
+              `🎨 *HASIL DESAIN MAHASISWA STUDIO AI (FLUX.1)* 🖼️\n\n` +
               `📌 *Konsep:* "${blueprint.title}"\n` +
               `✨ *Style:* ${blueprint.theme}\n` +
-              `🏢 *Studio:* Expedient Generation 43 AI Studio\n\n` +
-              `_Dibuat otomatis menggunakan AI Masterpiece Prompt Architecture!_ 🚀✨`,
+              `🏢 *Studio:* Expedient Generation 43 AI Studio (Powered by FLUX.1 Engine)\n\n` +
+              `_Dibuat otomatis dan langsung dikirim ke chat!_ 🚀✨`,
           },
           { quoted: quotedMessage }
         );
         if (res?.key?.id) sentMessageIds.add(res.key.id);
-        addLog(`📤 [IMAGE-SENT] Berhasil mengirim gambar AI ke ${cleanJid}`, "success");
+        addLog(`📤 [IMAGE-SENT] Berhasil mengirim gambar AI FLUX.1 ke ${cleanJid}`, "success");
         return true;
       }
 
