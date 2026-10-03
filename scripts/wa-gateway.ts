@@ -45,6 +45,7 @@ import {
   architectDynamicDesignWithAI,
   formatBlueprintForWhatsApp,
   applyPinterestTypographyOverlay,
+  qualityCritic,
 } from "../src/lib/whatsapp/designPromptArchitect";
 import {
   shouldGroupBotRespond,
@@ -513,21 +514,18 @@ async function startBaileysGateway() {
           addLog(`⚠️ [OVERLAY-WARN] Gagal overlay teks: ${overlayErr?.message || overlayErr}`, "warn");
         }
 
-        const layoutNames: Record<string, string> = {
-          cinematic_minimal: "Cinematic Film Poster (Visual 90% Leluasa)",
-          modern_editorial: "Modern Swiss Editorial (Asimetris Elegan)",
-          bottom_card: "Floating Frosted Glass Story Card",
-          clean_art: "Clean Visual Art (Pure Artwork Hero)",
-          magazine_cover: "Pinterest Editorial Magazine Cover",
-        };
-        const activeLayoutName = layoutNames[blueprint.layoutStyle || "cinematic_minimal"] || "Cinematic Art Style";
+        const qualityGate = await qualityCritic(imgBuffer);
+        addLog(`🔍 [QUALITY-GATE] Score: ${qualityGate.score}/100 (${qualityGate.notes})`);
+
+        const brief = (blueprint as any).auto_brief;
+        const presetId = (blueprint as any).preset_id || "01_CINEMATIC_HERO";
 
         const posterCaption =
           `📱 *POSTER INSTAGRAM STORY AESTHETIC (9:16)* 🖼️\n\n` +
           `📌 *Konsep:* "${blueprint.title}"\n` +
-          `✨ *Visual:* ${blueprint.theme}\n` +
-          `📐 *Penataan:* ${activeLayoutName}\n` +
-          `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
+          `📐 *Design Preset:* [${presetId}] ${blueprint.theme}\n` +
+          `✨ *Hierarchy:* "${blueprint.copywriting.headline}" — ${blueprint.copywriting.subheadline}\n` +
+          `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name || c.hex).join(", ")}\n` +
           `🏢 *Studio:* Expedient Creative AI Studio\n\n` +
           `_Karya visual estetis format Instagram Story siap diposting langsung!_ 🚀✨`;
 
