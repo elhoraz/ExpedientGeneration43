@@ -1,4 +1,4 @@
-import { callGeminiResilient } from "@/lib/sentinel/conversationalAgent";
+import { callGeminiResilient } from "@/lib/geminiResilient";
 import { getDesignGroupId, sendWhatsAppGroupMessage } from "@/lib/whatsapp";
 import {
   getUpcomingDesignCalendar,
@@ -301,13 +301,6 @@ export async function handleDesignStudioConversation(options: {
   }
 
   // 3. AI Cognitive Engine: Head of Creative Design & Studio Lead
-  if (!geminiApiKey) {
-    return (
-      `Halo Sahabat *${senderName}*! Sebagai studio desain, poster kita siapkan untuk Story IG (9:16) dan Feed IG (1:1) ya. ` +
-      `Ketik *jadwal* untuk melihat kalender poster terdekat! 🎨`
-    );
-  }
-
   // Ambil konteks event terdekat & fakta database alumni
   let cohortFactSummary = "";
   try {

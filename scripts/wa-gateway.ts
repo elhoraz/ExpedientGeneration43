@@ -1,8 +1,6 @@
-/**
- * scripts/wa-gateway.ts
- * Self-Hosted Baileys WhatsApp Gateway (100% GRATIS SELAMANYA)
- * Dilengkapi Web Dashboard Realtime, QR Scanner Web, Auto Pairing Code, dan Gemini Multimodal
- */
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 
 import WebSocket from "ws";
 if (typeof globalThis.WebSocket === "undefined") {
@@ -202,93 +200,101 @@ async function startBaileysGateway() {
     const cleanJid = targetJid.replace(/:\d+@/, "@");
     const lowerPrompt = rawPrompt.toLowerCase().trim();
 
-    const possiblePosterPaths = [
-      path.join(process.cwd(), "public", "images", "posters"),
-      path.join(__dirname, "..", "public", "images", "posters"),
-      path.join(__dirname, "public", "images", "posters"),
-      "/opt/render/project/src/public/images/posters",
-    ];
+    try {
+      const possiblePosterPaths = [
+        path.join(process.cwd(), "public", "images", "posters"),
+        path.join(__dirname, "..", "public", "images", "posters"),
+        path.join(__dirname, "public", "images", "posters"),
+        "/opt/render/project/src/public/images/posters",
+      ];
 
-    const findPosterBuffer = async (filename: string): Promise<Buffer | null> => {
-      for (const p of possiblePosterPaths) {
-        const full = path.join(p, filename);
-        if (fs.existsSync(full)) {
-          try {
-            return fs.readFileSync(full);
-          } catch (_) {}
-        }
-      }
-      // Fallback: Unduh langsung dari Supabase Storage CDN yang selalu aktif & 100% online
-      try {
-        const cdnUrl = `https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/${filename}`;
-        const res = await fetch(cdnUrl, { signal: AbortSignal.timeout(15000) });
-        if (res.ok) {
-          const ab = await res.arrayBuffer();
-          if (ab.byteLength > 1000) {
-            return Buffer.from(ab);
+      const findPosterBuffer = async (filename: string): Promise<Buffer | null> => {
+        for (const p of possiblePosterPaths) {
+          const full = path.join(p, filename);
+          if (fs.existsSync(full)) {
+            try {
+              return fs.readFileSync(full);
+            } catch (_) {}
           }
         }
-      } catch (_) {}
-      return null;
-    };
+        // Fallback: Unduh langsung dari Supabase Storage CDN yang selalu aktif & 100% online
+        try {
+          const cdnUrl = `https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/${filename}`;
+          const res = await fetch(cdnUrl, { signal: AbortSignal.timeout(15000) });
+          if (res.ok) {
+            const ab = await res.arrayBuffer();
+            if (ab.byteLength > 1000) {
+              return Buffer.from(ab);
+            }
+          }
+        } catch (_) {}
+        return null;
+      };
 
-    // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
-    // Hanya kirim poster master resmi jika pengguna SPESIFIK meminta agenda tersebut!
-    const blueprint = await architectDynamicDesignWithAI(rawPrompt);
-    const isHutTni = lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
-    const isHariSantri = lowerPrompt.includes("santri") || lowerPrompt.includes("hsn");
-    const isPancasila = lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian");
-    const isG30s = lowerPrompt.includes("g30s") || lowerPrompt.includes("pki");
+      // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
+      // Hanya kirim poster master resmi jika pengguna SPESIFIK meminta agenda tersebut!
+      const blueprint = await architectDynamicDesignWithAI(rawPrompt);
+      const isHutTni = lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
+      const isHariSantri = lowerPrompt.includes("santri") || lowerPrompt.includes("hsn");
+      const isPancasila = lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian");
+      const isG30s = lowerPrompt.includes("g30s") || lowerPrompt.includes("pki");
 
-    let officialBuffer: Buffer | null = null;
-    let officialTitle = "";
+      let officialBuffer: Buffer | null = null;
+      let officialTitle = "";
 
-    if (isHutTni) {
-      officialBuffer = (await findPosterBuffer("hut_tni_story.jpg")) || (await findPosterBuffer("hut_tni_feed.jpg"));
-      officialTitle = "HUT TNI (5 Oktober 2026)";
-    } else if (isHariSantri) {
-      officialBuffer = (await findPosterBuffer("hari_santri_story.jpg")) || (await findPosterBuffer("hari_santri_feed.jpg"));
-      officialTitle = "Hari Santri Nasional (22 Oktober 2026)";
-    } else if (isPancasila) {
-      officialBuffer = (await findPosterBuffer("kesaktian_pancasila_story.jpg")) || (await findPosterBuffer("kesaktian_pancasila_feed.jpg"));
-      officialTitle = "Hari Kesaktian Pancasila (1 Oktober)";
-    } else if (isG30s) {
-      officialBuffer = (await findPosterBuffer("g30s_pki_story.jpg")) || (await findPosterBuffer("g30s_pki_feed.jpg"));
-      officialTitle = "Peringatan G30S/PKI (30 September)";
-    }
+      if (isHutTni) {
+        officialBuffer = (await findPosterBuffer("hut_tni_story.jpg")) || (await findPosterBuffer("hut_tni_feed.jpg"));
+        officialTitle = "HUT TNI (5 Oktober 2026)";
+      } else if (isHariSantri) {
+        officialBuffer = (await findPosterBuffer("hari_santri_story.jpg")) || (await findPosterBuffer("hari_santri_feed.jpg"));
+        officialTitle = "Hari Santri Nasional (22 Oktober 2026)";
+      } else if (isPancasila) {
+        officialBuffer = (await findPosterBuffer("kesaktian_pancasila_story.jpg")) || (await findPosterBuffer("kesaktian_pancasila_feed.jpg"));
+        officialTitle = "Hari Kesaktian Pancasila (1 Oktober)";
+      } else if (isG30s) {
+        officialBuffer = (await findPosterBuffer("g30s_pki_story.jpg")) || (await findPosterBuffer("g30s_pki_feed.jpg"));
+        officialTitle = "Peringatan G30S/PKI (30 September)";
+      }
 
-    if (officialBuffer) {
-      addLog(`🖼️ [OFFICIAL-POSTER] Mengirimkan poster mahakarya resmi: "${officialTitle}" ke ${cleanJid}`);
-      await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
-      const caption =
-        `📱 *POSTER RESMI EXPEDIENT 43 (INSTAGRAM STORY 9:16)* 🖼️\n\n` +
-        `📌 *Agenda:* ${officialTitle}\n` +
-        `✨ *Konsep:* ${blueprint.theme}\n` +
-        `🔤 *Headline:* "${blueprint.copywriting.headline}"\n` +
-        `📝 *Slogan:* "${blueprint.copywriting.subheadline}"\n` +
-        `🏢 *Studio:* Expedient Creative Graphic Design (Ultra-HD 8K)\n\n` +
-        `_Siap diposting langsung ke Instagram Story alumni!_ 🚀✨`;
+      if (officialBuffer) {
+        addLog(`🖼️ [OFFICIAL-POSTER] Mengirimkan poster mahakarya resmi: "${officialTitle}" ke ${cleanJid}`);
+        await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
+        const caption =
+          `📱 *POSTER RESMI EXPEDIENT 43 (INSTAGRAM STORY 9:16)* 🖼️\n\n` +
+          `📌 *Agenda:* ${officialTitle}\n` +
+          `✨ *Konsep:* ${blueprint.theme}\n` +
+          `🔤 *Headline:* "${blueprint.copywriting.headline}"\n` +
+          `📝 *Slogan:* "${blueprint.copywriting.subheadline}"\n` +
+          `🏢 *Studio:* Expedient Creative Graphic Design (Ultra-HD 8K)\n\n` +
+          `_Siap diposting langsung ke Instagram Story alumni!_ 🚀✨`;
 
-      const res = await sock.sendMessage(
-        cleanJid,
-        {
-          image: officialBuffer,
-          caption,
-        },
-        { quoted: quotedMessage }
-      );
-      if (res?.key?.id) sentMessageIds.add(res.key.id);
-      addLog(`📤 [POSTER-SENT] Poster resmi ${officialTitle} berhasil dikirim!`, "success");
-      return true;
-    }
+        const res = await sock.sendMessage(
+          cleanJid,
+          {
+            image: officialBuffer,
+            caption,
+          },
+          { quoted: quotedMessage }
+        );
+        if (res?.key?.id) sentMessageIds.add(res.key.id);
+        addLog(`📤 [POSTER-SENT] Poster resmi ${officialTitle} berhasil dikirim!`, "success");
+        return true;
+      }
 
-    // 2. PEMBUATAN GAMBAR / POSTER AI ON-DEMAND DENGAN MASTERPIECE PROMPT ARCHITECT
-    try {
+      // 2. PEMBUATAN GAMBAR / POSTER AI ON-DEMAND DENGAN MASTERPIECE PROMPT ARCHITECT
       addLog(`🎨 [GENERATE-IMAGE] Merancang & membuat visual Instagram Story untuk: "${rawPrompt}"...`);
       await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
 
-      // Kirim blueprint konsep desain & arahan artistik terlebih dahulu
-      const blueprintText = formatBlueprintForWhatsApp(blueprint);
+      // Kirim blueprint konsep desain & penjelasan prosedur pembuatan poster
+      const procedureHeader =
+        `📱 *STUDIO DESAIN EXPEDIENT 43 (INSTAGRAM STORY 9:16)* 🎨\n\n` +
+        `⚙️ *Prosedur & Alur Pembuatan Poster:*\n` +
+        `1️⃣ *Art Direction & AI Architect:* Menganalisis tema "${rawPrompt}", menentukan palet warna & copywriting headline.\n` +
+        `2️⃣ *High-Resolution Visual Rendering:* Merender latar sinematik ultra-HD format 9:16.\n` +
+        `3️⃣ *Pinterest Typography Polish:* Mengaplikasikan tipografi editorial majalah (Zero Typo).\n` +
+        `4️⃣ *Instant Delivery:* Mengirimkan poster siap posting langsung ke WhatsApp!\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      const blueprintText = procedureHeader + formatBlueprintForWhatsApp(blueprint);
       await sendReply(cleanJid, blueprintText, quotedMessage);
 
       let imgBuffer: Buffer | null = null;
@@ -346,8 +352,9 @@ async function startBaileysGateway() {
       if (!imgBuffer) {
         const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
         const candidateUrls = [
-          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1344&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?model=flux&width=720&height=1280&nologo=true`,
           `https://image.pollinations.ai/prompt/${enhancedQuery}?width=720&height=1280&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1344&nologo=true`,
           `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
         ];
 
@@ -378,21 +385,39 @@ async function startBaileysGateway() {
           addLog(`⚠️ [OVERLAY-WARN] Gagal overlay teks: ${overlayErr?.message || overlayErr}`, "warn");
         }
 
-        const res = await sock.sendMessage(
-          cleanJid,
-          {
-            image: imgBuffer,
-            caption:
-              `📱 *POSTER INSTAGRAM STORY AESTHETIC (9:16)* 🖼️\n\n` +
-              `📌 *Konsep:* "${blueprint.title}"\n` +
-              `✨ *Style:* ${blueprint.theme}\n` +
-              `🔤 *Tipografi:* Pinterest Editorial Magazine Style (Zero Typo)\n` +
-              `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
-              `🏢 *Studio:* Expedient Creative AI Studio (FLUX.1 + Pinterest Typography Engine)\n\n` +
-              `_Poster Instagram Story berdesain estetis ala Pinterest dengan tipografi resmi siap diposting langsung!_ 🚀✨`,
-          },
-          { quoted: quotedMessage }
-        );
+        let res: any;
+        try {
+          res = await sock.sendMessage(
+            cleanJid,
+            {
+              image: imgBuffer,
+              caption:
+                `📱 *POSTER INSTAGRAM STORY AESTHETIC (9:16)* 🖼️\n\n` +
+                `📌 *Konsep:* "${blueprint.title}"\n` +
+                `✨ *Style:* ${blueprint.theme}\n` +
+                `🔤 *Tipografi:* Pinterest Editorial Magazine Style (Zero Typo)\n` +
+                `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
+                `🏢 *Studio:* Expedient Creative AI Studio (FLUX.1 + Pinterest Typography Engine)\n\n` +
+                `_Poster Instagram Story berdesain estetis ala Pinterest dengan tipografi resmi siap diposting langsung!_ 🚀✨`,
+            },
+            { quoted: quotedMessage }
+          );
+        } catch (_) {
+          res = await sock.sendMessage(
+            cleanJid,
+            {
+              image: imgBuffer,
+              caption:
+                `📱 *POSTER INSTAGRAM STORY AESTHETIC (9:16)* 🖼️\n\n` +
+                `📌 *Konsep:* "${blueprint.title}"\n` +
+                `✨ *Style:* ${blueprint.theme}\n` +
+                `🔤 *Tipografi:* Pinterest Editorial Magazine Style (Zero Typo)\n` +
+                `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
+                `🏢 *Studio:* Expedient Creative AI Studio (FLUX.1 + Pinterest Typography Engine)\n\n` +
+                `_Poster Instagram Story berdesain estetis ala Pinterest dengan tipografi resmi siap diposting langsung!_ 🚀✨`,
+            }
+          );
+        }
         if (res?.key?.id) sentMessageIds.add(res.key.id);
         addLog(`📤 [IMAGE-SENT] Berhasil mengirim poster Pinterest 9:16 ke ${cleanJid}`, "success");
         return true;
@@ -922,8 +947,13 @@ async function startBaileysGateway() {
           }
 
           if (prompt) {
-            await sendReply(remoteJid, `🎨 Sedang menyiapkan & merancang desain poster *"${prompt}"*... Tunggu sebentar ya Sahabat desainer! ⏳✨`, m);
-            await generateAndSendImage(prompt, remoteJid, m);
+            try {
+              await sendReply(remoteJid, `🎨 Sedang menyiapkan & merancang desain poster *"${prompt}"*... Tunggu sebentar ya Sahabat desainer! ⏳✨`, m);
+              await generateAndSendImage(prompt, remoteJid, m);
+            } catch (posterErr: any) {
+              addLog(`❌ [POSTER-EXEC-ERR] ${posterErr.message}`, "error");
+              await sendReply(remoteJid, `Maaf Sahabat desainer, ada kendala teknis saat memproses poster: ${posterErr.message}. Silakan coba lagi ya! 🙏🎨`, m);
+            }
             continue;
           }
         }
@@ -954,13 +984,18 @@ async function startBaileysGateway() {
             if (isDirectlyAddressed || shouldDesignBotRespond(messageText)) {
               addLog(`🖌️ [DESIGN-GROUP] Membalas di Grup Desain...`);
               await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
-              const replyText = await handleDesignStudioConversation({
-                senderPhone,
-                senderName,
-                messageText,
-                groupId: remoteJid,
-              });
-              await sendReply(remoteJid, replyText, m);
+              try {
+                const replyText = await handleDesignStudioConversation({
+                  senderPhone,
+                  senderName,
+                  messageText,
+                  groupId: remoteJid,
+                });
+                await sendReply(remoteJid, replyText, m);
+              } catch (err: any) {
+                addLog(`❌ [DESIGN-GROUP-ERR] ${err.message}`, "error");
+                await sendReply(remoteJid, `Halo Sahabat *${senderName}*! Ada kendala teknis AI sejenak. Silakan ulangi pesan Anda ya! 🙏✨`, m);
+              }
             }
           }
           // CABANG B: GRUP ANGKATAN / KOMUNITAS
@@ -968,27 +1003,32 @@ async function startBaileysGateway() {
             if (isDirectlyAddressed || shouldGroupBotRespond(messageText)) {
               addLog(`👥 [COMMUNITY-GROUP] Membalas di Grup Komunitas...`);
               await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
-              const replyText = await generateIntelligentCohortReply({
-                messageText,
-                senderPhone,
-                senderName,
-                isGroup: true,
-                groupId: remoteJid,
-              });
-              const wantsVoiceReply =
-                lower.includes("pakai vn") ||
-                lower.includes("pakai suara") ||
-                lower.includes("balas vn") ||
-                lower.includes("kirim vn");
+              try {
+                const replyText = await generateIntelligentCohortReply({
+                  messageText,
+                  senderPhone,
+                  senderName,
+                  isGroup: true,
+                  groupId: remoteJid,
+                });
+                const wantsVoiceReply =
+                  lower.includes("pakai vn") ||
+                  lower.includes("pakai suara") ||
+                  lower.includes("balas vn") ||
+                  lower.includes("kirim vn");
 
-              if (wantsVoiceReply) {
-                await generateAndSendVoiceNote(replyText, remoteJid, m);
-              } else {
-                await sendReply(remoteJid, replyText, m);
-              }
+                if (wantsVoiceReply) {
+                  await generateAndSendVoiceNote(replyText, remoteJid, m);
+                } else {
+                  await sendReply(remoteJid, replyText, m);
+                }
 
-              if (remoteJid.includes("120363388633880584") || remoteJid === getCommunityGroupId()) {
-                recordCommunityGroupActivity(messageText, senderName, senderPhone).catch(() => {});
+                if (remoteJid.includes("120363388633880584") || remoteJid === getCommunityGroupId()) {
+                  recordCommunityGroupActivity(messageText, senderName, senderPhone).catch(() => {});
+                }
+              } catch (err: any) {
+                addLog(`❌ [COMMUNITY-GROUP-ERR] ${err.message}`, "error");
+                await sendReply(remoteJid, `Halo Sahabat *${senderName}*! Sempat ada kendala koneksi AI database. Silakan kirim ulang pesan Anda ya! 🙏✨`, m);
               }
             } else {
               addLog(`ℹ️ [SKIP-GROUP] Pesan bukan untuk bot (tidak di-tag / tidak memanggil bot)`);
@@ -1013,23 +1053,28 @@ async function startBaileysGateway() {
             }
           }
 
-          const replyText = await generateIntelligentCohortReply({
-            messageText,
-            senderPhone,
-            senderName,
-            isGroup: false,
-          });
+          try {
+            const replyText = await generateIntelligentCohortReply({
+              messageText,
+              senderPhone,
+              senderName,
+              isGroup: false,
+            });
 
-          const wantsVoiceReply =
-            lower.includes("pakai vn") ||
-            lower.includes("pakai suara") ||
-            lower.includes("balas vn") ||
-            lower.includes("kirim vn");
+            const wantsVoiceReply =
+              lower.includes("pakai vn") ||
+              lower.includes("pakai suara") ||
+              lower.includes("balas vn") ||
+              lower.includes("kirim vn");
 
-          if (wantsVoiceReply) {
-            await generateAndSendVoiceNote(replyText, remoteJid, m);
-          } else {
-            await sendReply(remoteJid, replyText, m);
+            if (wantsVoiceReply) {
+              await generateAndSendVoiceNote(replyText, remoteJid, m);
+            } else {
+              await sendReply(remoteJid, replyText, m);
+            }
+          } catch (err: any) {
+            addLog(`❌ [PRIVATE-CHAT-ERR] ${err.message}`, "error");
+            await sendReply(remoteJid, `Halo Sahabat *${senderName}*! Sempat ada kendala koneksi AI database. Silakan kirim ulang pesan Anda ya! 🙏✨`, m);
           }
         }
       } catch (msgErr: any) {

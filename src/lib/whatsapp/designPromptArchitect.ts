@@ -7,7 +7,7 @@
  * dilengkapi Kit Tipografi & Copywriting siap pakai untuk Instagram Story.
  */
 
-import { callGeminiResilient } from "@/lib/sentinel/conversationalAgent";
+import { callGeminiResilient } from "@/lib/geminiResilient";
 
 export interface ArtDirectionBlueprint {
   title: string;
@@ -39,19 +39,24 @@ export async function architectDynamicDesignWithAI(rawUserPrompt: string): Promi
   const clean = rawUserPrompt.trim();
   const lower = clean.toLowerCase();
 
-  // Jika permintaan cocok dengan agenda hari besar resmi yang sudah sempurna, gunakan presetnya
-  if (
-    lower.includes("tni") ||
-    lower.includes("tentara") ||
-    lower.includes("santri") ||
-    lower.includes("pancasila") ||
-    lower.includes("g30s") ||
-    lower.includes("maulid") ||
-    lower.includes("ramadan") ||
-    lower.includes("ramadhan") ||
-    lower.includes("idul fitri") ||
-    lower.includes("idul adha")
-  ) {
+  // Hanya gunakan preset kaku jika pengguna SANGAT SINGKAT (< 3 kata) dan persis menyebut hari besar resmi
+  const isExactShortHoliday =
+    clean.split(/\s+/).length <= 3 &&
+    !lower.includes("dengan") &&
+    !lower.includes("latar") &&
+    !lower.includes("tema") &&
+    !lower.includes("gaya") &&
+    !lower.includes("suasana") &&
+    (
+      lower === "hut tni" ||
+      lower === "poster tni" ||
+      lower === "hari santri" ||
+      lower === "poster hari santri" ||
+      lower === "kesaktian pancasila" ||
+      lower === "g30s pki"
+    );
+
+  if (isExactShortHoliday) {
     return fallbackBlueprint;
   }
 

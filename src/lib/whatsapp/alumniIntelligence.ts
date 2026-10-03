@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { callGeminiResilient } from "@/lib/sentinel/conversationalAgent";
+import { callGeminiResilient } from "@/lib/geminiResilient";
 
 export interface CohortFactContext {
   category: "profile" | "city" | "birthday" | "agenda" | "total" | "feature" | "guestbook" | "general";
@@ -59,10 +59,10 @@ export async function resolveCohortContext(
   messageText: string,
   callerName?: string
 ): Promise<CohortFactContext> {
-  const supabase = createAdminClient();
   const lower = messageText.trim().toLowerCase();
 
   try {
+    const supabase = createAdminClient();
     // 0. Cek apakah ada memori dinamis yang telah dipelajari bot yang cocok dengan pertanyaan
   try {
     const { getLearnedMemories } = await import("@/lib/whatsapp/botMemory");
@@ -380,7 +380,7 @@ export async function generateIntelligentCohortReply(options: {
 }): Promise<string> {
   const { messageText, senderPhone, senderName, isGroup } = options;
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
-  const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
+  const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
 
   // 0. Refleks Self-Learning: Periksa apakah pesan pengguna mengajari fakta baru atau mengoreksi data bot
   try {
@@ -394,7 +394,13 @@ export async function generateIntelligentCohortReply(options: {
   }
 
   // 1. Dapatkan fakta database faktual
-  const fact = await resolveCohortContext(messageText, senderName);
+  let fact: CohortFactContext = {
+    category: "general",
+    summary: `Expedient Generation 43 Alumni 2025 Pondok Modern Arrisalah Slahung Ponorogo`,
+  };
+  try {
+    fact = await resolveCohortContext(messageText, senderName);
+  } catch (_) {}
 
   const prompt = `
 You are the official, highly intelligent, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "The Successors").
@@ -434,14 +440,12 @@ STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
     },
   };
 
-  if (geminiApiKey) {
-    try {
-      const data = await callGeminiResilient(body, geminiApiKey, geminiModel);
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-      if (text) return text;
-    } catch (err: any) {
-      console.warn("[INTELLIGENT-REPLY-GEMINI-WARN]:", err.message);
-    }
+  try {
+    const data = await callGeminiResilient(body, geminiApiKey, geminiModel);
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (text) return text;
+  } catch (err: any) {
+    console.warn("[INTELLIGENT-REPLY-GEMINI-WARN]:", err.message);
   }
 
   // Fallback tangkas jika AI offline
