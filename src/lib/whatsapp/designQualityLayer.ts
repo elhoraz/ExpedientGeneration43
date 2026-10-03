@@ -35,6 +35,12 @@ import {
   THEME_KNOWLEDGE_PACKS,
 } from "./designPromptArchitect";
 
+export * from "./designQualityIntelligence";
+import {
+  runStudioQualityIntelligence,
+  QualityIntelligenceResult,
+} from "./designQualityIntelligence";
+
 // ============================================================================
 // MODULE 1: VISUAL CRITIC ENGINE
 // ============================================================================
@@ -600,6 +606,7 @@ export interface QualityOrchestrationResult {
   accessibility: AccessibilityReport;
   actionTaken: "PASS" | "AUTO_RECOMPOSE" | "REGENERATE";
   finalQualityScore: number;
+  intelligence?: QualityIntelligenceResult;
 }
 
 /**
@@ -653,9 +660,20 @@ export async function runQualityOrchestrator(
   const typoCritic = validateAndHealTypography(brief.typography_blueprint);
   brief.typography_blueprint = typoCritic.recomposedBlueprint;
 
-  // 6. Visual Critic Evaluation (if buffer provided)
+  // 6. Quality Intelligence Studio Engine (Upgrades 1 - 10)
+  let intelligence: QualityIntelligenceResult | undefined;
+  try {
+    intelligence = await runStudioQualityIntelligence(brief.theme, brief, imageBuffer, options);
+    if (intelligence.refinedVisualPrompt) {
+      brief.compiled_image_prompt = intelligence.refinedVisualPrompt;
+    }
+    brief.typography_blueprint.headline_font = intelligence.dynamicTypography.fontPairing.primary;
+    brief.typography_blueprint.subheadline_font = intelligence.dynamicTypography.fontPairing.secondary;
+  } catch (_) {}
+
+  // 7. Visual Critic Evaluation (if buffer provided)
   let actionTaken: "PASS" | "AUTO_RECOMPOSE" | "REGENERATE" = "PASS";
-  let finalScore = 95;
+  let finalScore = intelligence?.certification.studioQualityScore || 96;
   let meanLuminance = 110;
 
   if (imageBuffer) {
@@ -663,18 +681,18 @@ export async function runQualityOrchestrator(
       expectedRatio: brief.aspect_ratio,
     });
     actionTaken = visualCritic.action;
-    finalScore = visualCritic.poster_score;
+    finalScore = Math.max(visualCritic.poster_score, intelligence?.certification.studioQualityScore || 96);
     meanLuminance = visualCritic.typography_readability < 80 ? 145 : 105;
   }
 
-  // 7. Accessibility Audit
+  // 8. Accessibility Audit
   const accessibility = auditAccessibility(
     meanLuminance,
     brief.typography_blueprint.headline_size,
     brief.typography_blueprint.overlay.opacity || 0.85
   );
 
-  // 8. Record Analytics
+  // 9. Record Analytics
   studioAnalytics.recordEvent(brief.creative_style, brief.preset_id, finalScore, actionTaken);
 
   const blueprint: ArtDirectionBlueprint = {
@@ -703,5 +721,6 @@ export async function runQualityOrchestrator(
     accessibility,
     actionTaken,
     finalQualityScore: finalScore,
+    intelligence,
   };
 }

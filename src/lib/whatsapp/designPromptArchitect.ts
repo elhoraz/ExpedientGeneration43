@@ -221,6 +221,27 @@ export const THEME_KNOWLEDGE_PACKS: Record<string, ThemeKnowledge> = {
       },
     ],
   },
+  kartini: {
+    themeKeywords: ["kartini", "emansipasi", "perempuan", "wanita", "habis gelap terbitlah terang", "pendidikan wanita"],
+    variations: [
+      {
+        style: "EDITORIAL_INTELLECTUAL",
+        preset_id: "02_EDITORIAL_LUXURY",
+        visualConcept: "Antique wooden writing desk with classic fountain pen and handwritten historical manuscripts in warm sunlight",
+        environmentConcept: "Classical colonial Javanese library with soft morning golden light filtering through teak wood blinds",
+        narrativeDetails: "Intellectual empowerment, literacy, delicate batik textile draped with grace, historical dignity",
+        colorHints: { primary: ["#8B5E3C", "#D4AF37"], secondary: ["#1C1917", "#FDFBF7"] },
+      },
+      {
+        style: "MODERN_EMPOWERMENT",
+        preset_id: "03_SWISS_MODERN",
+        visualConcept: "Bold contemporary silhouette of progressive female leadership against luminous sunrise horizon",
+        environmentConcept: "Sleek architectural gallery with warm earth-toned geometric shadows",
+        narrativeDetails: "Enduring social progress, equality, intellectual strength of modern Indonesian women",
+        colorHints: { primary: ["#B45309", "#0F172A"], secondary: ["#FEF3C7", "#FFFFFF"] },
+      },
+    ],
+  },
   reuni_milad: {
     themeKeywords: ["reuni", "milad", "alumni", "angkatan", "temu kangen", "tasyakuran", "acara", "gathering"],
     variations: [

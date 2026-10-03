@@ -312,7 +312,19 @@ async function startBaileysGateway() {
         `3️⃣ *Pinterest Typography Polish:* Mengaplikasikan tipografi editorial majalah (Zero Typo).\n` +
         `4️⃣ *Instant Delivery:* Mengirimkan poster siap posting langsung ke WhatsApp!\n\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
-      const blueprintText = procedureHeader + formatBlueprintForWhatsApp(blueprint);
+      let blueprintText = procedureHeader + formatBlueprintForWhatsApp(blueprint);
+      if (qualityReport?.intelligence) {
+        const intel = qualityReport.intelligence;
+        blueprintText +=
+          `\n🏛️ *STUDIO QUALITY INTELLIGENCE (V3.0)*\n` +
+          `  • *Theme Pack:* ${intel.knowledgePack.name}\n` +
+          `  • *Design Trend:* [${intel.trend.id}] ${intel.trend.name}\n` +
+          `  • *Visual Story:* "${intel.storytelling.message}"\n` +
+          `  • *Authenticity:* ${intel.authenticity.score}/100 (${intel.authenticity.canRecognizeWithoutText ? "Recognizable Without Words" : "Anchor Injected"})\n` +
+          `  • *Art Director:* ${intel.artDirectorReview.verdict} (${intel.artDirectorReview.artDirectorScore}/100)\n` +
+          `  • *Studio Grade:* ${intel.certification.summaryBadge}\n` +
+          `━━━━━━━━━━━━━━━━━━━━━━━\n`;
+      }
       await sendReply(cleanJid, blueprintText, quotedMessage);
 
       let imgBuffer: Buffer | null = null;
@@ -555,15 +567,17 @@ async function startBaileysGateway() {
           } catch (_) {}
         }
 
+        const intel = qualityReport?.intelligence;
         const posterCaption =
           `📱 *POSTER INSTAGRAM STORY AESTHETIC (${brief?.aspect_ratio || "9:16"})* 🖼️\n\n` +
           `📌 *Konsep:* "${blueprint.title}"\n` +
-          `📐 *Design Preset:* [${presetId}] ${blueprint.theme}\n` +
+          `📐 *Design Trend:* [${intel?.trend.id || presetId}] ${intel?.trend.name || blueprint.theme}\n` +
           `✨ *Hierarchy:* "${blueprint.copywriting.headline}" — ${blueprint.copywriting.subheadline}\n` +
           `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name || c.hex).join(", ")}\n` +
-          `🏆 *Quality Score:* ${visualCritic.poster_score}/100 (${visualCritic.action === "PASS" ? "PASSED" : "AUTO-RECOMPOSED"})\n` +
+          `👑 *Studio Quality Grade:* ${intel?.certification.studioQualityScore || visualCritic.poster_score}/100 (${intel?.certification.summaryBadge || "Studio Certified"})\n` +
+          `📖 *Visual Story:* "${intel?.storytelling.message || 'Authentic Studio Design'}"\n` +
           `♿ *Accessibility:* WCAG 2.1 AAA Compliant\n` +
-          `🏢 *Studio:* Expedient Creative AI Studio\n\n` +
+          `🏢 *Studio:* Expedient Creative AI Studio (Human Studio Grade)\n\n` +
           `_Karya visual estetis format ${brief?.platform || "Instagram Story"} siap diposting langsung!_ 🚀✨`;
 
         let res: any;
