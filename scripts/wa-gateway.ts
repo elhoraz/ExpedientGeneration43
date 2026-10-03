@@ -44,6 +44,7 @@ import {
 } from "../src/lib/whatsapp/designGroupAssistant";
 import {
   architectMasterpieceDesign,
+  architectDynamicDesignWithAI,
   formatBlueprintForWhatsApp,
   applyPinterestTypographyOverlay,
 } from "../src/lib/whatsapp/designPromptArchitect";
@@ -233,7 +234,7 @@ async function startBaileysGateway() {
 
     // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
     // Hanya kirim poster master resmi jika pengguna SPESIFIK meminta agenda tersebut!
-    const blueprint = architectMasterpieceDesign(rawPrompt);
+    const blueprint = await architectDynamicDesignWithAI(rawPrompt);
     const isHutTni = lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
     const isHariSantri = lowerPrompt.includes("santri") || lowerPrompt.includes("hsn");
     const isPancasila = lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian");

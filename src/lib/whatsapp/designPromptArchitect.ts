@@ -7,9 +7,11 @@
  * dilengkapi Kit Tipografi & Copywriting siap pakai untuk Instagram Story.
  */
 
+import { callGeminiResilient } from "@/lib/sentinel/conversationalAgent";
+
 export interface ArtDirectionBlueprint {
   title: string;
-  category: "military" | "islamic" | "milad" | "sports" | "reunion" | "general";
+  category: string;
   enhancedPrompt: string;
   theme: string;
   colorPalette: { hex: string; name: string }[];
@@ -26,6 +28,95 @@ export interface ArtDirectionBlueprint {
   officialCdnAsset?: {
     storyUrl: string;
   };
+}
+
+/**
+ * AI Cognitive Architect: Merancang prompt FLUX & copywriting poster secara dinamis
+ * sesuai keinginan bebas pengguna di Grup Desain menggunakan Google Gemini
+ */
+export async function architectDynamicDesignWithAI(rawUserPrompt: string): Promise<ArtDirectionBlueprint> {
+  const fallbackBlueprint = architectMasterpieceDesign(rawUserPrompt);
+  const clean = rawUserPrompt.trim();
+  const lower = clean.toLowerCase();
+
+  // Jika permintaan cocok dengan agenda hari besar resmi yang sudah sempurna, gunakan presetnya
+  if (
+    lower.includes("tni") ||
+    lower.includes("tentara") ||
+    lower.includes("santri") ||
+    lower.includes("pancasila") ||
+    lower.includes("g30s") ||
+    lower.includes("maulid") ||
+    lower.includes("ramadan") ||
+    lower.includes("ramadhan") ||
+    lower.includes("idul fitri") ||
+    lower.includes("idul adha")
+  ) {
+    return fallbackBlueprint;
+  }
+
+  // Untuk SEMUA permintaan bebas/kustom anggota grup desain:
+  // Gunakan Gemini Cognitive Architect untuk merancang prompt visual FLUX & teks poster secara dinamis
+  try {
+    const prompt = `
+You are the Chief Art Director & Visual Prompt Architect for an elite Indonesian Creative Design Studio WhatsApp Bot.
+A designer in our creative WhatsApp group asked for an image or poster with the following request: "${clean}".
+
+Analyze their request and return ONLY a valid JSON object (no markdown, no backticks) with the following structure:
+{
+  "title": "Short descriptive project title in Indonesian",
+  "category": "general" | "islamic" | "sports" | "milad" | "reunion",
+  "theme": "Visual aesthetic style description in English (e.g. Cinematic warm ambient cafe, high octane sports, etc)",
+  "accentColor": "Hex color code (#RRGGBB) that fits the mood",
+  "tagText": "SHORT UPPERCASE CATEGORY TAG (Max 4 words)",
+  "headline": "IMPACTFUL UPPERCASE HEADLINE (1-3 words)",
+  "subheadline": "CONTEXTUAL SUBHEADLINE (Uppercase)",
+  "quoteOrBody": "Inspiring quote or slogan in Indonesian that matches the user's topic (1-2 sentences)",
+  "enhancedPrompt": "Extremely detailed, professional English prompt for FLUX.1 diffusion model. Must describe the exact subject, environment, lighting, angle, mood, 9:16 vertical composition, 8k resolution, photorealistic or digital art as requested. Clean background composition, absolutely no text, no words, no letters, no gibberish, no watermark, no logo."
+}
+`.trim();
+
+    const body = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.2,
+        responseMimeType: "application/json",
+      },
+    };
+
+    const res = await callGeminiResilient(body, "", "gemini-3.5-flash");
+    const jsonText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (jsonText) {
+      const parsed = JSON.parse(jsonText.replace(/^```json\s*|\s*```$/g, "").trim());
+      if (parsed.enhancedPrompt && parsed.headline) {
+        return {
+          title: parsed.title || clean,
+          category: parsed.category || "general",
+          theme: parsed.theme || "Modern Creative Studio Aesthetic",
+          colorPalette: [
+            { hex: parsed.accentColor || "#FBBF24", name: "Dynamic Accent" },
+            { hex: "#0F172A", name: "Deep Obsidian" },
+            { hex: "#F8FAFC", name: "Pure Light" },
+          ],
+          typography: {
+            primaryFont: "Bold Monumental Editorial Serif",
+            secondaryFont: "Geometric Clean Sans",
+            recommendedLayout: "Format Instagram Story 9:16: Visual sinematik di tengah, tipografi editorial elegan",
+          },
+          copywriting: {
+            headline: parsed.headline,
+            subheadline: parsed.subheadline || "EXPEDIENT CREATIVE ARCHIVE",
+            quoteOrBody: parsed.quoteOrBody,
+          },
+          enhancedPrompt: parsed.enhancedPrompt,
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn("[DYNAMIC-PROMPT-ARCHITECT-FALLBACK]:", err.message);
+  }
+
+  return fallbackBlueprint;
 }
 
 /**
