@@ -62,9 +62,9 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
         recommendedLayout: "Format Instagram Story 9:16: Tri-Matra Crest di Puncak, Prajurit 3 Matra Menghadap Senja Kepulauan, Formasi Sukhoi di Langit",
       },
       copywriting: {
-        headline: "DIRGAHAYU TENTARA NASIONAL INDONESIA",
-        subheadline: "TNI PRIMA · TNI RAKYAT · INDONESIA MAJU",
-        quoteOrBody: "Dengan Semangat Prima, Kita Wujudkan TNI Rakyat untuk Indonesia Maju dan Sejahtera. TNI Kuat, Indonesia Hebat.",
+        headline: "DIRGAHAYU",
+        subheadline: "TNI KE-81",
+        quoteOrBody: "TNI Prima, Bersama Rakyat Indonesia Kuat & Berdaulat Menjaga Nusantara. TNI Kuat, Indonesia Hebat.",
       },
       officialCdnAsset: {
         storyUrl: "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/hut_tni_story.jpg",
@@ -332,6 +332,21 @@ function wrapSvgText(text: string, maxCharsPerLine = 32): string[] {
   return lines;
 }
 
+function generateBarcodeSvg(x: number, y: number, height = 24): string {
+  const bars = [2, 1, 3, 1, 2, 4, 1, 2, 1, 3, 2, 1, 4, 2, 1, 2, 3, 1, 2, 1, 3];
+  let curX = x;
+  let svg = `<g opacity="0.65">`;
+  for (let i = 0; i < bars.length; i++) {
+    const w = bars[i];
+    if (i % 2 === 0) {
+      svg += `<rect x="${curX}" y="${y}" width="${w}" height="${height}" fill="#FFFFFF" />`;
+    }
+    curX += w + 1.6;
+  }
+  svg += `</g>`;
+  return svg;
+}
+
 /**
  * Mengaplikasikan Tipografi Estetis Khas Pinterest secara Otomatis (Format 9:16 Instagram Story)
  * Menggunakan Sharp & Vector SVG Overlay beresolusi tinggi (Anti-Typo & Anti-Gibberish)
@@ -353,109 +368,251 @@ export async function applyPinterestTypographyOverlay(
     const margin = 55;
     const innerW = W - margin * 2;
     const innerH = H - margin * 2;
-    const accentColor = blueprint.colorPalette[1]?.hex || "#F59E0B";
 
-    const tagTop = escapeXml("EXPEDIENT ARCHIVE");
-    const editionStr = escapeXml("SPECIAL COMMEMORATIVE EDITION · VOL. 43");
-    const headline = escapeXml(blueprint.copywriting.headline || "DIRGAHAYU");
-    const subheadline = escapeXml(blueprint.copywriting.subheadline || blueprint.title || "EXPEDIENT 43");
-    const rawQuote = blueprint.copywriting.quoteOrBody || "";
+    const accentColor = blueprint.colorPalette[1]?.hex || blueprint.colorPalette[0]?.hex || "#F59E0B";
+    const accentGlow = "#FDE68A";
+
+    // Dynamic Contextual Category & Badges
+    let categoryTag = "COMMEMORATIVE";
+    let ribbonTag = "OFFICIAL TRIBUTE";
+    let artCode = "EXP.CODE // 43-2026-TNI";
+    let subSignature = "— SPECIAL COMMEMORATION ARCHIVE —";
+
+    if (blueprint.category === "military") {
+      categoryTag = "MILITARY COMMEMORATIVE";
+      ribbonTag = "OFFICIAL TRIBUTE";
+      artCode = "EXP.CODE // 43-2026-TNI";
+      subSignature = "— INDONESIAN ARMED FORCES · SPECIAL COMMEMORATION —";
+    } else if (blueprint.category === "islamic") {
+      categoryTag = "ISLAMIC HERITAGE";
+      ribbonTag = "RESOLUSI JIHAD";
+      artCode = "EXP.CODE // 43-2026-HSN";
+      subSignature = "— SANTRI NUSANTARA · DEDIKASI UNTUK NEGERI —";
+    } else if (blueprint.category === "national") {
+      categoryTag = "NATIONAL PATRIOTIC";
+      ribbonTag = "INDONESIA MAJU";
+      artCode = "EXP.CODE // 43-2026-ID";
+      subSignature = "— GENERASI EMAS INDONESIA · MERAH PUTIH —";
+    } else {
+      categoryTag = "EDITORIAL ARCHIVE";
+      ribbonTag = "EXPEDIENT 43";
+      artCode = "EXP.CODE // 43-2026-GEN";
+      subSignature = "— EXPEDIENT CREATIVE DESIGN STUDIO —";
+    }
+
+    const rawHeadline = (blueprint.copywriting.headline || "DIRGAHAYU").trim();
+    const rawSubheadline = (blueprint.copywriting.subheadline || blueprint.title || "EXPEDIENT 43").trim();
+    const rawQuote = (blueprint.copywriting.quoteOrBody || "").trim();
     const dateStr = escapeXml("05 OKTOBER 2026");
 
-    // Dynamic Sizing
-    const hSize = headline.length > 20 ? 26 : 34;
-    const hTracking = headline.length > 15 ? 8 : 12;
+    // Extract watermark number (e.g., "81" from "TNI KE-81" or default "43")
+    const numMatch = (rawHeadline + " " + rawSubheadline).match(/\d+/);
+    const watermarkNum = numMatch ? numMatch[0] : (blueprint.category === "military" ? "81" : "43");
 
-    // Subheadline multi-line wrapping (max 2 lines)
-    const subLines = wrapSvgText(subheadline, 22).slice(0, 2);
-    const subSize = subLines.length > 1 ? 38 : 46;
+    // Headline dynamic tracking & sizing
+    let headlineSize = 34;
+    let headlineTracking = 14;
+    let spacedHeadline = "";
+    if (rawHeadline.length > 20) {
+      headlineSize = 22;
+      headlineTracking = 4;
+      spacedHeadline = escapeXml(rawHeadline);
+    } else if (rawHeadline.length > 12) {
+      headlineSize = 26;
+      headlineTracking = 6;
+      spacedHeadline = escapeXml(rawHeadline);
+    } else {
+      headlineSize = 34;
+      headlineTracking = 12;
+      spacedHeadline = escapeXml(rawHeadline.split("").join(" "));
+    }
 
-    // Quote multi-line wrapping (max 2 lines)
-    const quoteLines = rawQuote ? wrapSvgText(rawQuote, 42).slice(0, 2) : [];
+    // Subheadline wrap & dynamic sizing
+    const subChars = rawSubheadline.length > 25 ? 18 : 22;
+    const subLines = wrapSvgText(rawSubheadline, subChars).slice(0, 2);
+    let subSize = 64;
+    if (subLines.length > 1 || rawSubheadline.length > 14) {
+      subSize = 48;
+    }
+    if (rawSubheadline.length > 24) {
+      subSize = 40;
+    }
+
+    // Quote wrapping
+    const quoteLines = rawQuote ? wrapSvgText(rawQuote, 42).slice(0, 3) : [];
+    const barcode = generateBarcodeSvg(margin + 25, H - margin - 55, 26);
+    const catPillWidth = Math.max(160, categoryTag.length * 11 + 40);
 
     const svg = `
     <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
       <defs>
+        <!-- Deep Cinematic Gradient Scrims -->
         <linearGradient id="topScrim" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#000000" stop-opacity="0.88" />
-          <stop offset="35%" stop-color="#000000" stop-opacity="0.6" />
-          <stop offset="70%" stop-color="#000000" stop-opacity="0.15" />
-          <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+          <stop offset="0%" stop-color="#030712" stop-opacity="0.96" />
+          <stop offset="25%" stop-color="#030712" stop-opacity="0.86" />
+          <stop offset="55%" stop-color="#030712" stop-opacity="0.48" />
+          <stop offset="80%" stop-color="#030712" stop-opacity="0.14" />
+          <stop offset="100%" stop-color="#030712" stop-opacity="0" />
         </linearGradient>
 
         <linearGradient id="bottomScrim" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#000000" stop-opacity="0" />
-          <stop offset="30%" stop-color="#000000" stop-opacity="0.4" />
-          <stop offset="70%" stop-color="#000000" stop-opacity="0.85" />
-          <stop offset="100%" stop-color="#000000" stop-opacity="0.96" />
+          <stop offset="0%" stop-color="#030712" stop-opacity="0" />
+          <stop offset="25%" stop-color="#030712" stop-opacity="0.4" />
+          <stop offset="65%" stop-color="#030712" stop-opacity="0.88" />
+          <stop offset="100%" stop-color="#030712" stop-opacity="0.98" />
         </linearGradient>
 
-        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.95" />
+        <!-- Luxury Metallic Accent Gradient -->
+        <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FFFBEB" />
+          <stop offset="35%" stop-color="${accentGlow}" />
+          <stop offset="75%" stop-color="${accentColor}" />
+          <stop offset="100%" stop-color="#92400E" />
+        </linearGradient>
+
+        <!-- Crisp Pearl White Gradient -->
+        <linearGradient id="pureWhiteGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF" />
+          <stop offset="100%" stop-color="#E2E8F0" />
+        </linearGradient>
+
+        <!-- Soft Drop Shadows -->
+        <filter id="monumentalShadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#000000" flood-opacity="0.98" />
+        </filter>
+        <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="#000000" flood-opacity="0.8" />
+        </filter>
+        <filter id="accentGlowFilter" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="${accentColor}" flood-opacity="0.4" />
         </filter>
       </defs>
 
-      <!-- Scrim Gradients untuk Keterbacaan Kontras Tinggi -->
-      <rect x="0" y="0" width="${W}" height="680" fill="url(#topScrim)" />
-      <rect x="0" y="1220" width="${W}" height="700" fill="url(#bottomScrim)" />
+      <!-- Scrim Gradients untuk Kontras Ekstrem -->
+      <rect x="0" y="0" width="${W}" height="820" fill="url(#topScrim)" />
+      <rect x="0" y="1120" width="${W}" height="800" fill="url(#bottomScrim)" />
 
-      <!-- Pinterest Editorial Minimalist Border Frame -->
-      <rect x="${margin}" y="${margin}" width="${innerW}" height="${innerH}" fill="none" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="1.8" rx="3" />
+      <!-- Technical Framing Brackets (Viewfinder Corners) -->
+      <g stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="2.5" fill="none">
+        <path d="M ${margin} ${margin + 35} L ${margin} ${margin} L ${margin + 35} ${margin}" />
+        <path d="M ${W - margin - 35} ${margin} L ${W - margin} ${margin} L ${W - margin} ${margin + 35}" />
+        <path d="M ${margin} ${H - margin - 35} L ${margin} ${H - margin} L ${margin + 35} ${H - margin}" />
+        <path d="M ${W - margin - 35} ${H - margin} L ${W - margin} ${H - margin} L ${W - margin} ${H - margin - 35}" />
+      </g>
 
-      <!-- Top Editorial Typography Layout -->
-      <g filter="url(#shadow)">
-        <!-- Minimalist Pill Badge -->
-        <rect x="${W / 2 - 135}" y="${margin + 36}" width="270" height="34" rx="17" fill="#000000" fill-opacity="0.5" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="1" />
-        <text x="${W / 2}" y="${margin + 58}" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="4" fill="#F8FAFC" text-anchor="middle">
-          ${tagTop}
+      <!-- Outer Minimal Frame Line -->
+      <rect x="${margin}" y="${margin}" width="${innerW}" height="${innerH}" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="1" />
+
+      <!-- ==================== TOP NAVIGATION BAR ==================== -->
+      <g filter="url(#softGlow)">
+        <!-- Left Tag with Glowing Pulse Dot -->
+        <circle cx="${margin + 28}" cy="${margin + 32}" r="4" fill="${accentColor}" filter="url(#accentGlowFilter)" />
+        <text x="${margin + 42}" y="${margin + 36}" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" letter-spacing="3" fill="#F8FAFC">
+          EXPEDIENT ARCHIVE
         </text>
 
-        <!-- Subtitle Tag -->
-        <text x="${W / 2}" y="${margin + 105}" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" letter-spacing="3" fill="${accentColor}" text-anchor="middle">
-          ${editionStr}
+        <!-- Center Edition Tag -->
+        <rect x="${W / 2 - 85}" y="${margin + 18}" width="170" height="28" rx="14" fill="#000000" fill-opacity="0.65" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="1" />
+        <text x="${W / 2}" y="${margin + 36}" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="3" fill="${accentGlow}" text-anchor="middle">
+          № 043 // 2026
         </text>
 
-        <line x1="${margin + 70}" y1="${margin + 128}" x2="${W - margin - 70}" y2="${margin + 128}" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1" />
-
-        <!-- Main Headline (Editorial Serif Pinterest Style) -->
-        <text x="${W / 2}" y="${margin + 195}" font-family="'Playfair Display', 'Bodoni MT', 'Didot', 'Georgia', serif" font-size="${hSize}" font-weight="400" letter-spacing="${hTracking}" fill="#FFFFFF" text-anchor="middle">
-          ${headline}
+        <!-- Right Coordinates -->
+        <text x="${W - margin - 25}" y="${margin + 36}" font-family="monospace, 'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="2" fill="#94A3B8" text-anchor="end">
+          IG.STORY · 9:16
         </text>
 
-        <!-- Subheadline (Bold Modern Sans Pinterest Style) -->
+        <line x1="${margin + 20}" y1="${margin + 60}" x2="${W - margin - 20}" y2="${margin + 60}" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1" />
+      </g>
+
+      <!-- ==================== WATERMARK MONOGRAM DEPTH ==================== -->
+      <text x="${W / 2}" y="${margin + 390}" font-family="'Arial Black', Impact, sans-serif" font-size="300" font-weight="900" fill="#FFFFFF" fill-opacity="0.04" text-anchor="middle">
+        ${watermarkNum}
+      </text>
+
+      <!-- ==================== MAIN HERO TYPOGRAPHY ==================== -->
+      <g filter="url(#monumentalShadow)">
+        <!-- Category Frosted Capsule -->
+        <g transform="translate(${W / 2 - catPillWidth / 2}, ${margin + 88})">
+          <rect x="0" y="0" width="${catPillWidth}" height="26" rx="13" fill="#000000" fill-opacity="0.6" stroke="${accentColor}" stroke-opacity="0.55" stroke-width="1" />
+          <circle cx="12" cy="13" r="2.5" fill="${accentColor}" />
+          <text x="${catPillWidth / 2 + 4}" y="17" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="800" letter-spacing="4" fill="${accentGlow}" text-anchor="middle">
+            ${categoryTag}
+          </text>
+        </g>
+
+        <!-- Primary Headline: Editorial Serif with Warm Metallic Gradient -->
+        <text x="${W / 2}" y="${margin + 175}" font-family="'Playfair Display', 'Bodoni MT', 'Didot', 'Georgia', serif" font-size="${headlineSize}" font-weight="400" letter-spacing="${headlineTracking}" fill="url(#accentGrad)" text-anchor="middle">
+          ${spacedHeadline}
+        </text>
+
+        <!-- Monumental Subheadline: Crisp Pearl White Grotesque -->
         ${subLines.map((line, idx) => `
-          <text x="${W / 2}" y="${margin + 265 + idx * (subSize + 8)}" font-family="'Montserrat', 'Arial Black', Impact, sans-serif" font-size="${subSize}" font-weight="900" letter-spacing="4" fill="#F8FAFC" text-anchor="middle">
+          <text x="${W / 2}" y="${margin + 255 + idx * (subSize + 10)}" font-family="'Montserrat', 'Arial Black', Impact, sans-serif" font-size="${subSize}" font-weight="900" letter-spacing="4" fill="url(#pureWhiteGrad)" text-anchor="middle">
             ${escapeXml(line)}
           </text>
         `).join("")}
 
-        <!-- Aesthetic Accent Divider & Dots -->
-        <circle cx="${W / 2 - 35}" cy="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" r="2.5" fill="${accentColor}" />
-        <line x1="${W / 2 - 20}" y1="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" x2="${W / 2 + 20}" y2="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" stroke="${accentColor}" stroke-width="2" />
-        <circle cx="${W / 2 + 35}" cy="${margin + 285 + (subLines.length - 1) * (subSize + 8)}" r="2.5" fill="${accentColor}" />
+        <!-- Center Floating Ribbon Badge with Diamond Accents -->
+        <g transform="translate(${W / 2 - 165}, ${margin + 280 + (subLines.length - 1) * (subSize + 10)})">
+          <rect x="0" y="0" width="330" height="38" rx="19" fill="#030712" fill-opacity="0.75" stroke="${accentColor}" stroke-opacity="0.65" stroke-width="1.2" />
+          <text x="25" y="24" font-family="'Segoe UI', sans-serif" font-size="12" fill="${accentColor}">◆</text>
+          <text x="165" y="24" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" letter-spacing="4" fill="#F8FAFC" text-anchor="middle">
+            ${ribbonTag}
+          </text>
+          <text x="305" y="24" font-family="'Segoe UI', sans-serif" font-size="12" fill="${accentColor}">◆</text>
+        </g>
       </g>
 
-      <!-- Bottom Editorial Quote & Metadata -->
-      <g filter="url(#shadow)">
-        <line x1="${margin + 60}" y1="${H - margin - 210}" x2="${W - margin - 60}" y2="${H - margin - 210}" stroke="#FFFFFF" stroke-opacity="0.3" stroke-width="1" />
-        <text x="${margin + 42}" y="${H - margin - 205}" font-family="monospace" font-size="14" fill="${accentColor}">+</text>
-        <text x="${W - margin - 52}" y="${H - margin - 205}" font-family="monospace" font-size="14" fill="${accentColor}">+</text>
+      <!-- ==================== BOTTOM EDITORIAL QUOTE CARD ==================== -->
+      <g filter="url(#monumentalShadow)">
+        <!-- Frosted Glassmorphic Panel -->
+        <rect x="${margin + 25}" y="${H - margin - 260}" width="${innerW - 50}" height="165" rx="22" fill="#030712" fill-opacity="0.72" stroke="#FFFFFF" stroke-opacity="0.25" stroke-width="1.2" />
 
-        <!-- Quote Lines -->
+        <!-- Top Card Floating Tag -->
+        <rect x="${margin + 50}" y="${H - margin - 273}" width="125" height="24" rx="12" fill="${accentColor}" />
+        <text x="${margin + 112}" y="${H - margin - 257}" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="900" letter-spacing="2" fill="#030712" text-anchor="middle">
+          MANIFESTO
+        </text>
+
+        <!-- Giant Quotation Mark in Accent Gold -->
+        <text x="${margin + 50}" y="${H - margin - 185}" font-family="'Georgia', serif" font-size="54" font-weight="bold" fill="${accentColor}" opacity="0.9">“</text>
+
+        <!-- Multi-line Quote Text -->
         ${quoteLines.map((qLine, qIdx) => `
-          <text x="${W / 2}" y="${H - margin - 150 + qIdx * 30}" font-family="'Playfair Display', 'Georgia', serif" font-style="italic" font-size="20" font-weight="400" fill="#F1F5F9" text-anchor="middle">
-            ${qIdx === 0 && quoteLines.length === 1 ? `“${escapeXml(qLine)}”` : qIdx === 0 ? `“${escapeXml(qLine)}` : `${escapeXml(qLine)}”`}
+          <text x="${W / 2 + 15}" y="${H - margin - 200 + qIdx * 28}" font-family="'Playfair Display', 'Georgia', serif" font-style="italic" font-size="19" font-weight="400" fill="#F8FAFC" text-anchor="middle">
+            ${escapeXml(qLine)}
           </text>
         `).join("")}
 
-        <!-- Date -->
-        <text x="${W / 2}" y="${H - margin - 75}" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
-          ${dateStr}
+        <!-- Attribution / Sub-quote Signature -->
+        <text x="${W / 2 + 15}" y="${H - margin - 120}" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="3" fill="${accentGlow}" text-anchor="middle">
+          ${subSignature}
+        </text>
+      </g>
+
+      <!-- ==================== FOOTER TECHNICAL METADATA ==================== -->
+      <g filter="url(#softGlow)">
+        <!-- Left: Aesthetic Graphic Barcode -->
+        ${barcode}
+        <text x="${margin + 25}" y="${H - margin - 20}" font-family="monospace" font-size="10" fill="#94A3B8" letter-spacing="1">
+          ${artCode}
         </text>
 
-        <!-- Signature Tag -->
-        <text x="${W / 2}" y="${H - margin - 35}" font-family="'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" letter-spacing="3" fill="${accentColor}" text-anchor="middle">
-          EXPEDIENT GENERATION 43 · OFFICIAL STUDIO
+        <!-- Center: Date Stamp & Category -->
+        <text x="${W / 2}" y="${H - margin - 32}" font-family="'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="800" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+          ${dateStr}
+        </text>
+        <text x="${W / 2}" y="${H - margin - 14}" font-family="'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="700" letter-spacing="3" fill="${accentColor}" text-anchor="middle">
+          ${categoryTag}
+        </text>
+
+        <!-- Right: Technical Studio Coordinates -->
+        <text x="${W - margin - 25}" y="${H - margin - 32}" font-family="'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="800" letter-spacing="2" fill="#F8FAFC" text-anchor="end">
+          EXPEDIENT 43
+        </text>
+        <text x="${W - margin - 25}" y="${H - margin - 16}" font-family="monospace" font-size="10" fill="#94A3B8" letter-spacing="1" text-anchor="end">
+          07°15'S · 112°45'E
         </text>
       </g>
     </svg>
@@ -463,7 +620,7 @@ export async function applyPinterestTypographyOverlay(
 
     return await sharp(bg)
       .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
-      .jpeg({ quality: 95 })
+      .jpeg({ quality: 96 })
       .toBuffer();
   } catch (_) {
     return imageBuffer;
