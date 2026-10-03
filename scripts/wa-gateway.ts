@@ -232,10 +232,10 @@ async function startBaileysGateway() {
     };
 
     // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
-    // Jika meminta agenda resmi (HUT TNI, Kesaktian Pancasila, G30S PKI, dll)
+    // Hanya kirim poster master resmi jika pengguna SPESIFIK meminta agenda tersebut!
     const blueprint = architectMasterpieceDesign(rawPrompt);
-    const isHutTni = blueprint.category === "military" || lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
-    const isHariSantri = blueprint.category === "islamic" || lowerPrompt.includes("santri") || lowerPrompt.includes("hsn");
+    const isHutTni = lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
+    const isHariSantri = lowerPrompt.includes("santri") || lowerPrompt.includes("hsn");
     const isPancasila = lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian");
     const isG30s = lowerPrompt.includes("g30s") || lowerPrompt.includes("pki");
 

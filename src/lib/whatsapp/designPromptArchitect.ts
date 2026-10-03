@@ -81,21 +81,132 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
     };
   }
 
-  // 2. KATEGORI B: ISLAMI / HARI SANTRI / PESANTREN / MAULID / RAMADAN
+  // 2. KATEGORI B1: PERINGATAN MAULID NABI MUHAMMAD SAW
+  if (
+    lower.includes("maulid") ||
+    lower.includes("mawlid") ||
+    lower.includes("kelahiran nabi") ||
+    lower.includes("rasulullah") ||
+    lower.includes("maulidur")
+  ) {
+    return {
+      title: "Peringatan Maulid Nabi Muhammad SAW",
+      category: "maulid",
+      theme: "Sacred Madinah Nabawi Architecture, Celestial Emerald & Gold, Serene Lantern Twilight",
+      colorPalette: [
+        { hex: "#064E3B", name: "Sacred Emerald Green" },
+        { hex: "#D97706", name: "Warm Gold Arabesque" },
+        { hex: "#022C22", name: "Deep Nocturnal Forest" },
+        { hex: "#FEF3C7", name: "Luminous Lantern Amber" },
+        { hex: "#FFFFFF", name: "Pure White Light" },
+      ],
+      typography: {
+        primaryFont: "Sacred Calligraphic Modern Serif",
+        secondaryFont: "Refined Geometric Monospace",
+        recommendedLayout: "Format Instagram Story 9:16: Kubah Hijau Nabawi Bercahaya Lembut di Senja Madinah, Lentera Emas Arabesque Mengambang, Cahaya Rembulan",
+      },
+      copywriting: {
+        headline: "MAULID NABI",
+        subheadline: "MUHAMMAD SAW · 1448 H",
+        quoteOrBody: "Meneladani akhlak agung Baginda Rasulullah SAW sebagai rahmat bagi semesta alam (Rahmatan lil 'Alamin).",
+      },
+      enhancedPrompt:
+        "Cinematic vertical 9:16 Instagram Story photograph. " +
+        "Breathtaking view of the Prophet Mosque Al-Masjid an-Nabawi in Madinah with its iconic green dome and illuminated elegant minarets at blue hour twilight. " +
+        "Soft warm glowing hanging Arabic gold lantern bokeh lights, gentle crescent moon shining in serene night sky. " +
+        "Sublime sacred spiritual atmosphere, volumetric atmospheric lighting, Octane render 3D, 8k resolution, extreme photorealism, " +
+        "clean visual photography, absolutely no text, no words, no letters, no gibberish, no watermark, no logo.",
+    };
+  }
+
+  // 2. KATEGORI B2: BULAN SUCI RAMADHAN & PUASA
+  if (
+    lower.includes("ramadan") ||
+    lower.includes("ramadhan") ||
+    lower.includes("puasa") ||
+    lower.includes("tarawih") ||
+    lower.includes("sahur") ||
+    lower.includes("buka puasa")
+  ) {
+    return {
+      title: "Peringatan Bulan Suci Ramadhan",
+      category: "ramadan",
+      theme: "Serene Midnight Ramadan Lanterns, Golden Crescent Moon & Starry Sky",
+      colorPalette: [
+        { hex: "#0F172A", name: "Midnight Navy" },
+        { hex: "#F59E0B", name: "Glowing Amber" },
+        { hex: "#10B981", name: "Islamic Emerald" },
+        { hex: "#FFFBEB", name: "Warm Cream" },
+      ],
+      typography: {
+        primaryFont: "Classical Arabian Modern Serif",
+        secondaryFont: "Clean Geometric Sans",
+        recommendedLayout: "Format 9:16: Lentera Fanous Ramadhan Menyala Emas, Siluet Kubah Masjid di Bawah Langit Berbintang",
+      },
+      copywriting: {
+        headline: "MARHABAN YA RAMADHAN",
+        subheadline: "BULAN SUCI PENUH BERKAH & AMPUNAN",
+        quoteOrBody: "Sucikan hati, kuatkan iman, dan lipatgandakan amal ibadah menjemput keberkahan tak terhingga.",
+      },
+      enhancedPrompt:
+        "Cinematic vertical 9:16 Instagram Story photograph. " +
+        "Intricate brass Islamic Ramadan Fanous lantern glowing with warm golden flame on ancient Arabian stone balcony, " +
+        "majestic grand mosque silhouette against twilight starry desert sky with radiant crescent moon. " +
+        "Magical volumetric light rays, 8k resolution, photorealistic, no text, no words, no letters, no watermark.",
+    };
+  }
+
+  // 2. KATEGORI B3: HARI RAYA IDUL FITRI & IDUL ADHA
+  if (
+    lower.includes("idul fitri") ||
+    lower.includes("lebaran") ||
+    lower.includes("syawal") ||
+    lower.includes("idul adha") ||
+    lower.includes("qurban")
+  ) {
+    const isAdha = lower.includes("adha") || lower.includes("qurban");
+    return {
+      title: isAdha ? "Selamat Hari Raya Idul Adha" : "Selamat Hari Raya Idul Fitri",
+      category: isAdha ? "eid_adha" : "eid",
+      theme: "Festive Sacred Celebration, Regal Islamic Patterns & Warm Daylight Glow",
+      colorPalette: [
+        { hex: "#047857", name: "Royal Oasis Green" },
+        { hex: "#D97706", name: "Festival Gold" },
+        { hex: "#F8FAFC", name: "Purity White" },
+      ],
+      typography: {
+        primaryFont: "Majestic Festive Serif",
+        secondaryFont: "Warm Elegant Sans",
+        recommendedLayout: "Format 9:16: Kemegahan Masjid Raya Pagi Hari Raya, Daun Ketupat Estetis & Cahaya Emas Terbit",
+      },
+      copywriting: {
+        headline: isAdha ? "SELAMAT IDUL ADHA" : "SELAMAT IDUL FITRI",
+        subheadline: isAdha ? "HARI RAYA QURBAN 1448 H" : "1 SYAWAL 1448 H · MOHON MAAF LAHIR BATIN",
+        quoteOrBody: isAdha
+          ? "Merajut keikhlasan, meneladani ketakwaan Nabi Ibrahim AS dalam berkorban demi ridha Allah SWT."
+          : "Taqabbalallahu minna wa minkum. Semoga hati kembali fitrah dalam kesucian dan keberkahan ukhuwah.",
+      },
+      enhancedPrompt:
+        "Cinematic vertical 9:16 Instagram Story photograph. " +
+        "Grand illuminated Indonesian modern mosque courtyard at peaceful sunrise morning of Eid prayer, " +
+        "golden sunlight rays streaming through arches, pristine white marble floor reflecting blue sky, festive clean atmosphere. " +
+        "8k resolution, extreme photorealism, no text, no words, no letters, no watermark.",
+    };
+  }
+
+  // 2. KATEGORI B4: HARI SANTRI NASIONAL & KEHIDUPAN PESANTREN
   if (
     lower.includes("santri") ||
     lower.includes("hsn") ||
     lower.includes("pesantren") ||
-    lower.includes("maulid") ||
-    lower.includes("isra") ||
-    lower.includes("ramadan") ||
-    lower.includes("idul") ||
+    lower.includes("ngaji") ||
+    lower.includes("kitab") ||
     lower.includes("islami") ||
     lower.includes("hijriyah")
   ) {
     return {
       title: "Peringatan Hari Santri Nasional / Agenda Keislaman",
-      category: "islamic",
+      category: "santri",
       theme: "Majestic Islamic Architecture, Royal Emerald & Warm Lantern Bokeh, Serene Twilight Glow",
       colorPalette: [
         { hex: "#064E3B", name: "Royal Emerald Green" },
@@ -369,27 +480,34 @@ export async function applyPinterestTypographyOverlay(
     let accentColor = "#FBBF24"; // Emas amber default
     let tagText = "EXPEDIENT JOURNAL · VOL. 43";
 
-    if (category === "islamic") {
-      accentColor = "#34D399"; // Emerald
-      tagText = "HARI SANTRI NASIONAL · 2026";
+    if (category === "maulid") {
+      accentColor = "#10B981"; // Emerald green
+      tagText = "MAULID NABI MUHAMMAD SAW · 1448 H";
+    } else if (category === "ramadan") {
+      accentColor = "#F59E0B"; // Warm amber
+      tagText = "MARHABAN YA RAMADHAN · BULAN SUCI";
+    } else if (category === "eid" || category === "eid_adha") {
+      accentColor = "#34D399"; // Luminous emerald
+      tagText = category === "eid_adha" ? "HARI RAYA IDUL ADHA · 1448 H" : "HARI RAYA IDUL FITRI · 1448 H";
+    } else if (category === "santri" || category === "islamic") {
+      accentColor = "#10B981"; // Emerald
+      tagText = "HARI SANTRI NASIONAL · EXPEDIENT 43";
+    } else if (category === "milad") {
+      accentColor = "#D4AF37"; // Champagne gold
+      tagText = "TASYAKURAN MILAD & ULANG TAHUN ALUMNI";
     } else if (category === "military") {
       accentColor = "#F59E0B"; // Gold
       tagText = "DIRGAHAYU REPUBLIK INDONESIA";
     } else if (category === "reunion") {
       accentColor = "#FB923C"; // Warm sunset
       tagText = "TEMU KANGEN & REUNI AKBAR · 43";
-    } else if (category === "sport") {
+    } else if (category === "sport" || category === "sports") {
       accentColor = "#38BDF8"; // Electric cyan
       tagText = "EXPEDIENT ATHLETICS · 2026";
     }
 
     const rawHeadline = (blueprint.copywriting.headline || blueprint.title || "EXPEDIENT").trim();
-    // Spacing huruf untuk kesan monumental editorial mewah
-    const headline = escapeXml(
-      rawHeadline.length <= 15
-        ? rawHeadline.toUpperCase().split("").join(" ")
-        : rawHeadline.toUpperCase()
-    );
+    const headline = escapeXml(rawHeadline.toUpperCase());
 
     const subheadline = escapeXml(
       (blueprint.copywriting.subheadline || "CREATIVE ARCHIVE").toUpperCase()
@@ -438,7 +556,7 @@ export async function applyPinterestTypographyOverlay(
         </text>
 
         <!-- Main Monumental Headline -->
-        <text x="${W / 2}" y="235" font-family="'Georgia', 'Times New Roman', serif" font-size="${headline.length > 25 ? 46 : 58}" font-weight="700" letter-spacing="8" fill="#FFFFFF" text-anchor="middle">
+        <text x="${W / 2}" y="235" font-family="'Georgia', 'Times New Roman', serif" font-size="${headline.length > 25 ? 46 : 58}" font-weight="700" letter-spacing="6" word-spacing="24" xml:space="preserve" fill="#FFFFFF" text-anchor="middle">
           ${headline}
         </text>
 
@@ -458,12 +576,15 @@ export async function applyPinterestTypographyOverlay(
 
         <!-- Poetic Quote Text -->
         ${quoteLines
-          .map(
-            (line, idx) => `
-          <text x="460" y="${64 + idx * 34}" font-family="'Georgia', serif" font-style="italic" font-size="21" font-weight="400" fill="#F8FAFC" text-anchor="middle">
-            "${escapeXml(line.replace(/^"|"$/g, ""))}"
-          </text>`
-          )
+          .map((line, idx) => {
+            const isFirst = idx === 0;
+            const isLast = idx === quoteLines.length - 1;
+            const cleanLine = line.replace(/^[“"']|[”"']$/g, "").trim();
+            const textWithQuotes = `${isFirst ? "“" : ""}${cleanLine}${isLast ? "”" : ""}`;
+            return `<text x="460" y="${64 + idx * 34}" font-family="'Georgia', serif" font-style="italic" font-size="21" font-weight="400" fill="#F8FAFC" text-anchor="middle">
+              ${escapeXml(textWithQuotes)}
+            </text>`;
+          })
           .join("")}
 
         <!-- Divider Line -->
