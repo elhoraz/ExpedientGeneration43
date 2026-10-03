@@ -667,8 +667,20 @@ async function startBaileysGateway() {
         const isOwnerCommand =
           lower.startsWith("/") ||
           lower.startsWith("!") ||
+          lower.startsWith("?") ||
           lower.startsWith("bot ") ||
           lower.startsWith("min ") ||
+          lower.startsWith("siapa ") ||
+          lower.startsWith("siapakah ") ||
+          lower.startsWith("kapan ") ||
+          lower.startsWith("buat ") ||
+          lower.startsWith("buatkan ") ||
+          lower.startsWith("bikin ") ||
+          lower.startsWith("gambar ") ||
+          lower.startsWith("poster ") ||
+          lower.includes("poster") ||
+          lower.includes("desain") ||
+          lower.includes("zaki") ||
           lower === "ping" ||
           lower === "tes" ||
           lower === "halo" ||

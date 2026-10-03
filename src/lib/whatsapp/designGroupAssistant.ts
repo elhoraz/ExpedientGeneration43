@@ -70,6 +70,28 @@ export function shouldDesignBotRespond(messageText: string): boolean {
     return true;
   }
 
+  // 4. Permintaan Desain & Pertanyaan Faktual Terarah di Grup Desain
+  if (
+    lower.startsWith("siapa ") ||
+    lower.startsWith("siapakah ") ||
+    lower.startsWith("buatkan ") ||
+    lower.startsWith("bikin ") ||
+    lower.startsWith("desainkan ") ||
+    lower.startsWith("gambar ") ||
+    lower.startsWith("poster ") ||
+    lower.startsWith("jadwal") ||
+    lower.includes("buatkan poster") ||
+    lower.includes("bikin poster") ||
+    lower.includes("buat poster") ||
+    lower.includes("desain poster") ||
+    lower.includes("siapa zaki") ||
+    lower.includes("siapa elhora") ||
+    lower.includes("hari santri") ||
+    lower.includes("hut tni")
+  ) {
+    return true;
+  }
+
   // Jika anggota saling mengobrol santai antar sesama anggota:
   // JANGAN NIMBRUNG / DIAM! Biarkan mereka bebas berdiskusi & mengobrol santai.
   return false;

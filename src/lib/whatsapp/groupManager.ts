@@ -398,6 +398,30 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     return true;
   }
 
+  // 4. Pertanyaan Faktual Terarah & Permintaan Pembuatan Poster / Desain
+  if (
+    lower.startsWith("siapa ") ||
+    lower.startsWith("siapakah ") ||
+    lower.startsWith("kapan ") ||
+    lower.startsWith("info ") ||
+    lower.startsWith("profil ") ||
+    lower.startsWith("jadwal ") ||
+    lower.startsWith("buatkan ") ||
+    lower.startsWith("bikin ") ||
+    lower.startsWith("desainkan ") ||
+    lower.startsWith("gambar ") ||
+    lower.startsWith("poster ") ||
+    lower.includes("buatkan poster") ||
+    lower.includes("bikin poster") ||
+    lower.includes("buat poster") ||
+    lower.includes("desain poster") ||
+    lower.includes("siapa zaki") ||
+    lower.includes("siapa elhora") ||
+    lower.includes("ketua angkatan")
+  ) {
+    return true;
+  }
+
   // JANGAN NYAUT jika anggota grup mengobrol santai tanpa memanggil bot!
   return false;
 }
