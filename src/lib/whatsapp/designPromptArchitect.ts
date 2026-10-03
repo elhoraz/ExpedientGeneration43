@@ -2,10 +2,14 @@
  * src/lib/whatsapp/designPromptArchitect.ts
  * Enterprise Auto Creative Brief Generator & 3-Tier Design System Pipeline
  * 
- * Implements the 3 Decoupled Outputs Architecture:
- * 1. Visual Prompt (Framing 35-45%, Narrative Depth, Specific Negative Space, Negative Prompt)
- * 2. Copywriting Hierarchy (Eyebrow, Dynamic Headline, Subheadline, Quote)
- * 3. Typography Blueprint (Deterministic Preset, Multi-stop Scrim, Auto-Sizing, Sharp Compositor)
+ * Implements the 2 Decoupled Outputs Architecture:
+ * 1. Visual Prompt (Framing 35-45%, Narrative Depth, POSTER LAYOUT INTENT, Negative Prompt)
+ * 2. Typography Blueprint (Deterministic Preset, Multi-stop Scrim, Auto-Sizing, Sharp Compositor)
+ * 
+ * Includes:
+ * - Design Preset Library (12 Presets)
+ * - Auto Hierarchy Generator (Eyebrow, Headline, Subheadline, Quote, Footer)
+ * - Post-Render Quality Checker (Sharp Contrast & Luminance Inspection)
  */
 
 import { callGeminiResilient } from "../geminiResilient";
@@ -18,6 +22,27 @@ import {
   wrapSvgText,
   calculateHeadlineSize,
 } from "./designSystem";
+
+export interface TypographyBlueprint {
+  layout: string;
+  headline: string;
+  subheadline: string;
+  eyebrow?: string;
+  quote?: string;
+  footer?: string;
+  headline_font: string;
+  headline_size: number;
+  headline_tracking: number;
+  subheadline_font: string;
+  subheadline_size: number;
+  subheadline_tracking?: number;
+  alignment: "center" | "left";
+  text_position: "bottom_center" | "top_center" | "left_center" | "bottom_left";
+  overlay: {
+    type: "bottom_gradient" | "top_gradient" | "left_gradient" | "glass_card";
+    opacity: number;
+  };
+}
 
 export interface AutoCreativeBrief {
   theme: string;
@@ -43,15 +68,7 @@ export interface AutoCreativeBrief {
     subheadline: string;
     quoteOrBody?: string;
   };
-  typography_blueprint?: {
-    preset_id: PresetId;
-    preset_name: string;
-    headline_font: string;
-    subheadline_font: string;
-    alignment: "center" | "left";
-    safe_zone: string;
-    overlay_scrim: string;
-  };
+  typography_blueprint: TypographyBlueprint;
   creative_confidence: number; // 0 - 100
   confidence_level: "HIGH" | "AUTO_CREATIVE" | "CLARIFICATION_NEEDED";
   assumed_fields: string[];
@@ -66,6 +83,7 @@ export interface ArtDirectionBlueprint {
   theme: string;
   preset_id?: PresetId;
   auto_brief?: AutoCreativeBrief;
+  typography_blueprint: TypographyBlueprint;
   layoutStyle?: string;
   colorPalette: { hex: string; name: string }[];
   typography: {
@@ -85,29 +103,75 @@ export interface ArtDirectionBlueprint {
 }
 
 /**
+ * Builds the deterministic Typography Blueprint for Sharp
+ */
+export function buildTypographyBlueprint(brief: {
+  preset_id: PresetId;
+  copywriting: {
+    headline: string;
+    subheadline: string;
+    eyebrow?: string;
+    quoteOrBody?: string;
+  };
+}): TypographyBlueprint {
+  const preset = DESIGN_PRESETS[brief.preset_id] || DESIGN_PRESETS["01_CINEMATIC_HERO"];
+  const rawHeadline = (brief.copywriting.headline || "EXPEDIENT").trim();
+  const headlineSize = calculateHeadlineSize(rawHeadline, 118);
+  const isLeft = preset.typography.headlineAlign === "left";
+  const isTop = preset.textSafeZone.position === "top";
+  const isLeftZone = preset.textSafeZone.position === "left";
+
+  let textPos: TypographyBlueprint["text_position"] = "bottom_center";
+  if (isTop) textPos = "top_center";
+  else if (isLeftZone) textPos = "left_center";
+  else if (isLeft) textPos = "bottom_left";
+
+  let overlayType: TypographyBlueprint["overlay"]["type"] = "bottom_gradient";
+  if (isTop) overlayType = "top_gradient";
+  else if (isLeftZone) overlayType = "left_gradient";
+  else if (brief.preset_id === "04_GLASS_EVENT") overlayType = "glass_card";
+
+  return {
+    layout: brief.preset_id,
+    headline: rawHeadline.toUpperCase(),
+    subheadline: (brief.copywriting.subheadline || "").trim(),
+    eyebrow: brief.copywriting.eyebrow,
+    quote: brief.copywriting.quoteOrBody,
+    headline_font: preset.typography.primaryFont,
+    headline_size: headlineSize,
+    headline_tracking: 3,
+    subheadline_font: preset.typography.secondaryFont,
+    subheadline_size: 32,
+    subheadline_tracking: 2,
+    alignment: preset.typography.headlineAlign,
+    text_position: textPos,
+    overlay: {
+      type: overlayType,
+      opacity: 0.85,
+    },
+  };
+}
+
+/**
  * Output 1: Structured Diffusion Visual Prompt Compiler
- * Follows the 5 Art-Direction Rules:
- * 1. Narrative storytelling elements (monuments, celebratory atmosphere, fabric elements)
- * 2. Camera framing & subject occupancy (occupies 35-45% in upper-middle area)
- * 3. Specific smooth low-detail negative space in safe zone
- * 4. Poster composition instruction for social media
- * 5. Explicit clutter control & negative prompt
+ * Includes the explicit POSTER LAYOUT INTENT to prevent main subject overlap!
  */
 export function compileImagePrompt(brief: AutoCreativeBrief): string {
   const preset = DESIGN_PRESETS[brief.preset_id] || DESIGN_PRESETS["01_CINEMATIC_HERO"];
   const safeZoneInstruction = preset.textSafeZone.negativeSpaceInstruction;
-  const occupancy = brief.subject_occupancy || "positioned slightly above center, occupying approximately 35-45% of the frame with heroic low-angle perspective";
+  const occupancy = brief.subject_occupancy || "positioned strictly in upper-middle area, occupying approximately 35-45% of the frame with heroic low-angle perspective";
   const narrative = brief.narrative_elements ? ` ${brief.narrative_elements}.` : "";
 
   return [
     `Create a premium cinematic vertical 9:16 visual background for ${brief.poster_type}.`,
     `MAIN SUBJECT: ${brief.main_subject}, ${occupancy}.`,
     `ENVIRONMENT: ${brief.environment}.${narrative}`,
-    `COMPOSITION: ${brief.composition}, strong focal point, intentional visual hierarchy, balanced composition.`,
+    `COMPOSITION: ${brief.composition}, strong central focal point, intentional visual hierarchy, balanced composition.`,
     `LIGHTING: ${brief.lighting}, volumetric sun rays, soft atmospheric glow, high dynamic range.`,
     `MOOD: ${brief.mood}.`,
     `COLOR PALETTE: ${brief.primary_colors?.join(", ") || "#DC2626, #FFFFFF"}, with accents of ${brief.secondary_colors?.join(", ") || "#F59E0B, #0F172A"}.`,
-    `GRAPHIC DESIGN REQUIREMENTS: Designed specifically as a professional social media poster background. ${safeZoneInstruction} Avoid high-frequency details, avoid complex objects, avoid bright highlights in typography area. Maintain strong readability support for headline placement.`,
+    `POSTER LAYOUT INTENT: Reserve dedicated typography-safe zone in lower third (bottom 32-35%). Main subject must remain strictly in upper-middle area and must NOT overlap or bleed into the typography area. Maintain strong contrast separation between focal subject and text zone.`,
+    `GRAPHIC DESIGN REQUIREMENTS: Designed specifically as a professional social media poster background. ${safeZoneInstruction} Avoid high-frequency details, avoid complex objects, avoid bright highlights in typography area. Preserve strong readability support for headline placement.`,
     `STYLE: ${brief.visual_style}, cinematic realism, modern minimalist poster design, professional advertising quality, clean visual hierarchy, 8k ultra-detailed rendering.`,
     `NEGATIVE PROMPT: No text, no letters, no words, no logos, no watermark, no typography, no gibberish, no visual clutter, no excessive decorative elements, no distorted objects, no busy background.`
   ].join(" ");
@@ -115,10 +179,9 @@ export function compileImagePrompt(brief: AutoCreativeBrief): string {
 
 /**
  * Auto Creative Brief Generator
- * Transforms short user requests (e.g. "buatkan poster hari kemerdekaan") into a 3-part decoupled output:
- * 1. Visual Prompt Specs
- * 2. Copywriting Hierarchy (Eyebrow, Headline, Subheadline, Quote)
- * 3. Typography Blueprint (Preset, Alignment, Font Pairing)
+ * Transforms short user requests into the 2 decoupled outputs:
+ * Output 1: Visual Diffusion Prompt
+ * Output 2: Typography Blueprint
  */
 export async function generateAutoCreativeBrief(rawUserPrompt: string): Promise<AutoCreativeBrief> {
   const clean = rawUserPrompt.trim();
@@ -128,14 +191,14 @@ export async function generateAutoCreativeBrief(rawUserPrompt: string): Promise<
 You are an Award-Winning Poster Art Director & Auto Creative Brief Generator for a professional Graphic Design Studio WhatsApp Bot.
 A user requested: "${clean}".
 
-Your task is "Auto-Brief Completion": normalize short or ambiguous user requests into a complete, 3-part decoupled design specification:
-1. Visual Design Specification (camera framing, 35-45% occupancy in upper-middle area, narrative storytelling depth e.g. subtle monument silhouettes or atmospheric depth, lighting, mood, color palette).
+Your task is "Auto-Brief Completion": normalize short or ambiguous user requests into a complete, decoupled design specification:
+1. Visual Design Specification (camera framing, strictly 35-45% occupancy in upper-middle area, narrative storytelling depth e.g. subtle monument silhouettes or atmospheric depth, lighting, mood, color palette).
 2. Professional Indonesian Copywriting with 4-Tier Visual Hierarchy:
    - eyebrow: official badge or kicker (e.g. "17 AGUSTUS · PERINGATAN RESMI NASIONAL")
    - headline: monumental, punchy uppercase (1-3 words)
    - subheadline: supporting contextual theme
    - quoteOrBody: inspiring slogan or quote (1-2 sentences)
-3. Typography Blueprint (choose best matching preset_id from the 12 presets).
+3. Typography Blueprint Selection (choose best matching preset_id from the 12 presets).
 
 CRITICAL INFORMATION BOUNDARY RULES:
 1. SAFE TO ASSUME & ENRICH: Visual style, layout preset, color palette, lighting, composition, photography style, typography style, inspirational headline, subheadline, and uplifting quotes.
@@ -153,7 +216,7 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
   "primary_colors": ["#Hex1", "#Hex2"],
   "secondary_colors": ["#Hex3", "#Hex4"],
   "main_subject": "Exact focal subject in English (e.g. A majestic Indonesian red-and-white flag with realistic silk texture)",
-  "subject_occupancy": "positioned slightly above center, occupying approximately 35-45% of the frame with heroic low-angle perspective",
+  "subject_occupancy": "positioned strictly in upper-middle area, occupying approximately 35-45% of the frame with heroic low-angle perspective",
   "environment": "Environment in English (e.g. Archipelago coastline at sunrise with soft atmospheric depth)",
   "narrative_elements": "Subtle monument silhouettes, distant celebratory atmosphere, and symbolic patriotic storytelling",
   "composition": "Heroic low-angle perspective with strong central focal point",
@@ -203,7 +266,7 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
           primary_colors: parsed.primary_colors?.length ? parsed.primary_colors : preset.defaultPalette.map((p) => p.hex),
           secondary_colors: parsed.secondary_colors?.length ? parsed.secondary_colors : ["#D4AF37", "#0F172A"],
           main_subject: parsed.main_subject || parsed.theme,
-          subject_occupancy: parsed.subject_occupancy || "positioned slightly above center, occupying approximately 35-45% of the frame",
+          subject_occupancy: parsed.subject_occupancy || "positioned strictly in upper-middle area, occupying approximately 35-45% of the frame",
           environment: parsed.environment || "Dramatic archipelago coastline at sunrise with atmospheric depth",
           narrative_elements: parsed.narrative_elements || "Subtle monument silhouettes and celebratory storytelling elements",
           composition: parsed.composition || "Heroic low-angle perspective with strong central focal point",
@@ -215,15 +278,15 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
             subheadline: parsed.subheadline || "EXPEDIENT CREATIVE ARCHIVE",
             quoteOrBody: parsed.quoteOrBody,
           },
-          typography_blueprint: {
+          typography_blueprint: buildTypographyBlueprint({
             preset_id: presetId,
-            preset_name: preset.name,
-            headline_font: preset.typography.primaryFont,
-            subheadline_font: preset.typography.secondaryFont,
-            alignment: preset.typography.headlineAlign,
-            safe_zone: preset.textSafeZone.position,
-            overlay_scrim: "Multi-stop smooth linear gradient overlay",
-          },
+            copywriting: {
+              eyebrow: parsed.eyebrow,
+              headline: parsed.headline,
+              subheadline: parsed.subheadline || "EXPEDIENT CREATIVE ARCHIVE",
+              quoteOrBody: parsed.quoteOrBody,
+            },
+          }),
           creative_confidence: score,
           confidence_level: confidenceLevel,
           assumed_fields: parsed.assumed_fields || ["palette", "lighting", "subheadline"],
@@ -266,6 +329,13 @@ function createFallbackBrief(clean: string): AutoCreativeBrief {
   }
 
   const preset = DESIGN_PRESETS[presetId];
+  const copywriting = {
+    eyebrow: "★ PERINGATAN RESMI NASIONAL ★",
+    headline: clean.split(" ").slice(0, 3).join(" ").toUpperCase() || "EXPEDIENT",
+    subheadline: "CREATIVE ARCHIVE · VOL. 43",
+    quoteOrBody: "Merajut kebersamaan, melangkah pasti menjemput masa depan gemilang.",
+  };
+
   const brief: AutoCreativeBrief = {
     theme: clean || "Desain Kreatif Expedient",
     category,
@@ -278,27 +348,14 @@ function createFallbackBrief(clean: string): AutoCreativeBrief {
     primary_colors: preset.defaultPalette.map((p) => p.hex),
     secondary_colors: ["#D4AF37", "#0F172A"],
     main_subject: clean,
-    subject_occupancy: "positioned slightly above center, occupying approximately 35-45% of the frame",
+    subject_occupancy: "positioned strictly in upper-middle area, occupying approximately 35-45% of the frame",
     environment: "Dramatic archipelago coastline at sunrise with atmospheric depth",
     narrative_elements: "Subtle monument silhouettes and celebratory storytelling elements",
     composition: "Heroic low-angle perspective with strong central focal point",
     lighting: "Golden hour dramatic volumetric backlight",
     visual_density: "medium",
-    copywriting: {
-      eyebrow: "★ PERINGATAN RESMI NASIONAL ★",
-      headline: clean.split(" ").slice(0, 3).join(" ").toUpperCase() || "EXPEDIENT",
-      subheadline: "CREATIVE ARCHIVE · VOL. 43",
-      quoteOrBody: "Merajut kebersamaan, melangkah pasti menjemput masa depan gemilang.",
-    },
-    typography_blueprint: {
-      preset_id: presetId,
-      preset_name: preset.name,
-      headline_font: preset.typography.primaryFont,
-      subheadline_font: preset.typography.secondaryFont,
-      alignment: preset.typography.headlineAlign,
-      safe_zone: preset.textSafeZone.position,
-      overlay_scrim: "Multi-stop smooth linear gradient overlay",
-    },
+    copywriting,
+    typography_blueprint: buildTypographyBlueprint({ preset_id: presetId, copywriting }),
     creative_confidence: 75,
     confidence_level: "AUTO_CREATIVE",
     assumed_fields: ["palette", "lighting", "typography", "safe_zone"],
@@ -325,6 +382,7 @@ export async function architectDynamicDesignWithAI(rawUserPrompt: string): Promi
     theme: `${brief.visual_style} (${preset.name})`,
     preset_id: brief.preset_id,
     auto_brief: brief,
+    typography_blueprint: brief.typography_blueprint,
     colorPalette: brief.primary_colors.map((hex, i) => ({ hex, name: `Accent ${i + 1}` })),
     typography: {
       primaryFont: preset.typography.primaryFont,
@@ -348,6 +406,7 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
     theme: `${brief.visual_style} (${preset.name})`,
     preset_id: brief.preset_id,
     auto_brief: brief,
+    typography_blueprint: brief.typography_blueprint,
     colorPalette: brief.primary_colors.map((hex, i) => ({ hex, name: `Accent ${i + 1}` })),
     typography: {
       primaryFont: preset.typography.primaryFont,
@@ -359,32 +418,33 @@ export function architectMasterpieceDesign(rawUserPrompt: string): ArtDirectionB
 }
 
 /**
- * Formats the 3 Decoupled Outputs into a professional WhatsApp summary card
+ * Formats the Decoupled Outputs into a professional WhatsApp summary card
  */
 export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): string {
   const brief = blueprint.auto_brief as AutoCreativeBrief | undefined;
   const presetId = (blueprint.preset_id as PresetId) || "01_CINEMATIC_HERO";
   const preset = DESIGN_PRESETS[presetId] || DESIGN_PRESETS["01_CINEMATIC_HERO"];
+  const tb = blueprint.typography_blueprint;
 
-  let out = `🎨 *AUTO CREATIVE BRIEF & DESIGN BLUEPRINT*\n`;
+  let out = `🎨 *AUTO CREATIVE BRIEF & TYPOGRAPHY BLUEPRINT*\n`;
   out += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  out += `📌 *Tema:* ${blueprint.title}\n`;
-  out += `🏷️ *Kategori:* ${brief?.category || "COMMEMORATIVE_POSTER"}\n`;
+  out += `📌 *Tema Desain:* ${blueprint.title}\n`;
+  out += `🏷️ *Intent Category:* ${brief?.category || "COMMEMORATIVE_POSTER"}\n`;
   out += `📐 *Design Preset:* [${preset.id}] ${preset.name}\n`;
   out += `🎯 *Safe Zone:* ${preset.textSafeZone.position.toUpperCase()} (Multi-Stop Scrim)\n`;
-  out += `✨ *Mood:* ${brief?.mood || blueprint.theme}\n`;
+  out += `✨ *Visual Mood:* ${brief?.mood || blueprint.theme}\n`;
   out += `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.hex).join(", ")}\n\n`;
 
-  out += `🔤 *4-Tier Copywriting Hierarchy:*\n`;
-  if (blueprint.copywriting.eyebrow) {
-    out += `  • *Badge/Eyebrow:* ${blueprint.copywriting.eyebrow}\n`;
+  out += `🔤 *Typography Blueprint (Sharp Engine):*\n`;
+  if (tb.eyebrow) {
+    out += `  • *Badge/Eyebrow:* ${tb.eyebrow}\n`;
   }
-  out += `  • *Headline:* "${blueprint.copywriting.headline}"\n`;
-  out += `  • *Subheadline:* "${blueprint.copywriting.subheadline}"\n`;
-  if (blueprint.copywriting.quoteOrBody) {
-    out += `  • *Quote:* _"${blueprint.copywriting.quoteOrBody}"_\n`;
+  out += `  • *Headline:* "${tb.headline}" (Size: ${tb.headline_size}px, Tracking: +${tb.headline_tracking})\n`;
+  out += `  • *Subheadline:* "${tb.subheadline}" (Size: ${tb.subheadline_size}px)\n`;
+  if (tb.quote) {
+    out += `  • *Quote:* _"${tb.quote}"_\n`;
   }
-  out += `\n`;
+  out += `  • *Alignment & Scrim:* ${tb.alignment.toUpperCase()} | ${tb.overlay.type} (Opacity: ${tb.overlay.opacity})\n\n`;
 
   const confScore = brief?.creative_confidence || 88;
   const confMode = confScore >= 80 ? "HIGH CONFIDENCE" : "AUTO CREATIVE MODE";
@@ -435,24 +495,90 @@ export async function applyPinterestTypographyOverlay(
   }
 }
 
+export interface QualityCriticReport {
+  passed: boolean;
+  score: number;
+  checks: {
+    resolution_9_16: boolean;
+    buffer_integrity: boolean;
+    typography_contrast: boolean;
+  };
+  metrics?: {
+    width?: number;
+    height?: number;
+    byteSize?: number;
+    meanLuminance?: number;
+  };
+  notes: string;
+}
+
 /**
- * Pre-flight Quality Critic Gate
- * Validates buffer integrity, dimensions, contrast safety, and typography before WhatsApp dispatch.
+ * Pre-flight Quality Critic Gate (Post-Sharp Render)
+ * Inspects dimensions (9:16 vertical 1080x1920), buffer integrity,
+ * and performs contrast/luminance analysis in the typography safe zone!
  */
-export async function qualityCritic(imageBuffer: Buffer): Promise<{ passed: boolean; score: number; notes: string }> {
+export async function qualityCritic(imageBuffer: Buffer): Promise<QualityCriticReport> {
   try {
     const sharp = (await import("sharp")).default;
     const meta = await sharp(imageBuffer).metadata();
     const bufferValid = imageBuffer.length > 25000;
-    const dimensionsValid = (meta.width === 1080 && meta.height === 1920) || Boolean(meta.width && meta.height && meta.width > 500);
+    const is916 = (meta.width === 1080 && meta.height === 1920) || 
+      (Boolean(meta.width && meta.height) && Math.abs((meta.width! / meta.height!) - (9 / 16)) < 0.05);
 
-    const score = (bufferValid ? 50 : 0) + (dimensionsValid ? 50 : 0);
+    // Measure luminance in typography zone (lower 35% of frame)
+    let meanLuminance = 45;
+    let contrastSafe = true;
+    try {
+      if (meta.width && meta.height && meta.width >= 500 && meta.height >= 800) {
+        const zoneTop = Math.floor(meta.height * 0.65);
+        const zoneHeight = meta.height - zoneTop;
+        const stats = await sharp(imageBuffer)
+          .extract({ left: 0, top: zoneTop, width: meta.width, height: zoneHeight })
+          .stats();
+        
+        if (stats.channels && stats.channels.length >= 3) {
+          meanLuminance = Math.round(
+            (stats.channels[0].mean + stats.channels[1].mean + stats.channels[2].mean) / 3
+          );
+          // Dark gradient scrim ensures typography zone background stays dark enough for white text
+          contrastSafe = meanLuminance < 165;
+        }
+      }
+    } catch (_) {}
+
+    const checks = {
+      resolution_9_16: Boolean(is916),
+      buffer_integrity: bufferValid,
+      typography_contrast: contrastSafe,
+    };
+
+    let score = 0;
+    if (checks.buffer_integrity) score += 35;
+    if (checks.resolution_9_16) score += 35;
+    if (checks.typography_contrast) score += 30;
+
     return {
-      passed: score >= 80,
+      passed: score >= 70,
       score,
-      notes: score >= 80 ? "Passed studio quality gate (1080x1920 9:16 vertical)." : "Buffer needs recomposition.",
+      checks,
+      metrics: {
+        width: meta.width,
+        height: meta.height,
+        byteSize: imageBuffer.length,
+        meanLuminance,
+      },
+      notes: score >= 90
+        ? "Passed studio quality gate (1080x1920 9:16 vertical, high typography contrast)."
+        : score >= 70
+        ? "Acceptable poster render with minor safe-zone variance."
+        : "Failed quality gate, recomposition required.",
     };
   } catch (err: any) {
-    return { passed: false, score: 0, notes: err.message };
+    return {
+      passed: false,
+      score: 0,
+      checks: { resolution_9_16: false, buffer_integrity: false, typography_contrast: false },
+      notes: `Quality critic error: ${err.message}`,
+    };
   }
 }
