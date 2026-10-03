@@ -14,6 +14,7 @@ export interface ArtDirectionBlueprint {
   category: string;
   enhancedPrompt: string;
   theme: string;
+  layoutStyle?: "cinematic_minimal" | "modern_editorial" | "bottom_card" | "clean_art" | "magazine_cover";
   colorPalette: { hex: string; name: string }[];
   typography: {
     primaryFont: string;
@@ -72,6 +73,7 @@ Analyze their request and return ONLY a valid JSON object (no markdown, no backt
   "title": "Short descriptive project title in Indonesian",
   "category": "general" | "islamic" | "sports" | "milad" | "reunion",
   "theme": "Visual aesthetic style description in English (e.g. Cinematic warm ambient cafe, high octane sports, etc)",
+  "layoutStyle": "cinematic_minimal" | "modern_editorial" | "bottom_card" | "clean_art" | "magazine_cover",
   "accentColor": "Hex color code (#RRGGBB) that fits the mood",
   "tagText": "SHORT UPPERCASE CATEGORY TAG (Max 4 words)",
   "headline": "IMPACTFUL UPPERCASE HEADLINE (1-3 words)",
@@ -79,6 +81,13 @@ Analyze their request and return ONLY a valid JSON object (no markdown, no backt
   "quoteOrBody": "Inspiring quote or slogan in Indonesian that matches the user's topic (1-2 sentences)",
   "enhancedPrompt": "Extremely detailed, professional English prompt for FLUX.1 diffusion model. Must describe the exact subject, environment, lighting, angle, mood, 9:16 vertical composition, 8k resolution, photorealistic or digital art as requested. Clean background composition, absolutely no text, no words, no letters, no gibberish, no watermark, no logo."
 }
+
+Layout selection guidelines:
+- "clean_art": If user asks for pure image, wallpaper, scenery, painting, or specifically asks "tanpa teks" or "gambar saja".
+- "cinematic_minimal": Movie poster style, visual art is 90% unblocked with majestic film title at the bottom. Best for dramatic, sacred, portraits, spiritual, and cinematic scenes.
+- "modern_editorial": Asymmetrical left-aligned Swiss typography with issue numbers. Best for fashion, architecture, modern art, and quotes.
+- "bottom_card": Clean upper scene with an elegant frosted glass card at bottom third. Best for events, invitations, and celebrations.
+- "magazine_cover": Classic luxury Pinterest editorial cover with top masthead and bottom quote box.
 `.trim();
 
     const body = {
@@ -98,6 +107,7 @@ Analyze their request and return ONLY a valid JSON object (no markdown, no backt
           title: parsed.title || clean,
           category: parsed.category || "general",
           theme: parsed.theme || "Modern Creative Studio Aesthetic",
+          layoutStyle: parsed.layoutStyle || "cinematic_minimal",
           colorPalette: [
             { hex: parsed.accentColor || "#FBBF24", name: "Dynamic Accent" },
             { hex: "#0F172A", name: "Deep Obsidian" },
@@ -106,7 +116,7 @@ Analyze their request and return ONLY a valid JSON object (no markdown, no backt
           typography: {
             primaryFont: "Bold Monumental Editorial Serif",
             secondaryFont: "Geometric Clean Sans",
-            recommendedLayout: "Format Instagram Story 9:16: Visual sinematik di tengah, tipografi editorial elegan",
+            recommendedLayout: `Format 9:16: Gaya ${parsed.layoutStyle || "cinematic_minimal"}`,
           },
           copywriting: {
             headline: parsed.headline,
@@ -486,7 +496,18 @@ export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): st
 
   let out = `📱 *BLUEPRINT DESAIN INSTAGRAM STORY (9:16)* 🎨\n\n`;
   out += `📌 *Proyek:* ${blueprint.title}\n`;
-  out += `✨ *Konsep/Tema:* ${blueprint.theme}\n\n`;
+  out += `✨ *Konsep/Tema:* ${blueprint.theme}\n`;
+  if (blueprint.layoutStyle) {
+    const layoutNames: Record<string, string> = {
+      cinematic_minimal: "Cinematic Film Poster (Visual 90% Leluasa)",
+      modern_editorial: "Modern Swiss Editorial (Asimetris Elegan)",
+      bottom_card: "Floating Frosted Glass Story Card",
+      clean_art: "Clean Visual Art (Pure Artwork Hero)",
+      magazine_cover: "Pinterest Editorial Magazine Cover",
+    };
+    out += `📐 *Gaya Layout:* ${layoutNames[blueprint.layoutStyle] || blueprint.layoutStyle}\n`;
+  }
+  out += `\n`;
 
   out += `🎨 *Palet Warna Harmonis:*\n${paletteStr}\n\n`;
 
@@ -614,88 +635,202 @@ export async function applyPinterestTypographyOverlay(
       "Merajut kebersamaan, melangkah pasti menjemput masa depan gemilang.";
     const quoteLines = wrapSvgText(quote, 48);
 
-    const svg = `
-    <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!-- Atmospheric Vignette Scrims -->
-        <linearGradient id="topScrim" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#020617" stop-opacity="0.82" />
-          <stop offset="45%" stop-color="#020617" stop-opacity="0.48" />
-          <stop offset="100%" stop-color="#020617" stop-opacity="0" />
-        </linearGradient>
+    const layout = blueprint.layoutStyle || "cinematic_minimal";
+    let svg = "";
 
-        <linearGradient id="bottomScrim" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#020617" stop-opacity="0" />
-          <stop offset="35%" stop-color="#020617" stop-opacity="0.55" />
-          <stop offset="80%" stop-color="#020617" stop-opacity="0.88" />
-          <stop offset="100%" stop-color="#020617" stop-opacity="0.96" />
-        </linearGradient>
+    // STYLE 1: CINEMATIC MINIMAL (Poster Film Layar Lebar - Visual 90% Bersih & Leluasa)
+    if (layout === "cinematic_minimal") {
+      svg = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cineScrim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0" />
+            <stop offset="45%" stop-color="#020617" stop-opacity="0.6" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.96" />
+          </linearGradient>
+          <filter id="cineShadow">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.9" />
+          </filter>
+        </defs>
+        <rect x="0" y="1150" width="${W}" height="770" fill="url(#cineScrim)" />
+        
+        <g filter="url(#cineShadow)">
+          <text x="${W / 2}" y="1560" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" letter-spacing="8" fill="${accentColor}" text-anchor="middle">
+            — ${escapeXml(tagText)} —
+          </text>
+          <text x="${W / 2}" y="1650" font-family="'Georgia', serif" font-size="${headline.length > 20 ? 46 : 60}" font-weight="700" letter-spacing="8" fill="#FFFFFF" text-anchor="middle">
+            ${headline}
+          </text>
+          <line x1="${W / 2 - 80}" y1="1690" x2="${W / 2 + 80}" y2="1690" stroke="${accentColor}" stroke-width="2" opacity="0.85" />
+          <text x="${W / 2}" y="1740" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="600" letter-spacing="4" fill="#CBD5E1" text-anchor="middle">
+            ${subheadline}
+          </text>
+          <text x="${W / 2}" y="1830" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="5" fill="#64748B" text-anchor="middle">
+            EXPEDIENT CREATIVE AI STUDIO · 2026
+          </text>
+        </g>
+      </svg>`;
+    } else if (layout === "modern_editorial") {
+      // STYLE 2: MODERN EDITORIAL (Swiss Asymmetric / Kinfolk & Vogue Layout)
+      svg = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="leftScrim" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0.88" />
+            <stop offset="55%" stop-color="#020617" stop-opacity="0.45" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="topScrim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0.75" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="${W}" height="700" fill="url(#topScrim)" />
+        <rect x="0" y="0" width="750" height="${H}" fill="url(#leftScrim)" />
 
-        <!-- Drop Shadows -->
-        <filter id="crispShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.85" />
-        </filter>
-        <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
-        </filter>
-      </defs>
+        <g transform="translate(100, 160)">
+          <text x="0" y="0" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="800" letter-spacing="6" fill="${accentColor}">
+            EDITION NO. 43
+          </text>
+          <line x1="0" y1="20" x2="60" y2="20" stroke="${accentColor}" stroke-width="3" />
+          
+          <text x="0" y="110" font-family="'Helvetica Neue', Arial, sans-serif" font-size="64" font-weight="900" letter-spacing="2" fill="#FFFFFF">
+            ${headline}
+          </text>
+          <text x="0" y="165" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="600" letter-spacing="4" fill="#94A3B8">
+            ${subheadline}
+          </text>
+        </g>
 
-      <!-- Soft Contrast Scrims -->
-      <rect x="0" y="0" width="${W}" height="620" fill="url(#topScrim)" />
-      <rect x="0" y="1220" width="${W}" height="700" fill="url(#bottomScrim)" />
+        <g transform="translate(100, 1650)">
+          <rect x="0" y="0" width="4" height="80" fill="${accentColor}" />
+          ${quoteLines.slice(0, 2).map((l, i) => `<text x="24" y="${28 + i * 28}" font-family="'Georgia', serif" font-style="italic" font-size="20" fill="#F1F5F9">${escapeXml(l)}</text>`).join("")}
+          <text x="24" y="95" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="3" fill="#64748B">
+            EXPEDIENT ARCHIVE · 2026
+          </text>
+        </g>
+      </svg>`;
+    } else if (layout === "bottom_card") {
+      // STYLE 3: BOTTOM GLASSMORPHIC CARD (Floating Glass Card at Bottom)
+      svg = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.82" />
+          </linearGradient>
+          <filter id="shadow">
+            <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.75" />
+          </filter>
+        </defs>
+        <rect x="0" y="1000" width="${W}" height="920" fill="url(#cardGrad)" />
+        
+        <g transform="translate(70, 1380)" filter="url(#shadow)">
+          <rect x="0" y="0" width="940" height="420" rx="28" fill="#0A0F1D" fill-opacity="0.75" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="1.5" />
+          
+          <rect x="45" y="45" width="220" height="34" rx="17" fill="${accentColor}" fill-opacity="0.15" stroke="${accentColor}" stroke-width="1" />
+          <text x="155" y="67" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="${accentColor}" text-anchor="middle">
+            ${tagText.slice(0, 22)}
+          </text>
 
-      <!-- ==================== TOP EDITORIAL HEADER ==================== -->
-      <g filter="url(#crispShadow)">
-        <!-- Minimalist Tag Badge -->
-        <text x="${W / 2}" y="140" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accentColor}" text-anchor="middle">
-          — ${escapeXml(tagText)} —
-        </text>
+          <text x="45" y="135" font-family="'Georgia', serif" font-size="44" font-weight="700" letter-spacing="3" fill="#FFFFFF">
+            ${headline}
+          </text>
+          <text x="45" y="175" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="600" letter-spacing="3" fill="#94A3B8">
+            ${subheadline}
+          </text>
 
-        <!-- Main Monumental Headline -->
-        <text x="${W / 2}" y="235" font-family="'Georgia', 'Times New Roman', serif" font-size="${headline.length > 25 ? 46 : 58}" font-weight="700" letter-spacing="6" word-spacing="24" xml:space="preserve" fill="#FFFFFF" text-anchor="middle">
+          <line x1="45" y1="210" x2="895" y2="210" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1" />
+
+          ${quoteLines.slice(0, 3).map((l, i) => `<text x="45" y="${260 + i * 32}" font-family="'Georgia', serif" font-style="italic" font-size="20" fill="#E2E8F0">${escapeXml(l)}</text>`).join("")}
+
+          <text x="895" y="380" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="700" letter-spacing="3" fill="${accentColor}" text-anchor="end">
+            EXPEDIENT GENERATION 43
+          </text>
+        </g>
+      </svg>`;
+    } else if (layout === "clean_art") {
+      // STYLE 4: CLEAN ART (Pure Visual Art Hero - Minimalist corner mark)
+      svg = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="subtleBottom" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#000000" stop-opacity="0" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="0.65" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="1780" width="${W}" height="140" fill="url(#subtleBottom)" />
+        
+        <text x="60" y="1860" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="700" letter-spacing="5" fill="#FFFFFF" opacity="0.8">
           ${headline}
         </text>
-
-        <!-- Thin Elegant Accent Line -->
-        <line x1="${W / 2 - 70}" y1="272" x2="${W / 2 + 70}" y2="272" stroke="${accentColor}" stroke-width="2" opacity="0.85" />
-
-        <!-- Refined Subheadline -->
-        <text x="${W / 2}" y="312" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="17" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
-          ${subheadline}
-        </text>
-      </g>
-
-      <!-- ==================== BOTTOM PINTEREST GLASSMORPHIC CARD ==================== -->
-      <g transform="translate(80, ${1580 - Math.max(0, (quoteLines.length - 2) * 30)})" filter="url(#cardShadow)">
-        <!-- Frosted Dark Glass Backdrop -->
-        <rect x="0" y="0" width="920" height="${190 + Math.max(0, (quoteLines.length - 2) * 30)}" rx="18" fill="#0A0F1D" fill-opacity="0.68" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="1.2" />
-
-        <!-- Poetic Quote Text -->
-        ${quoteLines
-          .map((line, idx) => {
-            const isFirst = idx === 0;
-            const isLast = idx === quoteLines.length - 1;
-            const cleanLine = line.replace(/^[“"']|[”"']$/g, "").trim();
-            const textWithQuotes = `${isFirst ? "“" : ""}${cleanLine}${isLast ? "”" : ""}`;
-            return `<text x="460" y="${64 + idx * 34}" font-family="'Georgia', serif" font-style="italic" font-size="21" font-weight="400" fill="#F8FAFC" text-anchor="middle">
-              ${escapeXml(textWithQuotes)}
-            </text>`;
-          })
-          .join("")}
-
-        <!-- Divider Line -->
-        <line x1="40" y1="${135 + Math.max(0, (quoteLines.length - 2) * 30)}" x2="880" y2="${135 + Math.max(0, (quoteLines.length - 2) * 30)}" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1" />
-
-        <!-- Footer Metadata -->
-        <text x="50" y="${164 + Math.max(0, (quoteLines.length - 2) * 30)}" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="600" letter-spacing="3" fill="#94A3B8">
-          2026 · EXPEDIENT ARCHIVE
-        </text>
-        <text x="870" y="${164 + Math.max(0, (quoteLines.length - 2) * 30)}" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="${accentColor}" text-anchor="end">
+        <text x="1020" y="1860" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="${accentColor}" text-anchor="end" opacity="0.9">
           EXPEDIENT 43
         </text>
-      </g>
-    </svg>
-    `;
+      </svg>`;
+    } else {
+      // STYLE 5: MAGAZINE COVER (Classic Pinterest Editorial Cover)
+      svg = `
+      <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="topScrim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0.82" />
+            <stop offset="45%" stop-color="#020617" stop-opacity="0.48" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0" />
+          </linearGradient>
+          <linearGradient id="bottomScrim" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0" />
+            <stop offset="35%" stop-color="#020617" stop-opacity="0.55" />
+            <stop offset="80%" stop-color="#020617" stop-opacity="0.88" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.96" />
+          </linearGradient>
+          <filter id="crispShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.85" />
+          </filter>
+          <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
+          </filter>
+        </defs>
+
+        <rect x="0" y="0" width="${W}" height="620" fill="url(#topScrim)" />
+        <rect x="0" y="1220" width="${W}" height="700" fill="url(#bottomScrim)" />
+
+        <g filter="url(#crispShadow)">
+          <text x="${W / 2}" y="140" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accentColor}" text-anchor="middle">
+            — ${escapeXml(tagText)} —
+          </text>
+          <text x="${W / 2}" y="235" font-family="'Georgia', 'Times New Roman', serif" font-size="${headline.length > 25 ? 46 : 58}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
+            ${headline}
+          </text>
+          <line x1="${W / 2 - 70}" y1="272" x2="${W / 2 + 70}" y2="272" stroke="${accentColor}" stroke-width="2" opacity="0.85" />
+          <text x="${W / 2}" y="312" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="17" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
+            ${subheadline}
+          </text>
+        </g>
+
+        <g transform="translate(80, ${1580 - Math.max(0, (quoteLines.length - 2) * 30)})" filter="url(#cardShadow)">
+          <rect x="0" y="0" width="920" height="${190 + Math.max(0, (quoteLines.length - 2) * 30)}" rx="18" fill="#0A0F1D" fill-opacity="0.68" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="1.2" />
+          ${quoteLines
+            .map((line, idx) => {
+              const isFirst = idx === 0;
+              const isLast = idx === quoteLines.length - 1;
+              const cleanLine = line.replace(/^[“"']|[”"']$/g, "").trim();
+              const textWithQuotes = `${isFirst ? "“" : ""}${cleanLine}${isLast ? "”" : ""}`;
+              return `<text x="460" y="${64 + idx * 34}" font-family="'Georgia', serif" font-style="italic" font-size="21" font-weight="400" fill="#F8FAFC" text-anchor="middle">
+                ${escapeXml(textWithQuotes)}
+              </text>`;
+            })
+            .join("")}
+          <line x1="40" y1="${135 + Math.max(0, (quoteLines.length - 2) * 30)}" x2="880" y2="${135 + Math.max(0, (quoteLines.length - 2) * 30)}" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1" />
+          <text x="50" y="${164 + Math.max(0, (quoteLines.length - 2) * 30)}" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="600" letter-spacing="3" fill="#94A3B8">
+            2026 · EXPEDIENT ARCHIVE
+          </text>
+          <text x="870" y="${164 + Math.max(0, (quoteLines.length - 2) * 30)}" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="${accentColor}" text-anchor="end">
+            EXPEDIENT 43
+          </text>
+        </g>
+      </svg>`;
+    }
 
     return await sharp(bg)
       .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
