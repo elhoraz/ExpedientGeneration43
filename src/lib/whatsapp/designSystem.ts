@@ -3,7 +3,7 @@
  * Enterprise Design System & Preset Library for Expedient Studio Bot
  * 
  * Defines the 12 Design System Presets, Intent Categories, Text Safe Zones,
- * and deterministic typography composition rules.
+ * Dynamic Auto-Typography Sizing, and Multi-Stop Gradient Scrims.
  */
 
 export type DesignIntentCategory =
@@ -80,6 +80,19 @@ export function wrapSvgText(text: string, maxCharsPerLine = 38): string[] {
   return lines;
 }
 
+/**
+ * Dynamic Auto Typography Rules
+ * Calculates optimal headline font size dynamically based on character count
+ * to prevent text clipping, line wrapping errors, or clutter.
+ */
+export function calculateHeadlineSize(headline: string, baseSize = 118): number {
+  const len = (headline || "").trim().length;
+  if (len <= 14) return Math.min(baseSize, 122);
+  if (len <= 22) return Math.min(baseSize, 98);
+  if (len <= 32) return Math.min(baseSize, 80);
+  return Math.min(baseSize, 64);
+}
+
 export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
   // 01. CINEMATIC HERO (Film Poster / Dramatic Art)
   "01_CINEMATIC_HERO": {
@@ -89,7 +102,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["SCENERY_IMAGE", "COMMEMORATIVE_POSTER", "RELIGIOUS_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Maintain a clean, dark, low-detail negative-space region across the bottom 28% of the frame for typography overlay.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 30-35% of frame. Avoid high-frequency details, avoid complex objects, avoid bright highlights in typography area.",
     },
     defaultPalette: [
       { hex: "#FBBF24", name: "Amber Gold" },
@@ -98,40 +111,51 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     ],
     typography: {
       primaryFont: "'Georgia', serif",
-      secondaryFont: "'Segoe UI', sans-serif",
+      secondaryFont: "'Segoe UI', -apple-system, sans-serif",
       headlineAlign: "center",
       headlineCase: "uppercase",
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#FBBF24";
-      const headline = escapeXml((brief.copywriting?.headline || brief.theme || "EXPEDIENT").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || brief.theme || "EXPEDIENT").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 105);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || `— ${brief.poster_type || "CINEMATIC MASTERPIECE"} —`).toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "CREATIVE ARCHIVE").toUpperCase());
-      const tag = escapeXml((brief.poster_type || "CINEMATIC MASTERPIECE").toUpperCase());
+      const quote = brief.copywriting?.quoteOrBody;
+      const quoteLines = quote ? wrapSvgText(quote, 40) : [];
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="cineGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#020617" stop-opacity="0" />
-            <stop offset="45%" stop-color="#020617" stop-opacity="0.6" />
-            <stop offset="100%" stop-color="#020617" stop-opacity="0.96" />
+            <stop offset="30%" stop-color="#020617" stop-opacity="0.38" />
+            <stop offset="65%" stop-color="#020617" stop-opacity="0.82" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.97" />
           </linearGradient>
-          <filter id="cShadow">
-            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.9" />
+          <filter id="cShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.75" />
           </filter>
         </defs>
-        <rect x="0" y="1150" width="${W}" height="770" fill="url(#cineGrad)" />
+        <rect x="0" y="1120" width="${W}" height="800" fill="url(#cineGrad)" />
         <g filter="url(#cShadow)">
-          <text x="${W / 2}" y="1560" font-family="'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" letter-spacing="8" fill="${accent}" text-anchor="middle">
-            — ${tag} —
+          <text x="${W / 2}" y="1480" font-family="'Segoe UI', -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="${accent}" text-anchor="middle">
+            ${eyebrow}
           </text>
-          <text x="${W / 2}" y="1650" font-family="'Georgia', serif" font-size="${headline.length > 20 ? 46 : 60}" font-weight="700" letter-spacing="8" fill="#FFFFFF" text-anchor="middle">
+          <text x="${W / 2}" y="1585" font-family="'Georgia', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
             ${headline}
           </text>
-          <line x1="${W / 2 - 80}" y1="1690" x2="${W / 2 + 80}" y2="1690" stroke="${accent}" stroke-width="2" opacity="0.85" />
-          <text x="${W / 2}" y="1740" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="600" letter-spacing="4" fill="#CBD5E1" text-anchor="middle">
+          <line x1="${W / 2 - 80}" y1="1625" x2="${W / 2 + 80}" y2="1625" stroke="${accent}" stroke-width="2" opacity="0.85" />
+          <text x="${W / 2}" y="1675" font-family="'Segoe UI', sans-serif" font-size="24" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
             ${subheadline}
           </text>
-          <text x="${W / 2}" y="1830" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="5" fill="#64748B" text-anchor="middle">
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="${W / 2}" y="${1730 + i * 30}" font-family="'Georgia', serif" font-style="italic" font-size="18" fill="#94A3B8" text-anchor="middle">
+              “${escapeXml(l)}”
+            </text>
+          `).join("")}
+          <text x="${W / 2}" y="1840" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="5" fill="#64748B" text-anchor="middle">
             EXPEDIENT CREATIVE AI STUDIO · 2026
           </text>
         </g>
@@ -162,16 +186,20 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#D4AF37";
-      const headline = escapeXml((brief.copywriting?.headline || brief.theme || "EXPEDIENT").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || brief.theme || "EXPEDIENT").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 95);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "— EXPEDIENT JOURNAL · VOL. 43 —").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "CREATIVE ARCHIVE").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Merajut harmoni dalam kemewahan estetika visual modern.";
       const quoteLines = wrapSvgText(quote, 46);
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="topScrim" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#020617" stop-opacity="0.82" />
-            <stop offset="45%" stop-color="#020617" stop-opacity="0.48" />
+            <stop offset="0%" stop-color="#020617" stop-opacity="0.85" />
+            <stop offset="45%" stop-color="#020617" stop-opacity="0.45" />
             <stop offset="100%" stop-color="#020617" stop-opacity="0" />
           </linearGradient>
           <linearGradient id="bottomScrim" x1="0" y1="0" x2="0" y2="1">
@@ -189,9 +217,9 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
 
         <g>
           <text x="${W / 2}" y="140" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accent}" text-anchor="middle">
-            — EXPEDIENT JOURNAL · VOL. 43 —
+            ${eyebrow}
           </text>
-          <text x="${W / 2}" y="235" font-family="'Georgia', serif" font-size="${headline.length > 25 ? 46 : 58}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
+          <text x="${W / 2}" y="235" font-family="'Georgia', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
             ${headline}
           </text>
           <line x1="${W / 2 - 70}" y1="272" x2="${W / 2 + 70}" y2="272" stroke="${accent}" stroke-width="2" opacity="0.85" />
@@ -238,15 +266,19 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#EF4444";
-      const headline = escapeXml((brief.copywriting?.headline || brief.theme || "EXPEDIENT").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || brief.theme || "EXPEDIENT").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 100);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "EDITION NO. 43").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "SWISS DESIGN ARCHIVE").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Struktur, presisi, dan harmoni dalam setiap detail karya grafis.";
       const quoteLines = wrapSvgText(quote, 32);
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="leftScrim" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#020617" stop-opacity="0.88" />
+            <stop offset="0%" stop-color="#020617" stop-opacity="0.92" />
             <stop offset="55%" stop-color="#020617" stop-opacity="0.45" />
             <stop offset="100%" stop-color="#020617" stop-opacity="0" />
           </linearGradient>
@@ -260,13 +292,13 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
 
         <g transform="translate(100, 160)">
           <text x="0" y="0" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="800" letter-spacing="6" fill="${accent}">
-            EDITION NO. 43
+            ${eyebrow}
           </text>
           <line x1="0" y1="20" x2="60" y2="20" stroke="${accent}" stroke-width="3" />
-          <text x="0" y="110" font-family="'Helvetica Neue', Arial, sans-serif" font-size="64" font-weight="900" letter-spacing="2" fill="#FFFFFF">
+          <text x="0" y="110" font-family="'Helvetica Neue', Arial, sans-serif" font-size="${headlineSize}" font-weight="900" letter-spacing="2" fill="#FFFFFF">
             ${headline}
           </text>
-          <text x="0" y="165" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="600" letter-spacing="4" fill="#94A3B8">
+          <text x="0" y="175" font-family="'Segoe UI', sans-serif" font-size="18" font-weight="600" letter-spacing="4" fill="#94A3B8">
             ${subheadline}
           </text>
         </g>
@@ -290,7 +322,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["EVENT_POSTER", "ANNOUNCEMENT_POSTER", "PROMOTIONAL_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Keep the bottom 35% of the scene clean and uncluttered to anchor a floating frosted glass story card.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 35% of frame for floating frosted glass card.",
     },
     defaultPalette: [
       { hex: "#38BDF8", name: "Ice Cyan" },
@@ -305,19 +337,23 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#38BDF8";
-      const headline = escapeXml((brief.copywriting?.headline || brief.theme || "EXPEDIENT EVENT").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || brief.theme || "EXPEDIENT EVENT").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 80);
       const subheadline = escapeXml((brief.copywriting?.subheadline || "AGENDA RESMI").toUpperCase());
-      const tag = escapeXml((brief.poster_type || "OFFICIAL INVITATION").toUpperCase());
+      const tag = escapeXml((brief.copywriting?.eyebrow || brief.poster_type || "OFFICIAL INVITATION").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Bergabung bersama kami dalam momen penuh makna dan inspirasi.";
       const quoteLines = wrapSvgText(quote, 38);
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#020617" stop-opacity="0" />
-            <stop offset="100%" stop-color="#020617" stop-opacity="0.82" />
+            <stop offset="35%" stop-color="#020617" stop-opacity="0.4" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.88" />
           </linearGradient>
-          <filter id="shadow">
+          <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="12" stdDeviation="20" flood-color="#000000" flood-opacity="0.75" />
           </filter>
         </defs>
@@ -331,7 +367,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
             ${tag.slice(0, 22)}
           </text>
 
-          <text x="45" y="135" font-family="'Georgia', serif" font-size="44" font-weight="700" letter-spacing="3" fill="#FFFFFF">
+          <text x="45" y="135" font-family="'Georgia', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="3" fill="#FFFFFF">
             ${headline}
           </text>
           <text x="45" y="175" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="600" letter-spacing="3" fill="#94A3B8">
@@ -358,7 +394,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["RELIGIOUS_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Maintain clean ethereal space in the bottom 30% of the frame so sacred minarets and moonlit skies remain 100% visible.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 32% of frame. Avoid high-frequency details, avoid complex objects, preserve sacred serenity for typography.",
     },
     defaultPalette: [
       { hex: "#10B981", name: "Sacred Emerald" },
@@ -374,36 +410,45 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#10B981";
       const gold = "#F59E0B";
-      const headline = escapeXml((brief.copywriting?.headline || "MAULID NABI").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || "MAULID NABI").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 100);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "✦ PERINGATAN HARI BESAR ISLAM ✦").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "MUHAMMAD SAW").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Meneladani akhlak agung Baginda Rasulullah SAW sebagai rahmat bagi semesta alam.";
       const quoteLines = wrapSvgText(quote, 44);
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="religGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#022C22" stop-opacity="0" />
-            <stop offset="40%" stop-color="#022C22" stop-opacity="0.6" />
-            <stop offset="100%" stop-color="#022C22" stop-opacity="0.95" />
+            <stop offset="30%" stop-color="#022C22" stop-opacity="0.45" />
+            <stop offset="70%" stop-color="#022C22" stop-opacity="0.88" />
+            <stop offset="100%" stop-color="#022C22" stop-opacity="0.97" />
           </linearGradient>
-          <filter id="glow">
-            <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000000" flood-opacity="0.9" />
+          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.8" />
           </filter>
         </defs>
-        <rect x="0" y="1150" width="${W}" height="770" fill="url(#religGrad)" />
+        <rect x="0" y="1120" width="${W}" height="800" fill="url(#religGrad)" />
 
         <g filter="url(#glow)">
-          <text x="${W / 2}" y="1520" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="${gold}" text-anchor="middle">
-            ✦ PERINGATAN HARI BESAR ISLAM ✦
+          <text x="${W / 2}" y="1480" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="${gold}" text-anchor="middle">
+            ${eyebrow}
           </text>
-          <text x="${W / 2}" y="1610" font-family="'Georgia', serif" font-size="${headline.length > 18 ? 48 : 62}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
+          <text x="${W / 2}" y="1580" font-family="'Georgia', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
             ${headline}
           </text>
-          <line x1="${W / 2 - 90}" y1="1645" x2="${W / 2 + 90}" y2="1645" stroke="${accent}" stroke-width="2" />
-          <text x="${W / 2}" y="1690" font-family="'Segoe UI', sans-serif" font-size="18" font-weight="600" letter-spacing="4" fill="#D1FAE5" text-anchor="middle">
+          <g transform="translate(${W / 2 - 90}, 1615)">
+            <line x1="0" y1="0" x2="75" y2="0" stroke="${accent}" stroke-width="2" />
+            <circle cx="90" cy="0" r="3.5" fill="${gold}" />
+            <line x1="105" y1="0" x2="180" y2="0" stroke="${accent}" stroke-width="2" />
+          </g>
+          <text x="${W / 2}" y="1670" font-family="'Segoe UI', sans-serif" font-size="24" font-weight="600" letter-spacing="4" fill="#D1FAE5" text-anchor="middle">
             ${subheadline}
           </text>
-          ${quoteLines.slice(0, 2).map((l, i) => `<text x="${W / 2}" y="${1745 + i * 30}" font-family="'Georgia', serif" font-style="italic" font-size="17" fill="#E2E8F0" text-anchor="middle">“${escapeXml(l)}”</text>`).join("")}
+          ${quoteLines.slice(0, 2).map((l, i) => `<text x="${W / 2}" y="${1730 + i * 30}" font-family="'Georgia', serif" font-style="italic" font-size="18" fill="#E2E8F0" text-anchor="middle">“${escapeXml(l)}”</text>`).join("")}
           <text x="${W / 2}" y="1840" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="#6EE7B7" text-anchor="middle">
             EXPEDIENT ISLAMIC ARCHIVE · 1448 H
           </text>
@@ -420,7 +465,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["ANNOUNCEMENT_POSTER", "COMMEMORATIVE_POSTER", "INFOGRAPHIC"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Reserve clean structural space in lower 30% for corporate branding and announcement details.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 30% of frame for corporate branding and announcement details.",
     },
     defaultPalette: [
       { hex: "#2563EB", name: "Corporate Blue" },
@@ -435,41 +480,63 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#2563EB";
-      const headline = escapeXml((brief.copywriting?.headline || brief.theme || "EXPEDIENT OFFICIAL").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || brief.theme || "EXPEDIENT OFFICIAL").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 90);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "EXPEDIENT OFFICIAL RELEASE").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "PENGUMUMAN RESMI").toUpperCase());
+      const quote = brief.copywriting?.quoteOrBody;
+      const quoteLines = quote ? wrapSvgText(quote, 40) : [];
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="1250" width="${W}" height="670" fill="#0B132B" fill-opacity="0.9" />
-        <line x1="0" y1="1250" x2="${W}" y2="1250" stroke="${accent}" stroke-width="4" />
-        <g transform="translate(90, 1380)">
+        <defs>
+          <linearGradient id="corpGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0B132B" stop-opacity="0" />
+            <stop offset="25%" stop-color="#0B132B" stop-opacity="0.45" />
+            <stop offset="70%" stop-color="#0B132B" stop-opacity="0.9" />
+            <stop offset="100%" stop-color="#0B132B" stop-opacity="0.98" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="1150" width="${W}" height="770" fill="url(#corpGrad)" />
+        <line x1="0" y1="1250" x2="${W}" y2="1250" stroke="${accent}" stroke-width="4" opacity="0.8" />
+        <g transform="translate(90, 1420)">
           <text x="0" y="0" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="800" letter-spacing="4" fill="${accent}">
-            EXPEDIENT OFFICIAL RELEASE
+            ${eyebrow}
           </text>
-          <text x="0" y="70" font-family="'Segoe UI', sans-serif" font-size="52" font-weight="800" letter-spacing="2" fill="#FFFFFF">
+          <text x="0" y="70" font-family="'Segoe UI', sans-serif" font-size="${headlineSize}" font-weight="800" letter-spacing="2" fill="#FFFFFF">
             ${headline}
           </text>
-          <text x="0" y="120" font-family="'Segoe UI', sans-serif" font-size="18" font-weight="500" letter-spacing="2" fill="#94A3B8">
+          <text x="0" y="125" font-family="'Segoe UI', sans-serif" font-size="20" font-weight="600" letter-spacing="2" fill="#CBD5E1">
             ${subheadline}
+          </text>
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="0" y="${175 + i * 28}" font-family="'Segoe UI', sans-serif" font-size="16" fill="#94A3B8">
+              ${escapeXml(l)}
+            </text>
+          `).join("")}
+          <text x="0" y="380" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="4" fill="#64748B">
+            EXPEDIENT 43 EXECUTIVE SECRETARIAT · 2026
           </text>
         </g>
       </svg>`;
     },
   },
 
-  // 07. YOUTH VIBRANT (High Octane Electric Energy & Athletics)
+  // 07. YOUTH VIBRANT (High-Impact Neon Cyber Athletic Poster)
   "07_YOUTH_VIBRANT": {
     id: "07_YOUTH_VIBRANT",
     name: "Youth Vibrant",
-    tagline: "High Octane Sports, Athletics & Youth Community Energy",
-    targetCategories: ["EVENT_POSTER", "SOCIAL_MEDIA_POST"],
+    tagline: "High-Octane Athletics, Streetwear & Neon Dynamic Energy",
+    targetCategories: ["EVENT_POSTER", "PROMOTIONAL_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Ensure bottom 30% has dark dynamic vignette for aggressive high-energy typography.",
+      negativeSpaceInstruction: "Maintain clean high-contrast dark space in bottom 32% for high-impact athletic branding.",
     },
     defaultPalette: [
-      { hex: "#06B6D4", name: "Electric Cyan" },
-      { hex: "#F43F5E", name: "Neon Coral" },
-      { hex: "#0F172A", name: "Dark Void" },
+      { hex: "#06B6D4", name: "Neon Cyan" },
+      { hex: "#FACC15", name: "Electric Yellow" },
+      { hex: "#020617", name: "Deep Void" },
     ],
     typography: {
       primaryFont: "'Impact', 'Arial Black', sans-serif",
@@ -479,22 +546,38 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#06B6D4";
-      const headline = escapeXml((brief.copywriting?.headline || "EXPEDIENT ATHLETICS").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || "EXPEDIENT ATHLETICS").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 110);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "CHAMPIONSHIP SERIES · 2026").toUpperCase());
+      const subheadline = escapeXml((brief.copywriting?.subheadline || "BERSATU MERAIH JUARA").toUpperCase());
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="vibeGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#020617" stop-opacity="0" />
-            <stop offset="100%" stop-color="#020617" stop-opacity="0.95" />
+            <stop offset="35%" stop-color="#020617" stop-opacity="0.5" />
+            <stop offset="70%" stop-color="#020617" stop-opacity="0.85" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.97" />
           </linearGradient>
+          <filter id="vibeShadow">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.8" />
+          </filter>
         </defs>
-        <rect x="0" y="1200" width="${W}" height="720" fill="url(#vibeGrad)" />
-        <g transform="translate(${W / 2}, 1620)">
+        <rect x="0" y="1120" width="${W}" height="800" fill="url(#vibeGrad)" />
+        <g transform="translate(${W / 2}, 1520)" filter="url(#vibeShadow)">
           <text x="0" y="0" font-family="'Segoe UI', sans-serif" font-size="15" font-weight="900" letter-spacing="8" fill="${accent}" text-anchor="middle">
-            CHAMPIONSHIP SERIES · 2026
+            ${eyebrow}
           </text>
-          <text x="0" y="80" font-family="'Impact', 'Arial Black', sans-serif" font-size="76" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+          <text x="0" y="80" font-family="'Impact', 'Arial Black', sans-serif" font-size="${headlineSize}" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
             ${headline}
+          </text>
+          <text x="0" y="140" font-family="'Segoe UI', sans-serif" font-size="20" font-weight="700" letter-spacing="3" fill="#FACC15" text-anchor="middle">
+            ${subheadline}
+          </text>
+          <text x="0" y="290" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="5" fill="#64748B" text-anchor="middle">
+            EXPEDIENT GENERATION 43 · ALL RIGHTS RESERVED
           </text>
         </g>
       </svg>`;
@@ -509,7 +592,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["COMMEMORATIVE_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Maintain clean cinematic negative space in bottom 32% for monumental national headline.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 32-35% of frame. Avoid high-frequency details, avoid complex objects, avoid bright highlights in typography area. Preserve strong readability support for headline placement.",
     },
     defaultPalette: [
       { hex: "#DC2626", name: "Merah Putih Patriot" },
@@ -523,32 +606,73 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
       headlineCase: "uppercase",
     },
     renderSvg: (W, H, brief) => {
+      const rawHeadline = (brief.copywriting?.headline || "DIRGAHAYU INDONESIA").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 118);
+
+      const rawSubhead = (brief.copywriting?.subheadline || "Merayakan Kemerdekaan, Menjaga Persatuan").trim();
+      const subheadline = escapeXml(rawSubhead);
+
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "★ 17 AGUSTUS · PERINGATAN RESMI NASIONAL ★").toUpperCase());
+      const quote = brief.copywriting?.quoteOrBody || "Bersatu dalam keberagaman, melangkah pasti menuju Indonesia Emas.";
+      const quoteLines = wrapSvgText(quote, 38);
+
       const gold = "#F59E0B";
-      const headline = escapeXml((brief.copywriting?.headline || "DIRGAHAYU REPUBLIK INDONESIA").toUpperCase());
-      const subheadline = escapeXml((brief.copywriting?.subheadline || "BERSATU KITA TEGUH, NUSANTARA BERDAULAT").toUpperCase());
+      const red = "#DC2626";
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="patGrad" x1="0" y1="0" x2="0" y2="1">
+          <!-- Multi-Stop Ultra Smooth Contrast Scrim -->
+          <linearGradient id="patrioticScrim" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#020617" stop-opacity="0" />
-            <stop offset="45%" stop-color="#020617" stop-opacity="0.65" />
-            <stop offset="100%" stop-color="#020617" stop-opacity="0.96" />
+            <stop offset="30%" stop-color="#020617" stop-opacity="0.38" />
+            <stop offset="65%" stop-color="#020617" stop-opacity="0.82" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.97" />
           </linearGradient>
+          <!-- Subtle Anti-Muddy Text Shadow -->
+          <filter id="crispShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.75" />
+          </filter>
         </defs>
-        <rect x="0" y="1150" width="${W}" height="770" fill="url(#patGrad)" />
-        <g>
-          <text x="${W / 2}" y="1540" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="800" letter-spacing="8" fill="${gold}" text-anchor="middle">
-            ★ PERINGATAN RESMI NASIONAL ★
+
+        <!-- Scrim across bottom 42% -->
+        <rect x="0" y="1100" width="${W}" height="820" fill="url(#patrioticScrim)" />
+
+        <!-- Typography Hierarchy Cluster -->
+        <g filter="url(#crispShadow)">
+          <!-- 1. EYEBROW BADGE -->
+          <text x="${W / 2}" y="1460" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="14" font-weight="800" letter-spacing="8" fill="${gold}" text-anchor="middle">
+            ${eyebrow}
           </text>
-          <text x="${W / 2}" y="1635" font-family="'Impact', 'Arial Black', sans-serif" font-size="${headline.length > 22 ? 52 : 68}" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+
+          <!-- 2. MONUMENTAL HEADLINE (Dynamic Auto-Sized) -->
+          <text x="${W / 2}" y="1570" font-family="'Montserrat', 'Impact', 'Arial Black', sans-serif" font-size="${headlineSize}" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
             ${headline}
           </text>
-          <line x1="${W / 2 - 100}" y1="1670" x2="${W / 2 + 100}" y2="1670" stroke="#DC2626" stroke-width="3" />
-          <text x="${W / 2}" y="1720" font-family="'Segoe UI', sans-serif" font-size="17" font-weight="700" letter-spacing="3" fill="#E2E8F0" text-anchor="middle">
+
+          <!-- 3. ELEGANT PATRIOTIC ACCENT DIVIDER -->
+          <g transform="translate(${W / 2 - 120}, 1605)">
+            <line x1="0" y1="0" x2="100" y2="0" stroke="${red}" stroke-width="3" />
+            <circle cx="120" cy="0" r="4" fill="${gold}" />
+            <line x1="140" y1="0" x2="240" y2="0" stroke="${red}" stroke-width="3" />
+          </g>
+
+          <!-- 4. REFINED SUBHEADLINE -->
+          <text x="${W / 2}" y="1660" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="26" font-weight="600" letter-spacing="2" fill="#F1F5F9" text-anchor="middle">
             ${subheadline}
           </text>
-          <text x="${W / 2}" y="1820" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="#94A3B8" text-anchor="middle">
-            EXPEDIENT 43 PATRIOTIC ARCHIVE · 2026
+
+          <!-- 5. POETIC QUOTE CALLOUT -->
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="${W / 2}" y="${1720 + i * 32}" font-family="'Georgia', serif" font-style="italic" font-size="20" fill="#CBD5E1" text-anchor="middle">
+              “${escapeXml(l)}”
+            </text>
+          `).join("")}
+
+          <!-- 6. FOOTER BRANDING -->
+          <text x="${W / 2}" y="1840" font-family="'Segoe UI', sans-serif" font-size="12" font-weight="700" letter-spacing="5" fill="#64748B" text-anchor="middle">
+            EXPEDIENT 43 · PATRIOTIC ARCHIVE 2026
           </text>
         </g>
       </svg>`;
@@ -563,7 +687,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["PRODUCT_AD", "PROMOTIONAL_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Keep product centered and bottom 25% clear for CTA and luxury branding.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 28% of frame for luxury CTA and product branding.",
     },
     defaultPalette: [
       { hex: "#D4AF37", name: "Gold Foil" },
@@ -578,16 +702,36 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#D4AF37";
-      const headline = escapeXml((brief.copywriting?.headline || "PREMIUM COLLECTION").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || "PREMIUM COLLECTION").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 90);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "EXCLUSIVE RELEASE").toUpperCase());
+      const subheadline = escapeXml((brief.copywriting?.subheadline || "EXPEDIENT ATELIER").toUpperCase());
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="1450" width="${W}" height="470" fill="#000000" fill-opacity="0.8" />
-        <text x="${W / 2}" y="1600" font-family="'Georgia', serif" font-size="54" font-weight="700" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
-          ${headline}
-        </text>
-        <text x="${W / 2}" y="1660" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="600" letter-spacing="6" fill="${accent}" text-anchor="middle">
-          LIMITED EDITION · EXPEDIENT ATELIER
-        </text>
+        <defs>
+          <linearGradient id="prodGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0" />
+            <stop offset="35%" stop-color="#020617" stop-opacity="0.6" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0.95" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="1250" width="${W}" height="670" fill="url(#prodGrad)" />
+        <g transform="translate(${W / 2}, 1560)">
+          <text x="0" y="0" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="700" letter-spacing="6" fill="${accent}" text-anchor="middle">
+            — ${eyebrow} —
+          </text>
+          <text x="0" y="70" font-family="'Georgia', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+            ${headline}
+          </text>
+          <text x="0" y="125" font-family="'Segoe UI', sans-serif" font-size="16" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
+            ${subheadline}
+          </text>
+          <text x="0" y="240" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="#64748B" text-anchor="middle">
+            LIMITED EDITION · EXPEDIENT 43
+          </text>
+        </g>
       </svg>`;
     },
   },
@@ -615,16 +759,32 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#06B6D4";
-      const headline = escapeXml((brief.copywriting?.headline || "NEXT GEN INTELLIGENCE").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || "NEXT GEN INTELLIGENCE").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 90);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "[SYS_VER: 43.0] // AI COGNITIVE PROTOCOL").toUpperCase());
+      const subheadline = escapeXml((brief.copywriting?.subheadline || "NEURAL QUANTUM ARCHITECTURE").toUpperCase());
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="${W}" height="500" fill="#020617" fill-opacity="0.75" />
+        <defs>
+          <linearGradient id="techGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#020617" stop-opacity="0.88" />
+            <stop offset="45%" stop-color="#020617" stop-opacity="0.5" />
+            <stop offset="100%" stop-color="#020617" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="${W}" height="560" fill="url(#techGrad)" />
         <g transform="translate(80, 140)">
           <text x="0" y="0" font-family="'Consolas', monospace" font-size="13" fill="${accent}" letter-spacing="3">
-            [SYS_VER: 43.0] // AI COGNITIVE PROTOCOL
+            ${eyebrow}
           </text>
-          <text x="0" y="65" font-family="'Segoe UI', sans-serif" font-size="52" font-weight="900" fill="#FFFFFF">
+          <line x1="0" y1="20" x2="120" y2="20" stroke="${accent}" stroke-width="2" />
+          <text x="0" y="85" font-family="'Segoe UI', sans-serif" font-size="${headlineSize}" font-weight="900" fill="#FFFFFF">
             ${headline}
+          </text>
+          <text x="0" y="140" font-family="'Consolas', monospace" font-size="16" fill="#A7F3D0" letter-spacing="2">
+            // ${subheadline}
           </text>
         </g>
       </svg>`;
@@ -639,7 +799,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["EDUCATIONAL_POSTER", "COMMEMORATIVE_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Ensure bottom 30% has gentle warm tint for classic historical document typography.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 30% with gentle warm tint for classic historical document typography.",
     },
     defaultPalette: [
       { hex: "#D97706", name: "Warm Ochre" },
@@ -654,16 +814,44 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#D97706";
-      const headline = escapeXml((brief.copywriting?.headline || "CATATAN SEJARAH").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || "CATATAN SEJARAH").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 95);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "— ARSIP SEJARAH EXPEDIENT —").toUpperCase());
+      const subheadline = escapeXml((brief.copywriting?.subheadline || "MENGENANG PERJALANAN BANGSA").toUpperCase());
+      const quote = brief.copywriting?.quoteOrBody;
+      const quoteLines = quote ? wrapSvgText(quote, 40) : [];
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="1250" width="${W}" height="670" fill="#1C1917" fill-opacity="0.88" />
-        <text x="${W / 2}" y="1450" font-family="'Times New Roman', serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accent}" text-anchor="middle">
-          — ARSIP SEJARAH EXPEDIENT —
-        </text>
-        <text x="${W / 2}" y="1540" font-family="'Times New Roman', serif" font-size="52" font-weight="700" fill="#FEF3C7" text-anchor="middle">
-          ${headline}
-        </text>
+        <defs>
+          <linearGradient id="histGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1C1917" stop-opacity="0" />
+            <stop offset="30%" stop-color="#1C1917" stop-opacity="0.45" />
+            <stop offset="70%" stop-color="#1C1917" stop-opacity="0.88" />
+            <stop offset="100%" stop-color="#1C1917" stop-opacity="0.97" />
+          </linearGradient>
+        </defs>
+        <rect x="0" y="1120" width="${W}" height="800" fill="url(#histGrad)" />
+        <g transform="translate(${W / 2}, 1500)">
+          <text x="0" y="0" font-family="'Times New Roman', serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accent}" text-anchor="middle">
+            ${eyebrow}
+          </text>
+          <text x="0" y="80" font-family="'Times New Roman', serif" font-size="${headlineSize}" font-weight="700" fill="#FEF3C7" text-anchor="middle">
+            ${headline}
+          </text>
+          <text x="0" y="135" font-family="'Georgia', serif" font-size="20" font-weight="600" letter-spacing="3" fill="#E7E5E4" text-anchor="middle">
+            ${subheadline}
+          </text>
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="0" y="${185 + i * 28}" font-family="'Times New Roman', serif" font-style="italic" font-size="18" fill="#D6D3D1" text-anchor="middle">
+              “${escapeXml(l)}”
+            </text>
+          `).join("")}
+          <text x="0" y="320" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="#A8A29E" text-anchor="middle">
+            EXPEDIENT HISTORICAL ARCHIVE · 2026
+          </text>
+        </g>
       </svg>`;
     },
   },
@@ -676,7 +864,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     targetCategories: ["EVENT_POSTER", "ANNOUNCEMENT_POSTER"],
     textSafeZone: {
       position: "bottom",
-      negativeSpaceInstruction: "Maintain warm dark atmospheric space in bottom 35% for celebratory gathering details.",
+      negativeSpaceInstruction: "Maintain smooth low-detail dark gradient area across bottom 35% of frame for celebratory gathering details.",
     },
     defaultPalette: [
       { hex: "#FB923C", name: "Warm Sunset" },
@@ -691,20 +879,45 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#FB923C";
-      const headline = escapeXml((brief.copywriting?.headline || "TEMU KANGEN & REUNI").toUpperCase());
+      const rawHeadline = (brief.copywriting?.headline || "TEMU KANGEN & REUNI").trim();
+      const headline = escapeXml(rawHeadline.toUpperCase());
+      const headlineSize = calculateHeadlineSize(rawHeadline, 100);
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "✦ PERAYAAN & TASYAKURAN ✦").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "EXPEDIENT GENERATION 43").toUpperCase());
+      const quote = brief.copywriting?.quoteOrBody;
+      const quoteLines = quote ? wrapSvgText(quote, 40) : [];
+
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="1180" width="${W}" height="740" fill="#0A0F1D" fill-opacity="0.8" />
-        <g transform="translate(${W / 2}, 1520)">
+        <defs>
+          <linearGradient id="festGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0A0F1D" stop-opacity="0" />
+            <stop offset="30%" stop-color="#0A0F1D" stop-opacity="0.45" />
+            <stop offset="68%" stop-color="#0A0F1D" stop-opacity="0.88" />
+            <stop offset="100%" stop-color="#0A0F1D" stop-opacity="0.97" />
+          </linearGradient>
+          <filter id="festShadow">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.8" />
+          </filter>
+        </defs>
+        <rect x="0" y="1120" width="${W}" height="800" fill="url(#festGrad)" />
+        <g transform="translate(${W / 2}, 1480)" filter="url(#festShadow)">
           <text x="0" y="0" font-family="'Segoe UI', sans-serif" font-size="14" font-weight="800" letter-spacing="6" fill="${accent}" text-anchor="middle">
-            ✦ PERAYAAN & TASYAKURAN ✦
+            ${eyebrow}
           </text>
-          <text x="0" y="80" font-family="'Georgia', serif" font-size="56" font-weight="700" letter-spacing="3" fill="#FFFFFF" text-anchor="middle">
+          <text x="0" y="80" font-family="'Georgia', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="3" fill="#FFFFFF" text-anchor="middle">
             ${headline}
           </text>
-          <text x="0" y="140" font-family="'Segoe UI', sans-serif" font-size="18" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
+          <text x="0" y="140" font-family="'Segoe UI', sans-serif" font-size="22" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
             ${subheadline}
+          </text>
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="0" y="${195 + i * 28}" font-family="'Georgia', serif" font-style="italic" font-size="18" fill="#F8FAFC" text-anchor="middle">
+              “${escapeXml(l)}”
+            </text>
+          `).join("")}
+          <text x="0" y="340" font-family="'Segoe UI', sans-serif" font-size="11" font-weight="700" letter-spacing="4" fill="#94A3B8" text-anchor="middle">
+            EXPEDIENT 43 · BERSAMA MENGUKIR SEJARAH
           </text>
         </g>
       </svg>`;
