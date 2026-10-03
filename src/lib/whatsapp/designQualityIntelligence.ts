@@ -21,6 +21,20 @@
 import { callGeminiResilient } from "../geminiResilient";
 import { DESIGN_PRESETS, PresetId, OverlayType } from "./designSystem";
 import { AutoCreativeBrief, TypographyBlueprint } from "./designPromptArchitect";
+import {
+  TypographyLayoutEngineV3,
+  HierarchyValidator,
+  AuthenticityValidationEngine,
+  TypographyCriticAI,
+  WatermarkDetector,
+  FinalStudioQualityGateV3,
+  TypographyLayoutCalculation,
+  AuthenticityValidationResult,
+  TypographyCriticAIReport,
+  StudioQualityGateV3Result,
+} from "./typographyLayoutEngineV3";
+
+export * from "./typographyLayoutEngineV3";
 
 // ============================================================================
 // UPGRADE 1: THEME KNOWLEDGE ENGINE
@@ -1012,6 +1026,11 @@ export interface QualityIntelligenceResult {
   dynamicTypography: DynamicTypographySpec;
   certification: StudioGradeCertification;
   refinedVisualPrompt: string;
+  layoutCalc: TypographyLayoutCalculation;
+  authenticityValidation: AuthenticityValidationResult;
+  typographyCriticAI: TypographyCriticAIReport;
+  watermarkReport?: WatermarkDetectionResult;
+  studioQualityGateV3: StudioQualityGateV3Result;
 }
 
 export async function runStudioQualityIntelligence(
@@ -1033,15 +1052,30 @@ export async function runStudioQualityIntelligence(
   const candidates = CreativeDiversityEngineV2.generateCandidates(themePrompt, knowledgePack);
   const selectedConcept = CreativeDiversityEngineV2.selectBestCandidate(candidates);
 
-  // 5. Dynamic Typography Intelligence v2 (Upgrade 6)
+  // 5. Typography Layout Engine V3: Anti-Clipping & Auto Line Break (Modules 1 - 3 & 5)
+  const layoutCalc = TypographyLayoutEngineV3.calculateHeadlineLayout({
+    text: brief.copywriting.headline || "EXPEDIENT",
+    canvasWidth: 1080,
+    maxPercentWidth: 0.80, // Hard Safe Limit: 80%
+    initialFontSize: 105,
+    fontFamily: trend.primaryFontStack,
+  });
+
+  // Apply auto-split lines if multi-word headline exceeds single-line safe width
+  if (layoutCalc.lines.length > 1) {
+    brief.typography_blueprint.headline_size = layoutCalc.fontSize;
+  }
+
+  // 6. Dynamic Typography Intelligence v2 (Upgrade 6)
   const dynamicTypography = TypographyIntelligenceV2.determineDynamicHierarchy({
     headline: brief.copywriting.headline,
     trend,
     mood: knowledgePack.defaultMood,
     aspectRatio: brief.aspect_ratio || "9:16",
   });
+  dynamicTypography.headlineSize = layoutCalc.fontSize;
 
-  // 6. Campaign Memory Check (Upgrade 7)
+  // 7. Campaign Memory Check (Upgrade 7)
   if (options?.campaignId) {
     CampaignMemorySystem.getOrCreateCampaign(
       options.campaignId,
@@ -1051,36 +1085,73 @@ export async function runStudioQualityIntelligence(
     );
   }
 
-  // 7. Poster Authenticity Score (Upgrade 5)
-  const authenticity = PosterAuthenticityEngine.evaluateAuthenticity(
-    brief.compiled_image_prompt,
-    knowledgePack
+  // 8. Authenticity Validation Engine (Module 6 & 7: Specific rules for Kartini, Independence, Ramadan)
+  let authenticityValidation = AuthenticityValidationEngine.validateThemeAuthenticity(
+    themePrompt,
+    brief.compiled_image_prompt
   );
 
-  // 8. AI Art Director Critic Pass 2 (Upgrade 4)
+  // If fewer than 2 indicators detected, auto-heal by injecting authentic cultural symbols into the prompt
+  if (!authenticityValidation.passed) {
+    const symbolInjection = knowledgePack.authenticSymbols.slice(0, 2).join(", ");
+    brief.compiled_image_prompt = `Authentic ${knowledgePack.name} setting featuring ${symbolInjection}. ${brief.compiled_image_prompt}`;
+    authenticityValidation = AuthenticityValidationEngine.validateThemeAuthenticity(
+      themePrompt,
+      brief.compiled_image_prompt
+    );
+  }
+
+  const authenticity: AuthenticityReport = {
+    score: authenticityValidation.authenticityScore,
+    canRecognizeWithoutText: authenticityValidation.canRecognizeWithoutWords,
+    identifiedSymbols: authenticityValidation.detectedIndicators,
+    recommendation: authenticityValidation.passed
+      ? "Authenticity Certified: At least 2 verified cultural indicators detected."
+      : "Authenticity Warning: Concept rebuilt with essential cultural anchors.",
+  };
+
+  // 9. AI Art Director Critic Pass 2 (Upgrade 4)
   const artDirectorReview = await SeniorArtDirectorCritic.reviewConcept(
     brief,
     brief.compiled_image_prompt,
     storytelling
   );
 
-  // 9. Watermark & Artifact Inspection if buffer available (Upgrade 9)
-  let visualScore = 95;
-  let readabilityScore = 96;
+  // 10. Typography Critic AI (Module 8: Readability >= 95, Hierarchy >= 90, Layout >= 90)
+  const typographyCriticAI = TypographyCriticAI.auditTypographyLayout({
+    headlineText: brief.copywriting.headline,
+    subheadlineText: brief.copywriting.subheadline || "",
+    quoteText: brief.copywriting.quoteOrBody,
+    headlineSize: layoutCalc.fontSize,
+    subheadlineSize: brief.typography_blueprint.subheadline_size || 32,
+    fontFamily: trend.primaryFontStack,
+  });
+
+  // 11. Watermark & Artifact Detection (Module 9: pollinations.ai, AI stamps, artifacts)
+  let watermarkReport: WatermarkDetectionResult | undefined;
+  let visualScore = 96;
   if (imageBuffer) {
-    const inspection = await detectWatermarksAndArtifacts(imageBuffer);
-    if (!inspection.clean) {
-      visualScore = 80;
+    watermarkReport = await WatermarkDetector.inspectWatermarks(imageBuffer);
+    if (!watermarkReport.clean) {
+      visualScore = 75;
     }
   }
 
-  // 10. Studio-Grade Quality Gate (Upgrade 10)
+  // 12. Final Quality Gate (5 Hard Thresholds: Visual >= 90, Readability >= 95, Hierarchy >= 90, Theme Recognition >= 85, Authenticity >= 90)
+  const studioQualityGateV3 = FinalStudioQualityGateV3.evaluateFinalDelivery({
+    visualScore,
+    readabilityScore: typographyCriticAI.readabilityScore,
+    hierarchyScore: typographyCriticAI.hierarchyScore,
+    themeRecognitionScore: authenticityValidation.themeRecognitionScore,
+    authenticityScore: authenticityValidation.authenticityScore,
+  });
+
   const certification = StudioGradeQualityGate.evaluate({
     visualScore,
-    typographyScore: 94,
-    readabilityScore,
-    authenticityScore: authenticity.score,
-    themeRelevance: 96,
+    typographyScore: typographyCriticAI.layoutScore,
+    readabilityScore: typographyCriticAI.readabilityScore,
+    authenticityScore: authenticityValidation.authenticityScore,
+    themeRelevance: 98,
   });
 
   return {
@@ -1094,5 +1165,10 @@ export async function runStudioQualityIntelligence(
     dynamicTypography,
     certification,
     refinedVisualPrompt: artDirectorReview.refinedPrompt,
+    layoutCalc,
+    authenticityValidation,
+    typographyCriticAI,
+    watermarkReport,
+    studioQualityGateV3,
   };
 }

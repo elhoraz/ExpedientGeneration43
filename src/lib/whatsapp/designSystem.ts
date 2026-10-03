@@ -92,17 +92,106 @@ export function wrapSvgText(text: string, maxCharsPerLine = 36): string[] {
   return lines;
 }
 
+import {
+  estimateTextWidth,
+  TypographyLayoutEngineV3,
+  splitHeadlineBalanced,
+} from "./typographyLayoutEngineV3";
+
+export * from "./typographyLayoutEngineV3";
+
 /**
- * Dynamic Auto Typography Rules
- * Calculates optimal headline font size dynamically based on character count
- * to prevent text clipping, line wrapping errors, or clutter.
+ * Dynamic Auto Typography Rules (v3.0)
+ * Calculates optimal headline font size dynamically based on precise character width
+ * to strictly prevent text clipping, horizontal canvas overflow, or clutter.
+ * Hard limit: renderedWidth <= canvasWidth * 0.80 (864px on 1080px canvas)
  */
-export function calculateHeadlineSize(headline: string, baseSize = 118): number {
-  const len = (headline || "").trim().length;
-  if (len <= 14) return Math.min(baseSize, 122);  // e.g. "DIRGAHAYU RI"
-  if (len <= 22) return Math.min(baseSize, 102);  // e.g. "DIRGAHAYU INDONESIA"
-  if (len <= 32) return Math.min(baseSize, 82);   // e.g. "79 TAHUN INDONESIA MERDEKA"
-  return Math.min(baseSize, 64);
+export function calculateHeadlineSize(
+  headline: string,
+  baseSize = 118,
+  canvasWidth = 1080,
+  fontFamily = "'Montserrat', sans-serif"
+): number {
+  const clean = (headline || "").trim();
+  if (!clean) return baseSize;
+
+  const availableWidth = Math.floor(canvasWidth * 0.80); // 80% Safe Area (864px)
+
+  // If multi-word headline is long, measure against longest balanced line
+  let textToMeasure = clean;
+  let singleLineWidth = estimateTextWidth(clean, baseSize, fontFamily, 3);
+  if (singleLineWidth > availableWidth && clean.includes(" ") && clean.length > 18) {
+    const lines = splitHeadlineBalanced(clean, 16);
+    textToMeasure = lines.reduce((a, b) => (a.length > b.length ? a : b), "");
+  }
+
+  let size = baseSize;
+  let width = estimateTextWidth(textToMeasure, size, fontFamily, 3);
+
+  // Auto font scaling: reduce font size incrementally until it fits inside safe area
+  while (width > availableWidth && size > 38) {
+    size -= 4;
+    width = estimateTextWidth(textToMeasure, size, fontFamily, 3);
+  }
+
+  return size;
+}
+
+/**
+ * Renders SVG headline with auto line break and tspans if text exceeds safe width,
+ * perfectly centered and balanced without clipping.
+ */
+export function formatSvgHeadlineTspans(
+  headline: string,
+  options?: {
+    canvasWidth?: number;
+    initialFontSize?: number;
+    fontFamily?: string;
+    letterSpacingPx?: number;
+    anchorX?: number | string;
+    lineHeight?: number;
+  }
+): {
+  fontSize: number;
+  tspans: string;
+  lines: string[];
+  totalHeight: number;
+  renderedWidth: number;
+} {
+  const calc = TypographyLayoutEngineV3.calculateHeadlineLayout({
+    text: headline,
+    canvasWidth: options?.canvasWidth || 1080,
+    initialFontSize: options?.initialFontSize || 105,
+    fontFamily: options?.fontFamily || "'Montserrat', sans-serif",
+    letterSpacingPx: options?.letterSpacingPx ?? 3,
+  });
+
+  const anchorX = options?.anchorX ?? "50%";
+  if (calc.lines.length <= 1) {
+    return {
+      fontSize: calc.fontSize,
+      tspans: escapeXml(calc.lines[0] || headline),
+      lines: calc.lines,
+      totalHeight: calc.lineHeight,
+      renderedWidth: calc.renderedWidth,
+    };
+  }
+
+  // Multi-line stack
+  const tspans = calc.lines
+    .map((line, idx) => {
+      const dy = idx === 0 ? "0" : `${calc.lineHeight}`;
+      return `<tspan x="${anchorX}" dy="${dy}">${escapeXml(line)}</tspan>`;
+    })
+    .join("");
+
+  return {
+    fontSize: calc.fontSize,
+    tspans,
+    lines: calc.lines,
+    totalHeight: calc.totalBlockHeight,
+    renderedWidth: calc.renderedWidth,
+  };
 }
 
 export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
