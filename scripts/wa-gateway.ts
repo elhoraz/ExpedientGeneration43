@@ -256,14 +256,8 @@ async function startBaileysGateway() {
       officialTitle = "Peringatan G30S/PKI (30 September)";
     }
 
-    const wantsOfficialTemplate =
-      lowerPrompt.includes("resmi") ||
-      lowerPrompt.includes("template") ||
-      lowerPrompt.includes("unduh") ||
-      lowerPrompt.includes("download");
-
-    if (wantsOfficialTemplate && officialBuffer) {
-      addLog(`🖼️ [OFFICIAL-POSTER] Mengirimkan poster resmi siap pakai: "${officialTitle}" ke ${cleanJid}`);
+    if (officialBuffer) {
+      addLog(`🖼️ [OFFICIAL-POSTER] Mengirimkan poster mahakarya resmi: "${officialTitle}" ke ${cleanJid}`);
       await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
       const caption =
         `📱 *POSTER RESMI EXPEDIENT 43 (INSTAGRAM STORY 9:16)* 🖼️\n\n` +

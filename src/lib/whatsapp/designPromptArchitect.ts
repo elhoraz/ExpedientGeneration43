@@ -348,8 +348,8 @@ function generateBarcodeSvg(x: number, y: number, height = 24): string {
 }
 
 /**
- * Mengaplikasikan Tipografi Heroik Khas Poster Resmi & Pinterest (Format 9:16 Instagram Story)
- * Meniru secara persis penataan, font, ukuran font, lambang emas, dan kuas bendera seperti poster HUT TNI / Hari Besar
+ * Mengaplikasikan Tipografi Editorial Estetis Ala Pinterest & Majalah Mewah (Format 9:16 Instagram Story)
+ * Desain bersih, bernafas, profesional, tanpa gambar klipart/garis kaku yang merusak foto AI.
  */
 export async function applyPinterestTypographyOverlay(
   imageBuffer: Buffer,
@@ -365,242 +365,116 @@ export async function applyPinterestTypographyOverlay(
       .resize(W, H, { fit: "cover", position: "center" })
       .toBuffer();
 
-    const isMilitary = blueprint.category === "military";
-    const isIslamic = blueprint.category === "islamic";
+    const category = blueprint.category || "general";
+    let accentColor = "#FBBF24"; // Emas amber default
+    let tagText = "EXPEDIENT JOURNAL · VOL. 43";
 
-    // 1. Ekstraksi Judul & Tipografi Sesuai Kategori
-    let headline = "D I R G A H A Y U";
-    let subheadline = "TENTARA NASIONAL INDONESIA";
-    let dateStr = "5 OKTOBER 1945 – 5 OKTOBER 2026";
-    let annivNum = "81";
-    let mainTitle = "TNI";
-    let slogan1 = "TNI PRIMA";
-    let slogan2 = "TNI RAKYAT · INDONESIA MAJU";
-    let quote = "Teruslah menjadi garda terdepan untuk menjaga kedaulatan bangsa dan mengabdi kepada rakyat, negara, dan tanah air.";
-    let motto = "TNI KUAT, INDONESIA HEBAT";
-
-    let primaryColor = "#DC2626"; // Merah
-    let secondaryColor = "#FFFFFF";
-    let accentColor = "#F59E0B"; // Emas
-
-    if (isMilitary) {
-      headline = "D I R G A H A Y U";
-      subheadline = "TENTARA NASIONAL INDONESIA";
-      dateStr = "5 OKTOBER 1945 – 5 OKTOBER 2026";
-      annivNum = "81";
-      mainTitle = "TNI";
-      slogan1 = "TNI PRIMA";
-      slogan2 = "TNI RAKYAT · INDONESIA MAJU";
-      quote = blueprint.copywriting.quoteOrBody || "Teruslah menjadi garda terdepan untuk menjaga kedaulatan bangsa dan mengabdi kepada rakyat, negara, dan tanah air.";
-      motto = "TNI KUAT, INDONESIA HEBAT";
-      primaryColor = "#DC2626";
-      secondaryColor = "#FFFFFF";
-      accentColor = "#F59E0B";
-    } else if (isIslamic) {
-      headline = "P E R I N G A T A N";
-      subheadline = "HARI SANTRI NASIONAL";
-      dateStr = "22 OKTOBER 1945 – 22 OKTOBER 2026";
-      annivNum = "2026";
-      mainTitle = "SANTRI";
-      slogan1 = "JIHAD SANTRI";
-      slogan2 = "JAYAKAN NEGERI · BERAKHLAK MULIA";
-      quote = blueprint.copywriting.quoteOrBody || "Menyambung juang, merengkuh masa depan. Dari pesantren untuk kemajuan Indonesia dan peradaban dunia.";
-      motto = "SANTRI BERDAYA, INDONESIA JAYA";
-      primaryColor = "#059669"; // Emerald
-      secondaryColor = "#FFFFFF";
-      accentColor = "#F59E0B";
-    } else {
-      headline = escapeXml((blueprint.copywriting.headline || "D I R G A H A Y U").toUpperCase());
-      subheadline = escapeXml((blueprint.copywriting.subheadline || blueprint.title || "EXPEDIENT 43").toUpperCase());
-      dateStr = "2026 · EXPEDIENT ARCHIVE";
-      const numMatch = (headline + " " + subheadline).match(/\d+/);
-      annivNum = numMatch ? numMatch[0] : "43";
-      mainTitle = escapeXml(subheadline.length > 8 ? subheadline.slice(0, 8) : subheadline);
-      slogan1 = "GENERASI EMAS";
-      slogan2 = "BERSATU · BERKARYA · BERJAYA";
-      quote = blueprint.copywriting.quoteOrBody || "Merajut kebersamaan, melangkah pasti menjemput masa depan gemilang.";
-      motto = "EXPEDIENT 43 UNTUK INDONESIA";
-      primaryColor = blueprint.colorPalette[1]?.hex || "#DC2626";
-      secondaryColor = "#FFFFFF";
-      accentColor = blueprint.colorPalette[0]?.hex || "#F59E0B";
+    if (category === "islamic") {
+      accentColor = "#34D399"; // Emerald
+      tagText = "HARI SANTRI NASIONAL · 2026";
+    } else if (category === "military") {
+      accentColor = "#F59E0B"; // Gold
+      tagText = "DIRGAHAYU REPUBLIK INDONESIA";
+    } else if (category === "reunion") {
+      accentColor = "#FB923C"; // Warm sunset
+      tagText = "TEMU KANGEN & REUNI AKBAR · 43";
+    } else if (category === "sport") {
+      accentColor = "#38BDF8"; // Electric cyan
+      tagText = "EXPEDIENT ATHLETICS · 2026";
     }
 
-    const quoteLines = wrapSvgText(quote, 46);
+    const rawHeadline = (blueprint.copywriting.headline || blueprint.title || "EXPEDIENT").trim();
+    // Spacing huruf untuk kesan monumental editorial mewah
+    const headline = escapeXml(
+      rawHeadline.length <= 15
+        ? rawHeadline.toUpperCase().split("").join(" ")
+        : rawHeadline.toUpperCase()
+    );
+
+    const subheadline = escapeXml(
+      (blueprint.copywriting.subheadline || "CREATIVE ARCHIVE").toUpperCase()
+    );
+
+    const quote =
+      blueprint.copywriting.quoteOrBody ||
+      "Merajut kebersamaan, melangkah pasti menjemput masa depan gemilang.";
+    const quoteLines = wrapSvgText(quote, 48);
 
     const svg = `
     <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <!-- Atmospheric Sky Gradient Scrims -->
+        <!-- Atmospheric Vignette Scrims -->
         <linearGradient id="topScrim" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#020617" stop-opacity="0.85" />
-          <stop offset="25%" stop-color="#020617" stop-opacity="0.65" />
-          <stop offset="50%" stop-color="#020617" stop-opacity="0.30" />
-          <stop offset="80%" stop-color="#020617" stop-opacity="0.08" />
+          <stop offset="0%" stop-color="#020617" stop-opacity="0.82" />
+          <stop offset="45%" stop-color="#020617" stop-opacity="0.48" />
           <stop offset="100%" stop-color="#020617" stop-opacity="0" />
         </linearGradient>
 
         <linearGradient id="bottomScrim" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stop-color="#020617" stop-opacity="0" />
-          <stop offset="30%" stop-color="#020617" stop-opacity="0.45" />
-          <stop offset="70%" stop-color="#020617" stop-opacity="0.82" />
+          <stop offset="35%" stop-color="#020617" stop-opacity="0.55" />
+          <stop offset="80%" stop-color="#020617" stop-opacity="0.88" />
           <stop offset="100%" stop-color="#020617" stop-opacity="0.96" />
         </linearGradient>
 
-        <!-- Authentic Gold Crest Gradient -->
-        <linearGradient id="goldBright" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#FEF9C3" />
-          <stop offset="30%" stop-color="#FCD34D" />
-          <stop offset="65%" stop-color="#F59E0B" />
-          <stop offset="100%" stop-color="#B45309" />
-        </linearGradient>
-
-        <!-- 3D Ribbon Gradients -->
-        <linearGradient id="ribbonSplit" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="${primaryColor}" />
-          <stop offset="48%" stop-color="#991B1B" />
-          <stop offset="50%" stop-color="#FFFFFF" />
-          <stop offset="100%" stop-color="#E2E8F0" />
-        </linearGradient>
-
-        <!-- Text Drop Shadows -->
-        <filter id="heavyShadow" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.95" />
-        </filter>
+        <!-- Drop Shadows -->
         <filter id="crispShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.92" />
+          <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.85" />
         </filter>
-        <filter id="goldGlow" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="${accentColor}" flood-opacity="0.7" />
+        <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
         </filter>
       </defs>
 
-      <!-- Scrim Gradients -->
-      <rect x="0" y="0" width="${W}" height="920" fill="url(#topScrim)" />
-      <rect x="0" y="1300" width="${W}" height="620" fill="url(#bottomScrim)" />
+      <!-- Soft Contrast Scrims -->
+      <rect x="0" y="0" width="${W}" height="620" fill="url(#topScrim)" />
+      <rect x="0" y="1220" width="${W}" height="700" fill="url(#bottomScrim)" />
 
-      <!-- ==================== TOP-LEFT DRAPED FLAG BANNER ==================== -->
-      <g filter="url(#heavyShadow)">
-        <path d="M 0 0 L 340 0 C 280 60, 210 100, 150 155 C 95 195, 45 225, 0 245 Z" fill="${primaryColor}" />
-        <path d="M 0 0 L 200 0 C 130 75, 75 150, 0 220 Z" fill="#7F1D1D" opacity="0.35" />
-        <path d="M 0 245 C 45 225, 95 195, 150 155 C 210 100, 280 60, 340 0 L 375 0 C 305 70, 225 125, 160 185 C 100 235, 50 265, 0 285 Z" fill="${secondaryColor}" />
-        <path d="M 150 155 C 130 175, 90 215, 45 250" stroke="#000000" stroke-width="3" opacity="0.2" fill="none" />
-      </g>
+      <!-- ==================== TOP EDITORIAL HEADER ==================== -->
+      <g filter="url(#crispShadow)">
+        <!-- Minimalist Tag Badge -->
+        <text x="${W / 2}" y="140" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accentColor}" text-anchor="middle">
+          — ${escapeXml(tagText)} —
+        </text>
 
-      <!-- ==================== TOP CENTER AUTHENTIC GOLDEN CREST ==================== -->
-      <g transform="translate(${W / 2}, 115)" filter="url(#goldGlow)">
-        <!-- Laurel Wreath -->
-        <circle cx="0" cy="0" r="62" fill="none" stroke="url(#goldBright)" stroke-width="3" stroke-dasharray="10,4" />
-        <circle cx="0" cy="0" r="54" fill="#0A0F1D" fill-opacity="0.88" stroke="url(#goldBright)" stroke-width="2.5" />
-        <path d="M -50 15 C -56 -12, -42 -42, 0 -52 C 42 -42, 56 -12, 50 15 C 42 36, 25 48, 0 54 C -25 48, -42 36, -50 15 Z" fill="none" stroke="url(#goldBright)" stroke-width="3" />
-
-        <!-- 5-Pointed Star -->
-        <polygon points="0,-42 4.5,-29 18,-29 8,-21 11,-8 0,-16 -11,-8 -8,-21 -18,-29 -4.5,-29" fill="url(#goldBright)" />
-
-        <!-- Tri-Matra Wings / Crest Wings -->
-        <path d="M -38 -15 C -22 -22, -11 -20, 0 -11 C 11 -20, 22 -22, 38 -15 C 28 -7, 14 -5, 0 3 C -14 -5, -28 -7, -38 -15 Z" fill="url(#goldBright)" />
-
-        <!-- Anchor / Shield Center -->
-        <line x1="0" y1="-11" x2="0" y2="33" stroke="url(#goldBright)" stroke-width="5.5" stroke-linecap="round" />
-        <line x1="-18" y1="2" x2="18" y2="2" stroke="url(#goldBright)" stroke-width="4.5" stroke-linecap="round" />
-        <path d="M -26 18 C -22 37, 22 37, 26 18" fill="none" stroke="url(#goldBright)" stroke-width="5" stroke-linecap="round" />
-        <circle cx="0" cy="-8" r="4" fill="#0A0F1D" stroke="url(#goldBright)" stroke-width="2.5" />
-
-        <!-- Ribbon at Base of Crest -->
-        <path d="M -38 38 C -19 48, 19 48, 38 38 L 34 47 C 16 55, -16 55, -34 47 Z" fill="${primaryColor}" />
-        <path d="M -34 47 C -16 55, 16 55, 34 47 L 30 54 C 13 60, -13 60, -30 54 Z" fill="${secondaryColor}" />
-      </g>
-
-      <!-- ==================== HEADER TYPOGRAPHY ==================== -->
-      <g filter="url(#heavyShadow)">
-        <!-- Line 1: D I R G A H A Y U -->
-        <text x="${W / 2}" y="240" font-family="'Montserrat', 'Arial Black', sans-serif" font-size="28" font-weight="900" letter-spacing="14" fill="#FFFFFF" text-anchor="middle">
+        <!-- Main Monumental Headline -->
+        <text x="${W / 2}" y="235" font-family="'Georgia', 'Times New Roman', serif" font-size="${headline.length > 25 ? 46 : 58}" font-weight="700" letter-spacing="8" fill="#FFFFFF" text-anchor="middle">
           ${headline}
         </text>
 
-        <!-- Line 2: TENTARA NASIONAL INDONESIA -->
-        <text x="${W / 2}" y="282" font-family="'Montserrat', Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="5" fill="#F8FAFC" text-anchor="middle">
+        <!-- Thin Elegant Accent Line -->
+        <line x1="${W / 2 - 70}" y1="272" x2="${W / 2 + 70}" y2="272" stroke="${accentColor}" stroke-width="2" opacity="0.85" />
+
+        <!-- Refined Subheadline -->
+        <text x="${W / 2}" y="312" font-family="'Segoe UI', -apple-system, Roboto, sans-serif" font-size="17" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
           ${subheadline}
         </text>
-
-        <!-- Line 3: Fine Divider with Commemoration Dates -->
-        <g opacity="0.9">
-          <line x1="160" y1="318" x2="310" y2="318" stroke="#FFFFFF" stroke-width="1.8" />
-          <text x="${W / 2}" y="323" font-family="'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="600" letter-spacing="3" fill="#FFFFFF" text-anchor="middle">
-            ${dateStr}
-          </text>
-          <line x1="770" y1="318" x2="920" y2="318" stroke="#FFFFFF" stroke-width="1.8" />
-        </g>
       </g>
 
-      <!-- ==================== 3D RED-WHITE COMMEMORATIVE NUMBER ==================== -->
-      <g filter="url(#heavyShadow)">
-        <!-- 3D Ribbon Numeral '81' / '80' -->
-        <g transform="translate(${W / 2 - (annivNum.length > 2 ? 0 : 20)}, 475)">
-          <!-- Deep 3D Shadow -->
-          <text x="0" y="8" font-family="'Arial Black', 'Montserrat ExtraBold', Impact, sans-serif" font-size="${annivNum.length > 2 ? 140 : 175}" font-weight="900" letter-spacing="-6" fill="#000000" opacity="0.75" text-anchor="middle">
-            ${annivNum}
-          </text>
+      <!-- ==================== BOTTOM PINTEREST GLASSMORPHIC CARD ==================== -->
+      <g transform="translate(80, ${1580 - Math.max(0, (quoteLines.length - 2) * 30)})" filter="url(#cardShadow)">
+        <!-- Frosted Dark Glass Backdrop -->
+        <rect x="0" y="0" width="920" height="${190 + Math.max(0, (quoteLines.length - 2) * 30)}" rx="18" fill="#0A0F1D" fill-opacity="0.68" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="1.2" />
 
-          <!-- Red Upper & White Lower Split 3D Ribbon Fill -->
-          <text x="0" y="0" font-family="'Arial Black', 'Montserrat ExtraBold', Impact, sans-serif" font-size="${annivNum.length > 2 ? 140 : 175}" font-weight="900" letter-spacing="-6" fill="url(#ribbonSplit)" text-anchor="middle">
-            ${annivNum}
-          </text>
+        <!-- Poetic Quote Text -->
+        ${quoteLines
+          .map(
+            (line, idx) => `
+          <text x="460" y="${64 + idx * 34}" font-family="'Georgia', serif" font-style="italic" font-size="21" font-weight="400" fill="#F8FAFC" text-anchor="middle">
+            "${escapeXml(line.replace(/^"|"$/g, ""))}"
+          </text>`
+          )
+          .join("")}
 
-          <!-- Fine 3D edge highlight -->
-          <text x="0" y="0" font-family="'Arial Black', 'Montserrat ExtraBold', Impact, sans-serif" font-size="${annivNum.length > 2 ? 140 : 175}" font-weight="900" letter-spacing="-6" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.6" text-anchor="middle">
-            ${annivNum}
-          </text>
+        <!-- Divider Line -->
+        <line x1="40" y1="${135 + Math.max(0, (quoteLines.length - 2) * 30)}" x2="880" y2="${135 + Math.max(0, (quoteLines.length - 2) * 30)}" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1" />
 
-          ${
-            annivNum.length <= 2
-              ? `<text x="135" y="-85" font-family="'Montserrat', 'Arial Black', sans-serif" font-size="38" font-weight="900" fill="#FFFFFF" filter="url(#crispShadow)">TH</text>`
-              : ""
-          }
-        </g>
-      </g>
-
-      <!-- ==================== MONUMENTAL MAIN TITLE 'TNI' ==================== -->
-      <g filter="url(#heavyShadow)">
-        <!-- Massive Block Title: 'TNI' -->
-        <!-- 3D Extrusion Shadow -->
-        <text x="${W / 2 + 4}" y="624" font-family="'Arial Black', 'Impact', 'Montserrat ExtraBold', sans-serif" font-size="170" font-weight="900" letter-spacing="4" fill="#000000" opacity="0.85" text-anchor="middle">
-          ${mainTitle}
+        <!-- Footer Metadata -->
+        <text x="50" y="${164 + Math.max(0, (quoteLines.length - 2) * 30)}" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="600" letter-spacing="3" fill="#94A3B8">
+          2026 · EXPEDIENT ARCHIVE
         </text>
-        <!-- Pure Monumental Face -->
-        <text x="${W / 2}" y="620" font-family="'Arial Black', 'Impact', 'Montserrat ExtraBold', sans-serif" font-size="170" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
-          ${mainTitle}
-        </text>
-
-        <!-- Official Slogan 1: TNI PRIMA -->
-        <text x="${W / 2}" y="688" font-family="'Montserrat', 'Arial Black', sans-serif" font-size="32" font-weight="900" letter-spacing="7" fill="#FFFFFF" text-anchor="middle">
-          ${slogan1}
-        </text>
-
-        <!-- Official Slogan 2: TNI RAKYAT · INDONESIA MAJU -->
-        <text x="${W / 2}" y="730" font-family="'Montserrat', Arial, sans-serif" font-size="21" font-weight="800" letter-spacing="4" fill="#F1F5F9" opacity="0.95" text-anchor="middle">
-          ${slogan2}
-        </text>
-      </g>
-
-      <!-- ==================== BOTTOM-RIGHT DYNAMIC BRUSH STROKE ==================== -->
-      <g filter="url(#heavyShadow)">
-        <path d="M 660 1920 L 1080 1500 L 1080 1710 L 800 1920 Z" fill="${primaryColor}" opacity="0.95" />
-        <path d="M 740 1920 L 1080 1580 L 1080 1670 L 840 1920 Z" fill="#7F1D1D" opacity="0.5" />
-        <path d="M 780 1920 L 1080 1620 L 1080 1710 L 880 1920 Z" fill="${secondaryColor}" opacity="0.9" />
-      </g>
-
-      <!-- ==================== BOTTOM PATRIOTIC QUOTE & MOTTO ==================== -->
-      <g filter="url(#heavyShadow)">
-        <!-- Multi-line Centered Italic Quote -->
-        ${quoteLines.map((line, idx) => `
-          <text x="${W / 2}" y="${1740 + idx * 34}" font-family="'Georgia', serif" font-style="italic" font-size="20" font-weight="400" fill="#F8FAFC" text-anchor="middle">
-            ${escapeXml(line)}
-          </text>
-        `).join("")}
-
-        <!-- Bottom Motto: TNI KUAT, INDONESIA HEBAT -->
-        <text x="${W / 2}" y="${1740 + quoteLines.length * 34 + 50}" font-family="'Montserrat', 'Arial Black', sans-serif" font-size="19" font-weight="900" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
-          ${motto}
+        <text x="870" y="${164 + Math.max(0, (quoteLines.length - 2) * 30)}" font-family="'Segoe UI', sans-serif" font-size="13" font-weight="700" letter-spacing="2" fill="${accentColor}" text-anchor="end">
+          EXPEDIENT 43
         </text>
       </g>
     </svg>
@@ -614,4 +488,5 @@ export async function applyPinterestTypographyOverlay(
     return imageBuffer;
   }
 }
+
 
