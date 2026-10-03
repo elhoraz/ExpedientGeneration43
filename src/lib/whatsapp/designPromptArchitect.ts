@@ -2,14 +2,13 @@
  * src/lib/whatsapp/designPromptArchitect.ts
  * Enterprise Auto Creative Brief Generator & 3-Tier Design System Pipeline
  * 
- * Implements the 2 Decoupled Outputs Architecture:
- * 1. Visual Prompt (Framing 35-45%, Narrative Depth, POSTER LAYOUT INTENT, Negative Prompt)
- * 2. Typography Blueprint (Deterministic Preset, Multi-stop Scrim, Auto-Sizing, Sharp Compositor)
- * 
- * Includes:
- * - Design Preset Library (12 Presets)
- * - Auto Hierarchy Generator (Eyebrow, Headline, Subheadline, Quote, Footer)
- * - Post-Render Quality Checker (Sharp Contrast & Luminance Inspection)
+ * Features:
+ * - Event-Anchored Headline Generator (Prevents ambiguous slogans as headlines)
+ * - Designer Font Stacks (Montserrat, Bebas Neue, Playfair Display, Space Grotesk)
+ * - Short Punchy Slogans / Quotes (Max 6-10 words to prevent layout clutter)
+ * - Design Diversity & Creative Style Variations (Heroic, Modern Swiss, Luxury, Minimal, Historic)
+ * - Decoupled Visual Prompt + Typography Blueprint
+ * - Post-Render Quality Critic with Sharp Contrast Inspection
  */
 
 import { callGeminiResilient } from "../geminiResilient";
@@ -17,6 +16,7 @@ import {
   DESIGN_PRESETS,
   DesignIntentCategory,
   PresetId,
+  OverlayType,
   getDefaultPresetForCategory,
   escapeXml,
   wrapSvgText,
@@ -25,6 +25,7 @@ import {
 
 export interface TypographyBlueprint {
   layout: string;
+  creative_style?: string;
   headline: string;
   subheadline: string;
   eyebrow?: string;
@@ -39,7 +40,7 @@ export interface TypographyBlueprint {
   alignment: "center" | "left";
   text_position: "bottom_center" | "top_center" | "left_center" | "bottom_left";
   overlay: {
-    type: "bottom_gradient" | "top_gradient" | "left_gradient" | "glass_card";
+    type: OverlayType;
     opacity: number;
   };
 }
@@ -50,6 +51,7 @@ export interface AutoCreativeBrief {
   poster_type: string;
   aspect_ratio: "9:16";
   preset_id: PresetId;
+  creative_style: string;
   audience: string;
   visual_style: string;
   mood: string;
@@ -107,6 +109,7 @@ export interface ArtDirectionBlueprint {
  */
 export function buildTypographyBlueprint(brief: {
   preset_id: PresetId;
+  creative_style?: string;
   copywriting: {
     headline: string;
     subheadline: string;
@@ -126,13 +129,9 @@ export function buildTypographyBlueprint(brief: {
   else if (isLeftZone) textPos = "left_center";
   else if (isLeft) textPos = "bottom_left";
 
-  let overlayType: TypographyBlueprint["overlay"]["type"] = "bottom_gradient";
-  if (isTop) overlayType = "top_gradient";
-  else if (isLeftZone) overlayType = "left_gradient";
-  else if (brief.preset_id === "04_GLASS_EVENT") overlayType = "glass_card";
-
   return {
     layout: brief.preset_id,
+    creative_style: brief.creative_style || "HEROIC_MONUMENTAL",
     headline: rawHeadline.toUpperCase(),
     subheadline: (brief.copywriting.subheadline || "").trim(),
     eyebrow: brief.copywriting.eyebrow,
@@ -146,7 +145,7 @@ export function buildTypographyBlueprint(brief: {
     alignment: preset.typography.headlineAlign,
     text_position: textPos,
     overlay: {
-      type: overlayType,
+      type: preset.overlayType || "bottom_gradient",
       opacity: 0.85,
     },
   };
@@ -188,17 +187,19 @@ export async function generateAutoCreativeBrief(rawUserPrompt: string): Promise<
 
   try {
     const systemPrompt = `
-You are an Award-Winning Poster Art Director & Auto Creative Brief Generator for a professional Graphic Design Studio WhatsApp Bot.
+You are an Elite Poster Art Director & Auto Creative Brief Generator for a professional Graphic Design Studio WhatsApp Bot.
 A user requested: "${clean}".
 
 Your task is "Auto-Brief Completion": normalize short or ambiguous user requests into a complete, decoupled design specification:
 1. Visual Design Specification (camera framing, strictly 35-45% occupancy in upper-middle area, narrative storytelling depth e.g. subtle monument silhouettes or atmospheric depth, lighting, mood, color palette).
 2. Professional Indonesian Copywriting with 4-Tier Visual Hierarchy:
-   - eyebrow: official badge or kicker (e.g. "17 AGUSTUS · PERINGATAN RESMI NASIONAL")
-   - headline: monumental, punchy uppercase (1-3 words)
-   - subheadline: supporting contextual theme
-   - quoteOrBody: inspiring slogan or quote (1-2 sentences)
-3. Typography Blueprint Selection (choose best matching preset_id from the 12 presets).
+   - CRITICAL HEADLINE ANCHOR RULE: The headline MUST explicitly anchor the core event or theme (1-3 words monumental uppercase, e.g. "DIRGAHAYU INDONESIA", "INDONESIA MERDEKA", "KENAIKAN ISA AL-MASIH", "REUNI AKBAR"). NEVER use ambiguous generic slogans like "TERUS MELAJU" or "BERSAMA KITA BISA" as the main headline! Put slogans into the subheadline!
+   - subheadline: supporting contextual theme, slogan, or milestone.
+   - CRITICAL SHORT QUOTE RULE: In 9:16 mobile story layouts, long paragraphs ruin whitespace. Max 6-10 words! A short, memorable, punchy motto (e.g. "Bersatu untuk Indonesia yang lebih maju." or "Kemerdekaan adalah semangat terus berkarya.").
+   - eyebrow: official badge or kicker (e.g. "17 AGUSTUS · PERINGATAN RESMI NASIONAL").
+3. Typography Blueprint Selection & Design Diversity:
+   - Choose a distinct creative_style: "HEROIC_MONUMENTAL" | "MODERN_SWISS" | "LUXURY_EDITORIAL" | "MINIMAL_NATIONAL" | "HISTORICAL_DOCUMENTARY" | "GLASS_EVENT"
+   - Match with best preset_id: "01_CINEMATIC_HERO" | "02_EDITORIAL_LUXURY" | "03_SWISS_MODERN" | "04_GLASS_EVENT" | "05_MINIMAL_RELIGIOUS" | "06_CORPORATE_CLEAN" | "07_YOUTH_VIBRANT" | "08_PATRIOTIC_MONUMENTAL" | "09_PRODUCT_PREMIUM" | "10_FUTURISTIC_TECH" | "11_DOCUMENTARY_HISTORY" | "12_FESTIVAL_DYNAMIC".
 
 CRITICAL INFORMATION BOUNDARY RULES:
 1. SAFE TO ASSUME & ENRICH: Visual style, layout preset, color palette, lighting, composition, photography style, typography style, inspirational headline, subheadline, and uplifting quotes.
@@ -208,11 +209,12 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
 {
   "theme": "Normalized Indonesian theme title",
   "category": "COMMEMORATIVE_POSTER" | "RELIGIOUS_POSTER" | "EVENT_POSTER" | "PROMOTIONAL_POSTER" | "EDUCATIONAL_POSTER" | "ANNOUNCEMENT_POSTER" | "PRODUCT_AD" | "SOCIAL_MEDIA_POST" | "SCENERY_IMAGE" | "PORTRAIT" | "INFOGRAPHIC",
-  "poster_type": "Descriptive English poster type (e.g. National Commemorative Poster, Sacred Holiday Story)",
+  "poster_type": "Descriptive English poster type",
   "preset_id": "01_CINEMATIC_HERO" | "02_EDITORIAL_LUXURY" | "03_SWISS_MODERN" | "04_GLASS_EVENT" | "05_MINIMAL_RELIGIOUS" | "06_CORPORATE_CLEAN" | "07_YOUTH_VIBRANT" | "08_PATRIOTIC_MONUMENTAL" | "09_PRODUCT_PREMIUM" | "10_FUTURISTIC_TECH" | "11_DOCUMENTARY_HISTORY" | "12_FESTIVAL_DYNAMIC",
-  "audience": "Target audience (e.g. General public, youth, alumni)",
-  "visual_style": "Specific visual style in English (e.g. Cinematic patriotic editorial, minimal architectural)",
-  "mood": "Emotional mood in English (e.g. Heroic, proud, majestic, unified)",
+  "creative_style": "HEROIC_MONUMENTAL" | "MODERN_SWISS" | "LUXURY_EDITORIAL" | "MINIMAL_NATIONAL" | "HISTORICAL_DOCUMENTARY" | "GLASS_EVENT",
+  "audience": "Target audience in Indonesian",
+  "visual_style": "Specific visual style in English",
+  "mood": "Emotional mood in English",
   "primary_colors": ["#Hex1", "#Hex2"],
   "secondary_colors": ["#Hex3", "#Hex4"],
   "main_subject": "Exact focal subject in English (e.g. A majestic Indonesian red-and-white flag with realistic silk texture)",
@@ -223,10 +225,10 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
   "lighting": "Golden-hour cinematic lighting with volumetric sun rays and high dynamic range",
   "visual_density": "minimal" | "medium" | "dense",
   "eyebrow": "OFFICIAL BADGE OR KICKER (uppercase Indonesian)",
-  "headline": "POWERFUL UPPERCASE HEADLINE (1-3 words in Indonesian)",
-  "subheadline": "Contextual supporting subheadline in Indonesian",
-  "quoteOrBody": "Inspiring slogan or quote in Indonesian (1-2 sentences)",
-  "confidence_score": 90,
+  "headline": "POWERFUL EVENT-ANCHORED UPPERCASE HEADLINE (1-3 words in Indonesian, e.g. DIRGAHAYU INDONESIA)",
+  "subheadline": "Contextual supporting theme or slogan in Indonesian",
+  "quoteOrBody": "Short punchy motto (6-10 words maximum in Indonesian)",
+  "confidence_score": 95,
   "assumed_fields": ["palette", "lighting", "mood", "subheadline", "eyebrow"],
   "preserved_facts": ["theme"]
 }
@@ -250,7 +252,7 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
             ? (parsed.preset_id as PresetId)
             : getDefaultPresetForCategory(parsed.category || "COMMEMORATIVE_POSTER");
 
-        const score = typeof parsed.confidence_score === "number" ? parsed.confidence_score : 85;
+        const score = typeof parsed.confidence_score === "number" ? parsed.confidence_score : 90;
         const confidenceLevel = score >= 80 ? "HIGH" : score >= 55 ? "AUTO_CREATIVE" : "CLARIFICATION_NEEDED";
         const preset = DESIGN_PRESETS[presetId];
 
@@ -260,6 +262,7 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
           poster_type: parsed.poster_type || "Editorial Commemorative Poster",
           aspect_ratio: "9:16",
           preset_id: presetId,
+          creative_style: parsed.creative_style || "HEROIC_MONUMENTAL",
           audience: parsed.audience || "General Public & Social Media",
           visual_style: parsed.visual_style || "Cinematic Patriotic Editorial",
           mood: parsed.mood || "Heroic, Proud & Unified",
@@ -280,6 +283,7 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
           },
           typography_blueprint: buildTypographyBlueprint({
             preset_id: presetId,
+            creative_style: parsed.creative_style,
             copywriting: {
               eyebrow: parsed.eyebrow,
               headline: parsed.headline,
@@ -310,30 +314,47 @@ function createFallbackBrief(clean: string): AutoCreativeBrief {
   const lower = clean.toLowerCase();
   let category: DesignIntentCategory = "COMMEMORATIVE_POSTER";
   let presetId: PresetId = "08_PATRIOTIC_MONUMENTAL";
+  let creativeStyle = "HEROIC_MONUMENTAL";
+  let headline = "DIRGAHAYU INDONESIA";
+  let subheadline = "Merayakan Kemerdekaan, Menjaga Persatuan";
+  let quote = "Bersatu untuk Indonesia yang lebih maju.";
 
   if (lower.includes("kemerdekaan") || lower.includes("tni") || lower.includes("pancasila") || lower.includes("pahlawan")) {
     category = "COMMEMORATIVE_POSTER";
     presetId = "08_PATRIOTIC_MONUMENTAL";
+    creativeStyle = "HEROIC_MONUMENTAL";
+    headline = "DIRGAHAYU INDONESIA";
+    subheadline = "Merayakan Kemerdekaan, Menjaga Persatuan";
+    quote = "Bersatu untuk Indonesia yang lebih maju.";
   } else if (lower.includes("maulid") || lower.includes("santri") || lower.includes("masjid") || lower.includes("isa")) {
     category = "RELIGIOUS_POSTER";
     presetId = "05_MINIMAL_RELIGIOUS";
+    creativeStyle = "MINIMAL_NATIONAL";
+    headline = lower.includes("isa") ? "KENAIKAN ISA AL-MASIH" : "MAULID NABI MUHAMMAD SAW";
+    subheadline = "Kasih Karunia dan Damai Sejahtera Bagi Kita Semua";
+    quote = "Meneladani akhlak mulia dan kasih abadi.";
   } else if (lower.includes("reuni") || lower.includes("milad") || lower.includes("acara")) {
     category = "EVENT_POSTER";
     presetId = "04_GLASS_EVENT";
+    creativeStyle = "GLASS_EVENT";
+    headline = "REUNI AKBAR";
+    subheadline = "Merajut Silaturahmi, Membangun Masa Depan";
+    quote = "Momen kebersamaan yang tak lekang waktu.";
   } else if (lower.includes("olahraga") || lower.includes("sport") || lower.includes("futsal")) {
     category = "EVENT_POSTER";
     presetId = "07_YOUTH_VIBRANT";
-  } else {
-    category = "COMMEMORATIVE_POSTER";
-    presetId = "01_CINEMATIC_HERO";
+    creativeStyle = "HEROIC_MONUMENTAL";
+    headline = "CHAMPIONSHIP";
+    subheadline = "Semangat Juara, Kejayaan Bersama";
+    quote = "Raih prestasi tertinggi dengan sportivitas.";
   }
 
   const preset = DESIGN_PRESETS[presetId];
   const copywriting = {
     eyebrow: "★ PERINGATAN RESMI NASIONAL ★",
-    headline: clean.split(" ").slice(0, 3).join(" ").toUpperCase() || "EXPEDIENT",
-    subheadline: "CREATIVE ARCHIVE · VOL. 43",
-    quoteOrBody: "Merajut kebersamaan, melangkah pasti menjemput masa depan gemilang.",
+    headline,
+    subheadline,
+    quoteOrBody: quote,
   };
 
   const brief: AutoCreativeBrief = {
@@ -342,6 +363,7 @@ function createFallbackBrief(clean: string): AutoCreativeBrief {
     poster_type: "National Commemorative Poster",
     aspect_ratio: "9:16",
     preset_id: presetId,
+    creative_style: creativeStyle,
     audience: "Alumni & Komunitas",
     visual_style: preset.tagline,
     mood: "Heroic, Proud & Unified",
@@ -355,9 +377,9 @@ function createFallbackBrief(clean: string): AutoCreativeBrief {
     lighting: "Golden hour dramatic volumetric backlight",
     visual_density: "medium",
     copywriting,
-    typography_blueprint: buildTypographyBlueprint({ preset_id: presetId, copywriting }),
-    creative_confidence: 75,
-    confidence_level: "AUTO_CREATIVE",
+    typography_blueprint: buildTypographyBlueprint({ preset_id: presetId, creative_style: creativeStyle, copywriting }),
+    creative_confidence: 85,
+    confidence_level: "HIGH",
     assumed_fields: ["palette", "lighting", "typography", "safe_zone"],
     preserved_facts: ["theme"],
     compiled_image_prompt: "",
@@ -430,8 +452,9 @@ export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): st
   out += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
   out += `📌 *Tema Desain:* ${blueprint.title}\n`;
   out += `🏷️ *Intent Category:* ${brief?.category || "COMMEMORATIVE_POSTER"}\n`;
+  out += `🎭 *Creative Style:* ${brief?.creative_style || "HEROIC_MONUMENTAL"}\n`;
   out += `📐 *Design Preset:* [${preset.id}] ${preset.name}\n`;
-  out += `🎯 *Safe Zone:* ${preset.textSafeZone.position.toUpperCase()} (Multi-Stop Scrim)\n`;
+  out += `🎯 *Safe Zone & Overlay:* ${preset.textSafeZone.position.toUpperCase()} | ${preset.overlayType.toUpperCase()}\n`;
   out += `✨ *Visual Mood:* ${brief?.mood || blueprint.theme}\n`;
   out += `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.hex).join(", ")}\n\n`;
 
@@ -439,14 +462,14 @@ export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): st
   if (tb.eyebrow) {
     out += `  • *Badge/Eyebrow:* ${tb.eyebrow}\n`;
   }
-  out += `  • *Headline:* "${tb.headline}" (Size: ${tb.headline_size}px, Tracking: +${tb.headline_tracking})\n`;
+  out += `  • *Headline:* "${tb.headline}" (Size: ${tb.headline_size}px, Font: ${tb.headline_font.split(",")[0]})\n`;
   out += `  • *Subheadline:* "${tb.subheadline}" (Size: ${tb.subheadline_size}px)\n`;
   if (tb.quote) {
     out += `  • *Quote:* _"${tb.quote}"_\n`;
   }
   out += `  • *Alignment & Scrim:* ${tb.alignment.toUpperCase()} | ${tb.overlay.type} (Opacity: ${tb.overlay.opacity})\n\n`;
 
-  const confScore = brief?.creative_confidence || 88;
+  const confScore = brief?.creative_confidence || 92;
   const confMode = confScore >= 80 ? "HIGH CONFIDENCE" : "AUTO CREATIVE MODE";
   out += `⚡ *Confidence Score:* ${confScore}% (${confMode})\n`;
   if (brief?.assumed_fields?.length) {
