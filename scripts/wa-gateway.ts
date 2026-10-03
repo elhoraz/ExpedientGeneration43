@@ -307,7 +307,7 @@ async function startBaileysGateway() {
         Buffer.from("Y2Z1dF96VzJaelpMS2VEVFc0bHpsN2tGUjdrdzltTkFEa25NekJsS3Y2OXpWY2U0N2Q3NTI=", "base64").toString()
       ).trim();
 
-      // PRIORITAS 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - 100% GRATIS, ULTRA HD 9:16, FAST 2s)
+      // TIER 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - ULTRA FAST 2s)
       if (cfAccountId && cfToken) {
         try {
           addLog(`⚡ [CLOUDFLARE-AI] Menjalankan FLUX.1 Schnell untuk: "${blueprint.title}"...`);
@@ -321,7 +321,7 @@ async function startBaileysGateway() {
             body: JSON.stringify({
               prompt: blueprint.enhancedPrompt,
             }),
-            signal: AbortSignal.timeout(35000),
+            signal: AbortSignal.timeout(15000),
           });
 
           if (cfRes.ok) {
@@ -341,20 +341,82 @@ async function startBaileysGateway() {
             }
           } else {
             const errText = await cfRes.text();
-            addLog(`⚠️ [CLOUDFLARE-WARN] Status ${cfRes.status}: ${errText.slice(0, 150)}`, "warn");
+            addLog(`⚠️ [CLOUDFLARE-WARN] Status ${cfRes.status}: ${errText.slice(0, 120)}`, "warn");
           }
         } catch (cfErr: any) {
           addLog(`⚠️ [CLOUDFLARE-ERR] ${cfErr.message}`, "warn");
         }
       }
 
-      // FALLBACK 2: POLLINATIONS JIKA CLOUDFLARE GAGAL ATAU LIMIT
+      // TIER 2: AI HORDE DISTRIBUTED COMMUNITY AI (STABLE DIFFUSION / FLUX CLUSTER)
+      if (!imgBuffer) {
+        try {
+          addLog(`🌐 [AI-HORDE] Menghubungi kluster AI Horde untuk visual: "${blueprint.title}"...`);
+          const hordePost = await fetch("https://aihorde.net/api/v2/generate/async", {
+            method: "POST",
+            headers: {
+              "apikey": "0000000000",
+              "Content-Type": "application/json",
+              "Client-Agent": "ExpedientBot:1.0:community",
+            },
+            body: JSON.stringify({
+              prompt: blueprint.enhancedPrompt.slice(0, 480),
+              params: {
+                width: 512,
+                height: 512,
+                steps: 20,
+              },
+            }),
+            signal: AbortSignal.timeout(8000),
+          });
+
+          if (hordePost.status === 202) {
+            const postData: any = await hordePost.json();
+            if (postData?.id) {
+              const maxWaitMs = 18000;
+              const startCheck = Date.now();
+              while (Date.now() - startCheck < maxWaitMs) {
+                await new Promise((r) => setTimeout(r, 2000));
+                const checkRes = await fetch(`https://aihorde.net/api/v2/generate/check/${postData.id}`, {
+                  signal: AbortSignal.timeout(4000),
+                });
+                if (!checkRes.ok) continue;
+                const checkData: any = await checkRes.json();
+                if (checkData?.done) {
+                  const statusRes = await fetch(`https://aihorde.net/api/v2/generate/status/${postData.id}`, {
+                    signal: AbortSignal.timeout(6000),
+                  });
+                  if (statusRes.ok) {
+                    const statusData: any = await statusRes.json();
+                    const imgUrl = statusData?.generations?.[0]?.img;
+                    if (imgUrl) {
+                      const imgFetch = await fetch(imgUrl, { signal: AbortSignal.timeout(10000) });
+                      if (imgFetch.ok) {
+                        const buf = Buffer.from(await imgFetch.arrayBuffer());
+                        if (buf.byteLength > 1000) {
+                          imgBuffer = buf;
+                          addLog(`✅ [AI-HORDE] Berhasil render visual AI Horde (${imgBuffer.length} bytes)!`, "success");
+                          break;
+                        }
+                      }
+                    }
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        } catch (hordeErr: any) {
+          addLog(`⚠️ [AI-HORDE-WARN] ${hordeErr?.message || hordeErr}`, "warn");
+        }
+      }
+
+      // TIER 3: POLLINATIONS AI
       if (!imgBuffer) {
         const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
         const candidateUrls = [
           `https://image.pollinations.ai/prompt/${enhancedQuery}?model=flux&width=720&height=1280&nologo=true`,
           `https://image.pollinations.ai/prompt/${enhancedQuery}?width=720&height=1280&nologo=true`,
-          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=768&height=1344&nologo=true`,
           `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
         ];
 
@@ -364,16 +426,82 @@ async function startBaileysGateway() {
               headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
               },
-              signal: AbortSignal.timeout(25000),
+              signal: AbortSignal.timeout(10000),
             });
             if (imgRes.ok) {
               const buf = Buffer.from(await imgRes.arrayBuffer());
               if (buf.byteLength > 1000) {
                 imgBuffer = buf;
+                addLog(`✅ [POLLINATIONS] Berhasil render visual Pollinations (${imgBuffer.length} bytes)!`, "success");
                 break;
               }
             }
           } catch (_) {}
+        }
+      }
+
+      // TIER 4: THEMATIC PHOTOGRAPHY CDN (UNSPLASH SOURCE ULTRA HD 9:16)
+      if (!imgBuffer) {
+        try {
+          addLog(`📸 [THEMATIC-CDN] Mengambil latar sinematik beresolusi tinggi sesuai kategori "${blueprint.category}"...`);
+          let bgUrl = "https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=1080&auto=format&fit=crop";
+          const cat = (blueprint.category || "").toLowerCase();
+          if (cat === "islamic" || cat === "maulid" || cat === "ramadan" || cat === "eid" || cat === "eid_adha" || cat === "santri") {
+            bgUrl = "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1080&auto=format&fit=crop";
+          } else if (cat === "military" || cat === "national") {
+            bgUrl = "https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=1080&auto=format&fit=crop";
+          } else if (cat === "milad" || cat === "reunion" || cat === "celebration") {
+            bgUrl = "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1080&auto=format&fit=crop";
+          } else if (cat === "sport" || cat === "sports") {
+            bgUrl = "https://images.unsplash.com/photo-1517649763962-0c623266ddc0?q=80&w=1080&auto=format&fit=crop";
+          }
+
+          const unsplashRes = await fetch(bgUrl, {
+            headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (unsplashRes.ok) {
+            const buf = Buffer.from(await unsplashRes.arrayBuffer());
+            if (buf.byteLength > 1000) {
+              imgBuffer = buf;
+              addLog(`✅ [THEMATIC-CDN] Berhasil memuat visual sinematik kategori (${imgBuffer.length} bytes)!`, "success");
+            }
+          }
+        } catch (cdnErr: any) {
+          addLog(`⚠️ [CDN-WARN] ${cdnErr?.message || cdnErr}`, "warn");
+        }
+      }
+
+      // TIER 5: PROCEDURAL ATMOSPHERIC STUDIO GRADIENT (100% ZERO NETWORK LOCAL FAILOVER)
+      if (!imgBuffer) {
+        try {
+          addLog(`🎨 [PROCEDURAL-STUDIO] Merender backdrop studio prosedural mewah 9:16...`);
+          const sharp = (await import("sharp")).default;
+          const accentColor = blueprint.colorPalette?.[0]?.hex || "#D4AF37";
+          const primaryColor = "#0F172A";
+          const secondaryColor = "#020617";
+          const proceduralSvg = `
+          <svg width="1080" height="1920" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="glow" cx="50%" cy="30%" r="70%">
+                <stop offset="0%" stop-color="${accentColor}" stop-opacity="0.4" />
+                <stop offset="60%" stop-color="${primaryColor}" stop-opacity="0.9" />
+                <stop offset="100%" stop-color="${secondaryColor}" stop-opacity="1" />
+              </radialGradient>
+              <linearGradient id="overlayGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#000000" stop-opacity="0.5" />
+                <stop offset="50%" stop-color="#000000" stop-opacity="0.1" />
+                <stop offset="100%" stop-color="#000000" stop-opacity="0.9" />
+              </linearGradient>
+            </defs>
+            <rect width="1080" height="1920" fill="url(#glow)" />
+            <rect width="1080" height="1920" fill="url(#overlayGrad)" />
+            <circle cx="540" cy="600" r="300" fill="${accentColor}" opacity="0.12" />
+          </svg>`.trim();
+          imgBuffer = await sharp(Buffer.from(proceduralSvg)).jpeg({ quality: 90 }).toBuffer();
+          addLog(`✅ [PROCEDURAL-STUDIO] Selesai merender backdrop (${imgBuffer.length} bytes)!`, "success");
+        } catch (procErr: any) {
+          addLog(`❌ [PROCEDURAL-ERR] ${procErr?.message || procErr}`, "error");
         }
       }
 
@@ -397,7 +525,7 @@ async function startBaileysGateway() {
                 `✨ *Style:* ${blueprint.theme}\n` +
                 `🔤 *Tipografi:* Pinterest Editorial Magazine Style (Zero Typo)\n` +
                 `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
-                `🏢 *Studio:* Expedient Creative AI Studio (FLUX.1 + Pinterest Typography Engine)\n\n` +
+                `🏢 *Studio:* Expedient Creative AI Studio (Pinterest Typography Engine)\n\n` +
                 `_Poster Instagram Story berdesain estetis ala Pinterest dengan tipografi resmi siap diposting langsung!_ 🚀✨`,
             },
             { quoted: quotedMessage }
@@ -413,7 +541,7 @@ async function startBaileysGateway() {
                 `✨ *Style:* ${blueprint.theme}\n` +
                 `🔤 *Tipografi:* Pinterest Editorial Magazine Style (Zero Typo)\n` +
                 `🎨 *Palet Warna:* ${blueprint.colorPalette.map((c) => c.name).join(", ")}\n` +
-                `🏢 *Studio:* Expedient Creative AI Studio (FLUX.1 + Pinterest Typography Engine)\n\n` +
+                `🏢 *Studio:* Expedient Creative AI Studio (Pinterest Typography Engine)\n\n` +
                 `_Poster Instagram Story berdesain estetis ala Pinterest dengan tipografi resmi siap diposting langsung!_ 🚀✨`,
             }
           );
@@ -423,13 +551,12 @@ async function startBaileysGateway() {
         return true;
       }
 
-      throw new Error("Layanan render gambar AI sedang padat");
+      return false;
     } catch (err: any) {
       addLog(`❌ [GENERATE-IMAGE-ERR] ${err.message}`, "error");
       await sendReply(
         cleanJid,
-        `Maaf Sahabat desainer, server rendering AI sedang antre (${err.message}). ` +
-        `Untuk agenda resmi (seperti *HUT TNI*, *Kesaktian Pancasila*, dan *Milad*), poster HD siap pakai sudah tersedia di galeri studio kita! 🎨🚀`,
+        `Maaf Sahabat desainer, terjadi kendala saat memproses poster (${err.message}). Tim kreatif studio sedang mengatasinya! 🎨🚀`,
         quotedMessage
       );
       return false;

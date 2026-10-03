@@ -7,7 +7,7 @@
  * dilengkapi Kit Tipografi & Copywriting siap pakai untuk Instagram Story.
  */
 
-import { callGeminiResilient } from "@/lib/geminiResilient";
+import { callGeminiResilient } from "../geminiResilient";
 
 export interface ArtDirectionBlueprint {
   title: string;
