@@ -511,10 +511,26 @@ class CampaignManager {
   private campaigns: Map<string, CampaignProfile> = new Map();
 
   public getOrCreateCampaign(campaignId: string, initialBrief?: AutoCreativeBrief): CampaignProfile {
+    const isExplicitContinuation = Boolean(
+      initialBrief?.theme &&
+      (initialBrief.theme.toLowerCase().includes("seri") ||
+       initialBrief.theme.toLowerCase().includes("variasi") ||
+       initialBrief.theme.toLowerCase().includes("lanjutan") ||
+       initialBrief.theme.toLowerCase().includes("part") ||
+       initialBrief.theme.toLowerCase().includes("kampanye"))
+    );
+
     if (this.campaigns.has(campaignId)) {
       const c = this.campaigns.get(campaignId)!;
-      c.posterCount += 1;
-      return c;
+      const themeMatches = Boolean(
+        initialBrief?.theme &&
+        (c.name.toLowerCase().includes(initialBrief.theme.toLowerCase()) ||
+         initialBrief.theme.toLowerCase().includes(c.name.toLowerCase()))
+      );
+      if (themeMatches || isExplicitContinuation) {
+        c.posterCount += 1;
+        return c;
+      }
     }
 
     const preset = initialBrief?.preset_id || "08_PATRIOTIC_MONUMENTAL";

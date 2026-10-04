@@ -32,6 +32,7 @@ import {
   AuthenticityValidationResult,
   TypographyCriticAIReport,
   StudioQualityGateV3Result,
+  WatermarkDetectionResult,
 } from "./typographyLayoutEngineV3";
 import {
   ThemeLockEngine,
@@ -86,6 +87,34 @@ export const THEME_KNOWLEDGE_PACKS_V2: Record<string, ThemeKnowledgePack> = {
       secondary: ["#1C1917", "#FDFBF7"],
     },
     defaultMood: "Intellectual, graceful, noble, and historically profound",
+  },
+  hari_ibu: {
+    id: "hari_ibu",
+    name: "Hari Ibu Nasional (22 Desember)",
+    themeKeywords: ["ibu", "hari ibu", "mother", "mothers day", "kasih ibu", "bunda", "mama", "ummi", "22 desember"],
+    pillars: [
+      "Unconditional maternal devotion and selfless sacrifice (Kasih Ibu Sepanjang Masa)",
+      "Warmth of maternal embrace and noble sanctuary of family",
+      "Elegance, tenderness, and enduring grace of motherhood",
+      "Gratitude, veneration, and prayers for heaven at mother's feet",
+    ],
+    authenticSymbols: [
+      "Tender silhouette of an Indonesian mother holding her child in warm soft golden morning light",
+      "Delicate blooming blush carnations, jasmine, and white lilies with subtle golden dew",
+      "Elegantly draped soft silk scarf in warm rose and ivory tones catching gentle morning breeze",
+      "Warm minimalist sanctuary interior with morning sunlight streaming through sheer curtains",
+    ],
+    avoidClichés: [
+      "Cheesy cartoon clip-art",
+      "Loud neon colors or aggressive graphics",
+      "Commercial supermarket sale flyers",
+    ],
+    culturalContext: "Commemoration of Indonesian Women's Congress 1928 and profound heartfelt tribute to mothers nationwide",
+    recommendedPalette: {
+      primary: ["#9F1239", "#E0A96D"],
+      secondary: ["#FFF1F2", "#1C1917"],
+    },
+    defaultMood: "Tender, warm, deeply emotional, elegant, and heartfelt",
   },
   independence_day: {
     id: "independence_day",
@@ -169,6 +198,34 @@ export const THEME_KNOWLEDGE_PACKS_V2: Record<string, ThemeKnowledgePack> = {
       secondary: ["#064E3B", "#FFFBEB"],
     },
     defaultMood: "Joyous, warm, pure, and emotionally touching",
+  },
+  tahun_baru_islam: {
+    id: "tahun_baru_islam",
+    name: "Tahun Baru Islam (1 Muharram)",
+    themeKeywords: ["tahun baru islam", "1 muharram", "muharram", "hijriah", "hijriyah", "tahun baru hijriah"],
+    pillars: [
+      "Hijrah: transformation toward spiritual purity, nobility and moral excellence",
+      "Sacred reflection on the passage of time and intentional new beginnings",
+      "Serene Islamic celestial aesthetics (lunar crescent, constellation, sacred architecture)",
+      "Universal blessings, peace, and spiritual fortitude",
+    ],
+    authenticSymbols: [
+      "Luminous golden crescent moon (hilal) rising gracefully over celestial twilight blue horizon",
+      "Majestic Islamic domes and slender minarets bathed in soft ambient nocturnal gold light",
+      "Delicate celestial stars and golden geometric arabesque patterns floating subtly",
+      "Intricately illuminated manuscript aesthetic with refined kufic / thuluth decorative accents",
+    ],
+    avoidClichés: [
+      "Party poppers or Western New Year champagne fireworks",
+      "Neon cyber disco effects",
+      "Cartoon caricature figures",
+    ],
+    culturalContext: "Commemoration of the sacred Hijrah of Prophet Muhammad SAW, marking the dawn of the Islamic calendar",
+    recommendedPalette: {
+      primary: ["#0A192F", "#D4AF37"],
+      secondary: ["#059669", "#F8FAFC"],
+    },
+    defaultMood: "Sacred, noble, celestial, peaceful, and spiritually uplifting",
   },
   hari_pahlawan: {
     id: "hari_pahlawan",
@@ -389,7 +446,8 @@ export type DesignTrendId =
   | "HISTORICAL_DOCUMENTARY"
   | "GLASSMORPHISM"
   | "NEO_BRUTALISM"
-  | "PREMIUM_EVENT_POSTER";
+  | "PREMIUM_EVENT_POSTER"
+  | "SACRED_ISLAMIC_EDITORIAL";
 
 export interface DesignTrendSpec {
   id: DesignTrendId;
@@ -492,6 +550,17 @@ export const DESIGN_TREND_LIBRARY: Record<DesignTrendId, DesignTrendSpec> = {
     gridStyle: "Monumental centered stack with grand display hierarchy",
     vibe: "Inspiring, celebratory, monumental, unforgettable",
   },
+  SACRED_ISLAMIC_EDITORIAL: {
+    id: "SACRED_ISLAMIC_EDITORIAL",
+    name: "Sacred Islamic Editorial",
+    description: "Luminous gold foil & midnight lapis lazuli, celestial lunar crescent, modern Arabic & serif typography",
+    recommendedPreset: "05_MINIMAL_RELIGIOUS",
+    overlayType: "center_glow",
+    primaryFontStack: "'Cinzel Decorative', 'Amiri', 'Playfair Display', serif",
+    secondaryFontStack: "'Plus Jakarta Sans', 'Inter', sans-serif",
+    gridStyle: "Center-aligned celestial symmetry with golden hairline dividers and lunar star ornaments",
+    vibe: "Sacred, noble, celestial, peaceful, spiritually sublime",
+  },
 };
 
 export class DesignTrendEngine {
@@ -503,8 +572,8 @@ export class DesignTrendEngine {
     if (/kartini|habis gelap|literasi|budaya/i.test(lower)) {
       return DESIGN_TREND_LIBRARY.EDITORIAL_MAGAZINE;
     }
-    if (/ramadan|santri|maulid|masjid|religi|islam/i.test(lower)) {
-      return DESIGN_TREND_LIBRARY.LUXURY_MINIMALISM;
+    if (/tahun baru islam|1 muharram|hijriah|hijriyah|ramadan|santri|maulid|masjid|religi|islam/i.test(lower)) {
+      return DESIGN_TREND_LIBRARY.SACRED_ISLAMIC_EDITORIAL;
     }
     if (/tech|coding|ai|digital|startup|seminar/i.test(lower)) {
       return DESIGN_TREND_LIBRARY.GLASSMORPHISM;
@@ -838,8 +907,14 @@ export class CampaignMemorySystem {
   ): CampaignMemoryProfile {
     if (this.campaigns.has(campaignId)) {
       const existing = this.campaigns.get(campaignId)!;
-      existing.posterHistory.push(initialTheme);
-      return existing;
+      const themeMatches = Boolean(
+        existing.name.toLowerCase().includes(initialTheme.toLowerCase()) ||
+        initialTheme.toLowerCase().includes(existing.name.toLowerCase())
+      );
+      if (themeMatches) {
+        existing.posterHistory.push(initialTheme);
+        return existing;
+      }
     }
 
     const newProfile: CampaignMemoryProfile = {

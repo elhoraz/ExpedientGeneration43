@@ -121,6 +121,111 @@ if (pairingArgIndex !== -1) {
 let isReconnecting = false;
 
 // =============================================================================
+// STATE & HELPER DETEKSI PERMINTAAN DESAIN POSTER (MULTI-TURN INTENT RESOLVER)
+// =============================================================================
+interface GroupDesignSession {
+  lastTopic?: string;
+  lastFormat?: "story" | "feed";
+  updatedAt: number;
+}
+const recentDesignSessionMap = new Map<string, GroupDesignSession>();
+
+function isPosterGenerationRequest(text: string): boolean {
+  if (!text) return false;
+  const clean = text
+    .replace(/@\d+/g, "")
+    .replace(/@(bot|min|admin|expedient)/gi, "")
+    .trim()
+    .toLowerCase();
+
+  // 1. Prefix command
+  if (
+    clean.startsWith("/gambar") ||
+    clean.startsWith("!gambar") ||
+    clean.startsWith("/image") ||
+    clean.startsWith("!image") ||
+    clean.startsWith("/draw") ||
+    clean.startsWith("!draw") ||
+    clean.startsWith("/poster") ||
+    clean.startsWith("!poster") ||
+    clean.startsWith("/desain") ||
+    clean.startsWith("!desain") ||
+    clean.startsWith("/design") ||
+    clean.startsWith("!design") ||
+    clean.startsWith("/flyer") ||
+    clean.startsWith("/banner")
+  ) {
+    return true;
+  }
+
+  // 2. Kata kerja aksi pembuatan desain/poster
+  const actionRegex = /\b(buatin|bikinin|buatkan|bikin|buat|desainin|desainkan|designkan|gambarin|generate|lukiskan|cetak)\b/i;
+  const designTargetRegex = /\b(poster|desain|design|gambar|draf|draft|story|feed|flyer|banner|visual)\b/i;
+
+  if (actionRegex.test(clean) && designTargetRegex.test(clean)) {
+    return true;
+  }
+
+  // 3. Kalimat desakan slang / konfirmasi ("laiya buatin", "iya buatin", "ya buatin", "gas buatin", "buatin dong", "bikinin dong")
+  if (
+    /\b(laiya|iya|ya|ayo|gas|cepet|tolong|coba|kamu|buruan)\s+(buatin|bikinin|buatkan|bikin|buat|desainin|gambarin)\b/i.test(clean) ||
+    /^(laiya\s+buatin|iya\s+buatin|ya\s+buatin|gas\s+buatin|buatin\s+dong|bikinin\s+dong|bikin\s+sekarang|buatin\s+sekarang)$/i.test(clean)
+  ) {
+    return true;
+  }
+
+  // 4. Permintaan cek / draf poster
+  if (
+    /\b(mana|lihat|kirim)\s+(poster|desain|draf|gambar)\b/i.test(clean) ||
+    clean === "mana liat" ||
+    clean === "mana lihat" ||
+    clean === "mana drafnya"
+  ) {
+    return true;
+  }
+
+  // 5. Pola langsung: "buatin hari ibu", "bikin hari santri", dll.
+  if (
+    /\b(buatin|bikinin|buatkan|bikin)\s+(hari\s+ibu|hari\s+santri|hut\s+tni|kartini|pahlawan|idul\s+fitri|ramadan|tahun\s+baru|milad)\b/i.test(clean)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function extractPosterPrompt(text: string, fallbackTopic?: string): string {
+  let prompt = text
+    .replace(/@\d+/g, "")
+    .replace(/@(bot|min|admin|expedient)/gi, "")
+    .trim();
+
+  // Bersihkan sebutan bot di depan
+  prompt = prompt.replace(/^(bot|min|admin|expedient)[,:\s]+/i, "").trim();
+
+  // Bersihkan prefix command
+  prompt = prompt.replace(/^(\/gambar|\!gambar|\/image|\!image|\/draw|\!draw|\/poster|\!poster|\/desain|\!desain|\/design|\!design|\/flyer|\/banner)\s*/i, "").trim();
+
+  // Bersihkan kata kerja aksi & desakan
+  prompt = prompt.replace(/^(laiya\s+buatin|iya\s+buatin|ya\s+buatin|ayo\s+buatin|gas\s+buatin|cepet\s+buatin|tolong\s+buatin|kamu\s+buatin|buruan\s+buatin)\s*/i, "").trim();
+  prompt = prompt.replace(/^(tolong\s+|coba\s+|bisa\s+|mohon\s+)?(buatin|bikinin|buatkan|bikin|buat|generate|desainin|desainkan|designkan|lukiskan|gambarin)\s+(poster|desain|design|flyer|banner|gambar|draf|draft)?\s*(dong|lah|sih|ya)?\s*(untuk|tentang|tema|edisi|konsep)?\s*/i, "").trim();
+  prompt = prompt.replace(/^(mana|lihat|kirim)\s+(poster|desain|draf|gambar)?\s*(untuk|tentang|tema|edisi)?\s*/i, "").trim();
+
+  // Bersihkan filler di belakang (bisa majemuk seperti "ya min", "dong bot", dll)
+  prompt = prompt.replace(/(\s+(dong|lah|sih|ya|bro|gan|min|bot|gaes|guys))+$/i, "").trim();
+
+  // Jika setelah dibersihkan kosong atau cuma kata kerja/format generik, gunakan fallbackTopic
+  if (!prompt || /^(buatin|bikinin|bikin|buat|poster|desain|draf|mana liat|mana lihat|kamu buatin|story|feed)$/i.test(prompt)) {
+    if (fallbackTopic && fallbackTopic.trim().length > 0) {
+      return fallbackTopic.trim();
+    }
+    return "Hari Ibu";
+  }
+
+  return prompt;
+}
+
+// =============================================================================
 // BAILEYS WHATSAPP SOCKET CORE
 // =============================================================================
 async function startBaileysGateway() {
@@ -238,6 +343,9 @@ async function startBaileysGateway() {
         return null;
       };
 
+      // 0. Blueprint Konsep Desain & Art Direction
+      const blueprint = await architectDynamicDesignWithAI(rawPrompt);
+
       // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
       // Hanya kirim poster master resmi jika pengguna SPESIFIK meminta versi resmi / official / template / download!
       const isOfficialRequest = /\b(resmi|official|master|template|download|unduh|arsip resmi)\b/i.test(lowerPrompt);
@@ -316,8 +424,11 @@ async function startBaileysGateway() {
       if (blueprint.pinterest_dna) {
         const p = blueprint.pinterest_dna;
         blueprintText +=
-          `\n📌 *PINTEREST VISUAL RESEARCH*\n` +
+          `\n📌 *PINTEREST & BEHANCE DESIGN RESEARCH*\n` +
           `  • *Aesthetic Style:* ${p.pinterestStyleTitle}\n` +
+          `  • *Trending Font Pairing:* ${p.typographyDNA?.trendingFontPairing || "Cinzel / Cormorant + Plus Jakarta Sans"}\n` +
+          `  • *Designer Typography Stack:* ${p.typographyDNA?.headlineFont?.split(",")[0] || "Cinzel"} + ${p.typographyDNA?.subheadlineFont?.split(",")[0] || "Plus Jakarta Sans"}\n` +
+          `  • *Typographic Treatment:* ${p.typographyDNA?.treatment || "Generous tracking & hairline rules"}\n` +
           `  • *Visual Mood:* ${p.trendingKeywords.slice(0, 3).join(", ")}\n` +
           `  • *Research Engine:* ${p.source === "LIVE_PINTEREST_SEARCH" ? "Live Pinterest Search 🔍" : "Curated Board 📌"}\n`;
       }
@@ -1117,65 +1228,39 @@ async function startBaileysGateway() {
         // =====================================================================
         // FITUR AI GENERATOR: GAMBAR / POSTER & SUARA (Voice Note / VN)
         // =====================================================================
-        const isPosterOrImageRequest =
-          // Perintah Prefix
-          cleanLower.startsWith("/gambar") ||
-          cleanLower.startsWith("!gambar") ||
-          cleanLower.startsWith("/image") ||
-          cleanLower.startsWith("!image") ||
-          cleanLower.startsWith("/draw") ||
-          cleanLower.startsWith("!draw") ||
-          cleanLower.startsWith("/poster") ||
-          cleanLower.startsWith("!poster") ||
-          cleanLower.startsWith("/desain") ||
-          cleanLower.startsWith("!desain") ||
-          cleanLower.startsWith("/design") ||
-          cleanLower.startsWith("!design") ||
-          cleanLower.startsWith("/flyer") ||
-          cleanLower.startsWith("/banner") ||
-          // Kalimat Aksi Pembuatan Poster / Desain
-          cleanLower.includes("buatkan poster") ||
-          cleanLower.includes("bikin poster") ||
-          cleanLower.includes("buat poster") ||
-          cleanLower.includes("bikinin poster") ||
-          cleanLower.includes("buatkan desain") ||
-          cleanLower.includes("bikin desain") ||
-          cleanLower.includes("buat desain") ||
-          cleanLower.includes("bikinin desain") ||
-          cleanLower.includes("buatkan design") ||
-          cleanLower.includes("bikin design") ||
-          cleanLower.includes("buatkan gambar") ||
-          cleanLower.includes("bikin gambar") ||
-          cleanLower.includes("generate gambar") ||
-          cleanLower.includes("generate poster") ||
-          cleanLower.includes("generate desain") ||
-          cleanLower.includes("desainkan") ||
-          cleanLower.includes("designkan") ||
-          cleanLower.includes("lukiskan") ||
-          cleanLower.includes("gambarin") ||
-          cleanLower.includes("kamu buatin") ||
-          // Permintaan melihat / mengecek poster di Grup Desain atau saat bot di-tag
-          ((isDesignGroupId(remoteJid) || isDirectlyAddressed) && (
-            cleanLower.includes("mana poster") ||
-            cleanLower.includes("lihat poster") ||
-            cleanLower.includes("kirim poster") ||
-            cleanLower.includes("draf poster") ||
-            cleanLower === "mana liat" ||
-            cleanLower === "mana lihat" ||
-            cleanLower === "mana drafnya"
-          ));
+        const activeDesignSession = recentDesignSessionMap.get(remoteJid);
+        const hasFreshSession = activeDesignSession && (Date.now() - activeDesignSession.updatedAt < 30 * 60 * 1000);
+
+        // Jika user hanya mengirimkan format (misal "story" atau "feed") atau topik susulan (misal "hari ibu") saat ada sesi aktif:
+        if (isGroup && isDesignGroupId(remoteJid) && hasFreshSession) {
+          if (cleanLower === "story" || cleanLower === "feed") {
+            activeDesignSession.lastFormat = cleanLower as "story" | "feed";
+            activeDesignSession.updatedAt = Date.now();
+            const targetTopic = activeDesignSession.lastTopic || "Hari Ibu";
+            await sendReply(remoteJid, `📱 Format diatur ke *${cleanLower.toUpperCase()}*. Sedang memproses poster *"${targetTopic}"*... Tunggu sebentar ya! ⏳✨`, m);
+            await generateAndSendImage(targetTopic, remoteJid, m);
+            continue;
+          }
+          if (cleanLower === "hari ibu" || cleanLower === "hari santri" || cleanLower === "hut tni") {
+            activeDesignSession.lastTopic = cleanLower;
+            activeDesignSession.updatedAt = Date.now();
+            await sendReply(remoteJid, `🎨 Siap! Langsung merancang & memproses poster *"${cleanLower}"*... Tunggu sebentar ya! ⏳✨`, m);
+            await generateAndSendImage(cleanLower, remoteJid, m);
+            continue;
+          }
+        }
+
+        const isPosterOrImageRequest = isPosterGenerationRequest(messageText);
 
         if (isPosterOrImageRequest && (isGroup ? isDirectlyAddressed || isDesignGroupId(remoteJid) || shouldGroupBotRespond(messageText) : true)) {
-          let prompt = cleanTextWithoutMention
-            .replace(/^(\/gambar|\!gambar|\/image|\!image|\/draw|\!draw|\/poster|\!poster|\/desain|\!desain|\/design|\!design|\/flyer|\/banner)\s*/i, "")
-            .replace(/^(tolong\s+)?(buatkan|bikin|bikinin|buat|generate|desainkan|designkan|lukiskan|gambarin|kamu buatin)\s+(poster|desain|design|flyer|banner|gambar)?\s*(untuk|tentang|tema)?\s*/i, "")
-            .replace(/^(mana|lihat|kirim)\s+(poster|desain|draf)?\s*(untuk|tentang|tema)?\s*/i, "")
-            .trim();
+          const fallbackTopic = hasFreshSession ? activeDesignSession.lastTopic : undefined;
+          let prompt = extractPosterPrompt(messageText, fallbackTopic);
 
-          // Jika teks prompt masih kosong atau pengguna hanya bilang "mana liat" / "kamu buatin", default ke agenda HUT TNI
-          if (!prompt || prompt.toLowerCase() === "mana liat" || prompt.toLowerCase() === "kamu buatin") {
-            prompt = "HUT TNI";
-          }
+          // Simpan sesi desain agar follow-up (seperti "story", "hari ibu", "laiya buatin") tersambung mulus
+          recentDesignSessionMap.set(remoteJid, {
+            lastTopic: prompt,
+            updatedAt: Date.now(),
+          });
 
           if (prompt) {
             try {
@@ -1222,6 +1307,19 @@ async function startBaileysGateway() {
                   messageText,
                   groupId: remoteJid,
                 });
+
+                // INTERCEPT JIKA ACTION TRIGGER POSTER DIBERIKAN OLEH STUDIO ASSISTANT
+                if (replyText.startsWith("[ACTION:GENERATE_POSTER:")) {
+                  const topic = replyText.replace("[ACTION:GENERATE_POSTER:", "").replace("]", "").trim();
+                  recentDesignSessionMap.set(remoteJid, {
+                    lastTopic: topic,
+                    updatedAt: Date.now(),
+                  });
+                  await sendReply(remoteJid, `🎨 Siap Sahabat *${senderName}*! Langsung merancang & memproses poster *"${topic}"*... Tunggu sebentar ya! ⏳✨`, m);
+                  await generateAndSendImage(topic, remoteJid, m);
+                  continue;
+                }
+
                 await sendReply(remoteJid, replyText, m);
               } catch (err: any) {
                 addLog(`❌ [DESIGN-GROUP-ERR] ${err.message}`, "error");

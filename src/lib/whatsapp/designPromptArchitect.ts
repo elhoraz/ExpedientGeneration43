@@ -21,6 +21,7 @@ import {
   escapeXml,
   wrapSvgText,
   calculateHeadlineSize,
+  formatSvgHeadlineTspans,
 } from "./designSystem";
 import { ThemeLockEngine } from "./themeLockEngine";
 import { PinterestResearchEngine, type PinterestAestheticDNA } from "./pinterestResearchEngine";
@@ -175,8 +176,29 @@ export const THEME_KNOWLEDGE_PACKS: Record<string, ThemeKnowledge> = {
       },
     ],
   },
+  tahun_baru_islam: {
+    themeKeywords: ["tahun baru islam", "1 muharram", "muharram", "hijriah", "hijriyah", "tahun baru hijriah"],
+    variations: [
+      {
+        style: "SACRED_CELESTIAL_GOLD",
+        preset_id: "05_MINIMAL_RELIGIOUS",
+        visualConcept: "Luminous glowing golden crescent moon (hilal) rising gracefully over celestial grand mosque minarets in deep midnight indigo sky",
+        environmentConcept: "Celestial blue hour night sky with shimmering star haze and soft divine volumetric light",
+        narrativeDetails: "Spirit of Hijrah, new beginnings, spiritual nobility and peace across the Ummah",
+        colorHints: { primary: ["#0A192F", "#D4AF37"], secondary: ["#059669", "#F8FAFC"] },
+      },
+      {
+        style: "SACRED_EMERALD_NIGHT",
+        preset_id: "05_MINIMAL_RELIGIOUS",
+        visualConcept: "Sublime architectural Islamic archway bathed in soft sacred emerald and warm gold ambient radiance under twilight sky",
+        environmentConcept: "Quiet marble mosque courtyard reflecting the glowing lunar crescent and distant lanterns",
+        narrativeDetails: "Contemplation of sacred time, hope for renewed faith and spiritual elevation",
+        colorHints: { primary: ["#064E3B", "#D4AF37"], secondary: ["#10B981", "#FEF3C7"] },
+      },
+    ],
+  },
   religi_islam: {
-    themeKeywords: ["maulid", "santri", "ramadan", "idul fitri", "idul adha", "isra miraj", "tahun baru islam", "hijriah", "masjid"],
+    themeKeywords: ["maulid", "santri", "ramadan", "idul fitri", "idul adha", "isra miraj", "masjid"],
     variations: [
       {
         style: "SACRED_EMERALD",
@@ -359,6 +381,7 @@ export function buildTypographyBlueprint(brief: {
     eyebrow?: string;
     quoteOrBody?: string;
   };
+  pinterestTypography?: import("./pinterestResearchEngine").PinterestTypographyDNA;
 }): TypographyBlueprint {
   const preset = DESIGN_PRESETS[brief.preset_id] || DESIGN_PRESETS["01_CINEMATIC_HERO"];
   const rawHeadline = (brief.copywriting.headline || "EXPEDIENT").trim();
@@ -372,6 +395,10 @@ export function buildTypographyBlueprint(brief: {
   else if (isLeftZone) textPos = "left_center";
   else if (isLeft) textPos = "bottom_left";
 
+  const headlineFont = brief.pinterestTypography?.headlineFont || preset.typography.primaryFont;
+  const subheadlineFont = brief.pinterestTypography?.subheadlineFont || preset.typography.secondaryFont;
+  const headlineTracking = brief.pinterestTypography?.headlineTracking || 3;
+
   return {
     layout: brief.preset_id,
     creative_style: brief.creative_style || "HEROIC_MONUMENTAL",
@@ -379,10 +406,10 @@ export function buildTypographyBlueprint(brief: {
     subheadline: (brief.copywriting.subheadline || "").trim(),
     eyebrow: brief.copywriting.eyebrow,
     quote: brief.copywriting.quoteOrBody,
-    headline_font: preset.typography.primaryFont,
+    headline_font: headlineFont,
     headline_size: headlineSize,
-    headline_tracking: 3,
-    subheadline_font: preset.typography.secondaryFont,
+    headline_tracking: headlineTracking,
+    subheadline_font: subheadlineFont,
     subheadline_size: 32,
     subheadline_tracking: 2,
     alignment: preset.typography.headlineAlign,
@@ -480,9 +507,13 @@ export async function generateAutoCreativeBrief(rawUserPrompt: string): Promise<
   }
 
   const pinterestContextHint = `
-MANDATORY PINTEREST VISUAL DESIGN DNA (APPLY TO 100% OF REQUESTS):
+MANDATORY PINTEREST VISUAL & TYPOGRAPHY DESIGN DNA (APPLY TO 100% OF REQUESTS):
 - Pinterest Aesthetic Style: ${pinterestDna.pinterestStyleTitle}
 - Trending Visual Keywords: ${pinterestDna.trendingKeywords.join(", ")}
+- Trending Designer Font Pairing: ${pinterestDna.typographyDNA?.trendingFontPairing || "Cinzel / Cormorant + Plus Jakarta Sans"}
+- Headline Font Stack: ${pinterestDna.typographyDNA?.headlineFont || "'Playfair Display', serif"}
+- Subheadline Font Stack: ${pinterestDna.typographyDNA?.subheadlineFont || "'Plus Jakarta Sans', sans-serif"}
+- Typographic Treatment & Micro-Accents: ${pinterestDna.typographyDNA?.treatment || "Generous tracking & hairline rules"} (${pinterestDna.typographyDNA?.microAccents || "✦  ✦  ✦"})
 - Trending Pinterest Color Palette: Primary [${pinterestDna.colorPalette.primary.join(", ")}], Accents [${pinterestDna.colorPalette.accents.join(", ")}]
 - Spatial Composition DNA: ${pinterestDna.compositionDNA}
 - Lighting & Atmosphere DNA: ${pinterestDna.lightingDNA}
@@ -671,6 +702,22 @@ function createFallbackBrief(
     headline = "CHAMPIONSHIP";
     subheadline = "Semangat Juara, Kejayaan Bersama";
     quote = "Raih prestasi tertinggi dengan sportivitas.";
+  } else if (lower.includes("ibu") || lower.includes("mother") || lower.includes("bunda") || lower.includes("mama")) {
+    category = "COMMEMORATIVE_POSTER";
+    presetId = "02_EDITORIAL_LUXURY";
+    creativeStyle = "LUXURY_EDITORIAL";
+    headline = "SELAMAT HARI IBU";
+    subheadline = "Kasih Ibu Sepanjang Masa, Doa Tiada Akhir";
+    quote = "Surga di bawah telapak kaki ibu, pelindung hati selamanya.";
+    eyebrow = "♡ 22 DESEMBER · HARI IBU NASIONAL ♡";
+  } else if (lower.includes("kartini") || lower.includes("emansipasi") || lower.includes("wanita") || lower.includes("perempuan")) {
+    category = "COMMEMORATIVE_POSTER";
+    presetId = "02_EDITORIAL_LUXURY";
+    creativeStyle = "LUXURY_EDITORIAL";
+    headline = "HARI KARTINI";
+    subheadline = "Habis Gelap Terbitlah Terang";
+    quote = "Perempuan berdaya, bangsa berjaya menggapai cita.";
+    eyebrow = "★ 21 APRIL · PERINGATAN NASIONAL ★";
   }
 
   const preset = DESIGN_PRESETS[presetId];
@@ -704,7 +751,12 @@ function createFallbackBrief(
     lighting: "Golden hour dramatic volumetric backlight",
     visual_density: "medium",
     copywriting,
-    typography_blueprint: buildTypographyBlueprint({ preset_id: presetId, creative_style: creativeStyle, copywriting }),
+    typography_blueprint: buildTypographyBlueprint({
+      preset_id: presetId,
+      creative_style: creativeStyle,
+      copywriting,
+      pinterestTypography: (pinterestDna?.typographyDNA || PinterestResearchEngine.getCuratedPinterestDNA(clean).typographyDNA),
+    }),
     creative_confidence: 88,
     confidence_level: "HIGH",
     assumed_fields: ["palette", "lighting", "typography", "safe_zone"],
@@ -808,6 +860,15 @@ export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): st
   }
   out += `  • *Alignment & Scrim:* ${tb.alignment.toUpperCase()} | ${tb.overlay.type} (Opacity: ${tb.overlay.opacity})\n\n`;
 
+  if (blueprint.pinterest_dna?.typographyDNA) {
+    const typo = blueprint.pinterest_dna.typographyDNA;
+    out += `📌 *Trending Designer Typography (Pinterest / Behance):*\n`;
+    out += `  • *Font Pairing:* ${typo.trendingFontPairing}\n`;
+    out += `  • *Headline Stack:* ${typo.headlineFont}\n`;
+    out += `  • *Subheadline Stack:* ${typo.subheadlineFont}\n`;
+    out += `  • *Treatment:* ${typo.treatment} (${typo.microAccents})\n\n`;
+  }
+
   const confScore = brief?.creative_confidence || 95;
   const confMode = confScore >= 80 ? "HIGH CONFIDENCE" : "AUTO CREATIVE MODE";
   out += `⚡ *Confidence Score:* ${confScore}% (${confMode})\n`;
@@ -819,6 +880,90 @@ export function formatBlueprintForWhatsApp(blueprint: ArtDirectionBlueprint): st
 }
 
 /**
+ * Rock-Solid Universal Fail-Safe Typography Overlay.
+ * Zero-dependency on custom XML filters or external CSS.
+ * Guaranteed to NEVER crash librsvg or output a blank poster.
+ */
+export function renderUniversalFailSafeSvg(
+  W: number,
+  H: number,
+  blueprint: ArtDirectionBlueprint
+): string {
+  const accent = blueprint.colorPalette?.[0]?.hex || "#D4AF37";
+  const rawHeadline = (blueprint.copywriting?.headline || blueprint.title || "EXPEDIENT OFFICIAL").trim();
+  const headline = escapeXml(rawHeadline.toUpperCase());
+  const formatted = formatSvgHeadlineTspans(headline, {
+    canvasWidth: W,
+    initialFontSize: 90,
+    fontFamily: "'Cinzel', 'Playfair Display', 'Montserrat', serif",
+    letterSpacingPx: 4,
+    anchorX: W / 2,
+  });
+  const isMultiLine = formatted.lines.length > 1;
+  const startY = isMultiLine ? Math.floor(H * 0.78) : Math.floor(H * 0.81);
+  const dividerY = isMultiLine ? startY + formatted.totalHeight + 10 : Math.floor(H * 0.83);
+  const subheadY = dividerY + 45;
+
+  const eyebrow = escapeXml((blueprint.copywriting?.eyebrow || blueprint.category || "EXPEDIENT OFFICIAL RELEASE").toUpperCase());
+  const rawSubhead = (blueprint.copywriting?.subheadline || blueprint.theme || "SPECIAL EDITION").trim();
+  const subheadline = escapeXml(rawSubhead.toUpperCase());
+  const quote = blueprint.copywriting?.quoteOrBody || "Karya visual estetis dipersembahkan dengan dedikasi.";
+  const quoteLines = wrapSvgText(quote, 36);
+
+  const scrimTop = Math.floor(H * 0.58);
+  const scrimHeight = H - scrimTop;
+
+  return `
+  <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="failSafeScrim" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#020617" stop-opacity="0" />
+        <stop offset="30%" stop-color="#020617" stop-opacity="0.45" />
+        <stop offset="70%" stop-color="#020617" stop-opacity="0.88" />
+        <stop offset="100%" stop-color="#020617" stop-opacity="0.98" />
+      </linearGradient>
+    </defs>
+    <rect x="0" y="${scrimTop}" width="${W}" height="${scrimHeight}" fill="url(#failSafeScrim)" />
+    <g>
+      <!-- Eyebrow Badge -->
+      <text x="${W / 2}" y="${startY - 60}" font-family="'Inter', -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="${accent}" text-anchor="middle">
+        ✦ ${eyebrow} ✦
+      </text>
+
+      <!-- Monumental Headline -->
+      <text x="${W / 2}" y="${startY}" font-family="'Cinzel', 'Playfair Display', 'Montserrat', serif" font-size="${formatted.fontSize}" font-weight="800" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+        ${formatted.tspans}
+      </text>
+
+      <!-- Elegant Divider Line with Center Accent -->
+      <g transform="translate(${W / 2 - 90}, ${dividerY})">
+        <line x1="0" y1="0" x2="75" y2="0" stroke="${accent}" stroke-width="2" opacity="0.85" />
+        <circle cx="90" cy="0" r="3.5" fill="${accent}" />
+        <line x1="105" y1="0" x2="180" y2="0" stroke="${accent}" stroke-width="2" opacity="0.85" />
+      </g>
+
+      <!-- Subheadline -->
+      <text x="${W / 2}" y="${subheadY}" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-size="20" font-weight="600" letter-spacing="3" fill="#E2E8F0" text-anchor="middle">
+        ${subheadline}
+      </text>
+
+      <!-- Poetic Quote / Motto -->
+      ${quoteLines.slice(0, 2).map((l, i) => `
+        <text x="${W / 2}" y="${subheadY + 45 + i * 26}" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="15" font-weight="500" letter-spacing="3" fill="#F8FAFC" text-anchor="middle">
+          ${escapeXml(l.toUpperCase())}
+        </text>
+      `).join("")}
+
+      <!-- Bottom Archival Footer -->
+      <line x1="${W / 2 - 70}" y1="${subheadY + 60 + quoteLines.slice(0, 2).length * 26}" x2="${W / 2 + 70}" y2="${subheadY + 60 + quoteLines.slice(0, 2).length * 26}" stroke="${accent}" stroke-width="1.2" opacity="0.75" />
+      <text x="${W / 2}" y="${subheadY + 90 + quoteLines.slice(0, 2).length * 26}" font-family="'Montserrat', 'Inter', sans-serif" font-size="11" font-weight="700" letter-spacing="7" fill="#94A3B8" text-anchor="middle">
+        EXPEDIENT ARCHIVE · MMXXVI
+      </text>
+    </g>
+  </svg>`.trim();
+}
+
+/**
  * 5. SELF-HEALING SHARP TYPOGRAPHY COMPOSITOR & AUTO RECOMPOSE
  * Supports dynamic dimensions (1080x1920 for Story, 1080x1080 for Square, 1080x1350 for Feed)
  */
@@ -826,21 +971,26 @@ export async function applyPinterestTypographyOverlay(
   imageBuffer: Buffer,
   blueprint: ArtDirectionBlueprint
 ): Promise<Buffer> {
-  try {
-    const sharp = (await import("sharp")).default;
-    const ratio = blueprint.auto_brief?.aspect_ratio || "9:16";
-    let W = 1080;
-    let H = 1920;
-    if (ratio === "1:1") {
-      H = 1080;
-    } else if (ratio === "4:5") {
-      H = 1350;
-    }
+  const sharp = (await import("sharp")).default;
+  const ratio = blueprint.auto_brief?.aspect_ratio || "9:16";
+  let W = 1080;
+  let H = 1920;
+  if (ratio === "1:1") {
+    H = 1080;
+  } else if (ratio === "4:5") {
+    H = 1350;
+  }
 
-    const bg = await sharp(imageBuffer)
+  let bg: Buffer;
+  try {
+    bg = await sharp(imageBuffer)
       .resize(W, H, { fit: "cover", position: "center" })
       .toBuffer();
+  } catch (_) {
+    bg = imageBuffer;
+  }
 
+  try {
     // PRE-FLIGHT CONTRAST INSPECTION (Lower 35% of frame)
     let needsHighContrastBoost = false;
     try {
@@ -902,8 +1052,17 @@ export async function applyPinterestTypographyOverlay(
       .jpeg({ quality: 96 })
       .toBuffer();
   } catch (err: any) {
-    console.warn("[TYPOGRAPHY-OVERLAY-FALLBACK]:", err.message);
-    return imageBuffer;
+    console.warn("[TYPOGRAPHY-OVERLAY-PRESET-FAILED]:", err.message, "- Activating universal fail-safe typography overlay");
+    try {
+      const failSafeSvg = renderUniversalFailSafeSvg(W, H, blueprint);
+      return await sharp(bg)
+        .composite([{ input: Buffer.from(failSafeSvg), top: 0, left: 0 }])
+        .jpeg({ quality: 96 })
+        .toBuffer();
+    } catch (critErr: any) {
+      console.error("[CRITICAL-TYPOGRAPHY-FAIL]:", critErr.message);
+      return imageBuffer;
+    }
   }
 }
 

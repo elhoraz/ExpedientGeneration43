@@ -333,7 +333,10 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
             <stop offset="80%" stop-color="#020617" stop-opacity="0.88" />
             <stop offset="100%" stop-color="#020617" stop-opacity="0.96" />
           </linearGradient>
-          <filter id="cardShadow">
+          <filter id="cShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
+          </filter>
+          <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
           </filter>
         </defs>

@@ -95,6 +95,46 @@ export const THEME_LOCK_REGISTRY: Record<string, ThemeLockRule> = {
     guaranteedEnvironment:
       "A serene colonial Javanese library veranda with warm golden dawn sunlight filtering through teakwood blinds, surrounded by delicate batik drapery and historical dignity",
   },
+  hari_ibu: {
+    themeId: "hari_ibu",
+    displayName: "Hari Ibu Nasional",
+    matchPatterns: [
+      /\b(hari\s+ibu|ibu|mother|mothers\s+day|kasih\s+ibu|bunda|mama|ummi|22\s+desember)\b/i,
+    ],
+    allowedStyles: [
+      "Luxury Editorial",
+      "Modern Swiss",
+      "Tender Emotional",
+      "Warm Minimalist",
+      "Premium Magazine",
+    ],
+    requiredVisualElements: [
+      "Mother figure / maternal embrace",
+      "Warm tender atmosphere",
+      "Soft floral accents (carnation, jasmine, lily)",
+      "Maternal love symbolism",
+    ],
+    elementDetectors: {
+      "Mother figure / maternal embrace": /\b(mother|ibu|bunda|mama|maternal|embrace|pelukan|child|baby|anak)\b/i,
+      "Warm tender atmosphere": /\b(warm|hangat|tender|lembut|kasih|love|soft|gentle|morning\s+sunlight)\b/i,
+      "Soft floral accents (carnation, jasmine, lily)": /\b(flower|flowers|bunga|carnation|melati|jasmine|lily|kelopak|petals)\b/i,
+      "Maternal love symbolism": /\b(kasih\s+ibu|devotion|sacrifice|pengorbanan|surga|heaven|tribute)\b/i,
+    },
+    minimumRequiredIndicators: 2,
+    forbiddenVisualElements: [
+      "businessman in suit",
+      "corporate office",
+      "battle weapons",
+      "military camouflage",
+    ],
+    forbiddenPatterns: [
+      /\b(businessman|corporate\s+office|weapon|military|camouflage|soldier)\b/i,
+    ],
+    guaranteedSubject:
+      "A serene, graceful Indonesian mother gently embracing her child with tender maternal love, bathed in warm soft golden morning light",
+    guaranteedEnvironment:
+      "A warm minimalist aesthetic sanctuary with sheer linen curtains, gentle floral accents of blush carnations, and soft ambient morning illumination",
+  },
   independence_day: {
     themeId: "independence_day",
     displayName: "Hari Kemerdekaan Indonesia",

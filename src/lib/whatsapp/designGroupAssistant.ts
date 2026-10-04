@@ -76,18 +76,28 @@ export function shouldDesignBotRespond(messageText: string): boolean {
     lower.startsWith("siapakah ") ||
     lower.startsWith("buatkan ") ||
     lower.startsWith("bikin ") ||
+    lower.startsWith("buatin ") ||
+    lower.startsWith("bikinin ") ||
+    lower.startsWith("desainin ") ||
     lower.startsWith("desainkan ") ||
     lower.startsWith("gambar ") ||
     lower.startsWith("poster ") ||
     lower.startsWith("jadwal") ||
     lower.includes("buatkan poster") ||
     lower.includes("bikin poster") ||
+    lower.includes("buatin poster") ||
+    lower.includes("bikinin poster") ||
     lower.includes("buat poster") ||
     lower.includes("desain poster") ||
+    lower.includes("buatin desain") ||
+    lower.includes("bikinin desain") ||
+    lower.includes("laiya") ||
+    lower.includes("iya buatin") ||
     lower.includes("siapa zaki") ||
     lower.includes("siapa elhora") ||
     lower.includes("hari santri") ||
-    lower.includes("hut tni")
+    lower.includes("hut tni") ||
+    lower.includes("hari ibu")
   ) {
     return true;
   }
@@ -221,6 +231,27 @@ export async function handleDesignStudioConversation(options: {
   const lower = messageText.trim().toLowerCase();
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
+
+  // 0. FAST INTERCEPT: Deteksi Niat Pembuatan Poster / Desain (Jangan looping chat!)
+  const actionRegex = /\b(buatin|bikinin|buatkan|bikin|buat|desainin|desainkan|designkan|gambarin|generate)\b/i;
+  const designTargetRegex = /\b(poster|desain|design|gambar|draf|draft|story|feed|flyer|banner)\b/i;
+  if (
+    (actionRegex.test(lower) && designTargetRegex.test(lower)) ||
+    /\b(laiya\s+buatin|iya\s+buatin|ya\s+buatin|gas\s+buatin|cepet\s+buatin|buatin\s+dong|bikinin\s+dong)\b/i.test(lower)
+  ) {
+    let extractedTopic = lower
+      .replace(/^(bot|min|admin)[,:\s]+/i, "")
+      .replace(/^(tolong\s+|coba\s+|bisa\s+)?(buatin|bikinin|buatkan|bikin|buat|generate|desainin|desainkan|designkan|gambarin)\s+(poster|desain|design|flyer|banner|gambar|draf|draft)?\s*(dong|lah|sih|ya)?\s*(untuk|tentang|tema|edisi|konsep)?\s*/i, "")
+      .replace(/^(laiya\s+buatin|iya\s+buatin|ya\s+buatin|gas\s+buatin|cepet\s+buatin)\s*/i, "")
+      .replace(/\s+(dong|lah|sih|ya|bro|gan|min|bot)$/i, "")
+      .trim();
+
+    if (!extractedTopic || /^(buatin|bikinin|bikin|buat|poster|desain|story|feed)$/i.test(extractedTopic)) {
+      extractedTopic = "Hari Ibu";
+    }
+
+    return `[ACTION:GENERATE_POSTER:${extractedTopic}]`;
+  }
 
   // 1. FAST COMMAND: Jadwal / Kalender Poster & Pertanyaan Ultah Terdekat
   if (
