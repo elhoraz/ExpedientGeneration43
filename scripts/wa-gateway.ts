@@ -58,7 +58,10 @@ import {
 } from "../src/lib/whatsapp/groupManager";
 import { generateIntelligentCohortReply } from "../src/lib/whatsapp/alumniIntelligence";
 import { handleAdminAutoRemediation } from "../src/lib/sentinel/autoRemediator";
-import { recordCommunityGroupActivity } from "../src/lib/whatsapp/communityIcebreaker";
+import {
+  recordCommunityGroupActivity,
+  checkAndTriggerCommunityIcebreaker,
+} from "../src/lib/whatsapp/communityIcebreaker";
 import { getCommunityGroupId } from "../src/lib/whatsapp";
 import {
   backupSessionToSupabase,
@@ -1089,6 +1092,15 @@ async function startBaileysGateway() {
 
         addLog(`📩 [INCOMING] ${senderName} (${senderPhone}) [Grup: ${isGroup}]${quotedText ? ` [Reply: "${quotedText.slice(0, 30)}..."]` : ""}: "${messageText.slice(0, 50)}"`);
 
+        // Rekam aktivitas jika pesan berasal dari grup non-formal / komunitas (120363388633880584@g.us)
+        if (isGroup && (remoteJid.includes("120363388633880584") || remoteJid === getCommunityGroupId())) {
+          recordCommunityGroupActivity(
+            messageText || (hasMedia ? "[Kirim Media]" : "[Aktivitas Obrolan]"),
+            senderName || "Sahabat",
+            senderPhone || ""
+          ).catch(() => {});
+        }
+
         // 1. PENANGANAN MEDIA LANGSUNG
         if (hasMedia) {
           const category: MultimodalMediaCategory = isSticker
@@ -1238,6 +1250,43 @@ async function startBaileysGateway() {
           .replace(/@(bot|min|admin|expedient)/gi, "")
           .trim();
         const cleanLower = cleanTextWithoutMention.toLowerCase();
+
+        // =====================================================================
+        // FITUR PEMANTIK OBROLAN (ICEBREAKER) MANUAL / TEST
+        // =====================================================================
+        const isIcebreakerCmd =
+          cleanLower === "!icebreaker" ||
+          cleanLower === "/icebreaker" ||
+          cleanLower === "tes sapa" ||
+          cleanLower === "tes sepi" ||
+          cleanLower === "!sepi" ||
+          cleanLower === "sapa grup" ||
+          cleanLower === "bot sapa grup";
+
+        if (isIcebreakerCmd) {
+          addLog(`💬 [ICEBREAKER-MANUAL] Permintaan pemantik obrolan manual dari ${senderName} (${remoteJid})...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+
+          const commGroupId = getCommunityGroupId();
+          const targetToSend = (isGroup && (remoteJid.includes("120363388633880584") || remoteJid === commGroupId))
+            ? remoteJid
+            : commGroupId;
+
+          const iceRes = await checkAndTriggerCommunityIcebreaker(true, async (target, text) => {
+            await sock.sendMessage(targetToSend, { text });
+            return { success: true };
+          });
+
+          if (iceRes.triggered) {
+            addLog(`✅ [ICEBREAKER-MANUAL] Berhasil dikirim ke grup komunitas: "${iceRes.message?.slice(0, 40)}..."`, "success");
+            if (remoteJid !== targetToSend) {
+              await sendReply(remoteJid, `✅ Pemantik obrolan berhasil dikirim ke grup komunitas:\n\n"${iceRes.message}"`, m);
+            }
+          } else {
+            await sendReply(remoteJid, `⚠️ Gagal memantik obrolan: ${iceRes.reason}`, m);
+          }
+          continue;
+        }
 
         // =====================================================================
         // FITUR AI GENERATOR: GAMBAR / POSTER & SUARA (Voice Note / VN)
@@ -1508,6 +1557,29 @@ const healthServer = http.createServer(async (req, res) => {
         res.end(JSON.stringify({ success: false, error: err.message }));
       }
     });
+    return;
+  }
+
+  // 4. API Trigger Icebreaker On-Demand (Bisa dipanggil oleh curl atau webhook)
+  if (url === "/api/icebreaker" || (url.startsWith("/api/icebreaker") && (req.method === "POST" || req.method === "GET"))) {
+    if (!currentSock || gatewayStatus !== "connected") {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: false, error: "WhatsApp belum terhubung" }));
+      return;
+    }
+
+    addLog("💬 [API-ICEBREAKER] Permintaan pemantik obrolan via HTTP API...", "info");
+    try {
+      const result = await checkAndTriggerCommunityIcebreaker(true, async (target, text) => {
+        await currentSock.sendMessage(target, { text });
+        return { success: true };
+      });
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: result.triggered, result }));
+    } catch (err: any) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
     return;
   }
 
@@ -1960,3 +2032,40 @@ healthServer.listen(HTTP_PORT, "0.0.0.0", () => {
 startBaileysGateway().catch((err) => {
   addLog(`❌ [BAILEYS-FATAL] ${err.message}`, "error");
 });
+
+// =============================================================================
+// BACKGROUND DAEMON: AUTONOMOUS ICEBREAKER MONITOR
+// Memeriksa keheningan grup angkatan non-formal setiap 10 menit
+// =============================================================================
+setInterval(async () => {
+  if (gatewayStatus === "connected" && currentSock) {
+    try {
+      const res = await checkAndTriggerCommunityIcebreaker(false, async (target, msg) => {
+        await currentSock.sendMessage(target, { text: msg });
+        return { success: true };
+      });
+      if (res.triggered) {
+        addLog(`💬 [ICEBREAKER-AUTO] Berhasil memicu obrolan di grup komunitas: "${res.message?.slice(0, 50)}..."`, "success");
+      }
+    } catch (err: any) {
+      addLog(`⚠️ [ICEBREAKER-LOOP-ERR] ${err.message}`, "warn");
+    }
+  }
+}, 10 * 60 * 1000);
+
+// Pemeriksaan awal 1 menit setelah bot online
+setTimeout(async () => {
+  if (gatewayStatus === "connected" && currentSock) {
+    try {
+      const res = await checkAndTriggerCommunityIcebreaker(false, async (target, msg) => {
+        await currentSock.sendMessage(target, { text: msg });
+        return { success: true };
+      });
+      if (res.triggered) {
+        addLog(`💬 [ICEBREAKER-STARTUP] Membuka obrolan di grup komunitas: "${res.message?.slice(0, 50)}..."`, "success");
+      }
+    } catch (err: any) {
+      addLog(`⚠️ [ICEBREAKER-INIT-ERR] ${err.message}`, "warn");
+    }
+  }
+}, 60 * 1000);

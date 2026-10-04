@@ -35,7 +35,8 @@ const SYSTEM_FILE_MAP: Record<string, string> = {
   "/admin/cms": "src/app/(dashboard)/admin/(protected)/cms/CmsClient.tsx",
 };
 
-export { callGeminiResilient } from "@/lib/geminiResilient";
+import { callGeminiResilient } from "@/lib/geminiResilient";
+export { callGeminiResilient };
 
 /**
  * Fast-Match Intent Heuristik: Mengeksekusi Query Database Populer Tanpa Menunggu LLM

@@ -5,11 +5,11 @@ import { callGeminiResilient } from "@/lib/sentinel/conversationalAgent";
 const LAST_ACTIVITY_KEY = "community_group_last_activity";
 const LAST_ICEBREAKER_KEY = "community_group_last_icebreaker_sent";
 
-// Batas waktu keheningan grup: 6 Jam dalam milidetik
-const INACTIVITY_THRESHOLD_MS = 6 * 60 * 60 * 1000; // 6 Jam
+// Batas waktu keheningan grup: Default 3 Jam (dapat diubah via env)
+const INACTIVITY_THRESHOLD_MS = Number(process.env.COMMUNITY_INACTIVITY_HOURS || 3) * 60 * 60 * 1000;
 
-// Cooldown minimum antar pemantik obrolan: 6 Jam
-const ICEBREAKER_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+// Cooldown minimum antar pemantik obrolan: Default 3 Jam
+const ICEBREAKER_COOLDOWN_MS = Number(process.env.COMMUNITY_ICEBREAKER_COOLDOWN_HOURS || 3) * 60 * 60 * 1000;
 
 export interface GroupActivityRecord {
   timestamp: number;
@@ -176,9 +176,13 @@ REQUIREMENTS:
 }
 
 /**
- * Fungsi Utama: Cek apakah grup sudah sepi >= 6 jam, dan picu obrolan jika memenuhi syarat
+ * Fungsi Utama: Cek apakah grup sudah sepi >= batas waktu, dan picu obrolan jika memenuhi syarat.
+ * Mendukung customSender callback untuk pengiriman langsung via live Baileys socket!
  */
-export async function checkAndTriggerCommunityIcebreaker(force = false): Promise<{
+export async function checkAndTriggerCommunityIcebreaker(
+  force = false,
+  customSender?: (target: string, message: string) => Promise<{ success: boolean; reason?: string }>
+): Promise<{
   triggered: boolean;
   reason: string;
   elapsedHours: number;
@@ -191,7 +195,7 @@ export async function checkAndTriggerCommunityIcebreaker(force = false): Promise
   if (!force && isQuietHoursWIB()) {
     return {
       triggered: false,
-      reason: "Saat ini jam istirahat malam (Quiet Hours WIB). Bot tidak mengganggu istirahat alumni.",
+      reason: "Saat ini jam istirahat malam (Quiet Hours WIB: 23.00-06.30). Bot tidak mengganggu istirahat alumni.",
       elapsedHours: 0,
     };
   }
@@ -199,32 +203,32 @@ export async function checkAndTriggerCommunityIcebreaker(force = false): Promise
   // 2. Ambil Waktu Aktivitas Terakhir
   const lastActivity = await getLastCommunityGroupActivity();
   const now = Date.now();
-
   const lastActivityTimestamp = lastActivity?.timestamp;
 
-  // Jika belum ada catatan sama sekali di database, inisialisasi dengan waktu sekarang agar tidak spam mendadak
-  if (!lastActivityTimestamp) {
+  // Jika belum ada catatan sama sekali di database dan tidak dipaksa (force), inisialisasi baseline
+  if (!force && !lastActivityTimestamp) {
     await recordCommunityGroupActivity("Inisialisasi sistem", "Sistem", "");
     return {
       triggered: false,
-      reason: "Catatan aktivitas grup baru saja diinisialisasi. Menunggu pemantauan 6 jam ke depan.",
+      reason: `Catatan aktivitas grup baru saja diinisialisasi. Menunggu pemantauan ${(INACTIVITY_THRESHOLD_MS / (1000 * 60 * 60)).toFixed(1)} jam ke depan.`,
       elapsedHours: 0,
     };
   }
 
-  const elapsedMs = now - lastActivityTimestamp;
+  const elapsedMs = lastActivityTimestamp ? (now - lastActivityTimestamp) : INACTIVITY_THRESHOLD_MS;
   const elapsedHours = elapsedMs / (1000 * 60 * 60);
+  const thresholdHours = INACTIVITY_THRESHOLD_MS / (1000 * 60 * 60);
 
-  // 3. Cek apakah sudah sepi >= 6 Jam
+  // 3. Cek apakah sudah sepi >= batas inaktivitas
   if (!force && elapsedMs < INACTIVITY_THRESHOLD_MS) {
     return {
       triggered: false,
-      reason: `Grup baru aktif ${elapsedHours.toFixed(1)} jam yang lalu. Belum mencapai batas hening 6 jam.`,
+      reason: `Grup baru aktif ${elapsedHours.toFixed(1)} jam yang lalu. Belum mencapai batas hening ${thresholdHours.toFixed(1)} jam.`,
       elapsedHours,
     };
   }
 
-  // 4. Cek Cooldown Pemantik Terakhir (agar tidak dobel kirim dalam 6 jam)
+  // 4. Cek Cooldown Pemantik Terakhir (agar tidak dobel kirim dalam window cooldown)
   if (!force) {
     try {
       const { data: iceData } = await supabase
@@ -236,9 +240,10 @@ export async function checkAndTriggerCommunityIcebreaker(force = false): Promise
       if (iceData?.content_value) {
         const lastSent = parseInt(iceData.content_value, 10);
         if (now - lastSent < ICEBREAKER_COOLDOWN_MS) {
+          const cooldownElapsedHours = (now - lastSent) / (1000 * 60 * 60);
           return {
             triggered: false,
-            reason: `Pemantik obrolan sudah pernah dikirim beberapa jam lalu. Sedang cooldown.`,
+            reason: `Pemantik obrolan sudah pernah dikirim ${cooldownElapsedHours.toFixed(1)} jam lalu. Masih cooldown.`,
             elapsedHours,
           };
         }
@@ -246,15 +251,21 @@ export async function checkAndTriggerCommunityIcebreaker(force = false): Promise
     } catch {}
   }
 
-  // 5. Generate Pesan yang Catchy & Menarik
+  // 5. Generate Pesan yang Catchy & Menarik via AI
   const icebreakerMessage = await generateCatchyIcebreakerWithAi();
 
   // 6. Kirim ke Grup Non-Resmi
   console.log(`[ICEBREAKER-TRIGGER] Mengirim pemantik obrolan ke grup ${communityGroupId}...`);
-  const sendRes = await sendWhatsAppGroupMessage(communityGroupId, icebreakerMessage);
+  let sendRes: { success: boolean; reason?: string } = { success: false };
+
+  if (customSender) {
+    sendRes = await customSender(communityGroupId, icebreakerMessage);
+  } else {
+    sendRes = await sendWhatsAppGroupMessage(communityGroupId, icebreakerMessage);
+  }
 
   if (sendRes.success) {
-    // Perbarui waktu pengiriman pemantik obrolan & reset aktivitas
+    // Perbarui waktu pengiriman pemantik obrolan & perbarui aktivitas terakhir grup ke pesan bot
     try {
       await supabase.from("site_content").upsert(
         {
@@ -266,11 +277,13 @@ export async function checkAndTriggerCommunityIcebreaker(force = false): Promise
         { onConflict: "content_key" }
       );
 
+      await recordCommunityGroupActivity(icebreakerMessage, "Expedient AI", "");
+
       // Catat ke whatsapp_queue
       await supabase.from("whatsapp_queue").insert([
         {
           no_whatsapp: communityGroupId.slice(0, 20),
-          message: `[ICEBREAKER GRUP 6 JAM] "${icebreakerMessage.slice(0, 100)}..."`,
+          message: `[ICEBREAKER GRUP] "${icebreakerMessage.slice(0, 100)}..."`,
           status: "sent_group",
           error_message: `Pemicu keaktifan grup dikirim setelah hening ${elapsedHours.toFixed(1)} jam.`,
           created_at: new Date().toISOString(),
@@ -289,7 +302,7 @@ export async function checkAndTriggerCommunityIcebreaker(force = false): Promise
 
   return {
     triggered: false,
-    reason: `Gagal mengirim ke grup WhatsApp: ${sendRes.reason || "Provider error"}`,
+    reason: `Gagal mengirim ke grup WhatsApp: ${sendRes.reason || "Socket/Provider error"}`,
     elapsedHours,
   };
 }
