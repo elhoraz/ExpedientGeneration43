@@ -229,6 +229,14 @@ export const THEME_KNOWLEDGE_PACKS: Record<string, ThemeKnowledge> = {
     themeKeywords: ["kartini", "emansipasi", "perempuan", "wanita", "habis gelap terbitlah terang", "pendidikan wanita"],
     variations: [
       {
+        style: "NEO_HERITAGE_PORTRAIT",
+        preset_id: "02_EDITORIAL_LUXURY",
+        visualConcept: "Elegant side-profile silhouette of an Indonesian woman wearing a delicate modern lace kebaya and traditional hair bun (sanggul) adorned with white jasmine flowers (melati)",
+        environmentConcept: "Atmospheric misty Javanese hillside at sunrise with golden volumetric sun rays breaking through morning clouds ('Habis Gelap Terbitlah Terang')",
+        narrativeDetails: "Dignified Indonesian womanhood, pride, cultural elegance, emancipation and modern vision",
+        colorHints: { primary: ["#F59E0B", "#D97706"], secondary: ["#0F172A", "#FFFBEB"] },
+      },
+      {
         style: "EDITORIAL_INTELLECTUAL",
         preset_id: "02_EDITORIAL_LUXURY",
         visualConcept: "Antique wooden writing desk with classic fountain pen and handwritten historical manuscripts in warm sunlight",
@@ -237,12 +245,36 @@ export const THEME_KNOWLEDGE_PACKS: Record<string, ThemeKnowledge> = {
         colorHints: { primary: ["#8B5E3C", "#D4AF37"], secondary: ["#1C1917", "#FDFBF7"] },
       },
       {
+        style: "BATIK_BOTANICAL_COLLAGE",
+        preset_id: "01_CINEMATIC_HERO",
+        visualConcept: "Artistic fine-art botanical composition featuring golden blooming jasmine (melati) and delicate traditional Indonesian batik textile flowing gracefully",
+        environmentConcept: "Warm textured organic handmade paper background with soft sunlight reflections and gentle botanical shadows",
+        narrativeDetails: "Poetic tribute to Indonesian heritage, gentle fragrance of virtue, enduring maternal spirit",
+        colorHints: { primary: ["#B45309", "#047857"], secondary: ["#FEF3C7", "#0F172A"] },
+      },
+      {
         style: "MODERN_EMPOWERMENT",
         preset_id: "03_SWISS_MODERN",
         visualConcept: "Bold contemporary silhouette of progressive female leadership against luminous sunrise horizon",
         environmentConcept: "Sleek architectural gallery with warm earth-toned geometric shadows",
         narrativeDetails: "Enduring social progress, equality, intellectual strength of modern Indonesian women",
-        colorHints: { primary: ["#B45309", "#0F172A"], secondary: ["#FEF3C7", "#FFFFFF"] },
+        colorHints: { primary: ["#C2410C", "#0F172A"], secondary: ["#FED7AA", "#FFFFFF"] },
+      },
+      {
+        style: "CINEMATIC_DAWN_HOPE",
+        preset_id: "01_CINEMATIC_HERO",
+        visualConcept: "A poetic atmospheric visual of golden dawn sunlight breaking through dark morning mountain mist ('Habis Gelap Terbitlah Terang')",
+        environmentConcept: "Serene misty sunrise over Indonesian highlands with ethereal god rays and morning dew",
+        narrativeDetails: "Symbolic light of education dispersing the darkness of ignorance, radiant hope",
+        colorHints: { primary: ["#F59E0B", "#1E1B4B"], secondary: ["#FDE68A", "#312E81"] },
+      },
+      {
+        style: "RETRO_EDITORIAL_VOGUE",
+        preset_id: "02_EDITORIAL_LUXURY",
+        visualConcept: "Vintage 1970s Indonesian editorial portrait style with warm 35mm film grain, muted warm earth colors, and artistic chiaroscuro studio lighting",
+        environmentConcept: "Retro minimalist studio with warm amber spotlight and nostalgic analog warmth",
+        narrativeDetails: "Timeless classic beauty, intellectual reverence, nostalgic archival warmth",
+        colorHints: { primary: ["#D97706", "#78350F"], secondary: ["#FEF3C7", "#18181B"] },
       },
     ],
   },
@@ -493,7 +525,7 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
     const body = {
       contents: [{ parts: [{ text: systemPrompt }] }],
       generationConfig: {
-        temperature: 0.25,
+        temperature: 0.65,
         responseMimeType: "application/json",
       },
     };
