@@ -23,6 +23,7 @@ import {
   calculateHeadlineSize,
 } from "./designSystem";
 import { ThemeLockEngine } from "./themeLockEngine";
+import { PinterestResearchEngine, type PinterestAestheticDNA } from "./pinterestResearchEngine";
 
 export interface TypographyBlueprint {
   layout: string;
@@ -80,6 +81,7 @@ export interface AutoCreativeBrief {
   assumed_fields: string[];
   preserved_facts: string[];
   compiled_image_prompt: string;
+  pinterest_dna?: PinterestAestheticDNA;
 }
 
 export interface ArtDirectionBlueprint {
@@ -89,6 +91,7 @@ export interface ArtDirectionBlueprint {
   theme: string;
   preset_id?: PresetId;
   auto_brief?: AutoCreativeBrief;
+  pinterest_dna?: PinterestAestheticDNA;
   typography_blueprint: TypographyBlueprint;
   layoutStyle?: string;
   colorPalette: { hex: string; name: string }[];
@@ -370,6 +373,10 @@ export function compileImagePrompt(brief: AutoCreativeBrief): string {
   const narrative = brief.narrative_elements ? ` ${brief.narrative_elements}.` : "";
   const ratioLabel = brief.aspect_ratio === "1:1" ? "square 1:1" : brief.aspect_ratio === "4:5" ? "vertical 4:5" : "vertical 9:16";
 
+  const pinterestEnrichment = brief.pinterest_dna?.injectedPromptEnrichment
+    ? `, ${brief.pinterest_dna.injectedPromptEnrichment}`
+    : ", trending on Pinterest aesthetic, Behance featured editorial design";
+
   return [
     `Create a premium cinematic ${ratioLabel} visual background for ${brief.poster_type}.`,
     `MAIN SUBJECT: ${brief.main_subject}, ${occupancy}.`,
@@ -380,7 +387,7 @@ export function compileImagePrompt(brief: AutoCreativeBrief): string {
     `COLOR PALETTE: ${brief.primary_colors?.join(", ") || "#DC2626, #FFFFFF"}, with accents of ${brief.secondary_colors?.join(", ") || "#F59E0B, #0F172A"}.`,
     `POSTER LAYOUT INTENT: Reserve dedicated typography-safe zone in lower third (bottom 32-35%). Main subject must remain strictly in upper-middle area and must NOT overlap or bleed into the typography area. Maintain strong contrast separation between focal subject and text zone.`,
     `GRAPHIC DESIGN REQUIREMENTS: Designed specifically as a professional social media poster background. ${safeZoneInstruction} Avoid high-frequency details, avoid complex objects, avoid bright highlights in typography area. Preserve strong readability support for headline placement.`,
-    `STYLE: ${brief.visual_style}, cinematic realism, modern minimalist poster design, professional advertising quality, clean visual hierarchy, 8k ultra-detailed rendering.`,
+    `STYLE: ${brief.visual_style}${pinterestEnrichment}, cinematic realism, modern minimalist poster design, professional advertising quality, clean visual hierarchy, 8k ultra-detailed rendering.`,
     `NEGATIVE PROMPT: No text, no letters, no words, no logos, no watermark, no typography, no gibberish, no visual clutter, no excessive decorative elements, no distorted objects, no busy background.`
   ].join(" ");
 }
@@ -549,8 +556,15 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
           compiled_image_prompt: "",
         };
 
+        // Step 1: Research Pinterest visual aesthetic trends live
+        try {
+          brief.pinterest_dna = await PinterestResearchEngine.researchPinterestTrends(clean);
+        } catch (_) {
+          brief.pinterest_dna = PinterestResearchEngine.getCuratedPinterestDNA(clean);
+        }
+
         brief.compiled_image_prompt = compileImagePrompt(brief);
-        // Enforce Theme Lock Engine (Priority: Theme Accuracy > Readability > Composition > Style)
+        // Step 2: Enforce Theme Lock Engine (Priority: Theme Accuracy > Readability > Composition > Style)
         ThemeLockEngine.enforceThemeLock(brief, clean);
         return brief;
       }
@@ -645,6 +659,7 @@ function createFallbackBrief(
     compiled_image_prompt: "",
   };
 
+  brief.pinterest_dna = PinterestResearchEngine.getCuratedPinterestDNA(clean);
   brief.compiled_image_prompt = compileImagePrompt(brief);
   // Enforce Theme Lock Engine (Priority: Theme Accuracy > Readability > Composition > Style)
   ThemeLockEngine.enforceThemeLock(brief, clean);
@@ -666,6 +681,7 @@ export async function architectDynamicDesignWithAI(rawUserPrompt: string): Promi
     theme: `${brief.visual_style} (${preset.name})`,
     preset_id: brief.preset_id,
     auto_brief: brief,
+    pinterest_dna: brief.pinterest_dna,
     typography_blueprint: brief.typography_blueprint,
     colorPalette: brief.primary_colors.map((hex, i) => ({ hex, name: `Accent ${i + 1}` })),
     typography: {

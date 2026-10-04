@@ -313,6 +313,14 @@ async function startBaileysGateway() {
         `4️⃣ *Instant Delivery:* Mengirimkan poster siap posting langsung ke WhatsApp!\n\n` +
         `━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
       let blueprintText = procedureHeader + formatBlueprintForWhatsApp(blueprint);
+      if (blueprint.pinterest_dna) {
+        const p = blueprint.pinterest_dna;
+        blueprintText +=
+          `\n📌 *PINTEREST VISUAL RESEARCH*\n` +
+          `  • *Aesthetic Style:* ${p.pinterestStyleTitle}\n` +
+          `  • *Visual Mood:* ${p.trendingKeywords.slice(0, 3).join(", ")}\n` +
+          `  • *Research Engine:* ${p.source === "LIVE_PINTEREST_SEARCH" ? "Live Pinterest Search 🔍" : "Curated Board 📌"}\n`;
+      }
       if (qualityReport?.intelligence) {
         const intel = qualityReport.intelligence;
         blueprintText +=
@@ -337,8 +345,56 @@ async function startBaileysGateway() {
         Buffer.from("Y2Z1dF96VzJaelpMS2VEVFc0bHpsN2tGUjdrdzltTkFEa25NekJsS3Y2OXpWY2U0N2Q3NTI=", "base64").toString()
       ).trim();
 
+      // TIER 0: GOOGLE GEMINI IMAGE GENERATOR (IMAGEN / GEMINI IMAGE 3.x)
+      const googleKeys = [
+        (process.env.GEMINI_API_KEY || "").trim(),
+        ...(process.env.GEMINI_API_KEYS || "").split(",").map((k) => k.trim()),
+      ].filter((k) => k.length > 10);
+
+      const googleImageModels = [
+        "gemini-2.5-flash-image",
+        "gemini-3-pro-image",
+        "gemini-3.1-flash-image",
+      ];
+
+      for (const gKey of googleKeys) {
+        if (imgBuffer) break;
+        for (const imgModel of googleImageModels) {
+          try {
+            addLog(`🎨 [GOOGLE-IMAGEN] Mencoba render visual via Google AI Studio (${imgModel})...`);
+            const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imgModel}:generateContent?key=${gKey}`;
+            const gRes = await fetch(gUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: blueprint.enhancedPrompt }] }],
+                generationConfig: {
+                  responseModalities: ["IMAGE"],
+                },
+              }),
+              signal: AbortSignal.timeout(20000),
+            });
+
+            if (gRes.ok) {
+              const gData: any = await gRes.json();
+              const candidate = gData.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData?.data);
+              if (candidate?.inlineData?.data) {
+                imgBuffer = Buffer.from(candidate.inlineData.data, "base64");
+                addLog(`✅ [GOOGLE-IMAGEN] Berhasil render visual Google Imagen (${imgBuffer.length} bytes)!`, "success");
+                break;
+              }
+            } else if (gRes.status === 429) {
+              // Free tier limit hit on this key, try next key or fallback
+              break;
+            }
+          } catch (_) {
+            break;
+          }
+        }
+      }
+
       // TIER 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - ULTRA FAST 2s)
-      if (cfAccountId && cfToken) {
+      if (!imgBuffer && cfAccountId && cfToken) {
         try {
           addLog(`⚡ [CLOUDFLARE-AI] Menjalankan FLUX.1 Schnell untuk: "${blueprint.title}"...`);
           const cfUrl = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`;
