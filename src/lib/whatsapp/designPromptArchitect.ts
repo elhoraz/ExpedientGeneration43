@@ -377,19 +377,23 @@ export function compileImagePrompt(brief: AutoCreativeBrief): string {
     ? `, ${brief.pinterest_dna.injectedPromptEnrichment}`
     : ", trending on Pinterest aesthetic, Behance featured editorial design";
 
-  return [
-    `Create a premium cinematic ${ratioLabel} visual background for ${brief.poster_type}.`,
+  const parts = [
+    `Cinematic ${ratioLabel} background for ${brief.poster_type}.`,
     `MAIN SUBJECT: ${brief.main_subject}, ${occupancy}.`,
     `ENVIRONMENT: ${brief.environment}.${narrative}`,
-    `COMPOSITION: ${brief.composition}, strong central focal point, intentional visual hierarchy, balanced composition.`,
-    `LIGHTING: ${brief.lighting}, volumetric sun rays, soft atmospheric glow, high dynamic range.`,
-    `MOOD: ${brief.mood}.`,
-    `COLOR PALETTE: ${brief.primary_colors?.join(", ") || "#DC2626, #FFFFFF"}, with accents of ${brief.secondary_colors?.join(", ") || "#F59E0B, #0F172A"}.`,
-    `POSTER LAYOUT INTENT: Reserve dedicated typography-safe zone in lower third (bottom 32-35%). Main subject must remain strictly in upper-middle area and must NOT overlap or bleed into the typography area. Maintain strong contrast separation between focal subject and text zone.`,
-    `GRAPHIC DESIGN REQUIREMENTS: Designed specifically as a professional social media poster background. ${safeZoneInstruction} Avoid high-frequency details, avoid complex objects, avoid bright highlights in typography area. Preserve strong readability support for headline placement.`,
-    `STYLE: ${brief.visual_style}${pinterestEnrichment}, cinematic realism, modern minimalist poster design, professional advertising quality, clean visual hierarchy, 8k ultra-detailed rendering.`,
-    `NEGATIVE PROMPT: No text, no letters, no words, no logos, no watermark, no typography, no gibberish, no visual clutter, no excessive decorative elements, no distorted objects, no busy background.`
-  ].join(" ");
+    `COMPOSITION: ${brief.composition}, strong focal point, visual hierarchy.`,
+    `LIGHTING: ${brief.lighting}, volumetric golden hour rays, high dynamic range.`,
+    `PALETTE: ${brief.primary_colors?.slice(0, 2).join(", ") || "#DC2626, #FFFFFF"}, accents of ${brief.secondary_colors?.slice(0, 2).join(", ") || "#F59E0B, #0F172A"}.`,
+    `LAYOUT: ${safeZoneInstruction} Clean negative space for typography.`,
+    `STYLE: ${brief.visual_style}${pinterestEnrichment}, Behance featured, 8k ultra-detailed photorealism.`,
+    `NEGATIVE PROMPT: No text, no letters, no watermark, no logos, no typography, no busy background, no deformed subjects.`
+  ];
+
+  let compiled = parts.join(" ");
+  if (compiled.length > 1800) {
+    compiled = compiled.slice(0, 1800).trim();
+  }
+  return compiled;
 }
 
 /**

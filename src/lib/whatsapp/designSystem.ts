@@ -220,8 +220,18 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#FBBF24";
       const rawHeadline = (brief.copywriting?.headline || brief.theme || "DIRGAHAYU INDONESIA").trim();
-      const headline = escapeXml(rawHeadline.toUpperCase());
-      const headlineSize = calculateHeadlineSize(rawHeadline, 105);
+      const formatted = formatSvgHeadlineTspans(rawHeadline.toUpperCase(), {
+        canvasWidth: W,
+        initialFontSize: 95,
+        fontFamily: "'Montserrat', 'Playfair Display', serif",
+        letterSpacingPx: 4,
+        anchorX: W / 2,
+      });
+      const isMultiLine = formatted.lines.length > 1;
+      const startY = isMultiLine ? 1540 : 1585;
+      const dividerY = isMultiLine ? startY + formatted.totalHeight + 10 : 1625;
+      const subheadY = dividerY + 45;
+
       const eyebrow = escapeXml((brief.copywriting?.eyebrow || `— ${brief.poster_type || "CINEMATIC MASTERPIECE"} —`).toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "CREATIVE ARCHIVE").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody;
@@ -245,15 +255,15 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
           <text x="${W / 2}" y="1480" font-family="'Inter', 'Segoe UI', sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="${accent}" text-anchor="middle">
             ${eyebrow}
           </text>
-          <text x="${W / 2}" y="1585" font-family="'Montserrat', 'Playfair Display', serif" font-size="${headlineSize}" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
-            ${headline}
+          <text x="${W / 2}" y="${startY}" font-family="'Montserrat', 'Playfair Display', serif" font-size="${formatted.fontSize}" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+            ${formatted.tspans}
           </text>
-          <line x1="${W / 2 - 80}" y1="1625" x2="${W / 2 + 80}" y2="1625" stroke="${accent}" stroke-width="2" opacity="0.85" />
-          <text x="${W / 2}" y="1675" font-family="'Inter', 'Segoe UI', sans-serif" font-size="24" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
+          <line x1="${W / 2 - 80}" y1="${dividerY}" x2="${W / 2 + 80}" y2="${dividerY}" stroke="${accent}" stroke-width="2" opacity="0.85" />
+          <text x="${W / 2}" y="${subheadY}" font-family="'Inter', 'Segoe UI', sans-serif" font-size="24" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
             ${subheadline}
           </text>
           ${quoteLines.slice(0, 2).map((l, i) => `
-            <text x="${W / 2}" y="${1730 + i * 30}" font-family="'Georgia', serif" font-style="italic" font-size="19" fill="#94A3B8" text-anchor="middle">
+            <text x="${W / 2}" y="${subheadY + 55 + i * 30}" font-family="'Georgia', serif" font-style="italic" font-size="19" fill="#94A3B8" text-anchor="middle">
               “${escapeXml(l)}”
             </text>
           `).join("")}
@@ -290,8 +300,18 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#D4AF37";
       const rawHeadline = (brief.copywriting?.headline || brief.theme || "EXPEDIENT").trim();
-      const headline = escapeXml(rawHeadline.toUpperCase());
-      const headlineSize = calculateHeadlineSize(rawHeadline, 95);
+      const formatted = formatSvgHeadlineTspans(rawHeadline.toUpperCase(), {
+        canvasWidth: W,
+        initialFontSize: 85,
+        fontFamily: "'Cormorant Garamond', 'Playfair Display', serif",
+        letterSpacingPx: 6,
+        anchorX: W / 2,
+      });
+      const isMultiLine = formatted.lines.length > 1;
+      const startY = isMultiLine ? 195 : 235;
+      const dividerY = isMultiLine ? startY + formatted.totalHeight + 15 : 272;
+      const subheadY = dividerY + 40;
+
       const eyebrow = escapeXml((brief.copywriting?.eyebrow || "— EXPEDIENT JOURNAL · VOL. 43 —").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "CREATIVE ARCHIVE").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Harmoni dalam kemewahan estetika visual modern.";
@@ -322,11 +342,11 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
           <text x="${W / 2}" y="140" font-family="'Inter', sans-serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accent}" text-anchor="middle">
             ${eyebrow}
           </text>
-          <text x="${W / 2}" y="235" font-family="'Cormorant Garamond', 'Playfair Display', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
-            ${headline}
+          <text x="${W / 2}" y="${startY}" font-family="'Cormorant Garamond', 'Playfair Display', serif" font-size="${formatted.fontSize}" font-weight="700" letter-spacing="6" fill="#FFFFFF" text-anchor="middle">
+            ${formatted.tspans}
           </text>
-          <line x1="${W / 2 - 70}" y1="272" x2="${W / 2 + 70}" y2="272" stroke="${accent}" stroke-width="2" opacity="0.85" />
-          <text x="${W / 2}" y="312" font-family="'Inter', sans-serif" font-size="17" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
+          <line x1="${W / 2 - 70}" y1="${dividerY}" x2="${W / 2 + 70}" y2="${dividerY}" stroke="${accent}" stroke-width="2" opacity="0.85" />
+          <text x="${W / 2}" y="${subheadY}" font-family="'Inter', sans-serif" font-size="17" font-weight="600" letter-spacing="4" fill="#E2E8F0" text-anchor="middle">
             ${subheadline}
           </text>
         </g>

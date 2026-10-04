@@ -387,25 +387,26 @@ async function startBaileysGateway() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              prompt: blueprint.enhancedPrompt,
+              prompt: (blueprint.enhancedPrompt || "").slice(0, 1800),
             }),
             signal: AbortSignal.timeout(8000),
           });
 
           if (cfRes.ok) {
-            const contentType = cfRes.headers.get("content-type") || "";
-            if (contentType.includes("application/json")) {
-              const json: any = await cfRes.json();
-              if (json?.result?.image) {
-                imgBuffer = Buffer.from(json.result.image, "base64");
-                addLog(`✅ [CLOUDFLARE-AI] Berhasil render FLUX.1 (${imgBuffer.length} bytes)!`, "success");
-              }
-            } else {
-              const arr = await cfRes.arrayBuffer();
-              if (arr.byteLength > 1000) {
-                imgBuffer = Buffer.from(arr);
-                addLog(`✅ [CLOUDFLARE-AI] Berhasil render FLUX.1 (${imgBuffer.length} bytes)!`, "success");
-              }
+            const arr = await cfRes.arrayBuffer();
+            const buf = Buffer.from(arr);
+            if (buf.length > 0 && buf[0] === 0x7b) {
+              try {
+                const json = JSON.parse(buf.toString("utf8"));
+                if (json?.result?.image) {
+                  imgBuffer = Buffer.from(json.result.image, "base64");
+                  addLog(`✅ [CLOUDFLARE-AI] Berhasil render FLUX.1 (${imgBuffer.length} bytes)!`, "success");
+                }
+              } catch (_) {}
+            }
+            if (!imgBuffer && buf.byteLength > 1000) {
+              imgBuffer = buf;
+              addLog(`✅ [CLOUDFLARE-AI] Berhasil render FLUX.1 (${imgBuffer.length} bytes)!`, "success");
             }
           } else {
             const errText = await cfRes.text();
