@@ -160,7 +160,7 @@ function isPosterGenerationRequest(text: string): boolean {
 
   // 2. Kata kerja aksi pembuatan desain/poster
   const actionRegex = /\b(buatin|bikinin|buatkan|bikin|buat|desainin|desainkan|designkan|gambarin|generate|lukiskan|cetak)\b/i;
-  const designTargetRegex = /\b(poster|desain|design|gambar|draf|draft|story|feed|flyer|banner|visual)\b/i;
+  const designTargetRegex = /\b(poster(nya)?|desain(nya)?|design(nya)?|gambar(nya)?|draf(nya)?|draft(nya)?|story|feed|flyer|banner|visual)\b/i;
 
   if (actionRegex.test(clean) && designTargetRegex.test(clean)) {
     return true;
@@ -194,7 +194,7 @@ function isPosterGenerationRequest(text: string): boolean {
   return false;
 }
 
-function extractPosterPrompt(text: string, fallbackTopic?: string): string {
+function extractPosterPrompt(text: string, fallbackTopic?: string, quotedText?: string): string {
   let prompt = text
     .replace(/@\d+/g, "")
     .replace(/@(bot|min|admin|expedient)/gi, "")
@@ -208,11 +208,16 @@ function extractPosterPrompt(text: string, fallbackTopic?: string): string {
 
   // Bersihkan kata kerja aksi & desakan
   prompt = prompt.replace(/^(laiya\s+buatin|iya\s+buatin|ya\s+buatin|ayo\s+buatin|gas\s+buatin|cepet\s+buatin|tolong\s+buatin|kamu\s+buatin|buruan\s+buatin)\s*/i, "").trim();
-  prompt = prompt.replace(/^(tolong\s+|coba\s+|bisa\s+|mohon\s+)?(buatin|bikinin|buatkan|bikin|buat|generate|desainin|desainkan|designkan|lukiskan|gambarin)\s+(poster|desain|design|flyer|banner|gambar|draf|draft)?\s*(dong|lah|sih|ya)?\s*(untuk|tentang|tema|edisi|konsep)?\s*/i, "").trim();
-  prompt = prompt.replace(/^(mana|lihat|kirim)\s+(poster|desain|draf|gambar)?\s*(untuk|tentang|tema|edisi)?\s*/i, "").trim();
+  prompt = prompt.replace(/^(tolong\s+|coba\s+|bisa\s+|mohon\s+)?(buatin|bikinin|buatkan|bikin|buat|generate|desainin|desainkan|designkan|lukiskan|gambarin)\s+(poster|desain|design|flyer|banner|gambar|draf|draft)?(nya)?\s*(dong|lah|sih|ya)?\s*(untuk|tentang|tema|edisi|konsep)?\s*/i, "").trim();
+  prompt = prompt.replace(/^(mana|lihat|kirim)\s+(poster|desain|draf|gambar)?(nya)?\s*(untuk|tentang|tema|edisi)?\s*/i, "").trim();
 
   // Bersihkan filler di belakang (bisa majemuk seperti "ya min", "dong bot", dll)
   prompt = prompt.replace(/(\s+(dong|lah|sih|ya|bro|gan|min|bot|gaes|guys))+$/i, "").trim();
+
+  // Jika prompt mengindikasikan rujukan ke pesan teman yang di-reply (misal: "ini", "kayak gini", dll)
+  if ((!prompt || /^(ini|kayak gini|seperti ini|yang ini|tentang ini|yang tadi|posternya)$/i.test(prompt)) && quotedText && quotedText.trim().length > 0) {
+    return quotedText.trim();
+  }
 
   // Jika setelah dibersihkan kosong atau cuma kata kerja/format generik, gunakan fallbackTopic
   if (!prompt || /^(buatin|bikinin|bikin|buat|poster|desain|draf|mana liat|mana lihat|kamu buatin|story|feed)$/i.test(prompt)) {
@@ -1066,6 +1071,15 @@ async function startBaileysGateway() {
         const quotedIsDocument = Boolean(quotedMsg?.documentMessage && !quotedMsg?.documentMessage?.mimetype?.startsWith("image/"));
         const quotedHasMedia = quotedIsImage || quotedIsSticker || quotedIsAudio || quotedIsVideo || quotedIsDocument;
 
+        const quotedText = (
+          quotedMsg?.conversation ||
+          quotedMsg?.extendedTextMessage?.text ||
+          quotedMsg?.imageMessage?.caption ||
+          quotedMsg?.videoMessage?.caption ||
+          quotedMsg?.documentMessage?.caption ||
+          ""
+        ).trim();
+
         const isImage = Boolean(msgContent.imageMessage || msgContent.documentMessage?.mimetype?.startsWith("image/"));
         const isSticker = Boolean(msgContent.stickerMessage);
         const isAudio = Boolean(msgContent.audioMessage);
@@ -1073,7 +1087,7 @@ async function startBaileysGateway() {
         const isDocument = Boolean(msgContent.documentMessage && !msgContent.documentMessage?.mimetype?.startsWith("image/"));
         const hasMedia = isImage || isSticker || isAudio || isVideo || isDocument;
 
-        addLog(`📩 [INCOMING] ${senderName} (${senderPhone}) [Grup: ${isGroup}]: "${messageText.slice(0, 50)}"`);
+        addLog(`📩 [INCOMING] ${senderName} (${senderPhone}) [Grup: ${isGroup}]${quotedText ? ` [Reply: "${quotedText.slice(0, 30)}..."]` : ""}: "${messageText.slice(0, 50)}"`);
 
         // 1. PENANGANAN MEDIA LANGSUNG
         if (hasMedia) {
@@ -1254,7 +1268,7 @@ async function startBaileysGateway() {
 
         if (isPosterOrImageRequest && (isGroup ? isDirectlyAddressed || isDesignGroupId(remoteJid) || shouldGroupBotRespond(messageText) : true)) {
           const fallbackTopic = hasFreshSession ? activeDesignSession.lastTopic : undefined;
-          let prompt = extractPosterPrompt(messageText, fallbackTopic);
+          let prompt = extractPosterPrompt(messageText, fallbackTopic, quotedText);
 
           // Simpan sesi desain agar follow-up (seperti "story", "hari ibu", "laiya buatin") tersambung mulus
           recentDesignSessionMap.set(remoteJid, {
@@ -1306,6 +1320,8 @@ async function startBaileysGateway() {
                   senderName,
                   messageText,
                   groupId: remoteJid,
+                  quotedText,
+                  quotedSender: quotedParticipant,
                 });
 
                 // INTERCEPT JIKA ACTION TRIGGER POSTER DIBERIKAN OLEH STUDIO ASSISTANT
@@ -1339,6 +1355,8 @@ async function startBaileysGateway() {
                   senderName,
                   isGroup: true,
                   groupId: remoteJid,
+                  quotedText,
+                  quotedSender: quotedParticipant,
                 });
                 const wantsVoiceReply =
                   lower.includes("pakai vn") ||
@@ -1388,6 +1406,8 @@ async function startBaileysGateway() {
               senderPhone,
               senderName,
               isGroup: false,
+              quotedText,
+              quotedSender: quotedParticipant,
             });
 
             const wantsVoiceReply =

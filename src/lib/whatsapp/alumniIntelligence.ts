@@ -377,8 +377,10 @@ export async function generateIntelligentCohortReply(options: {
   senderName: string;
   isGroup: boolean;
   groupId?: string;
+  quotedText?: string;
+  quotedSender?: string;
 }): Promise<string> {
-  const { messageText, senderPhone, senderName, isGroup } = options;
+  const { messageText, senderPhone, senderName, isGroup, quotedText, quotedSender } = options;
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
 
@@ -393,13 +395,14 @@ export async function generateIntelligentCohortReply(options: {
     // Non-blocking
   }
 
-  // 1. Dapatkan fakta database faktual
+  // 1. Dapatkan fakta database faktual (periksa juga quotedText jika user merujuk ke pesan teman)
   let fact: CohortFactContext = {
     category: "general",
     summary: `Expedient Generation 43 Alumni 2025 Pondok Modern Arrisalah Slahung Ponorogo`,
   };
   try {
-    fact = await resolveCohortContext(messageText, senderName);
+    const queryForFact = quotedText ? `${messageText} (Konteks reply: ${quotedText})` : messageText;
+    fact = await resolveCohortContext(queryForFact, senderName);
   } catch (_) {}
 
   const prompt = `
@@ -410,6 +413,7 @@ USER CONTEXT:
 - Name: ${senderName || "Sahabat"}
 - Channel: ${isGroup ? "WhatsApp Group Chat (⚔️successors⚔️)" : "WhatsApp Private Chat (1-on-1)"}
 - User's Message: "${messageText}"
+${quotedText ? `- Pesan Teman Yang Sedang Di-Reply/Quote (Pengirim: ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN: Pengguna sedang me-reply langsung pesan temannya di atas sambil memanggil bot. Jawablah dengan memahami pertanyaan/topik dari pesan temannya tersebut!)` : ""}
 
 RESOLVED KNOWLEDGE / DATABASE FACTS:
 ${fact.summary}

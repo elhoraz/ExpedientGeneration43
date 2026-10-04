@@ -226,8 +226,10 @@ export async function handleDesignStudioConversation(options: {
   senderName: string;
   messageText: string;
   groupId: string;
+  quotedText?: string;
+  quotedSender?: string;
 }): Promise<string> {
-  const { senderName, messageText } = options;
+  const { senderName, messageText, quotedText, quotedSender } = options;
   const lower = messageText.trim().toLowerCase();
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
@@ -245,6 +247,11 @@ export async function handleDesignStudioConversation(options: {
       .replace(/^(laiya\s+buatin|iya\s+buatin|ya\s+buatin|gas\s+buatin|cepet\s+buatin)\s*/i, "")
       .replace(/\s+(dong|lah|sih|ya|bro|gan|min|bot)$/i, "")
       .trim();
+
+    // Jika topik mengacu ke pesan teman yang di-reply (misal: "ini", "kayak gini") gunakan quotedText
+    if ((!extractedTopic || /^(ini|kayak gini|seperti ini|yang ini|tentang ini|yang tadi|posternya)$/i.test(extractedTopic)) && quotedText) {
+      extractedTopic = quotedText;
+    }
 
     if (!extractedTopic || /^(buatin|bikinin|bikin|buat|poster|desain|story|feed)$/i.test(extractedTopic)) {
       extractedTopic = "Hari Ibu";
@@ -376,6 +383,7 @@ Your team consists of santri alumni graphic designers and editors who create pos
 USER CONTEXT:
 - Sender Name: ${senderName}
 - User Message: "${messageText}"
+${quotedText ? `- Pesan Teman Yang Sedang Di-Reply/Quote (Pengirim: ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN: Pengguna sedang me-reply langsung pesan temannya di atas. Jawablah dengan memahami hubungan antara pesan pengguna dan isi pesan temannya!)` : ""}
 
 DATABASE & COHORT FACTS (USE FOR FACTUAL QUESTIONS):
 ${cohortFactSummary || "Expedient Generation 43 Alumni 2025 Pondok Modern Arrisalah Slahung Ponorogo"}
