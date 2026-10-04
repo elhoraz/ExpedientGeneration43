@@ -22,6 +22,7 @@ import {
   wrapSvgText,
   calculateHeadlineSize,
 } from "./designSystem";
+import { ThemeLockEngine } from "./themeLockEngine";
 
 export interface TypographyBlueprint {
   layout: string;
@@ -549,6 +550,8 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
         };
 
         brief.compiled_image_prompt = compileImagePrompt(brief);
+        // Enforce Theme Lock Engine (Priority: Theme Accuracy > Readability > Composition > Style)
+        ThemeLockEngine.enforceThemeLock(brief, clean);
         return brief;
       }
     }
@@ -643,6 +646,8 @@ function createFallbackBrief(
   };
 
   brief.compiled_image_prompt = compileImagePrompt(brief);
+  // Enforce Theme Lock Engine (Priority: Theme Accuracy > Readability > Composition > Style)
+  ThemeLockEngine.enforceThemeLock(brief, clean);
   return brief;
 }
 

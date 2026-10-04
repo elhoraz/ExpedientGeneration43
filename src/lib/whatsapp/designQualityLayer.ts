@@ -272,8 +272,44 @@ export interface DesignConceptCandidate {
 }
 
 export function generateMultiConceptCandidates(theme: string, category: DesignIntentCategory): DesignConceptCandidate[] {
+  const isKartini = /kartini|emansipasi|perempuan|wanita|habis\s+gelap/i.test(theme);
   const isPatriotic = category === "COMMEMORATIVE_POSTER" || /kemerdekaan|tni|pahlawan|pancasila/i.test(theme);
   const isReligious = category === "RELIGIOUS_POSTER" || /maulid|santri|isa|paskah|ramadan|idul/i.test(theme);
+
+  if (isKartini) {
+    return [
+      {
+        id: "A",
+        name: "Historical Documentary",
+        creative_style: "HISTORICAL_DOCUMENTARY",
+        preset_id: "11_DOCUMENTARY_HISTORY",
+        visualConcept: "Dignified Kartini-inspired woman at an antique wooden desk with historical letters and open books in warm morning sunlight",
+        headlineFont: "'Playfair Display', 'Cormorant Garamond', serif",
+        overlayType: "bottom_gradient",
+        qualityEstimatedScore: 97,
+      },
+      {
+        id: "B",
+        name: "Luxury Editorial",
+        creative_style: "LUXURY_EDITORIAL",
+        preset_id: "02_EDITORIAL_LUXURY",
+        visualConcept: "Delicate Javanese Parang batik textiles draped with grace alongside an antique oil lamp and literature manuscripts",
+        headlineFont: "'Cormorant Garamond', 'Cinzel', serif",
+        overlayType: "split_overlay",
+        qualityEstimatedScore: 95,
+      },
+      {
+        id: "C",
+        name: "Modern Swiss Heritage",
+        creative_style: "MODERN_SWISS",
+        preset_id: "03_SWISS_MODERN",
+        visualConcept: "Bold contemporary graphic interpretation of women's education, minimalist architectural lines with batik motif accents",
+        headlineFont: "'Space Grotesk', 'Inter', sans-serif",
+        overlayType: "editorial_panel",
+        qualityEstimatedScore: 94,
+      },
+    ];
+  }
 
   if (isPatriotic) {
     return [

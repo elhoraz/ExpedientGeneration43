@@ -33,8 +33,14 @@ import {
   TypographyCriticAIReport,
   StudioQualityGateV3Result,
 } from "./typographyLayoutEngineV3";
+import {
+  ThemeLockEngine,
+  THEME_LOCK_REGISTRY,
+  ThemeLockExtraction,
+} from "./themeLockEngine";
 
 export * from "./typographyLayoutEngineV3";
+export * from "./themeLockEngine";
 
 // ============================================================================
 // UPGRADE 1: THEME KNOWLEDGE ENGINE
@@ -1031,6 +1037,7 @@ export interface QualityIntelligenceResult {
   typographyCriticAI: TypographyCriticAIReport;
   watermarkReport?: WatermarkDetectionResult;
   studioQualityGateV3: StudioQualityGateV3Result;
+  themeLockReport: ThemeLockExtraction;
 }
 
 export async function runStudioQualityIntelligence(
@@ -1085,6 +1092,10 @@ export async function runStudioQualityIntelligence(
     );
   }
 
+  // 7.5. THEME LOCK ENGINE (Theme Accuracy Always Wins, Style Must NEVER Override Theme)
+  const themeLockEnforcement = ThemeLockEngine.enforceThemeLock(brief, themePrompt);
+  const themeLockReport = themeLockEnforcement.lockReport;
+
   // 8. Authenticity Validation Engine (Module 6 & 7: Specific rules for Kartini, Independence, Ramadan)
   let authenticityValidation = AuthenticityValidationEngine.validateThemeAuthenticity(
     themePrompt,
@@ -1102,12 +1113,12 @@ export async function runStudioQualityIntelligence(
   }
 
   const authenticity: AuthenticityReport = {
-    score: authenticityValidation.authenticityScore,
-    canRecognizeWithoutText: authenticityValidation.canRecognizeWithoutWords,
+    score: Math.max(authenticityValidation.authenticityScore, themeLockReport.themeConsistencyScore),
+    canRecognizeWithoutText: authenticityValidation.canRecognizeWithoutWords && !themeLockReport.themeFailure,
     identifiedSymbols: authenticityValidation.detectedIndicators,
-    recommendation: authenticityValidation.passed
-      ? "Authenticity Certified: At least 2 verified cultural indicators detected."
-      : "Authenticity Warning: Concept rebuilt with essential cultural anchors.",
+    recommendation: !themeLockReport.themeFailure
+      ? "Theme Identity Locked & Authenticity Certified."
+      : "Theme Failure Caught: Unauthorized style elements replaced with authentic theme anchors.",
   };
 
   // 9. AI Art Director Critic Pass 2 (Upgrade 4)
@@ -1142,16 +1153,16 @@ export async function runStudioQualityIntelligence(
     visualScore,
     readabilityScore: typographyCriticAI.readabilityScore,
     hierarchyScore: typographyCriticAI.hierarchyScore,
-    themeRecognitionScore: authenticityValidation.themeRecognitionScore,
-    authenticityScore: authenticityValidation.authenticityScore,
+    themeRecognitionScore: themeLockReport.themeConsistencyScore,
+    authenticityScore: authenticity.score,
   });
 
   const certification = StudioGradeQualityGate.evaluate({
     visualScore,
     typographyScore: typographyCriticAI.layoutScore,
     readabilityScore: typographyCriticAI.readabilityScore,
-    authenticityScore: authenticityValidation.authenticityScore,
-    themeRelevance: 98,
+    authenticityScore: authenticity.score,
+    themeRelevance: themeLockReport.themeFailure ? 50 : 98,
   });
 
   return {
@@ -1170,5 +1181,6 @@ export async function runStudioQualityIntelligence(
     typographyCriticAI,
     watermarkReport,
     studioQualityGateV3,
+    themeLockReport,
   };
 }
