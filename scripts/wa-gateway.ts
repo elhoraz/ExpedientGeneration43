@@ -345,55 +345,37 @@ async function startBaileysGateway() {
         Buffer.from("Y2Z1dF96VzJaelpMS2VEVFc0bHpsN2tGUjdrdzltTkFEa25NekJsS3Y2OXpWY2U0N2Q3NTI=", "base64").toString()
       ).trim();
 
-      // TIER 0: GOOGLE GEMINI IMAGE GENERATOR (IMAGEN / GEMINI IMAGE 3.x)
+      // TIER 0: GOOGLE GEMINI IMAGE GENERATOR (Fast 2.5s Probe, Zero-Block)
       const googleKeys = [
         (process.env.GEMINI_API_KEY || "").trim(),
         ...(process.env.GEMINI_API_KEYS || "").split(",").map((k) => k.trim()),
       ].filter((k) => k.length > 10);
 
-      const googleImageModels = [
-        "gemini-2.5-flash-image",
-        "gemini-3-pro-image",
-        "gemini-3.1-flash-image",
-      ];
-
-      for (const gKey of googleKeys) {
-        if (imgBuffer) break;
-        for (const imgModel of googleImageModels) {
-          try {
-            addLog(`🎨 [GOOGLE-IMAGEN] Mencoba render visual via Google AI Studio (${imgModel})...`);
-            const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/${imgModel}:generateContent?key=${gKey}`;
-            const gRes = await fetch(gUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: blueprint.enhancedPrompt }] }],
-                generationConfig: {
-                  responseModalities: ["IMAGE"],
-                },
-              }),
-              signal: AbortSignal.timeout(20000),
-            });
-
-            if (gRes.ok) {
-              const gData: any = await gRes.json();
-              const candidate = gData.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData?.data);
-              if (candidate?.inlineData?.data) {
-                imgBuffer = Buffer.from(candidate.inlineData.data, "base64");
-                addLog(`✅ [GOOGLE-IMAGEN] Berhasil render visual Google Imagen (${imgBuffer.length} bytes)!`, "success");
-                break;
-              }
-            } else if (gRes.status === 429) {
-              // Free tier limit hit on this key, try next key or fallback
-              break;
+      if (googleKeys.length > 0) {
+        try {
+          addLog(`🎨 [GOOGLE-IMAGEN] Mencoba Google AI Studio Image...`);
+          const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${googleKeys[0]}`;
+          const gRes = await fetch(gUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: blueprint.enhancedPrompt }] }],
+              generationConfig: { responseModalities: ["IMAGE"] },
+            }),
+            signal: AbortSignal.timeout(2500),
+          });
+          if (gRes.ok) {
+            const gData: any = await gRes.json();
+            const candidate = gData.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData?.data);
+            if (candidate?.inlineData?.data) {
+              imgBuffer = Buffer.from(candidate.inlineData.data, "base64");
+              addLog(`✅ [GOOGLE-IMAGEN] Berhasil render visual Google Imagen (${imgBuffer.length} bytes)!`, "success");
             }
-          } catch (_) {
-            break;
           }
-        }
+        } catch (_) {}
       }
 
-      // TIER 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - ULTRA FAST 2s)
+      // TIER 1: CLOUDFLARE WORKERS AI (FLUX.1 SCHNELL - BLAZING FAST ~2s)
       if (!imgBuffer && cfAccountId && cfToken) {
         try {
           addLog(`⚡ [CLOUDFLARE-AI] Menjalankan FLUX.1 Schnell untuk: "${blueprint.title}"...`);
@@ -407,7 +389,7 @@ async function startBaileysGateway() {
             body: JSON.stringify({
               prompt: blueprint.enhancedPrompt,
             }),
-            signal: AbortSignal.timeout(15000),
+            signal: AbortSignal.timeout(8000),
           });
 
           if (cfRes.ok) {
@@ -434,7 +416,36 @@ async function startBaileysGateway() {
         }
       }
 
-      // TIER 2: AI HORDE DISTRIBUTED COMMUNITY AI (STABLE DIFFUSION / FLUX CLUSTER)
+      // TIER 2: POLLINATIONS AI (FLUX / SDXL FAST RENDER ~3s)
+      if (!imgBuffer) {
+        const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
+        const candidateUrls = [
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?model=flux&width=720&height=1280&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=720&height=1280&nologo=true`,
+          `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
+        ];
+
+        for (const url of candidateUrls) {
+          try {
+            const imgRes = await fetch(url, {
+              headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              },
+              signal: AbortSignal.timeout(8000),
+            });
+            if (imgRes.ok) {
+              const buf = Buffer.from(await imgRes.arrayBuffer());
+              if (buf.byteLength > 1000) {
+                imgBuffer = buf;
+                addLog(`✅ [POLLINATIONS] Berhasil render visual Pollinations (${imgBuffer.length} bytes)!`, "success");
+                break;
+              }
+            }
+          } catch (_) {}
+        }
+      }
+
+      // TIER 3: AI HORDE DISTRIBUTED COMMUNITY AI (STABLE DIFFUSION / FLUX CLUSTER)
       if (!imgBuffer) {
         try {
           addLog(`🌐 [AI-HORDE] Menghubungi kluster AI Horde untuk visual: "${blueprint.title}"...`);
@@ -453,13 +464,13 @@ async function startBaileysGateway() {
                 steps: 20,
               },
             }),
-            signal: AbortSignal.timeout(8000),
+            signal: AbortSignal.timeout(6000),
           });
 
           if (hordePost.status === 202) {
             const postData: any = await hordePost.json();
             if (postData?.id) {
-              const maxWaitMs = 18000;
+              const maxWaitMs = 10000;
               const startCheck = Date.now();
               while (Date.now() - startCheck < maxWaitMs) {
                 await new Promise((r) => setTimeout(r, 2000));
@@ -476,7 +487,7 @@ async function startBaileysGateway() {
                     const statusData: any = await statusRes.json();
                     const imgUrl = statusData?.generations?.[0]?.img;
                     if (imgUrl) {
-                      const imgFetch = await fetch(imgUrl, { signal: AbortSignal.timeout(10000) });
+                      const imgFetch = await fetch(imgUrl, { signal: AbortSignal.timeout(8000) });
                       if (imgFetch.ok) {
                         const buf = Buffer.from(await imgFetch.arrayBuffer());
                         if (buf.byteLength > 1000) {
@@ -494,35 +505,6 @@ async function startBaileysGateway() {
           }
         } catch (hordeErr: any) {
           addLog(`⚠️ [AI-HORDE-WARN] ${hordeErr?.message || hordeErr}`, "warn");
-        }
-      }
-
-      // TIER 3: POLLINATIONS AI
-      if (!imgBuffer) {
-        const enhancedQuery = encodeURIComponent(blueprint.enhancedPrompt);
-        const candidateUrls = [
-          `https://image.pollinations.ai/prompt/${enhancedQuery}?model=flux&width=720&height=1280&nologo=true`,
-          `https://image.pollinations.ai/prompt/${enhancedQuery}?width=720&height=1280&nologo=true`,
-          `https://image.pollinations.ai/prompt/${enhancedQuery}?nologo=true`,
-        ];
-
-        for (const url of candidateUrls) {
-          try {
-            const imgRes = await fetch(url, {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-              },
-              signal: AbortSignal.timeout(10000),
-            });
-            if (imgRes.ok) {
-              const buf = Buffer.from(await imgRes.arrayBuffer());
-              if (buf.byteLength > 1000) {
-                imgBuffer = buf;
-                addLog(`✅ [POLLINATIONS] Berhasil render visual Pollinations (${imgBuffer.length} bytes)!`, "success");
-                break;
-              }
-            }
-          } catch (_) {}
         }
       }
 
