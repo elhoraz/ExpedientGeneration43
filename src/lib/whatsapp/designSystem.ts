@@ -262,13 +262,15 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
           <text x="${W / 2}" y="${subheadY}" font-family="'Inter', 'Segoe UI', sans-serif" font-size="24" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
             ${subheadline}
           </text>
+          <!-- Minimalist Quote & Archival Footer -->
           ${quoteLines.slice(0, 2).map((l, i) => `
-            <text x="${W / 2}" y="${subheadY + 55 + i * 30}" font-family="'Georgia', serif" font-style="italic" font-size="19" fill="#94A3B8" text-anchor="middle">
-              “${escapeXml(l)}”
+            <text x="${W / 2}" y="${subheadY + 50 + i * 26}" font-family="'Plus Jakarta Sans', 'Inter', sans-serif" font-size="15" font-weight="500" letter-spacing="3" fill="#F1F5F9" text-anchor="middle">
+              ${escapeXml(l.toUpperCase())}
             </text>
           `).join("")}
-          <text x="${W / 2}" y="1840" font-family="'Inter', 'Segoe UI', sans-serif" font-size="11" font-weight="600" letter-spacing="5" fill="#64748B" text-anchor="middle">
-            EXPEDIENT CREATIVE AI STUDIO · 2026
+          <line x1="${W / 2 - 60}" y1="${subheadY + 66 + quoteLines.slice(0, 2).length * 26}" x2="${W / 2 + 60}" y2="${subheadY + 66 + quoteLines.slice(0, 2).length * 26}" stroke="${accent}" stroke-width="1.2" opacity="0.75" />
+          <text x="${W / 2}" y="${subheadY + 98 + quoteLines.slice(0, 2).length * 26}" font-family="'Montserrat', 'Inter', sans-serif" font-size="11" font-weight="700" letter-spacing="7" fill="#94A3B8" text-anchor="middle">
+            EXPEDIENT ARCHIVE · MMXXVI
           </text>
         </g>
       </svg>`;
@@ -351,15 +353,30 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
           </text>
         </g>
 
-        <g transform="translate(80, ${1620 - Math.max(0, (quoteLines.length - 1) * 30)})" filter="url(#cardShadow)">
-          <rect x="0" y="0" width="920" height="${150 + Math.max(0, (quoteLines.length - 1) * 30)}" rx="18" fill="#0A0F1D" fill-opacity="0.72" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="1.2" />
-          ${quoteLines.map((line, idx) => `<text x="460" y="${58 + idx * 34}" font-family="'Cormorant Garamond', serif" font-style="italic" font-size="22" font-weight="400" fill="#F8FAFC" text-anchor="middle">“${escapeXml(line)}”</text>`).join("")}
-          <line x1="40" y1="${105 + Math.max(0, (quoteLines.length - 1) * 30)}" x2="880" y2="${105 + Math.max(0, (quoteLines.length - 1) * 30)}" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1" />
-          <text x="50" y="${132 + Math.max(0, (quoteLines.length - 1) * 30)}" font-family="'Inter', sans-serif" font-size="12" font-weight="600" letter-spacing="3" fill="#94A3B8">
-            2026 · EXPEDIENT ARCHIVE
+        <!-- High-Fashion Frameless Floating Editorial Typography (Pinterest / Kinfolk Style) -->
+        <g filter="url(#cShadow)">
+          <!-- Minimalist Golden Star Accent -->
+          <text x="${W / 2}" y="1670" font-family="'Inter', sans-serif" font-size="13" fill="${accent}" letter-spacing="8" opacity="0.9" text-anchor="middle">
+            ✦  ✦  ✦
           </text>
-          <text x="870" y="${132 + Math.max(0, (quoteLines.length - 1) * 30)}" font-family="'Inter', sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="${accent}" text-anchor="end">
-            EXPEDIENT 43
+
+          <!-- Clean Poetic Motto with Editorial Letter-Spacing -->
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="${W / 2}" y="${1712 + i * 28}" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-size="16" font-weight="500" letter-spacing="3" fill="#F8FAFC" text-anchor="middle">
+              ${escapeXml(l.toUpperCase())}
+            </text>
+          `).join("")}
+
+          <!-- Elegant Thin Gold Hairline Accent -->
+          <line x1="${W / 2 - 90}" y1="${1736 + Math.max(1, quoteLines.slice(0, 2).length) * 28}" x2="${W / 2 + 90}" y2="${1736 + Math.max(1, quoteLines.slice(0, 2).length) * 28}" stroke="${accent}" stroke-width="1.2" opacity="0.75" />
+
+          <!-- Minimalist Archival Footer Monogram -->
+          <text x="${W / 2}" y="${1780 + Math.max(1, quoteLines.slice(0, 2).length) * 28}" font-family="'Montserrat', 'Inter', sans-serif" font-size="11" font-weight="700" letter-spacing="8" fill="#94A3B8" text-anchor="middle">
+            EXPEDIENT ARCHIVE · MMXXVI
+          </text>
+
+          <text x="${W / 2}" y="${1806 + Math.max(1, quoteLines.slice(0, 2).length) * 28}" font-family="'Inter', sans-serif" font-size="10" font-weight="600" letter-spacing="4" fill="${accent}" opacity="0.85" text-anchor="middle">
+            SPECIAL COMMEMORATIVE EDITION
           </text>
         </g>
       </svg>`;
@@ -463,12 +480,17 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#38BDF8";
       const rawHeadline = (brief.copywriting?.headline || brief.theme || "REUNI AKBAR").trim();
-      const headline = escapeXml(rawHeadline.toUpperCase());
-      const headlineSize = calculateHeadlineSize(rawHeadline, 80);
+      const formatted = formatSvgHeadlineTspans(rawHeadline.toUpperCase(), {
+        canvasWidth: 840,
+        initialFontSize: 70,
+        fontFamily: "'Montserrat', 'Outfit', sans-serif",
+        letterSpacingPx: 3,
+        anchorX: 45,
+      });
       const subheadline = escapeXml((brief.copywriting?.subheadline || "AGENDA RESMI").toUpperCase());
       const tag = escapeXml((brief.copywriting?.eyebrow || brief.poster_type || "OFFICIAL INVITATION").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Momen penuh makna, merajut kebersamaan abadi.";
-      const quoteLines = wrapSvgText(quote, 36);
+      const quoteLines = wrapSvgText(quote, 38);
 
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
@@ -485,26 +507,30 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
         <rect x="0" y="1000" width="${W}" height="920" fill="url(#cardGrad)" />
         
         <g transform="translate(70, 1420)" filter="url(#shadow)">
-          <rect x="0" y="0" width="940" height="380" rx="28" fill="#0A0F1D" fill-opacity="0.75" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="1.5" />
+          <rect x="0" y="0" width="940" height="380" rx="28" fill="#0A0F1D" fill-opacity="0.72" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1.2" />
           
-          <rect x="45" y="40" width="220" height="34" rx="17" fill="${accent}" fill-opacity="0.15" stroke="${accent}" stroke-width="1" />
-          <text x="155" y="62" font-family="'Inter', sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="${accent}" text-anchor="middle">
+          <rect x="45" y="36" width="220" height="32" rx="16" fill="${accent}" fill-opacity="0.18" stroke="${accent}" stroke-width="1" />
+          <text x="155" y="58" font-family="'Inter', -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="${accent}" text-anchor="middle">
             ${tag.slice(0, 22)}
           </text>
 
-          <text x="45" y="130" font-family="'Montserrat', sans-serif" font-size="${headlineSize}" font-weight="800" letter-spacing="3" fill="#FFFFFF">
-            ${headline}
+          <text x="45" y="125" font-family="'Montserrat', -apple-system, sans-serif" font-size="${formatted.fontSize}" font-weight="800" letter-spacing="3" fill="#FFFFFF">
+            ${formatted.tspans}
           </text>
-          <text x="45" y="170" font-family="'Inter', sans-serif" font-size="16" font-weight="600" letter-spacing="3" fill="#94A3B8">
+          <text x="45" y="${135 + formatted.totalHeight}" font-family="'Inter', -apple-system, sans-serif" font-size="16" font-weight="600" letter-spacing="3" fill="#94A3B8">
             ${subheadline}
           </text>
 
-          <line x1="45" y1="205" x2="895" y2="205" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="1" />
+          <line x1="45" y1="${165 + formatted.totalHeight}" x2="895" y2="${165 + formatted.totalHeight}" stroke="#FFFFFF" stroke-opacity="0.15" stroke-width="1" />
 
-          ${quoteLines.slice(0, 2).map((l, i) => `<text x="45" y="${250 + i * 30}" font-family="'Inter', sans-serif" font-size="19" font-weight="500" fill="#E2E8F0">“${escapeXml(l)}”</text>`).join("")}
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="45" y="${202 + formatted.totalHeight + i * 26}" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-size="15" font-weight="500" letter-spacing="2" fill="#E2E8F0">
+              ${escapeXml(l.toUpperCase())}
+            </text>
+          `).join("")}
 
-          <text x="895" y="345" font-family="'Inter', sans-serif" font-size="12" font-weight="700" letter-spacing="3" fill="${accent}" text-anchor="end">
-            EXPEDIENT GENERATION 43
+          <text x="895" y="345" font-family="'Montserrat', 'Inter', -apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="4" fill="${accent}" text-anchor="end">
+            EXPEDIENT GENERATION 43 · MMXXVI
           </text>
         </g>
       </svg>`;
@@ -537,8 +563,18 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
       const accent = brief.primary_colors?.[0] || "#10B981";
       const gold = "#F59E0B";
       const rawHeadline = (brief.copywriting?.headline || "KENAIKAN ISA AL-MASIH").trim();
-      const headline = escapeXml(rawHeadline.toUpperCase());
-      const headlineSize = calculateHeadlineSize(rawHeadline, 100);
+      const formatted = formatSvgHeadlineTspans(rawHeadline.toUpperCase(), {
+        canvasWidth: W,
+        initialFontSize: 90,
+        fontFamily: "'Playfair Display', 'Cormorant Garamond', 'Cinzel', serif",
+        letterSpacingPx: 5,
+        anchorX: W / 2,
+      });
+      const isMultiLine = formatted.lines.length > 1;
+      const startY = isMultiLine ? 1540 : 1580;
+      const dividerY = isMultiLine ? startY + formatted.totalHeight + 10 : 1615;
+      const subheadY = dividerY + 45;
+
       const eyebrow = escapeXml((brief.copywriting?.eyebrow || "✦ PERINGATAN HARI BESAR KEAGAMAAN ✦").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "KASIH DAN DAMAI SEJAHTERA").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Meneladani kasih dan membawa damai bagi sesama.";
@@ -565,23 +601,28 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
         <rect x="0" y="1200" width="${W}" height="720" fill="url(#sacredGlow)" />
 
         <g filter="url(#glow)">
-          <text x="${W / 2}" y="1480" font-family="'Inter', sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="${gold}" text-anchor="middle">
+          <text x="${W / 2}" y="1480" font-family="'Inter', -apple-system, sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="${gold}" text-anchor="middle">
             ${eyebrow}
           </text>
-          <text x="${W / 2}" y="1580" font-family="'Playfair Display', 'Cormorant Garamond', serif" font-size="${headlineSize}" font-weight="700" letter-spacing="5" fill="#FFFFFF" text-anchor="middle">
-            ${headline}
+          <text x="${W / 2}" y="${startY}" font-family="'Playfair Display', 'Cormorant Garamond', serif" font-size="${formatted.fontSize}" font-weight="700" letter-spacing="5" fill="#FFFFFF" text-anchor="middle">
+            ${formatted.tspans}
           </text>
-          <g transform="translate(${W / 2 - 90}, 1615)">
+          <g transform="translate(${W / 2 - 90}, ${dividerY})">
             <line x1="0" y1="0" x2="75" y2="0" stroke="${accent}" stroke-width="2" />
             <circle cx="90" cy="0" r="3.5" fill="${gold}" />
             <line x1="105" y1="0" x2="180" y2="0" stroke="${accent}" stroke-width="2" />
           </g>
-          <text x="${W / 2}" y="1670" font-family="'Inter', sans-serif" font-size="24" font-weight="600" letter-spacing="3" fill="#D1FAE5" text-anchor="middle">
+          <text x="${W / 2}" y="${subheadY}" font-family="'Inter', -apple-system, sans-serif" font-size="22" font-weight="600" letter-spacing="3" fill="#D1FAE5" text-anchor="middle">
             ${subheadline}
           </text>
-          ${quoteLines.slice(0, 2).map((l, i) => `<text x="${W / 2}" y="${1730 + i * 30}" font-family="'Playfair Display', serif" font-style="italic" font-size="20" fill="#E2E8F0" text-anchor="middle">“${escapeXml(l)}”</text>`).join("")}
-          <text x="${W / 2}" y="1840" font-family="'Inter', sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="#6EE7B7" text-anchor="middle">
-            EXPEDIENT ISLAMIC & SPIRITUAL ARCHIVE · 2026
+          ${quoteLines.slice(0, 2).map((l, i) => `
+            <text x="${W / 2}" y="${subheadY + 48 + i * 26}" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-size="15" font-weight="500" letter-spacing="3" fill="#ECFDF5" text-anchor="middle">
+              ${escapeXml(l.toUpperCase())}
+            </text>
+          `).join("")}
+          <line x1="${W / 2 - 70}" y1="${subheadY + 64 + quoteLines.slice(0, 2).length * 26}" x2="${W / 2 + 70}" y2="${subheadY + 64 + quoteLines.slice(0, 2).length * 26}" stroke="${gold}" stroke-width="1.2" opacity="0.8" />
+          <text x="${W / 2}" y="${subheadY + 96 + quoteLines.slice(0, 2).length * 26}" font-family="'Montserrat', 'Inter', -apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="7" fill="#6EE7B7" text-anchor="middle">
+            EXPEDIENT SPIRITUAL ARCHIVE · MMXXVI
           </text>
         </g>
       </svg>`;
@@ -741,11 +782,20 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const rawHeadline = (brief.copywriting?.headline || "DIRGAHAYU INDONESIA").trim();
-      const headline = escapeXml(rawHeadline.toUpperCase());
-      const headlineSize = calculateHeadlineSize(rawHeadline, 118);
+      const formatted = formatSvgHeadlineTspans(rawHeadline.toUpperCase(), {
+        canvasWidth: W,
+        initialFontSize: 105,
+        fontFamily: "'Montserrat', 'Bebas Neue', 'Anton', sans-serif",
+        letterSpacingPx: 4,
+        anchorX: W / 2,
+      });
+      const isMultiLine = formatted.lines.length > 1;
+      const startY = isMultiLine ? 1520 : 1570;
+      const dividerY = isMultiLine ? startY + formatted.totalHeight + 10 : 1605;
+      const subheadY = dividerY + 45;
 
       const rawSubhead = (brief.copywriting?.subheadline || "Merayakan Kemerdekaan, Menjaga Persatuan").trim();
-      const subheadline = escapeXml(rawSubhead);
+      const subheadline = escapeXml(rawSubhead.toUpperCase());
 
       const eyebrow = escapeXml((brief.copywriting?.eyebrow || "★ 17 AGUSTUS · PERINGATAN RESMI NASIONAL ★").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody || "Bersatu untuk Indonesia yang lebih maju.";
@@ -780,33 +830,36 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
             ${eyebrow}
           </text>
 
-          <!-- 2. MONUMENTAL HEADLINE (Dynamic Auto-Sized with Montserrat / Bebas Neue) -->
-          <text x="${W / 2}" y="1570" font-family="'Montserrat', 'Bebas Neue', 'Anton', sans-serif" font-size="${headlineSize}" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
-            ${headline}
+          <!-- 2. MONUMENTAL HEADLINE (Dynamic Multi-line Safe) -->
+          <text x="${W / 2}" y="${startY}" font-family="'Montserrat', 'Bebas Neue', 'Anton', sans-serif" font-size="${formatted.fontSize}" font-weight="900" letter-spacing="4" fill="#FFFFFF" text-anchor="middle">
+            ${formatted.tspans}
           </text>
 
           <!-- 3. ELEGANT PATRIOTIC ACCENT DIVIDER -->
-          <g transform="translate(${W / 2 - 120}, 1605)">
-            <line x1="0" y1="0" x2="100" y2="0" stroke="${red}" stroke-width="3" />
-            <circle cx="120" cy="0" r="4" fill="${gold}" />
-            <line x1="140" y1="0" x2="240" y2="0" stroke="${red}" stroke-width="3" />
+          <g transform="translate(${W / 2 - 120}, ${dividerY})">
+            <line x1="0" y1="0" x2="100" y2="0" stroke="${red}" stroke-width="2.5" />
+            <circle cx="120" cy="0" r="3.5" fill="${gold}" />
+            <line x1="140" y1="0" x2="240" y2="0" stroke="${red}" stroke-width="2.5" />
           </g>
 
           <!-- 4. REFINED SUBHEADLINE -->
-          <text x="${W / 2}" y="1660" font-family="'Inter', 'Segoe UI', sans-serif" font-size="26" font-weight="600" letter-spacing="2" fill="#F1F5F9" text-anchor="middle">
+          <text x="${W / 2}" y="${subheadY}" font-family="'Inter', 'Segoe UI', -apple-system, sans-serif" font-size="22" font-weight="600" letter-spacing="2" fill="#F1F5F9" text-anchor="middle">
             ${subheadline}
           </text>
 
-          <!-- 5. SHORT PUNCHY QUOTE CALLOUT -->
+          <!-- 5. LUXURY EDITORIAL FLOATING MOTTO (No Tacky Quotes or Ugly Serif) -->
           ${quoteLines.slice(0, 2).map((l, i) => `
-            <text x="${W / 2}" y="${1720 + i * 32}" font-family="'Georgia', serif" font-style="italic" font-size="20" fill="#CBD5E1" text-anchor="middle">
-              “${escapeXml(l)}”
+            <text x="${W / 2}" y="${subheadY + 48 + i * 26}" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-size="15" font-weight="500" letter-spacing="3" fill="#F8FAFC" text-anchor="middle">
+              ${escapeXml(l.toUpperCase())}
             </text>
           `).join("")}
 
-          <!-- 6. FOOTER BRANDING -->
-          <text x="${W / 2}" y="1840" font-family="'Inter', 'Segoe UI', sans-serif" font-size="12" font-weight="700" letter-spacing="5" fill="#64748B" text-anchor="middle">
-            EXPEDIENT 43 · PATRIOTIC ARCHIVE 2026
+          <!-- 6. MINIMALIST GOLDEN HAIRLINE -->
+          <line x1="${W / 2 - 80}" y1="${subheadY + 64 + quoteLines.slice(0, 2).length * 26}" x2="${W / 2 + 80}" y2="${subheadY + 64 + quoteLines.slice(0, 2).length * 26}" stroke="${gold}" stroke-width="1.2" opacity="0.8" />
+
+          <!-- 7. ARCHIVAL MONOGRAM FOOTER -->
+          <text x="${W / 2}" y="${subheadY + 96 + quoteLines.slice(0, 2).length * 26}" font-family="'Montserrat', 'Inter', -apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="7" fill="#94A3B8" text-anchor="middle">
+            EXPEDIENT PATRIOTIC ARCHIVE · MMXXVI
           </text>
         </g>
       </svg>`;
@@ -952,8 +1005,18 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#D97706";
       const rawHeadline = (brief.copywriting?.headline || "CATATAN SEJARAH").trim();
-      const headline = escapeXml(rawHeadline.toUpperCase());
-      const headlineSize = calculateHeadlineSize(rawHeadline, 95);
+      const formatted = formatSvgHeadlineTspans(rawHeadline.toUpperCase(), {
+        canvasWidth: W,
+        initialFontSize: 85,
+        fontFamily: "'Playfair Display', 'Times New Roman', serif",
+        letterSpacingPx: 4,
+        anchorX: W / 2,
+      });
+      const isMultiLine = formatted.lines.length > 1;
+      const startY = isMultiLine ? 1540 : 1580;
+      const dividerY = isMultiLine ? startY + formatted.totalHeight + 10 : 1615;
+      const subheadY = dividerY + 45;
+
       const eyebrow = escapeXml((brief.copywriting?.eyebrow || "— ARSIP SEJARAH EXPEDIENT —").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "MENGENANG PERJALANAN BANGSA").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody;
@@ -970,23 +1033,24 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
           </linearGradient>
         </defs>
         <rect x="0" y="1120" width="${W}" height="800" fill="url(#histGrad)" />
-        <g transform="translate(${W / 2}, 1500)">
+        <g transform="translate(${W / 2}, 1480)">
           <text x="0" y="0" font-family="'Playfair Display', serif" font-size="14" font-weight="700" letter-spacing="6" fill="${accent}" text-anchor="middle">
             ${eyebrow}
           </text>
-          <text x="0" y="80" font-family="'Playfair Display', 'Georgia', serif" font-size="${headlineSize}" font-weight="700" fill="#FEF3C7" text-anchor="middle">
-            ${headline}
+          <text x="0" y="${startY - 1480}" font-family="'Playfair Display', 'Georgia', serif" font-size="${formatted.fontSize}" font-weight="700" fill="#FEF3C7" text-anchor="middle">
+            ${formatted.tspans}
           </text>
-          <text x="0" y="135" font-family="'Georgia', serif" font-size="20" font-weight="600" letter-spacing="3" fill="#E7E5E4" text-anchor="middle">
+          <text x="0" y="${subheadY - 1480}" font-family="'Inter', -apple-system, sans-serif" font-size="19" font-weight="600" letter-spacing="3" fill="#E7E5E4" text-anchor="middle">
             ${subheadline}
           </text>
           ${quoteLines.slice(0, 2).map((l, i) => `
-            <text x="0" y="${185 + i * 28}" font-family="'Playfair Display', serif" font-style="italic" font-size="18" fill="#D6D3D1" text-anchor="middle">
-              “${escapeXml(l)}”
+            <text x="0" y="${subheadY - 1480 + 46 + i * 26}" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-size="15" font-weight="500" letter-spacing="3" fill="#D6D3D1" text-anchor="middle">
+              ${escapeXml(l.toUpperCase())}
             </text>
           `).join("")}
-          <text x="0" y="320" font-family="'Inter', sans-serif" font-size="11" font-weight="600" letter-spacing="4" fill="#A8A29E" text-anchor="middle">
-            EXPEDIENT HISTORICAL ARCHIVE · 2026
+          <line x1="-70" y1="${subheadY - 1480 + 64 + quoteLines.slice(0, 2).length * 26}" x2="70" y2="${subheadY - 1480 + 64 + quoteLines.slice(0, 2).length * 26}" stroke="${accent}" stroke-width="1.2" opacity="0.8" />
+          <text x="0" y="${subheadY - 1480 + 96 + quoteLines.slice(0, 2).length * 26}" font-family="'Montserrat', 'Inter', -apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="7" fill="#A8A29E" text-anchor="middle">
+            EXPEDIENT HISTORICAL ARCHIVE · MMXXVI
           </text>
         </g>
       </svg>`;
@@ -1018,8 +1082,18 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#FB923C";
       const rawHeadline = (brief.copywriting?.headline || "TEMU KANGEN & REUNI").trim();
-      const headline = escapeXml(rawHeadline.toUpperCase());
-      const headlineSize = calculateHeadlineSize(rawHeadline, 100);
+      const formatted = formatSvgHeadlineTspans(rawHeadline.toUpperCase(), {
+        canvasWidth: W,
+        initialFontSize: 90,
+        fontFamily: "'Montserrat', 'Playfair Display', serif",
+        letterSpacingPx: 4,
+        anchorX: W / 2,
+      });
+      const isMultiLine = formatted.lines.length > 1;
+      const startY = isMultiLine ? 1530 : 1575;
+      const dividerY = isMultiLine ? startY + formatted.totalHeight + 10 : 1615;
+      const subheadY = dividerY + 45;
+
       const eyebrow = escapeXml((brief.copywriting?.eyebrow || "✦ PERAYAAN & TASYAKURAN ✦").toUpperCase());
       const subheadline = escapeXml((brief.copywriting?.subheadline || "EXPEDIENT GENERATION 43").toUpperCase());
       const quote = brief.copywriting?.quoteOrBody;
@@ -1040,22 +1114,23 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
         </defs>
         <rect x="0" y="1120" width="${W}" height="800" fill="url(#festGrad)" />
         <g transform="translate(${W / 2}, 1480)" filter="url(#festShadow)">
-          <text x="0" y="0" font-family="'Inter', sans-serif" font-size="14" font-weight="800" letter-spacing="6" fill="${accent}" text-anchor="middle">
+          <text x="0" y="0" font-family="'Inter', -apple-system, sans-serif" font-size="14" font-weight="800" letter-spacing="6" fill="${accent}" text-anchor="middle">
             ${eyebrow}
           </text>
-          <text x="0" y="80" font-family="'Montserrat', 'Playfair Display', serif" font-size="${headlineSize}" font-weight="800" letter-spacing="3" fill="#FFFFFF" text-anchor="middle">
-            ${headline}
+          <text x="0" y="${startY - 1480}" font-family="'Montserrat', 'Playfair Display', serif" font-size="${formatted.fontSize}" font-weight="800" letter-spacing="3" fill="#FFFFFF" text-anchor="middle">
+            ${formatted.tspans}
           </text>
-          <text x="0" y="140" font-family="'Inter', sans-serif" font-size="22" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
+          <text x="0" y="${subheadY - 1480}" font-family="'Inter', -apple-system, sans-serif" font-size="20" font-weight="600" letter-spacing="3" fill="#CBD5E1" text-anchor="middle">
             ${subheadline}
           </text>
           ${quoteLines.slice(0, 2).map((l, i) => `
-            <text x="0" y="${195 + i * 28}" font-family="'Playfair Display', serif" font-style="italic" font-size="18" fill="#F8FAFC" text-anchor="middle">
-              “${escapeXml(l)}”
+            <text x="0" y="${subheadY - 1480 + 46 + i * 26}" font-family="'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif" font-size="15" font-weight="500" letter-spacing="3" fill="#F8FAFC" text-anchor="middle">
+              ${escapeXml(l.toUpperCase())}
             </text>
           `).join("")}
-          <text x="0" y="340" font-family="'Inter', sans-serif" font-size="11" font-weight="700" letter-spacing="4" fill="#94A3B8" text-anchor="middle">
-            EXPEDIENT 43 · BERSAMA MENGUKIR SEJARAH
+          <line x1="-70" y1="${subheadY - 1480 + 64 + quoteLines.slice(0, 2).length * 26}" x2="70" y2="${subheadY - 1480 + 64 + quoteLines.slice(0, 2).length * 26}" stroke="${accent}" stroke-width="1.2" opacity="0.8" />
+          <text x="0" y="${subheadY - 1480 + 96 + quoteLines.slice(0, 2).length * 26}" font-family="'Montserrat', 'Inter', -apple-system, sans-serif" font-size="11" font-weight="700" letter-spacing="7" fill="#94A3B8" text-anchor="middle">
+            EXPEDIENT CELEBRATION ARCHIVE · MMXXVI
           </text>
         </g>
       </svg>`;

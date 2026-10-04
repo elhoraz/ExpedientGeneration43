@@ -471,6 +471,27 @@ export async function generateAutoCreativeBrief(rawUserPrompt: string): Promise<
     ? `\nSUGGESTED THEME PACK VARIATION:\nStyle: ${matchedTheme.variation.style}\nPreset: ${matchedTheme.variation.preset_id}\nVisual: ${matchedTheme.variation.visualConcept}\nEnvironment: ${matchedTheme.variation.environmentConcept}\nNarrative: ${matchedTheme.variation.narrativeDetails}\nColors: Primary [${matchedTheme.variation.colorHints.primary.join(", ")}], Secondary [${matchedTheme.variation.colorHints.secondary.join(", ")}]\n`
     : "";
 
+  // 1. Live Pinterest Visual Aesthetic Research (Universal for 100% of User Requests)
+  let pinterestDna: PinterestAestheticDNA;
+  try {
+    pinterestDna = await PinterestResearchEngine.researchPinterestTrends(clean);
+  } catch (_) {
+    pinterestDna = PinterestResearchEngine.getCuratedPinterestDNA(clean);
+  }
+
+  const pinterestContextHint = `
+MANDATORY PINTEREST VISUAL DESIGN DNA (APPLY TO 100% OF REQUESTS):
+- Pinterest Aesthetic Style: ${pinterestDna.pinterestStyleTitle}
+- Trending Visual Keywords: ${pinterestDna.trendingKeywords.join(", ")}
+- Trending Pinterest Color Palette: Primary [${pinterestDna.colorPalette.primary.join(", ")}], Accents [${pinterestDna.colorPalette.accents.join(", ")}]
+- Spatial Composition DNA: ${pinterestDna.compositionDNA}
+- Lighting & Atmosphere DNA: ${pinterestDna.lightingDNA}
+- High-Impact Aesthetic Enrichment: ${pinterestDna.injectedPromptEnrichment}
+
+MANDATORY ART DIRECTION RULE:
+You MUST synthesize your visual_style, mood, lighting, composition, and color palette from this Pinterest Visual DNA so every generated poster has modern editorial appeal and high visual diversity.
+`;
+
   try {
     const systemPrompt = `
 You are an Elite Poster Art Director & Auto Creative Brief Generator for a professional Graphic Design Studio WhatsApp Bot.
@@ -478,6 +499,7 @@ A user requested: "${clean}".
 Aspect Ratio Target: ${aspectRatio} (${platform}).
 Event Detection Status: ${eventStatus} (Missing fields: ${missingEventFields.join(", ") || "None"}).
 ${themeContextHint}
+${pinterestContextHint}
 Your task is "Auto-Brief Completion": normalize user requests into a complete, decoupled design specification:
 1. Visual Design Specification (camera framing, strictly 35-45% occupancy in upper-middle area, narrative storytelling depth e.g. subtle monument silhouettes or atmospheric depth, lighting, mood, color palette).
 2. Professional Indonesian Copywriting with 4-Tier Visual Hierarchy:
@@ -589,15 +611,9 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
           confidence_level: confidenceLevel,
           assumed_fields: parsed.assumed_fields || ["palette", "lighting", "subheadline"],
           preserved_facts: parsed.preserved_facts || ["theme"],
+          pinterest_dna: pinterestDna,
           compiled_image_prompt: "",
         };
-
-        // Step 1: Research Pinterest visual aesthetic trends live
-        try {
-          brief.pinterest_dna = await PinterestResearchEngine.researchPinterestTrends(clean);
-        } catch (_) {
-          brief.pinterest_dna = PinterestResearchEngine.getCuratedPinterestDNA(clean);
-        }
 
         brief.compiled_image_prompt = compileImagePrompt(brief);
         // Step 2: Enforce Theme Lock Engine (Priority: Theme Accuracy > Readability > Composition > Style)
@@ -609,7 +625,7 @@ Return ONLY a valid JSON object (no markdown, no backticks) with this exact stru
     console.warn("[AUTO-BRIEF-FALLBACK]:", err.message);
   }
 
-  return createFallbackBrief(clean, matchedTheme?.variation, aspectRatio, platform, eventStatus, missingEventFields);
+  return createFallbackBrief(clean, matchedTheme?.variation, aspectRatio, platform, eventStatus, missingEventFields, pinterestDna);
 }
 
 function createFallbackBrief(
@@ -618,7 +634,8 @@ function createFallbackBrief(
   aspectRatio: AutoCreativeBrief["aspect_ratio"] = "9:16",
   platform: AutoCreativeBrief["platform"] = "STORY_9_16",
   eventStatus: AutoCreativeBrief["event_status"] = "FULL_EVENT",
-  missingEventFields: string[] = []
+  missingEventFields: string[] = [],
+  pinterestDna?: PinterestAestheticDNA
 ): AutoCreativeBrief {
   const lower = clean.toLowerCase();
   let category: DesignIntentCategory = "COMMEMORATIVE_POSTER";
@@ -695,7 +712,7 @@ function createFallbackBrief(
     compiled_image_prompt: "",
   };
 
-  brief.pinterest_dna = PinterestResearchEngine.getCuratedPinterestDNA(clean);
+  brief.pinterest_dna = pinterestDna || PinterestResearchEngine.getCuratedPinterestDNA(clean);
   brief.compiled_image_prompt = compileImagePrompt(brief);
   // Enforce Theme Lock Engine (Priority: Theme Accuracy > Readability > Composition > Style)
   ThemeLockEngine.enforceThemeLock(brief, clean);

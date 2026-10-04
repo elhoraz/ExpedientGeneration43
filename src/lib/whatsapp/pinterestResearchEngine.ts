@@ -71,6 +71,50 @@ const CURATED_PINTEREST_FALLBACKS: Record<string, Partial<PinterestAestheticDNA>
     compositionDNA: "Atmospheric evening terrace amphitheater with warm glowing fairy lights, bottom frosted dark glass card",
     lightingDNA: "Warm ambient bokeh, twilight blue hour sky with golden celebration illumination",
     injectedPromptEnrichment: "aesthetic Pinterest event poster, warm nostalgic gathering, glowing golden fairy lights, twilight ambiance, modern typography, Behance award-winning event branding"
+  },
+  santri: {
+    pinterestStyleTitle: "Sacred Emerald Arch & Modern Islamic Editorial",
+    trendingKeywords: ["emerald green", "moroccan arches", "golden lantern glow", "sacred calligraphy", "arabic modern editorial"],
+    colorPalette: {
+      primary: ["#064E3B", "#D4AF37"],
+      accents: ["#10B981", "#FAF8F5", "#1E293B"]
+    },
+    compositionDNA: "Majestic architectural minaret or mosque courtyard silhouette bathed in divine dawn light, serene lower negative space",
+    lightingDNA: "Celestial dawn volumetric light, soft emerald glow, mystical atmospheric haze",
+    injectedPromptEnrichment: "aesthetic Islamic Pinterest poster, modern Arabic graphic design, sacred emerald and gold, soft dawn lighting, Behance featured islamic art, cinematic peace"
+  },
+  seminar: {
+    pinterestStyleTitle: "Bauhaus Tech Minimalist & Sleek Grid Architecture",
+    trendingKeywords: ["swiss typography grid", "brutalist lighting", "electric blue accents", "minimalist architecture", "editorial tech"],
+    colorPalette: {
+      primary: ["#0F172A", "#3B82F6"],
+      accents: ["#10B981", "#F8FAFC", "#64748B"]
+    },
+    compositionDNA: "Sleek contemporary architectural structure with strong geometric shadows and crisp 40% negative space",
+    lightingDNA: "High-contrast studio architectural illumination with subtle neon blue edge reflections",
+    injectedPromptEnrichment: "trending on Pinterest graphic design, modern Swiss poster, architectural photography, sleek brutalist tech aesthetic, Behance branding award"
+  },
+  seni: {
+    pinterestStyleTitle: "Contemporary Neo-Heritage & Botanical Collage",
+    trendingKeywords: ["fine art collage", "textured canvas", "organic botanical shapes", "earthy ochre", "fine art exhibition"],
+    colorPalette: {
+      primary: ["#9A3412", "#D97706"],
+      accents: ["#047857", "#FFFBEB", "#1C1917"]
+    },
+    compositionDNA: "Artistic fine-art floral and textile flow with balanced asymmetrical visual tension",
+    lightingDNA: "Soft painterly daylight, warm organic highlights, subtle canvas texture",
+    injectedPromptEnrichment: "aesthetic Pinterest exhibition poster, fine art gallery branding, warm organic textures, botanical collage, contemporary Indonesian art"
+  },
+  default: {
+    pinterestStyleTitle: "Kinfolk Minimalist Editorial & Archival Warmth",
+    trendingKeywords: ["kinfolk editorial", "modern serif typography", "warm earthy tones", "fine film grain", "minimalist layout"],
+    colorPalette: {
+      primary: ["#78350F", "#D4AF37"],
+      accents: ["#FEF3C7", "#0F172A", "#F8FAFC"]
+    },
+    compositionDNA: "Clean upper-middle focal hero with generous unblocked negative space in the lower half",
+    lightingDNA: "Golden hour warm sunlight with volumetric rays and soft film grain",
+    injectedPromptEnrichment: "trending on Pinterest, Kinfolk editorial aesthetic, high-fashion magazine cover, Behance design award, 8k ultra-detailed"
   }
 };
 
@@ -141,12 +185,16 @@ export class PinterestResearchEngine {
     const cleanPrompt = (themePrompt || "").trim();
     const lower = cleanPrompt.toLowerCase();
 
-    let fallbackKey = "kemerdekaan";
+    let fallbackKey = "default";
     if (/kartini|wanita|perempuan|emansipasi/i.test(lower)) fallbackKey = "kartini";
-    else if (/tni|tentara|militer|pahlawan/i.test(lower)) fallbackKey = "tni";
-    else if (/reuni|alumni|gathering|acara/i.test(lower)) fallbackKey = "reuni";
+    else if (/kemerdekaan|17 agustus|ri|merdeka|proklamasi/i.test(lower)) fallbackKey = "kemerdekaan";
+    else if (/tni|tentara|militer|pahlawan|polisi/i.test(lower)) fallbackKey = "tni";
+    else if (/reuni|alumni|gathering|temu/i.test(lower)) fallbackKey = "reuni";
+    else if (/santri|hsn|islam|maulid|ramadan|masjid|dakwah|hijriah|pesantren/i.test(lower)) fallbackKey = "santri";
+    else if (/seminar|workshop|bisnis|startup|tech|webinar|konferensi/i.test(lower)) fallbackKey = "seminar";
+    else if (/seni|art|budaya|batik|konser|musik|pameran|festival/i.test(lower)) fallbackKey = "seni";
 
-    const fb = CURATED_PINTEREST_FALLBACKS[fallbackKey] || CURATED_PINTEREST_FALLBACKS.kartini;
+    const fb = CURATED_PINTEREST_FALLBACKS[fallbackKey] || CURATED_PINTEREST_FALLBACKS.default;
 
     return {
       theme: cleanPrompt,

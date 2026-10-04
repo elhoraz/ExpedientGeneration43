@@ -239,12 +239,12 @@ async function startBaileysGateway() {
       };
 
       // 1. CEK ASET POSTER RESMI EXPEDIENT DARI DISK SERVER
-      // Hanya kirim poster master resmi jika pengguna SPESIFIK meminta agenda tersebut!
-      const blueprint = await architectDynamicDesignWithAI(rawPrompt);
-      const isHutTni = lowerPrompt.includes("tni") || lowerPrompt.includes("tentara");
-      const isHariSantri = lowerPrompt.includes("santri") || lowerPrompt.includes("hsn");
-      const isPancasila = lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian");
-      const isG30s = lowerPrompt.includes("g30s") || lowerPrompt.includes("pki");
+      // Hanya kirim poster master resmi jika pengguna SPESIFIK meminta versi resmi / official / template / download!
+      const isOfficialRequest = /\b(resmi|official|master|template|download|unduh|arsip resmi)\b/i.test(lowerPrompt);
+      const isHutTni = isOfficialRequest && (lowerPrompt.includes("tni") || lowerPrompt.includes("tentara"));
+      const isHariSantri = isOfficialRequest && (lowerPrompt.includes("santri") || lowerPrompt.includes("hsn"));
+      const isPancasila = isOfficialRequest && (lowerPrompt.includes("pancasila") || lowerPrompt.includes("kesaktian"));
+      const isG30s = isOfficialRequest && (lowerPrompt.includes("g30s") || lowerPrompt.includes("pki"));
 
       let officialBuffer: Buffer | null = null;
       let officialTitle = "";
