@@ -71,6 +71,7 @@ import {
 import {
   isDeveloperSupportInquiry,
   getDeveloperSupportMessage,
+  checkAndTriggerWeeklySystemMaintenance,
 } from "../src/lib/whatsapp/developerSupport";
 import { getCommunityGroupId } from "../src/lib/whatsapp";
 import {
@@ -2314,6 +2315,29 @@ setInterval(async () => {
       });
       if (res.triggered) {
         addLog(`💬 [ICEBREAKER-AUTO] Berhasil memicu obrolan di grup komunitas: "${res.message?.slice(0, 50)}..."`, "success");
+      }
+
+      // Pemeriksaan rutin mingguan keberlanjutan sistem (Momen A: maksimal 1x seminggu di grup)
+      try {
+        const commGroupId = getCommunityGroupId();
+        const maintRes = await checkAndTriggerWeeklySystemMaintenance(async (caption) => {
+          const qrisImgPath = path.join(process.cwd(), "public", "images", "qris-developer.png");
+          if (fs.existsSync(qrisImgPath)) {
+            const qrisBuffer = fs.readFileSync(qrisImgPath);
+            await currentSock.sendMessage(commGroupId, {
+              image: qrisBuffer,
+              caption,
+            });
+            return { success: true };
+          }
+          await currentSock.sendMessage(commGroupId, { text: caption });
+          return { success: true };
+        });
+        if (maintRes.triggered) {
+          addLog(`🌐 [WEEKLY-MAINTENANCE-SENT] Pesan keberlanjutan sistem mingguan terkirim ke grup komunitas`, "success");
+        }
+      } catch (maintErr: any) {
+        addLog(`⚠️ [WEEKLY-MAINTENANCE-ERR] ${maintErr.message}`, "warn");
       }
     } catch (err: any) {
       addLog(`⚠️ [ICEBREAKER-LOOP-ERR] ${err.message}`, "warn");
