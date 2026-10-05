@@ -446,6 +446,18 @@ export async function POST(request: Request) {
 
       console.log(`[WA-USER-INCOMING] Pesan dari ${numNorm} (${senderTag}): "${messageText}"`);
 
+      // Inovasi: Traktir Kopi & Dukungan Pengembang Sistem (Natural & Otomatis)
+      const { isDeveloperSupportInquiry, getDeveloperSupportMessage } = await import("@/lib/whatsapp/developerSupport");
+      if (isDeveloperSupportInquiry(messageText)) {
+        const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
+        const devMsg = getDeveloperSupportMessage();
+        await sendWhatsAppMessageWithDetail(numNorm, devMsg);
+        return NextResponse.json({
+          status: "DEVELOPER_SUPPORT_INFO_SENT",
+          reply: devMsg,
+        });
+      }
+
       // A. Cek apakah ini Berita Duka Cita / Permohonan Titip Pengumuman ke Grup Resmi
       const {
         isAnnouncementSubmission,

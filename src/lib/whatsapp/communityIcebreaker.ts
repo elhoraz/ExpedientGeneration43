@@ -306,3 +306,43 @@ export async function checkAndTriggerCommunityIcebreaker(
     elapsedHours,
   };
 }
+
+/**
+ * Mengambil foto kenangan masa pondok ASLI dari arsip (tanpa crop & tanpa blur)
+ * Dipasangkan dengan ajakan bernostalgia untuk memecah keheningan grup.
+ */
+export function getAuthenticNostalgiaPhoto(): {
+  filePath: string;
+  imageBuffer: Buffer;
+  caption: string;
+} | null {
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const assetsDir = path.join(process.cwd(), "public", "assets", "foto_putra");
+    if (!fs.existsSync(assetsDir)) return null;
+
+    // Pilih halaman kenangan acak antara Hal 4 sampai Hal 140 (arsip foto santri)
+    const pageNum = Math.floor(Math.random() * 135) + 4;
+    const targetFile = path.join(assetsDir, `Hal ${pageNum}.webp`);
+
+    if (fs.existsSync(targetFile)) {
+      const imageBuffer = fs.readFileSync(targetFile);
+      const captions = [
+        `📸 *[FLASHBACK NOSTALGIA SANTRI EXPEDIENT 43]*\n\nNemu arsip foto kenangan masa pondok kita nih sahabat! 😄\n\nAda yang masih ingat ini momen apa, tahun berapa, atau siapa aja yang kelihatan di foto ini? Coba spill ceritanya di bawah! 👇✨`,
+        `📸 *[KILAS BALIK ARRISALAH 2025]*\n\nMasya Allah, waktu terasa cepat berlalu ya sahabat... 🍃\n\nCoba tebak siapa aja kawan sekamar / sekelas antum yang ada di foto kenangan asli ini? Masih hafal namanya gak nih? 😂👇`,
+        `📸 *[MEMORI TAK TERLUPAKAN - THE SYNDICATE]*\n\nSatu foto, seribu cerita perjuangan di pondok tercinta. 🌟\n\nKira-kira apa tragedi atau kisah paling lucu di balik momen foto ini sahabat? Yuk nostalgia bareng! ☕🤲`,
+      ];
+      const caption = captions[Math.floor(Math.random() * captions.length)];
+      return {
+        filePath: targetFile,
+        imageBuffer,
+        caption,
+      };
+    }
+  } catch (err: any) {
+    console.warn("[NOSTALGIA-PHOTO-WARN]:", err.message);
+  }
+  return null;
+}
+

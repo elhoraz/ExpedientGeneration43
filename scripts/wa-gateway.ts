@@ -1554,16 +1554,20 @@ async function startBaileysGateway() {
                   groupId: remoteJid,
                   quotedText,
                   quotedSender: quotedParticipant,
+                  quotedFromBot: Boolean(isBotQuoted),
                 });
                 const wantsVoiceReply =
-                  lower.includes("pakai vn") ||
+                  /\b(suara|vn|voice|ngomong|bicara|audio)\b/i.test(lower) ||
+                  lower.includes("pake suara") ||
                   lower.includes("pakai suara") ||
+                  lower.includes("pake vn") ||
+                  lower.includes("pakai vn") ||
                   lower.includes("balas vn") ||
                   lower.includes("kirim vn") ||
+                  lower.includes("coba ngomong") ||
                   lower.includes("ngomong dong") ||
                   lower.includes("suaranya mana") ||
                   lower.includes("ngomong min") ||
-                  lower.includes("bicara") ||
                   lower.includes("suara bot");
 
                 // Inovasi: Membalas chat yang menyinggung/menyapa bot di grup dengan Voice Note
@@ -1621,13 +1625,18 @@ async function startBaileysGateway() {
               isGroup: false,
               quotedText,
               quotedSender: quotedParticipant,
+              quotedFromBot: Boolean(isBotQuoted),
             });
 
             const wantsVoiceReply =
-              lower.includes("pakai vn") ||
+              /\b(suara|vn|voice|ngomong|bicara|audio)\b/i.test(lower) ||
+              lower.includes("pake suara") ||
               lower.includes("pakai suara") ||
+              lower.includes("pake vn") ||
+              lower.includes("pakai vn") ||
               lower.includes("balas vn") ||
               lower.includes("kirim vn") ||
+              lower.includes("coba ngomong") ||
               lower.includes("ngomong dong") ||
               lower.includes("suaranya mana") ||
               lower.includes("ngomong min") ||

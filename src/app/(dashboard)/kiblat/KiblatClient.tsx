@@ -13,6 +13,7 @@ import {
   PrayerSchedule,
   NextPrayerInfo,
 } from "@/lib/prayerTimes";
+import { getOfficialKemenagSchedule, DEFAULT_KEMENAG_CITY_ID } from "@/lib/kemenagPrayerTimes";
 import "./kiblat.css";
 
 // Dynamic import for Leaflet Qibla Map to prevent SSR errors
@@ -93,6 +94,7 @@ export default function KiblatClient() {
   const [audioCurrentTime, setAudioCurrentTime] = useState<number>(0);
   const [audioDuration, setAudioDuration] = useState<number>(0);
   const [showDoaAdzan, setShowDoaAdzan] = useState<boolean>(false);
+  const [kemenagSchedule, setKemenagSchedule] = useState<PrayerSchedule | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
@@ -108,14 +110,45 @@ export default function KiblatClient() {
     setDeviceMode(isMobile ? "mobile" : "desktop");
   }, []);
 
+  // Fetch official Kemenag schedule when city or location changes
+  useEffect(() => {
+    let isMounted = true;
+    const fetchOfficialSchedule = async () => {
+      const cityId = selectedCity?.kemenagCityId || DEFAULT_KEMENAG_CITY_ID;
+      try {
+        const sched = await getOfficialKemenagSchedule(
+          cityId,
+          now,
+          currentLocation.lat,
+          currentLocation.lng,
+          currentLocation.timezone
+        );
+        if (isMounted) {
+          setKemenagSchedule(sched);
+          if (typeof window !== "undefined" && selectedCity?.kemenagCityId) {
+            localStorage.setItem("expedient_kemenag_city_id", selectedCity.kemenagCityId);
+          }
+        }
+      } catch (e) {
+        console.warn("Could not fetch official Kemenag schedule:", e);
+      }
+    };
+    fetchOfficialSchedule();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCity, currentLocation, now]);
+
   // Qibla calculations (Bearing, Distance, Falak angles, DMS)
   const qiblaInfo = calculateQibla(currentLocation.lat, currentLocation.lng);
-  const prayerSchedule: PrayerSchedule = calculatePrayerTimes(
+  const astronomicalSchedule: PrayerSchedule = calculatePrayerTimes(
     currentLocation.lat,
     currentLocation.lng,
     currentLocation.timezone,
     now
   );
+  // Prioritaskan jadwal resmi Kemenag RI jika tersedia untuk kota tersebut
+  const prayerSchedule: PrayerSchedule = kemenagSchedule || astronomicalSchedule;
   const nextPrayer: NextPrayerInfo = getNextPrayer(prayerSchedule, now);
 
   // Effective Heading taking into account any manual magnetic calibration offset
@@ -1018,11 +1051,34 @@ export default function KiblatClient() {
           <div className="prayer-header-row">
             <div>
               <h2 className="prayer-section-title">{t.kiblat.prayer_schedule_title}</h2>
-              <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
-                {prayerSchedule.dateStr} • {t.kiblat.standard_kemenag}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "4px" }}>
+                <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+                  {prayerSchedule.dateStr}
+                </span>
+                {prayerSchedule.isKemenagOfficial ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      padding: "2px 8px",
+                      borderRadius: "12px",
+                      background: "rgba(43, 185, 124, 0.15)",
+                      border: "1px solid rgba(43, 185, 124, 0.4)",
+                      color: "#2bb97c",
+                      fontSize: "0.72rem",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <i className="fa-solid fa-certificate"></i> Data Resmi Kemenag RI (Bimas Islam)
+                  </span>
+                ) : (
+                  <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
+                    • {t.kiblat.standard_kemenag}
+                  </span>
+                )}
+              </div>
             </div>
-
           </div>
 
           {/* Authentic Adzan Player Card */}

@@ -398,7 +398,7 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     return true;
   }
 
-  // 4. Pertanyaan Faktual Terarah & Permintaan Pembuatan Poster / Desain
+  // 4. Pertanyaan Faktual Terarah, Permintaan Pembuatan Stiker, Suara / VN, & Poster / Desain
   if (
     lower.startsWith("siapa ") ||
     lower.startsWith("siapakah ") ||
@@ -411,6 +411,16 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     lower.startsWith("desainkan ") ||
     lower.startsWith("gambar ") ||
     lower.startsWith("poster ") ||
+    lower.includes("stiker") ||
+    lower.includes("sticker") ||
+    lower.includes("jadikan foto") ||
+    lower.includes("jadiin foto") ||
+    lower.includes("pake suara") ||
+    lower.includes("pakai suara") ||
+    lower.includes("pake vn") ||
+    lower.includes("pakai vn") ||
+    lower.includes("ngomong") ||
+    lower.includes("suara") ||
     lower.includes("buatkan poster") ||
     lower.includes("bikin poster") ||
     lower.includes("buat poster") ||

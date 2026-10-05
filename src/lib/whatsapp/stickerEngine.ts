@@ -20,19 +20,23 @@ export interface StickerRequestAnalysis {
 export function analyzeStickerIntent(text: string): StickerRequestAnalysis {
   if (!text) return { isSticker: false };
 
-  const clean = text.trim();
+  // Bersihkan mention (@105240321908772, @bot, dll) agar deteksi intent presisi
+  const clean = text
+    .replace(/@\d+/g, "")
+    .replace(/@(bot|min|admin|expedient)/gi, "")
+    .trim();
   const lower = clean.toLowerCase();
 
-  // Pola-pola natural pembuatan stiker
+  // Pola-pola natural pembuatan stiker (dengan maupun tanpa tanda seru !)
   const stickerPatterns = [
-    /\b(jadikan|jadiin|ubah|buatkan|buatin|bikin|bikinin|bikinlah|tolong jadiin)\s+(foto\s+(ini|itu)\s+)?stik?ker\b/i,
+    /\b(jadikan|jadiin|ubah|buatkan|buatin|bikin|bikinin|bikinlah|tolong jadiin|coba jadiin)\s+(foto\s+(ini|itu)\s+)?stik?ker\b/i,
     /\bstik?kerin\s*(dong|min|bot|ya|nih)?\b/i,
     /\b(buat|bikin|jadikan|jadiin)\s+stik?ker\b/i,
     /\b(foto\s+ini\s+)?jadi\s+stik?ker\b/i,
     /\b(minta|mau)\s+stik?ker(nya)?\b/i,
-    /^stik?ker$/i,
-    /^#stik?ker/i,
-    /^!stik?ker/i,
+    /^[!#/.](stik?ker|sticker)/i,
+    /\b(!stik?ker|!sticker)\b/i,
+    /\b(stik?ker|sticker)\s*(dong|min|bot|ya)?$/i,
   ];
 
   const matches = stickerPatterns.some((pattern) => pattern.test(lower));

@@ -302,18 +302,23 @@ Caption/Pesan Pengirim: "${caption || ""}"
 Konteks Percakapan: ${isGroup ? "Grup WhatsApp Angkatan" : "Chat Pribadi (1-on-1)"}
 
 TUGAS ANALISIS GAMBAR:
-1. Periksa apakah gambar ini merupakan **STRUK / BUKTI TRANSFER BANK / E-WALLET / QRIS** (misal untuk Baitul Maal, kas angkatan, sumbangan, atau iuran):
+1. Periksa apakah gambar ini merupakan **STRUK / BUKTI TRANSFER BANK / E-WALLET / QRIS**:
    - JIKA YA BUKTI TRANSFER:
      Ekstrak informasi berikut dengan format rapi:
      🧾 *Verifikasi Bukti Transfer Terdeteksi:*
      • 💰 *Nominal:* [Tuliskan nominal Rp...]
      • 🏦 *Bank/Platform:* [Nama bank atau e-wallet]
-     • 👤 *Pengirim / Rekening:* [Nama pengirim di struk]
+     • 👤 *Penerima / Pengirim:* [Nama pengirim & penerima di struk]
      • 📅 *Waktu Transaksi:* [Tanggal & jam di struk]
      • ✅ *Status:* [Berhasil/Sukses]
      
-     Lalu sampaikan ucapan terima kasih yang tulus:
-     "Jazakumullah khairan katsiran kepada Sahabat *${displayName}* atas kontribusi dan iurannya untuk Baitul Maal / Kas Keluarga Besar Expedient Generation 43. Semoga Allah melipatgandakan rezeki, mempermudah segala urusan, dan memberkahi setiap langkah. Aamiin ya Rabbal 'Alamin. Data ini dapat dipantau langsung di menu Baitul Maal portal angkatan."
+     - CEK TUJUAN TRANSFER:
+       A. Jika ditujukan untuk **TRAKTIR KOPI DEVELOPER / DUKUNGAN SERVER / REKENING ZAKI / PENGEMBANG** (atau caption pengirim menyebut traktir/kopi/dev/server/web):
+          Sampaikan ucapan terima kasih yang tulus, hangat, dan bersahabat:
+          "Alhamdulillah, jazakumullah khairan katsiran kepada Sahabat *${displayName}* atas traktir kopinya untuk developer website & bot Expedient 43! ☕🤲 Semoga menjadi amal jariyah yang membawa keberkahan, kemudahan rezeki, dan kelancaran untuk segala urusan panjenengan sekeluarga. Aamiin ya Rabbal 'Alamin."
+       B. Jika ditujukan untuk **BAITUL MAAL / KAS KELUARGA BESAR ANGKATAN**:
+          Sampaikan ucapan terima kasih:
+          "Jazakumullah khairan katsiran kepada Sahabat *${displayName}* atas kontribusi dan iurannya untuk Baitul Maal / Kas Keluarga Besar Expedient Generation 43. Semoga Allah melipatgandakan rezeki, mempermudah segala urusan, dan memberkahi setiap langkah. Aamiin ya Rabbal 'Alamin. Data ini dapat dipantau langsung di menu Baitul Maal portal angkatan."
 
 2. JIKA BUKAN BUKTI TRANSFER (Foto santri, momen alumni, meme, poster acara, dokumen foto, pemandangan, dll):
    - Baca teks yang terlihat di dalam gambar (OCR).

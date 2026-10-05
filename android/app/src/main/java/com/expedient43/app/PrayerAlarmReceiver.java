@@ -1,5 +1,6 @@
 package com.expedient43.app;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -16,6 +17,7 @@ import android.os.Build;
 import android.os.PowerManager;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
+import java.util.Calendar;
 
 /**
  * Native Android BroadcastReceiver to wake up device and fire prayer alerts.
@@ -75,6 +77,51 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
             }
         } catch (Exception e) {
             Log.e(TAG, "Error stopping adzan audio: " + e.getMessage(), e);
+        }
+    }
+
+    public static void rescheduleForNextDay(Context context, String prayerName, int hour, int minute, String title, String message) {
+        try {
+            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager == null) return;
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, hour);
+            calendar.set(Calendar.MINUTE, minute);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            // Tambahkan 1 hari (24 jam ke depan)
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+
+            Intent intent = new Intent(context, PrayerAlarmReceiver.class);
+            intent.putExtra("title", title);
+            intent.putExtra("message", message);
+            intent.putExtra("prayerName", prayerName);
+            intent.putExtra("hour", hour);
+            intent.putExtra("minute", minute);
+            intent.putExtra("targetUrl", "/kiblat");
+
+            int requestCode = Math.abs(prayerName.hashCode());
+            int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                flags |= PendingIntent.FLAG_IMMUTABLE;
+            }
+
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, flags);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                alarmManager.setAlarmClock(
+                    new AlarmManager.AlarmClockInfo(calendar.getTimeInMillis(), pendingIntent),
+                    pendingIntent
+                );
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+            }
+            Log.d(TAG, "Auto-rescheduled " + prayerName + " for tomorrow at " + hour + ":" + minute);
+        } catch (Exception e) {
+            Log.e(TAG, "Error auto-rescheduling prayer for next day: " + e.getMessage(), e);
         }
     }
 
@@ -205,6 +252,14 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                 builder.addAction(R.mipmap.ic_launcher, "🕌 Buka Kiblat", contentPendingIntent);
 
                 manager.notify(777, builder.build());
+            }
+
+            // 4. Auto-Reschedule this prayer for tomorrow (+24 hours) so the alarm never stops ringing!
+            int hour = intent.getIntExtra("hour", -1);
+            int minute = intent.getIntExtra("minute", -1);
+            String prayerName = intent.getStringExtra("prayerName");
+            if (hour >= 0 && minute >= 0 && prayerName != null && !prayerName.isEmpty()) {
+                rescheduleForNextDay(context, prayerName, hour, minute, title, message);
             }
         } catch (Exception e) {
             Log.e(TAG, "Error in PrayerAlarmReceiver: " + e.getMessage(), e);

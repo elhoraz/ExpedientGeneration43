@@ -405,6 +405,17 @@ public class MainActivity extends BridgeActivity {
         }
 
         @JavascriptInterface
+        public void savePrayerSchedule(String jsonSchedule) {
+            try {
+                if (jsonSchedule == null || jsonSchedule.trim().isEmpty()) return;
+                android.content.SharedPreferences prefs = getSharedPreferences("expedient_prayer_prefs", Context.MODE_PRIVATE);
+                prefs.edit().putString("saved_prayer_schedule", jsonSchedule).apply();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @JavascriptInterface
         public void schedulePrayerAlarm(String prayerName, int hour, int minute, String title, String message) {
             try {
                 AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -424,6 +435,8 @@ public class MainActivity extends BridgeActivity {
                 intent.putExtra("title", title);
                 intent.putExtra("message", message);
                 intent.putExtra("prayerName", prayerName);
+                intent.putExtra("hour", hour);
+                intent.putExtra("minute", minute);
                 intent.putExtra("targetUrl", "/kiblat");
 
                 int requestCode = Math.abs(prayerName.hashCode());

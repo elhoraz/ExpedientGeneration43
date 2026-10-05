@@ -12,6 +12,7 @@ import {
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { calculatePrayerTimes, PrayerSchedule } from "@/lib/prayerTimes";
+import { getOfficialKemenagSchedule, DEFAULT_KEMENAG_CITY_ID } from "@/lib/kemenagPrayerTimes";
 import { useToast } from "./AegisToast";
 
 import { createClient } from "@/lib/supabase/client";
@@ -53,8 +54,12 @@ export default function AppNotificationManager() {
         // Default to Arrisalah Slahung Ponorogo coordinates (-7.9866, 111.4328)
         let lat = -7.9866;
         let lng = 111.4328;
+        let cityId = DEFAULT_KEMENAG_CITY_ID; // 1621 (KAB. PONOROGO)
 
         try {
+          const savedCityId = localStorage.getItem("expedient_kemenag_city_id");
+          if (savedCityId) cityId = savedCityId;
+
           const savedLoc = localStorage.getItem("expedient_user_location");
           if (savedLoc) {
             const parsed = JSON.parse(savedLoc);
@@ -68,7 +73,15 @@ export default function AppNotificationManager() {
         // Calculate dynamic timezone offset from device (e.g. UTC+7 for WIB is 7)
         const tzOffset = -now.getTimezoneOffset() / 60 || 7;
 
-        const schedule: PrayerSchedule = calculatePrayerTimes(lat, lng, tzOffset, now);
+        // Ambil jadwal resmi Kementerian Agama Republik Indonesia (Bimas Islam)
+        const schedule: PrayerSchedule = await getOfficialKemenagSchedule(
+          cityId,
+          now,
+          lat,
+          lng,
+          tzOffset
+        );
+
         const prayerList: Array<{ name: string; time: string; icon: string }> = [
           { name: "Subuh", time: schedule.subuh, icon: "🌅" },
           { name: "Dzuhur", time: schedule.dzuhur, icon: "☀️" },
@@ -80,6 +93,12 @@ export default function AppNotificationManager() {
         // Register native Android alarms if running inside APK Native Bridge
         if ((window as any).ExpedientNativeBridge?.schedulePrayerAlarm) {
           try {
+            // 1. Simpan jadwal 5 waktu shalat ke memori permanen SharedPreferences HP
+            if ((window as any).ExpedientNativeBridge?.savePrayerSchedule) {
+              (window as any).ExpedientNativeBridge.savePrayerSchedule(JSON.stringify(prayerList));
+            }
+
+            // 2. Daftarkan alarm exact ke Android AlarmManager
             for (const prayer of prayerList) {
               const [pHours, pMins] = prayer.time.split(":").map(Number);
               (window as any).ExpedientNativeBridge.schedulePrayerAlarm(
@@ -87,7 +106,7 @@ export default function AppNotificationManager() {
                 pHours,
                 pMins,
                 `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
-                `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`
+                `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`
               );
             }
           } catch (bridgeErr) {
@@ -101,7 +120,7 @@ export default function AppNotificationManager() {
               return {
                 id: 7000 + idx,
                 title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time})`,
-                body: `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
+                body: `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`,
                 schedule: {
                   on: { hour: pHours, minute: pMins },
                   allowWhileIdle: true,
@@ -180,6 +199,14 @@ export default function AppNotificationManager() {
                 } catch {}
               }
 
+              // 1. Tampilkan Visual Aegis Toast di layar aplikasi / web
+              showToast(
+                `🕌 Waktu Shalat ${prayer.name} (${prayer.time})`,
+                `Allahu Akbar, Allahu Akbar... Sedang masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`,
+                "success"
+              );
+
+              // 2. Kirim Notifikasi Sistem (Status bar HP / Desktop)
               await sendSystemNotification({
                 title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
                 message: `Allahu Akbar, Allahu Akbar... Sedang masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,

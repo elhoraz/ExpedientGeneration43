@@ -8,20 +8,21 @@ export interface CityPreset {
   lng: number;
   timezone: number; // UTC offset in hours, e.g. 7 for WIB, 8 for WITA, 9 for WIT
   region: string;
+  kemenagCityId?: string; // ID resmi Kemenag RI (Bimas Islam)
 }
 
 export const POPULAR_CITIES: CityPreset[] = [
-  { name: "Jakarta", lat: -6.2088, lng: 106.8456, timezone: 7, region: "DKI Jakarta (WIB)" },
-  { name: "Ponorogo (Arrisalah)", lat: -7.8671, lng: 111.4647, timezone: 7, region: "Jawa Timur (WIB)" },
-  { name: "Surabaya", lat: -7.2575, lng: 112.7521, timezone: 7, region: "Jawa Timur (WIB)" },
-  { name: "Bandung", lat: -6.9175, lng: 107.6191, timezone: 7, region: "Jawa Barat (WIB)" },
-  { name: "Yogyakarta", lat: -7.7956, lng: 110.3695, timezone: 7, region: "D.I. Yogyakarta (WIB)" },
-  { name: "Semarang", lat: -6.9667, lng: 110.4167, timezone: 7, region: "Jawa Tengah (WIB)" },
-  { name: "Medan", lat: 3.5952, lng: 98.6722, timezone: 7, region: "Sumatera Utara (WIB)" },
-  { name: "Padang", lat: -0.9471, lng: 100.4172, timezone: 7, region: "Sumatera Barat (WIB)" },
-  { name: "Makassar", lat: -5.1477, lng: 119.4327, timezone: 8, region: "Sulawesi Selatan (WITA)" },
-  { name: "Banjarmasin", lat: -3.3194, lng: 114.5908, timezone: 8, region: "Kalimantan Selatan (WITA)" },
-  { name: "Denpasar", lat: -8.6705, lng: 115.2126, timezone: 8, region: "Bali (WITA)" },
+  { name: "Jakarta", lat: -6.2088, lng: 106.8456, timezone: 7, region: "DKI Jakarta (WIB)", kemenagCityId: "1301" },
+  { name: "Ponorogo (Arrisalah)", lat: -7.8671, lng: 111.4647, timezone: 7, region: "Jawa Timur (WIB)", kemenagCityId: "1621" },
+  { name: "Surabaya", lat: -7.2575, lng: 112.7521, timezone: 7, region: "Jawa Timur (WIB)", kemenagCityId: "1638" },
+  { name: "Bandung", lat: -6.9175, lng: 107.6191, timezone: 7, region: "Jawa Barat (WIB)", kemenagCityId: "1219" },
+  { name: "Yogyakarta", lat: -7.7956, lng: 110.3695, timezone: 7, region: "D.I. Yogyakarta (WIB)", kemenagCityId: "1505" },
+  { name: "Semarang", lat: -6.9667, lng: 110.4167, timezone: 7, region: "Jawa Tengah (WIB)", kemenagCityId: "1433" },
+  { name: "Medan", lat: 3.5952, lng: 98.6722, timezone: 7, region: "Sumatera Utara (WIB)", kemenagCityId: "0228" },
+  { name: "Padang", lat: -0.9471, lng: 100.4172, timezone: 7, region: "Sumatera Barat (WIB)", kemenagCityId: "0314" },
+  { name: "Makassar", lat: -5.1477, lng: 119.4327, timezone: 8, region: "Sulawesi Selatan (WITA)", kemenagCityId: "2622" },
+  { name: "Banjarmasin", lat: -3.3194, lng: 114.5908, timezone: 8, region: "Kalimantan Selatan (WITA)", kemenagCityId: "2113" },
+  { name: "Denpasar", lat: -8.6705, lng: 115.2126, timezone: 8, region: "Bali (WITA)", kemenagCityId: "1709" },
   { name: "Mekkah Al-Mukarramah", lat: 21.4225, lng: 39.8262, timezone: 3, region: "Arab Saudi (AST)" },
   { name: "Madinah Al-Munawwarah", lat: 24.5247, lng: 39.5692, timezone: 3, region: "Arab Saudi (AST)" },
 ];
@@ -43,6 +44,8 @@ export interface PrayerSchedule {
   maghrib: string;
   isya: string;
   dateStr: string;
+  isKemenagOfficial?: boolean;
+  locationName?: string;
 }
 
 const KAABA_LAT = 21.422487;

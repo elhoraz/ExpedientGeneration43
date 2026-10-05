@@ -15,8 +15,49 @@ const COMMON_STOPWORDS = new Set([
   "teman", "kawan", "halo", "hai", "assalamu'alaikum", "assalamualaikum", "min", "bot", "minbot",
   "ananda", "akhi", "ukhti", "ustadz", "ustadzah", "mas", "mbak", "rek", "coba",
   "nomor", "nomornya", "kontak", "kontaknya", "wa", "whatsapp", "lahir", "lahirnya", "tanggal", "tempat",
-  "alamat", "rumahnya", "asal", "tinggal", "tinggalnya", "kerja", "status", "foto", "si", "aja", "saja"
+  "alamat", "rumahnya", "asal", "tinggal", "tinggalnya", "kerja", "status", "foto", "si", "aja", "saja",
+  // Kata ganti / slang santri yang sering bentrok dengan potongan nama
+  "ana", "ane", "ente", "antum", "anti", "antunna", "gue", "gua", "guwe", "elu", "lu", "lo", "aku", "saya",
+  "kau", "dia", "kita", "kami", "mereka", "kalian", "beliau", "tau", "gatau", "gktau", "nggak", "enggak",
+  "tidak", "bukan", "juga", "lagi", "udah", "sudah", "belum", "mau", "pengen", "gimana", "kenapa",
+  "bagaimana", "mengapa", "wkwk", "wkwkwk", "haha", "hehe", "putra", "putri", "cewek", "cowok", "laki",
+  "perempuan", "orang", "semua", "banget", "bang", "kak", "bro", "sis", "cuy", "rek", "lur", "bos",
+  "nur", "muhammad", "moh", "mohammad", "ahmad", "abdul", "siti"
 ]);
+
+/** Tokenisasi kata utuh (huruf saja, lowercase) */
+function tokenizeWords(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+interface CachedProfile {
+  id: string;
+  nama_lengkap: string | null;
+  nama_panggilan: string | null;
+  nameWords: Set<string>;
+  nickWords: Set<string>;
+}
+
+let profileCache: { at: number; list: CachedProfile[] } | null = null;
+
+/** Ambil daftar nama alumni (cache 10 menit) untuk pencocokan nama UTUH, bukan potongan substring */
+async function getProfileNameIndex(supabase: ReturnType<typeof createAdminClient>): Promise<CachedProfile[]> {
+  if (profileCache && Date.now() - profileCache.at < 10 * 60 * 1000) return profileCache.list;
+  const { data } = await supabase.from("profiles").select("id, nama_lengkap, nama_panggilan");
+  const list: CachedProfile[] = (data || []).map((p: any) => ({
+    id: p.id,
+    nama_lengkap: p.nama_lengkap,
+    nama_panggilan: p.nama_panggilan,
+    nameWords: new Set(tokenizeWords(p.nama_lengkap || "").filter((w) => w.length >= 3)),
+    nickWords: new Set(tokenizeWords(p.nama_panggilan || "").filter((w) => w.length >= 3)),
+  }));
+  profileCache = { at: Date.now(), list };
+  return list;
+}
 
 // Daftar kota/kabupaten populer domisili alumni Expedient 43
 const KNOWN_CITIES = [
@@ -68,9 +109,10 @@ export async function resolveCohortContext(
     const { getLearnedMemories } = await import("@/lib/whatsapp/botMemory");
     const memories = await getLearnedMemories();
     if (memories && memories.length > 0) {
+      const msgWords = new Set(tokenizeWords(messageText));
       const matched = memories.filter((m) => {
-        const top = m.topic.toLowerCase();
-        return lower.includes(top) || top.split(/\s+/).some((w) => w.length >= 3 && lower.includes(w));
+        const topWords = tokenizeWords(m.topic).filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w));
+        return topWords.length > 0 && topWords.some((w) => msgWords.has(w));
       });
       if (matched.length > 0) {
         const memList = matched.map((m) => `• ${m.fact} (Dipelajari dari Sahabat ${m.contributor})`).join("\n");
@@ -231,8 +273,9 @@ export async function resolveCohortContext(
     }
 
     // 3. TANYA DAERAH / KOTA / DOMISILI (Contoh: "siapa yang di Surabaya?", "anak Bandung siapa aja?")
+    const lowerWords = new Set(tokenizeWords(messageText));
     for (const city of KNOWN_CITIES) {
-      if (lower.includes(city)) {
+      if (lowerWords.has(city)) {
         const { data: matchedCity } = await supabase
           .from("profiles")
           .select("nama_lengkap, nama_panggilan, alamat_lengkap, no_whatsapp")
@@ -323,18 +366,24 @@ export async function resolveCohortContext(
     }
 
     // 7. PENCARIAN PROFIL SPESIFIK BERDASARKAN KATA KUNCI NAMA
-    const cleanTokens = messageText
-      .replace(/[^\w\s]/g, " ")
-      .split(/\s+/)
-      .filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w.toLowerCase()));
+    // HANYA cocokkan kata UTUH dengan nama/panggilan alumni (bukan potongan substring!)
+    // Contoh bug lama: "ana" -> Earlyana (Eva), "tau" -> Taufiqi.
+    const cleanTokens = Array.from(new Set(
+      tokenizeWords(messageText).filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w))
+    ));
 
     if (cleanTokens.length > 0) {
+      const nameIndex = await getProfileNameIndex(supabase);
       for (const token of cleanTokens) {
+        // Prioritaskan nama panggilan yang persis sama, lalu kata utuh di nama lengkap
+        let hits = nameIndex.filter((p) => p.nickWords.has(token));
+        if (hits.length === 0) hits = nameIndex.filter((p) => p.nameWords.has(token));
+        if (hits.length === 0 || hits.length > 3) continue; // terlalu ambigu -> abaikan
+
         const { data: matchedProfiles } = await supabase
           .from("profiles")
           .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat_lengkap, no_whatsapp, cita_cita, motivasi_hidup, akun_ig")
-          .or(`nama_lengkap.ilike.%${token}%,nama_panggilan.ilike.%${token}%`)
-          .limit(2);
+          .in("id", hits.slice(0, 2).map((h) => h.id));
 
         if (matchedProfiles && matchedProfiles.length > 0) {
           const details = matchedProfiles.map((p) => {
@@ -379,8 +428,10 @@ export async function generateIntelligentCohortReply(options: {
   groupId?: string;
   quotedText?: string;
   quotedSender?: string;
+  /** true jika pesan yang di-reply adalah balasan bot sendiri (hindari loop topik lama) */
+  quotedFromBot?: boolean;
 }): Promise<string> {
-  const { messageText, senderPhone, senderName, isGroup, quotedText, quotedSender } = options;
+  const { messageText, senderPhone, senderName, isGroup, quotedText, quotedSender, quotedFromBot } = options;
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
 
@@ -401,8 +452,13 @@ export async function generateIntelligentCohortReply(options: {
     summary: `Expedient Generation 43 Alumni 2025 Pondok Modern Arrisalah Slahung Ponorogo`,
   };
   try {
-    const queryForFact = quotedText ? `${messageText} (Konteks reply: ${quotedText})` : messageText;
-    fact = await resolveCohortContext(queryForFact, senderName);
+    // Cari fakta dari pesan user dulu. Teks yang di-quote hanya dipakai jika BUKAN balasan bot sendiri,
+    // agar bot tidak terus-terusan mengulang topik/nama dari jawabannya yang lama.
+    fact = await resolveCohortContext(messageText, senderName);
+    if (fact.category === "general" && quotedText && !quotedFromBot) {
+      const quotedFact = await resolveCohortContext(quotedText, senderName);
+      if (quotedFact.category !== "general") fact = quotedFact;
+    }
   } catch (_) {}
 
   const prompt = `
@@ -428,9 +484,13 @@ STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
    - Warm, respectful, intelligent, like a true santri alumni brother/sister.
    - Use Islamic courtesy naturally when relevant ("Assalamu'alaikum", "Barakallahu fiik", "Alhamdulillah", "Aamiin").
    - Can speak Indonesian fluently, and understands friendly regional santri expressions (Javanese touches like "Monggo", "Nggih").
-3. ACCURACY:
-   - When asked about a specific person, their age, birthday, or city, use the EXACT facts from the database above.
-   - If asked about the website creator/leader, honor Muhammad Nur Taufiqi (Elhora) respectfully.
+3. ACCURACY & ANTI-HALLUCINATION (MOST IMPORTANT):
+   - The DATABASE FACTS above are only a reference. Use them ONLY if they directly answer what the user actually asked.
+   - If the facts are not related to the user's message, IGNORE them completely and just reply naturally to the message.
+   - NEVER bring up, mention, or talk about any alumni by name unless the user explicitly asked about that specific person.
+   - NEVER invent stories, rumors, relationships, jobs, or events about anyone. If you don't know, say honestly you don't know.
+   - When the user DOES ask about a specific person, their age, birthday, or city, use the EXACT facts from the database.
+   - Only mention the website creator/leader (Elhora) when the user asks about him.
 4. FORMATTING:
    - Clean WhatsApp markdown (*bold* for names, dates, key terms).
    - Never output markdown headers like "###" or HTML tags.
