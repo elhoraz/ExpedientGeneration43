@@ -61,7 +61,17 @@ import { handleAdminAutoRemediation } from "../src/lib/sentinel/autoRemediator";
 import {
   recordCommunityGroupActivity,
   checkAndTriggerCommunityIcebreaker,
+  getAuthenticNostalgiaPhoto,
 } from "../src/lib/whatsapp/communityIcebreaker";
+import {
+  analyzeStickerIntent,
+  generateSmartStickerQuote,
+  createWhatsAppSticker,
+} from "../src/lib/whatsapp/stickerEngine";
+import {
+  isDeveloperSupportInquiry,
+  getDeveloperSupportMessage,
+} from "../src/lib/whatsapp/developerSupport";
 import { getCommunityGroupId } from "../src/lib/whatsapp";
 import {
   backupSessionToSupabase,
@@ -1150,6 +1160,33 @@ async function startBaileysGateway() {
                 )) as Buffer;
               }
 
+              // =================================================================
+              // INOVASI: AI STICKER MAKER (ALAMI, TANPA !, AUTO-QUOTE DARI FOTO)
+              // =================================================================
+              if (category === "image") {
+                const stickerIntent = analyzeStickerIntent(messageText);
+                if (stickerIntent.isSticker) {
+                  addLog(`🏷️ [STICKER-GEN] Membuat stiker WhatsApp dari foto untuk ${senderName}...`);
+                  try {
+                    let quote = stickerIntent.customText;
+                    if (!quote) {
+                      quote = await generateSmartStickerQuote(mediaBuffer, mimeType);
+                    }
+                    const stickerBuffer = await createWhatsAppSticker(mediaBuffer, quote);
+                    const sentStk = await sock.sendMessage(
+                      remoteJid,
+                      { sticker: stickerBuffer },
+                      { quoted: m }
+                    );
+                    if (sentStk?.key?.id) sentMessageIds.add(sentStk.key.id);
+                    addLog(`✅ [STICKER-SENT] Berhasil mengirim stiker ke ${remoteJid}`, "success");
+                    continue;
+                  } catch (stkErr: any) {
+                    addLog(`❌ [STICKER-ERR] ${stkErr.message}`, "error");
+                  }
+                }
+              }
+
               const multiRes = await processMultimodalBuffer({
                 base64Data: mediaBuffer.toString("base64"),
                 category,
@@ -1222,6 +1259,53 @@ async function startBaileysGateway() {
               { logger, reuploadRequest: sock.updateMediaMessage }
             );
 
+            // =================================================================
+            // INOVASI A: AI STICKER MAKER DARI QUOTED PHOTO
+            // =================================================================
+            if (category === "image") {
+              const stickerIntent = analyzeStickerIntent(messageText);
+              if (stickerIntent.isSticker) {
+                addLog(`🏷️ [QUOTED-STICKER-GEN] Membuat stiker dari foto lama yang di-reply oleh ${senderName}...`);
+                try {
+                  let quote = stickerIntent.customText;
+                  if (!quote) {
+                    quote = await generateSmartStickerQuote(mediaBuffer, mimeType);
+                  }
+                  const stickerBuffer = await createWhatsAppSticker(mediaBuffer, quote);
+                  const sentStk = await sock.sendMessage(
+                    remoteJid,
+                    { sticker: stickerBuffer },
+                    { quoted: m }
+                  );
+                  if (sentStk?.key?.id) sentMessageIds.add(sentStk.key.id);
+                  addLog(`✅ [STICKER-SENT] Berhasil mengirim stiker dari quoted media ke ${remoteJid}`, "success");
+                  continue;
+                } catch (stkErr: any) {
+                  addLog(`❌ [STICKER-ERR] ${stkErr.message}`, "error");
+                }
+              }
+
+              // =================================================================
+              // INOVASI B: ITERATIVE DESIGN RE-ROLL (REVISI POSTER DI GRUP DESAIN)
+              // =================================================================
+              if (isDesignGroupId(remoteJid)) {
+                const isRevision = /\b(revisi|ganti|ubah|rubah|variasi|versi\s*lain|warna|font|tulisan|headline|preset)\b/i.test(messageText);
+                if (isRevision) {
+                  addLog(`🎨 [DESIGN-REVISION] Menerapkan revisi desain dari ${senderName}: "${messageText}"`);
+                  const activeDesignSession = recentDesignSessionMap.get(remoteJid);
+                  const prevTopic = activeDesignSession?.lastTopic || "Poster Angkatan";
+                  const combinedPrompt = `${prevTopic} (Catatan Revisi Desain: ${messageText})`;
+                  recentDesignSessionMap.set(remoteJid, {
+                    lastTopic: combinedPrompt,
+                    updatedAt: Date.now(),
+                  });
+                  await sendReply(remoteJid, `🎨 Siap Sahabat desainer *${senderName}*! Sedang memproses revisi: *"${messageText}"*... Tunggu sebentar ya! ⏳✨`, m);
+                  await generateAndSendImage(combinedPrompt, remoteJid, m);
+                  continue;
+                }
+              }
+            }
+
             const multiRes = await processMultimodalBuffer({
               base64Data: mediaBuffer.toString("base64"),
               category,
@@ -1250,6 +1334,70 @@ async function startBaileysGateway() {
           .replace(/@(bot|min|admin|expedient)/gi, "")
           .trim();
         const cleanLower = cleanTextWithoutMention.toLowerCase();
+
+        // =====================================================================
+        // INOVASI: TRAKTIR KOPI & REKENING DEVELOPER (ALAMI, TANPA !, TANPA GIMMICK)
+        // =====================================================================
+        if (isDeveloperSupportInquiry(cleanTextWithoutMention)) {
+          addLog(`☕ [DEV-SUPPORT] Mengirim QRIS & info traktir kopi developer ke ${senderName}...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const devMsg = getDeveloperSupportMessage();
+          const qrisImgPath = path.join(process.cwd(), "public", "images", "qris-developer.png");
+
+          if (fs.existsSync(qrisImgPath)) {
+            try {
+              const qrisBuffer = fs.readFileSync(qrisImgPath);
+              const sentQris = await sock.sendMessage(
+                remoteJid,
+                {
+                  image: qrisBuffer,
+                  caption: devMsg,
+                },
+                { quoted: m }
+              );
+              if (sentQris?.key?.id) sentMessageIds.add(sentQris.key.id);
+              addLog(`✅ [DEV-SUPPORT-SENT] Berhasil mengirim QRIS gambar ke ${remoteJid}`, "success");
+              continue;
+            } catch (qrisSendErr: any) {
+              addLog(`⚠️ [DEV-QRIS-SEND-WARN] ${qrisSendErr.message}`, "warn");
+            }
+          }
+
+          await sendReply(remoteJid, devMsg, m);
+          continue;
+        }
+
+        // =====================================================================
+        // INOVASI: FLASHBACK NOSTALGIA SANTRI (FOTO ASLI TANPA BLUR & TANPA CROP)
+        // =====================================================================
+        const isFlashbackTrigger =
+          cleanLower.includes("nostalgia") ||
+          cleanLower.includes("flashback") ||
+          cleanLower.includes("foto pondok") ||
+          cleanLower.includes("foto lama") ||
+          cleanLower.includes("foto kenangan") ||
+          cleanLower.includes("foto jadul") ||
+          cleanLower === "!flashback" ||
+          cleanLower === "kuis foto";
+
+        if (isFlashbackTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          addLog(`📸 [FLASHBACK-PHOTO] Mengirim foto nostalgia asli untuk ${senderName}...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const photo = getAuthenticNostalgiaPhoto();
+          if (photo) {
+            const sentMsg = await sock.sendMessage(
+              remoteJid,
+              {
+                image: photo.imageBuffer,
+                caption: photo.caption,
+              },
+              { quoted: m }
+            );
+            if (sentMsg?.key?.id) sentMessageIds.add(sentMsg.key.id);
+            addLog(`✅ [FLASHBACK-PHOTO-SENT] Berhasil mengirim foto nostalgia ke ${remoteJid}`, "success");
+            continue;
+          }
+        }
 
         // =====================================================================
         // FITUR PEMANTIK OBROLAN (ICEBREAKER) MANUAL / TEST
@@ -1411,9 +1559,25 @@ async function startBaileysGateway() {
                   lower.includes("pakai vn") ||
                   lower.includes("pakai suara") ||
                   lower.includes("balas vn") ||
-                  lower.includes("kirim vn");
+                  lower.includes("kirim vn") ||
+                  lower.includes("ngomong dong") ||
+                  lower.includes("suaranya mana") ||
+                  lower.includes("ngomong min") ||
+                  lower.includes("bicara") ||
+                  lower.includes("suara bot");
 
-                if (wantsVoiceReply) {
+                // Inovasi: Membalas chat yang menyinggung/menyapa bot di grup dengan Voice Note
+                const isPlayfullyTeased =
+                  isDirectlyAddressed &&
+                  (wantsVoiceReply ||
+                   lower.startsWith("halo bot") ||
+                   lower.startsWith("hai bot") ||
+                   lower.startsWith("tes bot") ||
+                   lower.includes("p bot") ||
+                   lower.includes("sehat bot") ||
+                   lower.includes("kabar bot"));
+
+                if (wantsVoiceReply || isPlayfullyTeased) {
                   await generateAndSendVoiceNote(replyText, remoteJid, m);
                 } else {
                   await sendReply(remoteJid, replyText, m);
@@ -1463,7 +1627,11 @@ async function startBaileysGateway() {
               lower.includes("pakai vn") ||
               lower.includes("pakai suara") ||
               lower.includes("balas vn") ||
-              lower.includes("kirim vn");
+              lower.includes("kirim vn") ||
+              lower.includes("ngomong dong") ||
+              lower.includes("suaranya mana") ||
+              lower.includes("ngomong min") ||
+              lower.includes("bicara");
 
             if (wantsVoiceReply) {
               await generateAndSendVoiceNote(replyText, remoteJid, m);
@@ -1580,6 +1748,97 @@ const healthServer = http.createServer(async (req, res) => {
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ success: false, error: err.message }));
     }
+    return;
+  }
+
+  // 4b. API Kirim Pesan Teks ke Grup/JID tertentu (curl -X POST /api/send-message)
+  if (url === "/api/send-message" && req.method === "POST") {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", async () => {
+      try {
+        const parsed = JSON.parse(body || "{}");
+        const gatewaySecret = process.env.GATEWAY_SECRET || process.env.ADMIN_WA_PHONE || "";
+        if (gatewaySecret && parsed.secret !== gatewaySecret) {
+          res.writeHead(403, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "Unauthorized" }));
+          return;
+        }
+        const { jid, text } = parsed;
+        if (!jid || !text) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "Parameter 'jid' dan 'text' harus diisi" }));
+          return;
+        }
+        if (!currentSock || gatewayStatus !== "connected") {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "WhatsApp belum terhubung" }));
+          return;
+        }
+        const cleanJid = jid.includes("@") ? jid : `${jid}@g.us`;
+        const sentRes = await currentSock.sendMessage(cleanJid, { text });
+        addLog(`📤 [API-SEND-MSG] Pesan terkirim ke ${cleanJid}: "${text.slice(0, 50)}"`, "success");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: true, messageId: sentRes?.key?.id }));
+      } catch (err: any) {
+        addLog(`❌ [API-SEND-MSG-ERR] ${err.message}`, "error");
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // 4c. API Kirim Gambar/QRIS ke Grup/JID tertentu (curl -X POST /api/send-image)
+  if (url === "/api/send-image" && req.method === "POST") {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", async () => {
+      try {
+        const parsed = JSON.parse(body || "{}");
+        const gatewaySecret = process.env.GATEWAY_SECRET || process.env.ADMIN_WA_PHONE || "";
+        if (gatewaySecret && parsed.secret !== gatewaySecret) {
+          res.writeHead(403, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "Unauthorized" }));
+          return;
+        }
+        const { jid, imagePath, imageBase64, caption } = parsed;
+        if (!jid || (!imagePath && !imageBase64)) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "Parameter 'jid' dan ('imagePath' atau 'imageBase64') harus diisi" }));
+          return;
+        }
+        if (!currentSock || gatewayStatus !== "connected") {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "WhatsApp belum terhubung" }));
+          return;
+        }
+        const cleanJid = jid.includes("@") ? jid : `${jid}@g.us`;
+        let imageBuffer: Buffer;
+        if (imageBase64) {
+          imageBuffer = Buffer.from(imageBase64, "base64");
+        } else {
+          const resolvedPath = path.isAbsolute(imagePath) ? imagePath : path.join(process.cwd(), imagePath);
+          if (!fs.existsSync(resolvedPath)) {
+            res.writeHead(404, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: false, error: `File tidak ditemukan: ${resolvedPath}` }));
+            return;
+          }
+          imageBuffer = fs.readFileSync(resolvedPath);
+        }
+        const sentRes = await currentSock.sendMessage(cleanJid, {
+          image: imageBuffer,
+          caption: caption || "",
+        });
+        addLog(`📤 [API-SEND-IMG] Gambar terkirim ke ${cleanJid}: "${(caption || "").slice(0, 50)}"`, "success");
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: true, messageId: sentRes?.key?.id }));
+      } catch (err: any) {
+        addLog(`❌ [API-SEND-IMG-ERR] ${err.message}`, "error");
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
     return;
   }
 
