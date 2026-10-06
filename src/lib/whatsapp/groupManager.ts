@@ -427,7 +427,16 @@ export function shouldGroupBotRespond(messageText: string): boolean {
     lower.includes("desain poster") ||
     lower.includes("siapa zaki") ||
     lower.includes("siapa elhora") ||
-    lower.includes("ketua angkatan")
+    lower.includes("ketua angkatan") ||
+    lower.includes("kuis") ||
+    lower.includes("tebak santri") ||
+    lower.includes("leaderboard") ||
+    lower.includes("milad") ||
+    lower.includes("ultah") ||
+    lower.includes("ulang tahun") ||
+    lower.includes("mahfudzot") ||
+    lower.includes("hadits") ||
+    lower.includes("sunnah jumat")
   ) {
     return true;
   }

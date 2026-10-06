@@ -81,6 +81,23 @@ import {
   restoreSessionFromSupabase,
 } from "../src/lib/whatsapp/sessionSync";
 import { createAdminClient } from "../src/lib/supabase/admin";
+import {
+  checkAndTriggerDailyBirthdayWishes,
+  getMonthBirthdaySummary,
+  getTodayBirthdayAlumni,
+  formatBirthdayGreetingMessage,
+} from "../src/lib/whatsapp/birthdayCelebrator";
+import {
+  startSantriQuiz,
+  checkQuizAnswer,
+  getQuizLeaderboard,
+} from "../src/lib/whatsapp/santriQuizEngine";
+import {
+  checkAndTriggerFridayBlessing,
+  getRandomMahfudzotMessage,
+  getRandomHaditsMessage,
+  formatFridayBlessingMessage,
+} from "../src/lib/whatsapp/fridayBlessings";
 
 const AUTH_FOLDER = path.join(process.cwd(), ".baileys_auth");
 const logger = pino({ level: "silent" });
@@ -1405,6 +1422,122 @@ async function startBaileysGateway() {
         const cleanLower = cleanTextWithoutMention.toLowerCase();
 
         // =====================================================================
+        // CEK JAWABAN KUIS SANTRI AKTIF (Jika sedang berlangsung di grup)
+        // =====================================================================
+        if (isGroup) {
+          const quizAns = await checkQuizAnswer(remoteJid, cleanTextWithoutMention, senderName, senderPhone);
+          if (quizAns.isCorrect && quizAns.replyText) {
+            await sendReply(remoteJid, quizAns.replyText, m);
+            continue;
+          }
+        }
+
+        // =====================================================================
+        // FITUR KUIS TEBAK SANTRI & LEADERBOARD
+        // =====================================================================
+        const isQuizTrigger =
+          cleanLower === "!kuis" ||
+          cleanLower === "/kuis" ||
+          cleanLower === "tebak santri" ||
+          cleanLower === "main kuis" ||
+          cleanLower === "kuis santri";
+
+        if (isQuizTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          addLog(`🎮 [SANTRI-QUIZ] Memulai sesi kuis tebak santri untuk ${senderName}...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const quiz = await startSantriQuiz(remoteJid);
+          await sendReply(remoteJid, quiz.message, m);
+          continue;
+        }
+
+        const isLeaderboardTrigger =
+          cleanLower === "!leaderboard" ||
+          cleanLower === "/leaderboard" ||
+          cleanLower.includes("leaderboard kuis") ||
+          cleanLower.includes("skor kuis") ||
+          cleanLower.includes("klasemen kuis");
+
+        if (isLeaderboardTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          addLog(`🏆 [LEADERBOARD] Mengirimkan klasemen kuis untuk ${senderName}...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const boardText = await getQuizLeaderboard();
+          await sendReply(remoteJid, boardText, m);
+          continue;
+        }
+
+        // =====================================================================
+        // FITUR MILAD / ULANG TAHUN ALUMNI (HARI INI & BULAN INI)
+        // =====================================================================
+        const isBirthdayTrigger =
+          cleanLower.includes("siapa yang ultah") ||
+          cleanLower.includes("siapa yang milad") ||
+          cleanLower.includes("ultah hari ini") ||
+          cleanLower.includes("milad hari ini") ||
+          cleanLower.includes("milad bulan ini") ||
+          cleanLower.includes("ultah bulan ini") ||
+          cleanLower === "!milad" ||
+          cleanLower === "/milad" ||
+          cleanLower === "!ultah";
+
+        if (isBirthdayTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          addLog(`🎂 [BIRTHDAY-QUERY] Memeriksa agenda milad alumni untuk ${senderName}...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const todayBirthdays = await getTodayBirthdayAlumni();
+          if (todayBirthdays.length > 0) {
+            for (const b of todayBirthdays) {
+              const msg = formatBirthdayGreetingMessage(b);
+              await sendReply(remoteJid, msg, m);
+            }
+          } else {
+            const monthSummary = await getMonthBirthdaySummary();
+            await sendReply(remoteJid, `Hari ini tidak ada alumni yang sedang milad sahabat. Berikut jadwal bulan ini:\n\n${monthSummary}`, m);
+          }
+          continue;
+        }
+
+        // =====================================================================
+        // FITUR MAHFUDZOT, HADITS, & JUM'AT BERKAH
+        // =====================================================================
+        const isMahfudzotTrigger =
+          cleanLower === "!mahfudzot" ||
+          cleanLower === "/mahfudzot" ||
+          cleanLower.includes("minta mahfudzot") ||
+          cleanLower.includes("mahfudzot hari ini");
+
+        if (isMahfudzotTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const mahfudzotText = getRandomMahfudzotMessage();
+          await sendReply(remoteJid, mahfudzotText, m);
+          continue;
+        }
+
+        const isHaditsTrigger =
+          cleanLower === "!hadits" ||
+          cleanLower === "/hadits" ||
+          cleanLower.includes("mutiara hadits") ||
+          cleanLower.includes("hadits hari ini");
+
+        if (isHaditsTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const haditsText = getRandomHaditsMessage();
+          await sendReply(remoteJid, haditsText, m);
+          continue;
+        }
+
+        const isFridayBlessingTrigger =
+          cleanLower === "!jumat" ||
+          cleanLower === "/jumat" ||
+          cleanLower.includes("sunnah jumat") ||
+          cleanLower.includes("jumat berkah");
+
+        if (isFridayBlessingTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const fridayMsg = formatFridayBlessingMessage();
+          await sendReply(remoteJid, fridayMsg, m);
+          continue;
+        }
+
+        // =====================================================================
         // INOVASI: TRAKTIR KOPI & REKENING DEVELOPER (ALAMI, TANPA !, TANPA GIMMICK)
         // =====================================================================
         if (isDeveloperSupportInquiry(cleanTextWithoutMention)) {
@@ -2408,6 +2541,28 @@ setInterval(async () => {
       } catch (maintErr: any) {
         addLog(`⚠️ [WEEKLY-MAINTENANCE-ERR] ${maintErr.message}`, "warn");
       }
+
+      // Pemeriksaan ucapan milad harian otomatis (Pagi hari)
+      try {
+        const commGroupId = getCommunityGroupId();
+        const bdayRes = await checkAndTriggerDailyBirthdayWishes(currentSock, commGroupId);
+        if (bdayRes.triggered) {
+          addLog(`🎂 [BIRTHDAY-WISH-SENT] Berhasil mengirimkan ucapan milad untuk ${bdayRes.count} alumni ke grup komunitas!`, "success");
+        }
+      } catch (bdayErr: any) {
+        addLog(`⚠️ [BIRTHDAY-CHECK-ERR] ${bdayErr.message}`, "warn");
+      }
+
+      // Pemeriksaan ucapan Jum'at Berkah otomatis (Jum'at pagi)
+      try {
+        const commGroupId = getCommunityGroupId();
+        const friRes = await checkAndTriggerFridayBlessing(currentSock, commGroupId);
+        if (friRes.triggered) {
+          addLog(`🌿 [FRIDAY-BLESSING-SENT] Berhasil mengirim pesan Jum'at Berkah ke grup komunitas!`, "success");
+        }
+      } catch (friErr: any) {
+        addLog(`⚠️ [FRIDAY-CHECK-ERR] ${friErr.message}`, "warn");
+      }
     } catch (err: any) {
       addLog(`⚠️ [ICEBREAKER-LOOP-ERR] ${err.message}`, "warn");
     }
@@ -2425,8 +2580,21 @@ setTimeout(async () => {
       if (res.triggered) {
         addLog(`💬 [ICEBREAKER-STARTUP] Membuka obrolan di grup komunitas: "${res.message?.slice(0, 50)}..."`, "success");
       }
+
+      // Trigger milad saat startup jika hari ini belum terkirim
+      const commGroupId = getCommunityGroupId();
+      const bdayRes = await checkAndTriggerDailyBirthdayWishes(currentSock, commGroupId);
+      if (bdayRes.triggered) {
+        addLog(`🎂 [BIRTHDAY-STARTUP-SENT] Berhasil mengirimkan ucapan milad (${bdayRes.count} alumni) ke grup komunitas!`, "success");
+      }
+
+      // Trigger Jum'at berkah saat startup jika hari ini Jum'at dan belum terkirim
+      const friRes = await checkAndTriggerFridayBlessing(currentSock, commGroupId);
+      if (friRes.triggered) {
+        addLog(`🌿 [FRIDAY-STARTUP-SENT] Berhasil mengirim pesan Jum'at Berkah ke grup komunitas!`, "success");
+      }
     } catch (err: any) {
-      addLog(`⚠️ [ICEBREAKER-INIT-ERR] ${err.message}`, "warn");
+      addLog(`⚠️ [STARTUP-INIT-ERR] ${err.message}`, "warn");
     }
   }
 }, 60 * 1000);
