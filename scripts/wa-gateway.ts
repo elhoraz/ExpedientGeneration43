@@ -28,6 +28,8 @@ import QRCode from "qrcode";
 import * as path from "path";
 import * as fs from "fs";
 import * as http from "http";
+import * as os from "os";
+import { spawn } from "child_process";
 
 // Import AI Handlers dari codebase project
 import {
@@ -803,11 +805,35 @@ async function startBaileysGateway() {
       if (!ttsRes.ok) throw new Error(`HTTP ${ttsRes.status}`);
       const audioBuffer = Buffer.from(await ttsRes.arrayBuffer());
 
+      // Konversi MP3 ke OGG Opus asli via ffmpeg jika tersedia (agar waveform mic hijau WhatsApp muncul sempurna di Android & iOS)
+      let finalAudio = audioBuffer;
+      let finalMime = "audio/mp4";
+
+      try {
+        const tmpDir = os.tmpdir();
+        const inPath = path.join(tmpDir, `tts_${Date.now()}_${Math.random().toString(36).substring(7)}.mp3`);
+        const outPath = path.join(tmpDir, `tts_${Date.now()}_${Math.random().toString(36).substring(7)}.ogg`);
+        fs.writeFileSync(inPath, audioBuffer);
+        const ffmpegExit = await new Promise<number>((resolve) => {
+          const p = spawn("ffmpeg", ["-y", "-i", inPath, "-c:a", "libopus", "-b:a", "32k", "-ar", "48000", "-ac", "1", outPath]);
+          p.on("close", resolve);
+          p.on("error", () => resolve(1));
+        });
+        if (ffmpegExit === 0 && fs.existsSync(outPath)) {
+          finalAudio = fs.readFileSync(outPath);
+          finalMime = "audio/ogg; codecs=opus";
+          try { fs.unlinkSync(outPath); } catch {}
+        }
+        try { if (fs.existsSync(inPath)) fs.unlinkSync(inPath); } catch {}
+      } catch (convErr: any) {
+        addLog(`ℹ️ [VOICE-FALLBACK] Mengirim format native: ${convErr.message}`);
+      }
+
       const res = await sock.sendMessage(
         cleanJid,
         {
-          audio: audioBuffer,
-          mimetype: "audio/mp4",
+          audio: finalAudio,
+          mimetype: finalMime,
           ptt: true, // ptt: true menghasilkan Voice Note asli dengan ikon mic hijau di WhatsApp!
         },
         { quoted: quotedMessage }
