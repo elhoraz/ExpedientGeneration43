@@ -903,6 +903,7 @@ async function startBaileysGateway() {
         sock.ev.removeAllListeners("connection.update");
         sock.ev.removeAllListeners("messages.upsert");
         sock.ev.removeAllListeners("creds.update");
+        sock.ev.removeAllListeners("call");
         sock.ws?.close();
       } catch (_) {}
 
@@ -959,6 +960,47 @@ async function startBaileysGateway() {
 
       // Cadangkan sesi ke Supabase Storage secara otomatis saat terhubung
       backupSessionToSupabase(AUTH_FOLDER).catch(() => {});
+    }
+  });
+
+  // ===========================================================================
+  // LISTENER PANGGILAN TELEPON MASUK (CALL AUTO-REJECT & PESAN SANTUN)
+  // ===========================================================================
+  const lastCallNotifiedMap = new Map<string, number>();
+
+  sock.ev.on("call", async (calls) => {
+    for (const call of calls) {
+      if (call.status === "offer") {
+        const callerJid = call.from;
+        addLog(`📞 [CALL-INCOMING] Panggilan masuk (${call.isVideo ? "Video" : "Suara"}) dari ${callerJid}`, "warn");
+
+        try {
+          // 1. Tolak panggilan secara otomatis agar tidak berdering tanpa henti
+          await sock.rejectCall(call.id, call.from);
+          addLog(`🚫 [CALL-REJECTED] Berhasil menolak panggilan ${call.id} dari ${callerJid}`, "info");
+
+          // 2. Cooldown 5 menit agar tidak spam jika penelpon mencoba berulang kali
+          const now = Date.now();
+          const lastNotified = lastCallNotifiedMap.get(callerJid) || 0;
+          if (now - lastNotified > 5 * 60 * 1000) {
+            lastCallNotifiedMap.set(callerJid, now);
+
+            const politeCallRejectMessage =
+              `*Afwan Sahabat!* 🙏\n\n` +
+              `Nomor WhatsApp ini merupakan *Bot Layanan Otomatis Santri Expedient 43* dan belum dapat menerima panggilan telepon maupun video call langsung.\n\n` +
+              `💡 *Antum tetap bisa berinteraksi dengan mudah lewat:*\n` +
+              `• 💬 *Pesan Teks*: Tanyakan informasi angkatan, profil alumni, kuis, atau obrolan santai.\n` +
+              `• 🎙️ *Pesan Suara (Voice Note)*: Kirimkan rekaman suara (VN), insya Allah bot akan langsung mendengarkan dan membalas dengan suara juga!\n` +
+              `• 🏷️ *Stiker WhatsApp*: Kirim atau balas (quote) foto dengan kata _"jadiin stiker"_.\n\n` +
+              `_Jazakumullahu khairan katsiran atas pengertiannya._ ✨`;
+
+            await sock.sendMessage(callerJid, { text: politeCallRejectMessage });
+            addLog(`📤 [CALL-REPLY-SENT] Pesan santun penolakan panggilan terkirim ke ${callerJid}`, "success");
+          }
+        } catch (callErr: any) {
+          addLog(`❌ [CALL-REJECT-ERR] ${callErr.message}`, "error");
+        }
+      }
     }
   });
 
@@ -1887,6 +1929,7 @@ const healthServer = http.createServer(async (req, res) => {
           currentSock.ev.removeAllListeners("connection.update");
           currentSock.ev.removeAllListeners("messages.upsert");
           currentSock.ev.removeAllListeners("creds.update");
+          currentSock.ev.removeAllListeners("call");
           currentSock.ws?.close();
         } catch (_) {}
       }
