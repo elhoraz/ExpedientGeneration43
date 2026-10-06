@@ -68,10 +68,14 @@ export async function getTodayBirthdayAlumni(): Promise<BirthdayAlumni[]> {
 /**
  * Format pesan ucapan selamat ulang tahun / milad yang penuh doa berkah khas santri
  */
+/**
+ * Format pesan ucapan selamat ulang tahun / milad yang penuh doa berkah untuk Grup WhatsApp Komunitas
+ */
 export function formatBirthdayGreetingMessage(alumni: BirthdayAlumni): string {
   const panggilan = alumni.nama_panggilan ? alumni.nama_panggilan : alumni.nama_lengkap.split(" ")[0];
   const mentionTag = alumni.no_whatsapp ? `@${alumni.no_whatsapp.replace(/\D/g, "")}` : `*${alumni.nama_lengkap}*`;
   const usiaText = alumni.usia > 0 ? ` ke-${alumni.usia}` : "";
+  const bdayLink = `https://expedientgeneration.vercel.app/birthday/${alumni.id}`;
 
   return (
     `🎉🎂 *BARAKALLAHU FII UMRIK!* 🎂🎉\n\n` +
@@ -79,17 +83,45 @@ export function formatBirthdayGreetingMessage(alumni: BirthdayAlumni): string {
     `👤 *${alumni.nama_lengkap}* (${mentionTag})\n\n` +
     `تَبَارَكَ اللَّهُ فِي عُمْرِكَ، وَبَارَكَ لَكَ فِي صِحَّتِكَ وَرِزْقِكَ وَعَمَلِك\n\n` +
     `_"Semoga senantiasa diberikan keberkahan umur, kesehatan yang afiat, kelapangan rezeki yang halal, serta terus istiqomah menggapai cita-cita mulia dunia dan akhirat."_ 🤲✨\n\n` +
+    `💌 Kirim doa & ucapan spesial untuk ${panggilan} di portal angkatan:\n` +
+    `🔗 ${bdayLink}\n\n` +
     `Kawan-kawan sekalian, mari kita luangkan sejenak doa terbaik dan ucapan hangat untuk sahabat kita ${panggilan} hari ini! 🎁🥳`
   );
 }
 
 /**
- * Mengecek dan memicu pengiriman ucapan milad harian otomatis ke grup komunitas
- * Cooldown: 1 kali per hari (hanya dikirim antara jam 06:00 - 11:00 WIB)
+ * Format pesan ucapan selamat ulang tahun / milad langsung ke chat pribadi (Japri 1-on-1)
+ */
+export function formatPersonalBirthdayGreetingMessage(alumni: BirthdayAlumni): string {
+  const panggilan = alumni.nama_panggilan ? alumni.nama_panggilan : alumni.nama_lengkap.split(" ")[0];
+  const usiaText = alumni.usia > 0 ? ` yang ke-${alumni.usia}` : "";
+  const bdayLink = `https://expedientgeneration.vercel.app/birthday/${alumni.id}`;
+
+  return (
+    `🎉🎂 *BARAKALLAHU FII UMRIK* 🎂🎉\n\n` +
+    `Assalamu'alaikum wr. wb., Sahabat *${panggilan}*! ✨\n\n` +
+    `Selamat Ulang Tahun / Milad${usiaText} ya! Semoga di pertambahan usiamu ini, Allah SWT senantiasa melimpahkan:\n` +
+    `• Keberkahan umur yang bermanfaat fi fiddin wad dunya wal akhirah\n` +
+    `• Kesehatan yang afiat dan keteguhan iman\n` +
+    `• Kelapangan rezeki yang halal dan berkah\n` +
+    `• Kemudahan serta kelancaran dalam setiap langkah dan cita-citamu\n\n` +
+    `تَبَارَكَ اللَّهُ فِي عُمْرِكَ، وَبَارَكَ لَكَ فِي صِحَّتِكَ وَرِزْقِكَ وَعَمَلِك 🤲\n\n` +
+    `Teruslah melangkah, menginspirasi, dan menjadi kebanggaan keluarga besar *Expedient Generation 43 (Pondok Modern Arrisalah 2025)*.\n\n` +
+    `💌 Buka kartu ucapan spesial angkatan untukmu di sini:\n` +
+    `🔗 ${bdayLink}\n\n` +
+    `_Salam hangat, doa tulus, dan peluk persaudaraan dari seluruh sahabat seperjuangan!_ 🌟🤝`
+  );
+}
+
+/**
+ * Mengecek dan memicu pengiriman ucapan milad harian otomatis:
+ * 1. Dikirim langsung ke Japri Personal alumni yang milad
+ * 2. Di-broadcast ke Grup WhatsApp Komunitas Angkatan
  */
 export async function checkAndTriggerDailyBirthdayWishes(
   sock: any,
-  communityGroupId: string
+  communityGroupId: string,
+  force: boolean = false
 ): Promise<{ triggered: boolean; count: number }> {
   try {
     if (!communityGroupId) return { triggered: false, count: 0 };
@@ -97,8 +129,8 @@ export async function checkAndTriggerDailyBirthdayWishes(
     const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
     const hour = nowWib.getHours();
 
-    // Jalankan pada pagi hari (antara jam 06:00 sampai 11:00)
-    if (hour < 6 || hour > 11) {
+    // Hindari mengirim di larut malam (antara jam 23:00 sampai 05:59 WIB) kecuali dipaksa (force)
+    if (!force && (hour < 6 || hour >= 23)) {
       return { triggered: false, count: 0 };
     }
 
@@ -106,14 +138,16 @@ export async function checkAndTriggerDailyBirthdayWishes(
     const supabase = createAdminClient();
 
     // 1. Cek apakah ucapan milad hari ini sudah pernah dikirim
-    const { data: record } = await supabase
-      .from("site_content")
-      .select("content")
-      .eq("key", "wa_last_birthday_wish_date")
-      .maybeSingle();
+    if (!force) {
+      const { data: record } = await supabase
+        .from("site_content")
+        .select("content")
+        .eq("key", "wa_last_birthday_wish_date")
+        .maybeSingle();
 
-    if (record?.content === todayDateStr) {
-      return { triggered: false, count: 0 };
+      if (record?.content === todayDateStr) {
+        return { triggered: false, count: 0 };
+      }
     }
 
     // 2. Ambil santri yang berulang tahun hari ini
@@ -127,30 +161,93 @@ export async function checkAndTriggerDailyBirthdayWishes(
       return { triggered: false, count: 0 };
     }
 
-    // 3. Kirim ucapan milad untuk setiap santri yang berulang tahun
+    // 3. Kirim ucapan milad untuk setiap santri yang berulang tahun:
+    //    A. KE PERSONAL (JAPRI 1-ON-1)
+    //    B. KE GRUP KOMUNITAS ANGKATAN
     for (const b of birthdays) {
-      const msg = formatBirthdayGreetingMessage(b);
-      const mentions = b.no_whatsapp ? [`${b.no_whatsapp.replace(/\D/g, "")}@s.whatsapp.net`] : [];
-
-      if (b.foto_profil && b.foto_profil.startsWith("http")) {
+      // =====================================================================
+      // A. JAPRI PERSONAL KE NOMOR ALUMNI
+      // =====================================================================
+      if (b.no_whatsapp) {
         try {
-          const imgRes = await fetch(b.foto_profil, { signal: AbortSignal.timeout(10000) });
-          if (imgRes.ok) {
-            const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
-            await sock.sendMessage(communityGroupId, {
-              image: imgBuffer,
-              caption: msg,
-              mentions,
-            });
-            continue;
+          const personalMsg = formatPersonalBirthdayGreetingMessage(b);
+          let cleanPhone = b.no_whatsapp.replace(/\D/g, "");
+          if (cleanPhone.startsWith("0")) cleanPhone = "62" + cleanPhone.substring(1);
+          const personalJid = `${cleanPhone}@s.whatsapp.net`;
+
+          let personalSent = false;
+          if (b.foto_profil && b.foto_profil.startsWith("http")) {
+            try {
+              const imgRes = await fetch(b.foto_profil, { signal: AbortSignal.timeout(10000) });
+              if (imgRes.ok) {
+                const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
+                await sock.sendMessage(personalJid, {
+                  image: imgBuffer,
+                  caption: personalMsg,
+                });
+                personalSent = true;
+              }
+            } catch (_) {}
           }
-        } catch (_) {}
+
+          if (!personalSent) {
+            await sock.sendMessage(personalJid, { text: personalMsg });
+          }
+
+          // Catat ke whatsapp_queue
+          await supabase.from("whatsapp_queue").insert([{
+            no_whatsapp: cleanPhone,
+            message: personalMsg,
+            status: "sent",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }]);
+        } catch (personalErr: any) {
+          console.warn(`[BIRTHDAY-PERSONAL-ERR] Gagal japri ke ${b.nama_lengkap}:`, personalErr.message);
+        }
       }
 
-      await sock.sendMessage(communityGroupId, {
-        text: msg,
-        mentions,
-      });
+      // =====================================================================
+      // B. BROADCAST KE GRUP KOMUNITAS ANGKATAN
+      // =====================================================================
+      try {
+        const groupMsg = formatBirthdayGreetingMessage(b);
+        const mentions = b.no_whatsapp ? [`${b.no_whatsapp.replace(/\D/g, "")}@s.whatsapp.net`] : [];
+
+        let groupSent = false;
+        if (b.foto_profil && b.foto_profil.startsWith("http")) {
+          try {
+            const imgRes = await fetch(b.foto_profil, { signal: AbortSignal.timeout(10000) });
+            if (imgRes.ok) {
+              const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
+              await sock.sendMessage(communityGroupId, {
+                image: imgBuffer,
+                caption: groupMsg,
+                mentions,
+              });
+              groupSent = true;
+            }
+          } catch (_) {}
+        }
+
+        if (!groupSent) {
+          await sock.sendMessage(communityGroupId, {
+            text: groupMsg,
+            mentions,
+          });
+        }
+
+        // Catat ke whatsapp_queue
+        await supabase.from("whatsapp_queue").insert([{
+          no_whatsapp: communityGroupId.slice(0, 20),
+          message: groupMsg,
+          status: "sent",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }]);
+      } catch (groupErr: any) {
+        console.warn(`[BIRTHDAY-GROUP-ERR] Gagal broadcast grup untuk ${b.nama_lengkap}:`, groupErr.message);
+      }
     }
 
     // 4. Update status tanggal hari ini sudah selesai dikirim

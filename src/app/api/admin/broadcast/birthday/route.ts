@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifySignedAdminSession } from "@/lib/admin-auth";
-import { sendWhatsAppMessage, sendWhatsAppMessageWithDetail } from "@/lib/whatsapp";
+import { sendWhatsAppMessage, sendWhatsAppMessageWithDetail, sendWhatsAppGroupMessage, getCommunityGroupId } from "@/lib/whatsapp";
+import { formatPersonalBirthdayGreetingMessage, formatBirthdayGreetingMessage, BirthdayAlumni } from "@/lib/whatsapp/birthdayCelebrator";
 
 const jsonResponse = (
   status: "success" | "error",
@@ -165,10 +166,12 @@ export async function POST() {
 
     const startOfDay = new Date(nowWib.getFullYear(), nowWib.getMonth(), nowWib.getDate(), 0, 0, 0);
 
-    let sent = 0;
+    let sentPersonal = 0;
+    let sentGroup = 0;
     let skipped = 0;
     let failed = 0;
     const details: any[] = [];
+    const commGroupId = getCommunityGroupId();
 
     for (const celebrant of todayCelebrants) {
       const parts = celebrant.tanggal_lahir.split(/[-/]/);
@@ -186,57 +189,86 @@ export async function POST() {
       if (m < 0 || (m === 0 && nowWib.getDate() < birthDay)) {
         rawAge--;
       }
-      const isAgeValid = rawAge > 0 && rawAge < 120 && birthYear < nowWib.getFullYear();
+      const age = rawAge > 0 && rawAge < 120 && birthYear < nowWib.getFullYear() ? rawAge : 0;
       const name = celebrant.nama_panggilan || celebrant.nama_lengkap;
 
-      // Anti-duplication: Cek apakah hari ini sudah pernah dikirim ucapan ke nomor ini
+      const alumniObj: BirthdayAlumni = {
+        id: celebrant.id,
+        nama_lengkap: celebrant.nama_lengkap,
+        nama_panggilan: celebrant.nama_panggilan || "",
+        no_whatsapp: celebrant.no_whatsapp,
+        tanggal_lahir: celebrant.tanggal_lahir,
+        foto_profil: (celebrant as any).foto_profil || null,
+        usia: age,
+      };
+
+      // Anti-duplication: Cek apakah hari ini sudah pernah berhasil dikirim ucapan ke nomor personal ini
       const { data: existingWish } = await adminSupabase
         .from("whatsapp_queue")
         .select("id")
         .eq("no_whatsapp", celebrant.no_whatsapp)
+        .eq("status", "sent")
         .ilike("message", "%Ulang Tahun%")
         .gte("created_at", startOfDay.toISOString())
         .maybeSingle();
 
       if (existingWish) {
         skipped++;
-        details.push({ name, phone: celebrant.no_whatsapp, status: "skipped", reason: "Sudah dikirim hari ini" });
-        continue;
+        details.push({ name, phone: celebrant.no_whatsapp, status: "skipped", reason: "Sudah dikirim japri hari ini" });
+      } else {
+        // 1. Kirim Japri Personal (1-on-1) dengan link kartu ucapan
+        const personalMessage = formatPersonalBirthdayGreetingMessage(alumniObj);
+        const sendRes = await sendWhatsAppMessageWithDetail(celebrant.no_whatsapp, personalMessage);
+
+        await adminSupabase.from("whatsapp_queue").insert([{
+          no_whatsapp: celebrant.no_whatsapp,
+          message: personalMessage,
+          status: sendRes.success ? "sent" : "failed",
+          error_message: sendRes.success ? null : (sendRes.reason || "Gagal terkirim via provider WhatsApp"),
+        }]);
+
+        if (sendRes.success) {
+          sentPersonal++;
+          details.push({ name, phone: celebrant.no_whatsapp, type: "personal", status: "sent" });
+        } else {
+          failed++;
+          details.push({ name, phone: celebrant.no_whatsapp, type: "personal", status: "failed", reason: sendRes.reason });
+        }
       }
 
-      const ageStr = isAgeValid ? ` yang ke-${rawAge}` : "";
-      const bdayLink = `https://expedientgeneration.vercel.app/birthday/${celebrant.id}`;
-      const message = `🎉 *BARAKALLAHU FII UMRIK* 🎉
+      // 2. Broadcast ke Grup WhatsApp Komunitas dengan link kartu ucapan
+      if (commGroupId) {
+        const { data: existingGroupWish } = await adminSupabase
+          .from("whatsapp_queue")
+          .select("id")
+          .eq("no_whatsapp", commGroupId.slice(0, 20))
+          .eq("status", "sent")
+          .ilike("message", `%${celebrant.nama_lengkap}%`)
+          .gte("created_at", startOfDay.toISOString())
+          .maybeSingle();
 
-Selamat Ulang Tahun${ageStr}, Sahabat *${name}*! 🎂✨
+        if (!existingGroupWish) {
+          const groupMessage = formatBirthdayGreetingMessage(alumniObj);
+          const groupRes = await sendWhatsAppGroupMessage(commGroupId, groupMessage);
 
-Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, keselamatan, dan kesuksesan dunia-akhirat. Teruslah menjadi inspirasi dan kebanggaan keluarga besar *Expedient Generation — 43rd Arrisalah*.
+          await adminSupabase.from("whatsapp_queue").insert([{
+            no_whatsapp: commGroupId.slice(0, 20),
+            message: groupMessage,
+            status: groupRes ? "sent" : "failed",
+            error_message: groupRes ? null : "Gagal broadcast grup komunitas",
+          }]);
 
-Buka kartu ucapan spesial angkatan untukmu:
-🔗 ${bdayLink}
-
-Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
-
-      const sendRes = await sendWhatsAppMessageWithDetail(celebrant.no_whatsapp, message);
-
-      await adminSupabase.from("whatsapp_queue").insert([{
-        no_whatsapp: celebrant.no_whatsapp,
-        message,
-        status: sendRes.success ? "sent" : "failed",
-        error_message: sendRes.success ? null : (sendRes.reason || "Gagal terkirim via provider WhatsApp"),
-      }]);
-
-      if (sendRes.success) {
-        sent++;
-        details.push({ name, phone: celebrant.no_whatsapp, status: "sent" });
-      } else {
-        failed++;
-        details.push({ name, phone: celebrant.no_whatsapp, status: "failed", reason: sendRes.reason });
+          if (groupRes) {
+            sentGroup++;
+            details.push({ name, group: commGroupId, type: "group", status: "sent" });
+          }
+        }
       }
     }
 
-    return jsonResponse("success", `Proses ucapan ulang tahun selesai. Terkirim: ${sent}, Dilewati: ${skipped}, Gagal: ${failed}`, {
-      sent,
+    return jsonResponse("success", `Proses ucapan ulang tahun selesai. Japri terkirim: ${sentPersonal}, Grup terkirim: ${sentGroup}, Dilewati: ${skipped}, Gagal: ${failed}`, {
+      sentPersonal,
+      sentGroup,
       skipped,
       failed,
       details,

@@ -35,7 +35,7 @@ export function getDesignGroupId(): string {
 export async function sendWhatsAppMessageWithDetail(
   target: string, 
   message: string
-): Promise<{ success: boolean; reason?: string; provider?: 'fonnte' | 'meta' | 'none' }> {
+): Promise<{ success: boolean; reason?: string; provider?: 'baileys' | 'fonnte' | 'meta' | 'none' }> {
   const isGroup = isWhatsAppGroup(target);
   let finalTarget = "";
 
@@ -59,10 +59,50 @@ export async function sendWhatsAppMessageWithDetail(
     finalTarget = num;
   }
 
+  // =========================================================================
+  // 1. PRIMARY: Self-Hosted Baileys Gateway (Render Cloud Server)
+  // =========================================================================
+  const gatewayUrl = (process.env.WA_GATEWAY_URL || "https://expedient43-bot.onrender.com").replace(/\/+$/, "");
+  const adminPhone = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
+  const gatewaySecret = process.env.GATEWAY_SECRET || adminPhone;
+  let baileysError = "";
+
+  if (gatewayUrl) {
+    try {
+      const targetJid = isGroup
+        ? (finalTarget.includes("@") ? finalTarget : `${finalTarget}@g.us`)
+        : (finalTarget.includes("@") ? finalTarget : `${finalTarget}@s.whatsapp.net`);
+
+      const response = await fetch(`${gatewayUrl}/api/send-message`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: gatewaySecret,
+          jid: targetJid,
+          text: message,
+        }),
+        signal: AbortSignal.timeout(25000),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.success) {
+        console.log(`[BAILEYS-GATEWAY-SUCCESS] Pesan WhatsApp terkirim ke ${finalTarget} (${isGroup ? "GROUP" : "PERSONAL"})`);
+        return { success: true, provider: 'baileys' };
+      }
+      baileysError = result.error || `HTTP ${response.status}`;
+      console.warn(`[BAILEYS-GATEWAY-WARN] Respon Baileys Gateway:`, baileysError);
+    } catch (bErr: any) {
+      baileysError = bErr.message || "Baileys gateway timeout/network exception";
+      console.warn(`[BAILEYS-GATEWAY-EXCEPTION]:`, baileysError);
+    }
+  }
+
+  // =========================================================================
+  // 2. SECONDARY: Fonnte API (Fallback)
+  // =========================================================================
   const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
   let fonnteError = "";
 
-  // 1. PRIMARY: Fonnte API dengan Parameter Anti-Ban Resmi
   if (fonnteToken) {
     try {
       const params = new URLSearchParams();
@@ -95,7 +135,9 @@ export async function sendWhatsAppMessageWithDetail(
     fonnteError = "FONNTE_TOKEN belum diset di environment";
   }
 
-  // 2. SECONDARY FALLBACK: Meta WhatsApp Cloud API (Hanya untuk pesan personal / 1-on-1)
+  // =========================================================================
+  // 3. TERTIARY FALLBACK: Meta WhatsApp Cloud API (Hanya untuk pesan personal)
+  // =========================================================================
   const metaPhoneId = process.env.META_WA_PHONE_NUMBER_ID || "";
   const metaToken = (process.env.META_WA_ACCESS_TOKEN || "").trim();
   let metaError = "";
@@ -136,10 +178,7 @@ export async function sendWhatsAppMessageWithDetail(
     metaError = "Kredensial Meta WhatsApp belum lengkap";
   }
 
-  const finalReason = fonnteError.includes("disconnected")
-    ? `Fonnte: Device WhatsApp terputus (disconnected). Harap scan QR di web fonnte.com`
-    : `Fonnte: ${fonnteError || 'Gagal'} | Meta: ${metaError || 'Gagal'}`;
-
+  const finalReason = `Baileys: ${baileysError || 'Gagal'} | Fonnte: ${fonnteError || 'Gagal'} | Meta: ${metaError || 'Gagal'}`;
   console.error(`[WA-FAILED] Seluruh provider WhatsApp gagal mengirim ke ${finalTarget}: ${finalReason}`);
   return { success: false, reason: finalReason, provider: 'none' };
 }
@@ -207,9 +246,38 @@ export async function sendWhatsAppGroupMedia(
   message: string,
   mediaUrl: string
 ): Promise<{ success: boolean; reason?: string }> {
+  const gatewayUrl = (process.env.WA_GATEWAY_URL || "https://expedient43-bot.onrender.com").replace(/\/+$/, "");
+  const adminPhone = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
+  const gatewaySecret = process.env.GATEWAY_SECRET || adminPhone;
+
+  // 1. PRIMARY: Baileys Render Gateway
+  if (gatewayUrl) {
+    try {
+      const cleanJid = groupId.includes("@") ? groupId : `${groupId}@g.us`;
+      const response = await fetch(`${gatewayUrl}/api/send-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          secret: gatewaySecret,
+          jid: cleanJid,
+          imagePath: mediaUrl,
+          caption: message,
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
+
+      const result = await response.json().catch(() => ({}));
+      if (response.ok && result.success) {
+        console.log(`[BAILEYS-MEDIA-SUCCESS] Media terkirim ke grup ${groupId}`);
+        return { success: true };
+      }
+    } catch (_) {}
+  }
+
+  // 2. SECONDARY: Fonnte API (Fallback)
   const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
   if (!fonnteToken) {
-    return { success: false, reason: "FONNTE_TOKEN tidak tersedia" };
+    return { success: false, reason: "Gateway Baileys & Fonnte tidak tersedia" };
   }
 
   try {

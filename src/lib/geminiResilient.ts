@@ -21,7 +21,7 @@ const BUILTIN_POOL = [
 export async function callGeminiResilient(
   bodyPayload: any,
   apiKey?: string,
-  preferredModel: string = "gemini-3.5-flash"
+  preferredModel: string = "gemini-3.5-flash-lite"
 ): Promise<any> {
   // Parse comma-separated keys from environment if set
   const envKeys = (process.env.GEMINI_API_KEYS || "")
@@ -55,17 +55,25 @@ export async function callGeminiResilient(
   // Model prioritas dengan kuota besar & respons instan (<2s)
   const modelsToTry = [
     preferredModel,
-    "gemini-3.5-flash",
-    "gemini-3.8-flash",
     "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-flash-lite-latest",
+    "gemini-3.5-flash",
     "gemini-flash-latest",
   ]
     .filter((m): m is string => Boolean(m && m.length > 0))
     .filter((m, idx, arr) => arr.indexOf(m) === idx);
 
+  // Sanitize payload: model flash-lite tidak mendukung thinkingConfig dengan budget 0
+  const sanitizedPayload = { ...bodyPayload };
+  if (sanitizedPayload?.generationConfig?.thinkingConfig?.thinkingBudget === 0) {
+    const { thinkingConfig, ...restGenConfig } = sanitizedPayload.generationConfig;
+    sanitizedPayload.generationConfig = restGenConfig;
+  }
+
   // Payload multimodal (gambar, audio VN, dokumen) butuh waktu inferensi lebih
   const isMultimodalPayload = Boolean(
-    bodyPayload?.contents?.[0]?.parts?.some((p: any) => Boolean(p.inlineData))
+    sanitizedPayload?.contents?.[0]?.parts?.some((p: any) => Boolean(p.inlineData))
   );
   const timeoutMs = isMultimodalPayload ? 30000 : 10000;
   let lastError: any = new Error("No Gemini models responded");
@@ -80,7 +88,7 @@ export async function callGeminiResilient(
         const res = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bodyPayload),
+          body: JSON.stringify(sanitizedPayload),
           signal: AbortSignal.timeout(timeoutMs),
         });
 
@@ -94,19 +102,24 @@ export async function callGeminiResilient(
         const errText = await res.text();
         lastError = new Error(`Gemini (${model}) ${errStatus}: ${errText.slice(0, 150)}`);
 
-        // If 429 (Quota/Rate Limit Exceeded), mark key in cooldown and switch keys immediately!
+        // If 429 (Quota/Rate Limit Exceeded pada model ini), coba model lain di key yang sama
         if (errStatus === 429) {
-          keyCooldownMap.set(currentKey, Date.now() + 60_000); // 60s cooldown
-          console.warn(`[GEMINI-FAILOVER]: ${keyLabel} reached limit (HTTP 429). Seamlessly switching to next API key...`);
-          break; // Break inner model loop, immediately try next key!
-        }
-
-        // If 404 (model not found on this version), try next model on same key
-        if (errStatus === 404) {
+          console.warn(`[GEMINI-FAILOVER]: ${keyLabel} model ${model} reached limit (HTTP 429). Mencoba model lain di pool...`);
           continue;
         }
 
-        // If 403 or other auth error, rotate to next key immediately
+        // If 503 (Overloaded/High demand), coba model lain langsung
+        if (errStatus === 503) {
+          console.warn(`[GEMINI-FAILOVER]: ${keyLabel} model ${model} high demand (HTTP 503). Mencoba model lain...`);
+          continue;
+        }
+
+        // If 400 (Invalid argument) atau 404 (Model not found), coba model lain
+        if (errStatus === 400 || errStatus === 404) {
+          continue;
+        }
+
+        // If 403 or 401 (Auth error), tandai key dan rotasi ke key berikutnya
         if (errStatus === 403 || errStatus === 401) {
           keyCooldownMap.set(currentKey, Date.now() + 300_000); // 5m cooldown
           console.warn(`[GEMINI-FAILOVER]: ${keyLabel} unauthorized (${errStatus}). Switching to next key...`);

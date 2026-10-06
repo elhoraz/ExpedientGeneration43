@@ -86,6 +86,7 @@ import {
   getMonthBirthdaySummary,
   getTodayBirthdayAlumni,
   formatBirthdayGreetingMessage,
+  formatPersonalBirthdayGreetingMessage,
 } from "../src/lib/whatsapp/birthdayCelebrator";
 import {
   startSantriQuiz,
@@ -1224,7 +1225,7 @@ async function startBaileysGateway() {
             : true;
 
           if (shouldRespond) {
-            addLog(`🎨 [MEDIA-PROCESS] Memproses media ${category} dari ${senderName}...`);
+            addLog(`🎨 [MEDIA-PROCESS] Memproses media ${isSticker && msgContent.stickerMessage?.isAnimated ? "stiker bergerak (animasi)" : category} dari ${senderName}...`);
             await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
 
             try {
@@ -1955,6 +1956,27 @@ const healthServer = http.createServer(async (req, res) => {
       });
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ success: result.triggered, result }));
+    } catch (err: any) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: false, error: err.message }));
+    }
+    return;
+  }
+
+  // 4bb. API Trigger Birthday Wishes On-Demand
+  if (url === "/api/birthday" || (url.startsWith("/api/birthday") && (req.method === "POST" || req.method === "GET"))) {
+    if (!currentSock || gatewayStatus !== "connected") {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: false, error: "WhatsApp belum terhubung" }));
+      return;
+    }
+
+    addLog("🎂 [API-BIRTHDAY] Permintaan trigger ucapan milad via HTTP API...", "info");
+    try {
+      const commGroupId = getCommunityGroupId();
+      const result = await checkAndTriggerDailyBirthdayWishes(currentSock, commGroupId, true);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: true, result }));
     } catch (err: any) {
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ success: false, error: err.message }));

@@ -260,10 +260,109 @@ export async function processMultimodalBuffer(
 
   try {
     const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
-    const preferredModel = (process.env.GEMINI_MODEL || "gemini-3.5-flash").trim();
+    const preferredModel = (process.env.GEMINI_MODEL || "gemini-3.5-flash-lite").trim();
 
     // 2. Susun prompt sesuai tipe media dan ruang percakapan (Design Studio vs Grup Komunitas vs Japri)
     let promptInstruction = "";
+
+/**
+ * Memeriksa apakah stiker merupakan Animated WebP / GIF bergerak.
+ * Jika bergerak, ekstrak runtutan keyframe (awal, tengah, akhir) agar Gemini Multimodal
+ * dapat membaca aksi/gerakan dan teks secara komprehensif, bukan hanya frame diam pertama.
+ */
+async function resolveStickerMediaParts(
+  base64Data: string,
+  mimeType: string
+): Promise<{
+  isAnimated: boolean;
+  frameCount: number;
+  parts: Array<{ inlineData: { mimeType: string; data: string } }>;
+}> {
+  try {
+    const rawBuffer = Buffer.from(base64Data, "base64");
+    const isWebp = rawBuffer.length >= 12 && rawBuffer.toString("ascii", 8, 12) === "WEBP";
+    const isGif = rawBuffer.length >= 3 && rawBuffer.toString("ascii", 0, 3) === "GIF";
+    const hasAnimChunk =
+      rawBuffer.includes(Buffer.from("ANIM")) ||
+      rawBuffer.includes(Buffer.from("ANMF"));
+
+    if ((isWebp && hasAnimChunk) || isGif) {
+      const sharp = (await import("sharp")).default;
+      const meta = await sharp(rawBuffer, { animated: true }).metadata();
+      const totalFrames = meta.pages || 1;
+
+      if (totalFrames > 1) {
+        // Ambil hingga 4 frame representatif (awal, 33%, 66%, akhir)
+        const sampleIndices =
+          totalFrames >= 4
+            ? [
+                0,
+                Math.floor(totalFrames * 0.33),
+                Math.floor(totalFrames * 0.66),
+                totalFrames - 1,
+              ]
+            : Array.from({ length: totalFrames }, (_, i) => i);
+
+        const uniqueIndices = [...new Set(sampleIndices)];
+        const keyFrames = await Promise.all(
+          uniqueIndices.map(async (idx) => {
+            const frameBuf = await sharp(rawBuffer, { page: idx })
+              .resize(360, 360, { fit: "inside", withoutEnlargement: true })
+              .png()
+              .toBuffer();
+            return {
+              inlineData: {
+                mimeType: "image/png",
+                data: frameBuf.toString("base64"),
+              },
+            };
+          })
+        );
+
+        return {
+          isAnimated: true,
+          frameCount: totalFrames,
+          parts: keyFrames,
+        };
+      }
+    }
+  } catch (err: any) {
+    console.warn("[ANIMATED-STICKER-EXTRACTION-WARN]:", err.message);
+  }
+
+  return {
+    isAnimated: false,
+    frameCount: 1,
+    parts: [
+      {
+        inlineData: {
+          mimeType: mimeType || "image/webp",
+          data: base64Data,
+        },
+      },
+    ],
+  };
+}
+
+    let mediaParts: Array<{ inlineData: { mimeType: string; data: string } }> = [];
+    let isAnimatedSticker = false;
+    let stickerFrameCount = 1;
+
+    if (category === "sticker") {
+      const stickerRes = await resolveStickerMediaParts(base64Data, mimeType);
+      isAnimatedSticker = stickerRes.isAnimated;
+      stickerFrameCount = stickerRes.frameCount;
+      mediaParts = stickerRes.parts;
+    } else {
+      mediaParts = [
+        {
+          inlineData: {
+            mimeType,
+            data: base64Data,
+          },
+        },
+      ];
+    }
 
     if (category === "image") {
       if (inDesignGroup) {
@@ -373,8 +472,36 @@ PENTING:
 - Respon harus hidup, interaktif, dan bernuansa persaudaraan alumni santri Arrisalah.
 `.trim();
     } else if (category === "sticker") {
-      // CABANG E: STIKER WHATSAPP (.WEBP / MEME / REAKSI EKSPRESI)
-      promptInstruction = `
+      if (isAnimatedSticker) {
+        // CABANG E1: STIKER BERGERAK (ANIMATED WEBP / GIF / ${stickerFrameCount} FRAMES)
+        promptInstruction = `
+Kamu adalah Asisten Cerdas Multimodal "Expedient Generation 43" (Alumni Pondok Modern Arrisalah Slahung Ponorogo, ANGKATAN 2025).
+
+Pengirim: ${displayName} (${senderPhone})
+Tipe Media: STIKER BERGERAK / ANIMASI WHATSAPP (${stickerFrameCount} frame gerakan)
+Konteks: ${isGroup ? "Grup WhatsApp Angkatan" : "Chat Pribadi (1-on-1)"}
+Caption: "${caption || ""}"
+
+TUGAS UTAMA: BACA & TANGGAPI STIKER BERGERAK (ANIMATED STICKER) INI
+Kamu diberikan runtutan urutan frame (mulai dari awal aksi, fase tengah, hingga akhir gerakan) dari stiker WhatsApp yang bergerak ini:
+1. Analisis Gerakan, Karakter, dan Teks:
+   - Gerakan/Aksi: Jelaskan apa yang terjadi dan gerakan apa yang dilakukan karakter (misal joget, kaget melompat, menggeleng, menari, jatuh kepeleset, tepuk tangan, ketawa ngakak, mata berkedip/melotot, melempar sesuatu, dll).
+   - Teks / Tulisan: Baca dengan teliti teks apa pun yang muncul atau ada di dalam stiker sepanjang frame tersebut.
+   - Emosi / Humor: Tangkap vibe atau lelucon dari animasi tersebut.
+2. Berikan respons balasan WhatsApp yang hidup, ekspresif, cerdas, dan nyambung dengan gerakan stiker:
+   - JIKA BERISI SALAM / DOA: Jawab salam atau aminkan dengan hangat dan santun khas santri Arrisalah angkatan 2025.
+   - JIKA MEME / REAKSI LUCU / GERAKAN KOCAK: Balas dengan gaya witty, ceria, dan kocak ala obrolan santai antar sahabat santri seangkatan. Komentari gerakannya yang lucu atau ekspresinya (contoh: "Wkwk jogetnya luwes bener akhi!", "Gerakannya pas banget mewakili pas denger bel marhalah wkwk 😂", "Stiker gerak dapet nemu di mana ini akhi wkwk").
+   - JIKA STIKER BINGUNG / TANYA: Tanyakan santai ada apa atau tawarkan bantuan.
+3. Gaya bahasa:
+   - Santai, bersahabat, sedikit sentuhan santri (akhi, antum, mas, bro, wkwk), tidak kaku.
+   - Singkat dan pas untuk balasan stiker (1-2 kalimat padat, ekspresif, dan hidup).
+
+PENTING:
+- Angkatan ini adalah ANGKATAN 2025.
+`.trim();
+      } else {
+        // CABANG E2: STIKER STATIS WHATSAPP (.WEBP / MEME / REAKSI EKSPRESI)
+        promptInstruction = `
 Kamu adalah Asisten Cerdas Multimodal "Expedient Generation 43" (Alumni Pondok Modern Arrisalah Slahung Ponorogo, ANGKATAN 2025).
 
 Pengirim: ${displayName} (${senderPhone})
@@ -400,6 +527,7 @@ TUGAS UTAMA: BACA & TANGGAPI STIKER WHATSAPP INI
 PENTING:
 - Angkatan ini adalah ANGKATAN 2025.
 `.trim();
+      }
     } else {
       // DOKUMEN / PDF / LAINNYA
       promptInstruction = `
@@ -414,12 +542,7 @@ Bantu analisis dokumen / file ini dan berikan ringkasan poin-poin pentingnya sec
       contents: [
         {
           parts: [
-            {
-              inlineData: {
-                mimeType,
-                data: base64Data,
-              },
-            },
+            ...mediaParts,
             {
               text: promptInstruction,
             },
@@ -429,9 +552,6 @@ Bantu analisis dokumen / file ini dan berikan ringkasan poin-poin pentingnya sec
       generationConfig: {
         temperature: 0.35,
         maxOutputTokens: 2048,
-        thinkingConfig: {
-          thinkingBudget: 0,
-        },
       },
     };
 
@@ -461,7 +581,7 @@ Bantu analisis dokumen / file ini dan berikan ringkasan poin-poin pentingnya sec
       await supabase.from("whatsapp_queue").insert([
         {
           no_whatsapp: isGroup ? groupId.slice(0, 20) : senderPhone,
-          message: `[MULTIMODAL-${category.toUpperCase()}] ${caption || filename || "Media"} (Dari: ${displayName})`,
+          message: `[MULTIMODAL-${isAnimatedSticker ? "ANIMATED-STICKER" : category.toUpperCase()}] ${caption || filename || "Media"} (Dari: ${displayName})`,
           status: "multimodal_replied",
           error_message: `Dibalas AI Multimodal: "${replyText.slice(0, 150)}"`,
           created_at: new Date().toISOString(),

@@ -170,11 +170,12 @@ export async function GET(request: Request) {
           const isAgeValid = rawAge > 0 && rawAge < 120 && birthYear < nowWib.getFullYear();
           const name = user.nama_panggilan || user.nama_lengkap;
 
-          // Anti-duplication: Cek apakah hari ini sudah pernah dikirim ucapan ke nomor ini
+          // Anti-duplication: Cek apakah hari ini sudah pernah berhasil terkirim ucapan ke nomor ini
           const { data: existingWish } = await supabase
             .from('whatsapp_queue')
             .select('id')
             .eq('no_whatsapp', user.no_whatsapp)
+            .eq('status', 'sent')
             .ilike('message', '%Ulang Tahun%')
             .gte('created_at', startOfDay.toISOString())
             .maybeSingle();
@@ -228,7 +229,60 @@ Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
             console.warn("Failed to insert birthday in-app notif:", notifErr);
           }
         }
-        output += `  Total Terkirim: ${bdaySent} | Gagal: ${bdayFailed}\n`;
+        output += `  Total Terkirim Japri: ${bdaySent} | Gagal: ${bdayFailed}\n`;
+
+        // Pengiriman ucapan ke Grup WhatsApp Komunitas Angkatan (Broadcast Grup)
+        try {
+          const { sendWhatsAppGroupMessage, getCommunityGroupId } = await import("@/lib/whatsapp");
+          const { formatBirthdayGreetingMessage } = await import("@/lib/whatsapp/birthdayCelebrator");
+          const commGroupId = getCommunityGroupId();
+
+          for (const user of birthdayUsers) {
+            const parts = user.tanggal_lahir.split(/[-/]/);
+            let birthYear = parseInt(parts[0], 10);
+            if (parts[2].length === 4) birthYear = parseInt(parts[2], 10);
+            const rawAge = nowWib.getFullYear() - birthYear;
+
+            const { data: existingGroupWish } = await supabase
+              .from('whatsapp_queue')
+              .select('id')
+              .eq('no_whatsapp', commGroupId.slice(0, 20))
+              .eq('status', 'sent')
+              .ilike('message', `%${user.nama_lengkap}%`)
+              .gte('created_at', startOfDay.toISOString())
+              .maybeSingle();
+
+            if (existingGroupWish) {
+              output += `  [Skip Grup] Ucapan grup untuk ${user.nama_lengkap} sudah terkirim hari ini.\n`;
+              continue;
+            }
+
+            const groupMsg = formatBirthdayGreetingMessage({
+              id: user.id,
+              nama_lengkap: user.nama_lengkap,
+              nama_panggilan: user.nama_panggilan || user.nama_lengkap.split(" ")[0],
+              tanggal_lahir: user.tanggal_lahir,
+              no_whatsapp: user.no_whatsapp,
+              usia: rawAge > 0 && rawAge < 120 ? rawAge : 0,
+            });
+
+            const grpSendRes = await sendWhatsAppGroupMessage(commGroupId, groupMsg);
+            await supabase.from('whatsapp_queue').insert([{
+              no_whatsapp: commGroupId.slice(0, 20),
+              message: groupMsg,
+              status: grpSendRes.success ? 'sent' : 'failed',
+              error_message: grpSendRes.success ? null : (grpSendRes.reason || 'Gagal terkirim ke grup komunitas')
+            }]);
+
+            if (grpSendRes.success) {
+              output += `  [Sukses Grup] Terkirim ucapan milad ${user.nama_lengkap} ke grup komunitas\n`;
+            } else {
+              output += `  [Gagal Grup] Gagal mengirim ke grup komunitas: ${grpSendRes.reason}\n`;
+            }
+          }
+        } catch (grpErr: any) {
+          output += `  [Error Grup Milad] ${grpErr.message}\n`;
+        }
       }
     } catch (e: any) {
       output += `  ERROR: ${e.message}\n`;

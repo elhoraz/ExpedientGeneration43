@@ -116,7 +116,7 @@ export async function startSantriQuiz(groupId: string): Promise<{
     // Buat daftar alias nama yang valid untuk jawaban
     const aliases: string[] = [];
     if (nickName) aliases.push(nickName.toLowerCase());
-    const nameWords = fullName.toLowerCase().split(/\s+/).filter((w) => w.length >= 3);
+    const nameWords = fullName.toLowerCase().split(/\s+/).filter((w: string) => w.length >= 3);
     aliases.push(...nameWords);
     aliases.push(fullName.toLowerCase());
 
@@ -139,7 +139,7 @@ export async function startSantriQuiz(groupId: string): Promise<{
     // Inisial huruf nama sebagai bonus clue
     const initials = fullName
       .split(" ")
-      .map((w) => w[0]?.toUpperCase())
+      .map((w: string) => w[0]?.toUpperCase())
       .join(". ");
     clues.push(`🔤 *Inisial Nama*: ${initials}.`);
 
