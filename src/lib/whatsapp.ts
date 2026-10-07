@@ -1,8 +1,8 @@
 /**
  * lib/whatsapp.ts
- * High-Reliability WhatsApp Gateway with Strict Anti-Ban Architecture.
- * Primary: Fonnte (Direct WhatsApp Web Gateway - Connected: 6285151771289).
- * Secondary: Meta WhatsApp Cloud API (Fallback).
+ * WhatsApp Gateway Engine
+ * Primary: Self-Hosted Baileys Gateway (Render)
+ * Fallback: Fonnte API Gateway
  */
 
 /**
@@ -42,7 +42,7 @@ export async function sendWhatsAppMessageWithDetail(
   target: string, 
   message: string,
   options?: WhatsAppSendOptions
-): Promise<{ success: boolean; reason?: string; provider?: 'baileys' | 'fonnte' | 'meta' | 'none' }> {
+): Promise<{ success: boolean; reason?: string; provider?: 'baileys' | 'fonnte' | 'none' }> {
   const isGroup = isWhatsAppGroup(target);
   let finalTarget = "";
 
@@ -152,50 +152,7 @@ export async function sendWhatsAppMessageWithDetail(
     fonnteError = "FONNTE_TOKEN belum diset di environment";
   }
 
-  // =========================================================================
-  // 3. TERTIARY FALLBACK: Meta WhatsApp Cloud API (Hanya untuk pesan personal)
-  // =========================================================================
-  const metaPhoneId = process.env.META_WA_PHONE_NUMBER_ID || "";
-  const metaToken = (process.env.META_WA_ACCESS_TOKEN || "").trim();
-  let metaError = "";
-
-  if (!isGroup && metaPhoneId && metaToken) {
-    try {
-      const response = await fetch(`https://graph.facebook.com/v20.0/${metaPhoneId}/messages`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${metaToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messaging_product: "whatsapp",
-          recipient_type: "individual",
-          to: finalTarget,
-          type: "text",
-          text: {
-            preview_url: false,
-            body: message,
-          },
-        }),
-      });
-
-      const data = await response.json().catch(() => ({}));
-      if (response.ok && data?.messages?.[0]?.id) {
-        console.log(`[META-WA-SUCCESS] Pesan terkirim via Meta Cloud ke ${finalTarget}`);
-        return { success: true, provider: 'meta' };
-      }
-      metaError = data?.error?.message || "Meta API error";
-    } catch (metaErr: any) {
-      metaError = metaErr.message || "Meta network exception";
-      console.error("[META-WA-EXCEPTION]:", metaErr);
-    }
-  } else if (isGroup) {
-    metaError = "Meta Cloud API tidak mendukung pengiriman ke WhatsApp Group";
-  } else {
-    metaError = "Kredensial Meta WhatsApp belum lengkap";
-  }
-
-  const finalReason = `Baileys: ${baileysError || 'Gagal'} | Fonnte: ${fonnteError || 'Gagal'} | Meta: ${metaError || 'Gagal'}`;
+  const finalReason = `Baileys: ${baileysError || 'Gagal'} | Fonnte: ${fonnteError || 'Gagal'}`;
   console.error(`[WA-FAILED] Seluruh provider WhatsApp gagal mengirim ke ${finalTarget}: ${finalReason}`);
   return { success: false, reason: finalReason, provider: 'none' };
 }
