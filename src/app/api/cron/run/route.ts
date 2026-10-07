@@ -129,7 +129,7 @@ export async function GET(request: Request) {
 
       const { data: users } = await supabase
         .from('profiles')
-        .select('id, nama_panggilan, nama_lengkap, no_whatsapp, tanggal_lahir')
+        .select('id, nama_panggilan, nama_lengkap, no_whatsapp, tanggal_lahir, foto_profil')
         .eq('is_active', true);
       
       let bdaySent = 0, bdayFailed = 0;
@@ -198,8 +198,10 @@ Buka kartu ucapan spesial angkatan untukmu:
 
 Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
 
-          // Langsung kirim via Gateway WhatsApp dengan anti-ban delay & direct fallback
-          const sendRes = await sendWhatsAppMessageWithDetail(user.no_whatsapp, text);
+          // Langsung kirim via Gateway WhatsApp (sertakan foto profil jika ada)
+          const sendRes = await sendWhatsAppMessageWithDetail(user.no_whatsapp, text, {
+            imageUrl: user.foto_profil || undefined,
+          });
 
           await supabase.from('whatsapp_queue').insert([{
             no_whatsapp: user.no_whatsapp,
@@ -263,10 +265,15 @@ Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
               nama_panggilan: user.nama_panggilan || user.nama_lengkap.split(" ")[0],
               tanggal_lahir: user.tanggal_lahir,
               no_whatsapp: user.no_whatsapp,
+              foto_profil: user.foto_profil,
               usia: rawAge > 0 && rawAge < 120 ? rawAge : 0,
             });
 
-            const grpSendRes = await sendWhatsAppGroupMessage(commGroupId, groupMsg);
+            const userMentions = user.no_whatsapp ? [`${user.no_whatsapp.replace(/\D/g, "")}@s.whatsapp.net`] : [];
+            const grpSendRes = await sendWhatsAppGroupMessage(commGroupId, groupMsg, {
+              imageUrl: user.foto_profil || undefined,
+              mentions: userMentions,
+            });
             await supabase.from('whatsapp_queue').insert([{
               no_whatsapp: commGroupId.slice(0, 20),
               message: groupMsg,

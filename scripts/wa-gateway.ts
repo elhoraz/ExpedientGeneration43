@@ -277,7 +277,15 @@ async function startBaileysGateway() {
 
   // Otomatis pulihkan sesi dari Supabase Storage jika dijalankan di cloud container
   const credsFile = path.join(AUTH_FOLDER, "creds.json");
-  if (!fs.existsSync(credsFile)) {
+  let hasValidCreds = false;
+  if (fs.existsSync(credsFile)) {
+    try {
+      const parsedCreds = JSON.parse(fs.readFileSync(credsFile, "utf8"));
+      hasValidCreds = Boolean(parsedCreds?.me?.id);
+    } catch (_) {}
+  }
+
+  if (!hasValidCreds) {
     addLog("☁️ Memeriksa cadangan sesi di Supabase Storage...");
     const restored = await restoreSessionFromSupabase(AUTH_FOLDER);
     if (restored) {
@@ -942,12 +950,8 @@ async function startBaileysGateway() {
           }
         } catch (_) {}
 
-        // Hapus cadangan sesi kedaluwarsa di Supabase Storage
-        try {
-          const supabase = createAdminClient();
-          supabase.storage.from("wa-session-backup").remove(["wa_session.gz"]).catch(() => {});
-        } catch (_) {}
-
+        // Catatan: Cadangan di Supabase Storage tetap dipertahankan agar tidak terhapus jika hanya masalah koneksi sementara.
+        
         // Restart Baileys dengan folder kosong agar QR Code baru langsung dipancarkan ke dashboard
         setTimeout(() => startBaileysGateway(), 1500);
         return;
@@ -1997,7 +2001,7 @@ const healthServer = http.createServer(async (req, res) => {
           res.end(JSON.stringify({ success: false, error: "Unauthorized" }));
           return;
         }
-        const { jid, text } = parsed;
+        const { jid, text, imageUrl, imageBase64, mentions } = parsed;
         if (!jid || !text) {
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ success: false, error: "Parameter 'jid' dan 'text' harus diisi" }));
@@ -2008,9 +2012,43 @@ const healthServer = http.createServer(async (req, res) => {
           res.end(JSON.stringify({ success: false, error: "WhatsApp belum terhubung" }));
           return;
         }
-        const cleanJid = jid.includes("@") ? jid : `${jid}@g.us`;
-        const sentRes = await currentSock.sendMessage(cleanJid, { text });
-        addLog(`📤 [API-SEND-MSG] Pesan terkirim ke ${cleanJid}: "${text.slice(0, 50)}"`, "success");
+        const cleanJid = jid.includes("@") 
+          ? jid 
+          : (jid.length > 15 || jid.startsWith("120") ? `${jid}@g.us` : `${jid}@s.whatsapp.net`);
+        let sentRes: any = null;
+
+        // Jika disediakan imageUrl atau imageBase64, kirim sebagai pesan foto dengan caption
+        let imgBuf: Buffer | null = null;
+        if (imageBase64) {
+          try {
+            imgBuf = Buffer.from(imageBase64, "base64");
+          } catch (_) {}
+        } else if (imageUrl && typeof imageUrl === "string" && imageUrl.startsWith("http")) {
+          try {
+            const imgFetch = await fetch(imageUrl, { signal: AbortSignal.timeout(12000) });
+            if (imgFetch.ok) {
+              imgBuf = Buffer.from(await imgFetch.arrayBuffer());
+            }
+          } catch (fetchErr: any) {
+            addLog(`⚠️ [API-SEND-MSG] Gagal mengunduh imageUrl (${fetchErr.message}), mengirim teks biasa`, "warn");
+          }
+        }
+
+        if (imgBuf && imgBuf.length > 500) {
+          sentRes = await currentSock.sendMessage(cleanJid, {
+            image: imgBuf,
+            caption: text,
+            mentions: Array.isArray(mentions) ? mentions : [],
+          });
+          addLog(`📤 [API-SEND-IMG-MSG] Foto profil/gambar + pesan terkirim ke ${cleanJid}: "${text.slice(0, 50)}"`, "success");
+        } else {
+          sentRes = await currentSock.sendMessage(cleanJid, {
+            text,
+            mentions: Array.isArray(mentions) ? mentions : [],
+          });
+          addLog(`📤 [API-SEND-MSG] Pesan teks terkirim ke ${cleanJid}: "${text.slice(0, 50)}"`, "success");
+        }
+
         res.writeHead(200, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ success: true, messageId: sentRes?.key?.id }));
       } catch (err: any) {

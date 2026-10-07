@@ -58,8 +58,15 @@ export async function restoreSessionFromSupabase(authDir: string): Promise<boole
   try {
     const credsPath = path.join(authDir, "creds.json");
     if (fs.existsSync(credsPath)) {
-      console.log("💾 [SESSION-RESTORE] Folder sesi lokal sudah memiliki creds.json, menggunakan sesi lokal.");
-      return true;
+      try {
+        const rawCreds = fs.readFileSync(credsPath, "utf8");
+        const parsed = JSON.parse(rawCreds);
+        if (parsed?.me?.id) {
+          console.log("💾 [SESSION-RESTORE] Folder sesi lokal sudah memiliki creds.json valid, menggunakan sesi lokal.");
+          return true;
+        }
+      } catch (_) {}
+      console.log("ℹ️ [SESSION-RESTORE] File creds lokal belum terautentikasi (belum ada me.id), mencoba pulihkan dari Supabase Storage...");
     }
 
     console.log("☁️ [SESSION-RESTORE] Memeriksa cadangan sesi di Supabase Storage...");

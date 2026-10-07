@@ -138,7 +138,7 @@ export async function POST() {
 
     const { data: users, error } = await adminSupabase
       .from("profiles")
-      .select("id, nama_panggilan, nama_lengkap, no_whatsapp, tanggal_lahir")
+      .select("id, nama_panggilan, nama_lengkap, no_whatsapp, tanggal_lahir, foto_profil")
       .eq("is_active", true);
 
     if (error) throw error;
@@ -198,7 +198,7 @@ export async function POST() {
         nama_panggilan: celebrant.nama_panggilan || "",
         no_whatsapp: celebrant.no_whatsapp,
         tanggal_lahir: celebrant.tanggal_lahir,
-        foto_profil: (celebrant as any).foto_profil || null,
+        foto_profil: celebrant.foto_profil || null,
         usia: age,
       };
 
@@ -216,9 +216,11 @@ export async function POST() {
         skipped++;
         details.push({ name, phone: celebrant.no_whatsapp, status: "skipped", reason: "Sudah dikirim japri hari ini" });
       } else {
-        // 1. Kirim Japri Personal (1-on-1) dengan link kartu ucapan
+        // 1. Kirim Japri Personal (1-on-1) dengan lampiran foto profil & link kartu ucapan
         const personalMessage = formatPersonalBirthdayGreetingMessage(alumniObj);
-        const sendRes = await sendWhatsAppMessageWithDetail(celebrant.no_whatsapp, personalMessage);
+        const sendRes = await sendWhatsAppMessageWithDetail(celebrant.no_whatsapp, personalMessage, {
+          imageUrl: celebrant.foto_profil || undefined,
+        });
 
         await adminSupabase.from("whatsapp_queue").insert([{
           no_whatsapp: celebrant.no_whatsapp,
@@ -236,7 +238,7 @@ export async function POST() {
         }
       }
 
-      // 2. Broadcast ke Grup WhatsApp Komunitas dengan link kartu ucapan
+      // 2. Broadcast ke Grup WhatsApp Komunitas dengan lampiran foto profil & link kartu ucapan
       if (commGroupId) {
         const { data: existingGroupWish } = await adminSupabase
           .from("whatsapp_queue")
@@ -249,16 +251,20 @@ export async function POST() {
 
         if (!existingGroupWish) {
           const groupMessage = formatBirthdayGreetingMessage(alumniObj);
-          const groupRes = await sendWhatsAppGroupMessage(commGroupId, groupMessage);
+          const mentions = celebrant.no_whatsapp ? [`${celebrant.no_whatsapp.replace(/\D/g, "")}@s.whatsapp.net`] : [];
+          const groupRes = await sendWhatsAppGroupMessage(commGroupId, groupMessage, {
+            imageUrl: celebrant.foto_profil || undefined,
+            mentions,
+          });
 
           await adminSupabase.from("whatsapp_queue").insert([{
             no_whatsapp: commGroupId.slice(0, 20),
             message: groupMessage,
-            status: groupRes ? "sent" : "failed",
-            error_message: groupRes ? null : "Gagal broadcast grup komunitas",
+            status: groupRes.success ? "sent" : "failed",
+            error_message: groupRes.success ? null : (groupRes.reason || "Gagal broadcast grup komunitas"),
           }]);
 
-          if (groupRes) {
+          if (groupRes.success) {
             sentGroup++;
             details.push({ name, group: commGroupId, type: "group", status: "sent" });
           }

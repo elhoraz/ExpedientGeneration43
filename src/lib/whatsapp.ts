@@ -32,9 +32,16 @@ export function getDesignGroupId(): string {
   return (process.env.WA_GROUP_DESIGN_ID || "120363404648728200@g.us").trim();
 }
 
+export interface WhatsAppSendOptions {
+  imageUrl?: string | null;
+  imageBase64?: string | null;
+  mentions?: string[];
+}
+
 export async function sendWhatsAppMessageWithDetail(
   target: string, 
-  message: string
+  message: string,
+  options?: WhatsAppSendOptions
 ): Promise<{ success: boolean; reason?: string; provider?: 'baileys' | 'fonnte' | 'meta' | 'none' }> {
   const isGroup = isWhatsAppGroup(target);
   let finalTarget = "";
@@ -73,20 +80,26 @@ export async function sendWhatsAppMessageWithDetail(
         ? (finalTarget.includes("@") ? finalTarget : `${finalTarget}@g.us`)
         : (finalTarget.includes("@") ? finalTarget : `${finalTarget}@s.whatsapp.net`);
 
+      const payload: Record<string, any> = {
+        secret: gatewaySecret,
+        jid: targetJid,
+        text: message,
+      };
+
+      if (options?.imageUrl) payload.imageUrl = options.imageUrl;
+      if (options?.imageBase64) payload.imageBase64 = options.imageBase64;
+      if (options?.mentions && options.mentions.length > 0) payload.mentions = options.mentions;
+
       const response = await fetch(`${gatewayUrl}/api/send-message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          secret: gatewaySecret,
-          jid: targetJid,
-          text: message,
-        }),
+        body: JSON.stringify(payload),
         signal: AbortSignal.timeout(25000),
       });
 
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.success) {
-        console.log(`[BAILEYS-GATEWAY-SUCCESS] Pesan WhatsApp terkirim ke ${finalTarget} (${isGroup ? "GROUP" : "PERSONAL"})`);
+        console.log(`[BAILEYS-GATEWAY-SUCCESS] Pesan WhatsApp terkirim ke ${finalTarget} (${isGroup ? "GROUP" : "PERSONAL"}${options?.imageUrl ? " + GAMBAR" : ""})`);
         return { success: true, provider: 'baileys' };
       }
       baileysError = result.error || `HTTP ${response.status}`;
@@ -111,6 +124,10 @@ export async function sendWhatsAppMessageWithDetail(
       params.append("delay", "2");
       params.append("typing", "true");
 
+      if (options?.imageUrl && typeof options.imageUrl === "string" && options.imageUrl.startsWith("http")) {
+        params.append("url", options.imageUrl);
+      }
+
       const response = await fetch("https://api.fonnte.com/send", {
         method: "POST",
         headers: {
@@ -121,7 +138,7 @@ export async function sendWhatsAppMessageWithDetail(
 
       const result = await response.json().catch(() => ({}));
       if (response.ok && Boolean(result.status)) {
-        console.log(`[FONNTE-SUCCESS] Pesan WhatsApp terkirim ke ${finalTarget} (${isGroup ? "GROUP" : "PERSONAL"}) | Status: ${result.detail || "Sent"}`);
+        console.log(`[FONNTE-SUCCESS] Pesan WhatsApp terkirim ke ${finalTarget} (${isGroup ? "GROUP" : "PERSONAL"}${options?.imageUrl ? " + GAMBAR" : ""}) | Status: ${result.detail || "Sent"}`);
         return { success: true, provider: 'fonnte' };
       }
 
@@ -183,16 +200,21 @@ export async function sendWhatsAppMessageWithDetail(
   return { success: false, reason: finalReason, provider: 'none' };
 }
 
-export async function sendWhatsAppMessage(target: string, message: string): Promise<boolean> {
-  const res = await sendWhatsAppMessageWithDetail(target, message);
+export async function sendWhatsAppMessage(
+  target: string, 
+  message: string,
+  options?: WhatsAppSendOptions
+): Promise<boolean> {
+  const res = await sendWhatsAppMessageWithDetail(target, message, options);
   return res.success;
 }
 
 export async function sendWhatsAppGroupMessage(
   groupId: string,
-  message: string
+  message: string,
+  options?: WhatsAppSendOptions
 ): Promise<{ success: boolean; reason?: string }> {
-  return await sendWhatsAppMessageWithDetail(groupId, message);
+  return await sendWhatsAppMessageWithDetail(groupId, message, options);
 }
 
 /**
