@@ -65,6 +65,7 @@ export default function ChatCallModal({
   const [callStatus, setCallStatus] = useState<"calling" | "ringing" | "connected" | "ended">(
     isIncoming && !autoAccept ? "ringing" : "calling"
   );
+  const callStatusRef = useRef(callStatus);
   const [callDuration, setCallDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(callType === "voice");
@@ -81,6 +82,7 @@ export default function ChatCallModal({
   const localStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const ringingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const callDurationRef = useRef(0); // Mirror for stale closure fix
   const pendingOfferRef = useRef<RTCSessionDescriptionInit | null>(pendingOffer);
   const pendingCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
@@ -157,10 +159,31 @@ export default function ChatCallModal({
     }, 1000);
   }, []);
 
+  // ─── Ringing Timeout Helper ───
+  const clearRingingTimeout = useCallback(() => {
+    if (ringingTimeoutRef.current) {
+      console.log("[Call] Ringing timeout cancelled (call connected or ended)");
+      clearTimeout(ringingTimeoutRef.current);
+      ringingTimeoutRef.current = null;
+    }
+  }, []);
+
+  const updateCallStatus = useCallback(
+    (status: "calling" | "ringing" | "connected" | "ended") => {
+      callStatusRef.current = status;
+      setCallStatus(status);
+      if (status === "connected") {
+        clearRingingTimeout();
+      }
+    },
+    [clearRingingTimeout]
+  );
+
   // ─── Cleanup ───
   const cleanUpAll = useCallback(() => {
     console.log("[Call] cleanUpAll");
     stopRingtone();
+    clearRingingTimeout();
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -192,12 +215,12 @@ export default function ChatCallModal({
     }
     hasInitiatedRef.current = false;
     pendingCandidatesRef.current = [];
-  }, [stopRingtone]);
+  }, [stopRingtone, clearRingingTimeout]);
 
   // ─── End Call ───
   const handleEnd = useCallback(() => {
     cleanUpAll();
-    setCallStatus("ended");
+    updateCallStatus("ended");
 
     if (channel) {
       channel.send({
@@ -225,7 +248,7 @@ export default function ChatCallModal({
 
     // Use ref for accurate duration (avoids stale closure)
     onEndCall(callDurationRef.current);
-  }, [cleanUpAll, channel, userId, contact.id, supabase, onEndCall]);
+  }, [cleanUpAll, updateCallStatus, channel, userId, contact.id, supabase, onEndCall]);
 
   // ─── Get Local Media ───
   const getLocalMedia = useCallback(async () => {
@@ -321,12 +344,21 @@ export default function ChatCallModal({
       console.log("[Call] connectionState:", pc.connectionState);
       if (pc.connectionState === "connected") {
         stopRingtone();
-        setCallStatus("connected");
+        clearRingingTimeout();
+        updateCallStatus("connected");
         startCallTimer();
-      } else if (pc.connectionState === "disconnected" || pc.connectionState === "failed") {
+      } else if (pc.connectionState === "failed") {
         if (isAliveRef.current) {
           handleEnd();
         }
+      } else if (pc.connectionState === "disconnected") {
+        // Disconnected can be transient (brief packet loss); wait 6s before ending if it doesn't recover
+        setTimeout(() => {
+          if (isAliveRef.current && pcRef.current?.connectionState === "disconnected") {
+            console.log("[Call] Connection remained disconnected, ending call");
+            handleEnd();
+          }
+        }, 6000);
       }
     };
 
@@ -339,7 +371,7 @@ export default function ChatCallModal({
     };
 
     return pc;
-  }, [channel, userId, stopRingtone, startCallTimer, handleEnd]);
+  }, [channel, userId, stopRingtone, clearRingingTimeout, updateCallStatus, startCallTimer, handleEnd]);
 
   // ─── Flush buffered ICE candidates ───
   const flushCandidates = useCallback(async (pc: RTCPeerConnection) => {
@@ -456,7 +488,8 @@ export default function ChatCallModal({
   // ═══════════════════════════════════════════════════
   const handleAccept = useCallback(async () => {
     stopRingtone();
-    setCallStatus("calling"); // Show "Menghubungkan..."
+    clearRingingTimeout();
+    updateCallStatus("calling"); // Show "Menghubungkan..."
 
     console.log("[Call] Callee: accepting call");
     try {
@@ -512,7 +545,7 @@ export default function ChatCallModal({
       console.error("[Call] Callee: failed to accept:", err);
       handleEnd();
     }
-  }, [stopRingtone, getLocalMedia, createPeerConnection, channel, userId, onAcceptCall, flushCandidates, handleEnd]);
+  }, [stopRingtone, clearRingingTimeout, updateCallStatus, getLocalMedia, createPeerConnection, channel, userId, onAcceptCall, flushCandidates, handleEnd]);
 
   // ═══════════════════════════════════════════════════
   // LIFECYCLE: Init on mount
@@ -526,15 +559,17 @@ export default function ChatCallModal({
       startRingtone();
       initiateCall();
 
-      // Auto-timeout after 45s
-      const timeout = setTimeout(() => {
-        if (isAliveRef.current) {
+      // Ringing auto-timeout after 45s (hanya jika panggilan belum dijawab/tersambung)
+      clearRingingTimeout();
+      ringingTimeoutRef.current = setTimeout(() => {
+        if (isAliveRef.current && callStatusRef.current !== "connected") {
+          console.log("[Call] Ringing timeout: panggilan tidak diangkat dalam 45 detik");
           handleEnd();
         }
       }, 45000);
 
       return () => {
-        clearTimeout(timeout);
+        clearRingingTimeout();
         isAliveRef.current = false;
         cleanUpAll();
       };
@@ -544,9 +579,18 @@ export default function ChatCallModal({
         handleAccept();
       } else {
         startRingtone();
+        // Callee: auto-dismiss ringing jika tidak diangkat dalam 45 detik
+        clearRingingTimeout();
+        ringingTimeoutRef.current = setTimeout(() => {
+          if (isAliveRef.current && callStatusRef.current !== "connected") {
+            console.log("[Call] Incoming call timeout: tidak diangkat dalam 45 detik");
+            handleEnd();
+          }
+        }, 45000);
       }
 
       return () => {
+        clearRingingTimeout();
         isAliveRef.current = false;
         cleanUpAll();
       };
@@ -579,7 +623,8 @@ export default function ChatCallModal({
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
             await flushCandidates(pc);
             stopRingtone();
-            setCallStatus("connected");
+            clearRingingTimeout();
+            updateCallStatus("connected");
             startCallTimer();
           } else {
             console.warn("[Call] Caller: received answer in wrong state:", pc.signalingState);
@@ -651,7 +696,7 @@ export default function ChatCallModal({
       else if (data.type === "hangup") {
         console.log("[Call] Remote hangup received");
         cleanUpAll();
-        setCallStatus("ended");
+        updateCallStatus("ended");
         onEndCall(callDurationRef.current);
       }
     };

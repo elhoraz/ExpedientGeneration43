@@ -66,3 +66,7 @@ android/.idea/
 # Baileys WhatsApp Session
 .baileys_auth/
 baileys_auth_info/
+
+# Scratch & local developer scripts with credentials
+/scratch/
+scripts/apply_missing_migrations.js

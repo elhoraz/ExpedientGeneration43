@@ -1,10 +1,115 @@
+/**
+ * Expedient Generation 43 - Beranda Engine
+ * High-performance 3D sequence renderer, spatial audio, particles & dynamic interactions.
+ * Built with full lifecycle management (init / destroy) and asset caching for smooth SPA navigation.
+ */
+
+// Global cache for preloaded assets so page transitions and returns are instantaneous
+if (typeof window !== 'undefined') {
+    window.__BERANDA_ASSET_CACHE = window.__BERANDA_ASSET_CACHE || {
+        ready: false,
+        fullImages: null,
+        shardImages: {}
+    };
+}
+
+let _berandaTicker = null;
+let _berandaListeners = [];
+let _berandaScrollTriggers = [];
+let _berandaTimeouts = [];
+let _berandaLoreInterval = null;
+let _berandaStageObserver = null;
+let _activeJiwaTl = null;
+let _inertiaAnim = null;
+
+const destroyBeranda = () => {
+    // 1. Remove GSAP Ticker animation loop
+    if (_berandaTicker && typeof gsap !== 'undefined') {
+        gsap.ticker.remove(_berandaTicker);
+        _berandaTicker = null;
+    }
+
+    // 2. Clear intervals and timeouts
+    if (_berandaLoreInterval) {
+        clearInterval(_berandaLoreInterval);
+        _berandaLoreInterval = null;
+    }
+    _berandaTimeouts.forEach(t => clearTimeout(t));
+    _berandaTimeouts = [];
+
+    // 3. Remove all window/document/mediaquery listeners
+    _berandaListeners.forEach(cleanup => {
+        try { cleanup(); } catch (e) {}
+    });
+    _berandaListeners = [];
+
+    // 4. Disconnect IntersectionObserver
+    if (_berandaStageObserver) {
+        _berandaStageObserver.disconnect();
+        _berandaStageObserver = null;
+    }
+
+    // 5. Kill active animations & timelines
+    if (_inertiaAnim) {
+        try { _inertiaAnim.kill(); } catch (e) {}
+        _inertiaAnim = null;
+    }
+    if (_activeJiwaTl) {
+        try { _activeJiwaTl.kill(); } catch (e) {}
+        _activeJiwaTl = null;
+    }
+
+    // 6. Kill all Beranda ScrollTriggers
+    _berandaScrollTriggers.forEach(st => {
+        try { if (st && st.kill) st.kill(); } catch (e) {}
+    });
+    _berandaScrollTriggers = [];
+
+    if (typeof ScrollTrigger !== 'undefined') {
+        try {
+            ScrollTrigger.getAll().forEach(st => {
+                if (st.vars && (st.vars.scroller === '.main-wrapper' || st.vars.trigger === '#stage')) {
+                    st.kill();
+                }
+            });
+        } catch (e) {}
+    }
+
+    window.__berandaInitialized = false;
+};
+window.destroyBeranda = destroyBeranda;
+
 const initBeranda = () => {
-    // Guard: cegah double initialization
-    if (window.__berandaInitialized) return;
+    const stage = document.getElementById('stage');
+    const constelCanvas = document.getElementById('constellationCanvas');
+    const canvasFull = document.getElementById('fullLogoCanvas');
+    const container = document.getElementById('shardsContainer');
+
+    // Pastikan DOM elements beranda tersedia sebelum inisialisasi
+    if (!stage || !constelCanvas || !canvasFull || !container) {
+        return;
+    }
+
+    // Bersihkan instance lama jika ada
+    if (window.__berandaInitialized) {
+        destroyBeranda();
+    }
     window.__berandaInitialized = true;
 
-    gsap.config({ force3D: true });
-    gsap.registerPlugin(ScrollTrigger);
+    if (typeof gsap !== 'undefined') {
+        gsap.config({ force3D: true });
+        if (typeof ScrollTrigger !== 'undefined') {
+            gsap.registerPlugin(ScrollTrigger);
+        }
+    }
+
+    const addListener = (target, type, listener, options) => {
+        if (!target) return;
+        target.addEventListener(type, listener, options);
+        _berandaListeners.push(() => {
+            try { target.removeEventListener(type, listener, options); } catch (e) {}
+        });
+    };
 
     const TOTAL_FRAMES = 192;
     let isScattered = false;
@@ -15,13 +120,13 @@ const initBeranda = () => {
     const basePath = '/assets/sequence/';
 
     // =========================================================
-    // TRACK MOUSE UNTUK EFEK RIPPLE REPULSE (DIPERBAIKI)
+    // TRACK MOUSE UNTUK EFEK RIPPLE REPULSE
     // =========================================================
     let mouseX = -1000, mouseY = -1000;
-    window.addEventListener('mousemove', (e) => {
-        const stage = document.getElementById('stage');
-        if (stage) {
-            const rect = stage.getBoundingClientRect();
+    addListener(window, 'mousemove', (e) => {
+        const currentStage = document.getElementById('stage');
+        if (currentStage) {
+            const rect = currentStage.getBoundingClientRect();
             mouseX = e.clientX - rect.left;
             mouseY = e.clientY - rect.top;
         }
@@ -40,56 +145,60 @@ const initBeranda = () => {
 
     const playTick = (velocity) => {
         if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.type = 'sine'; osc.frequency.setValueAtTime(400 + velocity * 10, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.03);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(400 + velocity * 10, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.03);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+        } catch (e) {}
     };
 
     const playSwoosh = () => {
         if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.25);
-        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.25);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        } catch (e) {}
     };
 
     const playBassDrop = () => {
         if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 2);
-        gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
-        osc.start(); osc.stop(audioCtx.currentTime + 2);
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 2);
+            gain.gain.setValueAtTime(0.8, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2);
+            osc.start(); osc.stop(audioCtx.currentTime + 2);
+        } catch (e) {}
     };
 
     // =========================================================
-    // EXPEDIENT CORE (236 PARTIKEL KRISTAL EMAS) 
+    // EXPEDIENT CORE (PARTIKEL KRISTAL EMAS)
     // =========================================================
-    // matchMedia reactive singleton — menggantikan window.innerWidth statis
     const mq = window.matchMedia('(max-width: 768px)');
 
     let coreParticles = [];
     const initCore = () => {
         coreParticles = [];
-        const stage = document.getElementById('stage');
-        const cw = stage ? stage.offsetWidth : window.innerWidth;
-        const ch = stage ? stage.offsetHeight : window.innerHeight;
+        const currentStage = document.getElementById('stage');
+        const cw = currentStage ? currentStage.offsetWidth : window.innerWidth;
+        const ch = currentStage ? currentStage.offsetHeight : window.innerHeight;
 
         const isMobile = mq.matches;
-        // Mobile: kurangi partikel lebih agresif untuk performa
         const particleCount = isMobile ? 30 : 150;
 
         for (let i = 0; i < particleCount; i++) {
@@ -104,27 +213,29 @@ const initBeranda = () => {
         }
     };
     initCore();
-    window.addEventListener('resize', initCore);
+    addListener(window, 'resize', initCore);
 
     // =========================================================
     // KANVAS CONSTELLATION & PARTIKEL
     // =========================================================
-    const constelCanvas = document.getElementById('constellationCanvas');
     const ctxConstel = constelCanvas.getContext('2d');
 
     const resizeCanvas = () => {
-        const stage = document.getElementById('stage');
-        constelCanvas.width = stage.offsetWidth; constelCanvas.height = stage.offsetHeight;
+        const currentStage = document.getElementById('stage');
+        if (currentStage && constelCanvas) {
+            constelCanvas.width = currentStage.offsetWidth;
+            constelCanvas.height = currentStage.offsetHeight;
+        }
     };
-    resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    addListener(window, 'resize', resizeCanvas);
 
-    // Frame counter untuk throttle rendering di mobile
     let _constellationFrame = 0;
 
     const drawConstellation = () => {
+        if (!ctxConstel || !constelCanvas) return;
         _constellationFrame++;
         const isMobileNow = mq.matches;
-        // Di mobile: skip setiap frame kedua (render ~30fps bukan 60fps)
         if (isMobileNow && (_constellationFrame % 2 !== 0)) return;
 
         ctxConstel.clearRect(0, 0, constelCanvas.width, constelCanvas.height);
@@ -137,7 +248,6 @@ const initBeranda = () => {
             let targetX = p.baseX + Math.cos(p.angle) * p.radius;
             let targetY = p.baseY + Math.sin(p.angle) * (p.radius * 0.5);
 
-            // Efek repulse mouse hanya di desktop
             if (isScattered && !isMobileNow) {
                 let dx = mouseX - (targetX + p.offsetX);
                 let dy = mouseY - (targetY + p.offsetY);
@@ -171,7 +281,7 @@ const initBeranda = () => {
             ctxConstel.fill();
         });
 
-        // 2. Render Garis Konstelasi — HANYA di desktop (gsap.getProperty sangat berat di mobile)
+        // 2. Render Garis Konstelasi — Desktop
         if (!isMobileNow && (isScattered || isAnimating)) {
             ctxConstel.strokeStyle = isLight ? 'rgba(212, 175, 55, 0.4)' : 'rgba(212, 175, 55, 0.3)';
             ctxConstel.lineWidth = 1.5;
@@ -181,11 +291,10 @@ const initBeranda = () => {
             const cx = constelCanvas.width / 2;
             const cy = constelCanvas.height / 2;
 
-            // Membaca X & Y animasi DOM secara realtime!
             const dynamicPositions = assetsData.shards.map(s => {
                 const el = document.getElementById(`shardWrap_${s.id}`);
-                const currX = gsap.getProperty(el, "x") || (isAnimating ? 0 : s.tx);
-                const currY = gsap.getProperty(el, "y") || (isAnimating ? 0 : s.ty);
+                const currX = el && typeof gsap !== 'undefined' ? (gsap.getProperty(el, "x") || (isAnimating ? 0 : s.tx)) : s.tx;
+                const currY = el && typeof gsap !== 'undefined' ? (gsap.getProperty(el, "y") || (isAnimating ? 0 : s.ty)) : s.ty;
                 return { x: cx + currX, y: cy + currY };
             });
 
@@ -212,24 +321,22 @@ const initBeranda = () => {
     const getLayoutConfig = () => {
         if (mq.matches) {
             return {
-                // scale: Ukuran serpihan saat terpencar (proporsional, tidak bertumpuk)
                 scale: 0.185,
-                // fullScale: Ukuran logo utuh saat menyatu (800×0.44 = ~352px ≈ 90% layar mobile)
                 fullScale: 0.44,
                 coords: [
-                    { tx: 0, ty: -185 },   // 1: Globe (Puncak atas)
-                    { tx: -90, ty: -130 }, // 2: Pita almamater (Atas kiri)
-                    { tx: 90, ty: -130 },  // 3: Cincin emas (Atas kanan)
-                    { tx: -115, ty: -65 }, // 4: Selendang putih (Tengah-atas kiri)
-                    { tx: 115, ty: -65 },  // 5: Bendera pondok (Tengah-atas kanan)
-                    { tx: -125, ty: 0 },   // 6: Tanduk tungsten perak (Tengah kiri)
-                    { tx: 125, ty: 0 },    // 7: Perisai Rub Al-Hizb perak (Tengah kanan)
-                    { tx: -115, ty: 70 },  // 8: Kelopak Blue Marble (Tengah-bawah kiri)
-                    { tx: 90, ty: 135 },   // 9: Tanduk rusa emas (Bawah kanan)
-                    { tx: 115, ty: 70 },   // 10: Perisai baja gelap (Tengah-bawah kanan)
-                    { tx: -90, ty: 135 },  // 11: Mahkota emas (Bawah kiri)
-                    { tx: -40, ty: 185 },  // 12: Lima permata kristal (Dasar kiri)
-                    { tx: 40, ty: 185 }    // 13: Enam batu zamrud (Dasar kanan)
+                    { tx: 0, ty: -185 },
+                    { tx: -90, ty: -130 },
+                    { tx: 90, ty: -130 },
+                    { tx: -115, ty: -65 },
+                    { tx: 115, ty: -65 },
+                    { tx: -125, ty: 0 },
+                    { tx: 125, ty: 0 },
+                    { tx: -115, ty: 70 },
+                    { tx: 90, ty: 135 },
+                    { tx: 115, ty: 70 },
+                    { tx: -90, ty: 135 },
+                    { tx: -40, ty: 185 },
+                    { tx: 40, ty: 185 }
                 ]
             };
         } else {
@@ -237,7 +344,10 @@ const initBeranda = () => {
                 scale: 0.28,
                 fullScale: 0.45,
                 coords: [
-                    { tx: 0, ty: 0 }, { tx: -280, ty: -160 }, { tx: 0, ty: -180 }, { tx: 280, ty: -160 }, { tx: -350, ty: 0 }, { tx: 350, ty: 0 }, { tx: -280, ty: 160 }, { tx: 0, ty: 180 }, { tx: 280, ty: 160 }, { tx: -140, ty: -90 }, { tx: 140, ty: -90 }, { tx: -140, ty: 90 }, { tx: 140, ty: 90 }
+                    { tx: 0, ty: 0 }, { tx: -280, ty: -160 }, { tx: 0, ty: -180 }, { tx: 280, ty: -160 },
+                    { tx: -350, ty: 0 }, { tx: 350, ty: 0 }, { tx: -280, ty: 160 }, { tx: 0, ty: 180 },
+                    { tx: 280, ty: 160 }, { tx: -140, ty: -90 }, { tx: 140, ty: -90 }, { tx: -140, ty: 90 },
+                    { tx: 140, ty: 90 }
                 ]
             };
         }
@@ -246,7 +356,9 @@ const initBeranda = () => {
     let layout = getLayoutConfig();
 
     const getCmsShard = (idx, prop, fallback) => {
-        return (window.BERANDA_CMS && window.BERANDA_CMS.shards[idx]) ? window.BERANDA_CMS.shards[idx][prop] : fallback;
+        return (window.BERANDA_CMS && window.BERANDA_CMS.shards && window.BERANDA_CMS.shards[idx])
+            ? window.BERANDA_CMS.shards[idx][prop]
+            : fallback;
     };
 
     const assetsData = {
@@ -269,32 +381,37 @@ const initBeranda = () => {
     };
 
     assetsData.shards.forEach((shard, i) => {
-        shard.tx = layout.coords[i].tx; shard.ty = layout.coords[i].ty; shard.scale = layout.scale;
+        shard.tx = layout.coords[i]?.tx || 0;
+        shard.ty = layout.coords[i]?.ty || 0;
+        shard.scale = layout.scale;
     });
 
-    // matchMedia change listener: reactive ke orientasi & split-screen
     const onBreakpointChange = () => {
         layout = getLayoutConfig();
-        assetsData.shards.forEach((shard, i) => { shard.tx = layout.coords[i].tx; shard.ty = layout.coords[i].ty; shard.scale = layout.scale; });
+        assetsData.shards.forEach((shard, i) => {
+            shard.tx = layout.coords[i]?.tx || 0;
+            shard.ty = layout.coords[i]?.ty || 0;
+            shard.scale = layout.scale;
+        });
         if (isScattered && !isAnimating) {
-            assetsData.shards.forEach((shard) => { gsap.to(`#shardWrap_${shard.id}`, { x: shard.tx, y: shard.ty, scale: shard.scale, duration: 0.4, ease: "power2.out" }); });
+            assetsData.shards.forEach((shard) => {
+                gsap.to(`#shardWrap_${shard.id}`, { x: shard.tx, y: shard.ty, scale: shard.scale, duration: 0.4, ease: "power2.out" });
+            });
         } else if (!isScattered && !isAnimating) {
             gsap.to('#fullLogoBox', { scale: layout.fullScale || (layout.scale * 1.5), duration: 0.4, ease: "power2.out" });
         }
     };
-    mq.addEventListener('change', onBreakpointChange);
-    // Resize tetap untuk perubahan ukuran non-breakpoint (canvas sizing)
-    window.addEventListener('resize', () => onBreakpointChange());
+    if (mq.addEventListener) {
+        mq.addEventListener('change', onBreakpointChange);
+        _berandaListeners.push(() => mq.removeEventListener('change', onBreakpointChange));
+    }
+    addListener(window, 'resize', onBreakpointChange);
 
     const pad = (num) => num.toString().padStart(3, '0');
-    const canvasFull = document.getElementById('fullLogoCanvas');
     const ctxFull = canvasFull.getContext('2d');
     const shardCanvases = [];
 
-    const totalImagesToLoad = TOTAL_FRAMES + (assetsData.shards.length * TOTAL_FRAMES);
-    let loadedImages = 0;
-
-    const lores = window.BERANDA_CMS ? window.BERANDA_CMS.lores : [
+    const lores = (window.BERANDA_CMS && window.BERANDA_CMS.lores) ? window.BERANDA_CMS.lores : [
         '"Dan bersabarlah kamu bersama-sama dengan orang-orang yang menyeru Tuhannya di pagi dan senja hari..." (Al-Kahfi: 28)',
         '"Niscaya Allah akan meninggikan orang-orang yang beriman di antaramu dan orang-orang yang diberi ilmu pengetahuan..." (Al-Mujadilah: 11)',
         '"Dan berpeganglah kamu semuanya kepada tali (agama) Allah, dan janganlah kamu bercerai berai..." (Ali Imran: 103)',
@@ -303,58 +420,124 @@ const initBeranda = () => {
     ];
 
     let currentLoreIndex = -1;
-    const loreInterval = setInterval(() => {
+    _berandaLoreInterval = setInterval(() => {
         const loreEl = document.getElementById('loaderLore');
         if (loreEl) {
             currentLoreIndex = (currentLoreIndex + 1) % lores.length;
             loreEl.style.opacity = '0';
-            setTimeout(() => {
-                loreEl.innerText = lores[currentLoreIndex];
-                loreEl.style.opacity = '1';
+            const t = setTimeout(() => {
+                if (loreEl) {
+                    loreEl.innerText = lores[currentLoreIndex];
+                    loreEl.style.opacity = '1';
+                }
             }, 500);
+            _berandaTimeouts.push(t);
         }
     }, 4000);
 
-    let currentDisplayPct = 0;
-    const updateProgress = () => {
-        loadedImages++;
-        const pct = Math.floor((loadedImages / totalImagesToLoad) * 100);
+    // =========================================================
+    // DISMISS LOADER (DENGAN FADE HALUS)
+    // =========================================================
+    let loaderDismissed = false;
+    const dismissLoader = () => {
+        if (loaderDismissed) return;
+        loaderDismissed = true;
 
-        const percentEl = document.getElementById('loadPercent');
-        if (percentEl && pct > currentDisplayPct) {
-            gsap.to({ val: currentDisplayPct }, {
-                val: pct,
-                duration: 0.3,
-                onUpdate: function () {
-                    percentEl.innerText = Math.floor(this.targets()[0].val) + '%';
-                }
-            });
-            currentDisplayPct = pct;
+        if (_berandaLoreInterval) {
+            clearInterval(_berandaLoreInterval);
+            _berandaLoreInterval = null;
         }
 
-        if (loadedImages === totalImagesToLoad) {
-            clearInterval(loreInterval);
-            setTimeout(() => {
-                gsap.to('#loader', {
-                    duration: 0.5, opacity: 0, onComplete: () => {
-                        document.getElementById('loader').style.display = 'none';
-                        gsap.set('#fullLogoBox', { scale: layout.scale * 1.5 }); isPlaying = true;
+        const loader = document.getElementById('loader');
+        if (loader) {
+            if (typeof gsap !== 'undefined') {
+                gsap.to(loader, {
+                    duration: 0.4,
+                    opacity: 0,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        if (loader) loader.style.display = 'none';
+                        if (typeof gsap !== 'undefined') {
+                            gsap.set('#fullLogoBox', { scale: layout.fullScale || (layout.scale * 1.5) });
+                        }
+                        isPlaying = true;
                     }
                 });
-            }, 500);
+            } else {
+                loader.style.opacity = '0';
+                setTimeout(() => { if (loader) loader.style.display = 'none'; isPlaying = true; }, 400);
+            }
+        } else {
+            isPlaying = true;
         }
     };
 
+    // =========================================================
+    // SETUP SHARD DOM (CANVAS & EVENT HANDLERS)
+    // =========================================================
+    const setupShardDOM = () => {
+        const shardContainer = document.getElementById('shardsContainer');
+        if (!shardContainer) return;
+        shardContainer.innerHTML = '';
+        shardCanvases.length = 0;
+
+        assetsData.shards.forEach((shard) => {
+            frameData.shards[shard.id] = 0;
+            const wrap = document.createElement('div');
+            wrap.className = 'shard-wrapper hover-trigger cursor-bind';
+            wrap.id = `shardWrap_${shard.id}`;
+
+            const c = document.createElement('canvas');
+            c.width = 800; c.height = 450;
+            c.className = 'shard-canvas';
+            c.id = `shardCanvas_${shard.id}`;
+
+            const ctx = c.getContext('2d');
+            shardCanvases.push({ ctx: ctx, images: shard.images, id: shard.id });
+
+            const statImg = document.createElement('img');
+            statImg.src = shard.static;
+            statImg.className = 'shard-static';
+            statImg.id = `shardStatic_${shard.id}`;
+
+            wrap.appendChild(c);
+            wrap.appendChild(statImg);
+            shardContainer.appendChild(wrap);
+
+            wrap.addEventListener('mousedown', (e) => handleDragStart(e, shard.id));
+            wrap.addEventListener('touchstart', (e) => handleDragStart(e, shard.id), { passive: false });
+            wrap.addEventListener('click', (e) => {
+                if (!isScattered || isAnimating || hasDragged) return;
+                const mTitle = document.getElementById('modalTitle');
+                const mDesc = document.getElementById('modalDesc');
+                if (mTitle) mTitle.innerText = shard.title;
+                if (mDesc) mDesc.innerText = shard.desc;
+                document.getElementById('philModal')?.classList.add('active');
+            });
+        });
+
+        const fullBox = document.getElementById('fullLogoBox');
+        if (fullBox) {
+            fullBox.addEventListener('mousedown', (e) => handleDragStart(e, 'full'));
+            fullBox.addEventListener('touchstart', (e) => handleDragStart(e, 'full'), { passive: false });
+        }
+    };
+
+    // =========================================================
+    // PRELOAD ENGINE (FAST TRACK + BACKGROUND)
+    // =========================================================
     const preloadImages = () => {
         const isMobile = mq.matches;
         assetsData.full.images = new Array(TOTAL_FRAMES).fill(null);
+        assetsData.shards.forEach(s => {
+            s.images = new Array(TOTAL_FRAMES).fill(null);
+        });
 
         const fastTrackQueue = [];
         const midTrackQueue = [];
         const backgroundQueue = [];
 
         const step1 = isMobile ? 24 : 16;
-        const step2 = isMobile ? 8 : 4;
 
         for (let i = 1; i <= TOTAL_FRAMES; i++) {
             const src = `${basePath}${assetsData.full.folder}/frame_${pad(i)}.webp`;
@@ -364,26 +547,7 @@ const initBeranda = () => {
             else backgroundQueue.push(item);
         }
 
-        const container = document.getElementById('shardsContainer');
         assetsData.shards.forEach((shard) => {
-            shard.images = new Array(TOTAL_FRAMES).fill(null);
-            frameData.shards[shard.id] = 0;
-            const wrap = document.createElement('div'); wrap.className = 'shard-wrapper hover-trigger cursor-bind'; wrap.id = `shardWrap_${shard.id}`;
-            const c = document.createElement('canvas'); c.width = 800; c.height = 450; c.className = 'shard-canvas'; c.id = `shardCanvas_${shard.id}`;
-
-            const ctx = c.getContext('2d');
-            shardCanvases.push({ ctx: ctx, images: shard.images, id: shard.id });
-            const statImg = document.createElement('img'); statImg.src = shard.static; statImg.className = 'shard-static'; statImg.id = `shardStatic_${shard.id}`;
-            wrap.appendChild(c); wrap.appendChild(statImg); container.appendChild(wrap);
-
-            wrap.addEventListener('mousedown', (e) => handleDragStart(e, shard.id));
-            wrap.addEventListener('touchstart', (e) => handleDragStart(e, shard.id), { passive: false });
-            wrap.addEventListener('click', (e) => {
-                if (!isScattered || isAnimating || hasDragged) return;
-                document.getElementById('modalTitle').innerText = shard.title; document.getElementById('modalDesc').innerText = shard.desc;
-                document.getElementById('philModal').classList.add('active');
-            });
-
             for (let i = 1; i <= TOTAL_FRAMES; i++) {
                 const src = `${basePath}${shard.folder}/frame_${pad(i)}.webp`;
                 const item = { idx: i, src: src, targetArray: shard.images };
@@ -392,12 +556,10 @@ const initBeranda = () => {
                 else backgroundQueue.push(item);
             }
         });
-        document.getElementById('fullLogoBox').addEventListener('mousedown', (e) => handleDragStart(e, 'full'));
-        document.getElementById('fullLogoBox').addEventListener('touchstart', (e) => handleDragStart(e, 'full'), { passive: false });
 
-        // CONCURRENT LOADING MANAGER (Progressive)
-        let loadedImages = 0;
-        const totalImagesToLoad = fastTrackQueue.length;
+        let loadedCount = 0;
+        let currentDisplayPct = 0;
+        const totalFastTrack = fastTrackQueue.length;
 
         const processItem = async (item, callback) => {
             try {
@@ -419,39 +581,47 @@ const initBeranda = () => {
         };
 
         const updateProgress = () => {
-            loadedImages++;
-            const pct = Math.floor((loadedImages / totalImagesToLoad) * 100);
+            loadedCount++;
+            const pct = Math.floor((loadedCount / totalFastTrack) * 100);
             const percentEl = document.getElementById('loadPercent');
             if (percentEl && pct > currentDisplayPct) {
-                gsap.to({ val: currentDisplayPct }, {
-                    val: pct, duration: 0.3,
-                    onUpdate: function () { percentEl.innerText = Math.floor(this.targets()[0].val) + '%'; }
-                });
+                if (typeof gsap !== 'undefined') {
+                    gsap.to({ val: currentDisplayPct }, {
+                        val: pct, duration: 0.2,
+                        onUpdate: function () {
+                            if (percentEl) percentEl.innerText = Math.floor(this.targets()[0].val) + '%';
+                        }
+                    });
+                } else {
+                    percentEl.innerText = pct + '%';
+                }
                 currentDisplayPct = pct;
             }
         };
 
         let qIndex = 0;
-        let loaderDismissed = false;
         const loadFastTrack = () => {
             if (qIndex >= fastTrackQueue.length) {
-                if (!loaderDismissed) {
-                    loaderDismissed = true;
-                    clearInterval(loreInterval);
-                    setTimeout(() => {
-                        gsap.to('#loader', {
-                            duration: 0.5, opacity: 0, onComplete: () => {
-                                document.getElementById('loader').style.display = 'none';
-                                gsap.set('#fullLogoBox', { scale: layout.fullScale || (layout.scale * 1.5) }); isPlaying = true;
-                            }
-                        });
-                    }, 200);
+                // Simpan ke cache global
+                window.__BERANDA_ASSET_CACHE.ready = true;
+                window.__BERANDA_ASSET_CACHE.fullImages = assetsData.full.images;
+                assetsData.shards.forEach(s => {
+                    window.__BERANDA_ASSET_CACHE.shardImages[s.id] = s.images;
+                });
+
+                renderCurrentFrame();
+                const t = setTimeout(() => {
+                    dismissLoader();
                     loadBackgroundTracks();
-                }
+                }, 100);
+                _berandaTimeouts.push(t);
                 return;
             }
             const item = fastTrackQueue[qIndex++];
-            processItem(item, () => { updateProgress(); loadFastTrack(); });
+            processItem(item, () => {
+                updateProgress();
+                loadFastTrack();
+            });
         };
 
         const loadBackgroundTracks = () => {
@@ -466,37 +636,65 @@ const initBeranda = () => {
 
         for (let i = 0; i < 15; i++) loadFastTrack();
     };
-    preloadImages();
 
-    // SAFETY NET: Force-dismiss loader after 3 seconds
-    setTimeout(() => {
-        const loader = document.getElementById('loader');
-        if (loader && loader.style.display !== 'none') {
-            clearInterval(loreInterval);
-            gsap.to('#loader', {
-                duration: 0.5, opacity: 0, onComplete: () => {
-                    loader.style.display = 'none';
-                    gsap.set('#fullLogoBox', { scale: layout.fullScale || (layout.scale * 1.5) }); isPlaying = true;
-                }
-            });
-        }
-    }, 3000);
+    // =========================================================
+    // EKSEKUSI INITIAL LOAD / CACHE RESTORATION
+    // =========================================================
+    setupShardDOM();
 
+    if (window.__BERANDA_ASSET_CACHE && window.__BERANDA_ASSET_CACHE.ready && window.__BERANDA_ASSET_CACHE.fullImages) {
+        // --- JALUR CEPAT (INSTAN DARI CACHE) ---
+        assetsData.full.images = window.__BERANDA_ASSET_CACHE.fullImages;
+        assetsData.shards.forEach(s => {
+            s.images = window.__BERANDA_ASSET_CACHE.shardImages[s.id] || [];
+        });
+
+        // Update link referensi gambar di shardCanvases
+        shardCanvases.forEach(sc => {
+            const match = assetsData.shards.find(s => s.id === sc.id);
+            if (match) sc.images = match.images;
+        });
+
+        const percentEl = document.getElementById('loadPercent');
+        if (percentEl) percentEl.innerText = '100%';
+
+        renderCurrentFrame();
+        const tDismiss = setTimeout(dismissLoader, 100);
+        _berandaTimeouts.push(tDismiss);
+    } else {
+        // --- JALUR PERTAMA KALI (DOWNLOAD PROGRESSIVE) ---
+        preloadImages();
+    }
+
+    // SAFETY NET: Pastikan loader HILANG maksimal 2.5 detik apa pun kondisinya
+    const safetyNetTimer = setTimeout(() => {
+        dismissLoader();
+    }, 2500);
+    _berandaTimeouts.push(safetyNetTimer);
+
+    // =========================================================
+    // PARALLAX
+    // =========================================================
     const monuText = document.getElementById('monumentalText');
     const godRays = document.getElementById('godRays');
 
     const applyParallax = (xNorm, yNorm) => {
-        if (isAnimating) return;
-        gsap.to(monuText, { xPercent: -50 + (xNorm * -3), yPercent: -50 + (yNorm * -3), duration: 1, ease: "power2.out", overwrite: "auto" });
-        gsap.to(godRays, { rotation: xNorm * 10, duration: 1, ease: "power2.out", overwrite: "auto" });
+        if (isAnimating || typeof gsap === 'undefined') return;
+        if (monuText) gsap.to(monuText, { xPercent: -50 + (xNorm * -3), yPercent: -50 + (yNorm * -3), duration: 1, ease: "power2.out", overwrite: "auto" });
+        if (godRays) gsap.to(godRays, { rotation: xNorm * 10, duration: 1, ease: "power2.out", overwrite: "auto" });
     };
 
-    window.addEventListener('mousemove', (e) => { if (!mq.matches) { applyParallax((e.clientX / window.innerWidth - 0.5) * 2, (e.clientY / window.innerHeight - 0.5) * 2); } });
+    addListener(window, 'mousemove', (e) => {
+        if (!mq.matches) {
+            applyParallax((e.clientX / window.innerWidth - 0.5) * 2, (e.clientY / window.innerHeight - 0.5) * 2);
+        }
+    });
 
     // =========================================================
-    // SAFE RENDER ENGINE (PERBAIKAN CANVAS CRASH DOMException)
+    // SAFE RENDER ENGINE
     // =========================================================
     const getClosestImage = (imagesArr, targetIdx) => {
+        if (!imagesArr) return null;
         if (imagesArr[targetIdx] && (imagesArr[targetIdx] instanceof ImageBitmap || imagesArr[targetIdx].complete)) return imagesArr[targetIdx];
         let offset = 1;
         while (offset < TOTAL_FRAMES / 2) {
@@ -516,7 +714,7 @@ const initBeranda = () => {
         if (!isScattered) {
             const fIdx = Math.floor(frameData.full);
             const img = getClosestImage(assetsData.full.images, fIdx);
-            if (img) {
+            if (img && ctxFull && canvasFull) {
                 ctxFull.clearRect(0, 0, canvasFull.width, canvasFull.height);
                 ctxFull.drawImage(img, 0, 0, canvasFull.width, canvasFull.height);
             }
@@ -524,7 +722,7 @@ const initBeranda = () => {
             shardCanvases.forEach(shardObj => {
                 const fIdx = Math.floor(frameData.shards[shardObj.id]);
                 const img = getClosestImage(shardObj.images, fIdx);
-                if (img) {
+                if (img && shardObj.ctx) {
                     shardObj.ctx.clearRect(0, 0, 800, 450);
                     shardObj.ctx.drawImage(img, 0, 0, 800, 450);
                 }
@@ -533,21 +731,18 @@ const initBeranda = () => {
     };
 
     let isStageVisible = true;
-    const stageObserver = new IntersectionObserver((entries) => {
+    _berandaStageObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             isStageVisible = entry.isIntersecting;
         });
     }, { threshold: 0.01 });
-    const stageEl = document.getElementById('stage');
-    if (stageEl) stageObserver.observe(stageEl);
+    _berandaStageObserver.observe(stage);
 
-    // Frame counter untuk throttle canvas render di mobile
     let _autoPlayFrame = 0;
     const autoPlayEngine = () => {
         if (!isPlaying) return;
         _autoPlayFrame++;
         const isMobileNow = mq.matches;
-        // Mobile: render canvas setiap 2 frame (~30fps) untuk hemat baterai & GPU
         if (isMobileNow && (_autoPlayFrame % 2 !== 0)) return;
 
         let needsRender = false;
@@ -558,56 +753,94 @@ const initBeranda = () => {
         }
         if (needsRender || draggedItem !== null) { renderCurrentFrame(); }
     };
-    gsap.ticker.add(() => {
+
+    // =========================================================
+    // GSAP TICKER
+    // =========================================================
+    _berandaTicker = () => {
         if (isStageVisible) {
             autoPlayEngine();
             drawConstellation();
         }
-    });
+    };
+    if (typeof gsap !== 'undefined') {
+        gsap.ticker.add(_berandaTicker);
+    }
 
-    let draggedItem = null; let hasDragged = false; let startX = 0; let lastX = 0; let frameAtDragStart = 0; let lastTickTime = 0;
+    // =========================================================
+    // DRAG & ROTATE ENGINE
+    // =========================================================
+    let draggedItem = null;
+    let hasDragged = false;
+    let startX = 0;
+    let lastX = 0;
+    let frameAtDragStart = 0;
+    let lastTickTime = 0;
     let currentVelocity = 0;
-    let inertiaAnim = null;
 
     const handleDragStart = (e, id) => {
-        if (isAnimating) return; e.stopPropagation(); initAudio();
-        if (inertiaAnim) { inertiaAnim.kill(); inertiaAnim = null; }
+        if (isAnimating) return;
+        e.stopPropagation();
+        initAudio();
+        if (_inertiaAnim) { _inertiaAnim.kill(); _inertiaAnim = null; }
         currentVelocity = 0;
-        draggedItem = id; hasDragged = false; startX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX; lastX = startX;
+        draggedItem = id;
+        hasDragged = false;
+        startX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        lastX = startX;
         frameAtDragStart = (id === 'full') ? frameData.full : frameData.shards[id];
-        document.getElementById('hudHint').innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.hint_spin : "MEMUTAR HOLOGRAM..."; document.getElementById('hudHint').style.color = "#d4af37";
-        if (document.body.classList.contains('cursor-hovering')) { document.body.classList.remove('cursor-hovering'); }
+
+        const hudHint = document.getElementById('hudHint');
+        if (hudHint) {
+            hudHint.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.hint_spin : "MEMUTAR HOLOGRAM...";
+            hudHint.style.color = "#d4af37";
+        }
+        if (document.body.classList.contains('cursor-hovering')) {
+            document.body.classList.remove('cursor-hovering');
+        }
     };
 
     const handleDragMove = (e) => {
         if (!draggedItem) return;
-        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX; const deltaX = x - startX;
+        const x = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+        const deltaX = x - startX;
         currentVelocity = x - lastX;
         if (Math.abs(deltaX) > 5) hasDragged = true;
 
         const now = Date.now();
-        if (Math.abs(currentVelocity) > 2 && (now - lastTickTime) > (100 - Math.min(Math.abs(currentVelocity) * 2, 80))) { playTick(Math.abs(currentVelocity)); lastTickTime = now; }
+        if (Math.abs(currentVelocity) > 2 && (now - lastTickTime) > (100 - Math.min(Math.abs(currentVelocity) * 2, 80))) {
+            playTick(Math.abs(currentVelocity));
+            lastTickTime = now;
+        }
 
         const ghostTarget = draggedItem === 'full' ? document.getElementById('fullLogoBox') : document.getElementById(`shardWrap_${draggedItem}`);
-        ghostTarget.style.filter = `none`;
+        if (ghostTarget) ghostTarget.style.filter = `none`;
 
-        let frameShift = deltaX / 3; let newFrame = frameAtDragStart + frameShift;
-        while (newFrame >= TOTAL_FRAMES) newFrame -= TOTAL_FRAMES; while (newFrame < 0) newFrame += TOTAL_FRAMES;
+        let frameShift = deltaX / 3;
+        let newFrame = frameAtDragStart + frameShift;
+        while (newFrame >= TOTAL_FRAMES) newFrame -= TOTAL_FRAMES;
+        while (newFrame < 0) newFrame += TOTAL_FRAMES;
 
-        if (draggedItem === 'full') { frameData.full = newFrame; } else { frameData.shards[draggedItem] = newFrame; }
+        if (draggedItem === 'full') {
+            frameData.full = newFrame;
+        } else {
+            frameData.shards[draggedItem] = newFrame;
+        }
         lastX = x;
     };
 
     const applyInertia = (id, velocity) => {
+        if (typeof gsap === 'undefined') return;
         const obj = { v: velocity };
-        inertiaAnim = gsap.to(obj, {
+        _inertiaAnim = gsap.to(obj, {
             v: 0,
             duration: 1.5,
             ease: "power2.out",
             onUpdate: () => {
                 if (Math.abs(obj.v) > 0.1) {
                     let newFrame = ((id === 'full') ? frameData.full : frameData.shards[id]) + (obj.v / 3);
-                    while (newFrame >= TOTAL_FRAMES) newFrame -= TOTAL_FRAMES; while (newFrame < 0) newFrame += TOTAL_FRAMES;
+                    while (newFrame >= TOTAL_FRAMES) newFrame -= TOTAL_FRAMES;
+                    while (newFrame < 0) newFrame += TOTAL_FRAMES;
                     if (id === 'full') { frameData.full = newFrame; } else { frameData.shards[id] = newFrame; }
                 }
             }
@@ -617,200 +850,360 @@ const initBeranda = () => {
     const handleDragEnd = () => {
         if (!draggedItem) return;
         const ghostTarget = draggedItem === 'full' ? document.getElementById('fullLogoBox') : document.getElementById(`shardWrap_${draggedItem}`);
-        if (ghostTarget) { ghostTarget.style.filter = `none`; }
+        if (ghostTarget) ghostTarget.style.filter = `none`;
 
         if (Math.abs(currentVelocity) > 2) {
             applyInertia(draggedItem, currentVelocity);
         }
 
         draggedItem = null;
-        if (!isScattered) { document.getElementById('hudHint').innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.hint_drag : "<i class='fa-solid fa-arrows-left-right'></i> Tahan & Geser Untuk Memutar"; } else { document.getElementById('hudHint').innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.hint_interact : "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar / Klik Untuk Data"; }
-        document.getElementById('hudHint').style.color = "var(--text-secondary)"; setTimeout(() => hasDragged = false, 100);
+        const hudHint = document.getElementById('hudHint');
+        if (hudHint) {
+            if (!isScattered) {
+                hudHint.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.hint_drag : "<i class='fa-solid fa-arrows-left-right'></i> Tahan & Geser Untuk Memutar";
+            } else {
+                hudHint.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.hint_interact : "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar / Klik Untuk Data";
+            }
+            hudHint.style.color = "var(--text-secondary)";
+        }
+        const t = setTimeout(() => hasDragged = false, 100);
+        _berandaTimeouts.push(t);
     };
 
-    window.addEventListener('mousemove', handleDragMove); window.addEventListener('mouseup', handleDragEnd);
-    window.addEventListener('touchmove', handleDragMove, { passive: false }); window.addEventListener('touchend', handleDragEnd);
+    addListener(window, 'mousemove', handleDragMove);
+    addListener(window, 'mouseup', handleDragEnd);
+    addListener(window, 'touchmove', handleDragMove, { passive: false });
+    addListener(window, 'touchend', handleDragEnd);
 
+    // =========================================================
+    // HUD ACTION BUTTON (SCATTER & ASSEMBLE)
+    // =========================================================
     const btnAction = document.getElementById('btnAction');
-    const isMobileDevice = mq.matches;
-    const swapToStatic = () => { gsap.set('.shard-canvas, #fullLogoCanvas', { display: 'none' }); gsap.set('.shard-static, #fullLogoStatic', { display: 'block', opacity: 1 }); };
+    const swapToStatic = () => {
+        if (typeof gsap === 'undefined') return;
+        gsap.set('.shard-canvas, #fullLogoCanvas', { display: 'none' });
+        gsap.set('.shard-static, #fullLogoStatic', { display: 'block', opacity: 1 });
+    };
     const swapToSequence = () => {
+        if (typeof gsap === 'undefined') return;
         gsap.set('.shard-static, #fullLogoStatic', { display: 'none' });
         gsap.set('.shard-canvas, #fullLogoCanvas', { display: 'block', opacity: 1 });
     };
 
-    btnAction.addEventListener('click', () => {
-        if (isAnimating) return; isAnimating = true; initAudio();
+    if (btnAction) {
+        addListener(btnAction, 'click', () => {
+            if (isAnimating || typeof gsap === 'undefined') return;
+            isAnimating = true;
+            initAudio();
 
-        if (!isScattered) {
-            isScattered = true; document.getElementById('stage').classList.add('is-scattered'); playSwoosh();
+            if (!isScattered) {
+                isScattered = true;
+                const st = document.getElementById('stage');
+                if (st) st.classList.add('is-scattered');
+                playSwoosh();
 
-            // --- EFEK SUPERNOVA: Kristal meluas jadi Cosmic Dust Field ---
-            const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
-            coreParticles.forEach(p => {
-                gsap.to(p, { speed: p.baseSpeed * 3, duration: 0.5, yoyo: true, repeat: 1, ease: "power2.out" });
-                gsap.to(p, { radius: p.baseRadius + 500 + (Math.random() * 1000), glow: isLightMode ? 0.2 : 0.1, duration: 2.5, ease: "expo.out" });
-            });
+                // EFEK SUPERNOVA
+                const isLightMode = document.documentElement.getAttribute('data-theme') === 'light';
+                coreParticles.forEach(p => {
+                    gsap.to(p, { speed: p.baseSpeed * 3, duration: 0.5, yoyo: true, repeat: 1, ease: "power2.out" });
+                    gsap.to(p, { radius: p.baseRadius + 500 + (Math.random() * 1000), glow: isLightMode ? 0.2 : 0.1, duration: 2.5, ease: "expo.out" });
+                });
 
-            gsap.to('#fullLogoBox', { duration: 0.2, scale: 0, opacity: 0 });
-            gsap.set('.shard-wrapper', { opacity: 1, x: 0, y: 0, scale: layout.fullScale || (layout.scale * 1.5), rotationY: 0 });
-            assetsData.shards.forEach(s => frameData.shards[s.id] = frameData.full); renderCurrentFrame(); swapToStatic();
+                gsap.to('#fullLogoBox', { duration: 0.2, scale: 0, opacity: 0 });
+                gsap.set('.shard-wrapper', { opacity: 1, x: 0, y: 0, scale: layout.fullScale || (layout.scale * 1.5), rotationY: 0 });
+                assetsData.shards.forEach(s => frameData.shards[s.id] = frameData.full);
+                renderCurrentFrame();
+                swapToStatic();
 
-            btnAction.innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.btn_process : '<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...';
-            if (navigator.vibrate) navigator.vibrate(50);
+                btnAction.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.btn_process : '<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...';
+                if (navigator.vibrate) navigator.vibrate(50);
 
-            const tl = gsap.timeline({ onComplete: () => { swapToSequence(); document.getElementById('hudHint').innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.hint_interact : "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar / Klik Untuk Data"; btnAction.innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.btn_unite : '<i class="fa-solid fa-compress"></i> Satukan Identitas'; isAnimating = false; } });
-            tl.to('.shard-wrapper', { duration: 0.5, rotationY: -180, ease: "power2.in" });
-            assetsData.shards.forEach((shard, index) => { tl.to(`#shardWrap_${shard.id}`, { duration: 2.5, x: shard.tx, y: shard.ty, scale: shard.scale, rotationY: -360, ease: "expo.out" }, 0.4 + (index * 0.02)); });
-            gsap.to(godRays, { opacity: 0.2, duration: 2, ease: "expo.out" });
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        swapToSequence();
+                        const hudHint = document.getElementById('hudHint');
+                        if (hudHint) hudHint.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.hint_interact : "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar / Klik Untuk Data";
+                        btnAction.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.btn_unite : '<i class="fa-solid fa-compress"></i> Satukan Identitas';
+                        isAnimating = false;
+                    }
+                });
+                tl.to('.shard-wrapper', { duration: 0.5, rotationY: -180, ease: "power2.in" });
+                assetsData.shards.forEach((shard, index) => {
+                    tl.to(`#shardWrap_${shard.id}`, { duration: 2.5, x: shard.tx, y: shard.ty, scale: shard.scale, rotationY: -360, ease: "expo.out" }, 0.4 + (index * 0.02));
+                });
+                if (godRays) gsap.to(godRays, { opacity: 0.2, duration: 2, ease: "expo.out" });
 
-        } else {
-            document.getElementById('stage').classList.remove('is-scattered'); document.getElementById('hudHint').innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.hint_lock : "MENGUNCI FORMASI...";
-            swapToStatic(); btnAction.innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.btn_assemble : '<i class="fa-solid fa-circle-notch fa-spin"></i> Merakit...';
-            const isLight = document.documentElement.getAttribute('data-theme') === 'light'; gsap.to(godRays, { opacity: isLight ? 0.6 : 1, duration: 1.5 });
+            } else {
+                const st = document.getElementById('stage');
+                if (st) st.classList.remove('is-scattered');
+                const hudHint = document.getElementById('hudHint');
+                if (hudHint) hudHint.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.hint_lock : "MENGUNCI FORMASI...";
+                swapToStatic();
+                btnAction.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.btn_assemble : '<i class="fa-solid fa-circle-notch fa-spin"></i> Merakit...';
+                const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+                if (godRays) gsap.to(godRays, { opacity: isLight ? 0.6 : 1, duration: 1.5 });
 
-            // --- EFEK GRAVITY IMPLOSION: Kristal tersedot ke Black Hole ---
-            coreParticles.forEach(p => {
-                gsap.to(p, { speed: p.baseSpeed * 4, duration: 1.5, ease: "expo.in" });
-                gsap.to(p, { radius: p.baseRadius, glow: p.baseGlow, duration: 1.5, ease: "expo.inOut", onComplete: () => p.speed = p.baseSpeed });
-            });
+                // EFEK GRAVITY IMPLOSION
+                coreParticles.forEach(p => {
+                    gsap.to(p, { speed: p.baseSpeed * 4, duration: 1.5, ease: "expo.in" });
+                    gsap.to(p, { radius: p.baseRadius, glow: p.baseGlow, duration: 1.5, ease: "expo.inOut", onComplete: () => p.speed = p.baseSpeed });
+                });
 
-            const wrapTargets = assetsData.shards.map(s => `#shardWrap_${s.id}`);
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    gsap.to('#flashEffect', { duration: 0.15, opacity: 1, yoyo: true, repeat: 1 }); playBassDrop(); if (navigator.vibrate) navigator.vibrate([100, 50, 150]);
-                    gsap.set('.shard-wrapper', { opacity: 0 });
-                    gsap.to('#fullLogoBox', { duration: 0.1, scale: layout.fullScale || (layout.scale * 1.5), opacity: 1 });
-                    isScattered = false;
-                    swapToSequence();
-                    document.getElementById('hudHint').innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.hint_drag : "<i class='fa-solid fa-arrows-left-right'></i> Tahan & Geser Untuk Memutar";
-                    btnAction.innerHTML = window.BERANDA_CMS ? window.BERANDA_CMS.ui.btn_scatter : '<i class="fa-solid fa-expand"></i> Pencar Formasi';
-                    isAnimating = false;
-                }
-            });
+                const wrapTargets = assetsData.shards.map(s => `#shardWrap_${s.id}`);
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        gsap.to('#flashEffect', { duration: 0.15, opacity: 1, yoyo: true, repeat: 1 });
+                        playBassDrop();
+                        if (navigator.vibrate) navigator.vibrate([100, 50, 150]);
+                        gsap.set('.shard-wrapper', { opacity: 0 });
+                        gsap.to('#fullLogoBox', { duration: 0.1, scale: layout.fullScale || (layout.scale * 1.5), opacity: 1 });
+                        isScattered = false;
+                        swapToSequence();
+                        if (hudHint) hudHint.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.hint_drag : "<i class='fa-solid fa-arrows-left-right'></i> Tahan & Geser Untuk Memutar";
+                        btnAction.innerHTML = (window.BERANDA_CMS && window.BERANDA_CMS.ui) ? window.BERANDA_CMS.ui.btn_scatter : '<i class="fa-solid fa-expand"></i> Pencar Formasi';
+                        isAnimating = false;
+                    }
+                });
 
-            tl.to(wrapTargets, { duration: 1.5, x: 0, y: 0, scale: layout.fullScale || (layout.scale * 1.5), rotationY: 0, ease: "expo.inOut", stagger: { each: 0.03, from: "edges" } });
-            tl.to(wrapTargets, { duration: 0.8, rotationY: 360, scale: (layout.fullScale || (layout.scale * 1.5)) * 1.07, ease: "power3.inOut" }, "-=0.5");
-            tl.to(wrapTargets, { duration: 0.2, scale: layout.fullScale || (layout.scale * 1.5), rotationY: 720, ease: "expo.out" });
-        }
-    });
+                tl.to(wrapTargets, { duration: 1.5, x: 0, y: 0, scale: layout.fullScale || (layout.scale * 1.5), rotationY: 0, ease: "expo.inOut", stagger: { each: 0.03, from: "edges" } });
+                tl.to(wrapTargets, { duration: 0.8, rotationY: 360, scale: (layout.fullScale || (layout.scale * 1.5)) * 1.07, ease: "power3.inOut" }, "-=0.5");
+                tl.to(wrapTargets, { duration: 0.2, scale: layout.fullScale || (layout.scale * 1.5), rotationY: 720, ease: "expo.out" });
+            }
+        });
+    }
 
     // =========================================================
-    // PENGATURAN GSAP SCROLLTRIGGER (AUTO-ALPHA)
+    // GSAP SCROLLTRIGGER
     // =========================================================
-    const scrollContainer = ".main-wrapper";
+    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+        const scrollContainer = ".main-wrapper";
 
-    gsap.to("#fullLogoBox, #shardsContainer, #constellationCanvas", { yPercent: 30, ease: "none", scrollTrigger: { trigger: "#stage", scroller: scrollContainer, start: "top top", end: "bottom top", scrub: true } });
-    
-    // Fix: Explicitly set percentages so GSAP doesn't bake pixel values from un-loaded fonts
-    gsap.set(".monumental-text", { xPercent: -50, yPercent: -50, x: 0, y: 0 });
-    gsap.to(".monumental-text", { yPercent: -100, ease: "none", scrollTrigger: { trigger: "#stage", scroller: scrollContainer, start: "top top", end: "bottom top", scrub: true } });
+        const tStage = gsap.to("#fullLogoBox, #shardsContainer, #constellationCanvas", {
+            yPercent: 30, ease: "none",
+            scrollTrigger: { trigger: "#stage", scroller: scrollContainer, start: "top top", end: "bottom top", scrub: true }
+        });
+        if (tStage.scrollTrigger) _berandaScrollTriggers.push(tStage.scrollTrigger);
 
-    document.querySelector('.main-wrapper').addEventListener('scroll', function () {
-        const indicator = document.querySelector('.scroll-indicator');
-        if (this.scrollTop > 100 && indicator) { indicator.style.opacity = '0'; }
-    }, { passive: true });
+        gsap.set(".monumental-text", { xPercent: -50, yPercent: -50, x: 0, y: 0 });
+        const tMonu = gsap.to(".monumental-text", {
+            yPercent: -100, ease: "none",
+            scrollTrigger: { trigger: "#stage", scroller: scrollContainer, start: "top top", end: "bottom top", scrub: true }
+        });
+        if (tMonu.scrollTrigger) _berandaScrollTriggers.push(tMonu.scrollTrigger);
 
-    gsap.utils.toArray(".reveal-up").forEach((el) => {
-        gsap.fromTo(el,
-            { autoAlpha: 0, y: 50 },
-            { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out", scrollTrigger: { trigger: el, scroller: scrollContainer, start: "top 85%", toggleActions: "play none none reverse" } }
-        );
-    });
-
-    gsap.utils.toArray(".gsap-counter").forEach(counter => {
-        const target = +counter.getAttribute('data-target');
-        if (!isNaN(target) && target > 0) {
-            gsap.fromTo(counter, { innerHTML: 0 }, { innerHTML: target, duration: 2.5, ease: "power2.out", snap: { innerHTML: 1 }, scrollTrigger: { trigger: counter.closest(".stats-grid"), scroller: scrollContainer, start: "top 80%" } });
+        const wrapper = document.querySelector('.main-wrapper');
+        if (wrapper) {
+            addListener(wrapper, 'scroll', function () {
+                const indicator = document.querySelector('.scroll-indicator');
+                if (this.scrollTop > 100 && indicator) { indicator.style.opacity = '0'; }
+            }, { passive: true });
         }
-    });
 
-    gsap.utils.toArray(".panca-jiwa").forEach((jiwa) => {
-        ScrollTrigger.create({ trigger: jiwa, scroller: scrollContainer, start: "top center", end: "bottom center", onEnter: () => jiwa.classList.add("is-active"), onLeaveBack: () => jiwa.classList.remove("is-active"), onEnterBack: () => jiwa.classList.add("is-active"), onLeave: () => jiwa.classList.remove("is-active") });
-    });
+        gsap.utils.toArray(".reveal-up").forEach((el) => {
+            const tween = gsap.fromTo(el,
+                { autoAlpha: 0, y: 50 },
+                { autoAlpha: 1, y: 0, duration: 1, ease: "power3.out", scrollTrigger: { trigger: el, scroller: scrollContainer, start: "top 85%", toggleActions: "play none none reverse" } }
+            );
+            if (tween.scrollTrigger) _berandaScrollTriggers.push(tween.scrollTrigger);
+        });
 
-    gsap.utils.toArray(".timeline-node").forEach((node) => {
-        gsap.fromTo(node, { autoAlpha: 0, y: 50 }, { autoAlpha: 1, y: 0, duration: 0.8, ease: "back.out(1.7)", scrollTrigger: { trigger: node, scroller: scrollContainer, start: "top 85%" } });
-    });
+        gsap.utils.toArray(".gsap-counter").forEach(counter => {
+            const target = +counter.getAttribute('data-target');
+            if (!isNaN(target) && target > 0) {
+                const tween = gsap.fromTo(counter,
+                    { innerHTML: 0 },
+                    { innerHTML: target, duration: 2.5, ease: "power2.out", snap: { innerHTML: 1 }, scrollTrigger: { trigger: counter.closest(".stats-grid"), scroller: scrollContainer, start: "top 80%" } }
+                );
+                if (tween.scrollTrigger) _berandaScrollTriggers.push(tween.scrollTrigger);
+            }
+        });
+
+        gsap.utils.toArray(".panca-jiwa").forEach((jiwa) => {
+            const st = ScrollTrigger.create({
+                trigger: jiwa, scroller: scrollContainer, start: "top center", end: "bottom center",
+                onEnter: () => jiwa.classList.add("is-active"),
+                onLeaveBack: () => jiwa.classList.remove("is-active"),
+                onEnterBack: () => jiwa.classList.add("is-active"),
+                onLeave: () => jiwa.classList.remove("is-active")
+            });
+            _berandaScrollTriggers.push(st);
+        });
+
+        gsap.utils.toArray(".timeline-node").forEach((node) => {
+            const tween = gsap.fromTo(node,
+                { autoAlpha: 0, y: 50 },
+                { autoAlpha: 1, y: 0, duration: 0.8, ease: "back.out(1.7)", scrollTrigger: { trigger: node, scroller: scrollContainer, start: "top 85%" } }
+            );
+            if (tween.scrollTrigger) _berandaScrollTriggers.push(tween.scrollTrigger);
+        });
+
+        const tRefresh = setTimeout(() => {
+            try { ScrollTrigger.refresh(); } catch (e) {}
+        }, 100);
+        _berandaTimeouts.push(tRefresh);
+    }
+
+    // =========================================================
+    // VVIP MOBILE SWIPE-TO-SEAL (LEDGER FORM)
+    // =========================================================
+    const knob = document.getElementById('swipeKnob');
+    const fill = document.getElementById('swipeFill');
+    const swipeContainer = document.getElementById('swipeSealContainer');
+    const ledgerForm = document.getElementById('ledgerForm');
+
+    if (knob && swipeContainer && ledgerForm) {
+        let isDragging = false;
+        let startX = 0;
+        let maxDrag = swipeContainer.offsetWidth - knob.offsetWidth - 10;
+
+        const onResize = () => {
+            if (swipeContainer && knob) {
+                maxDrag = swipeContainer.offsetWidth - knob.offsetWidth - 10;
+            }
+        };
+        addListener(window, 'resize', onResize);
+
+        const onStart = (e) => {
+            isDragging = true;
+            startX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+            knob.style.transition = 'none';
+            if (fill) fill.style.transition = 'none';
+        };
+
+        const onMove = (e) => {
+            if (!isDragging) return;
+            if (e.cancelable) e.preventDefault();
+            const currentX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
+            let diff = currentX - startX;
+            if (diff < 0) diff = 0;
+            if (diff > maxDrag) diff = maxDrag;
+
+            knob.style.transform = `translateX(${diff}px)`;
+            if (fill) fill.style.width = (diff + 25) + 'px';
+        };
+
+        const onEnd = () => {
+            if (!isDragging) return;
+            isDragging = false;
+
+            const currentTransform = knob.style.transform;
+            const diff = parseFloat(currentTransform.replace('translateX(', '').replace('px)', '')) || 0;
+
+            knob.style.transition = '0.3s ease';
+            if (fill) fill.style.transition = '0.3s ease';
+
+            if (diff >= maxDrag * 0.95) {
+                knob.style.transform = `translateX(${maxDrag}px)`;
+                if (fill) fill.style.width = '100%';
+                if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
+                const swipeText = document.getElementById('swipeText');
+                if (swipeText) swipeText.innerHTML = "PESAN DISEGEL <i class='fa-solid fa-check'></i>";
+                const tSubmit = setTimeout(() => {
+                    if (typeof ledgerForm.requestSubmit === 'function') {
+                        ledgerForm.requestSubmit();
+                    } else {
+                        ledgerForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+                    }
+                }, 800);
+                _berandaTimeouts.push(tSubmit);
+            } else {
+                knob.style.transform = `translateX(0px)`;
+                if (fill) fill.style.width = '0px';
+            }
+        };
+
+        knob.addEventListener('mousedown', onStart);
+        addListener(window, 'mousemove', onMove, { passive: false });
+        addListener(window, 'mouseup', onEnd);
+
+        knob.addEventListener('touchstart', onStart, { passive: true });
+        addListener(window, 'touchmove', onMove, { passive: false });
+        addListener(window, 'touchend', onEnd);
+    }
 };
 
+window.initBeranda = initBeranda;
+
+// Auto-init saat pertama kali script di-load jika GSAP sudah siap
 const waitForGsapAndInit = () => {
     if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
         initBeranda();
     } else {
-        setTimeout(waitForGsapAndInit, 50);
+        const t = setTimeout(waitForGsapAndInit, 50);
+        _berandaTimeouts.push(t);
     }
 };
 waitForGsapAndInit();
 
-window.closeModal = function () { document.getElementById('philModal').classList.remove('active'); };
-
 // =========================================================
-// LOGIK PANCA JIWA - GOD TIER ANIMATIONS
+// MODAL PHILOSOPHY & PANCA JIWA
 // =========================================================
-const jiwaData = {
-    'keikhlasan': {
-        title: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.keikhlasan) ? window.BERANDA_CMS.jiwa.keikhlasan.title : '1. Keikhlasan',
-        desc: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.keikhlasan) ? window.BERANDA_CMS.jiwa.keikhlasan.desc : '<p>Jiwa yang pertama adalah keikhlasan. Prinsip ini berarti <em>sepi ing pamrih</em>, yakni berbuat sesuatu bukan karena didorong oleh keinginan untuk mendapatkan keuntungan tertentu, melainkan hanya untuk Allah SWT semata. Segala perbuatan dilakukan dengan niat semata-mata untuk ibadah, Lillah. Kiai dan guru ikhlas dalam mendidik, para pembantu Kiai ikhlas dalam membantu menjalankan proses pendidikan, serta para santri yang ikhlas dididik.</p><p>Jiwa ini menciptakan suasana kehidupan pondok yang harmonis antara Kiai yang disegani dengan santri yang taat, cinta dan penuh hormat. Jiwa ini pula yang menjadikan para santri senantiasa siap berjuang di jalan Allah, di manapun dan kapanpun.</p>'
-    },
-    'kesederhanaan': {
-        title: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.kesederhanaan) ? window.BERANDA_CMS.jiwa.kesederhanaan.title : '2. Kesederhanaan',
-        desc: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.kesederhanaan) ? window.BERANDA_CMS.jiwa.kesederhanaan.desc : '<p>Kehidupan yang sederhana tentu sangat erat kaitannya dengan pondok pesantren. Kehidupan santri yang tentram bersahaja tentu jauh dari kata berlebihan, mubazir dan lain sebagainya. Sederhana tidak berarti pasif atau menerima begitu saja, tidak juga berarti miskin dan melarat.</p><p>Justru dalam jiwa kesederhanan itu terdapat nilai-nilai kekuatan, kesanggupan, ketabahan dan penguasaan diri dalam menghadapi perjuangan hidup.</p>'
-    },
-    'kemandirian': {
-        title: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.kemandirian) ? window.BERANDA_CMS.jiwa.kemandirian.title : '3. Kemandirian',
-        desc: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.kemandirian) ? window.BERANDA_CMS.jiwa.kemandirian.desc : '<p>Kemandirian atau sering disebut juga dengan Berdikari (Berdiri di atas kaki sendiri) adalah kesanggupan menolong diri sendiri. Jiwa tersebut merupakan senjata ampuh yang dibekalkan pesantren kepada para santrinya. Berdikari tidak saja berarti bahwa santri sanggup belajar dan berlatih mengurus segala kepentingannya sendiri, tetapi pondok pesantren itu sendiri sebagai lembaga pendidikan juga harus sanggup berdikari sehingga tidak pernah menyandarkan kehidupannya kepada bantuan atau belas kasihan pihak lain.</p><p>Gontor menerapkan <em>Zelp-Berdruiping Systeem</em> (sama-sama memberikan iuran dan sama-sama memakai). Semua pekerjaan yang ada di dalam pondok dikerjakan oleh Kiai, guru dan para santrinya sendiri.</p>'
-    },
-    'ukhuwah': {
-        title: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.ukhuwah) ? window.BERANDA_CMS.jiwa.ukhuwah.title : '4. Ukhuwwah Islamiyyah',
-        desc: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.ukhuwah) ? window.BERANDA_CMS.jiwa.ukhuwah.desc : '<p>Kehidupan di pondok pesantren diliputi suasana persaudaraan yang akrab, sehingga segala suka dan duka dirasakan bersama dalam jalinan ukhuwwah Islamiyyah. Tidak ada dinding pemisah di antara mereka; apapun latarbelakang keluarga, suku, budaya, bahkan bangsa semua larut dalam jalinan ukhuwwah Islamiyyah.</p><p>Ukhuwah ini bukan saja selama mereka di Pondok, tetapi juga mempengaruhi ke arah persatuan umat dalam masyarakat setelah mereka terjun di masyarakat.</p>'
-    },
-    'kebebasan': {
-        title: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.kebebasan) ? window.BERANDA_CMS.jiwa.kebebasan.title : '5. Kebebasan',
-        desc: (window.BERANDA_CMS && window.BERANDA_CMS.jiwa.kebebasan) ? window.BERANDA_CMS.jiwa.kebebasan.desc : '<p>Bebas dalam berpikir dan berbuat, bebas dalam menentukan masa depan, bebas dalam memilih jalan hidup, dan bahkan bebas dari berbagai pengaruh negatif dari luar dirinya. Jiwa bebas ini akan menjadikan santri berjiwa besar dan optimis dalam menghadapi segala kesulitan.</p><p>Seringkali ditemukan unsur-unsur negatif dari kebebasan yang tak terkontrol, yaitu apabila kebebasan itu disalahgunakan, sehingga terlalu bebas (liberal) dan berakibat hilangnya arah tujuan dan prinsip. Ada pula yang terlalu bebas (untuk tidak mau dipengaruhi), berpegang teguh kepada tradisi yang dianggapnya baik, sehingga tidak mau mengikuti perkembangan zaman.</p><p>Maka kebebasan ini harus dikembalikan ke aslinya, yaitu bebas di dalam garis-garis yang positif, dengan penuh tanggungjawab; baik di dalam kehidupan pondok pesantren itu sendiri, maupun dalam kehidupan masyarakat. Untuk bisa mendapatkan kebebasan, seorang santri haruslah memegang teguh 4 prinsip sebelumnya agar tidak terjerumus ke dalam kebebasan yang salah.</p>'
-    }
+window.closeModal = function () {
+    const modal = document.getElementById('philModal');
+    if (modal) modal.classList.remove('active');
 };
-
-let activeJiwaTl = null;
 
 window.openJiwa = function (id) {
     const modal = document.getElementById('jiwaModal');
     const animContainer = document.getElementById('jiwaAnimContainer');
     const contentBox = document.getElementById('jiwaContent');
+    if (!modal || !animContainer || !contentBox) return;
 
-    // Reset state
-    if (activeJiwaTl) { activeJiwaTl.kill(); activeJiwaTl = null; }
+    if (_activeJiwaTl) { _activeJiwaTl.kill(); _activeJiwaTl = null; }
     animContainer.innerHTML = '';
     contentBox.classList.remove('show');
 
-    const data = jiwaData[id];
+    const cmsJiwa = window.BERANDA_CMS && window.BERANDA_CMS.jiwa;
+    const defaultData = {
+        'keikhlasan': {
+            title: (cmsJiwa && cmsJiwa.keikhlasan) ? cmsJiwa.keikhlasan.title : '1. Keikhlasan',
+            desc: (cmsJiwa && cmsJiwa.keikhlasan) ? cmsJiwa.keikhlasan.desc : '<p>Jiwa yang pertama adalah keikhlasan. Prinsip ini berarti <em>sepi ing pamrih</em>, yakni berbuat sesuatu bukan karena didorong oleh keinginan untuk mendapatkan keuntungan tertentu, melainkan hanya untuk Allah SWT semata. Segala perbuatan dilakukan dengan niat semata-mata untuk ibadah, Lillah. Kiai dan guru ikhlas dalam mendidik, para pembantu Kiai ikhlas dalam membantu menjalankan proses pendidikan, serta para santri yang ikhlas dididik.</p><p>Jiwa ini menciptakan suasana kehidupan pondok yang harmonis antara Kiai yang disegani dengan santri yang taat, cinta dan penuh hormat. Jiwa ini pula yang menjadikan para santri senantiasa siap berjuang di jalan Allah, di manapun dan kapanpun.</p>'
+        },
+        'kesederhanaan': {
+            title: (cmsJiwa && cmsJiwa.kesederhanaan) ? cmsJiwa.kesederhanaan.title : '2. Kesederhanaan',
+            desc: (cmsJiwa && cmsJiwa.kesederhanaan) ? cmsJiwa.kesederhanaan.desc : '<p>Kehidupan yang sederhana tentu sangat erat kaitannya dengan pondok pesantren. Kehidupan santri yang tentram bersahaja tentu jauh dari kata berlebihan, mubazir dan lain sebagainya. Sederhana tidak berarti pasif atau menerima begitu saja, tidak juga berarti miskin dan melarat.</p><p>Justru dalam jiwa kesederhanan itu terdapat nilai-nilai kekuatan, kesanggupan, ketabahan dan penguasaan diri dalam menghadapi perjuangan hidup.</p>'
+        },
+        'kemandirian': {
+            title: (cmsJiwa && cmsJiwa.kemandirian) ? cmsJiwa.kemandirian.title : '3. Kemandirian',
+            desc: (cmsJiwa && cmsJiwa.kemandirian) ? cmsJiwa.kemandirian.desc : '<p>Kemandirian atau sering disebut juga dengan Berdikari (Berdiri di atas kaki sendiri) adalah kesanggupan menolong diri sendiri. Jiwa tersebut merupakan senjata ampuh yang dibekalkan pesantren kepada para santrinya. Berdikari tidak saja berarti bahwa santri sanggup belajar dan berlatih mengurus segala kepentingannya sendiri, tetapi pondok pesantren itu sendiri sebagai lembaga pendidikan juga harus sanggup berdikari sehingga tidak pernah menyandarkan kehidupannya kepada bantuan atau belas kasihan pihak lain.</p><p>Gontor menerapkan <em>Zelp-Berdruiping Systeem</em> (sama-sama memberikan iuran dan sama-sama memakai). Semua pekerjaan yang ada di dalam pondok dikerjakan oleh Kiai, guru dan para santrinya sendiri.</p>'
+        },
+        'ukhuwah': {
+            title: (cmsJiwa && cmsJiwa.ukhuwah) ? cmsJiwa.ukhuwah.title : '4. Ukhuwwah Islamiyyah',
+            desc: (cmsJiwa && cmsJiwa.ukhuwah) ? cmsJiwa.ukhuwah.desc : '<p>Kehidupan di pondok pesantren diliputi suasana persaudaraan yang akrab, sehingga segala suka dan duka dirasakan bersama dalam jalinan ukhuwwah Islamiyyah. Tidak ada dinding pemisah di antara mereka; apapun latarbelakang keluarga, suku, budaya, bahkan bangsa semua larut dalam jalinan ukhuwwah Islamiyyah.</p><p>Ukhuwah ini bukan saja selama mereka di Pondok, tetapi juga mempengaruhi ke arah persatuan umat dalam masyarakat setelah mereka terjun di masyarakat.</p>'
+        },
+        'kebebasan': {
+            title: (cmsJiwa && cmsJiwa.kebebasan) ? cmsJiwa.kebebasan.title : '5. Kebebasan',
+            desc: (cmsJiwa && cmsJiwa.kebebasan) ? cmsJiwa.kebebasan.desc : '<p>Bebas dalam berpikir dan berbuat, bebas dalam menentukan masa depan, bebas dalam memilih jalan hidup, dan bahkan bebas dari berbagai pengaruh negatif dari luar dirinya. Jiwa bebas ini akan menjadikan santri berjiwa besar dan optimis dalam menghadapi segala kesulitan.</p><p>Seringkali ditemukan unsur-unsur negatif dari kebebasan yang tak terkontrol, yaitu apabila kebebasan itu disalahgunakan, sehingga terlalu bebas (liberal) dan berakibat hilangnya arah tujuan dan prinsip. Ada pula yang terlalu bebas (untuk tidak mau dipengaruhi), berpegang teguh kepada tradisi yang dianggapnya baik, sehingga tidak mau mengikuti perkembangan zaman.</p><p>Maka kebebasan ini harus dikembalikan ke aslinya, yaitu bebas di dalam garis-garis yang positif, dengan penuh tanggungjawab; baik di dalam kehidupan pondok pesantren itu sendiri, maupun dalam kehidupan masyarakat. Untuk bisa mendapatkan kebebasan, seorang santri haruslah memegang teguh 4 prinsip sebelumnya agar tidak terjerumus ke dalam kebebasan yang salah.</p>'
+        }
+    };
+
+    const data = defaultData[id];
     if (!data) return;
 
-    // Set Text
-    document.getElementById('jiwaTitle').innerText = data.title;
-    document.getElementById('jiwaDesc').innerHTML = data.desc;
+    const titleEl = document.getElementById('jiwaTitle');
+    const descEl = document.getElementById('jiwaDesc');
+    if (titleEl) titleEl.innerText = data.title;
+    if (descEl) descEl.innerHTML = data.desc;
 
     modal.classList.add('active');
-    activeJiwaTl = gsap.timeline();
+    if (typeof gsap === 'undefined') return;
+
+    _activeJiwaTl = gsap.timeline();
 
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
     const colorMain = isLight ? '#b8860b' : '#d4af37';
     const colorGlow = isLight ? 'rgba(184,134,11,0.5)' : 'rgba(212,175,55,0.8)';
     const colorWhite = isLight ? '#000' : '#fff';
 
-    // --- GOD TIER ANIMATIONS ---
-
     if (id === 'keikhlasan') {
-        // Ripple Drop (Water droplet turning into glowing infinity)
         const drop = document.createElement('div');
         drop.className = 'god-tier-element';
         drop.style.width = '4px'; drop.style.height = '4px';
         drop.style.background = '#fff'; drop.style.borderRadius = '50%';
         animContainer.appendChild(drop);
 
-        activeJiwaTl.fromTo(drop, { y: -300, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power2.in" });
+        _activeJiwaTl.fromTo(drop, { y: -300, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "power2.in" });
 
-        // Ripples
         for (let i = 0; i < 3; i++) {
             const ripple = document.createElement('div');
             ripple.className = 'god-tier-element';
@@ -818,15 +1211,14 @@ window.openJiwa = function (id) {
             ripple.style.borderRadius = '50%';
             ripple.style.boxShadow = `0 0 20px ${colorGlow}, inset 0 0 10px ${colorGlow}`;
             animContainer.appendChild(ripple);
-            activeJiwaTl.fromTo(ripple,
+            _activeJiwaTl.fromTo(ripple,
                 { width: 0, height: 0, opacity: 1 },
                 { width: 800 + (i * 200), height: 800 + (i * 200), opacity: 0, duration: 4, ease: "power2.out", delay: i * 0.5 }, "-=0.8"
             );
         }
-        activeJiwaTl.to(drop, { scale: 50, background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(212,175,55,0) 70%)', duration: 2, ease: "expo.out" }, "-=3.5");
+        _activeJiwaTl.to(drop, { scale: 50, background: 'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(212,175,55,0) 70%)', duration: 2, ease: "expo.out" }, "-=3.5");
 
     } else if (id === 'kesederhanaan') {
-        // Zen Enso Circle drawing itself perfectly
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svg.setAttribute("width", "600"); svg.setAttribute("height", "600");
         svg.setAttribute("viewBox", "0 0 600 600");
@@ -844,28 +1236,26 @@ window.openJiwa = function (id) {
         animContainer.appendChild(svg);
 
         const len = circle.getTotalLength();
-        activeJiwaTl.fromTo(circle,
+        _activeJiwaTl.fromTo(circle,
             { strokeDasharray: len, strokeDashoffset: len },
             { strokeDashoffset: 0, duration: 3, ease: "power4.inOut" }
         );
-        activeJiwaTl.to(circle, { strokeWidth: 1, scale: 0.9, opacity: 0.5, transformOrigin: 'center', duration: 2, ease: "power2.inOut" }, "-=1");
+        _activeJiwaTl.to(circle, { strokeWidth: 1, scale: 0.9, opacity: 0.5, transformOrigin: 'center', duration: 2, ease: "power2.inOut" }, "-=1");
 
     } else if (id === 'kemandirian') {
-        // Monolith constructing itself from particles
         const monolith = document.createElement('div');
         monolith.className = 'god-tier-element';
         monolith.style.width = '80px'; monolith.style.height = '400px';
         monolith.style.background = `linear-gradient(to top, transparent, ${colorMain})`;
         monolith.style.boxShadow = `0 0 50px ${colorGlow}`;
-        monolith.style.clipPath = 'polygon(50% 0%, 100% 10%, 100% 100%, 0% 100%, 0% 10%)';
+        monolith.style.clipPath = 'polygon(50% 0%, 100% 10%, 100% 100%, 0% 10%)';
         animContainer.appendChild(monolith);
 
-        activeJiwaTl.fromTo(monolith,
+        _activeJiwaTl.fromTo(monolith,
             { scaleY: 0, transformOrigin: "bottom center", opacity: 0, y: 100 },
             { scaleY: 1, opacity: 1, y: 0, duration: 2.5, ease: "elastic.out(1, 0.5)" }
         );
 
-        // Sparks flying up
         for (let i = 0; i < 20; i++) {
             const spark = document.createElement('div');
             spark.className = 'god-tier-element';
@@ -875,7 +1265,7 @@ window.openJiwa = function (id) {
             animContainer.appendChild(spark);
 
             const sx = (Math.random() - 0.5) * 100;
-            activeJiwaTl.fromTo(spark,
+            _activeJiwaTl.fromTo(spark,
                 { x: sx, y: 200, opacity: 1, scale: 0 },
                 { x: sx * 2, y: -300, opacity: 0, scale: Math.random() * 2, duration: 1.5 + Math.random(), ease: "power2.out", delay: Math.random() * 0.5 },
                 0.5
@@ -883,7 +1273,6 @@ window.openJiwa = function (id) {
         }
 
     } else if (id === 'ukhuwah') {
-        // Dynamic Constellation connecting
         const numNodes = 12;
         const nodes = [];
         const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -905,14 +1294,13 @@ window.openJiwa = function (id) {
             node.style.boxShadow = `0 0 20px ${colorGlow}`;
             animContainer.appendChild(node);
 
-            nodes.push({ el: node, x: nx, y: ny, ix: 400, iy: 400 }); // initial x, y center
-            activeJiwaTl.fromTo(node,
+            nodes.push({ el: node, x: nx, y: ny, ix: 400, iy: 400 });
+            _activeJiwaTl.fromTo(node,
                 { x: 400, y: 400, scale: 0 },
                 { x: nx, y: ny, scale: 1, duration: 2, ease: "expo.out" },
                 0
             );
 
-            // Draw lines between neighbors
             if (i > 0) {
                 const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 line.setAttribute("stroke", colorMain);
@@ -921,7 +1309,7 @@ window.openJiwa = function (id) {
                 svg.appendChild(line);
 
                 const prev = nodes[i - 1];
-                activeJiwaTl.to(line, {
+                _activeJiwaTl.to(line, {
                     attr: { x1: prev.x, y1: prev.y, x2: nx, y2: ny },
                     opacity: 0.6,
                     duration: 1.5,
@@ -929,17 +1317,14 @@ window.openJiwa = function (id) {
                 }, 1);
             }
         }
-        // Connect last to first
+
         const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
         line.setAttribute("stroke", colorMain); line.setAttribute("stroke-width", "2"); line.setAttribute("opacity", "0");
         svg.appendChild(line);
-        activeJiwaTl.to(line, { attr: { x1: nodes[numNodes - 1].x, y1: nodes[numNodes - 1].y, x2: nodes[0].x, y2: nodes[0].y }, opacity: 0.6, duration: 1.5, ease: "power2.inOut" }, 1.5);
-
-        // Rotate the whole system
-        activeJiwaTl.to(animContainer, { rotation: 360, duration: 40, ease: "linear", repeat: -1 }, 0);
+        _activeJiwaTl.to(line, { attr: { x1: nodes[numNodes - 1].x, y1: nodes[numNodes - 1].y, x2: nodes[0].x, y2: nodes[0].y }, opacity: 0.6, duration: 1.5, ease: "power2.inOut" }, 1.5);
+        _activeJiwaTl.to(animContainer, { rotation: 360, duration: 40, ease: "linear", repeat: -1 }, 0);
 
     } else if (id === 'kebebasan') {
-        // Shattering shell and particles bursting outward in 3D
         const shell = document.createElement('div');
         shell.className = 'god-tier-element';
         shell.style.width = '150px'; shell.style.height = '150px';
@@ -947,8 +1332,8 @@ window.openJiwa = function (id) {
         shell.style.borderRadius = '50%';
         animContainer.appendChild(shell);
 
-        activeJiwaTl.fromTo(shell, { scale: 0 }, { scale: 1, duration: 1, ease: "back.out(1.5)" });
-        activeJiwaTl.to(shell, { scale: 1.2, opacity: 0, borderWidth: 0, duration: 0.5, ease: "power2.in" }, "+=0.5");
+        _activeJiwaTl.fromTo(shell, { scale: 0 }, { scale: 1, duration: 1, ease: "back.out(1.5)" });
+        _activeJiwaTl.to(shell, { scale: 1.2, opacity: 0, borderWidth: 0, duration: 0.5, ease: "power2.in" }, "+=0.5");
 
         for (let i = 0; i < 40; i++) {
             const bird = document.createElement('div');
@@ -965,7 +1350,7 @@ window.openJiwa = function (id) {
             const ty = Math.sin(angle) * distance;
             const tz = (Math.random() - 0.5) * 500;
 
-            activeJiwaTl.fromTo(bird,
+            _activeJiwaTl.fromTo(bird,
                 { x: 0, y: 0, z: 0, scale: 0, opacity: 1 },
                 { x: tx, y: ty, z: tz, scale: Math.random() * 2 + 0.5, opacity: 0, duration: 3 + Math.random(), ease: "power3.out" },
                 1.5
@@ -973,8 +1358,7 @@ window.openJiwa = function (id) {
         }
     }
 
-    // Delay showing text
-    activeJiwaTl.add(() => {
+    _activeJiwaTl.add(() => {
         contentBox.classList.add('show');
     }, 2.5);
 };
@@ -982,178 +1366,85 @@ window.openJiwa = function (id) {
 window.closeJiwa = function () {
     const modal = document.getElementById('jiwaModal');
     const contentBox = document.getElementById('jiwaContent');
-    contentBox.classList.remove('show');
-    if (activeJiwaTl) {
-        // Fade out the container before killing it
+    if (contentBox) contentBox.classList.remove('show');
+    if (_activeJiwaTl && typeof gsap !== 'undefined') {
         gsap.to('#jiwaAnimContainer', { opacity: 0, duration: 0.5 });
     }
-    setTimeout(() => {
-        modal.classList.remove('active');
-        document.getElementById('jiwaAnimContainer').innerHTML = '';
-        document.getElementById('jiwaAnimContainer').style.opacity = 1;
-        // reset rotation if it was changed
-        gsap.set('#jiwaAnimContainer', { clearProps: "all" });
-        if (activeJiwaTl) { activeJiwaTl.kill(); activeJiwaTl = null; }
+    const t = setTimeout(() => {
+        if (modal) modal.classList.remove('active');
+        const animContainer = document.getElementById('jiwaAnimContainer');
+        if (animContainer) {
+            animContainer.innerHTML = '';
+            animContainer.style.opacity = 1;
+        }
+        if (typeof gsap !== 'undefined') {
+            gsap.set('#jiwaAnimContainer', { clearProps: "all" });
+        }
+        if (_activeJiwaTl) { _activeJiwaTl.kill(); _activeJiwaTl = null; }
     }, 500);
+    _berandaTimeouts.push(t);
 };
 
 // =========================================================
-// LOGIK ARSIP DEKLASIFIKASI
+// LOGIK ARSIP SOVEREIGN
 // =========================================================
-const archiveData = {
-    'visi': {
-        date: (window.BERANDA_CMS && window.BERANDA_CMS.archive.visi) ? window.BERANDA_CMS.archive.visi.date : '30 MARET 2026',
-        title: (window.BERANDA_CMS && window.BERANDA_CMS.archive.visi) ? window.BERANDA_CMS.archive.visi.title : 'Deklarasi Visi Sovereign',
-        content: (window.BERANDA_CMS && window.BERANDA_CMS.archive.visi) ? window.BERANDA_CMS.archive.visi.content : `
+window.openArchive = function (key) {
+    const modal = document.getElementById('archiveModal');
+    if (!modal) return;
+    const cms = window.BERANDA_CMS && window.BERANDA_CMS.archive;
+    let data;
+    if (key === 'visi') {
+        data = {
+            date: (cms && cms.visi) ? cms.visi.date : '30 MARET 2026',
+            title: (cms && cms.visi) ? cms.visi.title : 'Deklarasi Visi Sovereign',
+            content: (cms && cms.visi) ? cms.visi.content : `
                 <p>Naskah ini mencatat sumpah agung angkatan Expedient mengenai visi dan arah tujuan masa depan.</p>
                 <p>Kami berjanji untuk memelihara warisan <span class="redacted" onclick="revealRedacted(this)">KEISLAMAN</span> dan mengikat erat <span class="redacted" onclick="revealRedacted(this)">PERSAUDARAAN</span>.</p>
                 <p>Nilai-nilai ini diukir bukan pada batu, melainkan pada karakter setiap individu.</p>
                 <p><em>Selesai.</em></p>
             `
-    },
-    'simpul': {
-        date: (window.BERANDA_CMS && window.BERANDA_CMS.archive.simpul) ? window.BERANDA_CMS.archive.simpul.date : '15 FEBRUARI 2026',
-        title: (window.BERANDA_CMS && window.BERANDA_CMS.archive.simpul) ? window.BERANDA_CMS.archive.simpul.title : 'Simpul Kesucian: Menjaga Nilai Arrisalah',
-        content: (window.BERANDA_CMS && window.BERANDA_CMS.archive.simpul) ? window.BERANDA_CMS.archive.simpul.content : `
+        };
+    } else if (key === 'simpul') {
+        data = {
+            date: (cms && cms.simpul) ? cms.simpul.date : '15 FEBRUARI 2026',
+            title: (cms && cms.simpul) ? cms.simpul.title : 'Simpul Kesucian: Menjaga Nilai Arrisalah',
+            content: (cms && cms.simpul) ? cms.simpul.content : `
                 <p>Manuskrip mengenai pemeliharaan nilai-nilai murni dalam harmoni pasca-kelulusan.</p>
                 <p>Di balik kemewahan dunia, pondasi kita tetap bersandar pada <span class="redacted" onclick="revealRedacted(this)">KESEDERHANAAN</span> hati.</p>
                 <p>Setiap duta angkatan diharapkan menjadi mercusuar teladan di manapun mereka memijakkan kaki.</p>
                 <p><em>Tertanda, Dewan Kehormatan.</em></p>
             `
+        };
     }
-};
-
-window.openArchive = function (key) {
-    const modal = document.getElementById('archiveModal');
-    const data = archiveData[key];
     if (!data) return;
 
-    document.getElementById('arcDate').innerText = data.date;
-    document.getElementById('arcTitle').innerText = data.title;
-    document.getElementById('arcBody').innerHTML = data.content;
+    const arcDate = document.getElementById('arcDate');
+    const arcTitle = document.getElementById('arcTitle');
+    const arcBody = document.getElementById('arcBody');
+    const paper = document.getElementById('archivePaper');
+
+    if (arcDate) arcDate.innerText = data.date;
+    if (arcTitle) arcTitle.innerText = data.title;
+    if (arcBody) arcBody.innerHTML = data.content;
 
     modal.classList.add('active');
-    document.getElementById('archivePaper').scrollTop = 0;
+    if (paper) paper.scrollTop = 0;
 };
 
 window.closeArchive = function () {
-    document.getElementById('archiveModal').classList.remove('active');
+    const modal = document.getElementById('archiveModal');
+    if (modal) modal.classList.remove('active');
 };
 
 window.revealRedacted = function (el) {
-    el.classList.add('revealed');
+    if (el) el.classList.add('revealed');
 };
 
-// DIHAPUS: Blok kedua yang menyebabkan double-init.
-// waitForGsapAndInit() di line 740 sudah menangani inisialisasi.
-
-// =========================================================
-// REDACTED CLICK HANDLER
-// =========================================================
-document.addEventListener('click', function (e) {
-    if (e.target && e.target.classList.contains('redacted')) {
-        e.target.classList.add('revealed');
-    }
-});
-
-// =========================================================
-// VVIP MOBILE & SENSOR INTERACTION
-// =========================================================
-
-// 1. Swipe to Seal (Ledger)
-const knob = document.getElementById('swipeKnob');
-const fill = document.getElementById('swipeFill');
-const container = document.getElementById('swipeSealContainer');
-const form = document.getElementById('ledgerForm');
-
-if (knob && container) {
-    let isDragging = false;
-    let startX = 0;
-    let maxDrag = container.offsetWidth - knob.offsetWidth - 10;
-
-    window.addEventListener('resize', () => { maxDrag = container.offsetWidth - knob.offsetWidth - 10; });
-
-    const onStart = (e) => {
-        isDragging = true;
-        startX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
-        knob.style.transition = 'none';
-        fill.style.transition = 'none';
-    };
-
-    const onMove = (e) => {
-        if (!isDragging) return;
-        // Prevent scrolling while swiping
-        if (e.cancelable) e.preventDefault();
-        const currentX = e.type.includes('mouse') ? e.pageX : e.touches[0].pageX;
-        let diff = currentX - startX;
-        if (diff < 0) diff = 0;
-        if (diff > maxDrag) diff = maxDrag;
-
-        knob.style.transform = `translateX(${diff}px)`;
-        fill.style.width = (diff + 25) + 'px';
-    };
-
-    const onEnd = () => {
-        if (!isDragging) return;
-        isDragging = false;
-
-        const currentTransform = knob.style.transform;
-        const diff = parseFloat(currentTransform.replace('translateX(', '').replace('px)', '')) || 0;
-
-        knob.style.transition = '0.3s ease';
-        fill.style.transition = '0.3s ease';
-
-        if (diff >= maxDrag * 0.95) {
-            // Success!
-            knob.style.transform = `translateX(${maxDrag}px)`;
-            fill.style.width = '100%';
-            if (navigator.vibrate) navigator.vibrate([50, 100, 50]);
-            document.getElementById('swipeText').innerHTML = "PESAN DISEGEL <i class='fa-solid fa-check'></i>";
-            setTimeout(() => {
-                if (typeof form.requestSubmit === 'function') {
-                    form.requestSubmit();
-                } else {
-                    form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                }
-            }, 800);
-        } else {
-            // Reset
-            knob.style.transform = `translateX(0px)`;
-            fill.style.width = '0px';
+if (typeof window !== 'undefined' && !(window as any).__berandaRedactedBound) {
+    (window as any).__berandaRedactedBound = true;
+    document.addEventListener('click', function (e) {
+        if (e.target && (e.target as HTMLElement).classList && (e.target as HTMLElement).classList.contains('redacted')) {
+            (e.target as HTMLElement).classList.add('revealed');
         }
-    };
-
-    knob.addEventListener('mousedown', onStart);
-    window.addEventListener('mousemove', onMove, { passive: false });
-    window.addEventListener('mouseup', onEnd);
-
-    knob.addEventListener('touchstart', onStart, { passive: true });
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onEnd);
-}
-
-// Birthday Toast Logic
-const initBdayToast = () => {
-    setTimeout(() => {
-        const toast = document.getElementById('bdayToast');
-        if (toast) {
-            toast.style.transform = 'translateX(-50%) translateY(0)';
-            toast.style.opacity = '1';
-        }
-    }, 3000);
-};
-
-if (document.readyState === 'loading') {
-    document.addEventListener("DOMContentLoaded", initBdayToast);
-} else {
-    initBdayToast();
-}
-
-function closeBdayToast() {
-    const toast = document.getElementById('bdayToast');
-    if (toast) {
-        toast.style.transform = 'translateX(-50%) translateY(150px)';
-        toast.style.opacity = '0';
-        setTimeout(() => toast.style.display = 'none', 800);
-    }
+    });
 }

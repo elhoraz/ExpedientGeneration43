@@ -26,8 +26,6 @@ export default function BerandaClient({
   birthdayUsers: any[];
   isLoggedIn: boolean;
 }) {
-  const [gsapReady, setGsapReady] = useState(false);
-  const [scrollTriggerReady, setScrollTriggerReady] = useState(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { t } = useCms();
@@ -186,9 +184,46 @@ export default function BerandaClient({
       }
     };
 
+    // Lifecycle manager for beranda.js
+    let isMounted = true;
+    let pollTimer: NodeJS.Timeout | null = null;
+
+    const startBeranda = () => {
+      if (!isMounted) return;
+      if (typeof (window as any).initBeranda === "function") {
+        (window as any).initBeranda();
+      } else {
+        pollTimer = setTimeout(startBeranda, 50);
+      }
+    };
+
+    // Let the DOM mount, then initialize
+    const animId = requestAnimationFrame(() => {
+      startBeranda();
+    });
+
+    // React-level safety fallback: never let the loader stay stuck
+    const safetyTimer = setTimeout(() => {
+      const loader = document.getElementById("loader");
+      if (loader && loader.style.display !== "none") {
+        loader.style.opacity = "0";
+        loader.style.pointerEvents = "none";
+        setTimeout(() => {
+          if (loader) loader.style.display = "none";
+        }, 500);
+      }
+    }, 2800);
+
     return () => {
+      isMounted = false;
+      cancelAnimationFrame(animId);
+      if (pollTimer) clearTimeout(pollTimer);
+      clearTimeout(safetyTimer);
       document.body.classList.remove("page-beranda");
       if (bdayTimer) clearTimeout(bdayTimer);
+      if (typeof (window as any).destroyBeranda === "function") {
+        (window as any).destroyBeranda();
+      }
       if (typeof window !== "undefined") {
         delete (window as any).BERANDA_CMS;
       }
@@ -569,23 +604,24 @@ export default function BerandaClient({
           </div>
       </main>
 
-      {/* GSAP & ScrollTrigger — chained loading agar urutan terjamin */}
+      {/* GSAP, ScrollTrigger & Script Utama Beranda */}
       <Script 
         src="/vendor/gsap/gsap.min.js" 
         strategy="afterInteractive" 
-        onReady={() => setGsapReady(true)}
       />
-      {gsapReady && (
-        <Script 
-          src="/vendor/gsap/ScrollTrigger.min.js" 
-          strategy="afterInteractive" 
-          onReady={() => setScrollTriggerReady(true)}
-        />
-      )}
-      {/* Script Utama Beranda — hanya dimuat setelah GSAP + ScrollTrigger siap */}
-      {scrollTriggerReady && (
-        <Script src="/assets/js/beranda.js" strategy="afterInteractive" />
-      )}
+      <Script 
+        src="/vendor/gsap/ScrollTrigger.min.js" 
+        strategy="afterInteractive" 
+      />
+      <Script 
+        src="/assets/js/beranda.js" 
+        strategy="afterInteractive" 
+        onReady={() => {
+          if (typeof (window as any).initBeranda === "function") {
+            (window as any).initBeranda();
+          }
+        }}
+      />
     </>
   );
 }
