@@ -1,3 +1,10 @@
+/**
+ * Expedient Generation 43 - Birthday Celebrator Module
+ * Sistem otomatisasi ucapan ulang tahun / milad dua arah:
+ * 1. Personal (Japri 1-on-1 langsung ke nomor WhatsApp santri/alumni)
+ * 2. Grup Komunitas Angkatan (Broadcast doa bersama & mention)
+ * 3. Tautan kartu ucapan digital interaktif di portal website angkatan
+ */
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface BirthdayAlumni {
