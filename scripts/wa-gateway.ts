@@ -138,15 +138,15 @@ function addLog(msg: string, level: LogEntry["level"] = "info") {
   console.log(`[${time}] ${msg}`);
 }
 
-// Deteksi argumen pairing di CLI
+// Deteksi argumen pairing di CLI (hanya jika diberikan secara eksplisit)
 const pairingArgIndex = process.argv.indexOf("--pairing");
 if (pairingArgIndex !== -1) {
   const nextArg = process.argv[pairingArgIndex + 1];
-  pairingPhoneArg = nextArg && !nextArg.startsWith("-") ? nextArg : "6285151771289";
+  pairingPhoneArg = nextArg && !nextArg.startsWith("-") ? nextArg : "";
 } else {
   const match = process.argv.find((a) => a.startsWith("--pairing="));
   if (match) {
-    pairingPhoneArg = match.split("=")[1] || "6285151771289";
+    pairingPhoneArg = match.split("=")[1] || "";
   } else if (process.env.WA_BOT_PHONE) {
     pairingPhoneArg = process.env.WA_BOT_PHONE;
   }
