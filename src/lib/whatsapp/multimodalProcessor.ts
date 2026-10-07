@@ -260,7 +260,7 @@ export async function processMultimodalBuffer(
 
   try {
     const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
-    const preferredModel = (process.env.GEMINI_MODEL || "gemini-3.5-flash-lite").trim();
+    const preferredModel = (process.env.GEMINI_MODEL || "gemini-3.6-flash").trim();
 
     // 2. Susun prompt sesuai tipe media dan ruang percakapan (Design Studio vs Grup Komunitas vs Japri)
     let promptInstruction = "";
