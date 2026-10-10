@@ -431,7 +431,7 @@ export async function generateIntelligentCohortReply(options: {
   /** true jika pesan yang di-reply adalah balasan bot sendiri (hindari loop topik lama) */
   quotedFromBot?: boolean;
 }): Promise<string> {
-  const { messageText, senderPhone, senderName, isGroup, quotedText, quotedSender, quotedFromBot } = options;
+  const { messageText, senderPhone, senderName, isGroup, groupId, quotedText, quotedSender, quotedFromBot } = options;
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
 
@@ -444,6 +444,67 @@ export async function generateIntelligentCohortReply(options: {
     }
   } catch (learnErr) {
     // Non-blocking
+  }
+
+  // 0b. INTENT KHUSUS: Rangkuman Obrolan Grup / Kesimpulan Topik Diskusi
+  if (isGroup && groupId) {
+    try {
+      const {
+        isConversationSummaryIntent,
+        getRecentGroupChatHistory,
+        formatChatHistoryForSummary,
+      } = await import("@/lib/whatsapp/groupConversationBuffer");
+
+      if (isConversationSummaryIntent(messageText)) {
+        const history = await getRecentGroupChatHistory(groupId, 20);
+        // Saring pesan pengguna sendiri yang sedang bertanya ini agar tidak membingungkan AI
+        const conversationMessages = history.filter(
+          (m) => !(m.senderPhone === senderPhone && m.messageText.trim() === messageText.trim())
+        );
+
+        if (conversationMessages.length > 0 || quotedText) {
+          const formattedHistory = formatChatHistoryForSummary(conversationMessages);
+          const summaryPrompt = `
+You are the official, highly intelligent, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025).
+A group member named *${senderName || "Sahabat"}* is asking in the WhatsApp group what the members are talking about or asking for the conclusion/summary of the ongoing discussion.
+
+USER QUESTION: "${messageText}"
+${quotedText ? `- Quoted Message Being Replied To (From ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN: Pengguna secara khusus me-reply pesan ini untuk menanyakan kesimpulan atau penjelasannya!)` : ""}
+
+RECENT GROUP CONVERSATION LOG (Chronological):
+${formattedHistory || "(Tidak ada log obrolan selain pesan yang di-reply)"}
+
+TASK:
+Provide a clear, natural, and helpful Indonesian summary or conclusion of the actual conversation topic above.
+CRITICAL GUIDELINES:
+1. FOCUS ON WHAT WAS ACTUALLY DISCUSSED:
+   - Identify the main topics (e.g. rencana kumpul/reuni, patungan, kabar kawan, guyonan santri, dll.).
+   - If members reached an agreement or decision, state it clearly.
+   - If members are still debating or offering different ideas, summarize the options.
+   - If the user quoted a specific message, prioritize explaining and summarizing the context of that quoted message!
+2. STYLE & TONE:
+   - Warm, friendly, intelligent, like a close classmate / santri alumnus (sapaan santun: "Halo Sahabat *${senderName || "Sahabat"}*", "Terkait obrolan tadi...", atau "Jadi kesimpulannya:").
+   - 2 to 4 sentences maximum (or clean bullet points if summarizing distinct decisions). Keep it crisp for WhatsApp group!
+3. ANTI-HALLUCINATION:
+   - DO NOT mention generic database facts about Arrisalah 2025 or website URLs unless the members were actually talking about that!
+   - WhatsApp formatting: *bold* for names and important points.
+`.trim();
+
+          const body = {
+            contents: [{ parts: [{ text: summaryPrompt }] }],
+            generationConfig: { temperature: 0.2 },
+          };
+
+          const data = await callGeminiResilient(body, geminiApiKey, geminiModel);
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (text) return text;
+        } else {
+          return `Halo Sahabat *${senderName}*! Maaf, ana baru menyimak grup ini jadi belum sempat mencatat obrolan sebelumnya. Boleh quote/reply pesan kawan yang mau disimpulkan, atau sebutkan topik yang lagi dibahas? InsyaAllah ana bantu rangkum! 😊🙌`;
+        }
+      }
+    } catch (sumErr: any) {
+      console.warn("[CONVERSATION-SUMMARY-WARN]:", sumErr.message);
+    }
   }
 
   // 1. Dapatkan fakta database faktual (periksa juga quotedText jika user merujuk ke pesan teman)
@@ -461,6 +522,19 @@ export async function generateIntelligentCohortReply(options: {
     }
   } catch (_) {}
 
+  // 1b. Ambil cuplikan 5 pesan terakhir di grup sebagai konteks alur percakapan
+  let recentGroupChatContext = "";
+  if (isGroup && groupId) {
+    try {
+      const { getRecentGroupChatHistory, formatChatHistoryForSummary } = await import("@/lib/whatsapp/groupConversationBuffer");
+      const hist = await getRecentGroupChatHistory(groupId, 6);
+      const filtered = hist.filter((m) => !(m.senderPhone === senderPhone && m.messageText.trim() === messageText.trim()));
+      if (filtered.length > 0) {
+        recentGroupChatContext = formatChatHistoryForSummary(filtered.slice(-5));
+      }
+    } catch (_) {}
+  }
+
   const prompt = `
 You are the official, highly intelligent, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "The Successors").
 Current Year: 2026.
@@ -470,6 +544,7 @@ USER CONTEXT:
 - Channel: ${isGroup ? "WhatsApp Group Chat (⚔️successors⚔️)" : "WhatsApp Private Chat (1-on-1)"}
 - User's Message: "${messageText}"
 ${quotedText ? `- Pesan Teman Yang Sedang Di-Reply/Quote (Pengirim: ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN: Pengguna sedang me-reply langsung pesan temannya di atas sambil memanggil bot. Jawablah dengan memahami pertanyaan/topik dari pesan temannya tersebut!)` : ""}
+${recentGroupChatContext ? `- Cuplikan Percakapan Terakhir di Grup (Sebagai Alur Konteks Obrolan):\n${recentGroupChatContext}\n` : ""}
 
 RESOLVED KNOWLEDGE / DATABASE FACTS:
 ${fact.summary}

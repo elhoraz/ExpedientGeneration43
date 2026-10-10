@@ -39,6 +39,9 @@ export async function POST(request: Request) {
       mediaUrl?: string;
       filename?: string;
       extension?: string;
+      quotedText?: string;
+      quotedSender?: string;
+      quotedFromBot?: boolean;
     }> = [];
 
     let rawBody: any = null;
@@ -135,6 +138,55 @@ export async function POST(request: Request) {
           }
         }
 
+        // Ekstraksi Quoted / Replied Message (Saling Reply) dari Fonnte & Baileys
+        let quotedText = "";
+        let quotedSender = "";
+
+        if (typeof body.reply === "string" && body.reply.trim()) {
+          quotedText = body.reply.trim();
+        } else if (body.reply && typeof body.reply === "object") {
+          quotedText = String(body.reply.text || body.reply.message || body.reply.caption || "").trim();
+          quotedSender = String(body.reply.name || body.reply.sender || body.reply.participant || "").trim();
+        } else if (typeof body.quoted === "string" && body.quoted.trim()) {
+          quotedText = body.quoted.trim();
+        } else if (body.quoted && typeof body.quoted === "object") {
+          quotedText = String(body.quoted.text || body.quoted.message || body.quoted.caption || "").trim();
+          quotedSender = String(body.quoted.name || body.quoted.sender || body.quoted.participant || "").trim();
+        } else if (typeof body.quote === "string" && body.quote.trim()) {
+          quotedText = body.quote.trim();
+        } else if (body.quote && typeof body.quote === "object") {
+          quotedText = String(body.quote.text || body.quote.message || "").trim();
+          quotedSender = String(body.quote.name || body.quote.sender || body.quote.participant || "").trim();
+        } else if (body.quotedMsg) {
+          if (typeof body.quotedMsg === "string") {
+            quotedText = body.quotedMsg.trim();
+          } else if (typeof body.quotedMsg === "object") {
+            quotedText = String(body.quotedMsg.text || body.quotedMsg.message || body.quotedMsg.conversation || "").trim();
+            quotedSender = String(body.quotedMsg.name || body.quotedMsg.sender || body.quotedMsg.participant || "").trim();
+          }
+        } else if (body.quotedText) {
+          quotedText = String(body.quotedText).trim();
+          quotedSender = String(body.quotedSender || "").trim();
+        } else if (body.contextInfo?.quotedMessage) {
+          const qm = body.contextInfo.quotedMessage;
+          quotedText = String(qm.conversation || qm.extendedTextMessage?.text || qm.imageMessage?.caption || "").trim();
+          quotedSender = String(body.contextInfo.participant || "").trim();
+        }
+
+        if (!quotedSender) {
+          quotedSender = String(body.reply_name || body.reply_sender || body.quoted_name || body.quoted_sender || "").trim();
+        }
+
+        const quotedFromBot = Boolean(
+          body.quotedFromMe ||
+          body.contextInfo?.fromMe ||
+          (quotedSender && (
+            quotedSender.includes("85151771289") ||
+            quotedSender.includes("89675010185") ||
+            (body.device && quotedSender.includes(body.device))
+          ))
+        );
+
         incomingList.push({
           sender: senderStr,
           messageText: msgText,
@@ -146,6 +198,9 @@ export async function POST(request: Request) {
           mediaUrl: finalMediaUrl || undefined,
           filename: finalFilename || undefined,
           extension: finalExtension || undefined,
+          quotedText: quotedText || undefined,
+          quotedSender: quotedSender || undefined,
+          quotedFromBot,
         });
       }
       // B. Format Webhook Resmi Meta Cloud API
@@ -307,7 +362,15 @@ export async function POST(request: Request) {
         console.log(`[WA-GROUP-INCOMING] Grup: ${targetGroupId} | Dari: ${participantPhone} (${memberName}): "${messageText}"`);
 
         const { handleIncomingGroupMessage } = await import("@/lib/whatsapp/groupManager");
-        const groupRes = await handleIncomingGroupMessage(targetGroupId, participantPhone, memberName, messageText);
+        const groupRes = await handleIncomingGroupMessage(
+          targetGroupId,
+          participantPhone,
+          memberName,
+          messageText,
+          item.quotedText,
+          item.quotedSender,
+          item.quotedFromBot
+        );
 
         // Catat aktivitas terbaru grup non-resmi untuk deteksi hening 6 jam
         const { getCommunityGroupId } = await import("@/lib/whatsapp");
