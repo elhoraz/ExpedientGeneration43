@@ -529,6 +529,27 @@ export async function handleIncomingGroupMessage(
   // =========================================================================
   // 2. CABANG REGULER: GRUP KOMUNITAS / ANGKATAN NON-RESMI
   // =========================================================================
+  // A0. DETEKSI OTOMATIS PEMBAGIAN NOMOR TELEPON (Full Automatic Member Inviter)
+  // Menangani nomor polos, share contact, nomor dengan nama, atau balasan atas pertanyaan bot
+  try {
+    const { handleAutomaticGroupNumberDetection } = await import("@/lib/whatsapp/autoMemberInviter");
+    const autoNumberRes = await handleAutomaticGroupNumberDetection({
+      groupId,
+      senderPhone,
+      senderName,
+      messageText,
+      quotedText,
+      quotedSender,
+      isQuotedFromBot: Boolean(quotedFromBot),
+    });
+
+    if (autoNumberRes.handled) {
+      return { responded: true, replyText: autoNumberRes.replyText };
+    }
+  } catch (numErr: any) {
+    console.warn("[AUTO-NUMBER-DETECTION-WARN]:", numErr.message);
+  }
+
   // Hanya respons jika dipanggil atau merupakan command / pertanyaan seputar angkatan
   if (!shouldGroupBotRespond(messageText, quotedFromBot)) {
     return { responded: false };
