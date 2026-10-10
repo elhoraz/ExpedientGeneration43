@@ -4,13 +4,13 @@ import assert from 'node:assert';
 describe('Member Auditor & Mass Registration Invitation Suite', () => {
   function extractPhoneNumbers(text) {
     if (!text) return [];
-    const rawMatches = text.match(/(?:\+?62|0)[\s\-\.\(\)]*8[\s\-\.\(\)0-9]{7,15}/g) || [];
+    const rawMatches = text.match(/(?:\+?62|0|\b8)[\s\-\.\(\)0-9]{7,20}/g) || [];
     const normalizedSet = new Set();
     for (const raw of rawMatches) {
       let clean = raw.replace(/\D/g, "");
       if (clean.startsWith("0")) clean = "62" + clean.substring(1);
       else if (clean.startsWith("8")) clean = "62" + clean;
-      if (/^628[0-9]{8,12}$/.test(clean)) {
+      if (/^628[0-9]{7,12}$/.test(clean)) {
         normalizedSet.add(clean);
       }
     }
@@ -32,16 +32,18 @@ describe('Member Auditor & Mass Registration Invitation Suite', () => {
       085712345678, +6289675010185
       Budi (0813-9876-5432)
       +62 821 4287 7426
+      81298765432
       Bukan Nomor: 021-1234567, 12345, 0812
     `;
 
     const phones = extractPhoneNumbers(rawInput);
-    assert.strictEqual(phones.length, 5);
+    assert.strictEqual(phones.length, 6);
     assert.ok(phones.includes("6281234567890"));
     assert.ok(phones.includes("6285712345678"));
     assert.ok(phones.includes("6289675010185"));
     assert.ok(phones.includes("6281398765432"));
     assert.ok(phones.includes("6282142877426"));
+    assert.ok(phones.includes("6281298765432"));
     // Non-mobile numbers must be excluded
     assert.ok(!phones.includes("0211234567"));
   });

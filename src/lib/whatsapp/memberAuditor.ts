@@ -16,8 +16,8 @@ export function extractPhoneNumbers(text: string): string[] {
   if (!text) return [];
 
   // 1. Ambil seluruh pola nomor telepon yang mungkin (mengandung angka minimal 8 digit)
-  // Cocok dengan format: +62 812-3456-7890, 08123456789, 628123456789, dll.
-  const rawMatches = text.match(/(?:\+?62|0)[\s\-\.\(\)]*8[\s\-\.\(\)0-9]{7,15}/g) || [];
+  // Cocok dengan format: +62 812-3456-7890, 08123456789, 628123456789, 81234567890, dll.
+  const rawMatches = text.match(/(?:\+?62|0|\b8)[\s\-\.\(\)0-9]{7,20}/g) || [];
 
   const normalizedSet = new Set<string>();
 
@@ -29,8 +29,8 @@ export function extractPhoneNumbers(text: string): string[] {
       clean = "62" + clean;
     }
 
-    // Validasi nomor seluler Indonesia: 628 + 8-12 digit angka (panjang total 10 - 14 karakter)
-    if (/^628[0-9]{8,12}$/.test(clean)) {
+    // Validasi nomor seluler Indonesia: 628 + 7-12 digit angka (panjang total 10 - 15 karakter)
+    if (/^628[0-9]{7,12}$/.test(clean)) {
       normalizedSet.add(clean);
     }
   }

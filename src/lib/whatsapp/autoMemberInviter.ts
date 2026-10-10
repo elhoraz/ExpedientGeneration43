@@ -156,7 +156,8 @@ OUTPUT FORMAT (JSON ONLY):
 export async function sendDirectAlumniInvitation(
   targetPhone: string,
   candidateName: string | null,
-  sharedByName: string
+  sharedByName: string,
+  customSender?: (targetPhone: string, message: string) => Promise<{ success: boolean; reason?: string }>
 ): Promise<{ success: boolean; reason?: string }> {
   const refCode = `EG43-${Math.floor(1000 + Math.random() * 9000)}`;
   const greetingName = candidateName ? `*${candidateName}*` : "sahabat";
@@ -175,7 +176,12 @@ export async function sendDirectAlumniInvitation(
     `*(Catatan: Jika antum bukan sahabat alumni angkatan 43 atau terdapat kekeliruan pembagian nomor, kami memohon maaf sebesar-besarnya atas ketidaknyamanan ini dan pesan ini dapat diabaikan ya Akhi/Ukhti).*\n` +
     `_Ref: #${refCode}_`;
 
-  const sendRes = await sendWhatsAppMessageWithDetail(targetPhone, message);
+  let sendRes: { success: boolean; reason?: string };
+  if (customSender) {
+    sendRes = await customSender(targetPhone, message);
+  } else {
+    sendRes = await sendWhatsAppMessageWithDetail(targetPhone, message);
+  }
 
   // Catat riwayat pengiriman ke database whatsapp_queue untuk deduplikasi
   try {
@@ -198,7 +204,7 @@ export async function sendDirectAlumniInvitation(
 }
 
 /**
- * Handler Utama: Menangani deteksi nomor telepon yang dibagikan di grup WhatsApp secara Full Otomatis
+ * Handler Utama: Menangani deteksi nomor telepon yang dibagikan di grup WhatsApp maupun chat pribadi secara Full Otomatis
  */
 export async function handleAutomaticGroupNumberDetection(options: {
   groupId: string;
@@ -208,20 +214,49 @@ export async function handleAutomaticGroupNumberDetection(options: {
   quotedText?: string;
   quotedSender?: string;
   isQuotedFromBot?: boolean;
+  isPrivateChat?: boolean;
+  customSender?: (target: string, message: string) => Promise<{ success: boolean; reason?: string }>;
 }): Promise<{ handled: boolean; replyText?: string }> {
-  const { groupId, senderPhone, senderName, messageText, quotedText, quotedSender, isQuotedFromBot } = options;
+  const {
+    groupId,
+    senderPhone,
+    senderName,
+    messageText,
+    quotedText,
+    quotedSender,
+    isQuotedFromBot,
+    isPrivateChat = false,
+    customSender,
+  } = options;
+
+  // Helper pengiriman pesan ke grup maupun jalur pribadi
+  const sendTargetMessage = async (text: string) => {
+    if (customSender) {
+      return await customSender(groupId, text);
+    }
+    if (isPrivateChat || !groupId.includes("@g.us")) {
+      return await sendWhatsAppMessageWithDetail(groupId, text);
+    }
+    const ok = await sendWhatsAppGroupMessage(groupId, text);
+    return { success: ok };
+  };
 
   // 1. KASUS KHUSUS: PENGGUNA MEMBALAS (REPLY) PERTANYAAN BOT TENTANG NAMA PEMILIK NOMOR
   // Contoh: Bot tanya "Ini nomornya siapa ya?", lalu pengguna me-reply: "punya Danang" atau "Zaki"
-  if (isQuotedFromBot && quotedText && quotedText.includes("belum terdaftar di web kita nih")) {
+  if (
+    isQuotedFromBot &&
+    quotedText &&
+    (quotedText.includes("belum terdaftar di web") || quotedText.includes("Ini nomornya siapa ya"))
+  ) {
     const phonesInPrompt = extractPhoneNumbers(quotedText);
     if (phonesInPrompt.length > 0) {
       const targetPhone = phonesInPrompt[0];
       const candidateName = await extractCandidateAlumniName(messageText, quotedText);
-      const finalName = candidateName || messageText.replace(/[^\w\s]/g, "").trim().slice(0, 30);
+      const cleanFallback = messageText.replace(/[^\w\s]/g, "").trim().slice(0, 30);
+      const finalName = candidateName || cleanFallback;
 
       // Eksekusi Japri Undangan
-      const inviteRes = await sendDirectAlumniInvitation(targetPhone, finalName, senderName);
+      const inviteRes = await sendDirectAlumniInvitation(targetPhone, finalName, senderName, customSender);
 
       let confirmationMsg = "";
       if (inviteRes.success) {
@@ -233,7 +268,7 @@ export async function handleAutomaticGroupNumberDetection(options: {
           `Afwan Sahabat *${senderName}*, sempat ada kendala teknis saat menjapri Sahabat *${finalName}* (${formatPhoneDisplay(targetPhone)}): ${inviteRes.reason || "Gateway timeout"}.`;
       }
 
-      await sendWhatsAppGroupMessage(groupId, confirmationMsg);
+      await sendTargetMessage(confirmationMsg);
       return { handled: true, replyText: confirmationMsg };
     }
   }
@@ -250,15 +285,19 @@ export async function handleAutomaticGroupNumberDetection(options: {
     return { handled: false };
   }
 
-  // 2. EKSTRAKSI SELURUH NOMOR TELEPON DARI PESAN MASUK
-  const extractedPhones = extractPhoneNumbers(messageText);
+  // 2. EKSTRAKSI SELURUH NOMOR TELEPON DARI PESAN MASUK ATAU PESAN YANG DI-QUOTE
+  let extractedPhones = extractPhoneNumbers(messageText);
+  if (extractedPhones.length === 0 && quotedText) {
+    extractedPhones = extractPhoneNumbers(quotedText);
+  }
+
   if (extractedPhones.length === 0) {
     return { handled: false };
   }
 
-  // Abaikan nomor bot sendiri atau nomor admin gateway
-  const selfPhones = ["6282142877426", "6285151771289", "6289675010185"];
-  const validPhones = extractedPhones.filter((p) => !selfPhones.includes(p) && p !== senderPhone);
+  // Abaikan nomor bot sendiri (jangan balas diri sendiri)
+  const botPhones = ["6285151771289", "6289675010185"];
+  const validPhones = extractedPhones.filter((p) => !botPhones.includes(p));
 
   if (validPhones.length === 0) {
     return { handled: false };
@@ -278,11 +317,12 @@ export async function handleAutomaticGroupNumberDetection(options: {
   try {
     const cleanDigits = targetPhone.replace(/\D/g, "");
     const localFormat = "0" + cleanDigits.substring(2);
+    const shortNine = cleanDigits.slice(-9);
 
     const { data: matchedProfiles } = await supabase
       .from("profiles")
       .select("nama_lengkap, nama_panggilan, no_whatsapp")
-      .or(`no_whatsapp.eq.${cleanDigits},no_whatsapp.eq.${localFormat},no_whatsapp.ilike.%${cleanDigits.slice(-9)}%`)
+      .or(`no_whatsapp.eq.${cleanDigits},no_whatsapp.eq.${localFormat},no_whatsapp.ilike.%${shortNine}%`)
       .limit(1);
 
     if (matchedProfiles && matchedProfiles.length > 0) {
@@ -298,20 +338,22 @@ export async function handleAutomaticGroupNumberDetection(options: {
     const alreadyMsg =
       `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* milik Sahabat *${alumniName}*, alhamdulillah sudah terdaftar dan aktif di website angkatan kita! ✅`;
 
-    await sendWhatsAppGroupMessage(groupId, alreadyMsg);
+    await sendTargetMessage(alreadyMsg);
     return { handled: true, replyText: alreadyMsg };
   }
 
   // 5. JIKA NOMOR BELUM TERDAFTAR: CARI CALON NAMA ALUMNI
   let recentContextSnippet = "";
-  try {
-    const recentMessages = await getRecentGroupChatHistory(groupId, 5);
-    if (recentMessages.length > 0) {
-      recentContextSnippet = recentMessages
-        .map((m) => `${m.senderName}: "${m.messageText}"`)
-        .join("\n");
-    }
-  } catch {}
+  if (!isPrivateChat && groupId.includes("@g.us")) {
+    try {
+      const recentMessages = await getRecentGroupChatHistory(groupId, 5);
+      if (recentMessages.length > 0) {
+        recentContextSnippet = recentMessages
+          .map((m) => `${m.senderName}: "${m.messageText}"`)
+          .join("\n");
+      }
+    } catch {}
+  }
 
   const candidateName = await extractCandidateAlumniName(messageText, quotedText, recentContextSnippet);
 
@@ -322,12 +364,12 @@ export async function handleAutomaticGroupNumberDetection(options: {
     if (alreadySent) {
       const skipMsg =
         `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di web, dan sebelumnya sudah pernah ana japri link registrasi ya sahabat! 🙌`;
-      await sendWhatsAppGroupMessage(groupId, skipMsg);
+      await sendTargetMessage(skipMsg);
       return { handled: true, replyText: skipMsg };
     }
 
     // Eksekusi Japri Undangan Otomatis
-    const inviteRes = await sendDirectAlumniInvitation(targetPhone, candidateName, senderName);
+    const inviteRes = await sendDirectAlumniInvitation(targetPhone, candidateName, senderName, customSender);
 
     let confirmationMsg = "";
     if (inviteRes.success) {
@@ -339,17 +381,20 @@ export async function handleAutomaticGroupNumberDetection(options: {
         `Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di web angkatan. (Gagal kirim japri: ${inviteRes.reason || "Kendala gateway"}).`;
     }
 
-    await sendWhatsAppGroupMessage(groupId, confirmationMsg);
+    await sendTargetMessage(confirmationMsg);
     return { handled: true, replyText: confirmationMsg };
   }
 
   // KASUS B: NOMOR POLOS TANPA NAMA & TANPA PETUNJUK OBROLAN
-  // Minta konfirmasi ramah 1 langkah di grup
-  const promptNameMsg =
-    `Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di web angkatan kita nih. 🤔\n` +
-    `Ini nomornya siapa ya Sahabat *${senderName}*?\n\n` +
-    `Cukup *balas (reply)* pesan ini dengan menyebut namanya (misal: _'punya Danang'_), biar langsung ana japri link pendaftaran portal resminya! 🙌✨`;
+  // Minta konfirmasi ramah 1 langkah di grup / chat pribadi
+  const promptNameMsg = isPrivateChat
+    ? `Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di web angkatan kita nih. 🤔\n` +
+      `Ini nomornya siapa ya Sahabat *${senderName}*?\n\n` +
+      `Cukup balas pesan ini dengan menyebut namanya (misal: _'punya Danang'_), biar langsung ana japri link pendaftaran portal resminya! 🙌✨`
+    : `Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di web angkatan kita nih. 🤔\n` +
+      `Ini nomornya siapa ya Sahabat *${senderName}*?\n\n` +
+      `Cukup *balas (reply)* pesan ini dengan menyebut namanya (misal: _'punya Danang'_), biar langsung ana japri link pendaftaran portal resminya! 🙌✨`;
 
-  await sendWhatsAppGroupMessage(groupId, promptNameMsg);
+  await sendTargetMessage(promptNameMsg);
   return { handled: true, replyText: promptNameMsg };
 }

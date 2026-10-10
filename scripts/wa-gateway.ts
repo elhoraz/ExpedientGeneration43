@@ -58,6 +58,8 @@ import {
 import {
   shouldGroupBotRespond,
 } from "../src/lib/whatsapp/groupManager";
+import { handleAutomaticGroupNumberDetection } from "../src/lib/whatsapp/autoMemberInviter";
+import { recordGroupChatMessage } from "../src/lib/whatsapp/groupConversationBuffer";
 import { generateIntelligentCohortReply } from "../src/lib/whatsapp/alumniIntelligence";
 import { handleAdminAutoRemediation } from "../src/lib/sentinel/autoRemediator";
 import {
@@ -1203,6 +1205,18 @@ async function startBaileysGateway() {
           ).catch(() => {});
         }
 
+        // Rekam riwayat percakapan obrolan grup agar AI selalu memiliki konteks diskusi terkini
+        if (isGroup && messageText) {
+          recordGroupChatMessage(remoteJid, {
+            senderPhone,
+            senderName: senderName || "Sahabat",
+            messageText,
+            quotedText,
+            quotedSender: quotedParticipant,
+            timestamp: Date.now(),
+          }).catch(() => {});
+        }
+
         // 1. PENANGANAN MEDIA LANGSUNG
         if (hasMedia) {
           const category: MultimodalMediaCategory = isSticker
@@ -1772,6 +1786,42 @@ async function startBaileysGateway() {
           }
           // CABANG B: GRUP ANGKATAN / KOMUNITAS
           else {
+            // A0. DETEKSI OTOMATIS PEMBAGIAN NOMOR TELEPON (Full Automatic Member Inviter)
+            try {
+              const autoNumberRes = await handleAutomaticGroupNumberDetection({
+                groupId: remoteJid,
+                senderPhone,
+                senderName,
+                messageText,
+                quotedText,
+                quotedSender: quotedParticipant,
+                isQuotedFromBot: Boolean(isBotQuoted),
+                isPrivateChat: false,
+                customSender: async (target: string, msg: string) => {
+                  try {
+                    let cleanTarget = target.trim();
+                    if (!cleanTarget.includes("@")) {
+                      let num = cleanTarget.replace(/\D/g, "");
+                      if (num.startsWith("0")) num = "62" + num.substring(1);
+                      cleanTarget = `${num}@s.whatsapp.net`;
+                    }
+                    const sent = await sock.sendMessage(cleanTarget, { text: msg });
+                    if (sent?.key?.id) sentMessageIds.add(sent.key.id);
+                    return { success: true };
+                  } catch (e: any) {
+                    return { success: false, reason: e.message };
+                  }
+                },
+              });
+
+              if (autoNumberRes.handled) {
+                addLog(`📱 [AUTO-INVITE-GROUP] Berhasil memproses nomor telepon di grup dari ${senderName}`, "success");
+                continue;
+              }
+            } catch (autoErr: any) {
+              addLog(`⚠️ [AUTO-INVITE-GROUP-ERR] ${autoErr.message}`, "warn");
+            }
+
             if (isDirectlyAddressed || shouldGroupBotRespond(messageText)) {
               addLog(`👥 [COMMUNITY-GROUP] Membalas di Grup Komunitas...`);
               await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
@@ -1845,6 +1895,42 @@ async function startBaileysGateway() {
               await sendReply(remoteJid, remResult.message, m);
               continue;
             }
+          }
+
+          // A0. DETEKSI OTOMATIS PEMBAGIAN / PENGUJIAN NOMOR TELEPON (Chat Pribadi)
+          try {
+            const autoNumberRes = await handleAutomaticGroupNumberDetection({
+              groupId: remoteJid,
+              senderPhone,
+              senderName,
+              messageText,
+              quotedText,
+              quotedSender: quotedParticipant,
+              isQuotedFromBot: Boolean(isBotQuoted),
+              isPrivateChat: true,
+              customSender: async (target: string, msg: string) => {
+                try {
+                  let cleanTarget = target.trim();
+                  if (!cleanTarget.includes("@")) {
+                    let num = cleanTarget.replace(/\D/g, "");
+                    if (num.startsWith("0")) num = "62" + num.substring(1);
+                    cleanTarget = `${num}@s.whatsapp.net`;
+                  }
+                  const sent = await sock.sendMessage(cleanTarget, { text: msg });
+                  if (sent?.key?.id) sentMessageIds.add(sent.key.id);
+                  return { success: true };
+                } catch (e: any) {
+                  return { success: false, reason: e.message };
+                }
+              },
+            });
+
+            if (autoNumberRes.handled) {
+              addLog(`📱 [AUTO-INVITE-PRIVATE] Berhasil memproses nomor telepon via chat pribadi dari ${senderName}`, "success");
+              continue;
+            }
+          } catch (autoErr: any) {
+            addLog(`⚠️ [AUTO-INVITE-PRIVATE-ERR] ${autoErr.message}`, "warn");
           }
 
           try {

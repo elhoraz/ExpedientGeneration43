@@ -389,6 +389,30 @@ export async function POST(request: Request) {
       // 2. PENANGANAN PESAN PERSONAL (1-ON-1)
       // =====================================================================
 
+      // A0. DETEKSI OTOMATIS PEMBAGIAN / PENGUJIAN NOMOR TELEPON (Chat Pribadi)
+      try {
+        const { handleAutomaticGroupNumberDetection } = await import("@/lib/whatsapp/autoMemberInviter");
+        const autoNumberRes = await handleAutomaticGroupNumberDetection({
+          groupId: numNorm,
+          senderPhone: numNorm,
+          senderName: item.senderName || "Sahabat",
+          messageText,
+          quotedText: item.quotedText,
+          quotedSender: item.quotedSender,
+          isQuotedFromBot: Boolean(item.quotedFromBot),
+          isPrivateChat: true,
+        });
+
+        if (autoNumberRes.handled) {
+          return NextResponse.json({
+            status: "AUTO_NUMBER_DETECTION_HANDLED",
+            reply: autoNumberRes.replyText || null,
+          });
+        }
+      } catch (autoErr: any) {
+        console.warn("[AUTO-NUMBER-DETECTION-PRIVATE-WARN]:", autoErr.message);
+      }
+
       // Cek apakah pesan berasal dari Nomor WhatsApp Admin
       const isSenderAdmin =
         numNorm === adminPhoneEnv ||
