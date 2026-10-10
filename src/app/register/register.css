@@ -130,9 +130,14 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
 /* ================= 7. MAGNETIC CHECKBOX & BUTTON ================= */
 .checkbox-container { display: flex; align-items: flex-start; gap: 15px; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid transparent; transition: 0.3s; position: relative; opacity: 1 !important; transform: none !important; animation: none !important; z-index: 10;}
 .checkbox-container.is-invalid { border-color: #ff3366; background: rgba(255, 51, 102, 0.05); animation: shakeError 0.4s !important; }
+.checkbox-container.is-invalid .error-hint { opacity: 1; transform: translateY(0); }
 [data-theme="light"] .checkbox-container { background: rgba(255,255,255,0.4); }
 .checkbox-container input { width: 20px; height: 20px; accent-color: #d4af37; cursor: pointer; margin-top: 3px; }
 .checkbox-container label { color: var(--text-secondary); font-size: 0.85rem; line-height: 1.6; cursor: pointer; margin: 0; pointer-events: auto;}
+
+.req-star { color: #ff3366; margin-left: 4px; font-weight: 800; font-size: 1.05em; display: inline-block; vertical-align: middle; }
+.optional-badge { opacity: 0.65; font-size: 0.78em; font-weight: 400; text-transform: none; letter-spacing: normal; margin-left: 6px; color: var(--text-secondary); }
+.required-notice { text-align: center; font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.5px; }
 
 .btn-magnetic-wrapper { display: inline-block; width: 100%; position: relative; margin-top: 20px; } 
 .btn-prime { position: relative; width: 100%; padding: 22px; border-radius: 18px; border: none; background: var(--gold-liquid); background-size: 200% auto; color: #060b14; font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.4); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.27); will-change: transform; }

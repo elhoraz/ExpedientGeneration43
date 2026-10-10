@@ -263,6 +263,26 @@ function RegisterFormContent() {
         formData.set("foto_profil_base64", imagePreview);
       }
 
+      // Bersihkan dan trim input teks
+      ["nama_lengkap", "nama_panggilan", "tempat_lahir", "alamat_lengkap", "email", "motivasi_hidup", "cita_cita", "akun_ig", "akun_tiktok"].forEach((key) => {
+        const val = formData.get(key);
+        if (typeof val === "string") {
+          formData.set(key, val.trim());
+        }
+      });
+
+      // Normalisasi nomor WhatsApp ke format 628...
+      const rawWa = String(formData.get("no_whatsapp") || "").trim();
+      let cleanWa = rawWa.replace(/\D/g, "");
+      if (cleanWa.startsWith("0")) {
+        cleanWa = "62" + cleanWa.substring(1);
+      } else if (cleanWa && !cleanWa.startsWith("62")) {
+        cleanWa = "62" + cleanWa;
+      }
+      if (cleanWa) {
+        formData.set("no_whatsapp", cleanWa);
+      }
+
       const res = await fetch("/auth/register?json=true", {
         method: "POST",
         headers: {
@@ -293,7 +313,7 @@ function RegisterFormContent() {
       }
 
       setRegisteredEmail(data.email || "");
-      setRegisteredWa(data.no_whatsapp || "");
+      setRegisteredWa(data.no_whatsapp || cleanWa || "");
       setIsOtpModalOpen(true);
       setOtpStep("choose_channel");
     } catch (err: any) {
@@ -466,40 +486,140 @@ function RegisterFormContent() {
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     const form = e.currentTarget;
-    if (!form.checkValidity()) {
-      e.preventDefault();
-      
-      let firstInvalidElement: HTMLInputElement | null = null;
-      const invalidInputs = form.querySelectorAll(":invalid") as NodeListOf<HTMLInputElement>;
-      
-      invalidInputs.forEach(input => {
-        if (input.id === "snk") {
+    
+    // Bersihkan status error sebelumnya
+    const allControls = form.querySelectorAll(".input-control, .checkbox-container");
+    allControls.forEach(ctrl => ctrl.classList.remove("is-invalid"));
+
+    let firstInvalidEl: HTMLElement | null = null;
+    const errors: { [key: string]: string } = {};
+
+    const getVal = (name: string) => {
+      const el = form.elements.namedItem(name) as HTMLInputElement | HTMLSelectElement | null;
+      return el ? (el.value || "").trim() : "";
+    };
+
+    const getElement = (name: string) => {
+      return form.elements.namedItem(name) as HTMLElement | null;
+    };
+
+    const markError = (name: string, message: string) => {
+      errors[name] = message;
+      const el = getElement(name);
+      if (el) {
+        if (name === "snk") {
           const snkContainer = document.getElementById("snkContainer");
           if (snkContainer) {
             snkContainer.classList.add("is-invalid");
             const hint = snkContainer.querySelector(".error-hint") as HTMLElement;
-            if (hint) hint.innerText = "Persetujuan ini wajib dicentang.";
+            if (hint) hint.textContent = message;
+            if (!firstInvalidEl) firstInvalidEl = el;
           }
         } else {
-          input.classList.add("is-invalid");
-          const parent = input.parentElement;
+          el.classList.add("is-invalid");
+          const parent = el.parentElement;
           if (parent) {
             const hint = parent.querySelector(".error-hint") as HTMLElement;
-            if (hint) {
-              if (input.validity.valueMissing) { hint.innerText = "Kolom ini wajib diisi."; }
-              else if (input.validity.typeMismatch && input.type === "email") { hint.innerText = "Gunakan format email yang sah (misal: nama@gmail.com)."; }
-              else if (input.validity.tooShort || (input.name === "password" && input.value.length < 8)) { hint.innerText = "Kata sandi minimal harus 8 karakter."; }
-              else if (input.validity.patternMismatch) { hint.innerText = "Hanya boleh berisi angka."; }
-              else { hint.innerText = "Format tidak sesuai."; }
-            }
+            if (hint) hint.textContent = message;
           }
+          if (!firstInvalidEl) firstInvalidEl = el;
         }
-        if (!firstInvalidElement) firstInvalidElement = input;
-      });
+      }
+    };
 
-      if (firstInvalidElement) {
-        (firstInvalidElement as HTMLElement).focus();
+    // 1. Nama Lengkap (Wajib, min 3 karakter)
+    const namaLengkap = getVal("nama_lengkap");
+    if (!namaLengkap) {
+      markError("nama_lengkap", locale === "ar" ? "الاسم الكامل مطلوب." : locale === "en" ? "Full name is required." : "Nama lengkap wajib diisi.");
+    } else if (namaLengkap.length < 3) {
+      markError("nama_lengkap", locale === "ar" ? "الاسم الكامل يجب أن يكون 3 أحرف على الأقل." : locale === "en" ? "Full name must be at least 3 characters." : "Nama lengkap minimal 3 karakter.");
+    }
+
+    // 2. Nama Panggilan (Wajib, min 2 karakter)
+    const namaPanggilan = getVal("nama_panggilan");
+    if (!namaPanggilan) {
+      markError("nama_panggilan", locale === "ar" ? "اسم الشهرة مطلوب." : locale === "en" ? "Nickname is required." : "Nama panggilan wajib diisi.");
+    } else if (namaPanggilan.length < 2) {
+      markError("nama_panggilan", locale === "ar" ? "اسم الشهرة يجب أن يكون حرفين على الأقل." : locale === "en" ? "Nickname must be at least 2 characters." : "Nama panggilan minimal 2 karakter.");
+    }
+
+    // 3. Jenis Kelamin (Wajib, Laki-laki / Perempuan)
+    const jenisKelamin = getVal("jenis_kelamin");
+    if (!jenisKelamin || (jenisKelamin !== "Laki-laki" && jenisKelamin !== "Perempuan")) {
+      markError("jenis_kelamin", locale === "ar" ? "يرجى اختيار الجنس." : locale === "en" ? "Please select gender." : "Jenis kelamin wajib dipilih.");
+    }
+
+    // 4. Tempat Lahir (Wajib, min 2 karakter)
+    const tempatLahir = getVal("tempat_lahir");
+    if (!tempatLahir) {
+      markError("tempat_lahir", locale === "ar" ? "مكان الميلاد مطلوب." : locale === "en" ? "Place of birth is required." : "Tempat lahir wajib diisi.");
+    } else if (tempatLahir.length < 2) {
+      markError("tempat_lahir", locale === "ar" ? "مكان الميلاد قصير جداً." : locale === "en" ? "Place of birth is too short." : "Tempat lahir minimal 2 karakter.");
+    }
+
+    // 5. Tanggal Lahir (Wajib, format valid, tidak melebihi hari ini)
+    const tanggalLahir = getVal("tanggal_lahir");
+    if (!tanggalLahir) {
+      markError("tanggal_lahir", locale === "ar" ? "تاريخ الميلاد مطلوب." : locale === "en" ? "Date of birth is required." : "Tanggal lahir wajib diisi.");
+    } else {
+      const birthDate = new Date(tanggalLahir);
+      const today = new Date();
+      if (isNaN(birthDate.getTime()) || birthDate.getFullYear() < 1920 || birthDate > today) {
+        markError("tanggal_lahir", locale === "ar" ? "تاريخ الميلاد غير صالح." : locale === "en" ? "Invalid date of birth." : "Format tanggal lahir tidak valid.");
+      }
+    }
+
+    // 6. Alamat Lengkap (Wajib, min 5 karakter)
+    const alamatLengkap = getVal("alamat_lengkap");
+    if (!alamatLengkap) {
+      markError("alamat_lengkap", locale === "ar" ? "العنوان مطلوب." : locale === "en" ? "Address is required." : "Alamat lengkap / konsulat wajib diisi.");
+    } else if (alamatLengkap.length < 5) {
+      markError("alamat_lengkap", locale === "ar" ? "العنوان يجب أن يكون 5 أحرف على الأقل." : locale === "en" ? "Address must be at least 5 characters." : "Alamat minimal 5 karakter.");
+    }
+
+    // 7. Email (Wajib, validasi regex)
+    const email = getVal("email").toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      markError("email", locale === "ar" ? "البريد الإلكتروني مطلوب." : locale === "en" ? "Email is required." : "Surel resmi wajib diisi.");
+    } else if (!emailRegex.test(email)) {
+      markError("email", locale === "ar" ? "صيغة البريد الإلكتروني غير صحيحة." : locale === "en" ? "Invalid email format." : "Gunakan format email yang sah (contoh: nama@gmail.com).");
+    }
+
+    // 8. Nomor WhatsApp (Wajib, min 10 digit, diawali 08 atau 628)
+    const rawWa = getVal("no_whatsapp");
+    let cleanWa = rawWa.replace(/\D/g, "");
+    if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.substring(1);
+    else if (cleanWa && !cleanWa.startsWith("62")) cleanWa = "62" + cleanWa;
+
+    if (!rawWa) {
+      markError("no_whatsapp", locale === "ar" ? "رقم الواتساب مطلوب." : locale === "en" ? "WhatsApp number is required." : "Nomor WhatsApp wajib diisi.");
+    } else if (cleanWa.length < 10 || cleanWa.length > 15 || !cleanWa.startsWith("628")) {
+      markError("no_whatsapp", tLang.register_extra?.whatsapp_format_error || "Nomor wajib diawali 08 atau 628 (min 10 digit).");
+    }
+
+    // 9. Password (Wajib, min 8 karakter)
+    const pwdEl = form.elements.namedItem("password") as HTMLInputElement | null;
+    const pwd = pwdEl ? pwdEl.value : "";
+    if (!pwd) {
+      markError("password", locale === "ar" ? "كلمة المرور مطلوبة." : locale === "en" ? "Password is required." : "Kata sandi wajib diisi.");
+    } else if (pwd.length < 8) {
+      markError("password", tLang.register?.password_hint || "Kata sandi minimal 8 karakter.");
+    }
+
+    // 10. Persetujuan Syarat & Ketentuan (Wajib dicentang)
+    const snkInput = form.elements.namedItem("snk") as HTMLInputElement | null;
+    if (!snkInput || !snkInput.checked) {
+      markError("snk", locale === "ar" ? "يجب الموافقة على الشروط للمتابعة." : locale === "en" ? "You must agree to continue." : "Persetujuan ini wajib dicentang.");
+    }
+
+    // Jika terdapat kesalahan validasi
+    if (Object.keys(errors).length > 0) {
+      if (firstInvalidEl) {
+        (firstInvalidEl as any).focus();
+        (firstInvalidEl as any).scrollIntoView({ behavior: "smooth", block: "center" });
       }
 
       const btnSubmit = form.querySelector(".btn-prime");
@@ -509,23 +629,44 @@ function RegisterFormContent() {
         setTimeout(() => btnSubmit.classList.remove("shake-anim"), 500);
       }
 
-    } else {
-      e.preventDefault();
-      submitRegistrationAsync();
+      showToastAlert(
+        locale === "ar" 
+          ? "يرجى ملء جميع الحقول الإلزامية (*) بشكل صحيح."
+          : locale === "en"
+          ? "Please complete all required fields (*) properly."
+          : "Mohon lengkapi semua kolom yang wajib diisi (*) dengan benar."
+      );
+      return;
     }
+
+    // Validasi berhasil, lanjutkan submit
+    submitRegistrationAsync();
   };
 
   useEffect(() => {
-    const allInputs = document.querySelectorAll(".input-control, input[type='checkbox']");
-    allInputs.forEach(input => {
-      input.addEventListener("input", function(this: HTMLInputElement) {
-        this.classList.remove("is-invalid");
-        if(this.id === "snk") {
+    const handleInputOrChange = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        target.classList.remove("is-invalid");
+        if (target.id === "snk") {
           const snkContainer = document.getElementById("snkContainer");
           if (snkContainer) snkContainer.classList.remove("is-invalid");
         }
-      });
-    });
+      }
+    };
+
+    const form = document.getElementById("registerForm");
+    if (form) {
+      form.addEventListener("input", handleInputOrChange);
+      form.addEventListener("change", handleInputOrChange);
+    }
+
+    return () => {
+      if (form) {
+        form.removeEventListener("input", handleInputOrChange);
+        form.removeEventListener("change", handleInputOrChange);
+      }
+    };
   }, []);
 
 
@@ -575,6 +716,10 @@ function RegisterFormContent() {
             </div>
             <h1 className="title-holographic">{locale === "id" ? t('register_title', tLang.register.title) : tLang.register.title}</h1>
             <p className="subtitle-spec">{locale === "id" ? t('register_subtitle', tLang.register.subtitle) : tLang.register.subtitle}</p>
+            <div className="required-notice">
+              <span className="req-star">*</span>
+              <span>{locale === "ar" ? "الحقول التي تحمل علامة نجمة (*) إلزامية" : locale === "en" ? "Fields marked with an asterisk (*) are required" : "Kolom bertanda bintang (*) wajib diisi"}</span>
+            </div>
           </div>
 
           <form action="/auth/register" method="POST" encType="multipart/form-data" id="registerForm" noValidate onSubmit={handleSubmit}>
@@ -583,16 +728,20 @@ function RegisterFormContent() {
             <div className="form-grid">
               <div className="input-group">
                 <input type="text" name="nama_lengkap" className="input-control" required minLength={3} placeholder=" " />
-                <label className="input-label">{tLang.register.full_name_label}</label>
+                <label className="input-label">
+                  {tLang.register.full_name_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint">{locale === "ar" ? "حقل إلزامي مطلوب." : locale === "en" ? "Required field." : "Wajib diisi dengan benar."}</div>
+                <div className="error-hint">{locale === "ar" ? "الاسم الكامل مطلوب (3 أحرف على الأقل)." : locale === "en" ? "Full name is required (min 3 chars)." : "Nama lengkap wajib diisi minimal 3 karakter."}</div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="nama_panggilan" className="input-control" required minLength={2} placeholder=" " />
-                <label className="input-label">{tLang.register.nickname_label}</label>
+                <label className="input-label">
+                  {tLang.register.nickname_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint">{locale === "ar" ? "حقل إلزامي مطلوب." : locale === "en" ? "Required field." : "Wajib diisi dengan benar."}</div>
+                <div className="error-hint">{locale === "ar" ? "اسم الشهرة مطلوب (حرفان على الأقل)." : locale === "en" ? "Nickname is required (min 2 chars)." : "Nama panggilan wajib diisi minimal 2 karakter."}</div>
               </div>
 
               <div className="input-group">
@@ -601,37 +750,47 @@ function RegisterFormContent() {
                   <option value="Laki-laki">{tLang.register.gender_male}</option>
                   <option value="Perempuan">{tLang.register.gender_female}</option>
                 </select>
-                <label className="input-label">{tLang.register.gender_label}</label>
+                <label className="input-label">
+                  {tLang.register.gender_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint"></div>
+                <div className="error-hint">{locale === "ar" ? "يرجى اختيار الجنس." : locale === "en" ? "Please select gender." : "Jenis kelamin wajib dipilih."}</div>
               </div>
               
               <div className="input-group">
-                <input type="text" name="tempat_lahir" className="input-control" required placeholder=" " />
-                <label className="input-label">{tLang.register.pob_label}</label>
+                <input type="text" name="tempat_lahir" className="input-control" required minLength={2} placeholder=" " />
+                <label className="input-label">
+                  {tLang.register.pob_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint"></div>
+                <div className="error-hint">{locale === "ar" ? "مكان الميلاد مطلوب." : locale === "en" ? "Place of birth is required." : "Tempat lahir wajib diisi."}</div>
               </div>
 
               <div className="input-group">
-                <input type="date" name="tanggal_lahir" className="input-control" required placeholder=" " style={{ colorScheme: "dark" }} />
-                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>{tLang.register.dob_label}</label>
+                <input type="date" name="tanggal_lahir" className="input-control" required placeholder=" " style={{ colorScheme: "dark" }} max={new Date().toISOString().split("T")[0]} />
+                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>
+                  {tLang.register.dob_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint"></div>
+                <div className="error-hint">{locale === "ar" ? "تاريخ الميلاد مطلوب." : locale === "en" ? "Date of birth is required." : "Tanggal lahir wajib diisi."}</div>
               </div>
 
               <div className="input-group span-full">
-                <input type="text" name="alamat_lengkap" className="input-control" required minLength={10} placeholder=" " />
-                <label className="input-label">{tLang.register.address_label}</label>
+                <input type="text" name="alamat_lengkap" className="input-control" required minLength={5} placeholder=" " />
+                <label className="input-label">
+                  {tLang.register.address_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint"></div>
+                <div className="error-hint">{locale === "ar" ? "العنوان بالكامل مطلوب (5 أحرف على الأقل)." : locale === "en" ? "Address is required (min 5 chars)." : "Alamat lengkap domisili wajib diisi minimal 5 karakter."}</div>
               </div>
 
               <div className="input-group">
                 <input type="email" name="email" className="input-control" required placeholder=" " />
-                <label className="input-label">{tLang.register.email_label}</label>
+                <label className="input-label">
+                  {tLang.register.email_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
-                <div className="error-hint"></div>
+                <div className="error-hint">{locale === "ar" ? "البريد الإلكتروني مطلوب وصحيح." : locale === "en" ? "Valid email address is required." : "Surel resmi wajib diisi dengan format yang benar."}</div>
               </div>
               
               <div className="input-group">
@@ -641,11 +800,12 @@ function RegisterFormContent() {
                   className="input-control" 
                   required 
                   minLength={10} 
-                  maxLength={15} 
-                  pattern="^(08|628)[0-9]{8,12}$" 
+                  maxLength={17} 
                   placeholder=" " 
                 />
-                <label className="input-label">{tLang.register.whatsapp_label}</label>
+                <label className="input-label">
+                  {tLang.register.whatsapp_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint">{tLang.register_extra.whatsapp_format_error}</div>
               </div>
@@ -667,7 +827,9 @@ function RegisterFormContent() {
                     }
                   }}
                 />
-                <label className="input-label">{tLang.register.password_label}</label>
+                <label className="input-label">
+                  {tLang.register.password_label} <span className="req-star">*</span>
+                </label>
                 <div className="input-neon-line"></div>
                 <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`} onClick={() => setShowPassword(!showPassword)}></i>
                 <div className="error-hint">{tLang.register.password_hint}</div>
@@ -708,34 +870,44 @@ function RegisterFormContent() {
 
               <div className="input-group">
                 <input type="text" name="motivasi_hidup" className="input-control" placeholder=" " />
-                <label className="input-label">{tLang.register.motivation_label}</label>
+                <label className="input-label">
+                  {tLang.register.motivation_label} <span className="optional-badge">({locale === "ar" ? "اختياري" : locale === "en" ? "Optional" : "Opsional"})</span>
+                </label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="cita_cita" className="input-control" placeholder=" " />
-                <label className="input-label">{tLang.register.aspiration_label}</label>
+                <label className="input-label">
+                  {tLang.register.aspiration_label} <span className="optional-badge">({locale === "ar" ? "اختياري" : locale === "en" ? "Optional" : "Opsional"})</span>
+                </label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
 
               <div className="input-group">
                 <input type="text" name="akun_ig" className="input-control" placeholder=" " />
-                <label className="input-label">{tLang.register.instagram_label}</label>
+                <label className="input-label">
+                  {tLang.register.instagram_label} <span className="optional-badge">({locale === "ar" ? "اختياري" : locale === "en" ? "Optional" : "Opsional"})</span>
+                </label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
               
               <div className="input-group">
                 <input type="text" name="akun_tiktok" className="input-control" placeholder=" " />
-                <label className="input-label">{tLang.register.tiktok_label}</label>
+                <label className="input-label">
+                  {tLang.register.tiktok_label} <span className="optional-badge">({locale === "ar" ? "اختياري" : locale === "en" ? "Optional" : "Opsional"})</span>
+                </label>
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
 
               <div className="input-group span-full">
-                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>{tLang.register.photo_title}</label>
+                <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>
+                  {tLang.register.photo_title} <span className="optional-badge">({locale === "ar" ? "اختياري" : locale === "en" ? "Optional" : "Opsional"})</span>
+                </label>
                 
                 {/* Upload Zone (Tampil saat belum ada foto terpilih) */}
                 {!imagePreview && (
@@ -850,8 +1022,10 @@ function RegisterFormContent() {
 
               <div className="input-group span-full checkbox-container" id="snkContainer">
                 <input type="checkbox" id="snk" name="snk" required />
-                <label htmlFor="snk">{tLang.register.terms_declaration}</label>
-                <div className="error-hint" style={{ bottom: "-15px" }}></div>
+                <label htmlFor="snk">
+                  {tLang.register.terms_declaration} <span className="req-star">*</span>
+                </label>
+                <div className="error-hint" style={{ bottom: "-15px" }}>{locale === "ar" ? "يجب الموافقة على الشروط للمتابعة." : locale === "en" ? "You must agree to continue." : "Persetujuan ini wajib dicentang."}</div>
               </div>
 
               <div className="span-full btn-magnetic-wrapper">

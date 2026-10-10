@@ -123,6 +123,7 @@ interface LogEntry {
 }
 
 const activityLogs: LogEntry[] = [];
+const groupFridayCooldown = new Map<string, number>();
 
 function addLog(msg: string, level: LogEntry["level"] = "info") {
   const time = new Intl.DateTimeFormat("id-ID", {
@@ -1532,10 +1533,32 @@ async function startBaileysGateway() {
         const isFridayBlessingTrigger =
           cleanLower === "!jumat" ||
           cleanLower === "/jumat" ||
-          cleanLower.includes("sunnah jumat") ||
-          cleanLower.includes("jumat berkah");
+          cleanLower === "!jumatberkah" ||
+          cleanLower === "/jumatberkah" ||
+          cleanLower === "!sunnahjumat" ||
+          cleanLower === "/sunnahjumat" ||
+          ((cleanLower === "jumat berkah" || cleanLower === "sunnah jumat") && isDirectlyAddressed);
 
-        if (isFridayBlessingTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+        if (isFridayBlessingTrigger && (isGroup ? isDirectlyAddressed || cleanLower.startsWith("!") || cleanLower.startsWith("/") : true)) {
+          const nowMs = Date.now();
+          const lastSentTime = groupFridayCooldown.get(remoteJid) || 0;
+
+          // Anti-spam group cooldown: maks 1x per 30 menit per grup jika manual command
+          if (isGroup && nowMs - lastSentTime < 30 * 60 * 1000) {
+            if (isDirectlyAddressed) {
+              await sendReply(
+                remoteJid,
+                `🌿 Panduan amalan dan mutiara Jum'at Berkah sudah dibagikan di atas sahabat. Mari perbanyak sholawat dan baca Al-Kahfi hari ini! ✨`,
+                m
+              );
+            }
+            continue;
+          }
+
+          if (isGroup) {
+            groupFridayCooldown.set(remoteJid, nowMs);
+          }
+
           await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
           const fridayMsg = formatFridayBlessingMessage();
           await sendReply(remoteJid, fridayMsg, m);

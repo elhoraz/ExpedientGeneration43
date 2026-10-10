@@ -31,12 +31,12 @@ async function loadLeaderboard(): Promise<Map<string, PlayerScore>> {
     const supabase = createAdminClient();
     const { data } = await supabase
       .from("site_content")
-      .select("content")
-      .eq("key", "wa_quiz_leaderboard")
+      .select("content_value")
+      .eq("content_key", "wa_quiz_leaderboard")
       .maybeSingle();
 
-    if (data?.content) {
-      const parsed = JSON.parse(data.content);
+    if (data?.content_value) {
+      const parsed = JSON.parse(data.content_value);
       if (Array.isArray(parsed)) {
         for (const item of parsed) {
           if (item.phone) map.set(item.phone, item);
@@ -55,10 +55,15 @@ async function saveLeaderboard(map: Map<string, PlayerScore>): Promise<void> {
   try {
     const supabase = createAdminClient();
     const list = Array.from(map.values()).sort((a, b) => b.score - a.score);
-    await supabase.from("site_content").upsert({
-      key: "wa_quiz_leaderboard",
-      content: JSON.stringify(list),
-    });
+    await supabase.from("site_content").upsert(
+      {
+        content_key: "wa_quiz_leaderboard",
+        content_value: JSON.stringify(list),
+        content_type: "json",
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "content_key" }
+    );
   } catch (err: any) {
     console.warn("[SAVE-LEADERBOARD-WARN]:", err.message);
   }

@@ -201,4 +201,31 @@ describe('WhatsApp Group Gateway & Smart Trigger Validation', () => {
     assert.strictEqual(shouldGroupBotRespond('gue otw nih tunggu ya'), false);
     assert.strictEqual(shouldGroupBotRespond('mantap jiwa'), false);
   });
+
+  it('MUST distinguish Friday blessing commands from casual conversation (Anti-Spam)', () => {
+    function isFridayTrigger(text, isDirectlyAddressed = false) {
+      const cleanLower = text.trim().toLowerCase();
+      return (
+        cleanLower === "!jumat" ||
+        cleanLower === "/jumat" ||
+        cleanLower === "!jumatberkah" ||
+        cleanLower === "/jumatberkah" ||
+        cleanLower === "!sunnahjumat" ||
+        cleanLower === "/sunnahjumat" ||
+        ((cleanLower === "jumat berkah" || cleanLower === "sunnah jumat") && isDirectlyAddressed)
+      );
+    }
+
+    // Commands must trigger
+    assert.strictEqual(isFridayTrigger('!jumat'), true);
+    assert.strictEqual(isFridayTrigger('/jumat'), true);
+    assert.strictEqual(isFridayTrigger('!jumatberkah'), true);
+    assert.strictEqual(isFridayTrigger('jumat berkah', true), true);
+
+    // Casual chat must NOT trigger (prevent spam)
+    assert.strictEqual(isFridayTrigger('jumat berkah semuanya!'), false);
+    assert.strictEqual(isFridayTrigger('selamat hari jumat berkah'), false);
+    assert.strictEqual(isFridayTrigger('woi bot jumat berkah kok nyepam sih', true), false);
+    assert.strictEqual(isFridayTrigger('aamiin jumat berkah juga rek', true), false);
+  });
 });

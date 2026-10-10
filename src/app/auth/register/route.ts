@@ -40,6 +40,48 @@ export async function POST(request: Request) {
     request.headers.get("content-type")?.includes("application/json") ||
     new URL(request.url).searchParams.get("json") === "true";
 
+  const returnValidationError = (errorMessage: string) => {
+    if (isJsonRequest) {
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
+    }
+    return NextResponse.redirect(`${origin}/register?error=${encodeURIComponent(errorMessage)}`, {
+      status: 303,
+    });
+  };
+
+  // Validasi Ketat Field Wajib (Mandatory Fields)
+  if (!nama_lengkap || nama_lengkap.length < 3) {
+    return returnValidationError("Nama lengkap wajib diisi minimal 3 karakter.");
+  }
+  if (!nama_panggilan || nama_panggilan.length < 2) {
+    return returnValidationError("Nama panggilan wajib diisi minimal 2 karakter.");
+  }
+  if (!jenis_kelamin || (jenis_kelamin !== "Laki-laki" && jenis_kelamin !== "Perempuan")) {
+    return returnValidationError("Jenis kelamin wajib dipilih (Laki-laki atau Perempuan).");
+  }
+  if (!tempat_lahir || tempat_lahir.length < 2) {
+    return returnValidationError("Tempat lahir wajib diisi.");
+  }
+  if (!tanggal_lahir) {
+    return returnValidationError("Tanggal lahir wajib diisi.");
+  }
+  const dateParts = tanggal_lahir.split(/[-/]/);
+  if (dateParts.length < 3 || isNaN(Date.parse(tanggal_lahir))) {
+    return returnValidationError("Format tanggal lahir tidak sah.");
+  }
+  if (!alamat_lengkap || alamat_lengkap.length < 5) {
+    return returnValidationError("Alamat lengkap / asal konsulat wajib diisi minimal 5 karakter.");
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return returnValidationError("Format alamat email tidak sah.");
+  }
+  if (!cleanWa || cleanWa.length < 10 || cleanWa.length > 15 || !cleanWa.startsWith("628")) {
+    return returnValidationError("Nomor WhatsApp wajib diisi (diawali 08 atau 628, min 10 digit).");
+  }
+  if (!password || password.length < 8) {
+    return returnValidationError("Kata sandi wajib diisi minimal 8 karakter.");
+  }
+
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.signUp({

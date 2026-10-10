@@ -171,53 +171,98 @@ export function formatFridayBlessingMessage(): string {
   );
 }
 
+let memoryLastFridayWishDate = "";
+let isCheckingFridayBlessing = false;
+
+/**
+ * Format tanggal YYYY-MM-DD dalam zona waktu Asia/Jakarta (WIB)
+ */
+export function getWibDateString(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 /**
  * Mengecek dan memicu pengiriman pesan Jum'at Berkah otomatis ke grup
- * Berjalan otomatis setiap hari Jum'at pagi (06:30 - 09:30 WIB)
+ * Berjalan otomatis tepat 1x setiap hari Jum'at pagi (06:30 - 09:30 WIB)
  */
 export async function checkAndTriggerFridayBlessing(
   sock: any,
   communityGroupId: string
 ): Promise<{ triggered: boolean }> {
+  if (isCheckingFridayBlessing) {
+    return { triggered: false };
+  }
+
+  isCheckingFridayBlessing = true;
   try {
     if (!communityGroupId) return { triggered: false };
 
-    const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const todayDateStr = getWibDateString();
+
+    // 1. In-memory anti-spam guard: jika dalam proses ini sudah kirim hari ini, langsung tolak
+    if (memoryLastFridayWishDate === todayDateStr) {
+      return { triggered: false };
+    }
+
+    const now = new Date();
+    const jakartaTimeStr = now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" });
+    const nowWib = new Date(jakartaTimeStr);
     const dayOfWeek = nowWib.getDay(); // 5 = Jumat
     const hour = nowWib.getHours();
+    const minute = nowWib.getMinutes();
 
-    // Hanya picu pada hari Jumat antara jam 06:30 s/d 10:00 WIB
-    if (dayOfWeek !== 5 || hour < 6 || hour > 10) {
+    // Hanya picu pada hari Jumat antara jam 06:30 s/d 09:30 WIB
+    if (dayOfWeek !== 5 || hour < 6 || (hour === 6 && minute < 30) || hour >= 10) {
       return { triggered: false };
     }
 
-    const todayDateStr = nowWib.toISOString().slice(0, 10);
     const supabase = createAdminClient();
 
-    // Cek apakah sudah pernah dikirim hari ini
-    const { data: record } = await supabase
+    // 2. Cek apakah sudah pernah dikirim hari ini via Supabase (kolom content_key & content_value)
+    const { data: record, error: fetchErr } = await supabase
       .from("site_content")
-      .select("content")
-      .eq("key", "wa_last_friday_wish_date")
+      .select("content_value")
+      .eq("content_key", "wa_last_friday_wish_date")
       .maybeSingle();
 
-    if (record?.content === todayDateStr) {
+    if (!fetchErr && record?.content_value === todayDateStr) {
+      memoryLastFridayWishDate = todayDateStr;
       return { triggered: false };
     }
+
+    // Pasang guard in-memory sebelum kirim agar asynchronous concurrent loop tidak lolos
+    memoryLastFridayWishDate = todayDateStr;
 
     // Kirim pesan Jum'at Berkah ke grup komunitas
     const msg = formatFridayBlessingMessage();
     await sock.sendMessage(communityGroupId, { text: msg });
 
-    // Tandai status selesai untuk hari ini
-    await supabase.from("site_content").upsert({
-      key: "wa_last_friday_wish_date",
-      content: todayDateStr,
-    });
+    // Tandai status selesai untuk hari ini di database Supabase
+    try {
+      await supabase.from("site_content").upsert(
+        {
+          content_key: "wa_last_friday_wish_date",
+          content_value: todayDateStr,
+          content_type: "text",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "content_key" }
+      );
+    } catch (saveErr: any) {
+      console.warn("[SAVE-FRIDAY-WISH-DATE-WARN]:", saveErr.message);
+    }
 
     return { triggered: true };
   } catch (err: any) {
     console.error("[TRIGGER-FRIDAY-ERR]:", err.message);
     return { triggered: false };
+  } finally {
+    isCheckingFridayBlessing = false;
   }
 }
+

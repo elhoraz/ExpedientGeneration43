@@ -125,13 +125,33 @@ export function formatPersonalBirthdayGreetingMessage(alumni: BirthdayAlumni): s
  * 1. Dikirim langsung ke Japri Personal alumni yang milad
  * 2. Di-broadcast ke Grup WhatsApp Komunitas Angkatan
  */
+let memoryLastBirthdayWishDate = "";
+let isCheckingBirthday = false;
+
 export async function checkAndTriggerDailyBirthdayWishes(
   sock: any,
   communityGroupId: string,
   force: boolean = false
 ): Promise<{ triggered: boolean; count: number }> {
+  if (isCheckingBirthday) {
+    return { triggered: false, count: 0 };
+  }
+
+  isCheckingBirthday = true;
   try {
     if (!communityGroupId) return { triggered: false, count: 0 };
+
+    const todayDateStr = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+
+    // In-memory guard
+    if (!force && memoryLastBirthdayWishDate === todayDateStr) {
+      return { triggered: false, count: 0 };
+    }
 
     const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
     const hour = nowWib.getHours();
@@ -141,30 +161,42 @@ export async function checkAndTriggerDailyBirthdayWishes(
       return { triggered: false, count: 0 };
     }
 
-    const todayDateStr = nowWib.toISOString().slice(0, 10); // YYYY-MM-DD
     const supabase = createAdminClient();
 
     // 1. Cek apakah ucapan milad hari ini sudah pernah dikirim
     if (!force) {
-      const { data: record } = await supabase
+      const { data: record, error: fetchErr } = await supabase
         .from("site_content")
-        .select("content")
-        .eq("key", "wa_last_birthday_wish_date")
+        .select("content_value")
+        .eq("content_key", "wa_last_birthday_wish_date")
         .maybeSingle();
 
-      if (record?.content === todayDateStr) {
+      if (!fetchErr && record?.content_value === todayDateStr) {
+        memoryLastBirthdayWishDate = todayDateStr;
         return { triggered: false, count: 0 };
       }
+    }
+
+    // Pasang guard in-memory
+    if (!force) {
+      memoryLastBirthdayWishDate = todayDateStr;
     }
 
     // 2. Ambil santri yang berulang tahun hari ini
     const birthdays = await getTodayBirthdayAlumni();
     if (birthdays.length === 0) {
       // Tandai hari ini sudah dicek meskipun tidak ada yang milad
-      await supabase.from("site_content").upsert({
-        key: "wa_last_birthday_wish_date",
-        content: todayDateStr,
-      });
+      try {
+        await supabase.from("site_content").upsert(
+          {
+            content_key: "wa_last_birthday_wish_date",
+            content_value: todayDateStr,
+            content_type: "text",
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "content_key" }
+        );
+      } catch {}
       return { triggered: false, count: 0 };
     }
 
@@ -258,15 +290,26 @@ export async function checkAndTriggerDailyBirthdayWishes(
     }
 
     // 4. Update status tanggal hari ini sudah selesai dikirim
-    await supabase.from("site_content").upsert({
-      key: "wa_last_birthday_wish_date",
-      content: todayDateStr,
-    });
+    try {
+      await supabase.from("site_content").upsert(
+        {
+          content_key: "wa_last_birthday_wish_date",
+          content_value: todayDateStr,
+          content_type: "text",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "content_key" }
+      );
+    } catch (saveErr: any) {
+      console.warn("[SAVE-BIRTHDAY-WISH-DATE-WARN]:", saveErr.message);
+    }
 
     return { triggered: true, count: birthdays.length };
   } catch (err: any) {
     console.error("[TRIGGER-BIRTHDAY-ERR]:", err.message);
     return { triggered: false, count: 0 };
+  } finally {
+    isCheckingBirthday = false;
   }
 }
 
