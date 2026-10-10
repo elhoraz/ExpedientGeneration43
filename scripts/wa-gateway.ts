@@ -127,6 +127,88 @@ interface LogEntry {
 const activityLogs: LogEntry[] = [];
 const groupFridayCooldown = new Map<string, number>();
 
+// =============================================================================
+// GLOBAL ANTI-LOOP & ANTI-SPAM CIRCUIT BREAKER SYSTEM
+// =============================================================================
+const globalSentMessageIds = new Set<string>();
+
+const AUTO_RESPONDER_PATTERNS = [
+  /terima kasih telah menghubungi/i,
+  /pesan ini dikirim secara otomatis/i,
+  /auto[\s-]?reply/i,
+  /autoreply/i,
+  /kami sedang (offline|tutup|istirahat|tidak di tempat)/i,
+  /out of office/i,
+  /away message/i,
+  /akan segera (membalas|merespons|menghubungi)/i,
+  /terima kasih atas pesan anda/i,
+  /asisten resmi expedient/i,
+  /ref:\s*#eg43-/i,
+  /belum terdaftar di web angkatan kita nih/i,
+  /sudah otomatis ana japri/i,
+  /milik sahabat .* alhamdulillah sudah terdaftar/i,
+];
+
+function isAutoResponderOrBotMessage(text: string): boolean {
+  if (!text) return false;
+  return AUTO_RESPONDER_PATTERNS.some((p) => p.test(text));
+}
+
+// Histori balasan bot per remoteJid untuk burst rate limiting
+const chatReplyTimestamps = new Map<string, number[]>();
+// Cooldown mute per remoteJid saat circuit breaker aktif (timestamp ms)
+const circuitBreakerMutedUntil = new Map<string, number>();
+// Pelacak pengulangan pesan identik dari pengirim
+const lastMessageTrackMap = new Map<string, { text: string; count: number; lastTime: number }>();
+
+function shouldAllowBotReply(remoteJid: string, incomingText: string): { allowed: boolean; reason?: string } {
+  const now = Date.now();
+
+  // 1. Cek Circuit Breaker status (jika sedang dimute karena deteksi loop)
+  const mutedUntil = circuitBreakerMutedUntil.get(remoteJid) || 0;
+  if (now < mutedUntil) {
+    const sRemaining = Math.ceil((mutedUntil - now) / 1000);
+    return { allowed: false, reason: `Circuit breaker aktif (${sRemaining}s tersisa)` };
+  }
+
+  // 2. Cek Deteksi Auto-Responder / Pesan Mesin Otomatis
+  if (isAutoResponderOrBotMessage(incomingText)) {
+    return { allowed: false, reason: "Terdeteksi auto-reply / template bot" };
+  }
+
+  // 3. Cek Repetisi Pesan Identik (User / bot mengirim kalimat yang sama persis berulang-ulang)
+  const cleanNorm = incomingText.trim().toLowerCase();
+  if (cleanNorm.length > 3) {
+    const track = lastMessageTrackMap.get(remoteJid);
+    if (track && track.text === cleanNorm && now - track.lastTime < 45000) {
+      track.count += 1;
+      track.lastTime = now;
+      if (track.count >= 3) {
+        return { allowed: false, reason: `Pesan identik berulang ${track.count}x dalam 45 detik` };
+      }
+    } else {
+      lastMessageTrackMap.set(remoteJid, { text: cleanNorm, count: 1, lastTime: now });
+    }
+  }
+
+  // 4. Cek Frekuensi Burst (Sliding window 60 detik)
+  const timestamps = (chatReplyTimestamps.get(remoteJid) || []).filter((t) => now - t < 60000);
+  if (timestamps.length >= 6) {
+    // PICU CIRCUIT BREAKER: Mute selama 3 menit untuk mengamankan nomor bot dari banned!
+    circuitBreakerMutedUntil.set(remoteJid, now + 3 * 60 * 1000);
+    return { allowed: false, reason: "Burst limit terlampaui (>6 respons dlm 60s). Circuit breaker aktif 3 menit." };
+  }
+
+  return { allowed: true };
+}
+
+function recordBotReplyEvent(remoteJid: string): void {
+  const now = Date.now();
+  const list = (chatReplyTimestamps.get(remoteJid) || []).filter((t) => now - t < 60000);
+  list.push(now);
+  chatReplyTimestamps.set(remoteJid, list);
+}
+
 function addLog(msg: string, level: LogEntry["level"] = "info") {
   const time = new Intl.DateTimeFormat("id-ID", {
     timeZone: "Asia/Jakarta",
@@ -327,6 +409,26 @@ async function startBaileysGateway() {
   });
 
   currentSock = sock;
+
+  // WRAPPER ANTI-LOOP GLOBAL: Intercept 100% pemanggilan sock.sendMessage
+  // Memastikan setiap pesan keluar tercatat di globalSentMessageIds & rate limiter
+  const rawSendMessage = sock.sendMessage.bind(sock);
+  sock.sendMessage = (async (...args: any[]) => {
+    const res = await (rawSendMessage as any)(...args);
+    if (res?.key?.id) {
+      globalSentMessageIds.add(res.key.id);
+      sentMessageIds.add(res.key.id);
+      if (globalSentMessageIds.size > 5000) {
+        const first = globalSentMessageIds.values().next().value;
+        if (first) globalSentMessageIds.delete(first);
+      }
+    }
+    const targetJid = typeof args[0] === "string" ? args[0] : "";
+    if (targetJid && !targetJid.includes("status@broadcast")) {
+      recordBotReplyEvent(targetJid);
+    }
+    return res;
+  }) as any;
 
   // Helper pengiriman pesan yang aman & tahan banting
   const sendReply = async (targetJid: string, text: string, quotedMessage?: any) => {
@@ -1039,7 +1141,7 @@ async function startBaileysGateway() {
     for (const m of messages) {
       try {
         const msgId = m.key.id;
-        if (msgId && sentMessageIds.has(msgId)) {
+        if (msgId && (globalSentMessageIds.has(msgId) || sentMessageIds.has(msgId))) {
           continue;
         }
 
@@ -1128,10 +1230,35 @@ async function startBaileysGateway() {
           lower === "halo" ||
           lower === "p";
 
-        // Jangan proses pesan yang dikirim bot sendiri KECUALI:
-        // 1. Pesan ke diri sendiri (isSelfChat)
-        // 2. Perintah tes dari pemilik bot (isOwnerCommand)
-        if (m.key.fromMe && !isSelfChat && !isOwnerCommand) {
+        // ATURAN ANTI-LOOP MUTLAK #1:
+        // Cek ID pesan yang pernah dikirim bot sendiri
+        if (msgId && (globalSentMessageIds.has(msgId) || sentMessageIds.has(msgId))) {
+          continue;
+        }
+
+        // ATURAN ANTI-LOOP MUTLAK #2:
+        // Jika pesan dikirim dari akun bot sendiri (fromMe === true atau nomor sender = nomor bot):
+        // HANYA proses jika di ruang "Message Yourself" (isSelfChat) DAN berupa perintah uji eksplisit (isOwnerCommand).
+        // DI LUAR ITU (di grup manapun atau chat dengan orang lain), SELALU ABAIKAN (continue)!
+        const botPhoneList = ["6285151771289", "6289675010185", botPhone].filter(Boolean);
+        const isBotSender =
+          Boolean(m.key.fromMe) ||
+          botPhoneList.some((bp) => senderPhone.includes(bp) || bp.includes(senderPhone)) ||
+          (botShortPhone ? senderPhone.endsWith(botShortPhone) : false) ||
+          (botUserId ? senderPhone.includes(botUserId) : false) ||
+          (botLid ? participantRaw.includes(botLid) : false);
+
+        if (isBotSender) {
+          if (!isSelfChat || !isOwnerCommand) {
+            continue;
+          }
+        }
+
+        // ATURAN ANTI-LOOP MUTLAK #3:
+        // Cek filter Circuit Breaker & Auto-responder untuk mencegah ping-pong loop dengan bot / auto-reply lain
+        const replyCheck = shouldAllowBotReply(remoteJid, messageText);
+        if (!replyCheck.allowed) {
+          addLog(`🛑 [ANTI-LOOP-BLOCKED] ${replyCheck.reason} pada ${remoteJid}`, "warn");
           continue;
         }
 

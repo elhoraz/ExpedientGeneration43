@@ -19,6 +19,8 @@ const VENDOR_OR_NON_ALUMNI_INDICATORS = [
   "ustadz", "ustadzah", "guru", "pembimbing", "yayasan", "pondok"
 ];
 
+const BOT_OWN_PHONES = ["6285151771289", "6289675010185"];
+
 /**
  * Format tampilan nomor agar ramah dibaca (contoh: 0812-3456-7890)
  */
@@ -53,26 +55,40 @@ export function isVendorOrNonAlumniMessage(text: string): boolean {
   });
 }
 
+const inMemoryInviteDedup = new Map<string, number>();
+
 /**
  * Memeriksa apakah suatu nomor sudah pernah dikirimi pesan undangan japri dalam 7 hari terakhir
+ * Dilengkapi in-memory cache 10 menit untuk mencegah race condition pengiriman ganda
  */
 export async function isAlreadyInvitedRecently(phone: string): Promise<boolean> {
+  const cleanPhone = phone.replace(/\D/g, "");
+  // 1. Cek in-memory session cache (cooldown 10 menit per nomor)
+  const lastTime = inMemoryInviteDedup.get(cleanPhone) || 0;
+  if (Date.now() - lastTime < 10 * 60 * 1000) {
+    return true;
+  }
+
   try {
     const supabase = createAdminClient();
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const altLocal = cleanPhone.startsWith("62") ? "0" + cleanPhone.slice(2) : "62" + cleanPhone.replace(/^0/, "");
     const { data } = await supabase
       .from("whatsapp_queue")
       .select("id")
-      .eq("no_whatsapp", phone)
+      .or(`no_whatsapp.eq.${cleanPhone},no_whatsapp.eq.${altLocal}`)
       .eq("status", "sent_invite")
       .gte("created_at", sevenDaysAgo)
       .limit(1);
 
-    return Boolean(data && data.length > 0);
+    if (data && data.length > 0) {
+      inMemoryInviteDedup.set(cleanPhone, Date.now());
+      return true;
+    }
   } catch (err: any) {
     console.warn("[CHECK-RECENT-INVITE-ERR]:", err.message);
-    return false;
   }
+  return false;
 }
 
 /**
@@ -241,6 +257,25 @@ export async function handleAutomaticGroupNumberDetection(options: {
     return { success: ok };
   };
 
+  // 0. ATURAN ANTI-LOOP MUTLAK:
+  // Jangan pernah memproses pesan yang dikirim oleh nomor bot sendiri
+  const cleanSender = String(senderPhone || "").replace(/\D/g, "");
+  if (BOT_OWN_PHONES.some((bp) => cleanSender.includes(bp) || bp.includes(cleanSender))) {
+    return { handled: false };
+  }
+
+  // Jangan proses jika pesan berisi template resmi bot sendiri (mencegah loop self-trigger dari quote/reply)
+  const lowerMsgRaw = messageText.toLowerCase();
+  if (
+    lowerMsgRaw.includes("pesan otomatis asisten resmi expedient") ||
+    lowerMsgRaw.includes("belum terdaftar di web angkatan kita nih") ||
+    lowerMsgRaw.includes("sudah otomatis ana japri") ||
+    (lowerMsgRaw.includes("milik sahabat") && lowerMsgRaw.includes("sudah terdaftar dan aktif di website")) ||
+    lowerMsgRaw.includes("ref: #eg43-")
+  ) {
+    return { handled: false };
+  }
+
   // 1. KASUS KHUSUS: PENGGUNA MEMBALAS (REPLY) PERTANYAAN BOT TENTANG NAMA PEMILIK NOMOR
   // Contoh: Bot tanya "Ini nomornya siapa ya?", lalu pengguna me-reply: "punya Danang" atau "Zaki"
   if (
@@ -254,6 +289,15 @@ export async function handleAutomaticGroupNumberDetection(options: {
       const candidateName = await extractCandidateAlumniName(messageText, quotedText);
       const cleanFallback = messageText.replace(/[^\w\s]/g, "").trim().slice(0, 30);
       const finalName = candidateName || cleanFallback;
+
+      // Cek apakah nomor ini sudah pernah dijapri (baik di DB maupun memori), cegah spam ganda
+      const alreadySent = await isAlreadyInvitedRecently(targetPhone);
+      if (alreadySent) {
+        const skipMsg =
+          `ℹ️ Sahabat *${finalName}* (${formatPhoneDisplay(targetPhone)}) sebelumnya sudah pernah ana japri link pendaftaran website angkatan ya! 🙌✨`;
+        await sendTargetMessage(skipMsg);
+        return { handled: true, replyText: skipMsg };
+      }
 
       // Eksekusi Japri Undangan
       const inviteRes = await sendDirectAlumniInvitation(targetPhone, finalName, senderName, customSender);
@@ -296,8 +340,7 @@ export async function handleAutomaticGroupNumberDetection(options: {
   }
 
   // Abaikan nomor bot sendiri (jangan balas diri sendiri)
-  const botPhones = ["6285151771289", "6289675010185"];
-  const validPhones = extractedPhones.filter((p) => !botPhones.includes(p));
+  const validPhones = extractedPhones.filter((p) => !BOT_OWN_PHONES.includes(p));
 
   if (validPhones.length === 0) {
     return { handled: false };

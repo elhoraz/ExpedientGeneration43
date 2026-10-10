@@ -242,6 +242,22 @@ export async function POST(request: Request) {
       const messageText = item.messageText.trim();
       if (!rawSender || (!messageText && !item.mediaUrl)) continue;
 
+      // 1. FILTER DEDUP / ANTI-LOOP BOT SENDIRI: Abaikan pesan yang dikirim dari nomor bot
+      const botPhones = ["6285151771289", "6289675010185"];
+      const cleanSender = rawSender.replace(/\D/g, "");
+      const cleanMember = (item.member || "").replace(/\D/g, "");
+      if (botPhones.some((bp) => cleanSender === bp || cleanMember === bp)) {
+        console.log(`[WEBHOOK-SKIP-SELF] Pesan dari bot sendiri diabaikan: ${rawSender}`);
+        continue;
+      }
+
+      // 2. FILTER AUTO-RESPONDER / TEMPLATE BOT LAIN (Mencegah Ping-Pong Loop)
+      const autoResponderRegex = /(terima kasih telah menghubungi|pesan ini dikirim secara otomatis|auto[\s-]?reply|autoreply|kami sedang (offline|tutup)|out of office|away message|akan segera membalas|asisten resmi expedient)/i;
+      if (autoResponderRegex.test(messageText)) {
+        console.log(`[WEBHOOK-SKIP-AUTOREPLY] Pesan auto-responder diabaikan dari: ${rawSender}`);
+        continue;
+      }
+
       // =====================================================================
       // RESOLUSI TARGET: GRUP vs PERSONAL
       // =====================================================================
