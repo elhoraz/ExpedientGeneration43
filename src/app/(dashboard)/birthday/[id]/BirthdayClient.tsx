@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "../birthday.css";
@@ -144,14 +145,15 @@ function formatBirthDate(dateStr: string, locale: string = "id") {
 }
 
 export default function BirthdayClient({ userProfile, age, seed }: { userProfile: any, age: number, seed: number }) {
+  const router = useRouter();
   const { t, locale } = useLanguage();
   const [particles, setParticles] = useState<any[]>([]);
 
-  const p = palettes[seed % 25];
-  const f = fonts[seed % 12];
-  const layout = layouts[seed % 8];
-  const deco = decos[seed % 6];
-  const anim = anims[seed % 4];
+  const p = palettes[seed % palettes.length];
+  const f = fonts[seed % fonts.length];
+  const layout = layouts[seed % layouts.length];
+  const deco = decos[seed % decos.length];
+  const anim = anims[seed % anims.length];
 
   const fontUrl = `https://fonts.googleapis.com/css2?family=${f[0].replace(/ /g, '+')}:wght@${f[2]}&family=${f[1].replace(/ /g, '+')}:wght@400;600&display=swap`;
   const zodiak = getZodiak(userProfile.tanggal_lahir, locale);
@@ -162,21 +164,25 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
     const newParticles = [];
 
     for (let i = 0; i < count; i++) {
-      let bg = "transparent";
-      let br = "0";
-      let w = "10px";
-      let h = "10px";
+      let particleStyle: Record<string, string> = {};
 
       if (deco === 'confetti') {
-        bg = colors[Math.floor(Math.random() * colors.length)];
-        br = Math.random() > 0.5 ? '50%' : '2px';
-        w = (Math.random() * 8 + 6) + 'px';
-        h = w;
+        const w = (Math.random() * 8 + 6) + 'px';
+        particleStyle = {
+          background: colors[Math.floor(Math.random() * colors.length)],
+          borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+          width: w,
+          height: w,
+        };
       } else if (deco === 'balloons') {
-        bg = colors[Math.floor(Math.random() * colors.length)];
+        particleStyle = {
+          background: colors[Math.floor(Math.random() * colors.length)],
+        };
       } else if (deco === 'ribbons') {
-        bg = colors[Math.floor(Math.random() * colors.length)];
-        h = (Math.random() * 30 + 20) + 'px';
+        particleStyle = {
+          background: colors[Math.floor(Math.random() * colors.length)],
+          height: (Math.random() * 30 + 20) + 'px',
+        };
       }
 
       newParticles.push({
@@ -185,7 +191,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
         top: Math.random() * 100 + '%',
         animDuration: (Math.random() * 5 + 3) + 's',
         animDelay: (Math.random() * 3) + 's',
-        bg, br, w, h
+        ...particleStyle,
       });
     }
     setParticles(newParticles);
@@ -206,9 +212,9 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setCurrentUrl(window.location.href);
+      setCurrentUrl(`${window.location.origin}/birthday/${userProfile.id}`);
     }
-  }, []);
+  }, [userProfile.id]);
 
   let cleanWa = (userProfile.no_whatsapp || "").replace(/\D/g, "");
   if (cleanWa.startsWith("0")) cleanWa = "62" + cleanWa.substring(1);
@@ -320,9 +326,9 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
         type="button" 
         onClick={() => {
           if (typeof window !== "undefined" && window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
-            window.history.back();
+            router.back();
           } else {
-            window.location.href = "/birthday";
+            router.push("/birthday");
           }
         }} 
         className="bday-back" 
@@ -343,12 +349,22 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
         "--f2": f[2]
       } as any}>
         
-        {particles.map(pt => (
-          <div key={pt.id} className="deco-particle" style={{
-            left: pt.left, top: pt.top, animationDuration: pt.animDuration, animationDelay: pt.animDelay,
-            background: pt.bg, borderRadius: pt.br, width: pt.w, height: pt.h
-          }}></div>
-        ))}
+        {particles.map(pt => {
+          const { id, left, top, animDuration, animDelay, ...restStyle } = pt;
+          return (
+            <div
+              key={id}
+              className="deco-particle"
+              style={{
+                left,
+                top,
+                animationDuration: animDuration,
+                animationDelay: animDelay,
+                ...restStyle,
+              }}
+            />
+          );
+        })}
 
         <div className="bday-card-content">
           <div className="bday-anim-el">
@@ -407,12 +423,10 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
               <button 
                 type="button" 
                 onClick={handleShare} 
-                className="bday-share-btn bday-body" 
+                className={`bday-share-btn bday-body ${directWishUrl ? "bday-btn-secondary" : ""}`}
                 style={{ 
                   width: "100%", 
                   justifyContent: "center", 
-                  background: directWishUrl ? "rgba(255,255,255,0.15)" : undefined, 
-                  borderColor: directWishUrl ? "var(--glass-border)" : undefined,
                   cursor: "pointer"
                 }}
               >
@@ -422,19 +436,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
               <button 
                 type="button" 
                 onClick={handleCopyLink} 
-                style={{ 
-                  background: "transparent", 
-                  border: "none", 
-                  color: "var(--text-secondary, rgba(255,255,255,0.7))", 
-                  fontSize: "0.82rem", 
-                  display: "inline-flex", 
-                  alignItems: "center", 
-                  gap: "6px", 
-                  cursor: "pointer", 
-                  padding: "6px 12px", 
-                  borderRadius: "20px",
-                  transition: "all 0.2s ease"
-                }}
+                className="bday-copy-link-btn bday-body"
               >
                 <i className={copiedLink ? "fa-solid fa-check" : "fa-solid fa-link"}></i>
                 <span>{copiedLink ? (locale === 'ar' ? 'تم نسخ الرابط!' : locale === 'en' ? 'Link Copied!' : 'Tautan Kartu Berhasil Disalin!') : (locale === 'ar' ? 'نسخ رابط البطاقة' : locale === 'en' ? 'Copy Card Link' : 'Salin Tautan Kartu')}</span>

@@ -12,10 +12,17 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .eq("id", resolvedParams.id)
     .single();
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
   const name = (userProfile?.nama_panggilan || userProfile?.nama_lengkap || "Sahabat").trim();
   const title = `Selamat Ulang Tahun, ${name}! 🎉 | Expedient 43`;
   const description = `Barakallahu fii umrik ${name}! Buka kartu ucapan spesial angkatan ke-43 Pondok Modern Arrisalah dan kirimkan doa terbaikmu.`;
-  const imageUrl = userProfile?.foto_profil || "https://expedientgeneration.vercel.app/images/og-birthday.png";
+
+  let imageUrl = `${siteUrl}/images/logo-utuh.webp`;
+  if (userProfile?.foto_profil) {
+    imageUrl = userProfile.foto_profil.startsWith("http")
+      ? userProfile.foto_profil
+      : `${siteUrl}${userProfile.foto_profil.startsWith("/") ? "" : "/"}${userProfile.foto_profil}`;
+  }
 
   return {
     title,

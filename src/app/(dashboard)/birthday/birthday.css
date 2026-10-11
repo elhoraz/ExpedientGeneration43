@@ -108,7 +108,7 @@ body.page-birthday .bday-card-content,
     max-width: 520px;
     text-align: center !important;
     padding: clamp(30px, 4vh, 45px) 20px;
-    margin: 0 auto;
+    margin: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -249,6 +249,41 @@ body.page-birthday .bday-share-btn:hover,
     color: #111;
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+body.page-birthday .bday-share-btn.bday-btn-secondary,
+.bday-universe .bday-share-btn.bday-btn-secondary {
+    background: rgba(255, 255, 255, 0.14);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-color: rgba(255, 255, 255, 0.28);
+}
+body.page-birthday .bday-share-btn.bday-btn-secondary:hover,
+.bday-universe .bday-share-btn.bday-btn-secondary:hover {
+    background: var(--p2);
+    color: #111;
+    border-color: var(--p2);
+}
+
+body.page-birthday .bday-copy-link-btn,
+.bday-universe .bday-copy-link-btn {
+    background: transparent;
+    border: none;
+    color: var(--p3);
+    opacity: 0.8;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+}
+body.page-birthday .bday-copy-link-btn:hover,
+.bday-universe .bday-copy-link-btn:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.12);
 }
 
 /* Card Visual Themes (All symmetrically centered) */
@@ -445,4 +480,18 @@ body.page-birthday .bday-watermark,
     color: #aa771c;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
+/* Birthday List Card Animation */
+.bday-fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: bdayFadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes bdayFadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 

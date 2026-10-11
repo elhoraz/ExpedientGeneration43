@@ -18,6 +18,31 @@ export interface BirthdayAlumni {
 }
 
 /**
+ * Parser tanggal lahir robust yang mendukung format YYYY-MM-DD, DD-MM-YYYY, pemisah slash (/), dan timestamp ISO
+ */
+export function parseBirthDate(dateStr?: string | null): { day: number; month: number; year: number } | null {
+  if (!dateStr) return null;
+  const parts = dateStr.trim().split(/[-/]/);
+  if (parts.length < 3) return null;
+
+  let year = parseInt(parts[0], 10);
+  let month = parseInt(parts[1], 10);
+  let day = parseInt(parts[2], 10);
+
+  // Format DD-MM-YYYY jika tahun di bagian akhir
+  if (parts[2].length === 4) {
+    year = parseInt(parts[2], 10);
+    month = parseInt(parts[1], 10);
+    day = parseInt(parts[0], 10);
+  }
+
+  if (isNaN(day) || isNaN(month) || month < 1 || month > 12 || day < 1 || day > 31) {
+    return null;
+  }
+  return { day, month, year };
+}
+
+/**
  * Mengambil daftar alumni yang sedang berulang tahun pada hari ini (WIB)
  */
 export async function getTodayBirthdayAlumni(): Promise<BirthdayAlumni[]> {
@@ -35,24 +60,21 @@ export async function getTodayBirthdayAlumni(): Promise<BirthdayAlumni[]> {
 
     // Hitung berdasarkan tanggal lokal WIB (GMT+7)
     const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-    const currentMonth = (nowWib.getMonth() + 1).toString().padStart(2, "0");
-    const currentDay = nowWib.getDate().toString().padStart(2, "0");
+    const currentMonthNum = nowWib.getMonth() + 1;
+    const currentDayNum = nowWib.getDate();
     const currentYear = nowWib.getFullYear();
 
     const matched: BirthdayAlumni[] = [];
 
     for (const p of data) {
       if (!p.tanggal_lahir || !p.nama_lengkap?.trim()) continue;
-      // Format tanggal_lahir: YYYY-MM-DD
-      const parts = p.tanggal_lahir.split("-");
-      if (parts.length < 3) continue;
+      const parsed = parseBirthDate(p.tanggal_lahir);
+      if (!parsed) continue;
 
-      const birthYear = parseInt(parts[0], 10);
-      const birthMonth = parts[1].padStart(2, "0");
-      const birthDay = parts[2].padStart(2, "0");
+      if (parsed.month === currentMonthNum && parsed.day === currentDayNum) {
+        let usia = currentYear - parsed.year;
+        if (isNaN(usia) || usia < 0 || usia > 110) usia = 0;
 
-      if (birthMonth === currentMonth && birthDay === currentDay) {
-        const usia = currentYear - birthYear;
         matched.push({
           id: p.id,
           nama_lengkap: p.nama_lengkap.trim(),
@@ -60,7 +82,7 @@ export async function getTodayBirthdayAlumni(): Promise<BirthdayAlumni[]> {
           tanggal_lahir: p.tanggal_lahir,
           no_whatsapp: p.no_whatsapp || undefined,
           foto_profil: p.foto_profil || undefined,
-          usia: isNaN(usia) ? 0 : usia,
+          usia,
         });
       }
     }
@@ -204,6 +226,12 @@ export async function checkAndTriggerDailyBirthdayWishes(
     //    A. KE PERSONAL (JAPRI 1-ON-1)
     //    B. KE GRUP KOMUNITAS ANGKATAN
     for (const b of birthdays) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
+      let photoUrl = b.foto_profil;
+      if (photoUrl && !photoUrl.startsWith("http")) {
+        photoUrl = `${siteUrl}${photoUrl.startsWith("/") ? "" : "/"}${photoUrl}`;
+      }
+
       // =====================================================================
       // A. JAPRI PERSONAL KE NOMOR ALUMNI
       // =====================================================================
@@ -215,9 +243,9 @@ export async function checkAndTriggerDailyBirthdayWishes(
           const personalJid = `${cleanPhone}@s.whatsapp.net`;
 
           let personalSent = false;
-          if (b.foto_profil && b.foto_profil.startsWith("http")) {
+          if (photoUrl) {
             try {
-              const imgRes = await fetch(b.foto_profil, { signal: AbortSignal.timeout(10000) });
+              const imgRes = await fetch(photoUrl, { signal: AbortSignal.timeout(10000) });
               if (imgRes.ok) {
                 const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
                 await sock.sendMessage(personalJid, {
@@ -254,9 +282,9 @@ export async function checkAndTriggerDailyBirthdayWishes(
         const mentions = b.no_whatsapp ? [`${b.no_whatsapp.replace(/\D/g, "")}@s.whatsapp.net`] : [];
 
         let groupSent = false;
-        if (b.foto_profil && b.foto_profil.startsWith("http")) {
+        if (photoUrl) {
           try {
-            const imgRes = await fetch(b.foto_profil, { signal: AbortSignal.timeout(10000) });
+            const imgRes = await fetch(photoUrl, { signal: AbortSignal.timeout(10000) });
             if (imgRes.ok) {
               const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
               await sock.sendMessage(communityGroupId, {
@@ -327,27 +355,29 @@ export async function getMonthBirthdaySummary(): Promise<string> {
     if (!data) return "Data tanggal lahir alumni belum tersedia di sistem.";
 
     const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-    const currentMonth = (nowWib.getMonth() + 1).toString().padStart(2, "0");
+    const currentMonthNum = nowWib.getMonth() + 1;
     const monthNames = [
       "Januari", "Februari", "Maret", "April", "Mei", "Juni",
       "Juli", "Agustus", "September", "Oktober", "November", "Desember"
     ];
     const monthName = monthNames[nowWib.getMonth()];
 
-    const matched = data
-      .filter((p) => p.tanggal_lahir && p.tanggal_lahir.split("-")[1] === currentMonth && p.nama_lengkap?.trim())
-      .sort((a, b) => {
-        const dayA = parseInt(a.tanggal_lahir.split("-")[2], 10) || 0;
-        const dayB = parseInt(b.tanggal_lahir.split("-")[2], 10) || 0;
-        return dayA - dayB;
-      });
+    const matched = (data || [])
+      .map((p) => {
+        const parsed = parseBirthDate(p.tanggal_lahir);
+        return { ...p, parsed };
+      })
+      .filter((p): p is typeof p & { parsed: { day: number; month: number; year: number } } => {
+        return Boolean(p.parsed && p.parsed.month === currentMonthNum && p.nama_lengkap?.trim());
+      })
+      .sort((a, b) => a.parsed.day - b.parsed.day);
 
     if (matched.length === 0) {
       return `📅 *Agenda Milad Bulan ${monthName}*\n\nAlhamdulillah, di bulan ini tidak ada catatan milad alumni tercatat.`;
     }
 
     const lines = matched.map((p) => {
-      const day = parseInt(p.tanggal_lahir.split("-")[2], 10);
+      const day = p.parsed.day;
       const call = p.nama_panggilan ? ` (${p.nama_panggilan})` : "";
       return `• *${day} ${monthName}*: ${p.nama_lengkap}${call}`;
     });

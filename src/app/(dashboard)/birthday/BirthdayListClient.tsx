@@ -1,9 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
-import { getAvatarUrl } from "@/lib/avatar";
+import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface BirthdayUser {
@@ -22,6 +22,26 @@ interface UpcomingUser extends BirthdayUser {
   daysLeft: number;
 }
 
+function BirthdayAvatar({ src, name, size = 90 }: { src: string; name: string; size?: number }) {
+  const [imgSrc, setImgSrc] = useState(src);
+  return (
+    <Image
+      src={imgSrc}
+      width={size}
+      height={size}
+      className="bday-avatar"
+      alt={name}
+      style={{ width: `${size}px`, height: `${size}px` }}
+      onError={() => setImgSrc(getAvatarFallback(name))}
+      unoptimized={
+        imgSrc.startsWith("data:") ||
+        imgSrc.includes("ui-avatars.com") ||
+        imgSrc.includes("supabase.co")
+      }
+    />
+  );
+}
+
 export default function BirthdayListClient({
   birthdayUsers = [],
   upcomingUsers = [],
@@ -34,7 +54,7 @@ export default function BirthdayListClient({
 
   return (
     <main className="bday-wrapper">
-      <div className="bday-header js-reveal">
+      <div className="bday-header bday-fade-in">
         <h1>🎂 {locale === "ar" ? "أعياد ميلاد الدفعة" : locale === "en" ? "Cohort Birthdays" : "Ulang Tahun Sahabat"}</h1>
         <p>{t.birthday.subtitle}</p>
         <div className="bday-date-badge">
@@ -49,7 +69,7 @@ export default function BirthdayListClient({
 
       {/* SECTION 1: TODAY'S BIRTHDAYS */}
       {birthdayUsers.length > 0 ? (
-        <section className="bday-section-today js-reveal">
+        <section className="bday-section-today bday-fade-in" style={{ animationDelay: "100ms" }}>
           <div className="bday-section-title" style={{ textAlign: "center", marginBottom: "25px" }}>
             <span style={{ 
               display: "inline-block", 
@@ -66,29 +86,23 @@ export default function BirthdayListClient({
             </span>
           </div>
           <div className="bday-grid">
-            {birthdayUsers.map((u) => {
+            {birthdayUsers.map((u, i) => {
               const displayName = (u.nama_panggilan || u.nama_lengkap || "Kawan").trim();
+              const showFullName = Boolean(
+                u.nama_panggilan && 
+                u.nama_lengkap && 
+                u.nama_panggilan.trim().toLowerCase() !== u.nama_lengkap.trim().toLowerCase()
+              );
               const avatarUrl = getAvatarUrl(u.foto_profil, displayName);
 
               return (
-                <div key={u.id} className="bday-card js-reveal">
+                <div key={u.id} className="bday-card bday-fade-in" style={{ animationDelay: `${(i + 2) * 80}ms` }}>
                   <div className="bday-confetti">🎉</div>
-                  <Image
-                    src={avatarUrl}
-                    width={90}
-                    height={90}
-                    className="bday-avatar"
-                    alt={displayName}
-                    unoptimized={
-                      avatarUrl.startsWith("data:") ||
-                      avatarUrl.includes("ui-avatars.com") ||
-                      avatarUrl.includes("supabase.co")
-                    }
-                  />
+                  <BirthdayAvatar src={avatarUrl} name={displayName} size={90} />
                   <div className="bday-name">{displayName}</div>
-                  <div className="bday-fullname">{u.nama_lengkap}</div>
+                  {showFullName && <div className="bday-fullname">{u.nama_lengkap}</div>}
 
-                  <Link href={`/birthday/${u.id}`} className="bday-btn">
+                  <Link href={`/birthday/${u.id}`} className="bday-btn" style={{ marginTop: showFullName ? "0" : "12px" }}>
                     <i className="fa-solid fa-gift" style={{ marginRight: "8px" }}></i> {t.birthday.send_greeting}
                   </Link>
                 </div>
@@ -97,14 +111,14 @@ export default function BirthdayListClient({
           </div>
         </section>
       ) : (
-        <div className="bday-empty js-reveal" style={{ padding: "40px 20px" }}>
+        <div className="bday-empty bday-fade-in" style={{ padding: "40px 20px" }}>
           <i className="fa-regular fa-face-smile" style={{ fontSize: "3.5rem" }}></i>
           <h3 style={{ color: "var(--text-primary)", marginBottom: "8px", fontFamily: "'Playfair Display', serif" }}>
             {locale === "ar" ? "لا توجد أعياد ميلاد اليوم" : locale === "en" ? "No Birthdays Today" : "Hari Ini Belum Ada yang Berulang Tahun"}
           </h3>
           <p style={{ maxWidth: "450px", margin: "0 auto", fontSize: "0.88rem" }}>
             {locale === "ar"
-              ? "لا يوجد زملاء يحتفلون بأعياد ميلادهم اليوم. تفقد قائمة أعيad ميلاد القادمة أدناه!"
+              ? "لا يوجد زملاء يحتفلون بأعياد ميلادهم اليوم. تفقد قائمة أعياد ميلاد القادمة أدناه!"
               : locale === "en"
               ? "No colleagues celebrating their birthday today. Check out the upcoming celebrations below!"
               : "Belum ada sahabat yang berulang tahun hari ini. Lihat daftar milad yang akan datang di bawah ini!"}
@@ -114,7 +128,7 @@ export default function BirthdayListClient({
 
       {/* SECTION 2: UPCOMING BIRTHDAYS (SOON) */}
       {upcomingUsers.length > 0 && (
-        <section className="bday-upcoming-section js-reveal" style={{ marginTop: "60px" }}>
+        <section className="bday-upcoming-section bday-fade-in" style={{ marginTop: "60px", animationDelay: "200ms" }}>
           <div style={{ textAlign: "center", marginBottom: "30px" }}>
             <h2 style={{ 
               fontFamily: "'Playfair Display', serif", 
@@ -131,8 +145,13 @@ export default function BirthdayListClient({
           </div>
 
           <div className="bday-grid">
-            {upcomingUsers.map((u) => {
+            {upcomingUsers.map((u, i) => {
               const displayName = (u.nama_panggilan || u.nama_lengkap || "Kawan").trim();
+              const showFullName = Boolean(
+                u.nama_panggilan && 
+                u.nama_lengkap && 
+                u.nama_panggilan.trim().toLowerCase() !== u.nama_lengkap.trim().toLowerCase()
+              );
               const avatarUrl = getAvatarUrl(u.foto_profil, displayName);
 
               // Date formatting for upcoming
@@ -143,7 +162,7 @@ export default function BirthdayListClient({
               });
 
               return (
-                <div key={u.id} className="bday-card js-reveal" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+                <div key={u.id} className="bday-card bday-fade-in" style={{ borderColor: "rgba(255,255,255,0.08)", animationDelay: `${(i + 3) * 60}ms` }}>
                   <div style={{
                     position: "absolute",
                     top: "14px",
@@ -161,23 +180,17 @@ export default function BirthdayListClient({
                       : (locale === "ar" ? `بعد ${u.daysLeft} يوم` : locale === "en" ? `In ${u.daysLeft} days` : `H-${u.daysLeft}`)}
                   </div>
 
-                  <Image
-                    src={avatarUrl}
-                    width={80}
-                    height={80}
-                    className="bday-avatar"
-                    alt={displayName}
-                    style={{ width: "80px", height: "80px" }}
-                    unoptimized={
-                      avatarUrl.startsWith("data:") ||
-                      avatarUrl.includes("ui-avatars.com") ||
-                      avatarUrl.includes("supabase.co")
-                    }
-                  />
+                  <BirthdayAvatar src={avatarUrl} name={displayName} size={80} />
                   <div className="bday-name" style={{ fontSize: "1.15rem" }}>{displayName}</div>
-                  <div className="bday-fullname" style={{ marginBottom: "8px" }}>{u.nama_lengkap}</div>
+                  {showFullName && <div className="bday-fullname" style={{ marginBottom: "8px" }}>{u.nama_lengkap}</div>}
                   
-                  <div style={{ color: "var(--gold-premium, #d4af37)", fontSize: "0.8rem", fontWeight: 600, marginBottom: "15px" }}>
+                  <div style={{ 
+                    color: "var(--gold-premium, #d4af37)", 
+                    fontSize: "0.8rem", 
+                    fontWeight: 600, 
+                    marginBottom: "15px",
+                    marginTop: showFullName ? "0" : "8px"
+                  }}>
                     <i className="fa-regular fa-calendar-check" style={{ marginRight: "6px" }}></i>
                     {formattedDate}
                   </div>
@@ -197,20 +210,6 @@ export default function BirthdayListClient({
           <i className="fa-solid fa-arrow-left" style={{ marginRight: "8px" }}></i> {t.birthday.back_to_home}
         </Link>
       </div>
-
-      {/* Reveal animation */}
-      <Script id="bday-reveal" strategy="lazyOnload">
-        {`
-          setTimeout(() => {
-            document.querySelectorAll('.js-reveal').forEach((el, i) => {
-                el.animate([
-                    { opacity: 0, transform: 'translateY(25px)' },
-                    { opacity: 1, transform: 'translateY(0)' }
-                ], { duration: 700, delay: i * 80, fill: 'forwards', easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
-            });
-          }, 60);
-        `}
-      </Script>
     </main>
   );
 }
