@@ -465,7 +465,8 @@ export async function handleIncomingGroupMessage(
   messageText: string,
   quotedText?: string,
   quotedSender?: string,
-  quotedFromBot?: boolean
+  quotedFromBot?: boolean,
+  contacts?: Array<{ displayName: string; phone: string }>
 ): Promise<{ responded: boolean; replyText?: string }> {
   // 0. CATAT SELURUH OBROLAN GRUP KE ROLLING BUFFER PERCAKAPAN
   // Menjaga memori percakapan agar bot memiliki konteks ketika ditanya kesimpulan atau topik
@@ -541,6 +542,7 @@ export async function handleIncomingGroupMessage(
       quotedText,
       quotedSender,
       isQuotedFromBot: Boolean(quotedFromBot),
+      contacts,
     });
 
     if (autoNumberRes.handled) {

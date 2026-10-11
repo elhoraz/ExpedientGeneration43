@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       quotedText?: string;
       quotedSender?: string;
       quotedFromBot?: boolean;
+      contacts?: Array<{ displayName: string; phone: string }>;
     }> = [];
 
     let rawBody: any = null;
@@ -124,17 +125,19 @@ export async function POST(request: Request) {
         let finalExtension = extension;
         let finalFilename = filename;
 
-        // Fallback: Jika Fonnte tidak mengirimkan attachment langsung, cek apakah teks memuat link gambar/media
-        if (!finalMediaUrl && msgText) {
-          const urlMatch = msgText.match(/(https?:\/\/[^\s]+(?:\.jpg|\.jpeg|\.png|\.webp|\.pdf|\.mp4)[^\s]*)/i);
-          if (urlMatch) {
-            finalMediaUrl = urlMatch[1];
-            const cleanUrl = finalMediaUrl.split("?")[0];
-            const extMatch = cleanUrl.match(/\.([a-z0-9]+)$/i);
-            if (extMatch) {
-              finalExtension = extMatch[1].toLowerCase();
-              finalFilename = cleanUrl.split("/").pop() || "media";
-            }
+        let parsedContacts: Array<{ displayName: string; phone: string }> = [];
+        if (
+          body.vcard ||
+          body.contact ||
+          body.contacts ||
+          body.type === "contact" ||
+          (msgText && msgText.includes("BEGIN:VCARD"))
+        ) {
+          const { parseContactsFromVCard } = await import("@/lib/whatsapp/autoMemberInviter");
+          const vcardStr = String(body.vcard || (typeof body.contact === "string" ? body.contact : "") || msgText);
+          parsedContacts = parseContactsFromVCard(vcardStr, String(body.name || body.displayName || "Sahabat"));
+          if (!msgText && parsedContacts.length > 0) {
+            msgText = parsedContacts.map((c) => `[Kontak: ${c.displayName} - ${c.phone}]`).join("\n");
           }
         }
 
@@ -201,6 +204,7 @@ export async function POST(request: Request) {
           quotedText: quotedText || undefined,
           quotedSender: quotedSender || undefined,
           quotedFromBot,
+          contacts: parsedContacts.length > 0 ? parsedContacts : undefined,
         });
       }
       // B. Format Webhook Resmi Meta Cloud API
@@ -385,7 +389,8 @@ export async function POST(request: Request) {
           messageText,
           item.quotedText,
           item.quotedSender,
-          item.quotedFromBot
+          item.quotedFromBot,
+          item.contacts
         );
 
         // Catat aktivitas terbaru grup non-resmi untuk deteksi hening 6 jam
@@ -417,6 +422,7 @@ export async function POST(request: Request) {
           quotedSender: item.quotedSender,
           isQuotedFromBot: Boolean(item.quotedFromBot),
           isPrivateChat: true,
+          contacts: item.contacts,
         });
 
         if (autoNumberRes.handled) {

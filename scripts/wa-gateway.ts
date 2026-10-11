@@ -58,7 +58,7 @@ import {
 import {
   shouldGroupBotRespond,
 } from "../src/lib/whatsapp/groupManager";
-import { handleAutomaticGroupNumberDetection } from "../src/lib/whatsapp/autoMemberInviter";
+import { handleAutomaticGroupNumberDetection, extractContactsFromBaileysMessage } from "../src/lib/whatsapp/autoMemberInviter";
 import { recordGroupChatMessage } from "../src/lib/whatsapp/groupConversationBuffer";
 import { generateIntelligentCohortReply } from "../src/lib/whatsapp/alumniIntelligence";
 import { handleAdminAutoRemediation } from "../src/lib/sentinel/autoRemediator";
@@ -1192,7 +1192,10 @@ async function startBaileysGateway() {
         const rawMsg = m.message;
         const msgContent = (normalizeMessageContent(extractMessageContent(rawMsg) || rawMsg) || {}) as proto.IMessage;
 
-        const messageText =
+        // Ekstraksi kartu kontak WhatsApp asli (contactMessage / contactsArrayMessage / file .vcf)
+        const incomingContacts = extractContactsFromBaileysMessage(msgContent);
+
+        let messageText =
           msgContent.conversation ||
           msgContent.extendedTextMessage?.text ||
           msgContent.imageMessage?.caption ||
@@ -1204,6 +1207,11 @@ async function startBaileysGateway() {
           msgContent.editedMessage?.message?.protocolMessage?.editedMessage?.conversation ||
           msgContent.editedMessage?.message?.protocolMessage?.editedMessage?.extendedTextMessage?.text ||
           "";
+
+        // Jika pesan teks kosong namun ada kartu kontak yang dikirim, buat teks sintetis agar tidak di-skip
+        if (!messageText && incomingContacts.length > 0) {
+          messageText = incomingContacts.map((c) => `[Kontak: ${c.displayName} - ${c.phone}]`).join("\n");
+        }
 
         const lower = messageText.trim().toLowerCase();
 
@@ -1268,7 +1276,9 @@ async function startBaileysGateway() {
           msgContent.audioMessage?.contextInfo ||
           msgContent.videoMessage?.contextInfo ||
           msgContent.stickerMessage?.contextInfo ||
-          msgContent.documentMessage?.contextInfo;
+          msgContent.documentMessage?.contextInfo ||
+          msgContent.contactMessage?.contextInfo ||
+          msgContent.contactsArrayMessage?.contextInfo;
 
         const mentionedJids: string[] = contextInfo?.mentionedJid || [];
         const quotedParticipant = (contextInfo?.participant || "").replace(/\D/g, "");
@@ -1298,6 +1308,8 @@ async function startBaileysGateway() {
           ? ((normalizeMessageContent(extractMessageContent(quotedMsgRaw) || quotedMsgRaw) || {}) as proto.IMessage)
           : null;
 
+        const quotedContacts = quotedMsg ? extractContactsFromBaileysMessage(quotedMsg) : [];
+
         const quotedIsImage = Boolean(quotedMsg?.imageMessage || quotedMsg?.documentMessage?.mimetype?.startsWith("image/"));
         const quotedIsSticker = Boolean(quotedMsg?.stickerMessage);
         const quotedIsAudio = Boolean(quotedMsg?.audioMessage);
@@ -1305,7 +1317,7 @@ async function startBaileysGateway() {
         const quotedIsDocument = Boolean(quotedMsg?.documentMessage && !quotedMsg?.documentMessage?.mimetype?.startsWith("image/"));
         const quotedHasMedia = quotedIsImage || quotedIsSticker || quotedIsAudio || quotedIsVideo || quotedIsDocument;
 
-        const quotedText = (
+        let quotedText = (
           quotedMsg?.conversation ||
           quotedMsg?.extendedTextMessage?.text ||
           quotedMsg?.imageMessage?.caption ||
@@ -1314,14 +1326,19 @@ async function startBaileysGateway() {
           ""
         ).trim();
 
+        if (!quotedText && quotedContacts.length > 0) {
+          quotedText = quotedContacts.map((c) => `[Kontak: ${c.displayName} - ${c.phone}]`).join("\n");
+        }
+
         const isImage = Boolean(msgContent.imageMessage || msgContent.documentMessage?.mimetype?.startsWith("image/"));
         const isSticker = Boolean(msgContent.stickerMessage);
         const isAudio = Boolean(msgContent.audioMessage);
         const isVideo = Boolean(msgContent.videoMessage || msgContent.ptvMessage);
         const isDocument = Boolean(msgContent.documentMessage && !msgContent.documentMessage?.mimetype?.startsWith("image/"));
+        const isContactCard = incomingContacts.length > 0;
         const hasMedia = isImage || isSticker || isAudio || isVideo || isDocument;
 
-        addLog(`📩 [INCOMING] ${senderName} (${senderPhone}) [Grup: ${isGroup}]${quotedText ? ` [Reply: "${quotedText.slice(0, 30)}..."]` : ""}: "${messageText.slice(0, 50)}"`);
+        addLog(`📩 [INCOMING] ${senderName} (${senderPhone}) [Grup: ${isGroup}]${quotedText ? ` [Reply: "${quotedText.slice(0, 30)}..."]` : ""}${isContactCard ? ` [Kontak: ${incomingContacts.map((c) => c.displayName).join(", ")}]` : ""}: "${messageText.slice(0, 50)}"`);
 
         // Rekam aktivitas jika pesan berasal dari grup non-formal / komunitas (120363388633880584@g.us)
         if (isGroup && (remoteJid.includes("120363388633880584") || remoteJid === getCommunityGroupId())) {
@@ -1913,7 +1930,7 @@ async function startBaileysGateway() {
           }
           // CABANG B: GRUP ANGKATAN / KOMUNITAS
           else {
-            // A0. DETEKSI OTOMATIS PEMBAGIAN NOMOR TELEPON (Full Automatic Member Inviter)
+            // A0. DETEKSI OTOMATIS PEMBAGIAN NOMOR TELEPON & KARTU KONTAK (Full Automatic Member Inviter)
             try {
               const autoNumberRes = await handleAutomaticGroupNumberDetection({
                 groupId: remoteJid,
@@ -1924,6 +1941,7 @@ async function startBaileysGateway() {
                 quotedSender: quotedParticipant,
                 isQuotedFromBot: Boolean(isBotQuoted),
                 isPrivateChat: false,
+                contacts: incomingContacts,
                 customSender: async (target: string, msg: string) => {
                   try {
                     let cleanTarget = target.trim();
@@ -1942,7 +1960,7 @@ async function startBaileysGateway() {
               });
 
               if (autoNumberRes.handled) {
-                addLog(`📱 [AUTO-INVITE-GROUP] Berhasil memproses nomor telepon di grup dari ${senderName}`, "success");
+                addLog(`📱 [AUTO-INVITE-GROUP] Berhasil memproses nomor telepon / kontak di grup dari ${senderName}`, "success");
                 continue;
               }
             } catch (autoErr: any) {
@@ -2024,7 +2042,7 @@ async function startBaileysGateway() {
             }
           }
 
-          // A0. DETEKSI OTOMATIS PEMBAGIAN / PENGUJIAN NOMOR TELEPON (Chat Pribadi)
+          // A0. DETEKSI OTOMATIS PEMBAGIAN / PENGUJIAN NOMOR TELEPON & KARTU KONTAK (Chat Pribadi)
           try {
             const autoNumberRes = await handleAutomaticGroupNumberDetection({
               groupId: remoteJid,
@@ -2035,6 +2053,7 @@ async function startBaileysGateway() {
               quotedSender: quotedParticipant,
               isQuotedFromBot: Boolean(isBotQuoted),
               isPrivateChat: true,
+              contacts: incomingContacts,
               customSender: async (target: string, msg: string) => {
                 try {
                   let cleanTarget = target.trim();
@@ -2053,7 +2072,7 @@ async function startBaileysGateway() {
             });
 
             if (autoNumberRes.handled) {
-              addLog(`📱 [AUTO-INVITE-PRIVATE] Berhasil memproses nomor telepon via chat pribadi dari ${senderName}`, "success");
+              addLog(`📱 [AUTO-INVITE-PRIVATE] Berhasil memproses nomor telepon / kontak via chat pribadi dari ${senderName}`, "success");
               continue;
             }
           } catch (autoErr: any) {

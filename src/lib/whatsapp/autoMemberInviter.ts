@@ -219,6 +219,135 @@ export async function sendDirectAlumniInvitation(
   return sendRes;
 }
 
+export interface ExtractedContact {
+  displayName: string;
+  phone: string;
+  vcard?: string;
+}
+
+/**
+ * Mengekstrak seluruh kontak (Nama dan Nomor HP) dari string vCard
+ */
+export function parseContactsFromVCard(vcardStr: string, fallbackName?: string): ExtractedContact[] {
+  if (!vcardStr) return [];
+  const contacts: ExtractedContact[] = [];
+  const vcardBlocks = vcardStr.split(/BEGIN:VCARD/i).filter((b) => b.trim().length > 0);
+
+  for (const block of vcardBlocks) {
+    let name = (fallbackName || "").trim();
+    const fnMatch =
+      block.match(/(?:^|\r?\n)FN[;:][^\r\n:]*:(.+?)(?:\r?\n|$)/i) ||
+      block.match(/(?:^|\r?\n)FN:(.+?)(?:\r?\n|$)/i);
+    if (fnMatch && fnMatch[1]?.trim()) {
+      name = fnMatch[1].trim();
+    } else {
+      const nMatch =
+        block.match(/(?:^|\r?\n)N[;:][^\r\n:]*:(.+?)(?:\r?\n|$)/i) ||
+        block.match(/(?:^|\r?\n)N:(.+?)(?:\r?\n|$)/i);
+      if (nMatch && nMatch[1]?.trim()) {
+        const parts = nMatch[1].split(";").filter(Boolean).map((p) => p.trim());
+        if (parts.length > 0) {
+          name = parts.reverse().join(" ");
+        }
+      }
+    }
+
+    const rawPhones: string[] = [];
+    const waidMatches = block.matchAll(/waid=(\d+)/gi);
+    for (const m of waidMatches) {
+      if (m[1]) rawPhones.push(m[1]);
+    }
+    const telMatches = block.matchAll(/(?:^|\r?\n)TEL[^:]*:(.+?)(?:\r?\n|$)/gi);
+    for (const m of telMatches) {
+      if (m[1]) rawPhones.push(m[1].trim());
+    }
+
+    const seen = new Set<string>();
+    for (const raw of rawPhones) {
+      let clean = raw.replace(/\D/g, "");
+      if (clean.startsWith("0")) clean = "62" + clean.substring(1);
+      else if (clean.startsWith("8")) clean = "62" + clean;
+      if (/^628\d{7,12}$/.test(clean) && !seen.has(clean)) {
+        seen.add(clean);
+        contacts.push({
+          displayName: name || fallbackName || "Sahabat",
+          phone: clean,
+          vcard: block,
+        });
+      }
+    }
+  }
+
+  return contacts;
+}
+
+/**
+ * Mengekstrak daftar kontak dari payload pesan WhatsApp Baileys (contactMessage, contactsArrayMessage)
+ */
+export function extractContactsFromBaileysMessage(msgContent: any): ExtractedContact[] {
+  if (!msgContent) return [];
+  const results: ExtractedContact[] = [];
+
+  // 1. Single contactMessage
+  if (msgContent.contactMessage) {
+    const cm = msgContent.contactMessage;
+    const name = cm.displayName || "";
+    const vcard = cm.vcard || "";
+    const parsed = parseContactsFromVCard(vcard, name);
+    if (parsed.length > 0) {
+      results.push(...parsed);
+    } else if (name || vcard) {
+      const phones = extractPhoneNumbers(`${name} ${vcard}`);
+      for (const p of phones) {
+        results.push({ displayName: name || "Sahabat", phone: p, vcard });
+      }
+    }
+  }
+
+  // 2. Multiple contactsArrayMessage
+  if (msgContent.contactsArrayMessage && Array.isArray(msgContent.contactsArrayMessage.contacts)) {
+    for (const cm of msgContent.contactsArrayMessage.contacts) {
+      const name = cm.displayName || "";
+      const vcard = cm.vcard || "";
+      const parsed = parseContactsFromVCard(vcard, name);
+      if (parsed.length > 0) {
+        results.push(...parsed);
+      } else if (name || vcard) {
+        const phones = extractPhoneNumbers(`${name} ${vcard}`);
+        for (const p of phones) {
+          results.push({ displayName: name || "Sahabat", phone: p, vcard });
+        }
+      }
+    }
+  }
+
+  // 3. Document .vcf file
+  if (
+    msgContent.documentMessage &&
+    (msgContent.documentMessage.mimetype?.includes("vcard") ||
+      msgContent.documentMessage.fileName?.endsWith(".vcf") ||
+      msgContent.documentMessage.fileName?.endsWith(".vcard"))
+  ) {
+    const docName = msgContent.documentMessage.fileName?.replace(/\.(vcf|vcard)$/i, "") || "Sahabat";
+    const phones = extractPhoneNumbers(msgContent.documentMessage.caption || "");
+    for (const p of phones) {
+      results.push({ displayName: docName, phone: p });
+    }
+  }
+
+  // Deduplikasi berdasarkan nomor telepon
+  const deduped: ExtractedContact[] = [];
+  const seenPhones = new Set<string>();
+  for (const c of results) {
+    if (!seenPhones.has(c.phone)) {
+      seenPhones.add(c.phone);
+      deduped.push(c);
+    }
+  }
+
+  return deduped;
+}
+
 /**
  * Handler Utama: Menangani deteksi nomor telepon yang dibagikan di grup WhatsApp maupun chat pribadi secara Full Otomatis
  */
@@ -231,6 +360,7 @@ export async function handleAutomaticGroupNumberDetection(options: {
   quotedSender?: string;
   isQuotedFromBot?: boolean;
   isPrivateChat?: boolean;
+  contacts?: ExtractedContact[];
   customSender?: (target: string, message: string) => Promise<{ success: boolean; reason?: string }>;
 }): Promise<{ handled: boolean; replyText?: string }> {
   const {
@@ -242,6 +372,7 @@ export async function handleAutomaticGroupNumberDetection(options: {
     quotedSender,
     isQuotedFromBot,
     isPrivateChat = false,
+    contacts,
     customSender,
   } = options;
 
@@ -274,6 +405,107 @@ export async function handleAutomaticGroupNumberDetection(options: {
     lowerMsgRaw.includes("ref: #eg43-")
   ) {
     return { handled: false };
+  }
+
+  // =========================================================================
+  // 0b. PENANGANAN UTAMA KARTU KONTAK ASLI (WhatsApp Share Contact / vCard)
+  // =========================================================================
+  let resolvedContacts: ExtractedContact[] = contacts && contacts.length > 0 ? [...contacts] : [];
+
+  // Jika tidak diberikan objek contacts terstruktur namun teks pesan/reply mengandung vcard:
+  if (resolvedContacts.length === 0 && messageText.includes("BEGIN:VCARD")) {
+    resolvedContacts = parseContactsFromVCard(messageText);
+  }
+  if (resolvedContacts.length === 0 && quotedText && quotedText.includes("BEGIN:VCARD")) {
+    resolvedContacts = parseContactsFromVCard(quotedText);
+  }
+
+  const validContacts = resolvedContacts.filter((c) => !BOT_OWN_PHONES.includes(c.phone));
+  if (validContacts.length > 0) {
+    const supabase = createAdminClient();
+    const reports: string[] = [];
+
+    for (const c of validContacts) {
+      const targetPhone = c.phone;
+      const cleanCandidateName = c.displayName
+        .replace(/[^\p{L}\p{N}\s.'-]/gu, " ")
+        .replace(/\s+/g, " ")
+        .trim() || "Sahabat";
+
+      // Cek apakah vendor
+      if (isVendorOrNonAlumniMessage(cleanCandidateName)) {
+        console.log(`[AUTO-INVITER-SKIP] Kontak terdeteksi sebagai vendor/pihak luar: "${cleanCandidateName}"`);
+        continue;
+      }
+
+      // Cek apakah sudah terdaftar di profiles
+      let registeredProfile: { nama_lengkap: string | null; nama_panggilan: string | null } | null = null;
+      try {
+        const cleanDigits = targetPhone.replace(/\D/g, "");
+        const localFormat = "0" + cleanDigits.substring(2);
+        const shortNine = cleanDigits.slice(-9);
+
+        const { data: matchedProfiles } = await supabase
+          .from("profiles")
+          .select("nama_lengkap, nama_panggilan, no_whatsapp")
+          .or(`no_whatsapp.eq.${cleanDigits},no_whatsapp.eq.${localFormat},no_whatsapp.ilike.%${shortNine}%`)
+          .limit(1);
+
+        if (matchedProfiles && matchedProfiles.length > 0) {
+          registeredProfile = matchedProfiles[0];
+        }
+      } catch (dbErr: any) {
+        console.warn("[AUTO-INVITER-CONTACT-DB-ERR]:", dbErr.message);
+      }
+
+      if (registeredProfile) {
+        const alumniName = registeredProfile.nama_panggilan || registeredProfile.nama_lengkap || cleanCandidateName;
+        reports.push(
+          validContacts.length === 1
+            ? `ℹ️ Kontak Sahabat *${alumniName}* (${formatPhoneDisplay(targetPhone)}), alhamdulillah sudah terdaftar dan aktif di website angkatan kita! ✅`
+            : `• Sahabat *${alumniName}* (${formatPhoneDisplay(targetPhone)}): Alhamdulillah sudah terdaftar di web! ✅`
+        );
+        continue;
+      }
+
+      // Jika belum terdaftar:
+      const alreadySent = await isAlreadyInvitedRecently(targetPhone);
+      if (alreadySent) {
+        reports.push(
+          validContacts.length === 1
+            ? `ℹ️ Kontak Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di web, dan sebelumnya sudah pernah ana japri link registrasi ya sahabat! 🙌`
+            : `• Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}): Belum terdaftar (sudah pernah dijapri link pendaftaran) 🙌`
+        );
+        continue;
+      }
+
+      // Eksekusi Japri Undangan
+      const inviteRes = await sendDirectAlumniInvitation(targetPhone, cleanCandidateName, senderName, customSender);
+      if (inviteRes.success) {
+        reports.push(
+          validContacts.length === 1
+            ? `Alhamdulillah! Kontak Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di web angkatan, sudah otomatis ana japri link pendaftarannya ya! 🙌✨\n_Pesan ajakan registrasi terkirim via jalur pribadi._`
+            : `• Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}): Belum terdaftar, sudah otomatis ana japri link pendaftarannya! 🙌✨`
+        );
+      } else {
+        reports.push(
+          validContacts.length === 1
+            ? `Kontak Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di web angkatan. (Gagal kirim japri: ${inviteRes.reason || "Kendala gateway"}).`
+            : `• Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}): Belum terdaftar (kendala japri: ${inviteRes.reason || "Gateway timeout"})`
+        );
+      }
+    }
+
+    if (reports.length > 0) {
+      let finalReportMsg = "";
+      if (validContacts.length === 1) {
+        finalReportMsg = reports[0];
+      } else {
+        finalReportMsg = `📱 *Hasil Pemeriksaan Kartu Kontak (${validContacts.length} Kontak):*\n` + reports.join("\n");
+      }
+      await sendTargetMessage(finalReportMsg);
+      return { handled: true, replyText: finalReportMsg };
+    }
   }
 
   // 1. KASUS KHUSUS: PENGGUNA MEMBALAS (REPLY) PERTANYAAN BOT TENTANG NAMA PEMILIK NOMOR
