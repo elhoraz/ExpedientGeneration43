@@ -4,7 +4,7 @@ import { sendWhatsAppMessageWithDetail } from "@/lib/whatsapp";
 import {
   getLastIncident,
   clearThrottleCache,
-  checkFonnteHealthAndAlert,
+  checkWhatsAppGatewayHealth,
 } from "@/lib/sentinel/telemetryAlert";
 import { executeAutonomousAiFix } from "@/lib/sentinel/aiCodeFixer";
 
@@ -127,9 +127,9 @@ export async function handleAdminAutoRemediation(
     const msg =
       `🤖 *[AEGIS SENTINEL COMMAND CENTER]*\n\n` +
       `Halo Admin! Perintah kendali otomatis yang dapat Anda ketik via WA:\n\n` +
-      `• *PERBAIKI* : Pemulihan server cepat (revalidate cache, reset error, cek DB & Fonnte)\n` +
+      `• *PERBAIKI* : Pemulihan server cepat (revalidate cache, reset error, cek DB & Gateway WA)\n` +
       `• *PERBAIKI KODE* / *!ai-fix* : Perbaikan kode otomatis oleh Gemini 3.8 Flash & push ke GitHub/Vercel!\n` +
-      `• *STATUS* / *!status* : Cek kesehatan server, database Supabase, dan kuota Fonnte\n` +
+      `• *STATUS* / *!status* : Cek kesehatan server, database Supabase, dan status Gateway WA\n` +
       `• *KIRIM RESMI* : Konfirmasi & publish pengumuman/berita duka titipan alumni ke Grup Resmi WA\n` +
       `• *!revalidate /path* : Bersihkan cache halaman spesifik (contoh: \`!revalidate /galeri\`)\n` +
       `• *!queue* : Cek & kirim ulang antrean pesan WhatsApp yang sempat tertunda\n\n` +
@@ -186,18 +186,18 @@ export async function executeAutoFix(
     actionsTaken.push(`⚠️ *Database Supabase:* Exception (${err.message}).`);
   }
 
-  // 3. Status Gateway WhatsApp (Fonnte)
-  let fonnteOk = false;
-  let fonnteInfo = "";
+  // 3. Status Gateway WhatsApp (Baileys)
+  let gwOk = false;
+  let gwInfo = "";
   try {
-    const fonnteRes = await checkFonnteHealthAndAlert();
-    fonnteOk = fonnteRes.ok;
-    fonnteInfo = fonnteRes.ok
-      ? `Terhubung (Device: ${fonnteRes.device || "Aktif"}, Sisa Kuota: ${fonnteRes.quota ?? "OK"})`
-      : `Perhatian: ${fonnteRes.reason || fonnteRes.status}`;
-    actionsTaken.push(`🔌 *Gateway Fonnte:* ${fonnteInfo}`);
+    const gwRes = await checkWhatsAppGatewayHealth();
+    gwOk = gwRes.ok;
+    gwInfo = gwRes.ok
+      ? `Terhubung (Device: ${gwRes.device || "Aktif"}, Status: ${gwRes.status})`
+      : `Perhatian: ${gwRes.reason || gwRes.status}`;
+    actionsTaken.push(`🔌 *Gateway WhatsApp (Baileys):* ${gwInfo}`);
   } catch (err: any) {
-    actionsTaken.push(`⚠️ *Gateway Fonnte:* Exception (${err.message}).`);
+    actionsTaken.push(`⚠️ *Gateway WhatsApp (Baileys):* Exception (${err.message}).`);
   }
 
   // 4. Retry pesan gagal di whatsapp_queue
@@ -272,7 +272,7 @@ export async function executeStatusCheck(
   channel: "whatsapp" | "telegram" = "whatsapp"
 ): Promise<AutoRemediationResult> {
   const lastIncident = getLastIncident();
-  const fonnteRes = await checkFonnteHealthAndAlert();
+  const gwRes = await checkWhatsAppGatewayHealth();
 
   let dbLatency = 0;
   let dbOk = false;
@@ -299,10 +299,10 @@ export async function executeStatusCheck(
   statusMsg += `⏱️ *Waktu Pengecekan:* ${timeStr} WIB\n\n`;
   statusMsg += `🌐 *Web Deployment:* Online (Vercel Edge Node)\n`;
   statusMsg += `🗄️ *Database Supabase:* ${dbOk ? `✅ Normal (${dbLatency}ms latency)` : `❌ Terkendala`}\n`;
-  statusMsg += `🔌 *WhatsApp Fonnte:* ${
-    fonnteRes.ok
-      ? `✅ Terhubung (Device: ${fonnteRes.device || "Aktif"}, Sisa Kuota: ${fonnteRes.quota ?? "OK"})`
-      : `⚠️ ${fonnteRes.status} (${fonnteRes.reason})`
+  statusMsg += `🔌 *WhatsApp Gateway (Baileys):* ${
+    gwRes.ok
+      ? `✅ Terhubung (Device: ${gwRes.device || "Aktif"}, Status: ${gwRes.status})`
+      : `⚠️ ${gwRes.status} (${gwRes.reason})`
   }\n`;
 
   if (lastIncident) {

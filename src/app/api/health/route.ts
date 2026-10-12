@@ -43,21 +43,22 @@ export async function GET() {
     isHealthy = false;
   }
 
-  // 2. Check Fonnte WhatsApp Gateway Status & Auto-Alert
+  // 2. Check WhatsApp Gateway Status & Auto-Alert
   try {
-    const { checkFonnteHealthAndAlert } = await import("@/lib/sentinel/telemetryAlert");
-    const fonnteRes = await checkFonnteHealthAndAlert();
-    checks.fonnte = {
-      status: fonnteRes.status,
-      connected: fonnteRes.ok,
-      device: fonnteRes.device,
-      quota: fonnteRes.quota,
+    const { checkWhatsAppGatewayHealth } = await import("@/lib/sentinel/telemetryAlert");
+    const gwRes = await checkWhatsAppGatewayHealth();
+    checks.whatsappGateway = {
+      status: gwRes.status,
+      connected: gwRes.ok,
+      device: gwRes.device,
+      quota: gwRes.quota,
+      uptime: gwRes.uptime,
     };
-    if (!fonnteRes.ok && fonnteRes.status === "disconnect") {
+    if (!gwRes.ok && gwRes.status !== "connected") {
       isHealthy = false;
     }
   } catch (err: any) {
-    checks.fonnte = { status: "error", error: err?.message };
+    checks.whatsappGateway = { status: "error", error: err?.message };
   }
 
   // 3. Service availability

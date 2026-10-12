@@ -18,9 +18,10 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const fonnteToken = Deno.env.get('FONNTE_TOKEN') ?? ''
+    const waGatewayUrl = (Deno.env.get('WA_GATEWAY_URL') ?? 'https://expedient43-bot.onrender.com').replace(/\/+$/, '')
+    const waGatewaySecret = Deno.env.get('WA_GATEWAY_SECRET') ?? 'expedient-secret-key-2026'
 
-    if (!supabaseUrl || !supabaseKey || !fonnteToken) {
+    if (!supabaseUrl || !supabaseKey) {
       return new Response('Server Configuration Error', { status: 500 })
     }
 
@@ -66,11 +67,11 @@ serve(async (req) => {
       const message = `🎉 *Barakallah Fii Umrik, ${user.nama_panggilan}!* 🎉\n\nSelamat ulang tahun dari kami keluarga besar Expedient Generation.\nSemoga panjang umur, sehat selalu, dan apa yang dicita-citakan lekas terwujud. Aamiin! 🎂✨`;
 
       try {
-        const response = await fetch("https://api.fonnte.com/send", {
+        const response = await fetch(`${waGatewayUrl}/api/send-message`, {
           method: "POST",
           headers: {
-            "Authorization": fonnteToken,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "x-secret-key": waGatewaySecret,
           },
           body: JSON.stringify({
             target: num,

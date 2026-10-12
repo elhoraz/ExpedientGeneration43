@@ -1,8 +1,7 @@
 /**
  * lib/whatsapp.ts
  * WhatsApp Gateway Engine
- * Primary: Self-Hosted Baileys Gateway (Render)
- * Fallback: Fonnte API Gateway
+ * Engine: Self-Hosted Baileys Gateway (Render Cloud Server)
  */
 
 /**
@@ -42,7 +41,7 @@ export async function sendWhatsAppMessageWithDetail(
   target: string, 
   message: string,
   options?: WhatsAppSendOptions
-): Promise<{ success: boolean; reason?: string; provider?: 'baileys' | 'fonnte' | 'none' }> {
+): Promise<{ success: boolean; reason?: string; provider?: 'baileys' | 'none' }> {
   const isGroup = isWhatsAppGroup(target);
   let finalTarget = "";
 
@@ -110,50 +109,8 @@ export async function sendWhatsAppMessageWithDetail(
     }
   }
 
-  // =========================================================================
-  // 2. SECONDARY: Fonnte API (Fallback)
-  // =========================================================================
-  const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
-  let fonnteError = "";
-
-  if (fonnteToken) {
-    try {
-      const params = new URLSearchParams();
-      params.append("target", finalTarget);
-      params.append("message", message);
-      params.append("delay", "2");
-      params.append("typing", "true");
-
-      if (options?.imageUrl && typeof options.imageUrl === "string" && options.imageUrl.startsWith("http")) {
-        params.append("url", options.imageUrl);
-      }
-
-      const response = await fetch("https://api.fonnte.com/send", {
-        method: "POST",
-        headers: {
-          "Authorization": fonnteToken,
-        },
-        body: params,
-      });
-
-      const result = await response.json().catch(() => ({}));
-      if (response.ok && Boolean(result.status)) {
-        console.log(`[FONNTE-SUCCESS] Pesan WhatsApp terkirim ke ${finalTarget} (${isGroup ? "GROUP" : "PERSONAL"}${options?.imageUrl ? " + GAMBAR" : ""}) | Status: ${result.detail || "Sent"}`);
-        return { success: true, provider: 'fonnte' };
-      }
-
-      fonnteError = result.reason || (typeof result === "string" ? result : JSON.stringify(result));
-      console.warn("[FONNTE-WARN] Respon Fonnte:", fonnteError);
-    } catch (fonnteErr: any) {
-      fonnteError = fonnteErr.message || "Network exception";
-      console.error("[FONNTE-EXCEPTION]:", fonnteErr);
-    }
-  } else {
-    fonnteError = "FONNTE_TOKEN belum diset di environment";
-  }
-
-  const finalReason = `Baileys: ${baileysError || 'Gagal'} | Fonnte: ${fonnteError || 'Gagal'}`;
-  console.error(`[WA-FAILED] Seluruh provider WhatsApp gagal mengirim ke ${finalTarget}: ${finalReason}`);
+  const finalReason = baileysError || "Baileys Gateway tidak dapat dihubungi atau belum terhubung";
+  console.error(`[WA-FAILED] Pengiriman WhatsApp gagal ke ${finalTarget}: ${finalReason}`);
   return { success: false, reason: finalReason, provider: 'none' };
 }
 
@@ -218,7 +175,7 @@ export async function broadcastWhatsAppMessage(targets: string[], message: strin
 }
 
 /**
- * Mengirim gambar/poster langsung ke Grup WhatsApp via Fonnte
+ * Mengirim gambar/poster langsung ke Grup WhatsApp via Baileys Gateway
  */
 export async function sendWhatsAppGroupMedia(
   groupId: string,
@@ -229,57 +186,30 @@ export async function sendWhatsAppGroupMedia(
   const adminPhone = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
   const gatewaySecret = process.env.GATEWAY_SECRET || adminPhone;
 
-  // 1. PRIMARY: Baileys Render Gateway
-  if (gatewayUrl) {
-    try {
-      const cleanJid = groupId.includes("@") ? groupId : `${groupId}@g.us`;
-      const response = await fetch(`${gatewayUrl}/api/send-image`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          secret: gatewaySecret,
-          jid: cleanJid,
-          imagePath: mediaUrl,
-          caption: message,
-        }),
-        signal: AbortSignal.timeout(15000),
-      });
-
-      const result = await response.json().catch(() => ({}));
-      if (response.ok && result.success) {
-        console.log(`[BAILEYS-MEDIA-SUCCESS] Media terkirim ke grup ${groupId}`);
-        return { success: true };
-      }
-    } catch (_) {}
-  }
-
-  // 2. SECONDARY: Fonnte API (Fallback)
-  const fonnteToken = (process.env.FONNTE_TOKEN || "").trim();
-  if (!fonnteToken) {
-    return { success: false, reason: "Gateway Baileys & Fonnte tidak tersedia" };
+  if (!gatewayUrl) {
+    return { success: false, reason: "WA_GATEWAY_URL belum dikonfigurasi" };
   }
 
   try {
-    const params = new URLSearchParams();
-    params.append("target", groupId.replace(/^group:/i, ""));
-    params.append("message", message);
-    params.append("url", mediaUrl);
-    params.append("delay", "2");
-
-    const response = await fetch("https://api.fonnte.com/send", {
+    const cleanJid = groupId.includes("@") ? groupId : `${groupId}@g.us`;
+    const response = await fetch(`${gatewayUrl}/api/send-image`, {
       method: "POST",
-      headers: {
-        Authorization: fonnteToken,
-      },
-      body: params,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        secret: gatewaySecret,
+        jid: cleanJid,
+        imagePath: mediaUrl,
+        caption: message,
+      }),
+      signal: AbortSignal.timeout(20000),
     });
 
     const result = await response.json().catch(() => ({}));
-    if (response.ok && Boolean(result.status)) {
-      console.log(`[FONNTE-MEDIA-SUCCESS] Media terkirim ke grup ${groupId}`);
+    if (response.ok && result.success) {
+      console.log(`[BAILEYS-MEDIA-SUCCESS] Media terkirim ke grup ${groupId}`);
       return { success: true };
     }
-    return { success: false, reason: result.reason || JSON.stringify(result) };
+    return { success: false, reason: result.error || `HTTP ${response.status}` };
   } catch (err: any) {
     return { success: false, reason: err.message };
   }

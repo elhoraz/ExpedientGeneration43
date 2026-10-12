@@ -177,7 +177,7 @@ export function shouldProcessGroupMedia(
 }
 
 /**
- * Mengunduh media dari URL publik WhatsApp Gateway (Fonnte/CDN) dengan validasi ukuran
+ * Mengunduh media dari URL publik WhatsApp Gateway (Baileys/CDN) dengan validasi ukuran
  */
 async function downloadMediaAsBase64(
   url: string,

@@ -11,10 +11,6 @@ type WhatsappQueueItem = {
   message: string;
 };
 
-type FonnteResponse = {
-  status?: boolean;
-  reason?: string;
-};
 
 const jsonResponse = (
   status: "success" | "error",
@@ -76,33 +72,15 @@ export async function POST(req: Request) {
       });
     }
 
-    const fonnteToken = process.env.FONNTE_TOKEN;
-    if (!fonnteToken) {
-      return jsonResponse("error", "FONNTE_TOKEN not set", null, { status: 500 });
-    }
-
+    const { sendWhatsAppMessageWithDetail } = await import("@/lib/whatsapp");
     let successCount = 0;
     let failCount = 0;
 
     for (const item of pendingQueue as WhatsappQueueItem[]) {
       try {
-        const payload = new URLSearchParams({
-          target: item.no_whatsapp,
-          message: item.message,
-          delay: "1",
-        });
+        const sendResult = await sendWhatsAppMessageWithDetail(item.no_whatsapp, item.message);
 
-        const response = await fetch("https://api.fonnte.com/send", {
-          method: "POST",
-          headers: {
-            ["Authorization"]: fonnteToken,
-          },
-          body: payload,
-        });
-
-        const result = await response.json() as FonnteResponse;
-
-        if (result.status) {
+        if (sendResult.success) {
           await supabase.from("whatsapp_queue").update({
             status: "sent",
             updated_at: new Date().toISOString(),
@@ -112,7 +90,7 @@ export async function POST(req: Request) {
         } else {
           await supabase.from("whatsapp_queue").update({
             status: "failed",
-            error_message: result.reason || "Fonnte rejected",
+            error_message: sendResult.reason || "Gagal mengirim melalui Gateway Baileys",
             updated_at: new Date().toISOString(),
           }).eq("id", item.id);
           failCount++;

@@ -47,7 +47,7 @@
 
 ### 3. Arsitektur, Skalabilitas & Ketahanan Layanan (Phase 3)
 - **Zero Heavy Bundle on Boot**: Three.js, Leaflet, Kanvas Photobooth, dan Face-API tidak lagi membebani bundle server route berkat isolasi `ssr: false` di wrapper klien mandiri.
-- **Resilient OTP Delivery**: Komunikasi OTP tidak bergantung 100% pada satu provider WA. Jika Fonnte gateway mengalami kendala, sistem langsung mengalihkan pengiriman ke email pengguna dengan audit trail di tabel `otp_logs`.
+- **Resilient OTP Delivery**: Komunikasi OTP memiliki failover otomatis. Jika WhatsApp gateway mengalami kendala, sistem langsung mengalihkan pengiriman ke email pengguna dengan audit trail di tabel `otp_logs`.
 
 ### 4. Pengalaman Pengguna & Ergonomi (Phase 4)
 - **Aksesibilitas Fitts's Law**: Semua elemen klik memiliki dimensi minimum $\ge 44 \times 44$ px dengan respon sentuhan aktif (`scale(0.96)`).

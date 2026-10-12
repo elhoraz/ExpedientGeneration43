@@ -41,15 +41,15 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
   const [isSending, setIsSending] = useState(false);
   const [logs, setLogs] = useState<BroadcastLog[]>([]);
   const [stats, setStats] = useState({ total: 0, sent: 0, pending: 0, failed: 0 });
-  const [fonnteStatus, setFonnteStatus] = useState<"checking" | "ok" | "error">("checking");
-  const [fonnteMessage, setFonnteMessage] = useState("Memeriksa koneksi ke Fonnte...");
+  const [gatewayStatus, setGatewayStatus] = useState<"checking" | "ok" | "error">("checking");
+  const [gatewayMessage, setGatewayMessage] = useState("Memeriksa koneksi ke WhatsApp Gateway...");
   
   const { showAlert } = useConfirm();
 
   useEffect(() => {
-    // Initial fetch for stats and fonnte status
+    // Initial fetch for stats and gateway status
     fetchStats();
-    checkFonnteStatus();
+    checkGatewayStatus();
   }, []);
 
   const fetchStats = async () => {
@@ -66,23 +66,23 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
     }
   };
 
-  const checkFonnteStatus = async () => {
-    setFonnteStatus("checking");
-    setFonnteMessage("Memeriksa koneksi ke Fonnte...");
+  const checkGatewayStatus = async () => {
+    setGatewayStatus("checking");
+    setGatewayMessage("Memeriksa koneksi ke WhatsApp Gateway...");
     try {
       const res = await fetch("/api/admin/broadcast/diagnose");
       const data = await res.json();
       const payload = data.data || data;
       if (payload.api_ok) {
-        setFonnteStatus("ok");
-        setFonnteMessage(`✅ Terhubung · Device: ${payload.reason || 'OK'}`);
+        setGatewayStatus("ok");
+        setGatewayMessage(`✅ Terhubung · ${payload.reason || payload.device || 'Online'}`);
       } else {
-        setFonnteStatus("error");
-        setFonnteMessage(`❌ Gagal · ${payload.reason || payload.raw_response || data.message || 'Unknown error'}`);
+        setGatewayStatus("error");
+        setGatewayMessage(`❌ Terputus · ${payload.reason || payload.raw_response || data.message || 'Offline'}`);
       }
     } catch {
-      setFonnteStatus("error");
-      setFonnteMessage("⚠ Error · Tidak bisa reach endpoint diagnostik");
+      setGatewayStatus("error");
+      setGatewayMessage("⚠ Error · Tidak bisa terhubung ke endpoint diagnostik gateway");
     }
   };
 
@@ -145,35 +145,25 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
         </nav>
       </div>
 
-      {/* Meta WhatsApp Cloud API Official Status Panel */}
-      <div style={{ background: "linear-gradient(135deg, rgba(0, 200, 83, 0.08), rgba(212, 175, 55, 0.05))", border: "1px solid rgba(0, 200, 83, 0.3)", borderRadius: "16px", padding: "18px 24px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "14px" }}>
+      {/* WhatsApp Gateway Engine (Baileys) Live Status Panel */}
+      <div style={{ background: "linear-gradient(135deg, rgba(0, 200, 83, 0.08), rgba(212, 175, 55, 0.05))", border: `1px solid ${gatewayStatus === 'ok' ? 'rgba(0, 200, 83, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, borderRadius: "16px", padding: "16px 24px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               <div style={{ 
                   width: "12px", height: "12px", borderRadius: "50%", flexShrink: 0,
-                  background: "#00c853", boxShadow: "0 0 12px #00c853"
+                  background: gatewayStatus === 'ok' ? "#00c853" : gatewayStatus === 'checking' ? "#888" : "#ef4444",
+                  boxShadow: gatewayStatus === 'ok' ? "0 0 12px #00c853" : "none"
               }}></div>
               <div>
                   <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
-                      WhatsApp Cloud API Resmi (Primary) · <span style={{ color: "#ffd700", fontFamily: "monospace" }}>+62 851-5177-1289</span>
+                      WhatsApp Gateway Engine (Baileys) · <span style={{ color: "#ffd700", fontFamily: "monospace" }}>+62 851-5177-1289</span>
                   </div>
                   <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "3px" }}>
-                      🛡️ <b>100% Anti-Banned</b> · WABA ID: 2574305923008491 · Status: <span style={{ color: "#00c853", fontWeight: 600 }}>VERIFIED (Green Rating)</span>
+                      {gatewayMessage}
                   </div>
               </div>
           </div>
-      </div>
-
-      {/* Secondary Provider Fallback Panel */}
-      <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "12px 20px", marginBottom: "32px", display: "flex", alignItems: "center", gap: "14px" }}>
-          <div style={{ 
-              width: "8px", height: "8px", borderRadius: "50%", flexShrink: 0,
-              background: fonnteStatus === 'checking' ? '#888' : fonnteStatus === 'ok' ? '#25d366' : '#ffaa00'
-          }}></div>
-          <div style={{ flex: 1, fontSize: "0.74rem", color: "var(--text-secondary)" }}>
-              <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>Secondary Fallback Provider:</span> Fonnte API ({fonnteMessage})
-          </div>
-          <button onClick={checkFonnteStatus} style={{ background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "0.72rem", cursor: "pointer" }}>
-              <i className="fa-solid fa-rotate-right"></i>
+          <button onClick={checkGatewayStatus} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "6px 14px", color: "var(--text-primary)", fontSize: "0.74rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+              <i className="fa-solid fa-rotate-right"></i> Refresh
           </button>
       </div>
 

@@ -3,15 +3,6 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-type FonnteDeviceResponse = {
-  status?: boolean;
-  device?: string;
-  device_status?: string;
-  reason?: string;
-  quota?: string | number;
-  package?: string;
-  expired?: string;
-};
 
 const jsonResponse = (
   status: "success" | "error",
@@ -31,43 +22,33 @@ export async function GET() {
       return jsonResponse("error", "Unauthorized", null, { status: 401 });
     }
 
-    const token = process.env.FONNTE_TOKEN;
-    if (!token) {
-      return jsonResponse("success", "FONNTE_TOKEN not set in environment", {
-        api_ok: false,
-        reason: "FONNTE_TOKEN not set in environment",
-      });
-    }
+    const gatewayUrl = (process.env.WA_GATEWAY_URL || "https://expedient43-bot.onrender.com").replace(/\/+$/, "");
 
     try {
-      const res = await fetch("https://api.fonnte.com/device", {
-        method: "POST",
-        headers: { ["Authorization"]: token },
+      const res = await fetch(`${gatewayUrl}/api/status`, {
+        signal: AbortSignal.timeout(8000),
       });
-      const data = await res.json() as FonnteDeviceResponse;
+      const data = await res.json().catch(() => ({}));
+      const isConnected = Boolean(data.gatewayStatus === "connected");
+      const deviceName = data.activeUser?.name || data.activeUser?.id || "Bot Expedient 43";
       
-      const isConnected = Boolean(data.status && data.device_status === "connect");
       let reason = "";
       if (isConnected) {
-        reason = `Terhubung (${data.device}) · Kuota: ${data.quota ?? 'N/A'}`;
-      } else if (data.device_status === "disconnect") {
-        reason = `WhatsApp Terputus (${data.device || 'Device'}) · Silakan scan QR ulang di fonnte.com`;
-      } else if (data.device_status === "pairing") {
-        reason = `Menunggu Scan QR (${data.device || 'Device'}) · Buka fonnte.com untuk scan`;
+        reason = `Terhubung (${deviceName}) · Baileys Live Gateway (Uptime: ${data.uptimeSeconds || 0}s)`;
       } else {
-        reason = data.reason || `Status device: ${data.device_status || 'Tidak diketahui'}`;
+        reason = `WhatsApp Terputus (${data.gatewayStatus || "Offline"}) · ${data.lastDisconnectInfo || "Silakan hubungkan gateway"}`;
       }
 
       return jsonResponse("success", reason, {
         api_ok: isConnected,
-        device_status: data.device_status,
-        device: data.device,
-        quota: data.quota,
+        device_status: data.gatewayStatus,
+        device: deviceName,
+        quota: "Unlimited (Self-Hosted)",
         reason,
-        token_value: "******" + token.slice(-4),
+        gateway_url: gatewayUrl,
       });
     } catch (err: unknown) {
-      const reason = getErrorMessage(err);
+      const reason = `Gateway Baileys unreachable (${getErrorMessage(err)})`;
       return jsonResponse("success", reason, {
         api_ok: false,
         reason,

@@ -7,7 +7,7 @@ export type AlertCategory =
   | "promise_rejection"
   | "react_error_boundary"
   | "ui_lag"
-  | "fonnte_disconnect"
+  | "wa_gateway_disconnect"
   | "api_failure";
 
 export interface TelemetryEvent {
@@ -73,8 +73,8 @@ function getCategoryBadge(category: AlertCategory): string {
       return "🛡️ White Screen / React Component Crash";
     case "ui_lag":
       return "🐢 Severe UI Freeze / Main Thread Stutter";
-    case "fonnte_disconnect":
-      return "🔌 Gateway WhatsApp Fonnte Terputus";
+    case "wa_gateway_disconnect":
+      return "🔌 Gateway WhatsApp (Baileys) Terputus";
     case "api_failure":
       return "🚨 Server API 500 / Database Failure";
     default:
@@ -238,7 +238,7 @@ export async function dispatchSystemAlert(event: TelemetryEvent): Promise<{
     }
   }
 
-  // 2. SECONDARY CHANNEL: WhatsApp Gateway (Fonnte) with Meta WA fallback
+  // 2. SECONDARY CHANNEL: WhatsApp Gateway (Baileys)
   const waResult = await sendWhatsAppMessageWithDetail(adminWa, waMessage);
 
   if (waResult.success) {
@@ -246,7 +246,7 @@ export async function dispatchSystemAlert(event: TelemetryEvent): Promise<{
     return { success: true, provider: waResult.provider };
   }
 
-  // Fallback: If WhatsApp delivery failed (e.g. Fonnte device disconnected/token expired),
+  // Fallback: If WhatsApp delivery failed (e.g. Baileys server disconnected),
   // send emergency email so the problem is NEVER missed!
   console.warn(`[AEGIS-SENTINEL-FALLBACK] WhatsApp gagal (${waResult.reason}). Mengirimkan fallback email darurat...`);
   try {
@@ -282,42 +282,38 @@ export async function dispatchSystemAlert(event: TelemetryEvent): Promise<{
 }
 
 /**
- * Health check status perangkat Fonnte.
- * Jika status bukan 'connect' (misal: 'disconnect' atau 'pairing'),
- * otomatis kirimkan alert darurat ke WhatsApp/Email admin.
+ * Health check status perangkat WhatsApp Gateway (Baileys Render Server).
+ * Jika status bukan 'connected', otomatis kirimkan alert darurat ke WhatsApp/Email admin.
  */
-let lastFonnteDisconnectAlert = 0;
-export async function checkFonnteHealthAndAlert(): Promise<{
+let lastGatewayDisconnectAlert = 0;
+export async function checkWhatsAppGatewayHealth(): Promise<{
   ok: boolean;
   device?: string;
   status: string;
   quota?: string | number;
   reason?: string;
+  uptime?: number;
 }> {
-  const token = (process.env.FONNTE_TOKEN || "").trim();
-  if (!token) {
-    return { ok: false, status: "no_token", reason: "FONNTE_TOKEN tidak diset di environment" };
-  }
+  const gatewayUrl = (process.env.WA_GATEWAY_URL || "https://expedient43-bot.onrender.com").replace(/\/+$/, "");
 
   try {
-    const res = await fetch("https://api.fonnte.com/device", {
-      method: "POST",
-      headers: { Authorization: token },
+    const res = await fetch(`${gatewayUrl}/api/status`, {
+      signal: AbortSignal.timeout(8000),
     });
     const data = await res.json().catch(() => ({}));
-    const isConnected = Boolean(data.status && data.device_status === "connect");
-    const device = data.device || "6289675010185";
-    const status = data.device_status || "unknown";
+    const isConnected = Boolean(data.gatewayStatus === "connected");
+    const device = data.activeUser?.name || data.activeUser?.id || "Bot Expedient 43";
+    const status = data.gatewayStatus || "disconnected";
 
     if (!isConnected) {
       const now = Date.now();
       // Jangan spam jika disconnect berkepanjangan (maks 1x per 30 menit)
-      if (now - lastFonnteDisconnectAlert > 30 * 60 * 1000) {
-        lastFonnteDisconnectAlert = now;
+      if (now - lastGatewayDisconnectAlert > 30 * 60 * 1000) {
+        lastGatewayDisconnectAlert = now;
         await dispatchSystemAlert({
-          category: "fonnte_disconnect",
-          message: `Device WhatsApp Fonnte (${device}) TERPUTUS! Status terkini: ${status}. Segera login dan scan QR ulang di https://fonnte.com agar fitur notifikasi WA tetap beroperasi 24 jam.`,
-          detail: `Reason dari server: ${data.reason || status}. Kuota tersisa: ${data.quota || "N/A"}`,
+          category: "wa_gateway_disconnect",
+          message: `Gateway WhatsApp Baileys (${device}) TERPUTUS! Status terkini: ${status}.`,
+          detail: `Reason dari server: ${data.lastDisconnectInfo || status}. Uptime: ${data.uptimeSeconds || 0}s`,
           route: "/api/admin/broadcast/diagnose",
         });
       }
@@ -327,10 +323,11 @@ export async function checkFonnteHealthAndAlert(): Promise<{
       ok: isConnected,
       device,
       status,
-      quota: data.quota,
-      reason: data.reason,
+      quota: "Unlimited (Self-Hosted)",
+      uptime: data.uptimeSeconds,
+      reason: isConnected ? undefined : (data.lastDisconnectInfo || "Gateway disconnected"),
     };
   } catch (err: any) {
-    return { ok: false, status: "network_error", reason: err?.message || "Gagal menghubungi Fonnte API" };
+    return { ok: false, status: "network_error", reason: err?.message || "Gagal menghubungi Gateway Baileys" };
   }
 }

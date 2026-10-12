@@ -3,7 +3,7 @@ import { sendWhatsAppMessageWithDetail } from "@/lib/whatsapp";
 import {
   getLastIncident,
   clearThrottleCache,
-  checkFonnteHealthAndAlert,
+  checkWhatsAppGatewayHealth,
   TelemetryEvent,
 } from "@/lib/sentinel/telemetryAlert";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -191,7 +191,7 @@ Determine what the admin wants and categorize into ONE of 5 intents:
    - "berapa saldo baitul maal?" -> table: "baitul_maal", operation: "select", selectFields: "amount, type, status"
 
 2. "CHAT": Asking general questions, greeting, design advice, or discussing web ideas.
-3. "STATUS": Asking for server health, database ping latency, Vercel status, or Fonnte quota.
+3. "STATUS": Asking for server health, database ping latency, Vercel status, or WhatsApp Gateway status.
 4. "OPERATION": Asking to fix server issues, flush cache, retry WhatsApp queue, reconnect gateway, or revalidate paths without changing source code ("perbaiki server", "refresh web", "bersihkan cache").
 5. "CODE_EDIT": Asking to MODIFY source code, ADD a new feature, ADD a new button, CHANGE styles, or FIX a code bug in GitHub.
 
@@ -494,7 +494,7 @@ export async function handleAdminConversationalMessage(
 
     // C. INTENT: STATUS / KONDISI SERVER
     if (analysis.intent === "STATUS") {
-      const fonnteRes = await checkFonnteHealthAndAlert();
+      const gwRes = await checkWhatsAppGatewayHealth();
       let dbLatency = 0;
       let dbOk = false;
       try {
@@ -514,7 +514,7 @@ export async function handleAdminConversationalMessage(
       statusReply += `📊 *[DATA KESEHATAN LIVE]*\n`;
       statusReply += `• Vercel Edge: ✅ Online\n`;
       statusReply += `• Supabase DB: ${dbOk ? `✅ Normal (${dbLatency}ms)` : "❌ Terkendala"}\n`;
-      statusReply += `• Fonnte WA: ${fonnteRes.ok ? `✅ Terhubung (Kuota: ${fonnteRes.quota ?? "OK"})` : `⚠️ ${fonnteRes.status}`}\n`;
+      statusReply += `• WhatsApp Gateway (Baileys): ${gwRes.ok ? `✅ Terhubung (${gwRes.device || "Aktif"})` : `⚠️ ${gwRes.status}`}\n`;
       if (lastIncident) {
         statusReply += `• Catatan Insiden: ${lastIncident.category} di ${lastIncident.route}`;
       } else {
@@ -542,7 +542,7 @@ export async function handleAdminConversationalMessage(
       opReply += `✅ *[TINDAKAN SELESAI]*\n`;
       opReply += `1. Revalidate cache untuk \`${targetRoute}\` & root layout (OK)\n`;
       opReply += `2. Memory error throttle di-reset (OK)\n`;
-      opReply += `3. Gateway Fonnte & Supabase disegarkan (OK)`;
+      opReply += `3. WhatsApp Gateway & Supabase disegarkan (OK)`;
 
       await sendChannelReply(opReply);
       return { success: true, replySent: true };

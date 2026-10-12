@@ -426,7 +426,7 @@ graph TD
   * [`src/app/register/page.tsx`](file:///c:/Users/LENOVO/angkatan1/expedient-next/src/app/register/page.tsx)
   * [`supabase/migrations/20260908000002_otp_resiliency.sql`](file:///c:/Users/LENOVO/angkatan1/expedient-next/supabase/migrations/20260908000002_otp_resiliency.sql) (Migrasi Baru - SELESAI)
 * **Instruksi Implementasi:**
-  1. Jika pemanggilan Fonnte API gagal (kuota habis, network timeout, atau nomor WhatsApp tidak aktif), sistem harus:
+  1. Jika pemanggilan WhatsApp Gateway gagal (network timeout atau nomor WhatsApp tidak aktif), sistem harus:
      - Log status kegagalan ke tabel `otp_logs`.
      - Otomatis memicu fallback pengiriman 6-digit kode OTP ke alamat email terdaftar menggunakan Nodemailer/Gmail.
   2. Pada halaman verifikasi OTP di frontend, sediakan tombol: *"Tidak menerima WhatsApp? Kirim via Email"*.

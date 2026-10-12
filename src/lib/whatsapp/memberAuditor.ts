@@ -200,7 +200,7 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
   } catch {}
 
   // 2. Ambil antrean nomor dari Supabase dan LANGSUNG KOSONGKAN antrean
-  // Hal ini penting agar webhook retry dari Fonnte/Vercel TIDAK BISA memproses antrean ganda secara paralel!
+  // Hal ini penting agar webhook retry dari Gateway/Vercel TIDAK BISA memproses antrean ganda secara paralel!
   let rawPhones: string[] = [];
   try {
     const { data } = await supabase

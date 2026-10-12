@@ -250,9 +250,9 @@ Silakan ketikkan 6 digit angka di atas pada layar verifikasi portal untuk menyel
 
       const sent = await sendWhatsAppMessage(noWa, waMessage);
       
-      // Jika WhatsApp gagal (misal Fonnte limit/banned), lakukan auto-fallback langsung ke Gmail!
+      // Jika WhatsApp gagal (misal Baileys offline), lakukan auto-fallback langsung ke Gmail!
       if (!sent) {
-        console.warn(`[SEND-OTP] WhatsApp Fonnte gagal/banned. Mengalihkan otomatis pengiriman ke Gmail (${email})...`);
+        console.warn(`[SEND-OTP] WhatsApp Baileys gagal/offline. Mengalihkan otomatis pengiriman ke Gmail (${email})...`);
         await logOtpDelivery(adminSupabase, {
           userId: user.id,
           email,

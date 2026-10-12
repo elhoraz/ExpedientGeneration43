@@ -2,27 +2,15 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { handleAdminAutoRemediation } from "@/lib/sentinel/autoRemediator";
 
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || "expedient_meta_token_2026";
-
 /**
- * GET Handler: Verifikasi Webhook dari Meta Developer Portal
+ * GET Handler: Status Webhook Inbound Gateway (Baileys)
  */
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const mode = searchParams.get("hub.mode");
-  const token = searchParams.get("hub.verify_token");
-  const challenge = searchParams.get("hub.challenge");
-
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("[META WEBHOOK] Verified successfully!");
-    return new Response(challenge, { status: 200 });
-  }
-
-  return new Response("Forbidden", { status: 403 });
+export async function GET() {
+  return NextResponse.json({ status: "active", gateway: "baileys" });
 }
 
 /**
- * POST Handler: Menerima pesan masuk dari Fonnte / Meta WhatsApp Gateway
+ * POST Handler: Menerima pesan masuk dari WhatsApp Gateway (Baileys)
  * Mendukung Auto-Remediasi 24 Jam saat Admin membalas pesan peringatan (PERBAIKI / !fix / !status)
  */
 export async function POST(request: Request) {
@@ -75,7 +63,7 @@ export async function POST(request: Request) {
     for (const body of bodies) {
       if (!body) continue;
 
-      // A. Format Webhook Fonnte
+      // Format Webhook Inbound Gateway (Baileys)
       if (body.sender || body.message || body.text || body.url || body.file) {
         const senderStr = String(body.sender || "").trim();
         const memberStr = String(body.member || "").trim();
@@ -141,7 +129,7 @@ export async function POST(request: Request) {
           }
         }
 
-        // Ekstraksi Quoted / Replied Message (Saling Reply) dari Fonnte & Baileys
+        // Ekstraksi Quoted / Replied Message (Saling Reply) dari Gateway Baileys
         let quotedText = "";
         let quotedSender = "";
 
@@ -206,35 +194,6 @@ export async function POST(request: Request) {
           quotedFromBot,
           contacts: parsedContacts.length > 0 ? parsedContacts : undefined,
         });
-      }
-      // B. Format Webhook Resmi Meta Cloud API
-      else if (body.entry?.[0]?.changes?.[0]?.value?.messages) {
-        const value = body.entry[0].changes[0].value;
-        const contact = value.contacts?.[0];
-        const metaSenderName = contact?.profile?.name || "";
-
-        for (const msg of value.messages) {
-          let text = "";
-          if (msg.type === "text") {
-            text = msg.text?.body || "";
-          } else if (msg.type === "interactive") {
-            text = msg.interactive?.button_reply?.title || msg.interactive?.list_reply?.title || "[Interaktif]";
-          } else if (msg.type === "button") {
-            text = msg.button?.text || "[Pilihan Tombol]";
-          } else if (msg.type === "image") {
-            text = msg.image?.caption || "[Gambar Terkirim]";
-          } else if (msg.type === "sticker") {
-            text = "[Stiker]";
-          } else {
-            text = `[Pesan ${msg.type || "Media"}]`;
-          }
-
-          incomingList.push({
-            sender: String(msg.from || ""),
-            messageText: text,
-            senderName: metaSenderName,
-          });
-        }
       }
     }
 
