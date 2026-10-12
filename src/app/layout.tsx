@@ -109,6 +109,9 @@ export const metadata: Metadata = {
     description: "Mahakarya digital, museum kenangan, dan wadah persatuan alumni ke-43 Pondok Modern Arrisalah Slahung Ponorogo.",
     images: ["/images/logo-utuh.webp"],
   },
+  verification: {
+    google: "googlec79c55f44fd979bb",
+  },
 };
 
 const getCachedSiteContent = unstable_cache(
@@ -141,6 +144,25 @@ export default async function RootLayout({
         <link
           href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;600;700&display=swap"
           rel="stylesheet"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Expedient Generation",
+              alternateName: [
+                "Expedient Generation 43",
+                "Expedient 43",
+                "Alumni Arrisalah 43",
+                "Pondok Modern Arrisalah Slahung"
+              ],
+              url: siteUrl,
+              description: "Mahakarya digital & museum jejak langkah alumni angkatan ke-43 Pondok Modern Arrisalah Slahung Ponorogo.",
+              inLanguage: "id-ID",
+            }),
+          }}
         />
         {/* Inline script to set theme and detect device performance before first paint */}
         <script
