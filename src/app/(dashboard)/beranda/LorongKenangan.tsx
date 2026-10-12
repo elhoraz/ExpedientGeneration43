@@ -163,6 +163,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
   const goToIndex = (index: number) => {
     const clamped = Math.max(0, Math.min(index, total - 1));
     targetScroll.current = clamped;
+    setActiveIndex(clamped);
     wakeEngine();
   };
 
@@ -174,6 +175,12 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
   // --- GESTURE & DRAG HANDLERS ---
   const handlePointerDown = (e: React.PointerEvent) => {
     if (activeStyle === 'mosaic') return;
+    const target = e.target as HTMLElement;
+    // Do not initiate drag if interacting with buttons, links, or HUD controls
+    if (target.closest('button') || target.closest('a') || target.closest('.hud-controls')) {
+      return;
+    }
+
     isDragging.current = true;
     hasMoved.current = false;
     startX.current = e.clientX;
@@ -182,7 +189,6 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
     lastPointerTime.current = Date.now();
     pointerVelocity.current = 0;
 
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     wakeEngine();
   };
 
@@ -191,7 +197,12 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
 
     const deltaX = startX.current - e.clientX;
     if (Math.abs(deltaX) > 4) {
-      hasMoved.current = true;
+      if (!hasMoved.current) {
+        hasMoved.current = true;
+        try {
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        } catch (_) {}
+      }
     }
 
     // Velocity tracking
@@ -220,9 +231,17 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
     wakeEngine();
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     if (!isDragging.current || activeStyle === 'mosaic') return;
     isDragging.current = false;
+
+    if (hasMoved.current) {
+      try {
+        if ((e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) {
+          (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        }
+      } catch (_) {}
+    }
 
     const vel = pointerVelocity.current;
     let snapIndex = Math.round(currentScroll.current);
@@ -235,6 +254,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
 
     snapIndex = Math.max(0, Math.min(snapIndex, total - 1));
     targetScroll.current = snapIndex;
+    setActiveIndex(snapIndex);
     wakeEngine();
   };
 
@@ -242,10 +262,11 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (activeStyle === 'mosaic') return;
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
       if (e.key === "ArrowLeft") {
-        goToIndex(Math.max(0, Math.round(currentScroll.current) - 1));
+        goToIndex(Math.max(0, Math.round(targetScroll.current) - 1));
       } else if (e.key === "ArrowRight") {
-        goToIndex(Math.min(total - 1, Math.round(currentScroll.current) + 1));
+        goToIndex(Math.min(total - 1, Math.round(targetScroll.current) + 1));
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -474,65 +495,132 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
           </div>
 
           {/* VVIP HUD CONTROLS */}
-          <div style={{
-            position: "absolute",
-            bottom: isMobile ? "12px" : "25px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            alignItems: "center",
-            gap: isMobile ? "10px" : "16px",
-            zIndex: 500,
-            width: "max-content",
-            pointerEvents: "auto"
-          }}>
+          <div
+            className="hud-controls"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "absolute",
+              bottom: isMobile ? "12px" : "25px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              display: "flex",
+              alignItems: "center",
+              gap: isMobile ? "10px" : "16px",
+              zIndex: 500,
+              width: "max-content",
+              pointerEvents: "auto",
+              cursor: "default"
+            }}
+          >
             <button
-              onClick={() => goToIndex(activeIndex - 1)}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (activeIndex > 0) {
+                  goToIndex(activeIndex - 1);
+                }
+              }}
               disabled={activeIndex === 0}
               aria-label="Sebelumnya"
               style={{
-                background: "rgba(3,5,4,0.88)", border: "1px solid rgba(212,175,55,0.4)",
+                background: "rgba(3,5,4,0.88)",
+                border: "1px solid rgba(212,175,55,0.4)",
                 color: activeIndex === 0 ? "rgba(255,255,255,0.2)" : "#ffd700",
-                width: isMobile ? "36px" : "42px", height: isMobile ? "36px" : "42px",
-                borderRadius: "50%", cursor: activeIndex === 0 ? "default" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                width: isMobile ? "36px" : "44px",
+                height: isMobile ? "36px" : "44px",
+                borderRadius: "50%",
+                cursor: activeIndex === 0 ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontSize: isMobile ? "0.8rem" : "0.95rem",
                 boxShadow: "0 10px 25px rgba(0,0,0,0.8)",
-                backdropFilter: "blur(12px)", transition: "all 0.3s ease"
+                backdropFilter: "blur(12px)",
+                transition: "all 0.25s ease",
+                opacity: activeIndex === 0 ? 0.35 : 1
+              }}
+              onMouseEnter={(e) => {
+                if (activeIndex > 0) {
+                  e.currentTarget.style.borderColor = "var(--gold-premium, #ffd700)";
+                  e.currentTarget.style.boxShadow = "0 0 16px rgba(212,175,55,0.6)";
+                  e.currentTarget.style.transform = "scale(1.08)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)";
+                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.8)";
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              <i className="fa-solid fa-chevron-left"></i>
+              <i className="fa-solid fa-chevron-left" style={{ pointerEvents: "none" }}></i>
             </button>
 
             <div style={{
-              background: "rgba(3,5,4,0.88)", border: "1px solid rgba(212,175,55,0.5)",
-              padding: isMobile ? "7px 14px" : "9px 26px", borderRadius: "30px",
+              background: "rgba(3,5,4,0.88)",
+              border: "1px solid rgba(212,175,55,0.5)",
+              padding: isMobile ? "7px 14px" : "9px 26px",
+              borderRadius: "30px",
               fontSize: isMobile ? "0.72rem" : "0.82rem",
-              color: "var(--gold-premium, #d4af37)", fontFamily: "monospace",
-              letterSpacing: isMobile ? "1.5px" : "3px", fontWeight: 700,
-              boxShadow: "0 12px 30px rgba(0,0,0,0.9)", backdropFilter: "blur(12px)",
-              display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap"
+              color: "var(--gold-premium, #d4af37)",
+              fontFamily: "monospace",
+              letterSpacing: isMobile ? "1.5px" : "3px",
+              fontWeight: 700,
+              boxShadow: "0 12px 30px rgba(0,0,0,0.9)",
+              backdropFilter: "blur(12px)",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              whiteSpace: "nowrap",
+              userSelect: "none"
             }}>
               <i className="fa-solid fa-gem" style={{ color: "#ffd700", fontSize: "0.85rem" }}></i>
               <span>{locale === "ar" ? `ذكرى ${toRoman(activeIndex + 1)} / ${toRoman(total)}` : locale === "en" ? `MEMORY ${toRoman(activeIndex + 1)} / ${toRoman(total)}` : `MEMORI ${toRoman(activeIndex + 1)} / ${toRoman(total)}`}</span>
             </div>
 
             <button
-              onClick={() => goToIndex(activeIndex + 1)}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (activeIndex < total - 1) {
+                  goToIndex(activeIndex + 1);
+                }
+              }}
               disabled={activeIndex === total - 1}
               aria-label="Selanjutnya"
               style={{
-                background: "rgba(3,5,4,0.88)", border: "1px solid rgba(212,175,55,0.4)",
+                background: "rgba(3,5,4,0.88)",
+                border: "1px solid rgba(212,175,55,0.4)",
                 color: activeIndex === total - 1 ? "rgba(255,255,255,0.2)" : "#ffd700",
-                width: isMobile ? "36px" : "42px", height: isMobile ? "36px" : "42px",
-                borderRadius: "50%", cursor: activeIndex === total - 1 ? "default" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
+                width: isMobile ? "36px" : "44px",
+                height: isMobile ? "36px" : "44px",
+                borderRadius: "50%",
+                cursor: activeIndex === total - 1 ? "not-allowed" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 fontSize: isMobile ? "0.8rem" : "0.95rem",
                 boxShadow: "0 10px 25px rgba(0,0,0,0.8)",
-                backdropFilter: "blur(12px)", transition: "all 0.3s ease"
+                backdropFilter: "blur(12px)",
+                transition: "all 0.25s ease",
+                opacity: activeIndex === total - 1 ? 0.35 : 1
+              }}
+              onMouseEnter={(e) => {
+                if (activeIndex < total - 1) {
+                  e.currentTarget.style.borderColor = "var(--gold-premium, #ffd700)";
+                  e.currentTarget.style.boxShadow = "0 0 16px rgba(212,175,55,0.6)";
+                  e.currentTarget.style.transform = "scale(1.08)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)";
+                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.8)";
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
-              <i className="fa-solid fa-chevron-right"></i>
+              <i className="fa-solid fa-chevron-right" style={{ pointerEvents: "none" }}></i>
             </button>
           </div>
 
