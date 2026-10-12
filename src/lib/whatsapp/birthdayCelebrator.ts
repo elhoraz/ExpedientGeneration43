@@ -278,6 +278,23 @@ export async function checkAndTriggerDailyBirthdayWishes(
       // B. BROADCAST KE GRUP KOMUNITAS ANGKATAN
       // =====================================================================
       try {
+        // Anti-duplikasi grup: Cek apakah hari ini sudah pernah dikirim ucapan ke grup ini untuk alumni ini
+        if (!force) {
+          const { data: existingGroupWish } = await supabase
+            .from("whatsapp_queue")
+            .select("id")
+            .eq("no_whatsapp", communityGroupId.slice(0, 20))
+            .eq("status", "sent")
+            .ilike("message", `%${b.nama_lengkap}%`)
+            .gte("created_at", `${todayDateStr}T00:00:00.000Z`)
+            .maybeSingle();
+
+          if (existingGroupWish) {
+            console.log(`[BIRTHDAY-GROUP-SKIP] Ucapan grup untuk ${b.nama_lengkap} sudah terkirim hari ini.`);
+            continue;
+          }
+        }
+
         const groupMsg = formatBirthdayGreetingMessage(b);
         const mentions = b.no_whatsapp ? [`${b.no_whatsapp.replace(/\D/g, "")}@s.whatsapp.net`] : [];
 

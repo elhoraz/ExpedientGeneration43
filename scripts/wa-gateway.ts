@@ -126,6 +126,7 @@ interface LogEntry {
 
 const activityLogs: LogEntry[] = [];
 const groupFridayCooldown = new Map<string, number>();
+const groupBirthdayCooldown = new Map<string, number>();
 
 // =============================================================================
 // GLOBAL ANTI-LOOP & ANTI-SPAM CIRCUIT BREAKER SYSTEM
@@ -1632,18 +1633,51 @@ async function startBaileysGateway() {
         // =====================================================================
         // FITUR MILAD / ULANG TAHUN ALUMNI (HARI INI & BULAN INI)
         // =====================================================================
-        const isBirthdayTrigger =
-          cleanLower.includes("siapa yang ultah") ||
-          cleanLower.includes("siapa yang milad") ||
-          cleanLower.includes("ultah hari ini") ||
-          cleanLower.includes("milad hari ini") ||
-          cleanLower.includes("milad bulan ini") ||
-          cleanLower.includes("ultah bulan ini") ||
-          cleanLower === "!milad" ||
-          cleanLower === "/milad" ||
-          cleanLower === "!ultah";
+        const isCasualBdayChat =
+          cleanLower.includes("selamat ulang tahun") ||
+          cleanLower.includes("selamat milad") ||
+          cleanLower.includes("barakallah") ||
+          cleanLower.includes("mabruk") ||
+          cleanLower.includes("hbd") ||
+          cleanLower.includes("met ultah") ||
+          cleanLower.includes("traktir");
 
-        if (isBirthdayTrigger && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+        const isBirthdayTrigger =
+          !isCasualBdayChat &&
+          (cleanLower === "!milad" ||
+            cleanLower === "/milad" ||
+            cleanLower === "!ultah" ||
+            cleanLower === "/ultah" ||
+            cleanLower.startsWith("siapa yang ultah") ||
+            cleanLower.startsWith("siapa yang milad") ||
+            cleanLower.startsWith("siapa ultah") ||
+            cleanLower.startsWith("siapa milad") ||
+            cleanLower.startsWith("info ultah") ||
+            cleanLower.startsWith("jadwal ultah") ||
+            cleanLower.startsWith("info milad") ||
+            cleanLower.startsWith("jadwal milad") ||
+            (isDirectlyAddressed && (cleanLower.includes("ultah") || cleanLower.includes("milad") || cleanLower.includes("ulang tahun"))));
+
+        if (isBirthdayTrigger && (isGroup ? isDirectlyAddressed || cleanLower.startsWith("!") || cleanLower.startsWith("/") : true)) {
+          const nowMs = Date.now();
+          const lastBdayQuery = groupBirthdayCooldown.get(remoteJid) || 0;
+
+          // Anti-spam group cooldown: maks 1x per 15 menit per grup untuk query milad manual
+          if (isGroup && nowMs - lastBdayQuery < 15 * 60 * 1000) {
+            if (isDirectlyAddressed || cleanLower.startsWith("!") || cleanLower.startsWith("/")) {
+              await sendReply(
+                remoteJid,
+                `🎂 Informasi agenda milad alumni sudah dibagikan di atas sahabat. Mari doakan sahabat kita yang berulang tahun! ✨`,
+                m
+              );
+            }
+            continue;
+          }
+
+          if (isGroup) {
+            groupBirthdayCooldown.set(remoteJid, nowMs);
+          }
+
           addLog(`🎂 [BIRTHDAY-QUERY] Memeriksa agenda milad alumni untuk ${senderName}...`);
           await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
           const todayBirthdays = await getTodayBirthdayAlumni();

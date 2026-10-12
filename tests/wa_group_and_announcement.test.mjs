@@ -101,7 +101,35 @@ function shouldGroupBotRespond(messageText) {
     return true;
   }
 
-  // 4. Pertanyaan Sosok / Profil Alumni / Siapa
+  // 4. Filter Anti-Spam: Cegah bot nimbrung ucapan selamat ulang tahun / milad santai antar sesama anggota!
+  const isCasualBirthdayGreeting =
+    lower.includes("selamat ulang tahun") ||
+    lower.includes("selamat milad") ||
+    lower.includes("barakallah") ||
+    lower.includes("mabruk") ||
+    lower.includes("hbd") ||
+    lower.includes("met ultah") ||
+    lower.includes("traktir") ||
+    lower.includes("lagi ultah") ||
+    lower.includes("ultah ke") ||
+    lower.includes("milad ke");
+
+  if (isCasualBirthdayGreeting) {
+    const hasExplicitBotCall =
+      messageText.startsWith("!") ||
+      messageText.startsWith("/") ||
+      lower.includes("@bot") ||
+      lower.includes("@min") ||
+      lower.includes("@admin") ||
+      lower.startsWith("bot ") ||
+      lower.startsWith("min ");
+
+    if (!hasExplicitBotCall) {
+      return false;
+    }
+  }
+
+  // 5. Pertanyaan Sosok / Profil Alumni / Siapa
   if (
     lower.includes("siapa") ||
     lower.includes("siapakah") ||
@@ -116,11 +144,10 @@ function shouldGroupBotRespond(messageText) {
     return true;
   }
 
-  // 5. Pertanyaan Spesifik Seputar Angkatan & Website Portal
+  // 6. Pertanyaan Spesifik Seputar Angkatan & Website Portal
   if (
-    lower.includes("ultah") ||
-    lower.includes("ulang tahun") ||
-    lower.includes("milad") ||
+    ((lower.includes("siapa") || lower.includes("kapan") || lower.includes("info") || lower.includes("jadwal") || lower.includes("daftar")) &&
+      (lower.includes("ultah") || lower.includes("milad") || lower.includes("ulang tahun"))) ||
     lower.includes("reuni") ||
     lower.includes("agenda") ||
     lower.includes("acara") ||
@@ -200,6 +227,14 @@ describe('WhatsApp Group Gateway & Smart Trigger Validation', () => {
     assert.strictEqual(shouldGroupBotRespond('besok sore ada yang nongkrong gak?'), false);
     assert.strictEqual(shouldGroupBotRespond('gue otw nih tunggu ya'), false);
     assert.strictEqual(shouldGroupBotRespond('mantap jiwa'), false);
+
+    // 5. MUST IGNORE casual birthday greetings between friends in group (Anti-Spam)
+    assert.strictEqual(shouldGroupBotRespond('selamat ulang tahun ya rachmat'), false);
+    assert.strictEqual(shouldGroupBotRespond('barakallah miladnya mat'), false);
+    assert.strictEqual(shouldGroupBotRespond('met ultah mat sukses selalu'), false);
+    assert.strictEqual(shouldGroupBotRespond('traktir ultah dong mat'), false);
+    assert.strictEqual(shouldGroupBotRespond('hbd rachmat'), false);
+    assert.strictEqual(shouldGroupBotRespond('wah si rachmat lagi ultah rek'), false);
   });
 
   it('MUST distinguish Friday blessing commands from casual conversation (Anti-Spam)', () => {

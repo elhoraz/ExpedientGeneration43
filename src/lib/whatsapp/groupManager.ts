@@ -401,7 +401,35 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     return true;
   }
 
-  // 4. Pertanyaan Faktual Terarah, Permintaan Pembuatan Stiker, Suara / VN, & Poster / Desain
+  // 4. Filter Anti-Spam: Cegah bot nimbrung ucapan selamat ulang tahun / milad santai antar sesama anggota!
+  const isCasualBirthdayGreeting =
+    lower.includes("selamat ulang tahun") ||
+    lower.includes("selamat milad") ||
+    lower.includes("barakallah") ||
+    lower.includes("mabruk") ||
+    lower.includes("hbd") ||
+    lower.includes("met ultah") ||
+    lower.includes("traktir") ||
+    lower.includes("lagi ultah") ||
+    lower.includes("ultah ke") ||
+    lower.includes("milad ke");
+
+  if (isCasualBirthdayGreeting && !isQuotedFromBot) {
+    const hasExplicitBotCall =
+      messageText.startsWith("!") ||
+      messageText.startsWith("/") ||
+      lower.includes("@bot") ||
+      lower.includes("@min") ||
+      lower.includes("@admin") ||
+      lower.startsWith("bot ") ||
+      lower.startsWith("min ");
+
+    if (!hasExplicitBotCall) {
+      return false;
+    }
+  }
+
+  // 5. Pertanyaan Faktual Terarah, Permintaan Pembuatan Stiker, Suara / VN, & Poster / Desain
   if (
     lower.startsWith("siapa ") ||
     lower.startsWith("siapakah ") ||
@@ -434,9 +462,9 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     lower.includes("kuis") ||
     lower.includes("tebak santri") ||
     lower.includes("leaderboard") ||
-    lower.includes("milad") ||
-    lower.includes("ultah") ||
-    lower.includes("ulang tahun") ||
+    // Pertanyaan eksplisit agenda/siapa yang milad atau ultah (BUKAN ucapan selamat)
+    ((lower.includes("siapa") || lower.includes("kapan") || lower.includes("info") || lower.includes("jadwal") || lower.includes("daftar")) &&
+      (lower.includes("ultah") || lower.includes("milad") || lower.includes("ulang tahun"))) ||
     lower.includes("mahfudzot") ||
     lower.includes("hadits") ||
     lower.includes("sunnah jumat") ||
