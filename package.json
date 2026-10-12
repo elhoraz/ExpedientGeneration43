@@ -13,7 +13,7 @@
     "cap:sync:all": "npx cap sync",
     "build:android": "next build && npx cap sync android",
     "build:ios": "next build && npx cap sync ios",
-    "postinstall": "node scripts/patch-ios-plugins.js",
+    "postinstall": "node -e \"if (require('fs').existsSync('./scripts/patch-ios-plugins.js')) require('./scripts/patch-ios-plugins.js')\"",
     "wa:bot": "npx -y tsx --env-file=.env.local scripts/wa-gateway.ts"
   },
   "dependencies": {
