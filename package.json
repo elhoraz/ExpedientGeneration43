@@ -17,7 +17,7 @@
     "wa:bot": "npx -y tsx --env-file=.env.local scripts/wa-gateway.ts"
   },
   "dependencies": {
-    "@capacitor/android": "^8.5.1",
+    "@capacitor/android": "8.3.1",
     "@capacitor/core": "8.3.1",
     "@capacitor/ios": "8.3.1",
     "@capacitor/local-notifications": "8.3.1",
