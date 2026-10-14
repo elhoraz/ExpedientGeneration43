@@ -148,14 +148,35 @@ export async function handleUserWhatsAppMessage(
 ): Promise<{ success: boolean; replyText: string }> {
   const senderName = userProfile?.nama_panggilan || userProfile?.nama_lengkap || "Sahabat";
   const { generateIntelligentCohortReply } = await import("@/lib/whatsapp/alumniIntelligence");
+  const { recordGroupChatMessage } = await import("@/lib/whatsapp/groupConversationBuffer");
 
   try {
+    // 1. Rekam pesan pengguna ke buffer percakapan pribadi agar bot ingat konteks
+    await recordGroupChatMessage(senderPhone, {
+      senderPhone,
+      senderName,
+      messageText,
+      timestamp: Date.now(),
+      isFromBot: false,
+    }).catch(() => {});
+
+    // 2. Hasilkan balasan cerdas dengan konteks percakapan multi-turn
     const replyText = await generateIntelligentCohortReply({
       messageText,
       senderPhone,
       senderName,
       isGroup: false,
+      groupId: senderPhone, // jadikan nomor pengguna sebagai key sesi obrolan
     });
+
+    // 3. Rekam balasan bot ke buffer percakapan pribadi
+    await recordGroupChatMessage(senderPhone, {
+      senderPhone: "bot",
+      senderName: "Bot Expedient 43",
+      messageText: replyText,
+      timestamp: Date.now(),
+      isFromBot: true,
+    }).catch(() => {});
 
     // Kirim balasan langsung ke WhatsApp pengguna
     const waRes = await sendWhatsAppMessageWithDetail(senderPhone, replyText);

@@ -2,7 +2,18 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { callGeminiResilient } from "@/lib/geminiResilient";
 
 export interface CohortFactContext {
-  category: "profile" | "city" | "birthday" | "agenda" | "total" | "feature" | "guestbook" | "general";
+  category:
+    | "profile"
+    | "city"
+    | "birthday"
+    | "agenda"
+    | "total"
+    | "feature"
+    | "guestbook"
+    | "baitul_maal"
+    | "syndicate"
+    | "philosophy"
+    | "general";
   summary: string;
   data?: any;
 }
@@ -16,6 +27,7 @@ const COMMON_STOPWORDS = new Set([
   "ananda", "akhi", "ukhti", "ustadz", "ustadzah", "mas", "mbak", "rek", "coba",
   "nomor", "nomornya", "kontak", "kontaknya", "wa", "whatsapp", "lahir", "lahirnya", "tanggal", "tempat",
   "alamat", "rumahnya", "asal", "tinggal", "tinggalnya", "kerja", "status", "foto", "si", "aja", "saja",
+  "cerita", "ceritain", "kabar", "kabarnya", "gimana", "jelasin", "kasih", "bagi", "panggilannya",
   // Kata ganti / slang santri yang sering bentrok dengan potongan nama
   "ana", "ane", "ente", "antum", "anti", "antunna", "gue", "gua", "guwe", "elu", "lu", "lo", "aku", "saya",
   "kau", "dia", "kita", "kami", "mereka", "kalian", "beliau", "tau", "gatau", "gktau", "nggak", "enggak",
@@ -29,7 +41,7 @@ const COMMON_STOPWORDS = new Set([
 function tokenizeWords(text: string): string[] {
   return text
     .toLowerCase()
-    .replace(/[^a-z\s]/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .filter(Boolean);
 }
@@ -64,8 +76,18 @@ const KNOWN_CITIES = [
   "ponorogo", "slahung", "pacitan", "madiun", "ngawi", "magetan", "kediri",
   "surabaya", "malang", "sidoarjo", "gresik", "jombang", "blitar", "tulungagung",
   "bandung", "jakarta", "tangerang", "banten", "bekasi", "depok", "bogor",
-  "jogja", "yogyakarta", "solo", "surakarta", "semarang", "jayapura", "papua"
+  "jogja", "yogyakarta", "solo", "surakarta", "semarang", "jayapura", "papua",
+  "lampung", "palembang", "medan", "makassar", "balikpapan", "samarinda", "bali"
 ];
+
+/** Format angka ke Rupiah yang rapi */
+function formatRupiah(num: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(num);
+}
 
 /**
  * Menghitung usia akurat berdasarkan tanggal lahir (YYYY-MM-DD)
@@ -94,43 +116,46 @@ export function calculateAge(birthDateStr: string): string {
 }
 
 /**
- * Engine Resolusi Konteks Cerdas Berdasarkan Pertanyaan Pengguna
+ * Engine Resolusi Konteks Cerdas Berdasarkan Pertanyaan Pengguna & Riwayat Obrolan
  */
 export async function resolveCohortContext(
   messageText: string,
-  callerName?: string
+  callerName?: string,
+  recentChatContext?: string,
+  rawChatHistory?: any[]
 ): Promise<CohortFactContext> {
   const lower = messageText.trim().toLowerCase();
 
   try {
     const supabase = createAdminClient();
-    // 0. Cek apakah ada memori dinamis yang telah dipelajari bot yang cocok dengan pertanyaan
-  try {
-    const { getLearnedMemories } = await import("@/lib/whatsapp/botMemory");
-    const memories = await getLearnedMemories();
-    if (memories && memories.length > 0) {
-      const msgWords = new Set(tokenizeWords(messageText));
-      const matched = memories.filter((m) => {
-        const topWords = tokenizeWords(m.topic).filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w));
-        return topWords.length > 0 && topWords.some((w) => msgWords.has(w));
-      });
-      if (matched.length > 0) {
-        const memList = matched.map((m) => `• ${m.fact} (Dipelajari dari Sahabat ${m.contributor})`).join("\n");
-        return {
-          category: "general",
-          summary: `FAKTA MEMORI TERBARU YANG DIPELAJARI BOT DARI OBROLAN ALUMNI:\n${memList}\n\nJawablah dengan percaya diri menggunakan memori yang telah kamu pelajari ini!`,
-          data: matched,
-        };
-      }
-    }
-  } catch (memErr) {
-    // Non-blocking
-  }
 
-  // 1. TANYA KETUA ANGKATAN / PEMBUAT WEBSITE / TOKOH KUNCI
+    // 0. Cek apakah ada memori dinamis yang telah dipelajari bot yang cocok dengan pertanyaan
+    try {
+      const { getLearnedMemories } = await import("@/lib/whatsapp/botMemory");
+      const memories = await getLearnedMemories();
+      if (memories && memories.length > 0) {
+        const msgWords = new Set(tokenizeWords(messageText));
+        const matched = memories.filter((m) => {
+          const topWords = tokenizeWords(m.topic).filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w));
+          return topWords.length > 0 && topWords.some((w) => msgWords.has(w));
+        });
+        if (matched.length > 0) {
+          const memList = matched.map((m) => `• ${m.fact} (Dipelajari dari Sahabat ${m.contributor})`).join("\n");
+          return {
+            category: "general",
+            summary: `FAKTA MEMORI TERBARU YANG DIPELAJARI BOT DARI OBROLAN ALUMNI:\n${memList}\n\nJawablah dengan percaya diri menggunakan memori yang telah kamu pelajari ini!`,
+            data: matched,
+          };
+        }
+      }
+    } catch (memErr) {
+      // Non-blocking
+    }
+
+    // 1. TANYA KETUA ANGKATAN / PEMBUAT WEBSITE / LEAD DEVELOPER (ELHORA)
     if (
       lower.includes("ketua angkatan") ||
-      lower.includes("ketua") ||
+      (lower.includes("ketua") && !lower.includes("rt") && !lower.includes("rw")) ||
       lower.includes("pembuat web") ||
       lower.includes("developer") ||
       lower.includes("siapa taufiqi") ||
@@ -147,9 +172,10 @@ export async function resolveCohortContext(
       const elhoraAge = elhora?.tanggal_lahir ? calculateAge(elhora.tanggal_lahir) : "21 tahun";
       return {
         category: "profile",
-        summary: `FAKTA TOKOH & KETUA ANGKATAN:\n` +
+        summary:
+          `FAKTA TOKOH & KETUA ANGKATAN:\n` +
           `• Nama Lengkap: Muhammad Nur Taufiqi (Akrab dipanggil Elhora / Elhoraz)\n` +
-          `• Peran: Ketua / Inisiator & Lead Developer Web Portal Expedient Generation 43\n` +
+          `• Peran: Ketua Angkatan & Lead Developer Web Portal Expedient Generation 43\n` +
           `• Tempat/Tgl Lahir: Ponorogo, 4 Mei 2005 (${elhoraAge})\n` +
           `• Asal/Domisili: Ponorogo, Jawa Timur\n` +
           `• Kontak WhatsApp: +62 821-4287-7426\n` +
@@ -159,7 +185,6 @@ export async function resolveCohortContext(
     }
 
     // 2. TANYA ULANG TAHUN / MILAD (HARI INI / BULAN INI / TERDEKAT)
-    // 2. TANYA ULANG TAHUN / MILAD (HARI INI / BULAN INI / TERDEKAT / SIAPA ULTAH)
     if (
       lower.includes("ultah") ||
       lower.includes("ulang tahun") ||
@@ -195,7 +220,7 @@ export async function resolveCohortContext(
 
         const monthNames = [
           "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-          "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+          "Juli", "Agustus", "September", "Oktober", "November", "Desember",
         ];
 
         for (const p of celebrants) {
@@ -245,14 +270,13 @@ export async function resolveCohortContext(
           }
         }
 
-        // Urutkan upcoming dari hari terdekat
         upcomingCelebrants.sort((a, b) => a.daysLeft - b.daysLeft);
 
-        // Ringkasan fakta untuk Gemini AI
         let summaryText = `FAKTA ULANG TAHUN ALUMNI EXPEDIENT 43 (HARI INI: ${currentDay} ${monthNames[currentMonth - 1]} ${currentYear}):\n`;
 
         if (todayCelebrants.length > 0) {
-          summaryText += `🎉 HARI INI BERULANG TAHUN:\n` +
+          summaryText +=
+            `🎉 HARI INI BERULANG TAHUN:\n` +
             todayCelebrants.map((c) => `• ${c.fullName} (${c.nick}) ke-${c.turningAge} tahun (Hari ini!)`).join("\n") +
             `\n\n`;
         } else {
@@ -260,8 +284,14 @@ export async function resolveCohortContext(
         }
 
         const topUpcoming = upcomingCelebrants.slice(0, 5);
-        summaryText += `🎂 DAFTAR ULANG TAHUN TERDEKAT MENDATANG:\n` +
-          topUpcoming.map((c, i) => `${i + 1}. *${c.nick}* (${c.fullName}) — Tanggal ${c.dateStr} (Kurang ${c.daysLeft} hari lagi / H-${c.daysLeft}, Usia ${c.turningAge} Th)`).join("\n") +
+        summaryText +=
+          `🎂 DAFTAR ULANG TAHUN TERDEKAT MENDATANG:\n` +
+          topUpcoming
+            .map(
+              (c, i) =>
+                `${i + 1}. *${c.nick}* (${c.fullName}) — Tanggal ${c.dateStr} (Kurang ${c.daysLeft} hari lagi / H-${c.daysLeft}, Usia ${c.turningAge} Th)`
+            )
+            .join("\n") +
           `\n\nJawablah dengan menyebutkan siapa yang paling terdekat secara jelas dan ramah!`;
 
         return {
@@ -272,30 +302,198 @@ export async function resolveCohortContext(
       }
     }
 
-    // 3. TANYA DAERAH / KOTA / DOMISILI (Contoh: "siapa yang di Surabaya?", "anak Bandung siapa aja?")
-    const lowerWords = new Set(tokenizeWords(messageText));
-    for (const city of KNOWN_CITIES) {
-      if (lowerWords.has(city)) {
-        const { data: matchedCity } = await supabase
-          .from("profiles")
-          .select("nama_lengkap, nama_panggilan, alamat_lengkap, no_whatsapp")
-          .ilike("alamat_lengkap", `%${city}%`)
-          .limit(8);
+    // 3. TANYA BAITUL MAAL / KAS ANGKATAN / TRANSPARANSI KEUANGAN / REKENING
+    if (
+      lower.includes("baitul maal") ||
+      lower.includes("baitul mal") ||
+      lower.includes("kas angkatan") ||
+      lower.includes("uang kas") ||
+      lower.includes("saldo kas") ||
+      lower.includes("saldo baitul") ||
+      lower.includes("rekening kas") ||
+      lower.includes("rekening donasi") ||
+      lower.includes("donasi angkatan") ||
+      lower.includes("laporan keuangan")
+    ) {
+      const { data: txList } = await supabase
+        .from("baitul_maal_transactions")
+        .select("amount, transaction_type, status, category, description")
+        .eq("status", "COMPLETED");
 
-        if (matchedCity && matchedCity.length > 0) {
-          const names = matchedCity
-            .map((p) => `• *${(p.nama_panggilan || p.nama_lengkap).trim()}* (${p.alamat_lengkap || city})`)
+      let totalIn = 0;
+      let totalOut = 0;
+      if (txList) {
+        for (const t of txList) {
+          const val = Number(t.amount) || 0;
+          if (t.transaction_type === "IN") totalIn += val;
+          if (t.transaction_type === "OUT") totalOut += val;
+        }
+      }
+      const saldo = totalIn - totalOut;
+
+      // Ambil info rekening resmi
+      const { data: bankInfo } = await supabase
+        .from("site_content")
+        .select("content_value")
+        .eq("content_key", "baitul_maal_bank_accounts")
+        .maybeSingle();
+
+      let bankSummary = "Rekening Resmi: Hubungi Bendahara Angkatan atau cek portal";
+      if (bankInfo?.content_value) {
+        try {
+          const parsed = typeof bankInfo.content_value === "string" ? JSON.parse(bankInfo.content_value) : bankInfo.content_value;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            bankSummary = parsed.map((b: any) => `• ${b.bank_name || b.bank}: *${b.account_number || b.rekening}* a.n. *${b.account_holder || b.atas_nama}*`).join("\n");
+          }
+        } catch {
+          // fallback string
+          bankSummary = String(bankInfo.content_value);
+        }
+      }
+
+      return {
+        category: "baitul_maal",
+        summary:
+          `FAKTA TRANSPARANSI KEUANGAN BAITUL MAAL EXPEDIENT 43:\n` +
+          `• Saldo Kas Terverifikasi Saat Ini: *${formatRupiah(saldo)}*\n` +
+          `• Total Dana Terkumpul (Pemasukan): ${formatRupiah(totalIn)}\n` +
+          `• Total Dana Tersalurkan (Pengeluaran/Operasional): ${formatRupiah(totalOut)}\n` +
+          `• Rekening Donasi & Kas Resmi:\n${bankSummary}\n` +
+          `• Program Utama: Kas Rutin Angkatan, Ta'awun Sosial/Kesehatan, Safari Silaturahmi.\n` +
+          `• Transparansi Lengkap & Unduh Laporan CSV: https://expedientgeneration.vercel.app/baitul-maal`,
+        data: { saldo, totalIn, totalOut },
+      };
+    }
+
+    // 4. TANYA SYNDICATE / PELUANG KARIR / BISNIS ALUMNI / LOKER
+    if (
+      lower.includes("syndicate") ||
+      lower.includes("loker") ||
+      lower.includes("lowongan") ||
+      lower.includes("karir") ||
+      lower.includes("bisnis alumni") ||
+      lower.includes("usaha alumni") ||
+      lower.includes("kolaborasi")
+    ) {
+      const { data: syndicateItems } = await supabase
+        .from("syndicate")
+        .select("title, category, company, description, contact")
+        .limit(4);
+
+      let syndicateSummary = `FAKTA EXPEDIENT SYNDICATE (Jejaring Bisnis & Karir Angkatan):\n`;
+      if (syndicateItems && syndicateItems.length > 0) {
+        syndicateSummary += syndicateItems
+          .map((item) => `• *${item.title}* (${item.category || "Usaha"}) - ${item.company || "Alumni"} | Info: ${item.contact || "-"}`)
+          .join("\n");
+      } else {
+        syndicateSummary += `• Wadah sinergi dan kolaborasi profesional alumni Expedient 43.\n`;
+      }
+      syndicateSummary += `\n• Jelajahi atau pasang lowongan/bisnis antum di: https://expedientgeneration.vercel.app/syndicate`;
+
+      return {
+        category: "syndicate",
+        summary: syndicateSummary,
+        data: syndicateItems,
+      };
+    }
+
+    // 5. TANYA CITA-CITA / PROFESI / KAMPUS / KULIAH ALUMNI
+    if (
+      lower.includes("cita-cita") ||
+      lower.includes("cita cita") ||
+      lower.includes("yang mau jadi") ||
+      lower.includes("siapa yang mau jadi") ||
+      lower.includes("siapa yang jadi") ||
+      lower.includes("yang jadi dokter") ||
+      lower.includes("yang jadi tentara") ||
+      lower.includes("yang jadi polisi") ||
+      lower.includes("yang jadi guru") ||
+      lower.includes("yang jadi ustadz") ||
+      lower.includes("yang kuliah di") ||
+      lower.includes("jurusan")
+    ) {
+      // Ekstrak kata kunci profesi yang ditanyakan
+      const careerKeywords = ["dokter", "tentara", "tni", "polisi", "guru", "ustadz", "arsitek", "dosen", "bisnis", "programmer", "pilot", "diplomat", "hukum", "presiden", "ulama"];
+      const matchedKeyword = careerKeywords.find((k) => lower.includes(k));
+
+      if (matchedKeyword) {
+        const { data: matchedCareer } = await supabase
+          .from("profiles")
+          .select("nama_lengkap, nama_panggilan, cita_cita, alamat_lengkap")
+          .ilike("cita_cita", `%${matchedKeyword}%`)
+          .limit(6);
+
+        if (matchedCareer && matchedCareer.length > 0) {
+          const listStr = matchedCareer
+            .map((p) => `• *${(p.nama_panggilan || p.nama_lengkap).trim()}* (${p.nama_lengkap}): Cita-cita "${p.cita_cita}"`)
             .join("\n");
           return {
-            category: "city",
-            summary: `FAKTA DOMISILI KOTA ${city.toUpperCase()} (${matchedCity.length} alumni terdata):\n${names}`,
-            data: matchedCity,
+            category: "profile",
+            summary: `FAKTA CITA-CITA ALUMNI TERKAIT "${matchedKeyword.toUpperCase()}":\n${listStr}\n\nSemoga Allah meridhoi dan memudahkan cita-cita mulia sahabat-sahabat kita!`,
+            data: matchedCareer,
           };
         }
       }
     }
 
-    // 4. TANYA TOTAL ALUMNI / STATISTIK ANGKATAN
+    // 6. TANYA PANCA JIWA, FALSAFAH PONDOK ARRISALAH & MAHFUDZOT
+    if (
+      lower.includes("panca jiwa") ||
+      lower.includes("motto pondok") ||
+      lower.includes("falsafah") ||
+      lower.includes("semboyan") ||
+      lower.includes("sejarah arrisalah") ||
+      lower.includes("mahfudzot") ||
+      lower.includes("kata mutiara") ||
+      lower.includes("nasihat pondok") ||
+      lower.includes("jiilul hashiif") ||
+      lower.includes("makna expedient")
+    ) {
+      return {
+        category: "philosophy",
+        summary:
+          `FALSAFAH & NILAI LUHUR ALMAMATER PONDOK MODERN ARRISALAH SLAHUNG PONOROGO:\n` +
+          `• Julukan Angkatan: *Jiilul Hashiif* (جيل الحصيف) — Generasi yang Cerdas, Bijaksana, Berani, dan Tangkas (The Expedient / The Successors), Tamat 2025.\n` +
+          `• Panca Jiwa Pondok:\n` +
+          `  1. *Keikhlasan*: Bekerja dan beribadah semata-mata karena Allah SWT tanpa pamrih.\n` +
+          `  2. *Kesederhanaan*: Bersahaja, tabah, dan kaya hati (bukan berarti pasif atau melarat).\n` +
+          `  3. *Berdikari (Kemandirian)*: Sanggup menolong diri sendiri, berjiwa swasembada, tidak bergantung pada orang lain.\n` +
+          `  4. *Ukhuwah Islamiyah*: Persaudaraan mukmin yang kokoh, saling tolong-menolong laksana satu tubuh.\n` +
+          `  5. *Kebebasan*: Berpikir merdeka, berjiwa besar, berpandangan luas dalam koridor syariat Islam.\n` +
+          `• Falsafah Hidup: "Berani hidup tak takut mati, takut mati jangan hidup, takut hidup mati saja!" & "Apa yang kau lihat, kau dengar, kau rasakan di pondok adalah pendidikan."\n` +
+          `• Mahfudzot Pilihan: "مَنْ جَدَّ وَجَدَ" (Siapa yang bersungguh-sungguh pasti berhasil), "مَنْ صَبَرَ ظَفِرَ" (Siapa yang bersabar pasti beruntung).`,
+      };
+    }
+
+    // 7. TANYA BUKU TAMU / TITIP SALAM
+    if (
+      lower.includes("buku tamu") ||
+      lower.includes("guestbook") ||
+      lower.includes("titip salam") ||
+      lower.includes("titip pesan")
+    ) {
+      const { data: messages } = await supabase
+        .from("buku_tamu")
+        .select("nama_pengirim, pesan, created_at")
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      let guestSummary = `FAKTA BUKU TAMU EXPEDIENT 43:\n`;
+      if (messages && messages.length > 0) {
+        guestSummary += `Pesan-pesan hangat terbaru dari kawan alumni:\n` +
+          messages.map((m) => `• *${m.nama_pengirim || "Sahabat"}*: "${m.pesan}"`).join("\n") +
+          `\n\n`;
+      }
+      guestSummary += `Titip pesan atau kirim salam rindu untuk seangkatan di: https://expedientgeneration.vercel.app/buku-tamu`;
+
+      return {
+        category: "guestbook",
+        summary: guestSummary,
+        data: messages,
+      };
+    }
+
+    // 8. TANYA TOTAL ALUMNI / STATISTIK ANGKATAN
     if (
       (lower.includes("berapa") && (lower.includes("alumni") || lower.includes("anggota") || lower.includes("total"))) ||
       lower.includes("total alumni") ||
@@ -308,7 +506,8 @@ export async function resolveCohortContext(
 
       return {
         category: "total",
-        summary: `FAKTA STATISTIK ANGKATAN EXPEDIENT 43:\n` +
+        summary:
+          `FAKTA STATISTIK ANGKATAN EXPEDIENT 43:\n` +
           `• Total Alumni Terdaftar: *${count || 79} alumni*\n` +
           `• Alumni Putra: ${putraCount || 45} sahabat\n` +
           `• Alumni Putri: ${putriCount || 34} sahabat\n` +
@@ -318,7 +517,7 @@ export async function resolveCohortContext(
       };
     }
 
-    // 4b. TANYA KANAL YOUTUBE / VIDEO PANGGUNG GEMBIRA 643 / DOKUMENTER (JIILUL HASHIIF)
+    // 9. TANYA KANAL YOUTUBE / VIDEO PANGGUNG GEMBIRA 643 / DOKUMENTER (JIILUL HASHIIF)
     if (
       lower.includes("youtube") ||
       lower.includes("yt") ||
@@ -328,20 +527,20 @@ export async function resolveCohortContext(
       lower.includes("pg 643") ||
       lower.includes("jiilul hashiif") ||
       lower.includes("jiilulhashiif") ||
-      (lower.includes("video") && (
-        lower.includes("tonton") ||
-        lower.includes("rekaman") ||
-        lower.includes("lagu") ||
-        lower.includes("tari") ||
-        lower.includes("nasyid") ||
-        lower.includes("reog") ||
-        lower.includes("saman") ||
-        lower.includes("drama")
-      ))
+      (lower.includes("video") &&
+        (lower.includes("tonton") ||
+          lower.includes("rekaman") ||
+          lower.includes("lagu") ||
+          lower.includes("tari") ||
+          lower.includes("nasyid") ||
+          lower.includes("reog") ||
+          lower.includes("saman") ||
+          lower.includes("drama")))
     ) {
       return {
         category: "general",
-        summary: `FAKTA KANAL YOUTUBE RESMI & DOKUMENTASI MAHAKARYA PG 643:\n` +
+        summary:
+          `FAKTA KANAL YOUTUBE RESMI & DOKUMENTASI MAHAKARYA PG 643:\n` +
           `• Nama Kanal Resmi Angkatan 43: Expedient Generation (@JiilulHashiif)\n` +
           `• Tautan YouTube: https://www.youtube.com/@JiilulHashiif\n` +
           `• Makna Nama: "Jiilul Hashiif" (جيل الحصيف) adalah julukan angkatan 43 dalam bahasa Arab yang berarti Generasi yang Cerdas, Bijaksana, dan Tangkas (The Expedient / The Successors).\n` +
@@ -351,7 +550,7 @@ export async function resolveCohortContext(
       };
     }
 
-    // 5. TANYA FITUR WEBSITE / PORTAL / CARA PAKAI
+    // 10. TANYA FITUR WEBSITE / PORTAL / CARA PAKAI
     if (
       lower.includes("fitur") ||
       lower.includes("website") ||
@@ -365,19 +564,20 @@ export async function resolveCohortContext(
     ) {
       return {
         category: "feature",
-        summary: `PANDUAN FITUR PORTAL EXPEDIENT 43 (https://expedientgeneration.vercel.app):\n` +
+        summary:
+          `PANDUAN FITUR PORTAL EXPEDIENT 43 (https://expedientgeneration.vercel.app):\n` +
           `1. 📱 *Direktori Alumni*: Cari profil, nomor WA, domisili kawan seangkatan.\n` +
-          `2. 📸 *Galeri Masa Pondok & Reuni*: Album foto nostalgia kenangan indah bersama.\n` +
-          `3. 🎬 *Bioskop Mahakarya PG 643*: Pemutar video interaktif dokumentasi Panggung Gembira 643 (@JiilulHashiif) & Almamater Arrisalah.\n` +
-          `4. 🤖 *AI Photobooth*: Generator foto seru alumni bertenaga AI.\n` +
-          `5. 📖 *Asmaul Husna & Doa*: Renungan 99 Asmaul Husna, arah kiblat & waktu sholat digital.\n` +
+          `2. 📸 *Galeri Masa Pondok*: Nostalgia kenangan indah masa nyantri.\n` +
+          `3. 🎬 *Bioskop Mahakarya PG 643*: Pemutar video interaktif dokumentasi Panggung Gembira 643 (@JiilulHashiif).\n` +
+          `4. 💰 *Baitul Maal*: Laporan kas transparan, donasi online, dan ta'awun kesehatan.\n` +
+          `5. 💼 *Expedient Syndicate*: Jejaring karir, lowongan kerja, dan kolaborasi bisnis alumni.\n` +
           `6. ✍️ *Buku Tamu Online*: Titip salam dan pesan persahabatan antar alumni.\n` +
-          `7. 💼 *Expedient Syndicate*: Jejaring karir, loker, dan peluang kolaborasi bisnis alumni.\n` +
-          `8. 📢 *Broadcast Lelayu/Duka*: Kirim info duka via WhatsApp bot ke nomor Admin untuk dipost resmi.`,
+          `7. 📖 *Asmaul Husna & Doa*: Renungan 99 Asmaul Husna, arah kiblat & waktu sholat digital.\n` +
+          `8. 🤖 *AI Photobooth*: Generator foto seru alumni bertenaga AI.`,
       };
     }
 
-    // 6. TANYA AGENDA / REUNI / ACARA
+    // 11. TANYA AGENDA / REUNI / ACARA
     if (lower.includes("reuni") || lower.includes("agenda") || lower.includes("acara") || lower.includes("kapan kumpul")) {
       const { data: events } = await supabase
         .from("events")
@@ -399,15 +599,134 @@ export async function resolveCohortContext(
       }
     }
 
-    // 7. PENCARIAN PROFIL SPESIFIK BERDASARKAN KATA KUNCI NAMA
+    // 12. TANYA DAERAH / KOTA / DOMISILI (Dukungan Kota Dinamis & Static Array)
+    const lowerWords = new Set(tokenizeWords(messageText));
+    // Cek kota statis dulu
+    for (const city of KNOWN_CITIES) {
+      if (lowerWords.has(city)) {
+        const { data: matchedCity } = await supabase
+          .from("profiles")
+          .select("nama_lengkap, nama_panggilan, alamat_lengkap, no_whatsapp")
+          .or(`alamat_lengkap.ilike.%${city}%,tempat_lahir.ilike.%${city}%`)
+          .limit(8);
+
+        if (matchedCity && matchedCity.length > 0) {
+          const names = matchedCity
+            .map((p) => `• *${(p.nama_panggilan || p.nama_lengkap).trim()}* (${p.alamat_lengkap || city})`)
+            .join("\n");
+          return {
+            category: "city",
+            summary: `FAKTA DOMISILI KOTA ${city.toUpperCase()} (${matchedCity.length} alumni terdata):\n${names}`,
+            data: matchedCity,
+          };
+        }
+      }
+    }
+
+    // Jika ada frasa "tinggal di X", "yang di X", "anak X"
+    const cityInquiryMatch = lower.match(/(?:tinggal|domisili|asal|anak|yang)\s+(?:di\s+)?([a-z]{3,20})/i);
+    if (cityInquiryMatch && cityInquiryMatch[1]) {
+      const candidateCity = cityInquiryMatch[1].toLowerCase();
+      if (!COMMON_STOPWORDS.has(candidateCity) && candidateCity.length >= 4) {
+        const { data: dynamicMatched } = await supabase
+          .from("profiles")
+          .select("nama_lengkap, nama_panggilan, alamat_lengkap, no_whatsapp")
+          .or(`alamat_lengkap.ilike.%${candidateCity}%,tempat_lahir.ilike.%${candidateCity}%`)
+          .limit(6);
+
+        if (dynamicMatched && dynamicMatched.length > 0) {
+          const names = dynamicMatched
+            .map((p) => `• *${(p.nama_panggilan || p.nama_lengkap).trim()}* (${p.alamat_lengkap || candidateCity})`)
+            .join("\n");
+          return {
+            category: "city",
+            summary: `FAKTA DOMISILI DAERAH ${candidateCity.toUpperCase()} (${dynamicMatched.length} alumni terdata):\n${names}`,
+            data: dynamicMatched,
+          };
+        }
+      }
+    }
+
+    // 13. COREFERENCE RESOLUTION DARI RIWAYAT OBROLAN (MULTI-TURN MEMORY)
+    // Jika pertanyaan pengguna adalah pertanyaan lanjutan tanpa menyebut nama eksplisit
+    // Contoh: "umurnya berapa?", "tinggal dimana?", "minta wa nya dong", "dia siapa?", "cita-citanya apa?"
+    const isFollowUpInquiry =
+      lower.includes("umur") ||
+      lower.includes("usia") ||
+      lower.includes("kapan lahir") ||
+      lower.includes("dimana") ||
+      lower.includes("asal") ||
+      lower.includes("tinggal") ||
+      lower.includes("nomor") ||
+      lower.includes("kontak") ||
+      lower.includes("wa") ||
+      lower.includes("cita") ||
+      lower.includes("pekerjaan") ||
+      lower.includes("kerja") ||
+      lower.includes("dia siapa") ||
+      lower.includes("siapa dia") ||
+      lower.includes("fotonya") ||
+      lower.includes("ig") ||
+      lower.includes("instagram");
+
+    const nameIndex = await getProfileNameIndex(supabase);
+
+    if (isFollowUpInquiry && (rawChatHistory?.length || recentChatContext)) {
+      // Ambil teks dari riwayat pesan sebelumnya untuk mendeteksi siapa yang barusan dibicarakan
+      const previousTexts: string[] = [];
+      if (rawChatHistory && Array.isArray(rawChatHistory)) {
+        for (const item of rawChatHistory.slice(-4)) {
+          if (item?.messageText && item.messageText.trim() !== messageText.trim()) {
+            previousTexts.push(item.messageText);
+          }
+        }
+      } else if (recentChatContext) {
+        previousTexts.push(recentChatContext);
+      }
+
+      for (const prevText of previousTexts.reverse()) {
+        const prevTokens = tokenizeWords(prevText).filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w));
+        for (const token of prevTokens) {
+          let hits = nameIndex.filter((p) => p.nickWords.has(token));
+          if (hits.length === 0) hits = nameIndex.filter((p) => p.nameWords.has(token));
+          if (hits.length > 0 && hits.length <= 3) {
+            const candidate = hits[0];
+            const { data: resolvedProfile } = await supabase
+              .from("profiles")
+              .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat_lengkap, no_whatsapp, cita_cita, motivasi_hidup, akun_ig")
+              .eq("id", candidate.id)
+              .maybeSingle();
+
+            if (resolvedProfile) {
+              const ageStr = resolvedProfile.tanggal_lahir ? calculateAge(resolvedProfile.tanggal_lahir) : "Belum dicantumkan";
+              const detail =
+                `• *${(resolvedProfile.nama_lengkap || "").trim()}* (Panggilan: *${(resolvedProfile.nama_panggilan || "").trim()}*)\n` +
+                `  - Usia: ${ageStr}\n` +
+                `  - Tempat, Tgl Lahir: ${resolvedProfile.tempat_lahir || "-"}, ${resolvedProfile.tanggal_lahir || "-"}\n` +
+                `  - Asal/Domisili: ${(resolvedProfile.alamat_lengkap || "-").trim()}\n` +
+                `  - Cita-cita: ${(resolvedProfile.cita_cita || "-").trim()}\n` +
+                `  - Motivasi: ${(resolvedProfile.motivasi_hidup || "-").trim()}\n` +
+                `  - Instagram: ${(resolvedProfile.akun_ig || "-").trim()}\n` +
+                `  - WhatsApp: ${resolvedProfile.no_whatsapp ? `+${resolvedProfile.no_whatsapp}` : "-"}`;
+
+              return {
+                category: "profile",
+                summary: `FAKTA PROFIL YANG SEDANG DIBICARAKAN (Konteks Lanjutan):\n${detail}\n\nJawablah pertanyaan lanjutan pengguna tentang sahabat ini secara tepat dan lugas!`,
+                data: resolvedProfile,
+              };
+            }
+          }
+        }
+      }
+    }
+
+    // 14. PENCARIAN PROFIL SPESIFIK BERDASARKAN KATA KUNCI NAMA DALAM PESAN
     // HANYA cocokkan kata UTUH dengan nama/panggilan alumni (bukan potongan substring!)
-    // Contoh bug lama: "ana" -> Earlyana (Eva), "tau" -> Taufiqi.
-    const cleanTokens = Array.from(new Set(
-      tokenizeWords(messageText).filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w))
-    ));
+    const cleanTokens = Array.from(
+      new Set(tokenizeWords(messageText).filter((w) => w.length >= 3 && !COMMON_STOPWORDS.has(w)))
+    );
 
     if (cleanTokens.length > 0) {
-      const nameIndex = await getProfileNameIndex(supabase);
       for (const token of cleanTokens) {
         // Prioritaskan nama panggilan yang persis sama, lalu kata utuh di nama lengkap
         let hits = nameIndex.filter((p) => p.nickWords.has(token));
@@ -425,6 +744,7 @@ export async function resolveCohortContext(
             return (
               `• *${(p.nama_lengkap || "").trim()}* (Panggilan: *${(p.nama_panggilan || "").trim()}*)\n` +
               `  - Usia: ${ageStr}\n` +
+              `  - Tempat, Tgl Lahir: ${p.tempat_lahir || "-"}, ${p.tanggal_lahir || "-"}\n` +
               `  - Asal/Domisili: ${(p.alamat_lengkap || "-").trim()}\n` +
               `  - Cita-cita: ${(p.cita_cita || "-").trim()}\n` +
               `  - Motivasi: ${(p.motivasi_hidup || "-").trim()}\n` +
@@ -447,12 +767,12 @@ export async function resolveCohortContext(
 
   return {
     category: "general",
-    summary: `INFORMASI ANGKATAN:\nExpedient Generation 43 adalah ikatan alumni Pondok Modern Arrisalah Slahung Ponorogo lulusan tahun 2025. Motto: "The Successors" (Keluarga, Ukhuwah, & Prestasi). Portal resmi: https://expedientgeneration.vercel.app`,
+    summary: `INFORMASI ANGKATAN:\nExpedient Generation 43 (Jiilul Hashiif) adalah ikatan alumni Pondok Modern Arrisalah Slahung Ponorogo lulusan tahun 2025. Motto: "The Successors" (Keluarga, Ukhuwah, & Prestasi). Portal resmi: https://expedientgeneration.vercel.app`,
   };
 }
 
 /**
- * Generator Respons Cerdas Bertenaga Gemini AI
+ * Generator Respons Cerdas Bertenaga Gemini AI dengan Memori Multi-Turn & RAG Angkatan
  */
 export async function generateIntelligentCohortReply(options: {
   messageText: string;
@@ -468,6 +788,27 @@ export async function generateIntelligentCohortReply(options: {
   const { messageText, senderPhone, senderName, isGroup, groupId, quotedText, quotedSender, quotedFromBot } = options;
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
+
+  // Ambil buffer riwayat obrolan (berfungsi untuk Grup maupun Private 1-on-1)
+  const activeChatId = groupId || (!isGroup ? senderPhone : undefined);
+  let recentChatContext = "";
+  let rawChatHistory: any[] = [];
+
+  if (activeChatId) {
+    try {
+      const { getRecentGroupChatHistory, formatChatHistoryForSummary } = await import(
+        "@/lib/whatsapp/groupConversationBuffer"
+      );
+      const hist = await getRecentGroupChatHistory(activeChatId, 8);
+      rawChatHistory = hist;
+      const filtered = hist.filter(
+        (m) => !(m.senderPhone === senderPhone && m.messageText.trim() === messageText.trim())
+      );
+      if (filtered.length > 0) {
+        recentChatContext = formatChatHistoryForSummary(filtered.slice(-6));
+      }
+    } catch (_) {}
+  }
 
   // 0. Refleks Self-Learning: Periksa apakah pesan pengguna mengajari fakta baru atau mengoreksi data bot
   try {
@@ -491,7 +832,6 @@ export async function generateIntelligentCohortReply(options: {
 
       if (isConversationSummaryIntent(messageText)) {
         const history = await getRecentGroupChatHistory(groupId, 20);
-        // Saring pesan pengguna sendiri yang sedang bertanya ini agar tidak membingungkan AI
         const conversationMessages = history.filter(
           (m) => !(m.senderPhone === senderPhone && m.messageText.trim() === messageText.trim())
         );
@@ -517,7 +857,7 @@ CRITICAL GUIDELINES:
    - If members are still debating or offering different ideas, summarize the options.
    - If the user quoted a specific message, prioritize explaining and summarizing the context of that quoted message!
 2. STYLE & TONE:
-   - Warm, friendly, intelligent, like a close classmate / santri alumnus (sapaan santun: "Halo Sahabat *${senderName || "Sahabat"}*", "Terkait obrolan tadi...", atau "Jadi kesimpulannya:").
+   - Warm, friendly, intelligent, like a close classmate / santri alumnus.
    - 2 to 4 sentences maximum (or clean bullet points if summarizing distinct decisions). Keep it crisp for WhatsApp group!
 3. ANTI-HALLUCINATION:
    - DO NOT mention generic database facts about Arrisalah 2025 or website URLs unless the members were actually talking about that!
@@ -541,69 +881,64 @@ CRITICAL GUIDELINES:
     }
   }
 
-  // 1. Dapatkan fakta database faktual (periksa juga quotedText jika user merujuk ke pesan teman)
+  // 1. Dapatkan fakta database faktual dengan mempertimbangkan multi-turn memory & quoted message
   let fact: CohortFactContext = {
     category: "general",
     summary: `Expedient Generation 43 Alumni 2025 Pondok Modern Arrisalah Slahung Ponorogo`,
   };
   try {
-    // Cari fakta dari pesan user dulu. Teks yang di-quote hanya dipakai jika BUKAN balasan bot sendiri,
-    // agar bot tidak terus-terusan mengulang topik/nama dari jawabannya yang lama.
-    fact = await resolveCohortContext(messageText, senderName);
+    fact = await resolveCohortContext(messageText, senderName, recentChatContext, rawChatHistory);
     if (fact.category === "general" && quotedText && !quotedFromBot) {
-      const quotedFact = await resolveCohortContext(quotedText, senderName);
+      const quotedFact = await resolveCohortContext(quotedText, senderName, recentChatContext, rawChatHistory);
       if (quotedFact.category !== "general") fact = quotedFact;
     }
   } catch (_) {}
 
-  // 1b. Ambil cuplikan 5 pesan terakhir di grup sebagai konteks alur percakapan
-  let recentGroupChatContext = "";
-  if (isGroup && groupId) {
-    try {
-      const { getRecentGroupChatHistory, formatChatHistoryForSummary } = await import("@/lib/whatsapp/groupConversationBuffer");
-      const hist = await getRecentGroupChatHistory(groupId, 6);
-      const filtered = hist.filter((m) => !(m.senderPhone === senderPhone && m.messageText.trim() === messageText.trim()));
-      if (filtered.length > 0) {
-        recentGroupChatContext = formatChatHistoryForSummary(filtered.slice(-5));
-      }
-    } catch (_) {}
-  }
+  // Deteksi apakah ini obrolan lanjutan multi-turn agar bot tidak mengulang salam template
+  const isMultiTurnOngoing = rawChatHistory.length >= 2;
 
   const prompt = `
-You are the official, highly intelligent, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "The Successors").
+You are the official, highly intelligent, charismatic, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "Jiilul Hashiif" / "The Successors").
 Current Year: 2026.
 
 USER CONTEXT:
 - Name: ${senderName || "Sahabat"}
 - Channel: ${isGroup ? "WhatsApp Group Chat (⚔️successors⚔️)" : "WhatsApp Private Chat (1-on-1)"}
-- User's Message: "${messageText}"
+- User's Current Message: "${messageText}"
 ${quotedText ? `- Pesan Teman Yang Sedang Di-Reply/Quote (Pengirim: ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN: Pengguna sedang me-reply langsung pesan temannya di atas sambil memanggil bot. Jawablah dengan memahami pertanyaan/topik dari pesan temannya tersebut!)` : ""}
-${recentGroupChatContext ? `- Cuplikan Percakapan Terakhir di Grup (Sebagai Alur Konteks Obrolan):\n${recentGroupChatContext}\n` : ""}
+${recentChatContext ? `- Riwayat Percakapan Sebelumnya (Sebagai Alur Konteks Obrolan Multi-Turn):\n${recentChatContext}\n` : ""}
 
 RESOLVED KNOWLEDGE / DATABASE FACTS:
 ${fact.summary}
 
 STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
-1. ${
-    isGroup
-      ? "FOR GROUP CHAT: Keep your response EXTREMELY BRIEF & CRISP (1 to 2 sentences maximum!). Be direct, friendly, and helpful. Never spam the group with long essays."
-      : "FOR PRIVATE CHAT: Provide a warm, clear, polite, and complete answer (2 to 4 sentences). Offer helpful follow-up if applicable."
-  }
-2. TONE & ETHICS:
-   - Warm, respectful, intelligent, like a true santri alumni brother/sister.
-   - Use Islamic courtesy naturally when relevant ("Assalamu'alaikum", "Barakallahu fiik", "Alhamdulillah", "Aamiin").
-   - Can speak Indonesian fluently, and understands friendly regional santri expressions (Javanese touches like "Monggo", "Nggih").
-3. ACCURACY & ANTI-HALLUCINATION (MOST IMPORTANT):
-   - The DATABASE FACTS above are only a reference. Use them ONLY if they directly answer what the user actually asked.
-   - If the facts are not related to the user's message, IGNORE them completely and just reply naturally to the message.
-   - NEVER bring up, mention, or talk about any alumni by name unless the user explicitly asked about that specific person.
-   - NEVER invent stories, rumors, relationships, jobs, or events about anyone. If you don't know, say honestly you don't know.
-   - When the user DOES ask about a specific person, their age, birthday, or city, use the EXACT facts from the database.
-   - Only mention the website creator/leader (Elhora) when the user asks about him.
-4. FORMATTING:
-   - Clean WhatsApp markdown (*bold* for names, dates, key terms).
-   - Never output markdown headers like "###" or HTML tags.
-   - Keep emojis natural and expressive (😊, 👋, 🎂, 🎓, ✨).
+1. NATURAL CONVERSATION & MULTI-TURN AWARENESS:
+   - You have active memory! If the user asks a follow-up question ("umurnya berapa?", "tinggal dimana?", "minta wa nya", "dia siapa?"), connect it directly to the person or topic just discussed.
+   - ${
+     isMultiTurnOngoing
+       ? "DO NOT repeat introductory greetings or robot templates like 'Halo Sahabat X! Saya adalah bot...' because you are already in an active continuous conversation! Jump directly into the answer naturally."
+       : "Greet the user warmly by name in a friendly, respectful manner."
+   }
+2. CHANNEL BREVITY:
+   - ${
+     isGroup
+       ? "FOR GROUP CHAT: Keep your reply EXTREMELY CRISP (1 to 2 sentences max!). Never spam the group with long essays."
+       : "FOR PRIVATE CHAT: Keep your answer warm, helpful, and concise (2 to 4 sentences). Provide relevant follow-up details if asked."
+   }
+3. TONE & SANTRI PEER PERSONA:
+   - Warm, clever, respectful, and humorous like a genuine classmate from Pondok Arrisalah.
+   - Seamless Indonesian with natural santri/pesantren warmth (e.g., 'Alhamdulillah', 'InsyaAllah', 'Barakallahu fiik') and friendly Javanese touches ('monggo', 'nggih', 'sedulur') when appropriate.
+   - Understands common santri terms (nyantri, mukim, roan, mudabbir, qism, asatidz, mahfudzot).
+4. ACCURACY & ANTI-HALLUCINATION:
+   - The DATABASE FACTS above are strictly verified. Use them to answer factually and accurately.
+   - If the facts are not related to what the user asked, answer naturally based on what they said without forcing database data.
+   - NEVER invent fake gossip, jobs, marital status, or contact details about any alumni. If you don't know, honestly say you don't know and suggest checking the directory.
+   - When asked about Baitul Maal / kas, cite the exact verified balance and bank details from the facts.
+5. WHATSAPP FORMATTING ONLY:
+   - Use *bold* for names, dates, amounts, and key points.
+   - Use _italic_ for Arabic phrases or emphasis.
+   - NEVER use markdown headers like '#', '##', or HTML tags like '<div>', '<br>'.
+   - Keep emojis expressive and natural (😊, 🤝, 🎓, ✨, 🤲).
 `.trim();
 
   const body = {
@@ -625,9 +960,12 @@ STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
   if (fact.category === "birthday") {
     return `🎂 ${fact.summary.split("\n")[1] || "Ada sahabat kita yang milad! Barakallahu fii umrik."}`;
   }
+  if (fact.category === "baitul_maal") {
+    return `💰 Saldo kas Baitul Maal Expedient 43 saat ini terverifikasi di sistem. Info selengkapnya bisa dicek transparan di https://expedientgeneration.vercel.app/baitul-maal ya!`;
+  }
   if (fact.category === "profile" && fact.data) {
     const p = Array.isArray(fact.data) ? fact.data[0] : fact.data;
-    return `Sahabat *${p.nama_panggilan || p.nama_lengkap}* berasal dari ${p.alamat_lengkap || "Ponorogo"}. Cek profil lengkapnya di https://expedientgeneration.vercel.app/direktori ya!`;
+    return `Sahabat *${p.nama_panggilan || p.nama_lengkap}* berasal dari ${p.alamat_lengkap || "Ponorogo"}. Profil lengkapnya ada di https://expedientgeneration.vercel.app/direktori ya!`;
   }
-  return `Halo Sahabat *${senderName}*! Ada yang bisa kubantu seputar info kawan-kawan Expedient 43? Silakan cek juga di https://expedientgeneration.vercel.app ya!`;
+  return `Halo Sahabat *${senderName}*! Ada yang bisa kubantu seputar info kawan-kawan Expedient 43? Silakan cek juga direktori kita di https://expedientgeneration.vercel.app ya!`;
 }

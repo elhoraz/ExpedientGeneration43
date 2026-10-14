@@ -15,13 +15,15 @@ const MAX_BUFFER_SIZE = 25;
 const IN_MEMORY_CACHE = new Map<string, { at: number; list: GroupChatMessageItem[] }>();
 
 /**
- * Normalisasi Group ID agar aman dijadikan content_key Supabase
+ * Normalisasi Group / Chat ID agar aman dijadikan content_key Supabase
  */
-function getBufferKey(groupId: string): string {
-  const cleanId = String(groupId || "default")
+function getBufferKey(chatId: string): string {
+  const cleanId = String(chatId || "default")
     .replace(/[^a-zA-Z0-9_-]/g, "_")
     .slice(0, 60);
-  return `group_chat_buffer_${cleanId}`;
+  return chatId.includes("@g.us") || chatId.startsWith("120363")
+    ? `group_chat_buffer_${cleanId}`
+    : `chat_buffer_${cleanId}`;
 }
 
 /**

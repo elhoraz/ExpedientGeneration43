@@ -126,5 +126,75 @@ describe('Alumni Intelligence & Smart Cohort Knowledge Suite', () => {
     assert.strictEqual(isPotentialFact("dimana Danang sekarang?"), false);
     assert.strictEqual(isPotentialFact("halo min"), false);
   });
+
+  it('MUST detect Baitul Maal, kas, and financial transparency queries', () => {
+    const financialQueries = [
+      "berapa saldo kas angkatan kita?",
+      "minta rekening kas expedient",
+      "laporan keuangan baitul maal gimana?",
+      "rekening donasi angkatan ada?",
+      "uang kas kita sisa berapa min?"
+    ];
+
+    financialQueries.forEach((q) => {
+      const lower = q.toLowerCase();
+      const isFin =
+        lower.includes("baitul maal") ||
+        lower.includes("baitul mal") ||
+        lower.includes("kas angkatan") ||
+        lower.includes("uang kas") ||
+        lower.includes("saldo kas") ||
+        lower.includes("saldo baitul") ||
+        lower.includes("rekening kas") ||
+        lower.includes("rekening donasi") ||
+        lower.includes("donasi angkatan") ||
+        lower.includes("laporan keuangan");
+      assert.strictEqual(isFin, true, `Failed for query: ${q}`);
+    });
+  });
+
+  it('MUST detect Panca Jiwa, motto pondok, and Mahfudzot queries', () => {
+    const philosophyQueries = [
+      "apa itu panca jiwa arrisalah?",
+      "falsafah hidup pondok arrisalah",
+      "sebutkan mahfudzot penyemangat",
+      "apa arti jiilul hashiif?"
+    ];
+
+    philosophyQueries.forEach((q) => {
+      const lower = q.toLowerCase();
+      const isPhil =
+        lower.includes("panca jiwa") ||
+        lower.includes("motto pondok") ||
+        lower.includes("falsafah") ||
+        lower.includes("semboyan") ||
+        lower.includes("mahfudzot") ||
+        lower.includes("jiilul hashiif");
+      assert.strictEqual(isPhil, true, `Failed for query: ${q}`);
+    });
+  });
+
+  it('MUST detect multi-turn follow-up questions correctly', () => {
+    const followUps = [
+      "umurnya berapa sekarang?",
+      "tinggal dimana dia?",
+      "minta nomor wa nya dong",
+      "cita-citanya apa?",
+      "dia siapa ya?"
+    ];
+
+    followUps.forEach((q) => {
+      const lower = q.toLowerCase();
+      const isFollowUp =
+        lower.includes("umur") ||
+        lower.includes("usia") ||
+        lower.includes("dimana") ||
+        lower.includes("tinggal") ||
+        lower.includes("wa") ||
+        lower.includes("cita") ||
+        lower.includes("dia siapa");
+      assert.strictEqual(isFollowUp, true, `Failed for follow-up: ${q}`);
+    });
+  });
 });
 

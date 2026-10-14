@@ -2114,15 +2114,34 @@ async function startBaileysGateway() {
           }
 
           try {
+            recordGroupChatMessage(remoteJid, {
+              senderPhone,
+              senderName: senderName || "Sahabat",
+              messageText,
+              quotedText,
+              quotedSender: quotedParticipant,
+              timestamp: Date.now(),
+              isFromBot: false,
+            }).catch(() => {});
+
             const replyText = await generateIntelligentCohortReply({
               messageText,
               senderPhone,
               senderName,
               isGroup: false,
+              groupId: remoteJid,
               quotedText,
               quotedSender: quotedParticipant,
               quotedFromBot: Boolean(isBotQuoted),
             });
+
+            recordGroupChatMessage(remoteJid, {
+              senderPhone: "bot",
+              senderName: "Bot Expedient 43",
+              messageText: replyText,
+              timestamp: Date.now(),
+              isFromBot: true,
+            }).catch(() => {});
 
             const wantsVoiceReply =
               /\b(suara|vn|voice|ngomong|bicara|audio)\b/i.test(lower) ||
