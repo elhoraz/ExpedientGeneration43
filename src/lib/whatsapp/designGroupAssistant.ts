@@ -234,7 +234,19 @@ export async function handleDesignStudioConversation(options: {
   const geminiApiKey = (process.env.GEMINI_API_KEY || "").trim();
   const geminiModel = (process.env.GEMINI_MODEL || "gemini-3.8-flash").trim();
 
-  // 0. FAST INTERCEPT: Deteksi Niat Pembuatan Poster / Desain (Jangan looping chat!)
+  // 0a. FAST INTERCEPT: Deteksi Pemilihan Nomor Agenda Terdekat (contoh: "@bot 1", "@bot buat 1", "nomor 2")
+  const numberSelectMatch = lower.match(/^(?:@?bot\s+)?(?:buat\s+|pilih\s+|nomor\s+|no\s+|!|\/)?\s*(\d{1,2})$/i);
+  if (numberSelectMatch) {
+    const selectedIdx = parseInt(numberSelectMatch[1], 10) - 1;
+    if (selectedIdx >= 0 && selectedIdx < 5) {
+      const upcomingList = await getUpcomingDesignCalendar(21);
+      if (upcomingList && upcomingList[selectedIdx]) {
+        return `[ACTION:GENERATE_POSTER:${upcomingList[selectedIdx].title}]`;
+      }
+    }
+  }
+
+  // 0b. FAST INTERCEPT: Deteksi Niat Pembuatan Poster / Desain (Jangan looping chat!)
   const actionRegex = /\b(buatin|bikinin|buatkan|bikin|buat|desainin|desainkan|designkan|gambarin|generate)\b/i;
   const designTargetRegex = /\b(poster|desain|design|gambar|draf|draft|story|feed|flyer|banner)\b/i;
   if (
@@ -242,7 +254,7 @@ export async function handleDesignStudioConversation(options: {
     /\b(laiya\s+buatin|iya\s+buatin|ya\s+buatin|gas\s+buatin|cepet\s+buatin|buatin\s+dong|bikinin\s+dong)\b/i.test(lower)
   ) {
     let extractedTopic = lower
-      .replace(/^(bot|min|admin)[,:\s]+/i, "")
+      .replace(/^(@?bot|@?min|admin)[,:\s]*/i, "")
       .replace(/^(tolong\s+|coba\s+|bisa\s+)?(buatin|bikinin|buatkan|bikin|buat|generate|desainin|desainkan|designkan|gambarin)\s+(poster|desain|design|flyer|banner|gambar|draf|draft)?\s*(dong|lah|sih|ya)?\s*(untuk|tentang|tema|edisi|konsep)?\s*/i, "")
       .replace(/^(laiya\s+buatin|iya\s+buatin|ya\s+buatin|gas\s+buatin|cepet\s+buatin)\s*/i, "")
       .replace(/\s+(dong|lah|sih|ya|bro|gan|min|bot)$/i, "")
@@ -253,8 +265,27 @@ export async function handleDesignStudioConversation(options: {
       extractedTopic = quotedText;
     }
 
+    // Jika pengguna meminta poster tapi tidak menyebutkan topik / masih ambigu
     if (!extractedTopic || /^(buatin|bikinin|bikin|buat|poster|desain|story|feed)$/i.test(extractedTopic)) {
-      extractedTopic = "Hari Ibu";
+      const upcoming = await getUpcomingDesignCalendar(21);
+      if (upcoming && upcoming.length > 0) {
+        const top3 = upcoming.slice(0, 3);
+        let promptChoice = `Siap Sahabat *${senderName}*! 🎨✨\n\n`;
+        promptChoice += `Mau dibuatkan poster untuk agenda terdekat yang mana nih?\n\n`;
+        top3.forEach((item, idx) => {
+          const badge = item.type === "birthday" ? "🎂" : "📅";
+          const dStr =
+            item.daysLeft === 0
+              ? "*HARI INI!*"
+              : item.daysLeft === 1
+              ? "*BESOK!*"
+              : `H-${item.daysLeft} (${item.dateStr})`;
+          promptChoice += `${idx + 1}. ${badge} *${item.title}* — ${dStr}\n`;
+        });
+        promptChoice += `\n💡 Balas nomornya (misal: *@bot buat 1*) atau sebutkan topik khusus yang antum mau ya! 🚀`;
+        return promptChoice;
+      }
+      extractedTopic = "Hari Santri Nasional";
     }
 
     return `[ACTION:GENERATE_POSTER:${extractedTopic}]`;
@@ -361,11 +392,28 @@ export async function handleDesignStudioConversation(options: {
   }
 
   // 3. AI Cognitive Engine: Head of Creative Design & Studio Lead
+  // Ambil konteks percakapan multi-turn terbaru di grup desain
+  let recentChatContext = "";
+  if (options.groupId) {
+    try {
+      const { getRecentGroupChatHistory, formatChatHistoryForSummary } = await import(
+        "@/lib/whatsapp/groupConversationBuffer"
+      );
+      const hist = await getRecentGroupChatHistory(options.groupId, 6);
+      const filtered = hist.filter(
+        (m) => !(m.senderPhone === options.senderPhone && m.messageText.trim() === messageText.trim())
+      );
+      if (filtered.length > 0) {
+        recentChatContext = formatChatHistoryForSummary(filtered.slice(-5));
+      }
+    } catch (_) {}
+  }
+
   // Ambil konteks event terdekat & fakta database alumni
   let cohortFactSummary = "";
   try {
     const { resolveCohortContext } = await import("@/lib/whatsapp/alumniIntelligence");
-    const cohortFact = await resolveCohortContext(messageText, senderName);
+    const cohortFact = await resolveCohortContext(messageText, senderName, recentChatContext);
     cohortFactSummary = cohortFact.summary;
   } catch (_) {}
 
@@ -377,13 +425,14 @@ export async function handleDesignStudioConversation(options: {
   }).join("\n");
 
   const prompt = `
-You are the official Creative Studio Partner & Art Director AI of "Expedient Generation 43" in their dedicated Graphic Design / Editors WhatsApp Group.
-Your team consists of santri alumni graphic designers and editors who create posters for birthdays, national events, and Islamic holidays.
+You are the Art Director & Senior Creative Studio Partner AI of "Expedient Generation 43" (Jiilul Hashiif, Pondok Modern Arrisalah Slahung Ponorogo Class of 2025) inside the dedicated Graphic Design / Editors WhatsApp Group.
+Your team consists of santri alumni graphic designers and editors who create posters for birthdays, national events, Islamic holidays, and cohort social media.
 
 USER CONTEXT:
 - Sender Name: ${senderName}
 - User Message: "${messageText}"
 ${quotedText ? `- Pesan Teman Yang Sedang Di-Reply/Quote (Pengirim: ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN: Pengguna sedang me-reply langsung pesan temannya di atas. Jawablah dengan memahami hubungan antara pesan pengguna dan isi pesan temannya!)` : ""}
+${recentChatContext ? `- Riwayat Diskusi Terakhir di Studio Desain (Konteks Multi-Turn):\n${recentChatContext}\n` : ""}
 
 DATABASE & COHORT FACTS (USE FOR FACTUAL QUESTIONS):
 ${cohortFactSummary || "Expedient Generation 43 Alumni 2025 Pondok Modern Arrisalah Slahung Ponorogo"}
@@ -400,15 +449,38 @@ ${eventContext || "Tidak ada event besar dalam 14 hari ke depan."}
   • Story IG (9:16): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/g30s_pki_story.jpg
   • Feed IG (1:1): https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/cms-assets/posters/g30s_pki_feed.jpg
 
-COMMUNICATION & PERSONALITY GUIDELINES:
-1. FACTUAL ACCURACY FIRST:
-   - If user asks about who has a birthday, who the leader is, member profiles, dates, statistics, or general questions:
-     ALWAYS ANSWER DIRECTLY AND ACCURATELY based on the DATABASE & COHORT FACTS above! Never give random jokes or deflect legitimate questions.
-2. CASUAL CHAT & CHILL BRAINSTORMING:
-   - For casual greetings, banter, or coffee chats, respond warmly and naturally as an editor studio peer.
-3. VISUAL ASSISTANCE & READY-TO-POST POSTERS ("TERIMA JADI"):
-   - For poster or design discussions, provide color codes, typography suggestions, and mention ready-to-post links when relevant.
-   - Keep answers concise, natural, and helpful (2-4 lines).
+STRICT CREATIVE STUDIO GUIDELINES:
+1. ADAPTIVE DETAIL BASED ON USER INTENT:
+   A. DESIGN CONCEPT / BRIEF / POSTER REQUEST:
+      When asked for design concepts, poster ideas, copywriting, layout, color palettes, or briefs:
+      PROVIDE A STRUCTURED, PROFESSIONAL CREATIVE BRIEF (Scannable, practical, and immediately actionable for Canva/Photoshop):
+      - 🏛️ *Tema & Nuansa Visual*: 1 concise sentence describing the art direction (e.g. Modern Santri Heritage, Elegant Royal Gold, Minimalist Flat).
+      - ✍️ *Copywriting Siap Pakai*:
+        • Headline (catchy title)
+        • Subheadline (context / celebration message)
+        • Kutipan / Mahfudzot / Ayat (inspirational touch)
+      - 🎨 *Art Direction & Palet Warna (Hex Codes)*: Provide 3-4 specific hex codes (e.g. Emerald #0F5132, Gold #D4AF37, Off-White #F8F9FA).
+      - 🔤 *Rekomendasi Font*: Specific typography pairing (e.g. Serif for headline + Sans-serif for body).
+      - 📐 *Format & Rasio*: 9:16 (Story IG/WhatsApp) vs 1:1 (Feed).
+      - 📌 *Moodboard Referensi*: Quick search link (Pinterest / Google).
+
+   B. INCOMPLETE / VAGUE PROMPTS (PROACTIVE AUTO-COMPLETE):
+      If the user's request is incomplete (e.g. only mentions a topic without details like "ide poster sumpah pemuda"), DO NOT stall or ask endless questions!
+      Proactively provide the single best-practice concept, and offer quick alternatives at the end ("Mau versi retro atau minimalis modern? Tinggal bilang ya!").
+
+   C. WHEN USER ASKS FOR MORE DETAIL ("kurang lengkap bot", "tambahin lagi", "kurang detail"):
+      Deepen the creative breakdown: provide layout composition tips (rule of thirds, focal point, lighting), alternate copy tones (casual/akrab vs formal), and asset placement guidance.
+
+   D. QUICK FACTUAL QUESTIONS ("siapa yang ultah?", "kapan hari santri?", "foto si X mana?"):
+      Answer crisp and to the point in 1-2 lines. Do NOT attach a full creative brief when they just asked a simple factual question.
+
+   E. CASUAL CHAT & BANTER:
+      Warm, friendly, clever, witty santri editor peer tone with Islamic courtesy.
+
+2. ACCURACY & FORMATTING:
+   - Use clean WhatsApp formatting (*bold*, _italic_).
+   - NEVER use markdown headers like '#' or '###'. NO HTML tags.
+   - Keep emojis expressive and tasteful (🎨, 📐, ✍️, ✨, 🚀).
 `.trim();
 
   try {

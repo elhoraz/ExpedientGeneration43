@@ -1934,6 +1934,16 @@ async function startBaileysGateway() {
               addLog(`🖌️ [DESIGN-GROUP] Membalas di Grup Desain...`);
               await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
               try {
+                recordGroupChatMessage(remoteJid, {
+                  senderPhone,
+                  senderName: senderName || "Sahabat Editor",
+                  messageText,
+                  quotedText,
+                  quotedSender: quotedParticipant,
+                  timestamp: Date.now(),
+                  isFromBot: false,
+                }).catch(() => {});
+
                 const replyText = await handleDesignStudioConversation({
                   senderPhone,
                   senderName,
@@ -1942,6 +1952,14 @@ async function startBaileysGateway() {
                   quotedText,
                   quotedSender: quotedParticipant,
                 });
+
+                recordGroupChatMessage(remoteJid, {
+                  senderPhone: "bot",
+                  senderName: "Bot Expedient Studio",
+                  messageText: replyText,
+                  timestamp: Date.now(),
+                  isFromBot: true,
+                }).catch(() => {});
 
                 // INTERCEPT JIKA ACTION TRIGGER POSTER DIBERIKAN OLEH STUDIO ASSISTANT
                 if (replyText.startsWith("[ACTION:GENERATE_POSTER:")) {

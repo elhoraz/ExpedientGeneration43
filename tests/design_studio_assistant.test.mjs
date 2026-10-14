@@ -90,4 +90,40 @@ describe('Expedient Graphic Design Studio Assistant Suite', () => {
     assert.match(output, /kesaktian_pancasila_feed\.jpg/);
     assert.match(output, /pinterest\.com/);
   });
+
+  it('MUST detect vague / incomplete poster requests and number selection correctly', () => {
+    function extractTopic(text) {
+      const lower = text.trim().toLowerCase();
+      let extracted = lower
+        .replace(/^(@?bot|@?min|admin)[,:\s]*/i, "")
+        .replace(/^(tolong\s+|coba\s+|bisa\s+)?(buatin|bikinin|buatkan|bikin|buat|generate|desainin|desainkan|designkan|gambarin)\s+(poster|desain|design|flyer|banner|gambar|draf|draft)?\s*(dong|lah|sih|ya)?\s*(untuk|tentang|tema|edisi|konsep)?\s*/i, "")
+        .replace(/^(laiya\s+buatin|iya\s+buatin|ya\s+buatin|gas\s+buatin|cepet\s+buatin)\s*/i, "")
+        .replace(/\s+(dong|lah|sih|ya|bro|gan|min|bot)$/i, "")
+        .trim();
+      const isGeneric = !extracted || /^(buatin|bikinin|bikin|buat|poster|desain|story|feed)$/i.test(extracted);
+      return { topic: extracted, isGeneric };
+    }
+
+    // Specific requests
+    assert.strictEqual(extractTopic("@bot buatin poster Hari Santri dong").isGeneric, false);
+    assert.strictEqual(extractTopic("@bot buatin poster Hari Santri dong").topic, "hari santri");
+    assert.strictEqual(extractTopic("min tolong buatkan poster milad elhora").topic, "milad elhora");
+
+    // Incomplete / Vague requests (MUST be recognized as generic so proactive options are offered)
+    assert.strictEqual(extractTopic("bot buatin poster dong").isGeneric, true);
+    assert.strictEqual(extractTopic("bikinin desain").isGeneric, true);
+    assert.strictEqual(extractTopic("@bot buatkan poster").isGeneric, true);
+
+    // Number selection regex
+    function parseNumberSelection(text) {
+      const match = text.trim().toLowerCase().match(/^(?:@?bot\s+)?(?:buat\s+|pilih\s+|nomor\s+|no\s+|!|\/)?\s*(\d{1,2})$/i);
+      return match ? parseInt(match[1], 10) : null;
+    }
+
+    assert.strictEqual(parseNumberSelection("@bot 1"), 1);
+    assert.strictEqual(parseNumberSelection("@bot buat 2"), 2);
+    assert.strictEqual(parseNumberSelection("pilih 3"), 3);
+    assert.strictEqual(parseNumberSelection("nomor 1"), 1);
+    assert.strictEqual(parseNumberSelection("halo apa kabar"), null);
+  });
 });
