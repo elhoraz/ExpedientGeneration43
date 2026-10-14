@@ -212,6 +212,17 @@ export default function BerandaClient({
           if (loader) loader.style.display = "none";
         }, 500);
       }
+
+      // Safeguard: Ensure content is visible even if GSAP or scroll triggers fail
+      const hiddenEls = document.querySelectorAll<HTMLElement>(".reveal-up, .timeline-node");
+      hiddenEls.forEach((el) => {
+        const computed = window.getComputedStyle(el);
+        if (computed.visibility === "hidden" || computed.opacity === "0") {
+          el.style.visibility = "visible";
+          el.style.opacity = "1";
+          el.style.transform = "none";
+        }
+      });
     }, 2800);
 
     return () => {

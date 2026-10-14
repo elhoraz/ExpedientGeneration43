@@ -3,19 +3,32 @@ import LandingContent from "@/components/landing/LandingContent";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function LandingPage() {
-  const supabase = await createClient();
+  try {
+    const supabase = await createClient();
 
-  // Fetch dynamic CMS content
-  const { data: siteContents } = await supabase
-    .from("site_content")
-    .select("*")
-    .like("content_key", "landing_%");
-  const cms = siteContents || [];
+    const withTimeout = <T,>(promise: PromiseLike<T>, fallback: T): Promise<T> =>
+      Promise.race([
+        Promise.resolve(promise),
+        new Promise<T>((resolve) => setTimeout(() => resolve(fallback), 4000))
+      ]);
 
-  const { count } = await supabase
-    .from("profiles")
-    .select("*", { count: "exact", head: true });
-  const totalAlumni = count || 0;
+    const [contentsRes, countRes] = await Promise.allSettled([
+      withTimeout(
+        supabase.from("site_content").select("*").like("content_key", "landing_%"),
+        { data: [] } as any
+      ),
+      withTimeout(
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        { count: 0 } as any
+      ),
+    ]);
 
-  return <LandingContent totalAlumni={totalAlumni} cms={cms} />;
+    const cms = (contentsRes.status === "fulfilled" && contentsRes.value.data) ? contentsRes.value.data : [];
+    const totalAlumni = (countRes.status === "fulfilled" && countRes.value.count) ? countRes.value.count : 0;
+
+    return <LandingContent totalAlumni={totalAlumni} cms={cms} />;
+  } catch (err) {
+    console.error("Landing page query error, rendering with fallbacks:", err);
+    return <LandingContent totalAlumni={0} cms={[]} />;
+  }
 }

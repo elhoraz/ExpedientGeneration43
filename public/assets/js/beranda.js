@@ -1440,11 +1440,11 @@ window.revealRedacted = function (el) {
     if (el) el.classList.add('revealed');
 };
 
-if (typeof window !== 'undefined' && !(window as any).__berandaRedactedBound) {
-    (window as any).__berandaRedactedBound = true;
+if (typeof window !== 'undefined' && !window.__berandaRedactedBound) {
+    window.__berandaRedactedBound = true;
     document.addEventListener('click', function (e) {
-        if (e.target && (e.target as HTMLElement).classList && (e.target as HTMLElement).classList.contains('redacted')) {
-            (e.target as HTMLElement).classList.add('revealed');
+        if (e.target && e.target.classList && e.target.classList.contains('redacted')) {
+            e.target.classList.add('revealed');
         }
     });
 }
