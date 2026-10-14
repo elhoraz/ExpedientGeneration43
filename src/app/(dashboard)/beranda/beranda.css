@@ -50,7 +50,7 @@
     .logo-utuh-container {
         position: absolute; top: 50%; left: 50%; width: 800px; height: 450px; 
         margin-top: -225px; margin-left: -400px; z-index: 10; display: flex; 
-        justify-content: center; align-items: center; cursor: grab; will-change: filter; transition: filter 0.1s ease-out;
+        justify-content: center; align-items: center; cursor: grab; will-change: transform; transition: filter 0.1s ease-out;
     }
     .logo-utuh-container:active { cursor: grabbing; }
     
@@ -579,6 +579,11 @@
     }
 
     /* ================= 7. FULLSCREEN LAYOUT FIX FOR MONUMENTAL TEXT ================= */
+    /* Disable smooth scrolling on .main-wrapper on beranda page to eliminate GSAP ScrollTrigger fight */
+    body.page-beranda .main-wrapper {
+        scroll-behavior: auto !important;
+    }
+
     /* Override main-wrapper behavior on beranda page to prevent monumental text clipping */
     @media (min-width: 1025px) {
         body.page-beranda .main-wrapper {

@@ -21,6 +21,9 @@ let _berandaLoreInterval = null;
 let _berandaStageObserver = null;
 let _activeJiwaTl = null;
 let _inertiaAnim = null;
+let isUserScrolling = false;
+let _scrollStopTimer = null;
+let _parallaxRaf = null;
 
 const destroyBeranda = () => {
     // 1. Remove GSAP Ticker animation loop
@@ -199,7 +202,7 @@ const initBeranda = () => {
         const ch = currentStage ? currentStage.offsetHeight : window.innerHeight;
 
         const isMobile = mq.matches;
-        const particleCount = isMobile ? 30 : 150;
+        const particleCount = isMobile ? 20 : 55;
 
         for (let i = 0; i < particleCount; i++) {
             let r = Math.random() * 180 + 80;
@@ -233,16 +236,16 @@ const initBeranda = () => {
     let _constellationFrame = 0;
 
     const drawConstellation = () => {
-        if (!ctxConstel || !constelCanvas) return;
+        if (!ctxConstel || !constelCanvas || isUserScrolling) return;
         _constellationFrame++;
         const isMobileNow = mq.matches;
         if (isMobileNow && (_constellationFrame % 2 !== 0)) return;
 
         ctxConstel.clearRect(0, 0, constelCanvas.width, constelCanvas.height);
         const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        const time = Date.now();
 
-        // 1. Render Partikel Latar Belakang
+        // 1. Batched Particle Rendering (single draw call for silky 60fps)
+        ctxConstel.beginPath();
         coreParticles.forEach(p => {
             p.angle += p.speed;
             let targetX = p.baseX + Math.cos(p.angle) * p.radius;
@@ -265,21 +268,11 @@ const initBeranda = () => {
             let drawX = Math.floor(targetX + p.offsetX);
             let drawY = Math.floor(targetY + p.offsetY);
 
-            ctxConstel.beginPath();
+            ctxConstel.moveTo(drawX + p.size, drawY);
             ctxConstel.arc(drawX, drawY, p.size, 0, Math.PI * 2);
-
-            let glowRatio = p.glow / p.baseGlow;
-
-            if (isLight) {
-                let shimmer = Math.sin(time / 150 + p.angle) * 0.5 + 0.5;
-                let alpha = (0.5 + shimmer * 0.5) * glowRatio;
-                ctxConstel.fillStyle = `rgba(255, 215, 0, ${alpha})`;
-            } else {
-                let alpha = p.glow + (0.3 * glowRatio);
-                ctxConstel.fillStyle = `rgba(212, 175, 55, ${alpha})`;
-            }
-            ctxConstel.fill();
         });
+        ctxConstel.fillStyle = isLight ? 'rgba(255, 215, 0, 0.6)' : 'rgba(212, 175, 55, 0.6)';
+        ctxConstel.fill();
 
         // 2. Render Garis Konstelasi — Desktop
         if (!isMobileNow && (isScattered || isAnimating)) {
@@ -722,14 +715,26 @@ const initBeranda = () => {
         const loadBackgroundTracks = () => {
             const fullQueue = [...midTrackQueue, ...backgroundQueue];
             let bgIndex = 0;
+            const isMobile = mq.matches;
+            const concurrency = isMobile ? 2 : 3;
+
             const loadNextBg = () => {
                 if (bgIndex >= fullQueue.length) return;
                 processItem(fullQueue[bgIndex++], () => {
-                    renderCurrentFrame();
-                    loadNextBg();
+                    // Yield to browser rendering loop so scrolling and interactions remain silky smooth
+                    if (typeof requestIdleCallback !== 'undefined') {
+                        requestIdleCallback(() => loadNextBg(), { timeout: 80 });
+                    } else {
+                        const t = setTimeout(loadNextBg, isMobile ? 25 : 15);
+                        _berandaTimeouts.push(t);
+                    }
                 });
             };
-            for (let i = 0; i < 6; i++) loadNextBg();
+
+            for (let i = 0; i < concurrency; i++) {
+                const t = setTimeout(loadNextBg, i * 60);
+                _berandaTimeouts.push(t);
+            }
         };
 
         const workers = Math.min(6, fastTrackQueue.length);
@@ -784,8 +789,11 @@ const initBeranda = () => {
     };
 
     addListener(window, 'mousemove', (e) => {
-        if (!mq.matches) {
-            applyParallax((e.clientX / window.innerWidth - 0.5) * 2, (e.clientY / window.innerHeight - 0.5) * 2);
+        if (!mq.matches && !_parallaxRaf) {
+            _parallaxRaf = requestAnimationFrame(() => {
+                applyParallax((e.clientX / window.innerWidth - 0.5) * 2, (e.clientY / window.innerHeight - 0.5) * 2);
+                _parallaxRaf = null;
+            });
         }
     });
 
@@ -798,9 +806,21 @@ const initBeranda = () => {
     }, { threshold: 0.01 });
     _berandaStageObserver.observe(stage);
 
+    // Listen to wrapper scroll to pause autoPlay during active scrolling
+    const scrollWrapper = document.querySelector('.main-wrapper');
+    if (scrollWrapper) {
+        addListener(scrollWrapper, 'scroll', () => {
+            isUserScrolling = true;
+            if (_scrollStopTimer) clearTimeout(_scrollStopTimer);
+            _scrollStopTimer = setTimeout(() => {
+                isUserScrolling = false;
+            }, 120);
+        }, { passive: true });
+    }
+
     let _autoPlayFrame = 0;
     const autoPlayEngine = () => {
-        if (!isPlaying) return;
+        if (!isPlaying || isUserScrolling) return;
         _autoPlayFrame++;
         const isMobileNow = mq.matches;
         if (isMobileNow && (_autoPlayFrame % 2 !== 0)) return;

@@ -51,7 +51,7 @@
     .logo-utuh-container {
         position: absolute; top: 50%; left: 50%; width: 800px; height: 450px; 
         margin-top: -225px; margin-left: -400px; z-index: 10; display: flex; 
-        justify-content: center; align-items: center; cursor: grab; will-change: filter; transition: filter 0.1s ease-out;
+        justify-content: center; align-items: center; cursor: grab; will-change: transform; transition: filter 0.1s ease-out;
     }
     .logo-utuh-container:active { cursor: grabbing; }
     
@@ -309,3 +309,8 @@
     .bday-notif-cta { font-size: 0.7rem; color: #d4af37; letter-spacing: 2px; text-transform: uppercase; margin-top: 5px; font-weight: 600; }
     .bday-notif-close { position: absolute; top: 8px; right: 12px; background: none; border: none; color: var(--text-secondary); font-size: 1rem; cursor: pointer; padding: 5px; }
     @media (max-width: 768px) { .bday-notif { top: auto; bottom: 100px; right: 5%; max-width: 90%; } }
+
+/* Performance optimization: eliminate scroll jitter on beranda */
+body.page-beranda .main-wrapper {
+    scroll-behavior: auto !important;
+}
