@@ -354,6 +354,9 @@ const initBeranda = () => {
     };
 
     let layout = getLayoutConfig();
+    if (typeof gsap !== "undefined") {
+        gsap.set("#fullLogoBox", { scale: layout.fullScale || (layout.scale * 1.5) });
+    }
 
     const getCmsShard = (idx, prop, fallback) => {
         return (window.BERANDA_CMS && window.BERANDA_CMS.shards && window.BERANDA_CMS.shards[idx])
@@ -525,9 +528,12 @@ const initBeranda = () => {
                 });
             } else {
                 loader.style.opacity = '0';
-                setTimeout(() => { if (loader) loader.style.display = 'none'; isPlaying = true; }, 400);
+                setTimeout(() => { if (loader) loader.style.display = 'none'; if (typeof gsap !== 'undefined') { gsap.set('#fullLogoBox', { scale: layout.fullScale || (layout.scale * 1.5) }); } isPlaying = true; }, 400);
             }
         } else {
+            if (typeof gsap !== "undefined") {
+                gsap.set("#fullLogoBox", { scale: layout.fullScale || (layout.scale * 1.5) });
+            }
             isPlaying = true;
         }
     };

@@ -92,7 +92,8 @@
     .merge-flash { position: absolute; inset: 0; background: var(--text-primary); opacity: 0; z-index: 900; pointer-events: none; mix-blend-mode: overlay; }
 
     /* ================= 3. UI CONTROLS ================= */
-    .hud-controls { position: absolute; bottom: 40px; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: none; }
+    #stage .hud-controls { position: absolute; bottom: 40px; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: none; }
+    .gallery-nav-controls { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; pointer-events: auto !important; }
     .hud-hint { color: var(--text-secondary); font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; text-shadow: 0 0 10px var(--bg-main); transition: 0.3s; }
 
     .btn-mecha {

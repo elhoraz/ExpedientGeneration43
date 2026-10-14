@@ -176,8 +176,8 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
   const handlePointerDown = (e: React.PointerEvent) => {
     if (activeStyle === 'mosaic') return;
     const target = e.target as HTMLElement;
-    // Do not initiate drag if interacting with buttons, links, or HUD controls
-    if (target.closest('button') || target.closest('a') || target.closest('.hud-controls')) {
+    // Do not initiate drag if interacting with buttons, links, or HUD/Gallery controls
+    if (target.closest('button') || target.closest('a') || target.closest('.hud-controls') || target.closest('.gallery-nav-controls')) {
       return;
     }
 
@@ -378,7 +378,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
           style={{
             position: "relative",
             overflow: "hidden",
-            minHeight: isMobile ? `${cardH + 90}px` : "560px",
+            minHeight: isMobile ? `${cardH + 110}px` : "600px",
             touchAction: "pan-y",
             userSelect: "none",
             cursor: "grab"
@@ -387,7 +387,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
           {/* SPOTLIGHT HALO */}
           <div style={{
             position: "absolute",
-            top: "50%",
+            top: isMobile ? "46%" : "47%",
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: isMobile ? "320px" : "650px",
@@ -419,7 +419,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                   }}
                   style={{
                     left: "50%",
-                    top: "50%",
+                    top: isMobile ? "46%" : "47%",
                     marginLeft: `${-cardW / 2}px`,
                     marginTop: `${-cardH / 2}px`,
                     width: `${cardW}px`,
@@ -496,18 +496,20 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
 
           {/* VVIP HUD CONTROLS */}
           <div
-            className="hud-controls"
+            className="gallery-nav-controls"
             onPointerDown={(e) => e.stopPropagation()}
             onPointerMove={(e) => e.stopPropagation()}
             onPointerUp={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
             style={{
               position: "absolute",
-              bottom: isMobile ? "12px" : "25px",
+              bottom: isMobile ? "12px" : "20px",
               left: "50%",
               transform: "translateX(-50%)",
               display: "flex",
+              flexDirection: "row",
               alignItems: "center",
+              justifyContent: "center",
               gap: isMobile ? "10px" : "16px",
               zIndex: 500,
               width: "max-content",
