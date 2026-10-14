@@ -61,7 +61,7 @@
     }
 
     canvas, .shard-static, #fullLogoStatic { position: absolute; width: 100%; height: 100%; object-fit: contain; }
-    .shard-static, #fullLogoStatic { display: none; z-index: 1; } 
+    .shard-static, #fullLogoStatic { display: block; z-index: 1; } 
     canvas { display: block; z-index: 2; }
 
     .mecha-stage.is-scattered .shard-wrapper { pointer-events: auto; cursor: grab; }

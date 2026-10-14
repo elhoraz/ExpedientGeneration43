@@ -411,6 +411,66 @@ const initBeranda = () => {
     const ctxFull = canvasFull.getContext('2d');
     const shardCanvases = [];
 
+    // =========================================================
+    // SAFE RENDER ENGINE (DEFINED EARLY TO PREVENT TDZ ReferenceError)
+    // =========================================================
+    const isImageReady = (img) => {
+        if (!img) return false;
+        if (typeof ImageBitmap !== 'undefined' && img instanceof ImageBitmap) return true;
+        return !!(img.complete && (img.naturalWidth === undefined || img.naturalWidth > 0));
+    };
+
+    const getClosestImage = (imagesArr, targetIdx) => {
+        if (!imagesArr) return null;
+        if (imagesArr[targetIdx] && isImageReady(imagesArr[targetIdx])) return imagesArr[targetIdx];
+        let offset = 1;
+        while (offset < TOTAL_FRAMES / 2) {
+            let checkPrev = targetIdx - offset;
+            if (checkPrev < 0) checkPrev += TOTAL_FRAMES;
+            if (imagesArr[checkPrev] && isImageReady(imagesArr[checkPrev])) return imagesArr[checkPrev];
+
+            let checkNext = targetIdx + offset;
+            if (checkNext >= TOTAL_FRAMES) checkNext -= TOTAL_FRAMES;
+            if (imagesArr[checkNext] && isImageReady(imagesArr[checkNext])) return imagesArr[checkNext];
+            offset++;
+        }
+        return null;
+    };
+
+    const renderCurrentFrame = () => {
+        if (!isScattered) {
+            const fIdx = Math.floor(frameData.full);
+            const img = getClosestImage(assetsData.full.images, fIdx);
+            const fullStat = document.getElementById('fullLogoStatic');
+            if (img && ctxFull && canvasFull) {
+                ctxFull.clearRect(0, 0, canvasFull.width, canvasFull.height);
+                ctxFull.drawImage(img, 0, 0, canvasFull.width, canvasFull.height);
+                if (fullStat) fullStat.style.opacity = '0';
+            } else {
+                if (fullStat) {
+                    fullStat.style.display = 'block';
+                    fullStat.style.opacity = '1';
+                }
+            }
+        } else {
+            shardCanvases.forEach(shardObj => {
+                const fIdx = Math.floor(frameData.shards[shardObj.id]);
+                const img = getClosestImage(shardObj.images, fIdx);
+                const stat = document.getElementById(`shardStatic_${shardObj.id}`);
+                if (img && shardObj.ctx) {
+                    shardObj.ctx.clearRect(0, 0, 800, 450);
+                    shardObj.ctx.drawImage(img, 0, 0, 800, 450);
+                    if (stat) stat.style.opacity = '0';
+                } else {
+                    if (stat) {
+                        stat.style.display = 'block';
+                        stat.style.opacity = '1';
+                    }
+                }
+            });
+        }
+    };
+
     const lores = (window.BERANDA_CMS && window.BERANDA_CMS.lores) ? window.BERANDA_CMS.lores : [
         '"Dan bersabarlah kamu bersama-sama dengan orang-orang yang menyeru Tuhannya di pagi dan senja hari..." (Al-Kahfi: 28)',
         '"Niscaya Allah akan meninggikan orang-orang yang beriman di antaramu dan orang-orang yang diberi ilmu pengetahuan..." (Al-Mujadilah: 11)',
@@ -562,6 +622,14 @@ const initBeranda = () => {
         const totalFastTrack = fastTrackQueue.length;
 
         const processItem = async (item, callback) => {
+            let handled = false;
+            const done = () => {
+                if (!handled) {
+                    handled = true;
+                    if (callback) callback();
+                }
+            };
+
             try {
                 if (window.createImageBitmap) {
                     const response = await fetch(item.src, { mode: 'cors' });
@@ -569,15 +637,21 @@ const initBeranda = () => {
                     const blob = await response.blob();
                     const bitmap = await createImageBitmap(blob);
                     item.targetArray[item.idx - 1] = bitmap;
+                    done();
                 } else {
                     throw new Error('Fallback to Image');
                 }
             } catch (e) {
                 const img = new Image();
-                img.onload = () => { item.targetArray[item.idx - 1] = img; };
+                img.onload = () => {
+                    item.targetArray[item.idx - 1] = img;
+                    done();
+                };
+                img.onerror = () => {
+                    done();
+                };
                 img.src = item.src;
             }
-            if (callback) callback();
         };
 
         const updateProgress = () => {
@@ -600,27 +674,42 @@ const initBeranda = () => {
         };
 
         let qIndex = 0;
+        let finishedFastTrack = 0;
+        let fastTrackDone = false;
+
+        const onFastTrackComplete = () => {
+            if (fastTrackDone) return;
+            fastTrackDone = true;
+
+            // Simpan ke cache global
+            window.__BERANDA_ASSET_CACHE.ready = true;
+            window.__BERANDA_ASSET_CACHE.fullImages = assetsData.full.images;
+            assetsData.shards.forEach(s => {
+                window.__BERANDA_ASSET_CACHE.shardImages[s.id] = s.images;
+            });
+
+            renderCurrentFrame();
+            const t = setTimeout(() => {
+                dismissLoader();
+                loadBackgroundTracks();
+            }, 100);
+            _berandaTimeouts.push(t);
+        };
+
         const loadFastTrack = () => {
             if (qIndex >= fastTrackQueue.length) {
-                // Simpan ke cache global
-                window.__BERANDA_ASSET_CACHE.ready = true;
-                window.__BERANDA_ASSET_CACHE.fullImages = assetsData.full.images;
-                assetsData.shards.forEach(s => {
-                    window.__BERANDA_ASSET_CACHE.shardImages[s.id] = s.images;
-                });
-
-                renderCurrentFrame();
-                const t = setTimeout(() => {
-                    dismissLoader();
-                    loadBackgroundTracks();
-                }, 100);
-                _berandaTimeouts.push(t);
                 return;
             }
             const item = fastTrackQueue[qIndex++];
             processItem(item, () => {
+                finishedFastTrack++;
                 updateProgress();
-                loadFastTrack();
+                renderCurrentFrame();
+                if (finishedFastTrack >= fastTrackQueue.length) {
+                    onFastTrackComplete();
+                } else {
+                    loadFastTrack();
+                }
             });
         };
 
@@ -629,12 +718,16 @@ const initBeranda = () => {
             let bgIndex = 0;
             const loadNextBg = () => {
                 if (bgIndex >= fullQueue.length) return;
-                processItem(fullQueue[bgIndex++], loadNextBg);
+                processItem(fullQueue[bgIndex++], () => {
+                    renderCurrentFrame();
+                    loadNextBg();
+                });
             };
-            for (let i = 0; i < 8; i++) loadNextBg();
+            for (let i = 0; i < 6; i++) loadNextBg();
         };
 
-        for (let i = 0; i < 15; i++) loadFastTrack();
+        const workers = Math.min(6, fastTrackQueue.length);
+        for (let i = 0; i < workers; i++) loadFastTrack();
     };
 
     // =========================================================
@@ -690,45 +783,6 @@ const initBeranda = () => {
         }
     });
 
-    // =========================================================
-    // SAFE RENDER ENGINE
-    // =========================================================
-    const getClosestImage = (imagesArr, targetIdx) => {
-        if (!imagesArr) return null;
-        if (imagesArr[targetIdx] && (imagesArr[targetIdx] instanceof ImageBitmap || imagesArr[targetIdx].complete)) return imagesArr[targetIdx];
-        let offset = 1;
-        while (offset < TOTAL_FRAMES / 2) {
-            let checkPrev = targetIdx - offset;
-            if (checkPrev < 0) checkPrev += TOTAL_FRAMES;
-            if (imagesArr[checkPrev] && (imagesArr[checkPrev] instanceof ImageBitmap || imagesArr[checkPrev].complete)) return imagesArr[checkPrev];
-
-            let checkNext = targetIdx + offset;
-            if (checkNext >= TOTAL_FRAMES) checkNext -= TOTAL_FRAMES;
-            if (imagesArr[checkNext] && (imagesArr[checkNext] instanceof ImageBitmap || imagesArr[checkNext].complete)) return imagesArr[checkNext];
-            offset++;
-        }
-        return null;
-    };
-
-    const renderCurrentFrame = () => {
-        if (!isScattered) {
-            const fIdx = Math.floor(frameData.full);
-            const img = getClosestImage(assetsData.full.images, fIdx);
-            if (img && ctxFull && canvasFull) {
-                ctxFull.clearRect(0, 0, canvasFull.width, canvasFull.height);
-                ctxFull.drawImage(img, 0, 0, canvasFull.width, canvasFull.height);
-            }
-        } else {
-            shardCanvases.forEach(shardObj => {
-                const fIdx = Math.floor(frameData.shards[shardObj.id]);
-                const img = getClosestImage(shardObj.images, fIdx);
-                if (img && shardObj.ctx) {
-                    shardObj.ctx.clearRect(0, 0, 800, 450);
-                    shardObj.ctx.drawImage(img, 0, 0, 800, 450);
-                }
-            });
-        }
-    };
 
     let isStageVisible = true;
     _berandaStageObserver = new IntersectionObserver((entries) => {
