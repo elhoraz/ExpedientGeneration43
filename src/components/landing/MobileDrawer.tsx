@@ -286,6 +286,22 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
                   </div>
                 </div>
               </a>
+
+              <a
+                href="https://www.youtube.com/@JiilulHashiif"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="drawer-btn-yt"
+                onClick={onClose}
+              >
+                <i className="fa-brands fa-youtube"></i>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "0.82rem" }}>@JiilulHashiif</div>
+                  <div style={{ fontSize: "0.68rem", opacity: 0.85, fontWeight: 500 }}>
+                    Kanal Resmi PG 643 (Arsip Video)
+                  </div>
+                </div>
+              </a>
             </div>
           </div>
         </div>

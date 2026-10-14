@@ -318,6 +318,39 @@ export async function resolveCohortContext(
       };
     }
 
+    // 4b. TANYA KANAL YOUTUBE / VIDEO PANGGUNG GEMBIRA 643 / DOKUMENTER (JIILUL HASHIIF)
+    if (
+      lower.includes("youtube") ||
+      lower.includes("yt") ||
+      lower.includes("channel") ||
+      lower.includes("kanal") ||
+      lower.includes("panggung gembira") ||
+      lower.includes("pg 643") ||
+      lower.includes("jiilul hashiif") ||
+      lower.includes("jiilulhashiif") ||
+      (lower.includes("video") && (
+        lower.includes("tonton") ||
+        lower.includes("rekaman") ||
+        lower.includes("lagu") ||
+        lower.includes("tari") ||
+        lower.includes("nasyid") ||
+        lower.includes("reog") ||
+        lower.includes("saman") ||
+        lower.includes("drama")
+      ))
+    ) {
+      return {
+        category: "general",
+        summary: `FAKTA KANAL YOUTUBE RESMI & DOKUMENTASI MAHAKARYA PG 643:\n` +
+          `• Nama Kanal Resmi Angkatan 43: Expedient Generation (@JiilulHashiif)\n` +
+          `• Tautan YouTube: https://www.youtube.com/@JiilulHashiif\n` +
+          `• Makna Nama: "Jiilul Hashiif" (جيل الحصيف) adalah julukan angkatan 43 dalam bahasa Arab yang berarti Generasi yang Cerdas, Bijaksana, dan Tangkas (The Expedient / The Successors).\n` +
+          `• Isi Kanal: Memuat 15 video dokumentasi lengkap pagelaran akbar Panggung Gembira 643 (PG 643) Pondok Modern Arrisalah Slahung Ponorogo.\n` +
+          `• Video-Video Populer: Grand Opening Spektakuler, Tari Saman kilat, Reog Ponorogo kolosal, Drama Buya Hamka, Nasyid merdu menggetarkan jiwa, Tari Kecak, Campursantri, hingga Modern Dance Jabbawockeez.\n` +
+          `• Pemutar Video Web: Seluruh video ini juga bisa ditonton langsung di beranda portal angkatan kita: https://expedientgeneration.vercel.app`,
+      };
+    }
+
     // 5. TANYA FITUR WEBSITE / PORTAL / CARA PAKAI
     if (
       lower.includes("fitur") ||
@@ -335,11 +368,12 @@ export async function resolveCohortContext(
         summary: `PANDUAN FITUR PORTAL EXPEDIENT 43 (https://expedientgeneration.vercel.app):\n` +
           `1. 📱 *Direktori Alumni*: Cari profil, nomor WA, domisili kawan seangkatan.\n` +
           `2. 📸 *Galeri Masa Pondok & Reuni*: Album foto nostalgia kenangan indah bersama.\n` +
-          `3. 🤖 *AI Photobooth*: Generator foto seru alumni bertenaga AI.\n` +
-          `4. 📖 *Asmaul Husna & Doa*: Renungan 99 Asmaul Husna, arah kiblat & waktu sholat digital.\n` +
-          `5. ✍️ *Buku Tamu Online*: Titip salam dan pesan persahabatan antar alumni.\n` +
-          `6. 💼 *Expedient Syndicate*: Jejaring karir, loker, dan peluang kolaborasi bisnis alumni.\n` +
-          `7. 📢 *Broadcast Lelayu/Duka*: Kirim info duka via WhatsApp bot ke nomor Admin untuk dipost resmi.`,
+          `3. 🎬 *Bioskop Mahakarya PG 643*: Pemutar video interaktif dokumentasi Panggung Gembira 643 (@JiilulHashiif) & Almamater Arrisalah.\n` +
+          `4. 🤖 *AI Photobooth*: Generator foto seru alumni bertenaga AI.\n` +
+          `5. 📖 *Asmaul Husna & Doa*: Renungan 99 Asmaul Husna, arah kiblat & waktu sholat digital.\n` +
+          `6. ✍️ *Buku Tamu Online*: Titip salam dan pesan persahabatan antar alumni.\n` +
+          `7. 💼 *Expedient Syndicate*: Jejaring karir, loker, dan peluang kolaborasi bisnis alumni.\n` +
+          `8. 📢 *Broadcast Lelayu/Duka*: Kirim info duka via WhatsApp bot ke nomor Admin untuk dipost resmi.`,
       };
     }
 

@@ -269,7 +269,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             {t?.hero?.subtitle}
           </p>
 
-          {/* Official Cohort Instagram & Motto Touchpoint */}
+          {/* Official Cohort Social Media & Touchpoints */}
           <div className="tuku-ig-bar">
             <a
               href="https://www.instagram.com/expedientgeneration_/"
@@ -281,7 +281,20 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <i className="fa-brands fa-instagram"></i>
               <span className="tuku-ig-handle">@expedientgeneration_</span>
               <span className="tuku-ig-sep">•</span>
-              <span className="tuku-ig-tag">The Successor of Islamic Glory</span>
+              <span className="tuku-ig-tag">Instagram</span>
+            </a>
+
+            <a
+              href="https://www.youtube.com/@JiilulHashiif"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="tuku-ig-link tuku-yt-link"
+              title="Kanal YouTube Resmi PG 643: @JiilulHashiif"
+            >
+              <i className="fa-brands fa-youtube" style={{ color: "#ff3333" }}></i>
+              <span className="tuku-ig-handle">@JiilulHashiif</span>
+              <span className="tuku-ig-sep">•</span>
+              <span className="tuku-ig-tag">YouTube PG 643</span>
             </a>
           </div>
 
@@ -667,7 +680,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <div className="footer-motto">
                 <em>&ldquo;{t?.footer?.motto}&rdquo;</em>
               </div>
-              <div className="footer-ig-box">
+              <div className="footer-ig-box footer-social-group">
                 <a
                   href="https://www.instagram.com/expedientgeneration_/"
                   target="_blank"
@@ -677,7 +690,19 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 >
                   <i className="fa-brands fa-instagram"></i>
                   <span>@expedientgeneration_</span>
-                  <span className="footer-ig-badge">Official</span>
+                  <span className="footer-ig-badge">Instagram</span>
+                </a>
+
+                <a
+                  href="https://www.youtube.com/@JiilulHashiif"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-ig-link footer-yt-link"
+                  title="Kanal YouTube Resmi PG 643: @JiilulHashiif"
+                >
+                  <i className="fa-brands fa-youtube" style={{ color: "#ff3333" }}></i>
+                  <span>@JiilulHashiif</span>
+                  <span className="footer-ig-badge footer-yt-badge">YouTube</span>
                 </a>
               </div>
             </div>

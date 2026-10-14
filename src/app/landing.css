@@ -709,10 +709,13 @@ body:has(.landing-wrapper) {
   animation: fadeUp 0.8s ease-out 0.5s forwards;
 }
 
-/* Warm Instagram Touchpoint */
+/* Warm Social Touchpoints (Instagram & YouTube) */
 .tuku-ig-bar {
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-bottom: 24px;
   opacity: 0;
   animation: fadeUp 0.8s ease-out 0.6s forwards;
@@ -743,6 +746,17 @@ body:has(.landing-wrapper) {
   border-color: #d4af37;
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 4px 14px rgba(212, 175, 55, 0.15);
+}
+
+.tuku-yt-link {
+  background: rgba(255, 0, 0, 0.06);
+  border-color: rgba(255, 68, 68, 0.35);
+}
+
+.tuku-yt-link:hover {
+  background: rgba(255, 0, 0, 0.16);
+  border-color: #ff3333;
+  box-shadow: 0 4px 14px rgba(255, 0, 0, 0.25);
 }
 
 .tuku-ig-link:active {
@@ -1331,6 +1345,72 @@ body:has(.landing-wrapper) {
   gap: 10px;
 }
 
+/* Category Switcher Pill */
+.heritage-category-switch {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 4px;
+}
+
+.heritage-cat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.heritage-cat-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.heritage-cat-btn.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.28), rgba(184, 134, 11, 0.18));
+  color: #ffd700;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+}
+
+.cat-counter {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font-weight: 700;
+}
+
+.heritage-cat-btn.active .cat-counter {
+  background: rgba(212, 175, 55, 0.35);
+  color: #fff;
+}
+
+.video-source-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
 .video-badge {
   display: inline-flex;
   align-items: center;
@@ -1503,6 +1583,21 @@ body:has(.landing-wrapper) {
   color: #fff;
   transform: translateY(-2px);
   box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+}
+
+.btn-channel-pg {
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.22), rgba(212, 175, 55, 0.15)) !important;
+  border: 1px solid rgba(255, 68, 68, 0.6) !important;
+  color: #ffcccc !important;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.15);
+}
+
+.btn-channel-pg:hover {
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.35), rgba(212, 175, 55, 0.25)) !important;
+  color: #fff !important;
+  border-color: #ff4444 !important;
+  box-shadow: 0 4px 18px rgba(255, 0, 0, 0.35);
+  transform: translateY(-2px);
 }
 
 /* ====== 5. SECTION 2: PHILOSOPHY (EXPEDIENT 43) ====== */
@@ -1933,6 +2028,31 @@ body:has(.landing-wrapper) {
   border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.footer-social-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer-yt-link {
+  background: rgba(255, 0, 0, 0.08);
+  border-color: rgba(255, 68, 68, 0.35);
+  color: #ffcccc;
+}
+
+.footer-yt-link:hover {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: #ff4444;
+  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.25);
+  color: #fff;
+}
+
+.footer-yt-badge {
+  background: rgba(255, 0, 0, 0.25) !important;
+  color: #ff8888 !important;
 }
 
 .footer-links-col h4 {
@@ -3672,6 +3792,31 @@ body:has(.landing-wrapper) {
   background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.drawer-btn-yt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.15), rgba(180, 0, 0, 0.1));
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.drawer-btn-yt:hover {
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.25), rgba(180, 0, 0, 0.2));
+  border-color: rgba(255, 68, 68, 0.7);
+  box-shadow: 0 4px 15px rgba(255, 0, 0, 0.25);
+}
+
+.drawer-btn-yt i {
+  font-size: 1.3rem;
+  color: #ff3333;
 }
 
 .drawer-footer {
