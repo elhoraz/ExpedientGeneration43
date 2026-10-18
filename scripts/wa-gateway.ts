@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -81,6 +82,7 @@ import { getCommunityGroupId } from "../src/lib/whatsapp";
 import {
   backupSessionToSupabase,
   restoreSessionFromSupabase,
+  clearSessionFromSupabase,
 } from "../src/lib/whatsapp/sessionSync";
 import { createAdminClient } from "../src/lib/supabase/admin";
 import {
@@ -224,7 +226,7 @@ function addLog(msg: string, level: LogEntry["level"] = "info") {
   console.log(`[${time}] ${msg}`);
 }
 
-// Deteksi argumen pairing di CLI (hanya jika diberikan secara eksplisit)
+// Deteksi argumen pairing di CLI (HANYA jika diberikan secara eksplisit melalui flag CLI)
 const pairingArgIndex = process.argv.indexOf("--pairing");
 if (pairingArgIndex !== -1) {
   const nextArg = process.argv[pairingArgIndex + 1];
@@ -233,12 +235,11 @@ if (pairingArgIndex !== -1) {
   const match = process.argv.find((a) => a.startsWith("--pairing="));
   if (match) {
     pairingPhoneArg = match.split("=")[1] || "";
-  } else if (process.env.WA_BOT_PHONE) {
-    pairingPhoneArg = process.env.WA_BOT_PHONE;
   }
 }
 
 let isReconnecting = false;
+let reconnectAttempts = 0;
 
 // =============================================================================
 // STATE & HELPER DETEKSI PERMINTAAN DESAIN POSTER (MULTI-TURN INTENT RESOLVER)
@@ -394,10 +395,10 @@ async function startBaileysGateway() {
     logger,
     printQRInTerminal: false,
     auth: state,
-    browser: Browsers.ubuntu("Chrome"),
-    syncFullHistory: false,
-    markOnlineOnConnect: true,
-    keepAliveIntervalMs: 25000,
+    browser: Browsers.macOS("Chrome"), // Browser macOS Chrome autentik untuk menghindari deteksi headless bot
+    syncFullHistory: false, // Tidak sync full history chat agar efisien dan aman dari deteksi scraper
+    markOnlineOnConnect: false, // ANTI-BAN: Jangan online 24/7 konstan, hanya aktif saat membalas
+    keepAliveIntervalMs: 30000,
     connectTimeoutMs: 60000,
     defaultQueryTimeoutMs: 60000,
     generateHighQualityLinkPreview: true,
@@ -431,13 +432,24 @@ async function startBaileysGateway() {
     return res;
   }) as any;
 
-  // Helper pengiriman pesan yang aman & tahan banting
+  // Helper pengiriman pesan yang aman & tahan banting (Anti-Ban Humanized Delivery)
   const sendReply = async (targetJid: string, text: string, quotedMessage?: any) => {
     const cleanJid = targetJid.replace(/:\d+@/, "@");
     try {
+      // 1. Kirim status typing / composing agar tampak alami seperti manusia
+      await sock.sendPresenceUpdate("composing", cleanJid).catch(() => {});
+
+      // 2. Human typing simulation delay (1.2s - 2.8s) berbasis panjang pesan
+      const typingDelay = Math.min(Math.max(1200, Math.floor(text.length * 20)), 2800) + Math.floor(Math.random() * 400);
+      await new Promise((r) => setTimeout(r, typingDelay));
+
       const res = quotedMessage
         ? await sock.sendMessage(cleanJid, { text }, { quoted: quotedMessage })
         : await sock.sendMessage(cleanJid, { text });
+
+      // 3. Matikan status typing
+      await sock.sendPresenceUpdate("paused", cleanJid).catch(() => {});
+
       if (res?.key?.id) {
         sentMessageIds.add(res.key.id);
         if (sentMessageIds.size > 2000) {
@@ -990,22 +1002,8 @@ async function startBaileysGateway() {
   sock.ev.on("connection.update", async (update) => {
     const { connection, lastDisconnect, qr } = update;
 
-    // 1. Jika mode pairing aktif via argumen
-    if (qr && pairingPhoneArg && !sock.authState.creds.registered && !pairingCodeRequested) {
-      pairingCodeRequested = true;
-      const cleanPhone = pairingPhoneArg.replace(/\D/g, "");
-      addLog(`⏳ Meminta Kode Pairing WhatsApp untuk nomor: ${cleanPhone}...`, "info");
-      try {
-        const code = await sock.requestPairingCode(cleanPhone);
-        currentPairingCode = code;
-        gatewayStatus = "qr_ready";
-        addLog(`🔑 KODE PAIRING WHATSAPP: 👉 ${code} 👈`, "success");
-      } catch (err: any) {
-        addLog(`❌ Gagal meminta pairing code: ${err.message}`, "error");
-      }
-    }
-    // 2. Jika ada QR code
-    else if (qr) {
+    // 1. Selalu pancarkan dan render Barcode / QR Code
+    if (qr) {
       gatewayStatus = "qr_ready";
       try {
         currentQrDataUrl = await QRCode.toDataURL(qr, { scale: 8, margin: 2 });
@@ -1016,7 +1014,21 @@ async function startBaileysGateway() {
         qrcode.generate(qr, { small: true });
       } catch (_) {}
 
-      addLog("📲 QR Code WhatsApp siap di-scan via Web Dashboard atau terminal!", "warn");
+      addLog("📲 Barcode / QR Code WhatsApp siap di-scan via Web Dashboard atau terminal!", "warn");
+
+      // Mode pairing hanya jika flag CLI eksplisit diberikan
+      if (pairingPhoneArg && !sock.authState.creds.registered && !pairingCodeRequested) {
+        pairingCodeRequested = true;
+        const cleanPhone = pairingPhoneArg.replace(/\D/g, "");
+        addLog(`⏳ Meminta Kode Pairing opsional via CLI untuk nomor: ${cleanPhone}...`, "info");
+        try {
+          const code = await sock.requestPairingCode(cleanPhone);
+          currentPairingCode = code;
+          addLog(`🔑 KODE PAIRING WHATSAPP: 👉 ${code} 👈`, "success");
+        } catch (err: any) {
+          addLog(`❌ Gagal meminta pairing code: ${err.message}`, "error");
+        }
+      }
     }
 
     if (connection === "close") {
@@ -1041,7 +1053,7 @@ async function startBaileysGateway() {
 
       if (isRestartRequired) {
         addLog("⚡ WhatsApp meminta restart sesi (Handshake berhasil!). Menyambungkan ulang...", "info");
-        setTimeout(() => startBaileysGateway(), 1000);
+        setTimeout(() => startBaileysGateway(), 1500);
         return;
       }
 
@@ -1056,25 +1068,29 @@ async function startBaileysGateway() {
           }
         } catch (_) {}
 
-        // Catatan: Cadangan di Supabase Storage tetap dipertahankan agar tidak terhapus jika hanya masalah koneksi sementara.
+        // SANGAT PENTING: Bersihkan juga cadangan sesi di Supabase Storage agar tidak terjadi loop pemulihan sesi mati (401)!
+        await clearSessionFromSupabase().catch(() => {});
         
-        // Restart Baileys dengan folder kosong agar QR Code baru langsung dipancarkan ke dashboard
-        setTimeout(() => startBaileysGateway(), 1500);
+        // Cooldown sebelum restart untuk mencegah spamming request ke auth server
+        setTimeout(() => startBaileysGateway(), 2500);
         return;
       }
 
       if (isReconnecting) return;
       isReconnecting = true;
-      addLog("🔄 Menghubungkan ulang dalam 3 detik...", "info");
+      reconnectAttempts++;
+      const backoffDelay = Math.min(3000 * Math.pow(1.5, reconnectAttempts - 1), 45000);
+      addLog(`🔄 Menghubungkan ulang (percobaan #${reconnectAttempts}) dalam ${(backoffDelay / 1000).toFixed(0)} detik...`, "info");
       setTimeout(async () => {
         try {
           await startBaileysGateway();
         } finally {
           isReconnecting = false;
         }
-      }, 3000);
+      }, backoffDelay);
     } else if (connection === "open") {
       isReconnecting = false;
+      reconnectAttempts = 0;
       gatewayStatus = "connected";
       activeUser = {
         id: sock.user?.id || "Connected",
@@ -1107,10 +1123,10 @@ async function startBaileysGateway() {
           await sock.rejectCall(call.id, call.from);
           addLog(`🚫 [CALL-REJECTED] Berhasil menolak panggilan ${call.id} dari ${callerJid}`, "info");
 
-          // 2. Cooldown 5 menit agar tidak spam jika penelpon mencoba berulang kali
+          // 2. Cooldown 24 jam agar tidak spam jika penelpon mencoba berulang kali
           const now = Date.now();
           const lastNotified = lastCallNotifiedMap.get(callerJid) || 0;
-          if (now - lastNotified > 5 * 60 * 1000) {
+          if (now - lastNotified > 24 * 60 * 60 * 1000) {
             lastCallNotifiedMap.set(callerJid, now);
 
             const politeCallRejectMessage =
@@ -2490,7 +2506,9 @@ const healthServer = http.createServer(async (req, res) => {
     :root {
       --bg: #0b141a;
       --card: #111b21;
+      --card-inner: #1f2c34;
       --border: #222e35;
+      --border-accent: rgba(0, 168, 132, 0.4);
       --text: #e9edef;
       --text-muted: #8696a0;
       --primary: #00a884;
@@ -2515,11 +2533,11 @@ const healthServer = http.createServer(async (req, res) => {
       max-width: 680px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
     .header {
       text-align: center;
-      padding: 12px 0;
+      padding: 8px 0;
     }
     .header h1 {
       font-size: 24px;
@@ -2532,14 +2550,32 @@ const healthServer = http.createServer(async (req, res) => {
       gap: 10px;
     }
     .header p {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
+    }
+    .shield-badge-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .shield-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(0, 168, 132, 0.12);
+      color: #25d366;
+      border: 1px solid rgba(0, 168, 132, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
     .card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 24px;
+      padding: 22px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.4);
     }
     .status-badge {
@@ -2550,37 +2586,69 @@ const healthServer = http.createServer(async (req, res) => {
       border-radius: 20px;
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 16px;
     }
     .status-connected { background: rgba(0, 168, 132, 0.15); color: #25d366; border: 1px solid rgba(37, 211, 102, 0.3); }
     .status-qr { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
     .status-connecting { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
     .status-disconnected { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
     
-    .qr-box {
+    .barcode-container {
       text-align: center;
-      margin: 16px 0;
+      margin: 18px 0;
+      position: relative;
     }
-    .qr-img {
-      background: #fff;
-      padding: 14px;
-      border-radius: 14px;
+    .barcode-frame {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 16px;
       display: inline-block;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      width: 260px;
-      height: 260px;
+      box-shadow: 0 8px 32px rgba(0, 168, 132, 0.25);
+      border: 3px solid var(--primary);
+      width: 270px;
+      height: 270px;
+      position: relative;
+    }
+    .barcode-img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 6px;
     }
     .instructions {
-      background: #1f2c34;
+      background: var(--card-inner);
       border-radius: 12px;
       padding: 16px;
       font-size: 13px;
       color: #d1d7db;
       line-height: 1.6;
+      border: 1px solid var(--border);
       margin-top: 14px;
     }
     .instructions ol { padding-left: 20px; }
     .instructions li { margin-bottom: 6px; }
+
+    .btn {
+      background: var(--primary);
+      color: #0b141a;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn:hover { background: var(--primary-hover); }
+    .btn:active { transform: scale(0.98); }
+    .btn-secondary {
+      background: #1f2c34;
+      color: #cbd5e0;
+      border: 1px solid #2a3942;
+    }
+    .btn-secondary:hover { background: #2a3942; color: #fff; }
 
     .terminal {
       background: #000;
@@ -2589,7 +2657,7 @@ const healthServer = http.createServer(async (req, res) => {
       padding: 14px;
       font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
       font-size: 12px;
-      max-height: 260px;
+      max-height: 240px;
       overflow-y: auto;
       color: #a0aec0;
       display: flex;
@@ -2603,140 +2671,99 @@ const healthServer = http.createServer(async (req, res) => {
     .log-error { color: #f56565; }
     .log-info { color: #cbd5e0; }
 
-    .form-pairing {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
+    @keyframes pulse {
+      0% { opacity: 0.6; }
+      50% { opacity: 1; }
+      100% { opacity: 0.6; }
     }
-    .input-phone {
-      flex: 1;
-      background: #1f2c34;
-      border: 1px solid #2a3942;
-      border-radius: 8px;
-      padding: 10px 14px;
-      color: #fff;
-      font-size: 14px;
-      outline: none;
-    }
-    .input-phone:focus { border-color: var(--primary); }
-    .btn {
-      background: var(--primary);
-      color: #0b141a;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 18px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .btn:hover { background: var(--primary-hover); }
-    .pairing-display {
-      background: #202c33;
-      border: 2px dashed #00a884;
-      border-radius: 10px;
-      padding: 14px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: 700;
-      letter-spacing: 4px;
-      color: #25d366;
-      margin-top: 12px;
-    }
+    .pulsing { animation: pulse 2s infinite ease-in-out; }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h1>🤖 Expedient 43 Gateway</h1>
-      <p>Self-Hosted WhatsApp Bot &bull; 24/7 Cloud Runner on Render</p>
+      <h1>🤖 Expedient 43 — Bot Gateway</h1>
+      <p>Self-Hosted WhatsApp Gateway &bull; Khusus Tautan Barcode (QR Code) &bull; Cloud 24/7</p>
+      <div class="shield-badge-bar">
+        <span class="shield-pill">🛡️ Anti-Ban Shield Aktif</span>
+        <span class="shield-pill">🍎 MacOS Chrome Signature</span>
+        <span class="shield-pill">⏱️ Human Typing Pacing</span>
+        <span class="shield-pill">⚡ Anti-Loop Breaker</span>
+      </div>
     </div>
 
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-        <div id="statusBadge" class="status-badge status-connecting" style="margin-bottom: 0;">
+        <div id="statusBadge" class="status-badge status-connecting">
           <span id="statusDot">●</span> <span id="statusText">Memeriksa status...</span>
         </div>
-        <button onclick="resetSession()" class="btn" style="background: #1f2c34; color: #a0aec0; border: 1px solid #2a3942; font-size: 12px; padding: 6px 14px;">
-          🔄 Reset Sesi / Scan QR Baru
+        <button id="resetBtn" onclick="resetSession()" class="btn btn-secondary">
+          🔄 Perbarui / Reset Barcode
         </button>
       </div>
 
+      <!-- VIEW KETIKA TERHUBUNG -->
       <div id="connectedView" style="display: none;">
         <h3 style="color: #25d366; margin-bottom: 8px;">✅ Bot Aktif & Siap Digunakan</h3>
         <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">
-          Akun WhatsApp bot berhasil tersambung. Bot akan membalas secara instan di:
+          Akun WhatsApp bot berhasil ditautkan dan beroperasi dengan aman di cloud.
         </p>
         <ul style="margin: 12px 0 16px 20px; font-size: 14px; color: #d1d7db; line-height: 1.6;">
-          <li><b>Chat Pribadi:</b> Balas otomatis semua pesan alumni / admin.</li>
+          <li><b>Chat Pribadi:</b> Balas otomatis pesan alumni, informasi angkatan, dan kuis.</li>
           <li><b>Grup WhatsApp:</b> Balas saat di-mention (@bot) atau dipanggil namanya.</li>
-          <li><b>Multimodal:</b> Menganalisis gambar, stiker, VN, dan video via Gemini AI.</li>
+          <li><b>Multimodal & AI:</b> Menganalisis gambar, Voice Note (VN), video, dan stiker.</li>
         </ul>
-        <div style="background: #182229; border: 1px solid #222e35; border-radius: 12px; padding: 14px; margin-bottom: 16px;">
-          <h4 style="color: #00a884; font-size: 13px; margin-bottom: 8px;">✨ Panduan Fitur Media & Generator:</h4>
-          <div style="display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 12px; color: #d1d7db;">
-            <div>🎨 <b>Generate Gambar:</b> Ketik <code>/gambar [deskripsi]</code> (contoh: <code>/gambar masjid megah di senja hari</code>)</div>
-            <div>🎙️ <b>Generate Suara / VN:</b> Ketik <code>/vn [teks]</code> (contoh: <code>/vn assalamu'alaikum sahabat 43</code>)</div>
-            <div>📷 <b>Baca Gambar & OCR:</b> Kirim foto apa saja (baca struk Baitul Maal, baca teks foto, ulas poster desain)</div>
-            <div>🎧 <b>Baca Voice Note (VN):</b> Kirim pesan suara, bot akan mendengarkan, menulis transkrip, dan membalas</div>
-            <div>🎥 <b>Baca Video:</b> Kirim video / video bulat (PTV), bot akan menganalisis adegan & suara lalu merespons</div>
-            <div>🎭 <b>Baca Stiker:</b> Kirim stiker WhatsApp, bot paham ekspresi meme/karakter stiker tersebut!</div>
-          </div>
-        </div>
-
-        <div style="background: #1f2c34; border-radius: 10px; padding: 12px; font-size: 13px;">
+        <div style="background: var(--card-inner); border-radius: 10px; padding: 12px; font-size: 13px; border: 1px solid var(--border);">
           <div><b>Device JID:</b> <span id="deviceJid">-</span></div>
-          <div style="margin-top: 4px;"><b>Nama Bot:</b> <span id="botName">-</span></div>
+          <div style="margin-top: 4px;"><b>Nama Akun:</b> <span id="botName">-</span></div>
           <div style="margin-top: 4px;"><b>Uptime:</b> <span id="uptimeText">-</span></div>
         </div>
       </div>
 
+      <!-- VIEW KETIKA MENUNGGU SCAN BARCODE -->
       <div id="qrView" style="display: none;">
-        <h3 style="color: #fbbf24; margin-bottom: 6px;">📲 Tautkan Perangkat WhatsApp</h3>
-        <p style="color: var(--text-muted); font-size: 14px;">
-          Pindai kode QR di bawah menggunakan aplikasi WhatsApp di HP Anda:
+        <h3 style="color: #fbbf24; margin-bottom: 6px;">📲 Pindai Barcode untuk Menautkan</h3>
+        <p style="color: var(--text-muted); font-size: 13px;">
+          Tautan hanya menggunakan pemindaian Barcode WhatsApp resmi:
         </p>
 
-        <div class="qr-box">
-          <img id="qrImage" class="qr-img" src="" alt="WhatsApp QR Code" />
+        <div class="barcode-container">
+          <div class="barcode-frame">
+            <img id="qrImage" class="barcode-img" src="" alt="WhatsApp Barcode / QR Code" />
+          </div>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+            ⏳ Barcode akan otomatis diperbarui setiap ~20 detik demi keamanan sesi WhatsApp.
+          </p>
         </div>
 
         <div class="instructions">
           <ol>
-            <li>Buka aplikasi <b>WhatsApp</b> di HP Anda</li>
-            <li>Ketuk <b>Titik Tiga</b> (Setelan) &rarr; pilih <b>Perangkat Tertaut</b></li>
-            <li>Ketuk <b>Tautkan Perangkat</b> lalu arahkan kamera ke kode QR di atas</li>
+            <li>Buka aplikasi <b>WhatsApp</b> di ponsel Anda</li>
+            <li>Ketuk <b>Titik Tiga</b> (di Android) atau <b>Pengaturan</b> (di iPhone)</li>
+            <li>Pilih <b>Perangkat Tertaut</b> &rarr; ketuk <b>Tautkan Perangkat</b></li>
+            <li>Arahkan kamera ponsel Anda langsung ke <b>Barcode</b> di atas</li>
           </ol>
-        </div>
-
-        <div style="margin-top: 20px; border-top: 1px solid #222e35; padding-top: 16px;">
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
-            Atau minta <b>Kode Pairing (8 Digit)</b> jika tidak bisa scan kamera:
-          </p>
-          <div class="form-pairing">
-            <input type="text" id="phoneInput" class="input-phone" placeholder="Contoh: 6285151771289" value="6285151771289" />
-            <button id="pairBtn" class="btn" onclick="requestPairing()">Minta Kode</button>
-          </div>
-          <div id="pairingCodeBox" class="pairing-display" style="display: none;"></div>
         </div>
       </div>
 
-      <div id="connectingView" style="display: none; text-align: center; padding: 30px 0;">
-        <div style="font-size: 32px; margin-bottom: 12px;">⏳</div>
-        <h3>Sedang Menghubungkan ke WhatsApp...</h3>
-        <p style="color: var(--text-muted); font-size: 14px; margin-top: 6px;">
-          Menunggu handshake socket & pemulihan sesi cloud.
+      <!-- VIEW KETIKA MENYAMBUNGKAN -->
+      <div id="connectingView" style="display: none; text-align: center; padding: 26px 0;">
+        <div style="font-size: 32px; margin-bottom: 12px;" class="pulsing">⏳</div>
+        <h3 id="connectingTitle">Sedang Menghubungkan ke WhatsApp...</h3>
+        <p id="connectingDesc" style="color: var(--text-muted); font-size: 14px; margin-top: 6px;">
+          Menyiapkan socket aman dan memuat barcode...
         </p>
       </div>
     </div>
 
+    <!-- TERMINAL LOG REALTIME -->
     <div class="card">
-      <h3 style="font-size: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
         <span>📜 Terminal Log Realtime</span>
-        <span style="font-size: 12px; color: var(--text-muted); font-weight: normal;">Auto-refresh tiap 3 detik</span>
+        <span style="font-size: 11px; color: var(--text-muted); font-weight: normal;">Auto-refresh tiap 2.5 detik</span>
       </h3>
       <div id="terminalBox" class="terminal">
-        <div class="log-line"><span class="log-time">[Init]</span> Memuat event gateway...</div>
+        <div class="log-line"><span class="log-time">[Init]</span> Memuat status gateway...</div>
       </div>
     </div>
   </div>
@@ -2771,37 +2798,28 @@ const healthServer = http.createServer(async (req, res) => {
           document.getElementById("uptimeText").textContent = mins + " menit " + secs + " detik";
         } else if (data.gatewayStatus === "qr_ready" && data.currentQrDataUrl) {
           badge.classList.add("status-qr");
-          statusText.textContent = "MENUNGGU SCAN QR";
+          statusText.textContent = "MENUNGGU SCAN BARCODE";
           connectedView.style.display = "none";
           qrView.style.display = "block";
           connectingView.style.display = "none";
 
           document.getElementById("qrImage").src = data.currentQrDataUrl;
-          if (data.currentPairingCode) {
-            const pBox = document.getElementById("pairingCodeBox");
-            pBox.textContent = data.currentPairingCode;
-            pBox.style.display = "block";
-          }
         } else if (data.gatewayStatus === "disconnected") {
           badge.classList.add("status-disconnected");
-          statusText.textContent = "TERPUTUS (401)";
+          statusText.textContent = "TERPUTUS / EXPIRED (401)";
           connectedView.style.display = "none";
           qrView.style.display = "none";
           connectingView.style.display = "block";
-          const h3 = document.querySelector("#connectingView h3");
-          const p = document.querySelector("#connectingView p");
-          if (h3) h3.textContent = "Sesi Terputus dari WhatsApp (401)";
-          if (p) p.textContent = "Sesi lama kedaluwarsa. Sistem sedang membersihkan cache dan memuat QR Code baru secara otomatis...";
+          document.getElementById("connectingTitle").textContent = "Sesi WhatsApp Telah Logout (401)";
+          document.getElementById("connectingDesc").textContent = "Sesi lama dibersihkan secara aman dari cloud. Sedang memuat barcode baru...";
         } else {
           badge.classList.add("status-connecting");
           statusText.textContent = "MENYAMBUNGKAN...";
           connectedView.style.display = "none";
           qrView.style.display = "none";
           connectingView.style.display = "block";
-          const h3 = document.querySelector("#connectingView h3");
-          const p = document.querySelector("#connectingView p");
-          if (h3) h3.textContent = "Sedang Menghubungkan ke WhatsApp...";
-          if (p) p.textContent = "Menunggu handshake socket & pemulihan sesi cloud.";
+          document.getElementById("connectingTitle").textContent = "Sedang Menghubungkan ke WhatsApp...";
+          document.getElementById("connectingDesc").textContent = "Menunggu handshake socket & pemulihan sesi cloud.";
         }
 
         // Render Logs
@@ -2825,52 +2843,30 @@ const healthServer = http.createServer(async (req, res) => {
       return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    async function requestPairing() {
-      const phone = document.getElementById("phoneInput").value.trim();
-      if (!phone) return alert("Masukkan nomor telepon");
-      const btn = document.getElementById("pairBtn");
-      btn.disabled = true;
-      btn.textContent = "Meminta...";
-
-      try {
-        const res = await fetch("/api/pair", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone }),
-        });
-        const data = await res.json();
-        if (data.success && data.code) {
-          const pBox = document.getElementById("pairingCodeBox");
-          pBox.textContent = data.code;
-          pBox.style.display = "block";
-        } else {
-          alert("Gagal: " + (data.error || "Gagal meminta kode pairing"));
-        }
-      } catch (e) {
-        alert("Error: " + e.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = "Minta Kode";
-      }
-    }
-
     async function resetSession() {
-      if (!confirm("Reset sesi WhatsApp dan buat QR Code baru sekarang?")) return;
+      if (!confirm("Bersihkan sesi lama dan buat Barcode WhatsApp baru sekarang?")) return;
+      const btn = document.getElementById("resetBtn");
+      btn.disabled = true;
+      btn.textContent = "⏳ Memproses...";
       try {
         const res = await fetch("/api/reset", { method: "POST" });
         const data = await res.json();
-        alert(data.message || "Sesi sedang dibersihkan...");
+        alert(data.message || "Sesi berhasil dibersihkan, memuat barcode baru...");
         fetchStatus();
       } catch (e) {
         alert("Gagal reset: " + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "🔄 Perbarui / Reset Barcode";
       }
     }
 
     fetchStatus();
-    setInterval(fetchStatus, 3000);
+    setInterval(fetchStatus, 2500);
   </script>
 </body>
 </html>`;
+
 
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(html);
@@ -2891,96 +2887,48 @@ startBaileysGateway().catch((err) => {
 });
 
 // =============================================================================
-// BACKGROUND DAEMON: AUTONOMOUS ICEBREAKER MONITOR
-// Memeriksa keheningan grup angkatan non-formal setiap 10 menit
+// SAFE SCHEDULED DAEMON: UCAPAN OTOMATIS GRUP ANGKATAN (ANTI-BAN PROTECTED)
 // =============================================================================
+// 1. Tidak pernah menembak pesan saat startup/linking (tidak ada delay 60 detik).
+// 2. Hanya aktif pada jam pagi wajar manusia (Pukul 07:00 WIB untuk Milad & 08:00 WIB Jum'at).
+// 3. Mengirim secara terpusat ke Grup Komunitas Angkatan (WA_GROUP_COMMUNITY_ID).
+let lastBdayCheckDay = "";
+let lastFridayCheckDay = "";
+
 setInterval(async () => {
-  if (gatewayStatus === "connected" && currentSock) {
-    try {
-      const res = await checkAndTriggerCommunityIcebreaker(false, async (target, msg) => {
-        await currentSock.sendMessage(target, { text: msg });
-        return { success: true };
-      });
-      if (res.triggered) {
-        addLog(`💬 [ICEBREAKER-AUTO] Berhasil memicu obrolan di grup komunitas: "${res.message?.slice(0, 50)}..."`, "success");
-      }
+  if (gatewayStatus !== "connected" || !currentSock) return;
 
-      // Pemeriksaan rutin mingguan keberlanjutan sistem (Momen A: maksimal 1x seminggu di grup)
-      try {
-        const commGroupId = getCommunityGroupId();
-        const maintRes = await checkAndTriggerWeeklySystemMaintenance(async (caption) => {
-          const qrisImgPath = path.join(process.cwd(), "public", "images", "qris-developer.png");
-          if (fs.existsSync(qrisImgPath)) {
-            const qrisBuffer = fs.readFileSync(qrisImgPath);
-            await currentSock.sendMessage(commGroupId, {
-              image: qrisBuffer,
-              caption,
-            });
-            return { success: true };
-          }
-          await currentSock.sendMessage(commGroupId, { text: caption });
-          return { success: true };
-        });
-        if (maintRes.triggered) {
-          addLog(`🌐 [WEEKLY-MAINTENANCE-SENT] Pesan keberlanjutan sistem mingguan terkirim ke grup komunitas`, "success");
-        }
-      } catch (maintErr: any) {
-        addLog(`⚠️ [WEEKLY-MAINTENANCE-ERR] ${maintErr.message}`, "warn");
-      }
+  try {
+    // Hitung waktu WIB (UTC+7)
+    const nowUtc = Date.now();
+    const wibDate = new Date(nowUtc + 7 * 60 * 60 * 1000);
+    const dayOfWeek = wibDate.getUTCDay(); // 0 = Minggu, 5 = Jumat
+    const hourWib = wibDate.getUTCHours();
+    const minWib = wibDate.getUTCMinutes();
+    const dateStr = wibDate.toISOString().slice(0, 10);
 
-      // Pemeriksaan ucapan milad harian otomatis (Pagi hari)
-      try {
-        const commGroupId = getCommunityGroupId();
-        const bdayRes = await checkAndTriggerDailyBirthdayWishes(currentSock, commGroupId);
-        if (bdayRes.triggered) {
-          addLog(`🎂 [BIRTHDAY-WISH-SENT] Berhasil mengirimkan ucapan milad untuk ${bdayRes.count} alumni ke grup komunitas!`, "success");
-        }
-      } catch (bdayErr: any) {
-        addLog(`⚠️ [BIRTHDAY-CHECK-ERR] ${bdayErr.message}`, "warn");
-      }
-
-      // Pemeriksaan ucapan Jum'at Berkah otomatis (Jum'at pagi)
-      try {
-        const commGroupId = getCommunityGroupId();
-        const friRes = await checkAndTriggerFridayBlessing(currentSock, commGroupId);
-        if (friRes.triggered) {
-          addLog(`🌿 [FRIDAY-BLESSING-SENT] Berhasil mengirim pesan Jum'at Berkah ke grup komunitas!`, "success");
-        }
-      } catch (friErr: any) {
-        addLog(`⚠️ [FRIDAY-CHECK-ERR] ${friErr.message}`, "warn");
-      }
-    } catch (err: any) {
-      addLog(`⚠️ [ICEBREAKER-LOOP-ERR] ${err.message}`, "warn");
-    }
-  }
-}, 10 * 60 * 1000);
-
-// Pemeriksaan awal 1 menit setelah bot online
-setTimeout(async () => {
-  if (gatewayStatus === "connected" && currentSock) {
-    try {
-      const res = await checkAndTriggerCommunityIcebreaker(false, async (target, msg) => {
-        await currentSock.sendMessage(target, { text: msg });
-        return { success: true };
-      });
-      if (res.triggered) {
-        addLog(`💬 [ICEBREAKER-STARTUP] Membuka obrolan di grup komunitas: "${res.message?.slice(0, 50)}..."`, "success");
-      }
-
-      // Trigger milad saat startup jika hari ini belum terkirim
+    // 1. UCAPAN MILAD / ULANG TAHUN: Setiap hari jam 07:00 - 07:30 WIB
+    if (hourWib === 7 && minWib <= 30 && lastBdayCheckDay !== dateStr) {
+      lastBdayCheckDay = dateStr;
       const commGroupId = getCommunityGroupId();
+      addLog(`🎂 [BIRTHDAY-CRON] Memeriksa ucapan milad harian pukul 07:00 WIB...`, "info");
       const bdayRes = await checkAndTriggerDailyBirthdayWishes(currentSock, commGroupId);
       if (bdayRes.triggered) {
-        addLog(`🎂 [BIRTHDAY-STARTUP-SENT] Berhasil mengirimkan ucapan milad (${bdayRes.count} alumni) ke grup komunitas!`, "success");
+        addLog(`🎂 [BIRTHDAY-SENT] Berhasil mengirimkan ucapan milad (${bdayRes.count} alumni) ke grup angkatan!`, "success");
       }
+    }
 
-      // Trigger Jum'at berkah saat startup jika hari ini Jum'at dan belum terkirim
+    // 2. JUM'AT BERKAH: Khusus hari Jum'at jam 08:00 - 08:30 WIB
+    if (dayOfWeek === 5 && hourWib === 8 && minWib <= 30 && lastFridayCheckDay !== dateStr) {
+      lastFridayCheckDay = dateStr;
+      const commGroupId = getCommunityGroupId();
+      addLog(`🌿 [FRIDAY-CRON] Memeriksa ucapan Jum'at Berkah pukul 08:00 WIB...`, "info");
       const friRes = await checkAndTriggerFridayBlessing(currentSock, commGroupId);
       if (friRes.triggered) {
-        addLog(`🌿 [FRIDAY-STARTUP-SENT] Berhasil mengirim pesan Jum'at Berkah ke grup komunitas!`, "success");
+        addLog(`🌿 [FRIDAY-SENT] Berhasil mengirim pesan Jum'at Berkah ke grup angkatan!`, "success");
       }
-    } catch (err: any) {
-      addLog(`⚠️ [STARTUP-INIT-ERR] ${err.message}`, "warn");
     }
+  } catch (cronErr: any) {
+    addLog(`⚠️ [SAFE-CRON-ERR] ${cronErr.message}`, "warn");
   }
-}, 60 * 1000);
+}, 10 * 60 * 1000); // Periksa setiap 10 menit

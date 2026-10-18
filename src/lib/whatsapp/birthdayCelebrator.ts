@@ -233,9 +233,13 @@ export async function checkAndTriggerDailyBirthdayWishes(
       }
 
       // =====================================================================
-      // A. JAPRI PERSONAL KE NOMOR ALUMNI
+      // A. JAPRI PERSONAL KE NOMOR ALUMNI (OPSIONAL - SAFE MODE ANTI-BAN)
       // =====================================================================
-      if (b.no_whatsapp) {
+      // Catatan Keamanan: Mengirim pesan japri otomatis ke nomor yang belum menyimpan
+      // kontak bot memicu tombol "Laporkan Spam" di WhatsApp penerima.
+      // Secara default, ucapan difokuskan secara aman & meriah ke Grup Komunitas Angkatan.
+      const allowPersonalDm = process.env.WA_ENABLE_PERSONAL_BIRTHDAY_DM === "true";
+      if (b.no_whatsapp && allowPersonalDm) {
         try {
           const personalMsg = formatPersonalBirthdayGreetingMessage(b);
           let cleanPhone = b.no_whatsapp.replace(/\D/g, "");
@@ -272,6 +276,8 @@ export async function checkAndTriggerDailyBirthdayWishes(
         } catch (personalErr: any) {
           console.warn(`[BIRTHDAY-PERSONAL-ERR] Gagal japri ke ${b.nama_lengkap}:`, personalErr.message);
         }
+      } else if (b.no_whatsapp && !allowPersonalDm) {
+        console.log(`[BIRTHDAY-PERSONAL-GUARD] Japri ke ${b.nama_lengkap} dilewati demi perlindungan Anti-Ban Meta (ucapan dikirim ke grup komunitas).`);
       }
 
       // =====================================================================

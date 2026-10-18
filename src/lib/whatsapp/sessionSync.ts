@@ -102,3 +102,22 @@ export async function restoreSessionFromSupabase(authDir: string): Promise<boole
     return false;
   }
 }
+
+/**
+ * Hapus cadangan sesi di Supabase Storage jika sesi telah logout/invalid (401/403)
+ */
+export async function clearSessionFromSupabase(): Promise<boolean> {
+  try {
+    const supabase = createAdminClient();
+    const { error } = await supabase.storage.from(BUCKET_NAME).remove([FILE_NAME]);
+    if (error) {
+      console.warn("[SESSION-SYNC-CLEAR-WARN] Gagal menghapus cadangan dari Supabase Storage:", error.message);
+      return false;
+    }
+    console.log("🗑️ [SESSION-SYNC-CLEAR] Berhasil membersihkan cadangan sesi kedaluwarsa dari Supabase Storage.");
+    return true;
+  } catch (err: any) {
+    console.warn("[SESSION-SYNC-CLEAR-ERR]:", err.message);
+    return false;
+  }
+}
