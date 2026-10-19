@@ -9,32 +9,56 @@ import {
   registerKaburPoll,
   findOptionKeyByHash,
   resetKaburCooldowns,
+  LOBBY_OPTIONS,
 } from '../src/lib/whatsapp/kaburPondokEngine.ts';
 
-describe('Kabur dari Pondok RPG Engine & Anti-Spam Test Suite', () => {
+describe('Kabur dari Pondok RPG Engine & Onboarding Lobby Test Suite', () => {
   const TEST_GROUP_ID = 'test-group-pondok-123@g.us';
   const SENDER_NAME = 'Taufiqi Santri';
   const SENDER_PHONE = '6281234567890';
 
-  it('MUST start a new Kabur game session with Chapter 1, status bar, and native poll payload', async () => {
+  it('MUST start in Lobby mode with clear onboarding instructions and lobby poll', async () => {
     // Reset any prior session and cooldowns
     stopKaburGame(TEST_GROUP_ID);
     resetKaburCooldowns(TEST_GROUP_ID);
 
     const res = await startKaburGame(TEST_GROUP_ID, SENDER_NAME, SENDER_PHONE);
     assert.strictEqual(res.success, true);
-    assert.match(res.message, /OPERASI KABUR DARI PONDOK/);
-    assert.match(res.message, /Qism Keamanan/);
-    assert.match(res.message, /Stealth:/);
+    assert.match(res.message, /APAAN NIH MIN/);
+    assert.match(res.message, /CARA BERMAIN/);
+    assert.match(res.message, /Jasus Santri/);
+    assert.match(res.message, /Biro Ri'ayah/);
     assert.match(res.message, /Gayung Merah Sakti/);
-    assert.match(res.message, /Sarung Samarinda/);
-    assert.match(res.message, /A\.\* 🏷️/);
 
-    // Verify Native Polling Payload
-    assert.ok(res.poll, 'Must generate native poll payload');
-    assert.match(res.poll.name, /LANGKAH TIM SANTRI/);
-    assert.strictEqual(res.poll.values.length, 4);
-    assert.match(res.poll.values[0], /🅰️/);
+    // Verify Native Lobby Polling Payload
+    assert.ok(res.poll, 'Must generate lobby poll payload');
+    assert.match(res.poll.name, /KONFIRMASI TIM SANTRI/);
+    assert.strictEqual(res.poll.values.length, 3);
+    assert.match(res.poll.values[0], /Gas Mulai Misi/);
+  });
+
+  it('MUST show survival handbook when user chooses tips (B) in lobby', async () => {
+    const tipsRes = await handleKaburAnswer(TEST_GROUP_ID, 'B', SENDER_NAME);
+    assert.strictEqual(tipsRes.handled, true);
+    assert.match(tipsRes.replyText, /BUKU PANDUAN SURVIVAL/);
+    assert.match(tipsRes.replyText, /Stealth/);
+    assert.match(tipsRes.replyText, /Radar Ri'ayah/);
+    assert.ok(tipsRes.poll, 'Must reprompt lobby poll');
+  });
+
+  it('MUST transition from Lobby to Chapter 1 when user chooses Gas Mulai (A)', async () => {
+    const startRes = await handleKaburAnswer(TEST_GROUP_ID, 'A', SENDER_NAME);
+    assert.strictEqual(startRes.handled, true);
+    assert.match(startRes.replyText, /TAKBIR/);
+    assert.match(startRes.replyText, /CHAPTER 1 - RAYON ASRAMA/);
+    assert.match(startRes.replyText, /STATUS TIM SANTRI/);
+    assert.match(startRes.replyText, /Stealth:/);
+
+    // Verify Chapter 1 action poll
+    assert.ok(startRes.poll, 'Must generate Chapter 1 action poll');
+    assert.match(startRes.poll.name, /CH\. 1/);
+    assert.strictEqual(startRes.poll.values.length, 4);
+    assert.match(startRes.poll.values[0], /🅰️/);
   });
 
   it('MUST properly register and resolve poll votes by option hash', () => {

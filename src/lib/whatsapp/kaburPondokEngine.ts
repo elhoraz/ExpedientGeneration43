@@ -17,8 +17,8 @@ export interface KaburPollPayload {
 
 export interface KaburGameState {
   groupId: string;
-  status: "idle" | "active" | "escaped" | "caught";
-  chapter: number; // 1: Rayon Asrama, 2: Dapur & Tembok Belakang, 3: Luar Pagar & Jalan Desa, 4: Rental PS / Warkop
+  status: "idle" | "lobby" | "active" | "escaped" | "caught";
+  chapter: number; // 0: Lobby/Briefing, 1: Rayon Asrama, 2: Dapur & Tembok Belakang, 3: Luar Pagar, 4: Rental PS
   stealth: number; // 0 - 100
   stamina: number; // 0 - 100
   inventory: string[];
@@ -86,6 +86,27 @@ function getVisualBar(value: number): string {
   const blocks = Math.round(Math.max(0, Math.min(100, value)) / 20);
   return "🟩".repeat(blocks) + "⬜".repeat(5 - blocks);
 }
+
+export const LOBBY_OPTIONS: KaburOption[] = [
+  {
+    key: "A",
+    label: "GAS MULAI MISI",
+    archetype: "PARKOUR",
+    description: "Bismillah, masuki Chapter 1 dan mulai menyelinap keluar asrama!",
+  },
+  {
+    key: "B",
+    label: "TIPS SURVIVAL",
+    archetype: "ALIBI",
+    description: "Pelajari hierarki musuh (Jasus, Keamanan, Ri'ayah) dan fungsi bekal santri.",
+  },
+  {
+    key: "C",
+    label: "BATALKAN OPERASI",
+    archetype: "DIPLOMASI",
+    description: "Tidur nyenyak di kasur asrama, takut digundul licin 0 cm.",
+  },
+];
 
 /**
  * Skenario Awal Pembuka (Chapter 1)
@@ -171,9 +192,9 @@ export async function startKaburGame(
     };
   }
 
-  // 3. Cek Game yang Sedang Aktif (dengan proteksi Anti-Spam Warning)
+  // 3. Cek Game yang Sedang Aktif / Sedang di Lobby (dengan proteksi Anti-Spam Warning)
   const existing = activeSessions.get(groupId);
-  if (existing && existing.status === "active" && now - existing.lastUpdatedAt < SESSION_TIMEOUT_MS) {
+  if (existing && (existing.status === "active" || existing.status === "lobby") && now - existing.lastUpdatedAt < SESSION_TIMEOUT_MS) {
     const lastWarning = groupWarningCooldown.get(groupId) || 0;
     if (now - lastWarning < WARNING_COOLDOWN_MS) {
       // Abaikan secara senyap agar bot tidak ikut-ikutan nyampah di grup!
@@ -185,6 +206,18 @@ export async function startKaburGame(
     }
 
     groupWarningCooldown.set(groupId, now);
+
+    if (existing.status === "lobby") {
+      return {
+        success: false,
+        silent: false,
+        message:
+          `📢 *Misi Kabur sudah disiapkan oleh sahabat ${existing.starterName}!* 🏃‍♂️💨\n\n` +
+          `Kalian saat ini ada di ruang *Briefing & Instruksi*.\n` +
+          `Silakan klik tombol *🚀 [BISMILLAH] Gas Mulai Misi!* pada Polling di atas atau balas dengan huruf *A* untuk mulai Chapter 1!`,
+      };
+    }
+
     return {
       success: false,
       silent: false,
@@ -198,14 +231,14 @@ export async function startKaburGame(
 
   const newState: KaburGameState = {
     groupId,
-    status: "active",
-    chapter: 1,
+    status: "lobby",
+    chapter: 0,
     stealth: 100,
     stamina: 100,
     inventory: [...DEFAULT_INVENTORY],
-    history: ["Memulai misi dari kamar rayon malam hari, berhadapan dengan patroli Qism Keamanan."],
-    lastStory: CHAPTER_1_PRESET.story,
-    lastOptions: CHAPTER_1_PRESET.options,
+    history: ["Misi diinisiasi di ruang briefing asrama."],
+    lastStory: "Briefing dan Instruksi Misi Kabur dari Pondok",
+    lastOptions: LOBBY_OPTIONS,
     starterName: senderName || "Sahabat Santri",
     startedAt: now,
     lastUpdatedAt: now,
@@ -213,26 +246,31 @@ export async function startKaburGame(
 
   activeSessions.set(groupId, newState);
 
-  const optionsText = newState.lastOptions
-    .map((opt) => `*${opt.key}.* 🏷️ *[${opt.label}]*\n   ${opt.description}`)
-    .join("\n\n");
-
   const message =
-    `${newState.lastStory}\n\n` +
-    `${formatStatusBar(newState)}\n\n` +
+    `🎮 *[MINI-GAME ALUMNI: OPERASI KABUR DARI PONDOK]* 🏃‍♂️💨\n\n` +
+    `📢 _Diinisiasi oleh sahabat: *${senderName}*_\n\n` +
+    `*APAAN NIH MIN? KOK TIBA-TIBA MUNCUL?*\n` +
+    `Tenang sahabat! Ini game teks petualangan santai buat seru-seruan bareng di grup. Seluruh anggota grup ini resmi menjadi *Satu Tim Santri* yang punya misi menyelinap keluar asrama malam-malam demi semangkuk *Indomie Dok-dok & Rental PS* di luar komplek pondok! 🍜🎮\n\n` +
+    `📜 *CARA BERMAIN (GAMPANG BANGET):*\n` +
+    `1. Bot bakal ngirim adegan cerita seru dan situasi darurat santri.\n` +
+    `2. Kalian tinggal *klik/tap tombol Polling WhatsApp* di bawah untuk menentukan tindakan tim (atau balas dengan huruf A, B, C).\n` +
+    `3. Awas! Jangan sampai ketangkap:\n` +
+    `   • 🕵️ *Jasus Santri:* Cepu junior yang suka ngintip jemuran.\n` +
+    `   • 🔦 *Qism Keamanan:* Pengurus ronda pembawa senter SWAT & rotan.\n` +
+    `   • 🛵 *Biro Ri'ayah (Final Boss):* Ustadz pengasuhan bermotor senyap (Hukuman: Digundul licin 0 cm & kuras bak masjid! 😱)\n\n` +
+    `🎒 *Bawaan Awal Tim:* Gayung Merah Sakti, Sarung Samarinda, Sandal Swallow Ukir Silet, Uang Kas Rp 25.000.\n\n` +
     `═══════════════════════════\n` +
-    `⚡ *PILIH TINDAKAN TIM KALIAN:* ⚡\n\n` +
-    `${optionsText}\n\n` +
-    `🗳️ *Pilih jawaban antum lewat Polling di bawah ini, atau langsung balas dengan A, B, C, atau D!*\n` +
-    `_Diprakarsai oleh sahabat *${senderName}*._ Bismillah, jangan sampai botak licin! 🏃‍♂️💨`;
+    `⚡ *Kalian sudah siap memulai petualangan ini?*\n` +
+    `_Klik Polling di bawah atau balas dengan huruf *A* untuk langsung masuk ke Chapter 1!_`;
 
   const poll: KaburPollPayload = {
-    name: `⚡ LANGKAH TIM SANTRI (CH. ${newState.chapter}):`,
-    values: newState.lastOptions.map(
-      (opt) =>
-        `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`
-    ),
-    options: newState.lastOptions,
+    name: "⚡ KONFIRMASI TIM SANTRI (KABUR DARI PONDOK):",
+    values: [
+      "🚀 [BISMILLAH] Gas Mulai Misi! (Masuk Ch. 1)",
+      "📖 [TIPS SURVIVAL] Cara Selamat dari Ri'ayah",
+      "🏳️ [BATAL] Tidur Aja Takut Digundul Licin",
+    ],
+    options: LOBBY_OPTIONS,
   };
 
   return { success: true, message, poll };
@@ -247,7 +285,7 @@ export async function handleKaburAnswer(
   senderName: string
 ): Promise<{ handled: boolean; replyText?: string; poll?: KaburPollPayload }> {
   const session = activeSessions.get(groupId);
-  if (!session || session.status !== "active") return { handled: false };
+  if (!session || (session.status !== "active" && session.status !== "lobby")) return { handled: false };
 
   // Cek timeout sesi
   if (Date.now() - session.lastUpdatedAt > SESSION_TIMEOUT_MS) {
@@ -273,6 +311,85 @@ export async function handleKaburAnswer(
 
   const chosenOption = session.lastOptions.find((o) => o.key === selectedKey);
   if (!chosenOption) {
+    return { handled: false };
+  }
+
+  // =========================================================================
+  // PENANGANAN RESPON DI RUANG LOBBY / BRIEFING
+  // =========================================================================
+  if (session.status === "lobby") {
+    // 1. Opsi A: Gas Mulai Misi (Masuk ke Chapter 1)
+    if (selectedKey === "A") {
+      session.status = "active";
+      session.chapter = 1;
+      session.stealth = 100;
+      session.stamina = 100;
+      session.lastStory = CHAPTER_1_PRESET.story;
+      session.lastOptions = CHAPTER_1_PRESET.options;
+      session.history = ["Misi resmi dimulai dari kamar rayon malam hari, berhadapan dengan patroli Qism Keamanan."];
+      session.lastUpdatedAt = Date.now();
+      session.lastActorName = senderName;
+
+      const optionsText = CHAPTER_1_PRESET.options
+        .map((opt) => `*${opt.key}.* 🏷️ *[${opt.label}]*\n   ${opt.description}`)
+        .join("\n\n");
+
+      const replyText =
+        `📢 *TAKBIR! Sahabat ${senderName} memimpin tim santri memulai operasi kabur!*\n\n` +
+        `${CHAPTER_1_PRESET.story}\n\n` +
+        `${formatStatusBar(session)}\n\n` +
+        `═══════════════════════════\n` +
+        `⚡ *TENTUKAN LANGKAH PERTAMA (CHAPTER 1):* ⚡\n\n` +
+        `${optionsText}\n\n` +
+        `🗳️ *Pilih langkah tim lewat Polling di bawah atau balas dengan A, B, C, atau D!*`;
+
+      const poll: KaburPollPayload = {
+        name: `⚡ LANGKAH TIM SANTRI (CH. 1):`,
+        values: CHAPTER_1_PRESET.options.map(
+          (opt) => `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`
+        ),
+        options: CHAPTER_1_PRESET.options,
+      };
+
+      return { handled: true, replyText, poll };
+    }
+
+    // 2. Opsi B: Panduan Survival & Bekal Santri
+    if (selectedKey === "B") {
+      session.lastUpdatedAt = Date.now();
+      const tipsText =
+        `📖 *[BUKU PANDUAN SURVIVAL KABUR DARI PONDOK]* 🎒\n\n` +
+        `1. 🤫 *Stealth (Ketenangan):* Jaga jangan sampai 0%! Kalau 0%, kalian langsung ketangkap dan digundul licin.\n` +
+        `2. ⚡ *Stamina:* Berkurang tiap panjat tembok / lari sprint. Bisa dihemat lewat taktik cerdik.\n` +
+        `3. 🔴 *Gayung Merah Sakti:* Senjata alibi legendaris! Kalau ketemu mudabbir, pura-pura mules mau ke kamar mandi.\n` +
+        `4. 🧣 *Sarung Samarinda:* Bisa dipakai nyaru jadi jemuran sarung basah atau tali panjat kawat duri.\n` +
+        `5. 🩴 *Sandal Swallow Ukir:* Awas dighosob santri lain! Kalau hilang, lari nyeker bikin stamina jebol.\n` +
+        `6. 🛵 *Radar Ri'ayah:* Ustadz pengasuhan suka ronda malam naik Astrea Grand mesin senyap tanpa lampu!\n\n` +
+        `_Sudah paham taktiknya? Klik Polling di bawah untuk langsung Gas Mulai!_ 🏃‍♂️💨`;
+
+      const poll: KaburPollPayload = {
+        name: "⚡ KONFIRMASI TIM SANTRI (KABUR DARI PONDOK):",
+        values: [
+          "🚀 [BISMILLAH] Gas Mulai Misi! (Masuk Ch. 1)",
+          "🏳️ [BATAL] Tidur Aja Takut Digundul Licin",
+        ],
+        options: [LOBBY_OPTIONS[0], LOBBY_OPTIONS[2]],
+      };
+
+      return { handled: true, replyText: tipsText, poll };
+    }
+
+    // 3. Opsi C: Batalkan
+    if (selectedKey === "C") {
+      activeSessions.delete(groupId);
+      groupFinishCooldown.set(groupId, Date.now());
+      groupWarningCooldown.delete(groupId);
+      return {
+        handled: true,
+        replyText: `🏳️ *Misi Dibatalkan oleh Sahabat ${senderName}!*\nKalian memilih tidur pulas di kasur rayon masing-masing demi keselamatan rambut. Besok bangun shubuh tepat waktu ya! 😇`,
+      };
+    }
+
     return { handled: false };
   }
 
@@ -384,11 +501,20 @@ export async function handleKaburAnswer(
  */
 export function getKaburGameStatus(groupId: string): string {
   const session = activeSessions.get(groupId);
-  if (!session || session.status !== "active") {
+  if (!session || (session.status !== "active" && session.status !== "lobby")) {
     return (
       `🛌 *Tidak ada operasi kabur yang sedang berjalan!*\n\n` +
       `Asrama sedang aman dan damai. Ingin memulai misi kabur menembus penjagaan Qism Keamanan & Ri'ayah?\n\n` +
       `👉 Ketik *!kabur* untuk memulai petualangan seru ini!`
+    );
+  }
+
+  if (session.status === "lobby") {
+    return (
+      `🎮 *MISI KABUR DARI PONDOK (STATUS: LOBBY & BRIEFING)* 🏃‍♂️💨\n\n` +
+      `📢 _Diinisiasi oleh sahabat: *${session.starterName}*_\n\n` +
+      `Seluruh tim sedang berada di ruang briefing asrama sebelum turun ke lorong.\n` +
+      `👉 Silakan klik tombol *🚀 [BISMILLAH] Gas Mulai Misi!* di Polling atau balas dengan huruf *A* untuk mulai Chapter 1!`
     );
   }
 
