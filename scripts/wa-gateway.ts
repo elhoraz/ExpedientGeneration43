@@ -21,6 +21,7 @@ import makeWASocket, {
   proto,
   extractMessageContent,
   normalizeMessageContent,
+  decryptPollVote,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
 // @ts-ignore
@@ -97,6 +98,15 @@ import {
   checkQuizAnswer,
   getQuizLeaderboard,
 } from "../src/lib/whatsapp/santriQuizEngine";
+import {
+  startKaburGame,
+  handleKaburAnswer,
+  getKaburGameStatus,
+  stopKaburGame,
+  registerKaburPoll,
+  findOptionKeyByHash,
+  getActiveKaburPoll,
+} from "../src/lib/whatsapp/kaburPondokEngine";
 import {
   checkAndTriggerFridayBlessing,
   getRandomMahfudzotMessage,
@@ -469,6 +479,28 @@ async function startBaileysGateway() {
         addLog(`❌ [SEND-FAILED] Gagal kirim pesan ke ${cleanJid}: ${err2.message}`, "error");
         return null;
       }
+    }
+  };
+
+  // Helper Pengiriman Native WhatsApp Polling
+  const sendPoll = async (targetJid: string, name: string, values: string[], selectableCount: number = 1) => {
+    const cleanJid = targetJid.replace(/:\d+@/, "@");
+    try {
+      const res = await sock.sendMessage(cleanJid, {
+        poll: {
+          name: name.slice(0, 255),
+          values: values.map((v) => v.slice(0, 100)),
+          selectableCount: Math.max(1, selectableCount),
+        },
+      });
+      if (res?.key?.id) {
+        sentMessageIds.add(res.key.id);
+      }
+      addLog(`🗳️ [POLL-SUCCESS] Polling terkirim ke ${cleanJid}: "${name.slice(0, 40)}..."`, "success");
+      return res;
+    } catch (err: any) {
+      addLog(`⚠️ [SEND-POLL-ERR] Gagal kirim polling ke ${cleanJid}: ${err.message}`, "warn");
+      return null;
     }
   };
 
@@ -1246,6 +1278,50 @@ async function startBaileysGateway() {
           messageText = incomingContacts.map((c) => `[Kontak: ${c.displayName} - ${c.phone}]`).join("\n");
         }
 
+        // =====================================================================
+        // DETEKSI KLIK NATIVE WHATSAPP POLLING "KABUR DARI PONDOK"
+        // =====================================================================
+        if (msgContent.pollUpdateMessage) {
+          const pollKey = msgContent.pollUpdateMessage.pollCreationMessageKey;
+          const pollMsgId = pollKey?.id;
+          if (pollMsgId) {
+            const tracker = getActiveKaburPoll(pollMsgId);
+            if (tracker && tracker.pollEncKey) {
+              try {
+                const voterJid = m.key.participant || remoteJid;
+                const decryptedVote = decryptPollVote(msgContent.pollUpdateMessage.vote as any, {
+                  pollCreatorJid: tracker.pollCreatorJid.includes("@") ? tracker.pollCreatorJid : `${tracker.pollCreatorJid}@s.whatsapp.net`,
+                  pollMsgId: tracker.pollMsgId,
+                  pollEncKey: tracker.pollEncKey,
+                  voterJid,
+                });
+                const selected = decryptedVote?.selectedOptions?.[0];
+                if (selected) {
+                  const hashHex = Buffer.from(selected).toString("hex");
+                  const optionKey = findOptionKeyByHash(pollMsgId, hashHex);
+                  if (optionKey) {
+                    addLog(`🗳️ [KABUR-POLL-VOTE] ${senderName} memilih [${optionKey}] via Native WhatsApp Poll!`, "success");
+                    const kaburRes = await handleKaburAnswer(remoteJid, optionKey, senderName);
+                    if (kaburRes.handled && kaburRes.replyText) {
+                      await sendReply(remoteJid, kaburRes.replyText, m);
+                      if (kaburRes.poll) {
+                        const nextPollMsg = await sendPoll(remoteJid, kaburRes.poll.name, kaburRes.poll.values, 1);
+                        if (nextPollMsg?.key?.id) {
+                          const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
+                          registerKaburPoll(nextPollMsg.key.id, remoteJid, botPhone, nextEncKey, kaburRes.poll.options);
+                        }
+                      }
+                    }
+                    continue;
+                  }
+                }
+              } catch (pollErr: any) {
+                addLog(`⚠️ [POLL-DECRYPT-ERR] ${pollErr.message}`, "warn");
+              }
+            }
+          }
+        }
+
         const lower = messageText.trim().toLowerCase();
 
         // Deteksi apakah pesan yang dikirim dari HP bot adalah perintah pengujian dari pemilik bot
@@ -1627,6 +1703,80 @@ async function startBaileysGateway() {
             await sendReply(remoteJid, quizAns.replyText, m);
             continue;
           }
+
+          // Cek Respon Game RPG "Kabur dari Pondok" Aktif
+          const kaburRes = await handleKaburAnswer(remoteJid, cleanTextWithoutMention, senderName);
+          if (kaburRes.handled && kaburRes.replyText) {
+            await sendReply(remoteJid, kaburRes.replyText, m);
+            if (kaburRes.poll) {
+              const nextPollMsg = await sendPoll(remoteJid, kaburRes.poll.name, kaburRes.poll.values, 1);
+              if (nextPollMsg?.key?.id) {
+                const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
+                registerKaburPoll(nextPollMsg.key.id, remoteJid, botPhone, nextEncKey, kaburRes.poll.options);
+              }
+            }
+            continue;
+          }
+        }
+
+        // =====================================================================
+        // FITUR RPG "KABUR DARI PONDOK" (QISM KEAMANAN & BIRO RIAYAH)
+        // =====================================================================
+        const isKaburStart =
+          cleanLower === "!kabur" ||
+          cleanLower === "/kabur" ||
+          cleanLower === ".kabur" ||
+          cleanLower === "kabur dari pondok" ||
+          cleanLower === "main kabur" ||
+          cleanLower === "misi kabur" ||
+          cleanLower === "game kabur";
+
+        if (isKaburStart && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          addLog(`🏃‍♂️ [KABUR-PONDOK] Memulai operasi kabur dari pondok untuk ${senderName}...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const game = await startKaburGame(remoteJid, senderName, senderPhone);
+          if (game.silent) {
+            // Drop spam silently agar bot tidak nyampah di grup
+            continue;
+          }
+          if (game.message) {
+            await sendReply(remoteJid, game.message, m);
+          }
+          if (game.poll) {
+            const pollMsg = await sendPoll(remoteJid, game.poll.name, game.poll.values, 1);
+            if (pollMsg?.key?.id) {
+              const encKey = pollMsg.message?.messageContextInfo?.messageSecret;
+              registerKaburPoll(pollMsg.key.id, remoteJid, botPhone, encKey, game.poll.options);
+            }
+          }
+          continue;
+        }
+
+        const isKaburStatus =
+          cleanLower === "!kabur status" ||
+          cleanLower === "/kabur status" ||
+          cleanLower === ".kabur status" ||
+          cleanLower === "status kabur";
+
+        if (isKaburStatus && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const statusText = getKaburGameStatus(remoteJid);
+          await sendReply(remoteJid, statusText, m);
+          continue;
+        }
+
+        const isKaburStop =
+          cleanLower === "!kabur stop" ||
+          cleanLower === "/kabur stop" ||
+          cleanLower === ".kabur stop" ||
+          cleanLower === "batal kabur" ||
+          cleanLower === "menyerah kabur";
+
+        if (isKaburStop && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const stopText = stopKaburGame(remoteJid);
+          await sendReply(remoteJid, stopText, m);
+          continue;
         }
 
         // =====================================================================
