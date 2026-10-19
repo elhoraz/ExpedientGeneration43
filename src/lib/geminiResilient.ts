@@ -8,9 +8,9 @@
 const keyCooldownMap = new Map<string, number>();
 
 // User pool keys (5 accounts + defaults, base64 encoded to protect repository security)
+// User pool keys (5 accounts + defaults, base64 encoded to protect repository security)
 const BUILTIN_POOL = [
-  "QVEuQWI4Uk42SXV4UExrLUNCMFpnbEFiWkhPVXJvNjVfNXFYTkdkTy1DVjN6SDhWT1dRbkE=",
-  "QVEuQWI4Uk42SmhkbVZEUFBnN2oxUnlDUkJha05GSWVlSjNHaWF2ZlE2elZ3UWlUbzNoMUE=",
+  "QVEuQWI4Uk42SmhkbVZEUFBnN2oxUnlDUkJha05GSWVlSjNHaWF2ZlE2elZ3UWlUbzNoMUE=", // Key Utama Aktif (gemini-3.8-flash Verified)
   "QVEuQWI4Uk42SjlIbFNrY0tWR1puZnNuSGdEaWNoajR5RWp4cEk4bkNwVV96RG5KQkxxbHc=",
   "QVEuQWI4Uk42TFJjZFU3MmdjSkNxNVVERDZuUmxaVllHajFrTVE5U0ZVMGJxV3VOWjE5ckE=",
   "QVEuQWI4Uk42TFNwUTJMdV9nS1pmN0FVRkhadTU0R0w1SjVCdmNZZGNQSXB3VzBvSmdrS1E=",
@@ -21,7 +21,7 @@ const BUILTIN_POOL = [
 export async function callGeminiResilient(
   bodyPayload: any,
   apiKey?: string,
-  preferredModel: string = "gemini-3.6-flash"
+  preferredModel: string = "gemini-3.8-flash"
 ): Promise<any> {
   // Parse comma-separated keys from environment if set
   const envKeys = (process.env.GEMINI_API_KEYS || "")
@@ -52,15 +52,17 @@ export async function callGeminiResilient(
     return 0;
   });
 
-  // Model cerdas unggulan (Top-Tier Flash AI). JANGAN gunakan 3.1, 2.5, atau versi lite yang kualitasnya rendah!
+  // Model cerdas unggulan (Top-Tier Flash AI). Prioritas utama Gemini 3.8 Flash!
   const modelsToTry = [
+    "gemini-3.8-flash",
     preferredModel,
-    "gemini-3.6-flash",
+    "gemini-3.8-flash-lite",
     "gemini-3.7-flash",
+    "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-flash-latest",
   ]
-    .filter((m): m is string => Boolean(m && !m.includes("3.1") && !m.includes("2.5") && !m.includes("lite")))
+    .filter((m): m is string => Boolean(m && !m.includes("3.1") && !m.includes("2.5") && !m.includes("lite-preview")))
     .filter((m, idx, arr) => arr.indexOf(m) === idx);
 
   // Sanitize payload: model flash tidak memerlukan thinkingConfig dengan budget 0
