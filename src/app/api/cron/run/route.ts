@@ -187,36 +187,11 @@ export async function GET(request: Request) {
 
           const ageStr = isAgeValid ? ` yang ke-${rawAge}` : "";
           const bdayLink = `https://expedientgeneration.vercel.app/birthday/${user.id}`;
-          const text = `🎉 *BARAKALLAHU FII UMRIK* 🎉
-
-Selamat Ulang Tahun${ageStr}, Sahabat *${name}*! 🎂✨
-
-Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, keselamatan, dan kesuksesan dunia-akhirat. Teruslah menjadi inspirasi dan kebanggaan keluarga besar *Expedient Generation — 43rd Arrisalah*.
-
-Buka kartu ucapan spesial angkatan untukmu:
-🔗 ${bdayLink}
-
-Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
-
-          // Langsung kirim via Gateway WhatsApp (sertakan foto profil jika ada)
-          const sendRes = await sendWhatsAppMessageWithDetail(user.no_whatsapp, text, {
-            imageUrl: user.foto_profil || undefined,
-          });
-
-          await supabase.from('whatsapp_queue').insert([{
-            no_whatsapp: user.no_whatsapp,
-            message: text,
-            status: sendRes.success ? 'sent' : 'failed',
-            error_message: sendRes.success ? null : (sendRes.reason || 'Gagal terkirim via provider WhatsApp')
-          }]);
-
-          if (sendRes.success) {
-            bdaySent++;
-            output += `  [Sukses] Terkirim langsung ke ${name} (${user.no_whatsapp})\n`;
-          } else {
-            bdayFailed++;
-            output += `  [Gagal] Gagal mengirim ke ${name} (${user.no_whatsapp}): ${sendRes.reason}\n`;
-          }
+          
+          // ANTI-BAN META: JANGAN PERNAH mengirim pesan japri otomatis ke nomor alumni pribadi.
+          // Mengirim japri pembuka berisi link dari IP cloud memicu flag spam instan dari Meta.
+          // Ucapan difokuskan secara meriah ke Grup Komunitas Angkatan & notifikasi in-app website.
+          output += `  [Anti-Ban Guard] Japri WA ke ${name} (${user.no_whatsapp}) dilewati demi keamanan Meta (ucapan fokus via grup & web).\n`;
 
           // Insert in-app & push notification
           try {
@@ -231,7 +206,7 @@ Salam hangat & doa terbaik dari seluruh sahabat Expedient! 🌟`;
             console.warn("Failed to insert birthday in-app notif:", notifErr);
           }
         }
-        output += `  Total Terkirim Japri: ${bdaySent} | Gagal: ${bdayFailed}\n`;
+        output += `  Total Notifikasi Web: ${birthdayUsers.length} | Japri WA Otomatis: Dinonaktifkan (Zero-Ban Mode)\n`;
 
         // Pengiriman ucapan ke Grup WhatsApp Komunitas Angkatan (Broadcast Grup)
         try {

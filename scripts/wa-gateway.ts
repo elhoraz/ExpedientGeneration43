@@ -1076,6 +1076,22 @@ async function startBaileysGateway() {
         return;
       }
 
+      // ANTI-BAN CIRCUIT BREAKER PADA QR CODE TIMEOUT (STATUS 408):
+      // Jika belum login dan QR timeout sudah berulang >= 3x tanpa ada yang scan di web,
+      // Hentikan looping reconnect otomatis agar IP server tidak diblokir/blacklist oleh Meta!
+      if (statusCode === 408 && !activeUser) {
+        if (reconnectAttempts >= 3) {
+          isReconnecting = false;
+          gatewayStatus = "qr_expired";
+          currentQrDataUrl = "";
+          addLog(
+            `⏸️ [ANTI-BAN PAUSE] Barcode WhatsApp kedaluwarsa setelah 3 percobaan tanpa scan. Masuk mode IDLE untuk melindungi IP dari blokir Meta. Buka dashboard web dan klik 'Perbarui Barcode' untuk meminta QR baru.`,
+            "warn"
+          );
+          return;
+        }
+      }
+
       if (isReconnecting) return;
       isReconnecting = true;
       reconnectAttempts++;
@@ -2459,6 +2475,8 @@ const healthServer = http.createServer(async (req, res) => {
   if (url === "/api/reset" && req.method === "POST") {
     addLog("🔄 Permintaan reset sesi WhatsApp manual diterima...", "warn");
     try {
+      reconnectAttempts = 0;
+      isReconnecting = false;
       if (currentSock) {
         try {
           currentSock.ev.removeAllListeners("connection.update");
@@ -2491,6 +2509,18 @@ const healthServer = http.createServer(async (req, res) => {
       res.writeHead(500, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ success: false, error: err.message }));
     }
+    return;
+  }
+
+  // 4b. API Segarkan Barcode Setelah Timeout (Anti-Ban Circuit Breaker Wakeup)
+  if ((url === "/api/refresh-qr" || url === "/api/refresh") && (req.method === "POST" || req.method === "GET")) {
+    addLog("🔄 Permintaan penyegaran Barcode WhatsApp diterima...", "info");
+    reconnectAttempts = 0;
+    isReconnecting = false;
+    gatewayStatus = "connecting";
+    setTimeout(() => startBaileysGateway(), 500);
+    res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+    res.end(JSON.stringify({ success: true, message: "Memuat barcode WhatsApp baru..." }));
     return;
   }
 
@@ -2804,6 +2834,14 @@ const healthServer = http.createServer(async (req, res) => {
           connectingView.style.display = "none";
 
           document.getElementById("qrImage").src = data.currentQrDataUrl;
+        } else if (data.gatewayStatus === "qr_expired") {
+          badge.classList.add("status-disconnected");
+          statusText.textContent = "BARCODE TIMEOUT (IDLE ANTI-BAN)";
+          connectedView.style.display = "none";
+          qrView.style.display = "none";
+          connectingView.style.display = "block";
+          document.getElementById("connectingTitle").textContent = "Barcode Kedaluwarsa (Proteksi Anti-Ban)";
+          document.getElementById("connectingDesc").innerHTML = "Permintaan barcode dihentikan otomatis agar IP server tidak diblokir Meta.<br><br><button onclick='refreshQr()' class='btn btn-primary' style='padding: 10px 22px; font-weight: 600; cursor: pointer;'>🔄 Tampilkan Barcode Baru</button>";
         } else if (data.gatewayStatus === "disconnected") {
           badge.classList.add("status-disconnected");
           statusText.textContent = "TERPUTUS / EXPIRED (401)";
@@ -2841,6 +2879,15 @@ const healthServer = http.createServer(async (req, res) => {
 
     function escapeHtml(str) {
       return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    async function refreshQr() {
+      try {
+        await fetch("/api/refresh-qr");
+        fetchStatus();
+      } catch (e) {
+        console.error("Gagal refresh QR:", e);
+      }
     }
 
     async function resetSession() {
@@ -2906,6 +2953,12 @@ setInterval(async () => {
     const hourWib = wibDate.getUTCHours();
     const minWib = wibDate.getUTCMinutes();
     const dateStr = wibDate.toISOString().slice(0, 10);
+
+    // ANTI-BAN WARMUP SWITCH: Jika env WA_DISABLE_OUTBOUND_CRON disetel 'true',
+    // jeda broadcast keluar agar bot hanya beroperasi secara pasif merespons chat grup/pribadi.
+    if (process.env.WA_DISABLE_OUTBOUND_CRON === "true") {
+      return;
+    }
 
     // 1. UCAPAN MILAD / ULANG TAHUN: Setiap hari jam 07:00 - 07:30 WIB
     if (hourWib === 7 && minWib <= 30 && lastBdayCheckDay !== dateStr) {

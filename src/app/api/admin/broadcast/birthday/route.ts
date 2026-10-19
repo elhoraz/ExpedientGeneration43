@@ -216,25 +216,30 @@ export async function POST() {
         skipped++;
         details.push({ name, phone: celebrant.no_whatsapp, status: "skipped", reason: "Sudah dikirim japri hari ini" });
       } else {
-        // 1. Kirim Japri Personal (1-on-1) dengan lampiran foto profil & link kartu ucapan
-        const personalMessage = formatPersonalBirthdayGreetingMessage(alumniObj);
-        const sendRes = await sendWhatsAppMessageWithDetail(celebrant.no_whatsapp, personalMessage, {
-          imageUrl: celebrant.foto_profil || undefined,
-        });
+        const allowPersonalDm = process.env.WA_ENABLE_PERSONAL_BIRTHDAY_DM === "true";
+        if (allowPersonalDm) {
+          // 1. Kirim Japri Personal (1-on-1) jika diizinkan
+          const personalMessage = formatPersonalBirthdayGreetingMessage(alumniObj);
+          const sendRes = await sendWhatsAppMessageWithDetail(celebrant.no_whatsapp, personalMessage, {
+            imageUrl: celebrant.foto_profil || undefined,
+          });
 
-        await adminSupabase.from("whatsapp_queue").insert([{
-          no_whatsapp: celebrant.no_whatsapp,
-          message: personalMessage,
-          status: sendRes.success ? "sent" : "failed",
-          error_message: sendRes.success ? null : (sendRes.reason || "Gagal terkirim via provider WhatsApp"),
-        }]);
+          await adminSupabase.from("whatsapp_queue").insert([{
+            no_whatsapp: celebrant.no_whatsapp,
+            message: personalMessage,
+            status: sendRes.success ? "sent" : "failed",
+            error_message: sendRes.success ? null : (sendRes.reason || "Gagal terkirim via provider WhatsApp"),
+          }]);
 
-        if (sendRes.success) {
-          sentPersonal++;
-          details.push({ name, phone: celebrant.no_whatsapp, type: "personal", status: "sent" });
+          if (sendRes.success) {
+            sentPersonal++;
+            details.push({ name, phone: celebrant.no_whatsapp, type: "personal", status: "sent" });
+          } else {
+            failed++;
+            details.push({ name, phone: celebrant.no_whatsapp, type: "personal", status: "failed", reason: sendRes.reason });
+          }
         } else {
-          failed++;
-          details.push({ name, phone: celebrant.no_whatsapp, type: "personal", status: "failed", reason: sendRes.reason });
+          details.push({ name, phone: celebrant.no_whatsapp, type: "personal", status: "skipped", reason: "Japri dilewati demi perlindungan Anti-Ban Meta (ucapan via grup)" });
         }
       }
 
