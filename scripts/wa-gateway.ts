@@ -1722,36 +1722,6 @@ async function startBaileysGateway() {
         // =====================================================================
         // FITUR RPG "KABUR DARI PONDOK" (QISM KEAMANAN & BIRO RIAYAH)
         // =====================================================================
-        const isKaburStart =
-          cleanLower === "!kabur" ||
-          cleanLower === "/kabur" ||
-          cleanLower === ".kabur" ||
-          cleanLower === "kabur dari pondok" ||
-          cleanLower === "main kabur" ||
-          cleanLower === "misi kabur" ||
-          cleanLower === "game kabur";
-
-        if (isKaburStart && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
-          addLog(`🏃‍♂️ [KABUR-PONDOK] Memulai operasi kabur dari pondok untuk ${senderName}...`);
-          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
-          const game = await startKaburGame(remoteJid, senderName, senderPhone);
-          if (game.silent) {
-            // Drop spam silently agar bot tidak nyampah di grup
-            continue;
-          }
-          if (game.message) {
-            await sendReply(remoteJid, game.message, m);
-          }
-          if (game.poll) {
-            const pollMsg = await sendPoll(remoteJid, game.poll.name, game.poll.values, 1);
-            if (pollMsg?.key?.id) {
-              const encKey = pollMsg.message?.messageContextInfo?.messageSecret;
-              registerKaburPoll(pollMsg.key.id, remoteJid, botPhone, encKey, game.poll.options);
-            }
-          }
-          continue;
-        }
-
         const isKaburStatus =
           cleanLower === "!kabur status" ||
           cleanLower === "/kabur status" ||
@@ -1776,6 +1746,40 @@ async function startBaileysGateway() {
           await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
           const stopText = stopKaburGame(remoteJid);
           await sendReply(remoteJid, stopText, m);
+          continue;
+        }
+
+        const isKaburStart =
+          cleanLower === "!kabur" ||
+          cleanLower === "/kabur" ||
+          cleanLower === ".kabur" ||
+          cleanLower === "kabur" ||
+          cleanLower.startsWith("!kabur") ||
+          cleanLower.startsWith("/kabur") ||
+          cleanLower.startsWith(".kabur") ||
+          cleanLower === "kabur dari pondok" ||
+          cleanLower === "main kabur" ||
+          cleanLower === "misi kabur" ||
+          cleanLower === "game kabur";
+
+        if (isKaburStart && (isGroup ? isDirectlyAddressed || shouldGroupBotRespond(messageText) : true)) {
+          addLog(`🏃‍♂️ [KABUR-PONDOK] Memulai operasi kabur dari pondok untuk ${senderName}...`);
+          await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+          const game = await startKaburGame(remoteJid, senderName, senderPhone);
+          if (game.silent) {
+            // Drop spam silently agar bot tidak nyampah di grup
+            continue;
+          }
+          if (game.message) {
+            await sendReply(remoteJid, game.message, m);
+          }
+          if (game.poll) {
+            const pollMsg = await sendPoll(remoteJid, game.poll.name, game.poll.values, 1);
+            if (pollMsg?.key?.id) {
+              const encKey = pollMsg.message?.messageContextInfo?.messageSecret;
+              registerKaburPoll(pollMsg.key.id, remoteJid, botPhone, encKey, game.poll.options);
+            }
+          }
           continue;
         }
 
