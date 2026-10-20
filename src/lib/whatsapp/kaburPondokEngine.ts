@@ -30,13 +30,15 @@ export interface KaburGameState {
   caughtBy?: "JASUS" | "QISM_KEAMANAN" | "RIAYAH" | null;
   startedAt: number;
   lastUpdatedAt: number;
+  isProcessing?: boolean; // Mutex lock untuk mencegah klik beruntun / race condition saat AI generate
+  turnTimer?: NodeJS.Timeout; // Timer 1 menit otomatis untuk auto-expire
 }
 
 // In-Memory store per group
 const activeSessions = new Map<string, KaburGameState>();
 
-// Durasi timeout sesi (15 menit tanpa interaksi = auto close)
-const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
+// Durasi timeout sesi (1 menit tanpa ada yang memilih = auto close & kedaluwarsa)
+export const SESSION_TIMEOUT_MS = 60 * 1000;
 
 // Anti-Spam & Cooldown Maps
 const groupWarningCooldown = new Map<string, number>(); // groupId -> timestamp last warning sent
@@ -58,6 +60,51 @@ export function resetKaburCooldowns(groupId?: string): void {
     groupFinishCooldown.clear();
     userSpamThrottle.clear();
   }
+export type KaburExpireCallback = (groupId: string, message: string) => Promise<void> | void;
+let kaburExpireHandler: KaburExpireCallback | null = null;
+
+export function setKaburExpireHandler(handler: KaburExpireCallback): void {
+  kaburExpireHandler = handler;
+}
+
+export function armKaburTurnTimer(groupId: string): void {
+  const session = activeSessions.get(groupId);
+  if (!session) return;
+  if (session.turnTimer) {
+    clearTimeout(session.turnTimer);
+    session.turnTimer = undefined;
+  }
+
+  session.turnTimer = setTimeout(async () => {
+    const s = activeSessions.get(groupId);
+    if (s && (s.status === "active" || s.status === "lobby")) {
+      activeSessions.delete(groupId);
+      groupFinishCooldown.set(groupId, Date.now());
+      if (kaburExpireHandler) {
+        try {
+          await kaburExpireHandler(
+            groupId,
+            `⌛ *WAKTU HABIS (1 MENIT KEDALUWARSA)!* 🌙\n\n` +
+            `Karena tim santri kelamaan hening berbisik dan ragu-ragu menentukan langkah selama 60 detik:\n` +
+            `_Kalian ketiduran di lantai lorong sampai adzan Subuh berkumandang! Operasi kabur malam ini resmi gagal._ 😴\n\n` +
+            `Ketik *!kabur* kapan saja untuk mengulang misi baru bareng anak-anak grup!`
+          );
+        } catch (_) {}
+      }
+    }
+  }, 60 * 1000);
+}
+
+export function clearKaburTurnTimer(groupId: string): void {
+  const session = activeSessions.get(groupId);
+  if (session?.turnTimer) {
+    clearTimeout(session.turnTimer);
+    session.turnTimer = undefined;
+  }
+}
+
+export function removeKaburPoll(pollMsgId: string): void {
+  activePollMap.delete(pollMsgId);
 }
 
 const DEFAULT_INVENTORY = [
@@ -245,23 +292,25 @@ export async function startKaburGame(
   };
 
   activeSessions.set(groupId, newState);
+  armKaburTurnTimer(groupId);
 
   const message =
     `🎮 *[MINI-GAME ALUMNI: OPERASI KABUR DARI PONDOK]* 🏃‍♂️💨\n\n` +
     `📢 _Diinisiasi oleh sahabat: *${senderName}*_\n\n` +
     `*APAAN NIH MIN? KOK TIBA-TIBA MUNCUL?*\n` +
-    `Tenang sahabat! Ini game teks petualangan santai buat seru-seruan bareng di grup. Seluruh anggota grup ini resmi menjadi *Satu Tim Santri* yang punya misi menyelinap keluar asrama malam-malam demi semangkuk *Indomie Dok-dok & Rental PS* di luar komplek pondok! 🍜🎮\n\n` +
+    `Tenang sahabat! Ini game petualangan interaktif santai buat seru-seruan bareng di grup alumni. Seluruh anggota grup ini resmi menjadi *Satu Tim Santri* yang punya misi menyelinap keluar asrama malam-malam demi seporsi *Indomie Dok-dok & Rental PS* di luar komplek pondok! 🍜🎮\n\n` +
     `📜 *CARA BERMAIN (GAMPANG BANGET):*\n` +
-    `1. Bot bakal ngirim adegan cerita seru dan situasi darurat santri.\n` +
-    `2. Kalian tinggal *klik/tap tombol Polling WhatsApp* di bawah untuk menentukan tindakan tim (atau balas dengan huruf A, B, C).\n` +
-    `3. Awas! Jangan sampai ketangkap:\n` +
+    `1. Bot bakal ngirim adegan cerita seru dan situasi darurat santri per babak.\n` +
+    `2. *Siapa saja di grup bebas memilih:* Tinggal *klik/tap tombol Polling WhatsApp* di bawah (atau balas huruf A, B, C, D).\n` +
+    `3. ⏳ *BATAS WAKTU 1 MENIT:* Tim punya waktu *60 detik* untuk menentukan langkah! Jika 1 menit hening tanpa ada yang memilih, misi otomatis *KEDALUWARSA & BATAL*!\n` +
+    `4. Awas jangan sampai terciduk:\n` +
     `   • 🕵️ *Jasus Santri:* Cepu junior yang suka ngintip jemuran.\n` +
     `   • 🔦 *Qism Keamanan:* Pengurus ronda pembawa senter SWAT & rotan.\n` +
     `   • 🛵 *Biro Ri'ayah (Final Boss):* Ustadz pengasuhan bermotor senyap (Hukuman: Digundul licin 0 cm & kuras bak masjid! 😱)\n\n` +
     `🎒 *Bawaan Awal Tim:* Gayung Merah Sakti, Sarung Samarinda, Sandal Swallow Ukir Silet, Uang Kas Rp 25.000.\n\n` +
     `═══════════════════════════\n` +
     `⚡ *Kalian sudah siap memulai petualangan ini?*\n` +
-    `_Klik Polling di bawah atau balas dengan huruf *A* untuk langsung masuk ke Chapter 1!_`;
+    `_Klik Polling di bawah atau ketik *A* sekarang! (Waktu: 60 Detik)_`;
 
   const poll: KaburPollPayload = {
     name: "⚡ KONFIRMASI TIM SANTRI (KABUR DARI PONDOK):",
@@ -287,12 +336,19 @@ export async function handleKaburAnswer(
   const session = activeSessions.get(groupId);
   if (!session || (session.status !== "active" && session.status !== "lobby")) return { handled: false };
 
-  // Cek timeout sesi
+  // Cegah race condition / double execution saat AI masih berpikir
+  if (session.isProcessing) {
+    return { handled: false };
+  }
+
+  // Cek timeout sesi (60 detik)
   if (Date.now() - session.lastUpdatedAt > SESSION_TIMEOUT_MS) {
+    clearKaburTurnTimer(groupId);
     activeSessions.delete(groupId);
+    groupFinishCooldown.set(groupId, Date.now());
     return {
       handled: true,
-      replyText: `⌛ *Misi Kabur Kedaluwarsa!*\nKarena terlalu lama hening di kegelapan malam, kalian ketiduran di lantai dan adzan Subuh keburu berkumandang. Ketik *!kabur* untuk coba lagi!`,
+      replyText: `⌛ *WAKTU HABIS (1 MENIT KEDALUWARSA)!* 🌙\nKarena tim santri kelamaan hening berbisik dan tidak ada yang menentukan langkah selama 60 detik, kalian ketiduran di lantai lorong sampai adzan Subuh berkumandang! Operasi kabur malam ini resmi gagal. Ketik *!kabur* untuk coba lagi!`,
     };
   }
 
@@ -314,187 +370,200 @@ export async function handleKaburAnswer(
     return { handled: false };
   }
 
-  // =========================================================================
-  // PENANGANAN RESPON DI RUANG LOBBY / BRIEFING
-  // =========================================================================
-  if (session.status === "lobby") {
-    // 1. Opsi A: Gas Mulai Misi (Masuk ke Chapter 1)
-    if (selectedKey === "A") {
-      session.status = "active";
-      session.chapter = 1;
-      session.stealth = 100;
-      session.stamina = 100;
-      session.lastStory = CHAPTER_1_PRESET.story;
-      session.lastOptions = CHAPTER_1_PRESET.options;
-      session.history = ["Misi resmi dimulai dari kamar rayon malam hari, berhadapan dengan patroli Qism Keamanan."];
-      session.lastUpdatedAt = Date.now();
-      session.lastActorName = senderName;
+  // KUNCI SESI (MUTEX) & MATIKAN TIMER SEBELUMNYA
+  session.isProcessing = true;
+  clearKaburTurnTimer(groupId);
 
-      const optionsText = CHAPTER_1_PRESET.options
-        .map((opt) => `*${opt.key}.* 🏷️ *[${opt.label}]*\n   ${opt.description}`)
-        .join("\n\n");
+  try {
+    // =========================================================================
+    // PENANGANAN RESPON DI RUANG LOBBY / BRIEFING
+    // =========================================================================
+    if (session.status === "lobby") {
+      // 1. Opsi A: Gas Mulai Misi (Masuk ke Chapter 1)
+      if (selectedKey === "A") {
+        session.status = "active";
+        session.chapter = 1;
+        session.stealth = 100;
+        session.stamina = 100;
+        session.lastStory = CHAPTER_1_PRESET.story;
+        session.lastOptions = CHAPTER_1_PRESET.options;
+        session.history = ["Misi resmi dimulai dari kamar rayon malam hari, berhadapan dengan patroli Qism Keamanan."];
+        session.lastUpdatedAt = Date.now();
+        session.lastActorName = senderName;
 
-      const replyText =
-        `📢 *TAKBIR! Sahabat ${senderName} memimpin tim santri memulai operasi kabur!*\n\n` +
-        `${CHAPTER_1_PRESET.story}\n\n` +
-        `${formatStatusBar(session)}\n\n` +
-        `═══════════════════════════\n` +
-        `⚡ *TENTUKAN LANGKAH PERTAMA (CHAPTER 1):* ⚡\n\n` +
-        `${optionsText}\n\n` +
-        `🗳️ *Pilih langkah tim lewat Polling di bawah atau balas dengan A, B, C, atau D!*`;
+        const optionsText = CHAPTER_1_PRESET.options
+          .map((opt) => `*${opt.key}.* 🏷️ *[${opt.label}]*\n   ${opt.description}`)
+          .join("\n\n");
 
-      const poll: KaburPollPayload = {
-        name: `⚡ LANGKAH TIM SANTRI (CH. 1):`,
-        values: CHAPTER_1_PRESET.options.map(
-          (opt) => `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`
-        ),
-        options: CHAPTER_1_PRESET.options,
-      };
+        const replyText =
+          `📢 *TAKBIR! Sahabat ${senderName} memimpin tim santri memulai operasi kabur!*\n\n` +
+          `${CHAPTER_1_PRESET.story}\n\n` +
+          `${formatStatusBar(session)}\n\n` +
+          `═══════════════════════════\n` +
+          `⚡ *TENTUKAN LANGKAH PERTAMA (CHAPTER 1):* ⚡\n\n` +
+          `${optionsText}\n\n` +
+          `⏳ *Batas Waktu: 60 Detik* (Jika hening 1 menit, misi kedaluwarsa!)\n` +
+          `🗳️ *Pilih langkah tim lewat Polling di bawah atau balas dengan A, B, C, atau D!*`;
 
-      return { handled: true, replyText, poll };
+        const poll: KaburPollPayload = {
+          name: `⚡ LANGKAH TIM SANTRI (CH. 1):`,
+          values: CHAPTER_1_PRESET.options.map(
+            (opt) => `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`
+          ),
+          options: CHAPTER_1_PRESET.options,
+        };
+
+        armKaburTurnTimer(groupId);
+        return { handled: true, replyText, poll };
+      }
+
+      // 2. Opsi B: Panduan Survival & Bekal Santri
+      if (selectedKey === "B") {
+        session.lastUpdatedAt = Date.now();
+        session.lastOptions = [LOBBY_OPTIONS[0], LOBBY_OPTIONS[2]];
+        const tipsText =
+          `📖 *[BUKU PANDUAN SURVIVAL KABUR DARI PONDOK]* 🎒\n\n` +
+          `1. 🤫 *Stealth (Ketenangan):* Jaga jangan sampai 0%! Kalau 0%, kalian langsung ketangkap dan digundul licin.\n` +
+          `2. ⚡ *Stamina:* Berkurang tiap panjat tembok / lari sprint. Bisa dihemat lewat taktik cerdik.\n` +
+          `3. 🔴 *Gayung Merah Sakti:* Senjata alibi legendaris! Kalau ketemu mudabbir, pura-pura mules mau ke kamar mandi.\n` +
+          `4. 🧣 *Sarung Samarinda:* Bisa dipakai nyaru jadi jemuran sarung basah atau tali panjat kawat duri.\n` +
+          `5. 🩴 *Sandal Swallow Ukir:* Awas dighosob santri lain! Kalau hilang, lari nyeker bikin stamina jebol.\n` +
+          `6. 🛵 *Radar Ri'ayah:* Ustadz pengasuhan suka ronda malam naik Astrea Grand mesin senyap tanpa lampu!\n\n` +
+          `⏳ *Batas Waktu:* 60 Detik untuk menentukan konfirmasi!\n` +
+          `_Sudah paham taktiknya? Klik Polling di bawah untuk langsung Gas Mulai!_ 🏃‍♂️💨`;
+
+        const poll: KaburPollPayload = {
+          name: "⚡ KONFIRMASI TIM SANTRI (KABUR DARI PONDOK):",
+          values: [
+            "🚀 [BISMILLAH] Gas Mulai Misi! (Masuk Ch. 1)",
+            "🏳️ [BATAL] Tidur Aja Takut Digundul Licin",
+          ],
+          options: [LOBBY_OPTIONS[0], LOBBY_OPTIONS[2]],
+        };
+
+        armKaburTurnTimer(groupId);
+        return { handled: true, replyText: tipsText, poll };
+      }
+
+      // 3. Opsi C: Batalkan
+      if (selectedKey === "C") {
+        clearKaburTurnTimer(groupId);
+        activeSessions.delete(groupId);
+        groupFinishCooldown.set(groupId, Date.now());
+        groupWarningCooldown.delete(groupId);
+        return {
+          handled: true,
+          replyText: `🏳️ *Misi Dibatalkan oleh Sahabat ${senderName}!*\nKalian memilih tidur pulas di kasur rayon masing-masing demi keselamatan rambut. Besok bangun shubuh tepat waktu ya! 😇`,
+        };
+      }
+
+      return { handled: false };
     }
 
-    // 2. Opsi B: Panduan Survival & Bekal Santri
-    if (selectedKey === "B") {
-      session.lastUpdatedAt = Date.now();
-      session.lastOptions = [LOBBY_OPTIONS[0], LOBBY_OPTIONS[2]];
-      const tipsText =
-        `📖 *[BUKU PANDUAN SURVIVAL KABUR DARI PONDOK]* 🎒\n\n` +
-        `1. 🤫 *Stealth (Ketenangan):* Jaga jangan sampai 0%! Kalau 0%, kalian langsung ketangkap dan digundul licin.\n` +
-        `2. ⚡ *Stamina:* Berkurang tiap panjat tembok / lari sprint. Bisa dihemat lewat taktik cerdik.\n` +
-        `3. 🔴 *Gayung Merah Sakti:* Senjata alibi legendaris! Kalau ketemu mudabbir, pura-pura mules mau ke kamar mandi.\n` +
-        `4. 🧣 *Sarung Samarinda:* Bisa dipakai nyaru jadi jemuran sarung basah atau tali panjat kawat duri.\n` +
-        `5. 🩴 *Sandal Swallow Ukir:* Awas dighosob santri lain! Kalau hilang, lari nyeker bikin stamina jebol.\n` +
-        `6. 🛵 *Radar Ri'ayah:* Ustadz pengasuhan suka ronda malam naik Astrea Grand mesin senyap tanpa lampu!\n\n` +
-        `_Sudah paham taktiknya? Klik Polling di bawah untuk langsung Gas Mulai!_ 🏃‍♂️💨`;
+    // Eksekusi jalan cerita berikutnya dengan Gemini
+    const nextScene = await generateNextSceneWithAI(session, chosenOption, senderName);
 
-      const poll: KaburPollPayload = {
-        name: "⚡ KONFIRMASI TIM SANTRI (KABUR DARI PONDOK):",
-        values: [
-          "🚀 [BISMILLAH] Gas Mulai Misi! (Masuk Ch. 1)",
-          "🏳️ [BATAL] Tidur Aja Takut Digundul Licin",
-        ],
-        options: [LOBBY_OPTIONS[0], LOBBY_OPTIONS[2]],
-      };
+    // Update session state
+    session.chapter = nextScene.newChapter;
+    session.stealth = Math.max(0, Math.min(100, session.stealth + nextScene.stealthDelta));
+    session.stamina = Math.max(0, Math.min(100, session.stamina + nextScene.staminaDelta));
+    session.lastActorName = senderName;
+    session.lastUpdatedAt = Date.now();
 
-      return { handled: true, replyText: tipsText, poll };
+    if (nextScene.inventoryLost) {
+      session.inventory = session.inventory.filter((item) => !nextScene.inventoryLost?.includes(item));
+    }
+    if (nextScene.inventoryGained) {
+      session.inventory.push(...nextScene.inventoryGained);
     }
 
-    // 3. Opsi C: Batalkan
-    if (selectedKey === "C") {
+    session.history.push(`[Ch.${session.chapter}] ${senderName} memilih [${chosenOption.key} - ${chosenOption.label}]: ${nextScene.narrationSummary}`);
+
+    // Cek kondisi kalah (tertangkap)
+    if (session.stealth <= 0 || nextScene.outcome === "CAUGHT") {
+      session.status = "caught";
+      session.caughtBy = nextScene.caughtBy || (session.chapter >= 3 ? "RIAYAH" : "QISM_KEAMANAN");
+      clearKaburTurnTimer(groupId);
       activeSessions.delete(groupId);
       groupFinishCooldown.set(groupId, Date.now());
       groupWarningCooldown.delete(groupId);
+
+      const takzirMessage =
+        session.caughtBy === "RIAYAH"
+          ? `🚨 *TERTANGKAP BASAH OLEH BIRO RIAYAH!* 🚨\n\n` +
+            `Dari balik bayangan pohon palem, muncul *Ustadz Ri'ayah* dengan sorotan mata elang dan tasbih kayu di tangan. Beliau menghela napas panjang:\n` +
+            `_"Subhanallah... jam 1 malam masih bergentayangan di luar asrama antum semua? Besok ba'da Subuh kumpul di depan kantor pengasuhan!"_\n\n` +
+            `💥 *TAKZIR AKBAR:* Seluruh tim digundul licin 0 cm tanpa sisa, dijemur di tengah lapangan membawa gayung, dan dapat tugas tambahan menguras bak mandi masjid selama 2 minggu!\n\n` +
+            `💀 *GAME OVER.* Ketik *!kabur* untuk mengulang nasib!`
+          : `🚨 *TERCIDUK QISM KEAMANAN!* 🚨\n\n` +
+            `Senter SWAT langsung menyorot muka kalian! Pengurus keamanan langsung mengepung sambil mengetuk-ngetukkan rotan ke telapak tangan:\n` +
+            `_"Hayoo mau kabur kemana antum?! Nama rayon apa, mudabbirnya siapa?!"_\n\n` +
+            `💥 *TAKZIR:* Berdiri satu kaki di depan kantor keamanan sampai adzan Subuh sambil menghafal 50 bait Alfiyyah Ibnu Malik!\n\n` +
+            `💀 *GAME OVER.* Ketik *!kabur* untuk mencoba lagi!`;
+
       return {
         handled: true,
-        replyText: `🏳️ *Misi Dibatalkan oleh Sahabat ${senderName}!*\nKalian memilih tidur pulas di kasur rayon masing-masing demi keselamatan rambut. Besok bangun shubuh tepat waktu ya! 😇`,
+        replyText:
+          `📢 *Pilihan Sahabat ${senderName}: [${chosenOption.key}. ${chosenOption.label}]*\n\n` +
+          `${nextScene.storyNarration}\n\n` +
+          `═══════════════════════════\n` +
+          `${takzirMessage}`,
       };
     }
 
-    return { handled: false };
-  }
+    // Cek kondisi menang (berhasil lolos ke warkop/rental PS)
+    if (session.chapter >= 4 || nextScene.outcome === "ESCAPED") {
+      session.status = "escaped";
+      clearKaburTurnTimer(groupId);
+      activeSessions.delete(groupId);
+      groupFinishCooldown.set(groupId, Date.now());
+      groupWarningCooldown.delete(groupId);
 
-  // Eksekusi jalan cerita berikutnya dengan Gemini
-  const nextScene = await generateNextSceneWithAI(session, chosenOption, senderName);
+      const victoryMessage =
+        `🎉🏆 *MISI KABUR DARI PONDOK BERHASIL TOTAL!* 🏆🎉\n\n` +
+        `Kalian melompati parit sawah terakhir dan mendadak terdengar alunan musik dari warung kopi dan gemerlap lampu neon rental PS!\n\n` +
+        `Kalian duduk santai di bangku kayu panjang warkop, memesan satu porsi *Indomie Kuah Kari Dobel Telor + Es Teh Manis Jumbo*, sambil nonton pertandingan bola liga Inggris dan mabar PES!\n\n` +
+        `✨ *Pahlawan Penentu:* Sahabat *${senderName}*\n` +
+        `🎒 *Sisa Bawaan:* ${session.inventory.join(", ")}\n` +
+        `🤫 *Sisa Stealth:* ${session.stealth}% | ⚡ *Stamina:* ${session.stamina}%\n\n` +
+        `_Selamat rekan-rekan! Angkatan kalian resmi menorehkan legenda baru di asrama!_ 🎮🍜`;
 
-  // Update session state
-  session.chapter = nextScene.newChapter;
-  session.stealth = Math.max(0, Math.min(100, session.stealth + nextScene.stealthDelta));
-  session.stamina = Math.max(0, Math.min(100, session.stamina + nextScene.staminaDelta));
-  session.lastActorName = senderName;
-  session.lastUpdatedAt = Date.now();
+      return {
+        handled: true,
+        replyText:
+          `📢 *Pilihan Sahabat ${senderName}: [${chosenOption.key}. ${chosenOption.label}]*\n\n` +
+          `${nextScene.storyNarration}\n\n` +
+          `═══════════════════════════\n` +
+          `${victoryMessage}`,
+      };
+    }
 
-  if (nextScene.inventoryLost) {
-    session.inventory = session.inventory.filter((item) => !nextScene.inventoryLost?.includes(item));
-  }
-  if (nextScene.inventoryGained) {
-    session.inventory.push(...nextScene.inventoryGained);
-  }
+    // Lanjut ke adegan berikutnya
+    session.lastStory = nextScene.storyNarration;
+    session.lastOptions = nextScene.options;
 
-  session.history.push(`[Ch.${session.chapter}] ${senderName} memilih [${chosenOption.key} - ${chosenOption.label}]: ${nextScene.narrationSummary}`);
+    const replyText =
+      `📢 *Aksi Diterima dari Sahabat ${senderName}: [${chosenOption.key} - ${chosenOption.label}]*\n\n` +
+      `${nextScene.storyNarration}\n\n` +
+      `${formatStatusBar(session)}\n\n` +
+      `═══════════════════════════\n` +
+      `⏳ *Batas Waktu: 60 Detik* (Jika hening 1 menit, misi otomatis kedaluwarsa!)\n` +
+      `💬 *Balas dengan Polling di bawah atau ketik A, B, C, D untuk lanjut!*`;
 
-  // Cek kondisi kalah (tertangkap)
-  if (session.stealth <= 0 || nextScene.outcome === "CAUGHT") {
-    session.status = "caught";
-    session.caughtBy = nextScene.caughtBy || (session.chapter >= 3 ? "RIAYAH" : "QISM_KEAMANAN");
-    activeSessions.delete(groupId);
-    groupFinishCooldown.set(groupId, Date.now());
-    groupWarningCooldown.delete(groupId);
-
-    const takzirMessage =
-      session.caughtBy === "RIAYAH"
-        ? `🚨 *TERTANGKAP BASAH OLEH BIRO RIAYAH!* 🚨\n\n` +
-          `Dari balik bayangan pohon palem, muncul *Ustadz Ri'ayah* dengan sorotan mata elang dan tasbih kayu di tangan. Beliau menghela napas panjang:\n` +
-          `_"Subhanallah... jam 1 malam masih bergentayangan di luar asrama antum semua? Besok ba'da Subuh kumpul di depan kantor pengasuhan!"_\n\n` +
-          `💥 *TAKZIR AKBAR:* Seluruh tim digundul licin 0 cm tanpa sisa, dijemur di tengah lapangan membawa gayung, dan dapat tugas tambahan menguras bak mandi masjid selama 2 minggu!\n\n` +
-          `💀 *GAME OVER.* Ketik *!kabur* untuk mengulang nasib!`
-        : `🚨 *TERCIDUK QISM KEAMANAN!* 🚨\n\n` +
-          `Senter SWAT langsung menyorot muka kalian! Pengurus keamanan langsung mengepung sambil mengetuk-ngetukkan rotan ke telapak tangan:\n` +
-          `_"Hayoo mau kabur kemana antum?! Nama rayon apa, mudabbirnya siapa?!"_\n\n` +
-          `💥 *TAKZIR:* Berdiri satu kaki di depan kantor keamanan sampai adzan Subuh sambil menghafal 50 bait Alfiyyah Ibnu Malik!\n\n` +
-          `💀 *GAME OVER.* Ketik *!kabur* untuk mencoba lagi!`;
-
-    return {
-      handled: true,
-      replyText:
-        `📢 *Pilihan Sahabat ${senderName}: [${chosenOption.key}. ${chosenOption.label}]*\n\n` +
-        `${nextScene.storyNarration}\n\n` +
-        `═══════════════════════════\n` +
-        `${takzirMessage}`,
+    const poll: KaburPollPayload = {
+      name: `⚡ LANGKAH TIM SANTRI (CH. ${session.chapter}):`,
+      values: nextScene.options.map(
+        (opt) =>
+          `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`
+      ),
+      options: nextScene.options,
     };
+
+    armKaburTurnTimer(groupId);
+    return { handled: true, replyText, poll };
+  } finally {
+    session.isProcessing = false;
   }
-
-  // Cek kondisi menang (berhasil lolos ke warkop/rental PS)
-  if (session.chapter >= 4 || nextScene.outcome === "ESCAPED") {
-    session.status = "escaped";
-    activeSessions.delete(groupId);
-    groupFinishCooldown.set(groupId, Date.now());
-    groupWarningCooldown.delete(groupId);
-
-    const victoryMessage =
-      `🎉🏆 *MISI KABUR DARI PONDOK BERHASIL TOTAL!* 🏆🎉\n\n` +
-      `Kalian melompati parit sawah terakhir dan mendadak terdengar alunan musik dari warung kopi dan gemerlap lampu neon rental PS!\n\n` +
-      `Kalian duduk santai di bangku kayu panjang warkop, memesan satu porsi *Indomie Kuah Kari Dobel Telor + Es Teh Manis Jumbo*, sambil nonton pertandingan bola liga Inggris dan mabar PES!\n\n` +
-      `✨ *Pahlawan Penentu:* Sahabat *${senderName}*\n` +
-      `🎒 *Sisa Bawaan:* ${session.inventory.join(", ")}\n` +
-      `🤫 *Sisa Stealth:* ${session.stealth}% | ⚡ *Stamina:* ${session.stamina}%\n\n` +
-      `_Selamat rekan-rekan! Angkatan kalian resmi menorehkan legenda baru di asrama!_ 🎮🍜`;
-
-    return {
-      handled: true,
-      replyText:
-        `📢 *Pilihan Sahabat ${senderName}: [${chosenOption.key}. ${chosenOption.label}]*\n\n` +
-        `${nextScene.storyNarration}\n\n` +
-        `═══════════════════════════\n` +
-        `${victoryMessage}`,
-    };
-  }
-
-  // Lanjut ke adegan berikutnya
-  session.lastStory = nextScene.storyNarration;
-  session.lastOptions = nextScene.options;
-
-  const nextOptionsText = nextScene.options
-    .map((opt) => `*${opt.key}.* 🏷️ *[${opt.label}]*\n   ${opt.description}`)
-    .join("\n\n");
-
-  const replyText =
-    `📢 *Aksi Diterima dari Sahabat ${senderName}: [${chosenOption.key} - ${chosenOption.label}]*\n\n` +
-    `${nextScene.storyNarration}\n\n` +
-    `${formatStatusBar(session)}\n\n` +
-    `═══════════════════════════\n` +
-    `💬 *Balas dengan Polling di bawah atau ketik A, B, C, D untuk lanjut!*`;
-
-  const poll: KaburPollPayload = {
-    name: `⚡ LANGKAH TIM SANTRI (CH. ${session.chapter}):`,
-    values: nextScene.options.map(
-      (opt) =>
-        `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`
-    ),
-    options: nextScene.options,
-  };
-
-  return { handled: true, replyText, poll };
 }
 
 /**
@@ -536,6 +605,7 @@ export function stopKaburGame(groupId: string): string {
   if (!session) {
     return "Tidak ada operasi kabur aktif yang bisa dihentikan sahabat.";
   }
+  clearKaburTurnTimer(groupId);
   activeSessions.delete(groupId);
   groupFinishCooldown.set(groupId, Date.now());
   groupWarningCooldown.delete(groupId);

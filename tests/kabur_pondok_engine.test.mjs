@@ -8,6 +8,8 @@ import {
   stopKaburGame,
   registerKaburPoll,
   findOptionKeyByHash,
+  removeKaburPoll,
+  setKaburExpireHandler,
   resetKaburCooldowns,
   LOBBY_OPTIONS,
 } from '../src/lib/whatsapp/kaburPondokEngine.ts';
@@ -95,6 +97,10 @@ describe('Kabur dari Pondok RPG Engine & Onboarding Lobby Test Suite', () => {
     const optBText = `🅱️ [NINJA SARUNG] ${MOCK_OPTIONS[1].description.slice(0, 45)}`;
     const hashB = crypto.createHash('sha256').update(Buffer.from(optBText)).digest('hex');
     assert.strictEqual(findOptionKeyByHash(MOCK_POLL_ID, hashB), 'B', 'Constructed option text must also resolve to B');
+
+    // 3. Test removeKaburPoll
+    removeKaburPoll(MOCK_POLL_ID);
+    assert.strictEqual(findOptionKeyByHash(MOCK_POLL_ID, hashRawA), null, 'Removed poll must resolve to null');
   });
 
   it('MUST prevent double start and silently ignore repeated spam warning', async () => {

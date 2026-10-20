@@ -108,6 +108,8 @@ import {
   registerKaburPoll,
   findOptionKeyByHash,
   getActiveKaburPoll,
+  removeKaburPoll,
+  setKaburExpireHandler,
 } from "../src/lib/whatsapp/kaburPondokEngine";
 import {
   checkAndTriggerFridayBlessing,
@@ -505,6 +507,12 @@ async function startBaileysGateway() {
       return null;
     }
   };
+
+  // Hook handler timeout 1 menit untuk game RPG "Kabur dari Pondok"
+  setKaburExpireHandler(async (groupId, expireMessage) => {
+    addLog(`⌛ [KABUR-TIMEOUT] Sesi game di ${groupId} kedaluwarsa setelah 1 menit hening.`, "warn");
+    await sendReply(groupId, expireMessage);
+  });
 
   // Helper Generate & Kirim Poster / Gambar AI & Aset Resmi HD
   const generateAndSendImage = async (rawPrompt: string, targetJid: string, quotedMessage?: any) => {
@@ -1342,6 +1350,7 @@ async function startBaileysGateway() {
                   const hashHex = Buffer.from(selected).toString("hex");
                   const optionKey = findOptionKeyByHash(pollMsgId, hashHex);
                   if (optionKey) {
+                    removeKaburPoll(pollMsgId);
                     addLog(`🗳️ [KABUR-POLL-VOTE] ${senderName} memilih [${optionKey}] via Native WhatsApp Poll!`, "success");
                     const kaburRes = await handleKaburAnswer(remoteJid, optionKey, senderName);
                     if (kaburRes.handled && kaburRes.replyText) {
