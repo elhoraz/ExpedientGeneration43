@@ -357,6 +357,7 @@ export async function handleKaburAnswer(
     // 2. Opsi B: Panduan Survival & Bekal Santri
     if (selectedKey === "B") {
       session.lastUpdatedAt = Date.now();
+      session.lastOptions = [LOBBY_OPTIONS[0], LOBBY_OPTIONS[2]];
       const tipsText =
         `📖 *[BUKU PANDUAN SURVIVAL KABUR DARI PONDOK]* 🎒\n\n` +
         `1. 🤫 *Stealth (Ketenangan):* Jaga jangan sampai 0%! Kalau 0%, kalian langsung ketangkap dan digundul licin.\n` +
@@ -758,8 +759,9 @@ export interface KaburPollTracker {
   groupId: string;
   pollMsgId: string;
   pollCreatorJid: string;
+  pollCreatorLid?: string;
   pollEncKey?: Uint8Array;
-  options: { key: "A" | "B" | "C" | "D"; label: string; text: string; hash: string }[];
+  options: { key: "A" | "B" | "C" | "D"; label: string; text: string; hashes: string[] }[];
 }
 
 const activePollMap = new Map<string, KaburPollTracker>();
@@ -769,16 +771,27 @@ export function registerKaburPoll(
   groupId: string,
   pollCreatorJid: string,
   pollEncKey?: Uint8Array,
-  options: KaburOption[] = []
+  options: KaburOption[] = [],
+  pollValues: string[] = [],
+  pollCreatorLid?: string
 ): void {
-  const trackedOptions = options.map((opt) => {
-    const text = `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`;
-    const hash = crypto.createHash("sha256").update(Buffer.from(text)).digest("hex");
+  const trackedOptions = options.map((opt, idx) => {
+    const rawValue = pollValues[idx] || "";
+    const constructedText = `${opt.key === "A" ? "🅰️" : opt.key === "B" ? "🅱️" : opt.key === "C" ? "🅲" : "🅳"} [${opt.label}] ${opt.description.slice(0, 45)}`;
+
+    const hashes: string[] = [];
+    if (rawValue) {
+      hashes.push(crypto.createHash("sha256").update(Buffer.from(rawValue)).digest("hex").toLowerCase());
+      hashes.push(crypto.createHash("sha256").update(Buffer.from(rawValue.trim())).digest("hex").toLowerCase());
+    }
+    hashes.push(crypto.createHash("sha256").update(Buffer.from(constructedText)).digest("hex").toLowerCase());
+    hashes.push(crypto.createHash("sha256").update(Buffer.from(constructedText.trim())).digest("hex").toLowerCase());
+
     return {
       key: opt.key,
       label: opt.label,
-      text,
-      hash,
+      text: rawValue || constructedText,
+      hashes,
     };
   });
 
@@ -786,6 +799,7 @@ export function registerKaburPoll(
     groupId,
     pollMsgId,
     pollCreatorJid,
+    pollCreatorLid,
     pollEncKey,
     options: trackedOptions,
   });
@@ -794,7 +808,8 @@ export function registerKaburPoll(
 export function findOptionKeyByHash(pollMsgId: string, optionHashHex: string): "A" | "B" | "C" | "D" | null {
   const tracker = activePollMap.get(pollMsgId);
   if (!tracker) return null;
-  const match = tracker.options.find((o) => o.hash.toLowerCase() === optionHashHex.toLowerCase());
+  const target = optionHashHex.toLowerCase();
+  const match = tracker.options.find((o) => o.hashes.includes(target));
   return match ? match.key : null;
 }
 

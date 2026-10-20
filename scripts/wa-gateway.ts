@@ -22,6 +22,8 @@ import makeWASocket, {
   extractMessageContent,
   normalizeMessageContent,
   decryptPollVote,
+  jidNormalizedUser,
+  getKeyAuthor,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
 // @ts-ignore
@@ -1288,13 +1290,53 @@ async function startBaileysGateway() {
             const tracker = getActiveKaburPoll(pollMsgId);
             if (tracker && tracker.pollEncKey) {
               try {
-                const voterJid = m.key.participant || remoteJid;
-                const decryptedVote = decryptPollVote(msgContent.pollUpdateMessage.vote as any, {
-                  pollCreatorJid: tracker.pollCreatorJid.includes("@") ? tracker.pollCreatorJid : `${tracker.pollCreatorJid}@s.whatsapp.net`,
-                  pollMsgId: tracker.pollMsgId,
-                  pollEncKey: tracker.pollEncKey,
-                  voterJid,
-                });
+                // Kumpulkan semua kandidat Creator JID (WhatsApp LID vs Phone JID)
+                const creatorCandidates = [
+                  pollKey.participant ? jidNormalizedUser(pollKey.participant) : null,
+                  (pollKey as any).participantAlt ? jidNormalizedUser((pollKey as any).participantAlt) : null,
+                  sock.user?.lid ? jidNormalizedUser(sock.user.lid) : null,
+                  sock.user?.id ? jidNormalizedUser(sock.user.id) : null,
+                  tracker.pollCreatorLid ? jidNormalizedUser(tracker.pollCreatorLid) : null,
+                  tracker.pollCreatorJid.includes("@") ? jidNormalizedUser(tracker.pollCreatorJid) : `${tracker.pollCreatorJid}@s.whatsapp.net`,
+                ].filter(Boolean) as string[];
+
+                // Kumpulkan semua kandidat Voter JID (LID vs Phone JID & Device Normalization)
+                const voterCandidates = [
+                  m.key.participant ? jidNormalizedUser(m.key.participant) : null,
+                  (m.key as any).participantAlt ? jidNormalizedUser((m.key as any).participantAlt) : null,
+                  getKeyAuthor(m.key, jidNormalizedUser(sock.user?.id || "me")),
+                  m.key.remoteJid ? jidNormalizedUser(m.key.remoteJid) : null,
+                  m.key.participant || null,
+                  (m.key as any).participantAlt || null,
+                ].filter(Boolean) as string[];
+
+                let decryptedVote: any = null;
+                let lastDecryptErr: any = null;
+
+                for (const creatorJid of creatorCandidates) {
+                  for (const voterJid of voterCandidates) {
+                    try {
+                      const dec = decryptPollVote(msgContent.pollUpdateMessage.vote as any, {
+                        pollCreatorJid: creatorJid,
+                        pollMsgId: tracker.pollMsgId,
+                        pollEncKey: tracker.pollEncKey,
+                        voterJid,
+                      });
+                      if (dec && dec.selectedOptions) {
+                        decryptedVote = dec;
+                        break;
+                      }
+                    } catch (err: any) {
+                      lastDecryptErr = err;
+                    }
+                  }
+                  if (decryptedVote) break;
+                }
+
+                if (!decryptedVote && lastDecryptErr) {
+                  throw lastDecryptErr;
+                }
+
                 const selected = decryptedVote?.selectedOptions?.[0];
                 if (selected) {
                   const hashHex = Buffer.from(selected).toString("hex");
@@ -1308,11 +1350,21 @@ async function startBaileysGateway() {
                         const nextPollMsg = await sendPoll(remoteJid, kaburRes.poll.name, kaburRes.poll.values, 1);
                         if (nextPollMsg?.key?.id) {
                           const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
-                          registerKaburPoll(nextPollMsg.key.id, remoteJid, botPhone, nextEncKey, kaburRes.poll.options);
+                          registerKaburPoll(
+                            nextPollMsg.key.id,
+                            remoteJid,
+                            botPhone,
+                            nextEncKey,
+                            kaburRes.poll.options,
+                            kaburRes.poll.values,
+                            sock.user?.lid
+                          );
                         }
                       }
                     }
                     continue;
+                  } else {
+                    addLog(`ℹ️ [POLL-HASH-NOMATCH] Hash ${hashHex.slice(0, 16)}... tidak cocok dengan opsi polling kabur`, "warn");
                   }
                 }
               } catch (pollErr: any) {
@@ -1712,7 +1764,15 @@ async function startBaileysGateway() {
               const nextPollMsg = await sendPoll(remoteJid, kaburRes.poll.name, kaburRes.poll.values, 1);
               if (nextPollMsg?.key?.id) {
                 const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
-                registerKaburPoll(nextPollMsg.key.id, remoteJid, botPhone, nextEncKey, kaburRes.poll.options);
+                registerKaburPoll(
+                  nextPollMsg.key.id,
+                  remoteJid,
+                  botPhone,
+                  nextEncKey,
+                  kaburRes.poll.options,
+                  kaburRes.poll.values,
+                  sock.user?.lid
+                );
               }
             }
             continue;
@@ -1777,7 +1837,15 @@ async function startBaileysGateway() {
             const pollMsg = await sendPoll(remoteJid, game.poll.name, game.poll.values, 1);
             if (pollMsg?.key?.id) {
               const encKey = pollMsg.message?.messageContextInfo?.messageSecret;
-              registerKaburPoll(pollMsg.key.id, remoteJid, botPhone, encKey, game.poll.options);
+              registerKaburPoll(
+                pollMsg.key.id,
+                remoteJid,
+                botPhone,
+                encKey,
+                game.poll.options,
+                game.poll.values,
+                sock.user?.lid
+              );
             }
           }
           continue;

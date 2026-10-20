@@ -70,14 +70,31 @@ describe('Kabur dari Pondok RPG Engine & Onboarding Lobby Test Suite', () => {
       { key: 'D', label: 'SOGOKAN INDOMIE', archetype: 'DIPLOMASI', description: 'Beri sebungkus mie sedap goreng ke jasus' },
     ];
 
-    registerKaburPoll(MOCK_POLL_ID, TEST_GROUP_ID, '6285151771289', new Uint8Array(32), MOCK_OPTIONS);
+    const MOCK_VALUES = [
+      '🚀 [BISMILLAH] Gas Mulai Misi! (Masuk Ch. 1)',
+      '📖 [TIPS SURVIVAL] Cara Selamat dari Ri\'ayah',
+      '🏳️ [BATAL] Tidur Aja Takut Digundul Licin',
+      '🚪 [LAINNYA] Pilihan rahasia',
+    ];
 
-    // Hitung hash untuk opsi B
+    registerKaburPoll(
+      MOCK_POLL_ID,
+      TEST_GROUP_ID,
+      '6285151771289',
+      new Uint8Array(32),
+      MOCK_OPTIONS,
+      MOCK_VALUES,
+      '105240321908772@lid'
+    );
+
+    // 1. Hash dari raw value WhatsApp asli (Opsi A)
+    const hashRawA = crypto.createHash('sha256').update(Buffer.from(MOCK_VALUES[0])).digest('hex');
+    assert.strictEqual(findOptionKeyByHash(MOCK_POLL_ID, hashRawA), 'A', 'Raw poll value hash must resolve to A');
+
+    // 2. Hash dari constructed text (Opsi B)
     const optBText = `🅱️ [NINJA SARUNG] ${MOCK_OPTIONS[1].description.slice(0, 45)}`;
     const hashB = crypto.createHash('sha256').update(Buffer.from(optBText)).digest('hex');
-
-    const resolvedKey = findOptionKeyByHash(MOCK_POLL_ID, hashB);
-    assert.strictEqual(resolvedKey, 'B', 'Option hash B must resolve to option B');
+    assert.strictEqual(findOptionKeyByHash(MOCK_POLL_ID, hashB), 'B', 'Constructed option text must also resolve to B');
   });
 
   it('MUST prevent double start and silently ignore repeated spam warning', async () => {
