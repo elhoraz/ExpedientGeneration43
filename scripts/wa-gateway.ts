@@ -102,6 +102,7 @@ import {
 } from "../src/lib/whatsapp/santriQuizEngine";
 import {
   startKaburGame,
+  recordKaburVote,
   handleKaburAnswer,
   getKaburGameStatus,
   stopKaburGame,
@@ -109,7 +110,7 @@ import {
   findOptionKeyByHash,
   getActiveKaburPoll,
   removeKaburPoll,
-  setKaburExpireHandler,
+  setKaburMessenger,
 } from "../src/lib/whatsapp/kaburPondokEngine";
 import {
   checkAndTriggerFridayBlessing,
@@ -124,7 +125,7 @@ const logger = pino({ level: "silent" });
 // =============================================================================
 // GLOBAL GATEWAY STATE & LOG BUFFER (Untuk Web Dashboard & Health Endpoint)
 // =============================================================================
-type GatewayState = "initializing" | "connecting" | "qr_ready" | "connected" | "disconnected";
+type GatewayState = "initializing" | "connecting" | "qr_ready" | "connected" | "disconnected" | "qr_expired";
 
 let currentSock: any = null;
 let gatewayStatus: GatewayState = "initializing";
@@ -508,10 +509,26 @@ async function startBaileysGateway() {
     }
   };
 
-  // Hook handler timeout 1 menit untuk game RPG "Kabur dari Pondok"
-  setKaburExpireHandler(async (groupId, expireMessage) => {
-    addLog(`⌛ [KABUR-TIMEOUT] Sesi game di ${groupId} kedaluwarsa setelah 1 menit hening.`, "warn");
-    await sendReply(groupId, expireMessage);
+  // Hook messenger terpadu untuk game RPG "Kabur dari Pondok" (Narasi, polling giliran, dan hasil voting 1 menit)
+  setKaburMessenger(async (groupId, replyText, poll) => {
+    addLog(`📢 [KABUR-DISPATCH] Mengirim babak cerita/hasil voting ke ${groupId}`, "info");
+    await sendReply(groupId, replyText);
+    if (poll) {
+      const nextPollMsg = await sendPoll(groupId, poll.name, poll.values, 1);
+      if (nextPollMsg?.key?.id) {
+        const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
+        const bPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");
+        registerKaburPoll(
+          nextPollMsg.key.id,
+          groupId,
+          bPhone,
+          nextEncKey || undefined,
+          poll.options,
+          poll.values,
+          sock.user?.lid
+        );
+      }
+    }
   });
 
   // Helper Generate & Kirim Poster / Gambar AI & Aset Resmi HD
@@ -1350,26 +1367,16 @@ async function startBaileysGateway() {
                   const hashHex = Buffer.from(selected).toString("hex");
                   const optionKey = findOptionKeyByHash(pollMsgId, hashHex);
                   if (optionKey) {
-                    removeKaburPoll(pollMsgId);
-                    addLog(`🗳️ [KABUR-POLL-VOTE] ${senderName} memilih [${optionKey}] via Native WhatsApp Poll!`, "success");
-                    const kaburRes = await handleKaburAnswer(remoteJid, optionKey, senderName);
-                    if (kaburRes.handled && kaburRes.replyText) {
-                      await sendReply(remoteJid, kaburRes.replyText, m);
-                      if (kaburRes.poll) {
-                        const nextPollMsg = await sendPoll(remoteJid, kaburRes.poll.name, kaburRes.poll.values, 1);
-                        if (nextPollMsg?.key?.id) {
-                          const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
-                          registerKaburPoll(
-                            nextPollMsg.key.id,
-                            remoteJid,
-                            botPhone,
-                            nextEncKey,
-                            kaburRes.poll.options,
-                            kaburRes.poll.values,
-                            sock.user?.lid
-                          );
-                        }
+                    const voterId = m.key.participant || participantRaw || senderPhone || senderName;
+                    const voteRes = recordKaburVote(remoteJid, optionKey, voterId, senderName);
+                    if (voteRes.recorded) {
+                      addLog(`🗳️ [KABUR-POLL-VOTE] ${senderName} (${voterId}) memilih [${optionKey}] via WhatsApp Poll! (First vote: ${voteRes.firstVote})`, "success");
+                      if (voteRes.firstVote && voteRes.message) {
+                        await sendReply(remoteJid, voteRes.message, m);
                       }
+                    } else if (voteRes.alreadyVoted) {
+                      addLog(`ℹ️ [KABUR-LOCKED-VOTE] ${senderName} mencoba ganti pilihan di poll, ditolak`, "warn");
+                      await sendReply(remoteJid, `🔒 *Pilihan Terkunci!* Sahabat *${senderName}* sudah memilih opsi *[${voteRes.currentChoice}]*. Dalam misi kabur, santri tidak boleh ganti opsi ya! Tunggu 1 menit voting selesai untuk melihat hasil keputusan tim. ⏳`, m);
                     }
                     continue;
                   } else {
@@ -1765,25 +1772,18 @@ async function startBaileysGateway() {
             continue;
           }
 
-          // Cek Respon Game RPG "Kabur dari Pondok" Aktif
-          const kaburRes = await handleKaburAnswer(remoteJid, cleanTextWithoutMention, senderName);
-          if (kaburRes.handled && kaburRes.replyText) {
-            await sendReply(remoteJid, kaburRes.replyText, m);
-            if (kaburRes.poll) {
-              const nextPollMsg = await sendPoll(remoteJid, kaburRes.poll.name, kaburRes.poll.values, 1);
-              if (nextPollMsg?.key?.id) {
-                const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
-                registerKaburPoll(
-                  nextPollMsg.key.id,
-                  remoteJid,
-                  botPhone,
-                  nextEncKey,
-                  kaburRes.poll.options,
-                  kaburRes.poll.values,
-                  sock.user?.lid
-                );
-              }
+          // Cek Respon Game RPG "Kabur dari Pondok" Aktif (Voting via Teks A, B, C, D)
+          const voterId = participantRaw || senderPhone || senderName;
+          const voteRes = recordKaburVote(remoteJid, cleanTextWithoutMention, voterId, senderName);
+          if (voteRes.recorded) {
+            addLog(`💬 [KABUR-TEXT-VOTE] ${senderName} (${voterId}) memilih [${cleanTextWithoutMention}] via Text! (First vote: ${voteRes.firstVote})`, "success");
+            if (voteRes.firstVote && voteRes.message) {
+              await sendReply(remoteJid, voteRes.message, m);
             }
+            continue;
+          } else if (voteRes.alreadyVoted) {
+            addLog(`ℹ️ [KABUR-LOCKED-VOTE] ${senderName} mencoba ganti pilihan via Text, ditolak`, "warn");
+            await sendReply(remoteJid, `🔒 *Pilihan Terkunci!* Sahabat *${senderName}* sudah memilih opsi *[${voteRes.currentChoice}]*. Dalam misi kabur, santri tidak boleh ganti opsi ya! Tunggu 1 menit voting selesai untuk melihat hasil keputusan tim. ⏳`, m);
             continue;
           }
         }
@@ -1850,7 +1850,7 @@ async function startBaileysGateway() {
                 pollMsg.key.id,
                 remoteJid,
                 botPhone,
-                encKey,
+                encKey || undefined,
                 game.poll.options,
                 game.poll.values,
                 sock.user?.lid

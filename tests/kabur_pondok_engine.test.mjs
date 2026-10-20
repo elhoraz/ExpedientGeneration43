@@ -10,7 +10,12 @@ import {
   findOptionKeyByHash,
   removeKaburPoll,
   setKaburExpireHandler,
+  setKaburMessenger,
   resetKaburCooldowns,
+  recordKaburVote,
+  resolveKaburTurn,
+  INACTIVITY_TIMEOUT_MS,
+  VOTING_WINDOW_MS,
   LOBBY_OPTIONS,
 } from '../src/lib/whatsapp/kaburPondokEngine.ts';
 
@@ -161,5 +166,57 @@ describe('Kabur dari Pondok RPG Engine & Onboarding Lobby Test Suite', () => {
     const restartImmediate = await startKaburGame(TEST_GROUP_ID, SENDER_NAME, SENDER_PHONE);
     assert.strictEqual(restartImmediate.success, false);
     assert.match(restartImmediate.message, /Santri lagi atur napas/);
+  });
+
+  it('MUST start 1-minute voting countdown on first vote and prevent changing options', async () => {
+    const GROUP_VOTE_TEST = 'test-voting-window@g.us';
+    stopKaburGame(GROUP_VOTE_TEST);
+    resetKaburCooldowns(GROUP_VOTE_TEST);
+
+    await startKaburGame(GROUP_VOTE_TEST, 'Ketua Rayon');
+
+    // Suara pertama oleh Santri 1
+    const v1 = recordKaburVote(GROUP_VOTE_TEST, 'A', '6281111111@s.whatsapp.net', 'Santri Satu');
+    assert.strictEqual(v1.recorded, true);
+    assert.strictEqual(v1.firstVote, true);
+    assert.match(v1.message, /VOTING TIM SANTRI RESMI DIMULAI/);
+    assert.match(v1.message, /1 MENIT/);
+
+    // Santri 1 mencoba ganti pilihan ke B -> HARUS DITOLAK
+    const v1_change = recordKaburVote(GROUP_VOTE_TEST, 'B', '6281111111@s.whatsapp.net', 'Santri Satu');
+    assert.strictEqual(v1_change.recorded, false);
+    assert.strictEqual(v1_change.alreadyVoted, true);
+    assert.strictEqual(v1_change.currentChoice, 'A');
+
+    // Santri 2 memilih A -> Tercatat
+    const v2 = recordKaburVote(GROUP_VOTE_TEST, 'A', '6282222222@s.whatsapp.net', 'Santri Dua');
+    assert.strictEqual(v2.recorded, true);
+    assert.strictEqual(v2.firstVote, false);
+
+    // Santri 3 memilih B -> Tercatat
+    const v3 = recordKaburVote(GROUP_VOTE_TEST, 'B', '6283333333@s.whatsapp.net', 'Santri Tiga');
+    assert.strictEqual(v3.recorded, true);
+    assert.strictEqual(v3.firstVote, false);
+
+    // Verifikasi resolveKaburTurn menghitung suara terbanyak (A: 2 suara vs B: 1 suara)
+    let capturedReply = '';
+    let capturedPoll = null;
+    setKaburMessenger((gid, text, poll) => {
+      capturedReply = text;
+      capturedPoll = poll;
+    });
+
+    await resolveKaburTurn(GROUP_VOTE_TEST);
+
+    assert.match(capturedReply, /HASIL VOTING TIM SANTRI/);
+    assert.match(capturedReply, /Keputusan Terpilih \(Suara Terbanyak\)/);
+    assert.match(capturedReply, /Santri Satu/);
+    assert.match(capturedReply, /Santri Dua/);
+    assert.match(capturedReply, /Santri Tiga/);
+    assert.match(capturedReply, /TAKBIR/);
+    assert.ok(capturedPoll, 'Must dispatch Chapter 1 poll');
+
+    stopKaburGame(GROUP_VOTE_TEST);
+    resetKaburCooldowns(GROUP_VOTE_TEST);
   });
 });
