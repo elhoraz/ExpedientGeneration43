@@ -80,6 +80,20 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        // Explicit audio headers for Vercel CDN byte-range requests and immutable caching
+        source: '/assets/audio/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Accept-Ranges',
+            value: 'bytes',
+          },
+        ],
+      },
+      {
         // Exclude /radar (flat maps, satellite, terrain, etc.) from CSP so Leaflet can load freely
         source: '/((?!radar).*)',
         headers: [

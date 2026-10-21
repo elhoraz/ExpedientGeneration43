@@ -41,6 +41,15 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname === '/' ||
     request.nextUrl.pathname === '/robots.txt' ||
     request.nextUrl.pathname === '/sitemap.xml' ||
+    request.nextUrl.pathname.startsWith('/assets/') ||
+    request.nextUrl.pathname.startsWith('/images/') ||
+    request.nextUrl.pathname.startsWith('/fonts/') ||
+    request.nextUrl.pathname.startsWith('/sequence/') ||
+    request.nextUrl.pathname.startsWith('/uploads/') ||
+    request.nextUrl.pathname.startsWith('/vendor/') ||
+    request.nextUrl.pathname.startsWith('/manifest') ||
+    request.nextUrl.pathname.startsWith('/sw.js') ||
+    request.nextUrl.pathname.startsWith('/workbox-') ||
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/register') ||
     request.nextUrl.pathname.startsWith('/forgot-password') ||
@@ -57,7 +66,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/tasbih') ||
     request.nextUrl.pathname.startsWith('/sirah') ||
     request.nextUrl.pathname.startsWith('/birthday') ||
-    request.nextUrl.pathname.startsWith('/photobooth');
+    request.nextUrl.pathname.startsWith('/photobooth') ||
+    /\.(?:svg|png|jpg|jpeg|gif|webp|ico|avif|css|js|woff|woff2|ttf|eot|otf|txt|xml|html|mp3|m4a|wav|ogg|aac|flac|mp4|webm|json|glb|gltf)$/i.test(request.nextUrl.pathname);
 
   if (!user && !isPublicRoute) {
     // If not logged in and not accessing public routes

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
@@ -11,6 +11,31 @@ export default function DailyWisdomWidget() {
   const [hijriDate, setHijriDate] = useState<string>("Bumi Slahung • Ponorogo");
   const [isCopied, setIsCopied] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopActiveAudio = () => {
+    if (activeAudioRef.current) {
+      try {
+        activeAudioRef.current.pause();
+        activeAudioRef.current.currentTime = 0;
+      } catch {}
+      activeAudioRef.current = null;
+    }
+    if (typeof window !== "undefined" && "speechSynthesis" in window && window.speechSynthesis.speaking) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch {}
+    }
+    setIsSpeaking(false);
+    setIsLoadingAudio(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      stopActiveAudio();
+    };
+  }, [mahfuzhatIdx]);
 
   useEffect(() => {
     // Pick daily index based on day of month
@@ -43,6 +68,7 @@ export default function DailyWisdomWidget() {
   };
 
   const nextWisdom = () => {
+    stopActiveAudio();
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8);
     if (proverbs.length > 0) {
       setMahfuzhatIdx((prev) => (prev + 1) % proverbs.length);
@@ -68,25 +94,85 @@ export default function DailyWisdomWidget() {
     window.open(waUrl, "_blank", "noopener,noreferrer");
   };
 
-  const speakArabic = () => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    if (navigator.vibrate) navigator.vibrate(8);
-
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
+  const fallbackWebSpeech = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       setIsSpeaking(false);
+      setIsLoadingAudio(false);
       return;
     }
 
-    const utterance = new SpeechSynthesisUtterance(current.arabic);
-    utterance.lang = "ar-SA";
-    utterance.rate = 0.85; // Slightly slower for clear tajweed / pronunciation
+    try {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
 
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
+      const utterance = new SpeechSynthesisUtterance(current.arabic);
+      utterance.lang = "ar-SA";
+      utterance.rate = 0.85;
 
-    window.speechSynthesis.speak(utterance);
+      utterance.onstart = () => {
+        setIsLoadingAudio(false);
+        setIsSpeaking(true);
+      };
+      utterance.onend = () => {
+        setIsSpeaking(false);
+        setIsLoadingAudio(false);
+      };
+      utterance.onerror = () => {
+        setIsSpeaking(false);
+        setIsLoadingAudio(false);
+      };
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      setIsSpeaking(false);
+      setIsLoadingAudio(false);
+    }
+  };
+
+  const speakArabic = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8);
+
+    if (isSpeaking || isLoadingAudio) {
+      stopActiveAudio();
+      return;
+    }
+
+    setIsLoadingAudio(true);
+
+    try {
+      // 1. High-fidelity native Arabic audio stream from server API (Option A engine)
+      const audioUrl = `/api/audio/tts?text=${encodeURIComponent(current.arabic)}&lang=ar`;
+      const audio = new Audio(audioUrl);
+      activeAudioRef.current = audio;
+
+      audio.onplay = () => {
+        setIsLoadingAudio(false);
+        setIsSpeaking(true);
+      };
+
+      audio.onended = () => {
+        setIsSpeaking(false);
+        setIsLoadingAudio(false);
+        activeAudioRef.current = null;
+      };
+
+      audio.onerror = () => {
+        console.warn("Server TTS playback failed, falling back to Web Speech Synthesis");
+        activeAudioRef.current = null;
+        fallbackWebSpeech();
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn("Audio play promise error, trying Web Speech fallback:", err);
+          fallbackWebSpeech();
+        });
+      }
+    } catch {
+      fallbackWebSpeech();
+    }
   };
 
   return (
@@ -111,12 +197,12 @@ export default function DailyWisdomWidget() {
             {/* Listen Audio Pronunciation Button */}
             <button
               type="button"
-              className={`btn-listen-arabic ${isSpeaking ? "speaking" : ""}`}
+              className={`btn-listen-arabic ${isSpeaking ? "speaking" : ""} ${isLoadingAudio ? "loading" : ""}`}
               onClick={speakArabic}
-              title={isSpeaking ? "Hentikan Suara" : "Dengarkan Pelafalan Bahasa Arab"}
+              title={isSpeaking ? "Hentikan Suara" : isLoadingAudio ? "Memuat Suara..." : "Dengarkan Pelafalan Bahasa Arab"}
               aria-label="Dengarkan Lafal Arab"
             >
-              <i className={`fa-solid ${isSpeaking ? "fa-volume-high live-audio-pulse" : "fa-volume-low"}`}></i>
+              <i className={`fa-solid ${isLoadingAudio ? "fa-spinner fa-spin" : isSpeaking ? "fa-volume-high live-audio-pulse" : "fa-volume-low"}`}></i>
             </button>
           </div>
 

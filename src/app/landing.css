@@ -4881,6 +4881,13 @@ body:has(.landing-wrapper) {
   animation: speakingPulse 1s ease-in-out infinite;
 }
 
+.btn-listen-arabic.loading {
+  opacity: 0.85;
+  cursor: wait;
+  border-color: #d4af37;
+  color: #d4af37;
+}
+
 @keyframes speakingPulse {
   0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(212, 175, 55, 0.5); }
   50% { transform: scale(1.15); box-shadow: 0 0 18px rgba(212, 175, 55, 0.8); }

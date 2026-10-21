@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -27,8 +27,20 @@ const MEMORY_ASSETS: Record<string, { imgSrc: string; rotation: string }> = {
 export default function PolaroidMemories() {
   const { t, locale } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.45;
+    }
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, []);
 
   const list = (t.memories_snaps && t.memories_snaps.length > 0 ? t.memories_snaps : []).map(snap => ({
     ...snap,
@@ -49,15 +61,27 @@ export default function PolaroidMemories() {
 
   const toggleAudio = () => {
     if (!audioRef.current) return;
+    if (navigator.vibrate) navigator.vibrate(8);
+
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
+      setIsLoadingAudio(false);
     } else {
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch(() => {
-        setIsPlaying(false);
-      });
+      setIsLoadingAudio(true);
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setIsLoadingAudio(false);
+          })
+          .catch((err) => {
+            console.warn("Audio playback failed or autoplay blocked:", err);
+            setIsPlaying(false);
+            setIsLoadingAudio(false);
+          });
+      }
     }
   };
 
@@ -80,8 +104,25 @@ export default function PolaroidMemories() {
           <audio
             ref={audioRef}
             src="/assets/audio/memori.mp3"
-            preload="none"
-            onEnded={() => setIsPlaying(false)}
+            preload="metadata"
+            loop
+            onPlay={() => {
+              setIsPlaying(true);
+              setIsLoadingAudio(false);
+            }}
+            onPause={() => {
+              setIsPlaying(false);
+              setIsLoadingAudio(false);
+            }}
+            onEnded={() => {
+              setIsPlaying(false);
+              setIsLoadingAudio(false);
+            }}
+            onError={(e) => {
+              console.warn("Memori audio playback/decoding error:", e);
+              setIsPlaying(false);
+              setIsLoadingAudio(false);
+            }}
           />
           <button
             type="button"
@@ -90,10 +131,10 @@ export default function PolaroidMemories() {
             title={isPlaying ? "Jeda Musik Memori" : "Putar Musik Kenangan Slahung"}
           >
             <span className="audio-icon-disc">
-              <i className={`fa-solid ${isPlaying ? "fa-pause" : "fa-play"}`}></i>
+              <i className={`fa-solid ${isLoadingAudio ? "fa-spinner fa-spin" : isPlaying ? "fa-pause" : "fa-play"}`}></i>
             </span>
             <div className="audio-btn-labels">
-              <strong>{isPlaying ? t.memories_section.audio_playing : t.memories_section.audio_idle}</strong>
+              <strong>{isLoadingAudio ? (locale === "ar" ? "جارٍ التحميل..." : locale === "en" ? "Loading Audio..." : "Memuat Suara...") : isPlaying ? t.memories_section.audio_playing : t.memories_section.audio_idle}</strong>
               <span>{t.memories_section.audio_sub}</span>
             </div>
             {isPlaying && (
