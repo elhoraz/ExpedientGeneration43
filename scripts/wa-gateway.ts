@@ -113,6 +113,10 @@ import {
   setKaburMessenger,
 } from "../src/lib/whatsapp/kaburPondokEngine";
 import {
+  handlePrivateMenfessMessage,
+  toggleMenfessOptOut,
+} from "../src/lib/whatsapp/menfessEngine";
+import {
   checkAndTriggerFridayBlessing,
   getRandomMahfudzotMessage,
   getRandomHaditsMessage,
@@ -1789,6 +1793,32 @@ async function startBaileysGateway() {
         }
 
         // =====================================================================
+        // FITUR OPT-OUT & PANDUAN MENFESS / TITIP SALAM DI GRUP
+        // =====================================================================
+        if (cleanLower === "!menfess off" || cleanLower === "!menfess optout" || cleanLower === "/menfess off") {
+          const optOutMsg = toggleMenfessOptOut(senderPhone, true);
+          await sendReply(remoteJid, optOutMsg, m);
+          continue;
+        }
+        if (cleanLower === "!menfess on" || cleanLower === "/menfess on") {
+          const optInMsg = toggleMenfessOptOut(senderPhone, false);
+          await sendReply(remoteJid, optInMsg, m);
+          continue;
+        }
+        if (cleanLower === "!menfess" || cleanLower === "/menfess" || cleanLower === ".menfess") {
+          await sendReply(
+            remoteJid,
+            `💌 *[FITUR TITIP SALAM ALUMNI / MENFESS]* 🕊️\n\n` +
+            `Untuk menjaga privasi dan kerahasiaan, titip salam dikirim lewat *Chat Pribadi (PC) ke Bot* ya sahabat! 😉\n\n` +
+            `👉 Klik nomor bot ini dan chat santai:\n` +
+            `_"Min, tolong titip salam ke Fulan..."_\n\n` +
+            `Bot akan otomatis memandu dan ngetag orangnya di grup ini secara resmi! ✨`,
+            m
+          );
+          continue;
+        }
+
+        // =====================================================================
         // FITUR RPG "KABUR DARI PONDOK" (QISM KEAMANAN & BIRO RIAYAH)
         // =====================================================================
         const isKaburStatus =
@@ -2395,6 +2425,34 @@ async function startBaileysGateway() {
           }
 
           try {
+            await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
+
+            // 1. Cek Alur Interaktif Titip Salam / Menfess ke Grup
+            const menfessResult = await handlePrivateMenfessMessage({
+              senderPhone,
+              senderName,
+              messageText,
+              incomingContacts,
+            });
+
+            if (menfessResult.handled) {
+              if (menfessResult.replyToSender) {
+                await sendReply(remoteJid, menfessResult.replyToSender, m);
+              }
+              if (menfessResult.dispatchToGroup) {
+                const { groupId, text, mentions } = menfessResult.dispatchToGroup;
+                // Anti-Ban Guardrail: simulasi mengetik di grup 3 detik sebelum kirim
+                await sock.sendPresenceUpdate("composing", groupId).catch(() => {});
+                await new Promise((r) => setTimeout(r, 3000));
+                await sock.sendMessage(groupId, {
+                  text,
+                  mentions: Array.isArray(mentions) ? mentions : [],
+                });
+                addLog(`💌 [MENFESS-SENT] Titip salam berhasil dikirim ke grup ${groupId} dengan tag: ${mentions?.join(", ")}`, "success");
+              }
+              continue;
+            }
+
             recordGroupChatMessage(remoteJid, {
               senderPhone,
               senderName: senderName || "Sahabat",
