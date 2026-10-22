@@ -2324,7 +2324,7 @@ async function startBaileysGateway() {
           }
           // CABANG B: GRUP ANGKATAN / KOMUNITAS
           else {
-            // A0. DETEKSI OTOMATIS PEMBAGIAN NOMOR TELEPON & KARTU KONTAK (Full Automatic Member Inviter)
+            // A0. DETEKSI OTOMATIS PEMBAGIAN NOMOR TELEPON & KARTU KONTAK (Hanya Informatif di Grup, Tanpa Cold DM)
             try {
               const autoNumberRes = await handleAutomaticGroupNumberDetection({
                 groupId: remoteJid,
@@ -2336,21 +2336,7 @@ async function startBaileysGateway() {
                 isQuotedFromBot: Boolean(isBotQuoted),
                 isPrivateChat: false,
                 contacts: incomingContacts,
-                customSender: async (target: string, msg: string) => {
-                  try {
-                    let cleanTarget = target.trim();
-                    if (!cleanTarget.includes("@")) {
-                      let num = cleanTarget.replace(/\D/g, "");
-                      if (num.startsWith("0")) num = "62" + num.substring(1);
-                      cleanTarget = `${num}@s.whatsapp.net`;
-                    }
-                    const sent = await sock.sendMessage(cleanTarget, { text: msg });
-                    if (sent?.key?.id) sentMessageIds.add(sent.key.id);
-                    return { success: true };
-                  } catch (e: any) {
-                    return { success: false, reason: e.message };
-                  }
-                },
+                // Strict Zero-Cold-DM: Jangan pernah oper customSender untuk japri pihak ketiga
               });
 
               if (autoNumberRes.handled) {
@@ -2436,42 +2422,6 @@ async function startBaileysGateway() {
             }
           }
 
-          // A0. DETEKSI OTOMATIS PEMBAGIAN / PENGUJIAN NOMOR TELEPON & KARTU KONTAK (Chat Pribadi)
-          try {
-            const autoNumberRes = await handleAutomaticGroupNumberDetection({
-              groupId: remoteJid,
-              senderPhone,
-              senderName,
-              messageText,
-              quotedText,
-              quotedSender: quotedParticipant,
-              isQuotedFromBot: Boolean(isBotQuoted),
-              isPrivateChat: true,
-              contacts: incomingContacts,
-              customSender: async (target: string, msg: string) => {
-                try {
-                  let cleanTarget = target.trim();
-                  if (!cleanTarget.includes("@")) {
-                    let num = cleanTarget.replace(/\D/g, "");
-                    if (num.startsWith("0")) num = "62" + num.substring(1);
-                    cleanTarget = `${num}@s.whatsapp.net`;
-                  }
-                  const sent = await sock.sendMessage(cleanTarget, { text: msg });
-                  if (sent?.key?.id) sentMessageIds.add(sent.key.id);
-                  return { success: true };
-                } catch (e: any) {
-                  return { success: false, reason: e.message };
-                }
-              },
-            });
-
-            if (autoNumberRes.handled) {
-              addLog(`📱 [AUTO-INVITE-PRIVATE] Berhasil memproses nomor telepon / kontak via chat pribadi dari ${senderName}`, "success");
-              continue;
-            }
-          } catch (autoErr: any) {
-            addLog(`⚠️ [AUTO-INVITE-PRIVATE-ERR] ${autoErr.message}`, "warn");
-          }
 
           try {
             await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});

@@ -168,6 +168,10 @@ OUTPUT FORMAT (JSON ONLY):
 
 /**
  * Mengirim pesan japri undangan personal ke nomor alumni yang belum terdaftar
+ * DILINDUNGI STRICT ANTI-BAN POLICY:
+ * WhatsApp / Meta langsung memblokir akun yang mengirim pesan cold DM sepihak berisi tautan/link
+ * kepada nomor yang belum pernah mengirim chat ke bot.
+ * Oleh karena itu, bot TIDAK BOLEH menjapri pihak ketiga tanpa inisiasi dari pengguna tersebut.
  */
 export async function sendDirectAlumniInvitation(
   targetPhone: string,
@@ -175,48 +179,14 @@ export async function sendDirectAlumniInvitation(
   sharedByName: string,
   customSender?: (targetPhone: string, message: string) => Promise<{ success: boolean; reason?: string }>
 ): Promise<{ success: boolean; reason?: string }> {
-  const refCode = `EG43-${Math.floor(1000 + Math.random() * 9000)}`;
-  const greetingName = candidateName ? `*${candidateName}*` : "sahabat";
-
-  const message =
-    `Assalamu'alaikum Warahmatullahi Wabarakatuh, Sahabat ${greetingName}! ✨\n\n` +
-    `Salam silaturahmi hangat dari keluarga besar *Expedient Generation 43 (Alumni Pondok Modern Arrisalah Slahung Ponorogo, Angkatan 2025)*.\n\n` +
-    `Nomor WhatsApp antum baru saja dibagikan oleh Sahabat *${sharedByName || "Sahabat Angkatan"}* di grup WhatsApp silaturahmi kita.\n\n` +
-    `Yuk luangkan 1 menit untuk melengkapi profil & bergabung di portal direktori resmi alumni angkatan kita di:\n` +
-    `👉 *https://expedientgeneration.vercel.app/register*\n\n` +
-    `Di portal ini antum bisa:\n` +
-    `• Mengisi biodata, domisili, & profesi direktori alumni se-Indonesia\n` +
-    `• Mengakses kalender milad sahabat & agenda reuni akbar\n` +
-    `• Bergabung dalam Baitul Maal & transparansi kas ta'awun angkatan\n\n` +
-    `_Pesan otomatis asisten resmi Expedient Generation 43._\n` +
-    `*(Catatan: Jika antum bukan sahabat alumni angkatan 43 atau terdapat kekeliruan pembagian nomor, kami memohon maaf sebesar-besarnya atas ketidaknyamanan ini dan pesan ini dapat diabaikan ya Akhi/Ukhti).*\n` +
-    `_Ref: #${refCode}_`;
-
-  let sendRes: { success: boolean; reason?: string };
-  if (customSender) {
-    sendRes = await customSender(targetPhone, message);
-  } else {
-    sendRes = await sendWhatsAppMessageWithDetail(targetPhone, message);
-  }
-
-  // Catat riwayat pengiriman ke database whatsapp_queue untuk deduplikasi
-  try {
-    const supabase = createAdminClient();
-    await supabase.from("whatsapp_queue").insert([
-      {
-        no_whatsapp: targetPhone,
-        message: `[AUTO-INVITE JAPRI - ${refCode}] Untuk ${candidateName || "Alumni"} (Dibagikan oleh: ${sharedByName})`,
-        status: sendRes.success ? "sent_invite" : "failed_invite",
-        error_message: sendRes.success ? null : sendRes.reason,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      },
-    ]);
-  } catch (logErr) {
-    console.warn("[LOG-AUTO-INVITE-ERR]:", logErr);
-  }
-
-  return sendRes;
+  console.warn(
+    `[ANTI-BAN-POLICY] Menolak pengiriman cold DM ajakan registrasi ke ${targetPhone}. ` +
+    `Alasan: Meta mendeteksi cold DM ke nomor asing sebagai spam broadcast yang memicu pemblokiran nomor bot.`
+  );
+  return {
+    success: false,
+    reason: "Pengiriman pesan pribadi dingin (cold DM) dinonaktifkan permanen demi perlindungan anti-ban WhatsApp.",
+  };
 }
 
 export interface ExtractedContact {
@@ -468,32 +438,12 @@ export async function handleAutomaticGroupNumberDetection(options: {
         continue;
       }
 
-      // Jika belum terdaftar:
-      const alreadySent = await isAlreadyInvitedRecently(targetPhone);
-      if (alreadySent) {
-        reports.push(
-          validContacts.length === 1
-            ? `ℹ️ Kontak Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di web, dan sebelumnya sudah pernah ana japri link registrasi ya sahabat! 🙌`
-            : `• Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}): Belum terdaftar (sudah pernah dijapri link pendaftaran) 🙌`
-        );
-        continue;
-      }
-
-      // Eksekusi Japri Undangan
-      const inviteRes = await sendDirectAlumniInvitation(targetPhone, cleanCandidateName, senderName, customSender);
-      if (inviteRes.success) {
-        reports.push(
-          validContacts.length === 1
-            ? `Alhamdulillah! Kontak Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di web angkatan, sudah otomatis ana japri link pendaftarannya ya! 🙌✨\n_Pesan ajakan registrasi terkirim via jalur pribadi._`
-            : `• Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}): Belum terdaftar, sudah otomatis ana japri link pendaftarannya! 🙌✨`
-        );
-      } else {
-        reports.push(
-          validContacts.length === 1
-            ? `Kontak Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di web angkatan. (Gagal kirim japri: ${inviteRes.reason || "Kendala gateway"}).`
-            : `• Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}): Belum terdaftar (kendala japri: ${inviteRes.reason || "Gateway timeout"})`
-        );
-      }
+      // Jika belum terdaftar: cukup laporkan secara informatif tanpa pernah mengirim cold DM sepihak
+      reports.push(
+        validContacts.length === 1
+          ? `ℹ️ Kontak Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di website angkatan. Silakan ajak beliau bergabung ya sahabat! 🙌✨`
+          : `• Sahabat *${cleanCandidateName}* (${formatPhoneDisplay(targetPhone)}): Belum terdaftar di web angkatan 🙌`
+      );
     }
 
     if (reports.length > 0) {
@@ -522,27 +472,9 @@ export async function handleAutomaticGroupNumberDetection(options: {
       const cleanFallback = messageText.replace(/[^\w\s]/g, "").trim().slice(0, 30);
       const finalName = candidateName || cleanFallback;
 
-      // Cek apakah nomor ini sudah pernah dijapri (baik di DB maupun memori), cegah spam ganda
-      const alreadySent = await isAlreadyInvitedRecently(targetPhone);
-      if (alreadySent) {
-        const skipMsg =
-          `ℹ️ Sahabat *${finalName}* (${formatPhoneDisplay(targetPhone)}) sebelumnya sudah pernah ana japri link pendaftaran website angkatan ya! 🙌✨`;
-        await sendTargetMessage(skipMsg);
-        return { handled: true, replyText: skipMsg };
-      }
-
-      // Eksekusi Japri Undangan
-      const inviteRes = await sendDirectAlumniInvitation(targetPhone, finalName, senderName, customSender);
-
-      let confirmationMsg = "";
-      if (inviteRes.success) {
-        confirmationMsg =
-          `Alhamdulillah! Nomor Sahabat *${finalName}* (${formatPhoneDisplay(targetPhone)}) sudah otomatis ana japri link pendaftaran website angkatan ya! 🙌✨\n` +
-          `Jazakallahu khair Sahabat *${senderName}* atas infonya! 🤝`;
-      } else {
-        confirmationMsg =
-          `Afwan Sahabat *${senderName}*, sempat ada kendala teknis saat menjapri Sahabat *${finalName}* (${formatPhoneDisplay(targetPhone)}): ${inviteRes.reason || "Gateway timeout"}.`;
-      }
+      const confirmationMsg =
+        `ℹ️ Nomor Sahabat *${finalName}* (${formatPhoneDisplay(targetPhone)}) belum terdaftar di website angkatan. Silakan ajak beliau bergabung ya sahabat! 🙌✨\n` +
+        `Jazakallahu khair Sahabat *${senderName}* atas infonya! 🤝`;
 
       await sendTargetMessage(confirmationMsg);
       return { handled: true, replyText: confirmationMsg };
@@ -634,41 +566,15 @@ export async function handleAutomaticGroupNumberDetection(options: {
 
   // KASUS A: NAMA ALUMNI TERDETEKSI (Langsung Eksekusi Japri Otomatis!)
   if (candidateName) {
-    const alreadySent = await isAlreadyInvitedRecently(targetPhone);
-
-    if (alreadySent) {
-      const skipMsg =
-        `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di web, dan sebelumnya sudah pernah ana japri link registrasi ya sahabat! 🙌`;
-      await sendTargetMessage(skipMsg);
-      return { handled: true, replyText: skipMsg };
-    }
-
-    // Eksekusi Japri Undangan Otomatis
-    const inviteRes = await sendDirectAlumniInvitation(targetPhone, candidateName, senderName, customSender);
-
-    let confirmationMsg = "";
-    if (inviteRes.success) {
-      confirmationMsg =
-        `Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di web angkatan, sudah otomatis ana japri link pendaftarannya ya! 🙌\n` +
-        `_Pesan ajakan registrasi terkirim via jalur pribadi._`;
-    } else {
-      confirmationMsg =
-        `Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di web angkatan. (Gagal kirim japri: ${inviteRes.reason || "Kendala gateway"}).`;
-    }
-
+    const confirmationMsg =
+      `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di web angkatan kita. Sahabat bisa mengajak beliau mendaftar di https://expedientgeneration.vercel.app/register ya! 🙌✨`;
     await sendTargetMessage(confirmationMsg);
     return { handled: true, replyText: confirmationMsg };
   }
 
   // KASUS B: NOMOR POLOS TANPA NAMA & TANPA PETUNJUK OBROLAN
-  // Minta konfirmasi ramah 1 langkah di grup / chat pribadi
-  const promptNameMsg = isPrivateChat
-    ? `Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di web angkatan kita nih. 🤔\n` +
-      `Ini nomornya siapa ya Sahabat *${senderName}*?\n\n` +
-      `Cukup balas pesan ini dengan menyebut namanya (misal: _'punya Danang'_), biar langsung ana japri link pendaftaran portal resminya! 🙌✨`
-    : `Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di web angkatan kita nih. 🤔\n` +
-      `Ini nomornya siapa ya Sahabat *${senderName}*?\n\n` +
-      `Cukup *balas (reply)* pesan ini dengan menyebut namanya (misal: _'punya Danang'_), biar langsung ana japri link pendaftaran portal resminya! 🙌✨`;
+  const promptNameMsg =
+    `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di web angkatan kita. Sahabat bisa mengajak beliau mendaftar di https://expedientgeneration.vercel.app/register ya! 🙌✨`;
 
   await sendTargetMessage(promptNameMsg);
   return { handled: true, replyText: promptNameMsg };
