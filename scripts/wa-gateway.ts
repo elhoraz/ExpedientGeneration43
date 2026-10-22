@@ -524,7 +524,7 @@ async function startBaileysGateway() {
       const nextPollMsg = await sendPoll(groupId, poll.name, poll.values, 1);
       if (nextPollMsg?.key?.id) {
         const nextEncKey = nextPollMsg.message?.messageContextInfo?.messageSecret;
-        const bPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");
+        const bPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6289675010185").replace(/\D/g, "");
         registerKaburPoll(
           nextPollMsg.key.id,
           groupId,
@@ -1313,7 +1313,7 @@ async function startBaileysGateway() {
 
         const senderName = m.pushName || "Sahabat";
 
-        const botPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");
+        const botPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6289675010185").replace(/\D/g, "");
         const botShortPhone = botPhone.slice(-9);
         const botLid = sock.user?.lid ? sock.user.lid.split(":")[0].replace(/\D/g, "") : "";
         const botUserId = sock.user?.id ? sock.user.id.split(":")[0].replace(/\D/g, "") : "";
@@ -2567,7 +2567,7 @@ const healthServer = http.createServer(async (req, res) => {
     req.on("end", async () => {
       try {
         const parsed = JSON.parse(body || "{}");
-        const phone = (parsed.phone || "6285151771289").replace(/\D/g, "");
+        const phone = (parsed.phone || "6289675010185").replace(/\D/g, "");
         if (!currentSock) {
           res.writeHead(400, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ success: false, error: "Socket belum siap" }));
