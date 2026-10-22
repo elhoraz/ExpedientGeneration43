@@ -81,7 +81,7 @@ import {
   getDeveloperSupportMessage,
   checkAndTriggerWeeklySystemMaintenance,
 } from "../src/lib/whatsapp/developerSupport";
-import { getCommunityGroupId } from "../src/lib/whatsapp";
+import { getCommunityGroupId, getOfficialGroupId } from "../src/lib/whatsapp";
 import {
   backupSessionToSupabase,
   restoreSessionFromSupabase,
@@ -115,6 +115,9 @@ import {
 import {
   handlePrivateMenfessMessage,
   toggleMenfessOptOut,
+  registerLidPhoneMapping,
+  getPhoneFromLid,
+  SITE_PORTAL_URL,
 } from "../src/lib/whatsapp/menfessEngine";
 import {
   checkAndTriggerFridayBlessing,
@@ -1183,8 +1186,28 @@ async function startBaileysGateway() {
 
       // Cadangkan sesi ke Supabase Storage secara otomatis saat terhubung
       backupSessionToSupabase(AUTH_FOLDER).catch(() => {});
+
+      // Muat pemetaan LID ke nomor WhatsApp asli dari peserta grup komunitas
+      refreshGroupLidCache().catch(() => {});
     }
   });
+
+  // Helper sinkronisasi pemetaan LID -> Nomor HP asli
+  const refreshGroupLidCache = async () => {
+    try {
+      const gids = [getCommunityGroupId(), getOfficialGroupId()].filter(Boolean);
+      for (const gid of gids) {
+        const meta = await sock.groupMetadata(gid).catch(() => null);
+        if (meta?.participants) {
+          for (const p of meta.participants) {
+            if (p.id && (p as any).lid) {
+              registerLidPhoneMapping((p as any).lid, p.id);
+            }
+          }
+        }
+      }
+    } catch (_) {}
+  };
 
   // ===========================================================================
   // LISTENER PANGGILAN TELEPON MASUK (CALL AUTO-REJECT & PESAN SANTUN)
@@ -1260,8 +1283,34 @@ async function startBaileysGateway() {
         }
 
         const isGroup = remoteJid.endsWith("@g.us");
-        const participantRaw = isGroup ? m.key.participant || remoteJid : remoteJid;
+        let participantRaw = isGroup ? m.key.participant || remoteJid : remoteJid;
+
+        // Cek alternatif PN JID yang disediakan Baileys jika pesan menggunakan LID
+        const altJid = (m.key as any).remoteJidAlt || (m.key as any).participantAlt || (m as any).participant;
+        if (participantRaw.endsWith("@lid") && altJid && altJid.includes("@s.whatsapp.net")) {
+          registerLidPhoneMapping(participantRaw, altJid);
+          participantRaw = altJid;
+        }
+
         let senderPhone = participantRaw.replace(/\D/g, "");
+
+        // Jika participantRaw adalah LID (panjang >= 14 digit), coba resolusikan ke nomor HP asli
+        if (participantRaw.endsWith("@lid") || senderPhone.length >= 14) {
+          const mapped = getPhoneFromLid(senderPhone);
+          if (mapped) {
+            senderPhone = mapped;
+          } else {
+            try {
+              const signalPn = await (sock as any).signalRepository?.lidMapping?.getPNForLID(participantRaw);
+              if (signalPn && signalPn.includes("@s.whatsapp.net")) {
+                const normSignal = signalPn.replace(/:\d+@/, "@").replace(/\D/g, "");
+                senderPhone = normSignal;
+                registerLidPhoneMapping(participantRaw, normSignal);
+              }
+            } catch (_) {}
+          }
+        }
+
         const senderName = m.pushName || "Sahabat";
 
         const botPhone = (sock.user?.id?.split(":")[0] || pairingPhoneArg || process.env.WA_BOT_PHONE || "6285151771289").replace(/\D/g, "");

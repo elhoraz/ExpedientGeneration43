@@ -68,17 +68,47 @@ export function toggleMenfessOptOut(phone: string, optOut: boolean): string {
   }
 }
 
+export const SITE_PORTAL_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
+
+// Mapping LID WhatsApp (15-16 digit) ke Nomor HP Asli (628xxx)
+const lidToPhoneMap = new Map<string, string>();
+
+export function registerLidPhoneMapping(lid: string, phone: string): void {
+  const normLid = normalizePhone(lid);
+  const normPhone = normalizePhone(phone);
+  if (normLid && normPhone && normPhone.length <= 14 && normLid !== normPhone) {
+    lidToPhoneMap.set(normLid, normPhone);
+  }
+}
+
+export function getPhoneFromLid(lid: string): string | undefined {
+  const normLid = normalizePhone(lid);
+  return lidToPhoneMap.get(normLid);
+}
+
 /**
  * Verifikasi apakah pengirim terdaftar di database website (profiles Supabase)
+ * Mendukung pencocokan nomor langsung, LID WhatsApp, dan nama alumni terdaftar
  */
-export async function verifySenderRegistration(senderPhone: string): Promise<{
+export async function verifySenderRegistration(
+  senderPhone: string,
+  senderName?: string
+): Promise<{
   isRegistered: boolean;
   profileName?: string;
   profileId?: string;
+  resolvedPhone?: string;
 }> {
   try {
     const supabase = createAdminClient();
-    const cleanPhone = normalizePhone(senderPhone);
+    let cleanPhone = normalizePhone(senderPhone);
+
+    // 1. Cek dari mapping cache LID -> Nomor HP asli
+    const mappedPhone = lidToPhoneMap.get(cleanPhone);
+    if (mappedPhone) {
+      cleanPhone = mappedPhone;
+    }
+
     const localPhone = cleanPhone.startsWith("62") ? "0" + cleanPhone.substring(2) : cleanPhone;
     const shortPhone = cleanPhone.slice(-9);
 
@@ -88,20 +118,49 @@ export async function verifySenderRegistration(senderPhone: string): Promise<{
       .or(`no_whatsapp.eq.${cleanPhone},no_whatsapp.eq.${localPhone},no_whatsapp.ilike.%${shortPhone}%`)
       .limit(1);
 
-    if (error || !profiles || profiles.length === 0) {
-      return { isRegistered: false };
+    if (profiles && profiles.length > 0) {
+      const p = profiles[0];
+      const profileName = p.nama_panggilan || p.nama_lengkap || "Sahabat Santri";
+      const actualPhone = normalizePhone(p.no_whatsapp);
+      if (cleanPhone !== actualPhone) {
+        lidToPhoneMap.set(normalizePhone(senderPhone), actualPhone);
+      }
+      return {
+        isRegistered: true,
+        profileName,
+        profileId: p.id,
+        resolvedPhone: actualPhone,
+      };
     }
 
-    const p = profiles[0];
-    const profileName = p.nama_panggilan || p.nama_lengkap || "Sahabat Santri";
-    return {
-      isRegistered: true,
-      profileName,
-      profileId: p.id,
-    };
+    // 2. Jika nomor adalah LID (>= 14 digit) dan ada nama pengirim (pushName WA)
+    // Coba cocokkan dengan nama_panggilan atau nama_lengkap di profiles
+    if (cleanPhone.length >= 14 && senderName && senderName.trim().length >= 3) {
+      const cleanName = senderName.trim().replace(/[@#]/g, "");
+      const { data: nameMatches } = await supabase
+        .from("profiles")
+        .select("id, nama_lengkap, nama_panggilan, no_whatsapp")
+        .not("no_whatsapp", "is", null)
+        .or(`nama_panggilan.ilike.%${cleanName}%,nama_lengkap.ilike.%${cleanName}%`)
+        .limit(2);
+
+      if (nameMatches && nameMatches.length === 1) {
+        const p = nameMatches[0];
+        const profileName = p.nama_panggilan || p.nama_lengkap || senderName;
+        const actualPhone = normalizePhone(p.no_whatsapp);
+        lidToPhoneMap.set(cleanPhone, actualPhone);
+        return {
+          isRegistered: true,
+          profileName,
+          profileId: p.id,
+          resolvedPhone: actualPhone,
+        };
+      }
+    }
+
+    return { isRegistered: false };
   } catch (err: any) {
     console.warn("[MENFESS-VERIFY-ERR]:", err.message);
-    // Jika koneksi DB bermasalah sementara, jangan blokir total jika nomor valid
     return { isRegistered: false };
   }
 }
@@ -451,7 +510,7 @@ export async function handlePrivateMenfessMessage(options: {
   incomingContacts?: ContactAttachment[];
 }): Promise<MenfessHandleResult> {
   const { senderPhone, senderName, messageText, incomingContacts } = options;
-  const normSenderPhone = normalizePhone(senderPhone);
+  let normSenderPhone = normalizePhone(senderPhone);
   const now = Date.now();
   const lower = messageText.toLowerCase().trim();
 
@@ -642,19 +701,26 @@ export async function handlePrivateMenfessMessage(options: {
 
   // PENGIRIM TERDETEKSI INGIN TITIP SALAM:
   // Langkah Pertama: Verifikasi Keanggotaan Website (Gatekeeper)
-  const verification = await verifySenderRegistration(normSenderPhone);
+  const verification = await verifySenderRegistration(normSenderPhone, senderName);
   if (!verification.isRegistered) {
+    const isLid = normSenderPhone.length >= 14;
+    const phoneDisplay = isLid ? "" : ` (*${normSenderPhone}*)`;
     return {
       handled: true,
       replyToSender:
         `Assalamu'alaikum sahabat! 👋\n\n` +
         `Fitur *Titip Salam / Menfess* ke grup ini adalah fasilitas khusus untuk *Alumni Angkatan* yang telah terdata di website resmi demi menjaga ketertiban komunitas.\n\n` +
-        `Nomor WhatsApp antum saat ini (*${normSenderPhone}*) belum terdaftar di database portal alumni.\n\n` +
+        `Nomor WhatsApp antum saat ini${phoneDisplay} belum terverifikasi di database portal alumni.\n\n` +
         `Yuk, lengkapi data antum terlebih dahulu di:\n` +
-        `🔗 *https://expedient43.com/register* (atau login jika sudah punya akun)\n\n` +
+        `🔗 *${SITE_PORTAL_URL}/register* (atau login jika sudah punya akun)\n\n` +
         `💡 *Sudah punya akun tapi nomornya berbeda?*\n` +
-        `Silakan login ke *https://expedient43.com/profil* lalu perbarui nomor WhatsApp aktif antum, atau hubungi admin angkatan ya! Barâkallâhu fîk. 🙏✨`,
+        `Silakan login ke *${SITE_PORTAL_URL}/profil* lalu perbarui nomor WhatsApp aktif antum, atau hubungi admin angkatan ya! Barâkallâhu fîk. 🙏✨`,
     };
+  }
+
+  // Jika nomor asli berhasil di-resolve dari pemetaan LID
+  if (verification.resolvedPhone) {
+    normSenderPhone = verification.resolvedPhone;
   }
 
   // Jika sudah terdaftar, inisialisasi draf baru

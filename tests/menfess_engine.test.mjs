@@ -65,6 +65,20 @@ describe('Menfess & Titip Salam Engine Test Suite', () => {
     assert.strictEqual(res.handled, true);
     assert.ok(res.replyToSender);
     assert.match(res.replyToSender, /fasilitas khusus untuk \*Alumni Angkatan\*/);
-    assert.match(res.replyToSender, /https:\/\/expedient43\.com\/register/);
+    assert.match(res.replyToSender, /https:\/\/expedientgeneration\.vercel\.app\/register/);
+  });
+
+  it('MUST verify registered alumni even when chatting with LID via name matching', async () => {
+    const mockLid = '105240321908772';
+    const res = await handlePrivateMenfessMessage({
+      senderPhone: mockLid,
+      senderName: 'Muhammad Nur Taufiqi',
+      messageText: 'bot kamu bisa kirim chat ke grup ga?',
+    });
+
+    assert.strictEqual(res.handled, true);
+    assert.ok(res.replyToSender);
+    assert.match(res.replyToSender, /Bisa banget Sahabat/);
+    assert.match(res.replyToSender, /Elhoraz|Muhammad Nur Taufiqi/);
   });
 });
