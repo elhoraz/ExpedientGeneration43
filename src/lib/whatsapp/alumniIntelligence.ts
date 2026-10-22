@@ -184,6 +184,21 @@ export async function resolveCohortContext(
       };
     }
 
+    // 1b. TANYA HARI SANTRI / HARI BESAR ISLAM
+    if (
+      lower.includes("hari santri") ||
+      (lower.includes("santri") && (lower.includes("kapan") || lower.includes("kpn") || lower.includes("tgl") || lower.includes("tanggal")))
+    ) {
+      return {
+        category: "agenda",
+        summary:
+          `FAKTA HARI SANTRI NASIONAL (HSN):\n` +
+          `• Hari Santri Nasional diperingati setiap tanggal 22 Oktober.\n` +
+          `• Mengenang Resolusi Jihad 22 Oktober 1945 oleh Hadratus Syekh KH Hasyim Asy'ari.\n` +
+          `Jawablah dengan lugas, santai, dan akrab ala santri Arrisalah!`,
+      };
+    }
+
     // 2. TANYA ULANG TAHUN / MILAD (HARI INI / BULAN INI / TERDEKAT)
     if (
       lower.includes("ultah") ||
@@ -956,16 +971,30 @@ STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
     console.warn("[INTELLIGENT-REPLY-GEMINI-WARN]:", err.message);
   }
 
-  // Fallback tangkas jika AI offline
+  // Fallback tangkas jika AI offline / rate limit
+  if (fact.category === "agenda") {
+    const mainFact = fact.summary.split("\n").find((l) => l.startsWith("•"))?.replace("•", "").trim();
+    return `📅 ${mainFact || "Hari Santri Nasional diperingati setiap tanggal 22 Oktober ya sahabat! 🙌✨"}`;
+  }
   if (fact.category === "birthday") {
     return `🎂 ${fact.summary.split("\n")[1] || "Ada sahabat kita yang milad! Barakallahu fii umrik."}`;
   }
   if (fact.category === "baitul_maal") {
-    return `💰 Saldo kas Baitul Maal Expedient 43 saat ini terverifikasi di sistem. Info selengkapnya bisa dicek transparan di https://expedientgeneration.vercel.app/baitul-maal ya!`;
+    return `💰 Saldo kas Baitul Maal Expedient 43 saat ini terverifikasi di sistem. Info selengkapnya bisa dicek transparan di portal kas angkatan ya!`;
   }
   if (fact.category === "profile" && fact.data) {
     const p = Array.isArray(fact.data) ? fact.data[0] : fact.data;
-    return `Sahabat *${p.nama_panggilan || p.nama_lengkap}* berasal dari ${p.alamat_lengkap || "Ponorogo"}. Profil lengkapnya ada di https://expedientgeneration.vercel.app/direktori ya!`;
+    return `Sahabat *${p.nama_panggilan || p.nama_lengkap}* domisili di ${p.alamat_lengkap || "Ponorogo"}.`;
   }
-  return `Halo Sahabat *${senderName}*! Ada yang bisa kubantu seputar info kawan-kawan Expedient 43? Silakan cek juga direktori kita di https://expedientgeneration.vercel.app ya!`;
+
+  // Jika pesan di grup: respons singkat dan natural, JANGAN spam website URL yang sama terus!
+  const lowerMsgText = messageText.toLowerCase();
+  if (isGroup) {
+    if (lowerMsgText.includes("halo") || lowerMsgText.includes("hai") || lowerMsgText.includes("tes")) {
+      return `Halo juga Sahabat *${senderName}*! Ada yang bisa dibantu untuk kawan-kawan? 😊🙌`;
+    }
+    return `Iya Sahabat *${senderName}*! Ada yang mau ditanyakan atau diobrolin seputar angkatan kita? 😊`;
+  }
+
+  return `Halo Sahabat *${senderName}*! Ada yang bisa kubantu seputar info kawan-kawan Expedient 43? Silakan tanyakan ya! 😊`;
 }

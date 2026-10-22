@@ -52,17 +52,19 @@ export async function callGeminiResilient(
     return 0;
   });
 
-  // Model cerdas unggulan (Top-Tier Flash AI). Prioritas utama Gemini 3.8 Flash!
+  // Model cerdas unggulan (Top-Tier Flash AI). Prioritas utama Gemini 3 Flash Preview & Gemini 3.8 Flash!
   const modelsToTry = [
-    "gemini-3.8-flash",
     preferredModel,
+    "gemini-3-flash-preview",
+    "gemini-3.8-flash",
     "gemini-3.8-flash-lite",
     "gemini-3.7-flash",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
     "gemini-flash-latest",
   ]
-    .filter((m): m is string => Boolean(m && !m.includes("3.1") && !m.includes("2.5") && !m.includes("lite-preview")))
+    .filter((m): m is string => Boolean(m && !m.includes("lite-preview") && m !== "gemini-2.5-flash" && m !== "gemini-2.5-flash-lite"))
     .filter((m, idx, arr) => arr.indexOf(m) === idx);
 
   // Sanitize payload: model flash tidak memerlukan thinkingConfig dengan budget 0
@@ -112,7 +114,7 @@ export async function callGeminiResilient(
 
         // If 429 (Rate limit / Quota pada akun ini untuk model ini), beri cooldown dan rotasi ke akun berikutnya
         if (errStatus === 429) {
-          keyCooldownMap.set(`${currentKey}:${model}`, Date.now() + 60_000);
+          keyCooldownMap.set(`${currentKey}:${model}`, Date.now() + 20_000);
           console.warn(`[GEMINI-POOL]: ${keyLabel} limit 429 pada ${model}. Beralih ke akun berikutnya...`);
           continue;
         }

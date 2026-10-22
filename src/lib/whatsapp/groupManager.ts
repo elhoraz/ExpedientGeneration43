@@ -349,19 +349,38 @@ export async function rejectPendingBroadcast(
 
 /**
  * Filter Cerdas: Memeriksa apakah bot harus merespons di dalam grup WhatsApp bebas
+ * Menghindari bot ikut nimbrung saat anggota sedang mengobrol santai sesama mereka.
  */
 export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = false): boolean {
-  if (isQuotedFromBot) {
-    return true;
-  }
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot SPESIFIK (JANGAN lower.includes("@") acak agar tidak nimbrung chat sesama anggota!)
+  // 1. FILTER DISMISSIF / SHORT FILLER (ANTI-LOOP MUTLAK):
+  // Jika me-reply bot tapi isinya hanya tawa, persetujuan singkat, keluhan mager, atau menyuruh diam: JANGAN BALAS!
+  const isDismissiveOrFiller =
+    /^(y|ya|iya|ok|oke|sip|siap|mager|ho|oh|udh|udah|wkwk|wkwkwk|haha|hehe|hihi|anjeng|anjing|bodo|serah|diem|stop|cukup|dah|g|gak|nggak|enggak|bruh)[!.,? ]*$/i.test(lower) ||
+    lower.includes("mager") ||
+    lower.includes("bodo amat") ||
+    lower.includes("terserah") ||
+    lower.includes("diem lu") ||
+    lower.includes("bacot") ||
+    lower.includes("berisik") ||
+    lower.includes("baru tau gw") ||
+    lower.includes("bru tau gw") ||
+    lower.includes("itu trs yg lu chet") ||
+    lower.includes("udah ya udah") ||
+    lower.includes("udah ya udh");
+
+  if (isDismissiveOrFiller) {
+    return false;
+  }
+
+  // 2. Tag / Mention Bot SPESIFIK (@bot, @89675010185, @min, @admin, @expedient, LID)
   if (
     lower.includes("105240321908772") ||
     lower.includes("85151771289") ||
     lower.includes("89675010185") ||
+    lower.includes("124005000474772") ||
     lower.includes("@bot") ||
     lower.includes("@min") ||
     lower.includes("@admin") ||
@@ -370,17 +389,16 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     return true;
   }
 
-  // 2. Command Prefix (!, /, ?, #)
+  // 3. Command Prefix (!, /, #)
   if (
     messageText.startsWith("!") ||
     messageText.startsWith("/") ||
-    messageText.startsWith("?") ||
     messageText.startsWith("#")
   ) {
     return true;
   }
 
-  // 3. Panggilan eksplisit kepada bot di awal kalimat atau panggilan sapaan bot
+  // 4. Panggilan eksplisit kepada bot di awal kalimat
   if (
     lower === "tes bot" ||
     lower === "test bot" ||
@@ -395,86 +413,45 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     lower === "bot" ||
     lower === "min" ||
     lower.startsWith("assalamu'alaikum bot") ||
-    lower.startsWith("assalamualaikum bot") ||
-    /(^|\s)(bot|min)[?!,.]*$/i.test(lower)
+    lower.startsWith("assalamualaikum bot")
   ) {
     return true;
   }
 
-  // 4. Filter Anti-Spam: Cegah bot nimbrung ucapan selamat ulang tahun / milad santai antar sesama anggota!
-  const isCasualBirthdayGreeting =
-    lower.includes("selamat ulang tahun") ||
-    lower.includes("selamat milad") ||
-    lower.includes("barakallah") ||
-    lower.includes("mabruk") ||
-    lower.includes("hbd") ||
-    lower.includes("met ultah") ||
-    lower.includes("traktir") ||
-    lower.includes("lagi ultah") ||
-    lower.includes("ultah ke") ||
-    lower.includes("milad ke");
-
-  if (isCasualBirthdayGreeting && !isQuotedFromBot) {
-    const hasExplicitBotCall =
-      messageText.startsWith("!") ||
-      messageText.startsWith("/") ||
-      lower.includes("@bot") ||
-      lower.includes("@min") ||
-      lower.includes("@admin") ||
-      lower.startsWith("bot ") ||
-      lower.startsWith("min ");
-
-    if (!hasExplicitBotCall) {
+  // 5. Jika me-reply pesan bot (quoted from bot), pastikan ada pertanyaan nyata atau panggilan bot
+  if (isQuotedFromBot) {
+    const hasQuestionOrBotCall =
+      lower.includes("?") ||
+      lower.includes("bot") ||
+      lower.includes("min") ||
+      lower.startsWith("siapa") ||
+      lower.startsWith("kapan") ||
+      lower.startsWith("kenapa") ||
+      lower.startsWith("gimana") ||
+      lower.startsWith("tolong") ||
+      lower.startsWith("coba");
+    if (!hasQuestionOrBotCall) {
       return false;
     }
+    return true;
   }
 
-  // 5. Pertanyaan Faktual Terarah, Permintaan Pembuatan Stiker, Suara / VN, & Poster / Desain
+  // 6. Pertanyaan eksplisit tentang data angkatan / alumni yang terarah
   if (
-    lower.startsWith("siapa ") ||
-    lower.startsWith("siapakah ") ||
-    lower.startsWith("kapan ") ||
-    lower.startsWith("info ") ||
-    lower.startsWith("profil ") ||
-    lower.startsWith("jadwal ") ||
-    lower.startsWith("buatkan ") ||
-    lower.startsWith("bikin ") ||
-    lower.startsWith("desainkan ") ||
-    lower.startsWith("gambar ") ||
-    lower.startsWith("poster ") ||
-    lower.includes("stiker") ||
-    lower.includes("sticker") ||
-    lower.includes("jadikan foto") ||
-    lower.includes("jadiin foto") ||
-    lower.includes("pake suara") ||
-    lower.includes("pakai suara") ||
-    lower.includes("pake vn") ||
-    lower.includes("pakai vn") ||
-    lower.includes("ngomong") ||
-    lower.includes("suara") ||
-    lower.includes("buatkan poster") ||
-    lower.includes("bikin poster") ||
-    lower.includes("buat poster") ||
-    lower.includes("desain poster") ||
+    lower.includes("ketua angkatan") ||
     lower.includes("siapa zaki") ||
     lower.includes("siapa elhora") ||
-    lower.includes("ketua angkatan") ||
-    lower.includes("kuis") ||
-    lower.includes("tebak santri") ||
-    lower.includes("leaderboard") ||
-    // Pertanyaan eksplisit agenda/siapa yang milad atau ultah (BUKAN ucapan selamat)
-    ((lower.includes("siapa") || lower.includes("kapan") || lower.includes("info") || lower.includes("jadwal") || lower.includes("daftar")) &&
-      (lower.includes("ultah") || lower.includes("milad") || lower.includes("ulang tahun"))) ||
-    lower.includes("mahfudzot") ||
-    lower.includes("hadits") ||
-    lower.includes("sunnah jumat") ||
-    lower.includes("kesimpulan") ||
-    lower.includes("rangkum") ||
-    lower.includes("rekap") ||
-    lower.includes("apa yang diomongin") ||
-    lower.includes("apa yg diomongin") ||
+    lower.includes("siapa taufiqi") ||
+    lower.includes("jadwal reuni") ||
+    lower.includes("kas angkatan") ||
+    lower.includes("saldo baitul") ||
+    lower.includes("hari santri") ||
+    lower.includes("kesimpulan obrolan") ||
+    lower.includes("rangkum obrolan") ||
     lower.includes("lagi bahas apa") ||
-    lower.includes("ngomongin apa")
+    lower.includes("rekap obrolan") ||
+    lower.includes("tebak santri") ||
+    lower.includes("kuis santri")
   ) {
     return true;
   }

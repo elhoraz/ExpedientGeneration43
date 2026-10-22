@@ -1520,6 +1520,7 @@ async function startBaileysGateway() {
             num.endsWith(botShortPhone) ||
             num.includes("85151771289") ||
             num.includes("89675010185") ||
+            num.includes("124005000474772") ||
             (botLid && j.includes(botLid))
           );
         });
@@ -1528,9 +1529,10 @@ async function startBaileysGateway() {
           (botPhone && (quotedParticipant === botPhone || quotedParticipant.endsWith(botShortPhone))) ||
           quotedParticipant.includes("85151771289") ||
           quotedParticipant.includes("89675010185") ||
+          quotedParticipant.includes("124005000474772") ||
           (botLid && quotedParticipant === botLid);
 
-        // Di grup: bot merespons jika di-mention ATAU jika pesan bot sebelumnya di-quote!
+        // Di grup: bot merespons jika di-mention ATAU jika pesan bot sebelumnya di-quote secara substantif!
         const isDirectlyAddressed = isBotMentioned || isBotQuoted;
 
         const quotedMsgRaw = contextInfo?.quotedMessage;
@@ -2347,7 +2349,8 @@ async function startBaileysGateway() {
               addLog(`⚠️ [AUTO-INVITE-GROUP-ERR] ${autoErr.message}`, "warn");
             }
 
-            if (isDirectlyAddressed || shouldGroupBotRespond(messageText)) {
+            const shouldRespondInCommunity = isBotMentioned || shouldGroupBotRespond(messageText, Boolean(isBotQuoted));
+            if (shouldRespondInCommunity) {
               addLog(`👥 [COMMUNITY-GROUP] Membalas di Grup Komunitas...`);
               await sock.sendPresenceUpdate("composing", remoteJid).catch(() => {});
               try {
