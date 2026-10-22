@@ -10,12 +10,13 @@ const keyCooldownMap = new Map<string, number>();
 // User pool keys (5 accounts + defaults, base64 encoded to protect repository security)
 // User pool keys (5 accounts + defaults, base64 encoded to protect repository security)
 const BUILTIN_POOL = [
-  "QVEuQWI4Uk42SmhkbVZEUFBnN2oxUnlDUkJha05GSWVlSjNHaWF2ZlE2elZ3UWlUbzNoMUE=", // Key Utama Aktif (gemini-3.8-flash Verified)
-  "QVEuQWI4Uk42SjlIbFNrY0tWR1puZnNuSGdEaWNoajR5RWp4cEk4bkNwVV96RG5KQkxxbHc=",
-  "QVEuQWI4Uk42TFJjZFU3MmdjSkNxNVVERDZuUmxaVllHajFrTVE5U0ZVMGJxV3VOWjE5ckE=",
-  "QVEuQWI4Uk42TFNwUTJMdV9nS1pmN0FVRkhadTU0R0w1SjVCdmNZZGNQSXB3VzBvSmdrS1E=",
-  "QVEuQWI4Uk42TENjcTd3X3VxWTN2emtfSTFkZ2UzcHA4bHBuc1FFTmRfd0JUcDlxNnV5Rmc=",
-  "QVEuQWI4Uk42SkJTQ2VYQXQ1bnZzU01qWGVfWG9HV3BCeDY3QS1rMVRTS3huM0I3NjFKVmc=",
+  "QVEuQWI4Uk42SXV4UExrLUNCT1pnbEFiWkhPVXJvNjVfNXFYTkdkTy1DVjN6SDhWT1dRbkE=", // Akun #1 (...VOWQnA)
+  "QVEuQWI4Uk42SmhkbVZEUFBnN2oxUnlDUkJha05GSWVlSjNHaWF2ZlE2elZ3UWlUbzNoMUE=", // Akun #2 (...To3h1A)
+  "QVEuQWI4Uk42SjlIbFNrY0tWR1puZnNuSGdEaWNoajR5RWp4cEk4bkNwVV96RG5KQkxxbHc=", // Akun #3 (...JBLqlw)
+  "QVEuQWI4Uk42TFJjZFU3MmdjSkNxNVVERDZuUmxaVllHajFrTVE5U0ZVMGJxV3VOWjE5ckE=", // Akun #4 (...NZ19rA)
+  "QVEuQWI4Uk42TFNwUTJMdV9nS1pmN0FVRkhadTU0R0w1SjVCdmNZZGNQSXB3VzBvSmdrS1E=", // Akun #5 (...oJgkKQ)
+  "QVEuQWI4Uk42TENjcTd3X3VxWTN2emtfSTFkZ2UzcHA4bHBuc1FFTmRfd0JUcDlxNnV5Rmc=", // Akun #6 (...q6uyFg)
+  "QVEuQWI4Uk42SkJTQ2VYQXQ1bnZzU01qWGVfWG9HV3BCeDY3QS1rMVRTS3huM0I3NjFKVmc=", // Akun #7 (...761JVg)
 ].map((b64) => Buffer.from(b64, "base64").toString("utf-8"));
 
 export async function callGeminiResilient(
