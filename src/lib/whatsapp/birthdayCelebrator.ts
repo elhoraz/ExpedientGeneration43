@@ -104,7 +104,6 @@ export function formatBirthdayGreetingMessage(alumni: BirthdayAlumni): string {
   const panggilan = alumni.nama_panggilan ? alumni.nama_panggilan : alumni.nama_lengkap.split(" ")[0];
   const mentionTag = alumni.no_whatsapp ? `@${alumni.no_whatsapp.replace(/\D/g, "")}` : `*${alumni.nama_lengkap}*`;
   const usiaText = alumni.usia > 0 ? ` ke-${alumni.usia}` : "";
-  const bdayLink = `https://expedientgeneration.vercel.app/birthday/${alumni.id}`;
 
   return (
     `🎉🎂 *BARAKALLAHU FII UMRIK!* 🎂🎉\n\n` +
@@ -112,8 +111,6 @@ export function formatBirthdayGreetingMessage(alumni: BirthdayAlumni): string {
     `👤 *${alumni.nama_lengkap}* (${mentionTag})\n\n` +
     `تَبَارَكَ اللَّهُ فِي عُمْرِكَ، وَبَارَكَ لَكَ فِي صِحَّتِكَ وَرِزْقِكَ وَعَمَلِك\n\n` +
     `_"Semoga senantiasa diberikan keberkahan umur, kesehatan yang afiat, kelapangan rezeki yang halal, serta terus istiqomah menggapai cita-cita mulia dunia dan akhirat."_ 🤲✨\n\n` +
-    `💌 Kirim doa & ucapan spesial untuk ${panggilan} di portal angkatan:\n` +
-    `🔗 ${bdayLink}\n\n` +
     `Kawan-kawan sekalian, mari kita luangkan sejenak doa terbaik dan ucapan hangat untuk sahabat kita ${panggilan} hari ini! 🎁🥳`
   );
 }
@@ -124,7 +121,6 @@ export function formatBirthdayGreetingMessage(alumni: BirthdayAlumni): string {
 export function formatPersonalBirthdayGreetingMessage(alumni: BirthdayAlumni): string {
   const panggilan = alumni.nama_panggilan ? alumni.nama_panggilan : alumni.nama_lengkap.split(" ")[0];
   const usiaText = alumni.usia > 0 ? ` yang ke-${alumni.usia}` : "";
-  const bdayLink = `https://expedientgeneration.vercel.app/birthday/${alumni.id}`;
 
   return (
     `🎉🎂 *BARAKALLAHU FII UMRIK* 🎂🎉\n\n` +
@@ -136,8 +132,6 @@ export function formatPersonalBirthdayGreetingMessage(alumni: BirthdayAlumni): s
     `• Kemudahan serta kelancaran dalam setiap langkah dan cita-citamu\n\n` +
     `تَبَارَكَ اللَّهُ فِي عُمْرِكَ، وَبَارَكَ لَكَ فِي صِحَّتِكَ وَرِزْقِكَ وَعَمَلِك 🤲\n\n` +
     `Teruslah melangkah, menginspirasi, dan menjadi kebanggaan keluarga besar *Expedient Generation 43 (Pondok Modern Arrisalah 2025)*.\n\n` +
-    `💌 Buka kartu ucapan spesial angkatan untukmu di sini:\n` +
-    `🔗 ${bdayLink}\n\n` +
     `_Salam hangat, doa tulus, dan peluk persaudaraan dari seluruh sahabat seperjuangan!_ 🌟🤝`
   );
 }

@@ -417,7 +417,7 @@ async function startBaileysGateway() {
     logger,
     printQRInTerminal: false,
     auth: state,
-    browser: Browsers.macOS("Chrome"), // Browser macOS Chrome autentik untuk menghindari deteksi headless bot
+    browser: Browsers.ubuntu("Chrome"), // Browser Ubuntu Chrome autentik untuk container cloud (Render/Linux)
     syncFullHistory: false, // Tidak sync full history chat agar efisien dan aman dari deteksi scraper
     markOnlineOnConnect: false, // ANTI-BAN: Jangan online 24/7 konstan, hanya aktif saat membalas
     keepAliveIntervalMs: 30000,

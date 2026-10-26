@@ -564,17 +564,17 @@ export async function handleAutomaticGroupNumberDetection(options: {
 
   const candidateName = await extractCandidateAlumniName(messageText, quotedText, recentContextSnippet);
 
-  // KASUS A: NAMA ALUMNI TERDETEKSI (Langsung Eksekusi Japri Otomatis!)
+  // KASUS A: NAMA ALUMNI TERDETEKSI
   if (candidateName) {
     const confirmationMsg =
-      `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di web angkatan kita. Sahabat bisa mengajak beliau mendaftar di https://expedientgeneration.vercel.app/register ya! 🙌✨`;
+      `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* (Sahabat *${candidateName}*) belum terdaftar di portal angkatan kita. Sahabat bisa mengajak beliau mendaftar di portal website angkatan ya! 🙌✨`;
     await sendTargetMessage(confirmationMsg);
     return { handled: true, replyText: confirmationMsg };
   }
 
   // KASUS B: NOMOR POLOS TANPA NAMA & TANPA PETUNJUK OBROLAN
   const promptNameMsg =
-    `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di web angkatan kita. Sahabat bisa mengajak beliau mendaftar di https://expedientgeneration.vercel.app/register ya! 🙌✨`;
+    `ℹ️ Nomor *${formatPhoneDisplay(targetPhone)}* belum terdaftar di portal angkatan kita. Sahabat bisa mengajak beliau mendaftar di portal website angkatan ya! 🙌✨`;
 
   await sendTargetMessage(promptNameMsg);
   return { handled: true, replyText: promptNameMsg };

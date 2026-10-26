@@ -191,6 +191,17 @@ export async function checkAndTriggerCommunityIcebreaker(
   const supabase = createAdminClient();
   const communityGroupId = getCommunityGroupId();
 
+  // 0. ANTI-BAN SAFEGUARD MUTLAK:
+  // Jangan pernah mengirim pesan pemicu otomatis ke grup sepi tanpa dipanggil admin (force).
+  // Mengirim pesan broadcast unprompted ke grup adalah pemicu utama deteksi bot spam oleh Meta WhatsApp.
+  if (!force) {
+    return {
+      triggered: false,
+      reason: "Icebreaker otomatis dinonaktifkan demi perlindungan Anti-Ban Meta WhatsApp (hanya aktif jika dipanggil manual).",
+      elapsedHours: 0,
+    };
+  }
+
   // 1. Cek Jam Hening (Quiet Hours: 23.00 - 06.30 WIB)
   if (!force && isQuietHoursWIB()) {
     return {
