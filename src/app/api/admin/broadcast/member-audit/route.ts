@@ -4,7 +4,7 @@ import {
   formatAuditSummaryMessage,
   executeMemberInvitations,
 } from "@/lib/whatsapp/memberAuditor";
-import { verifySignedAdminSession } from "@/lib/admin-auth";
+import { verifySignedAdminSession, timingSafeEqualString } from "@/lib/admin-auth";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
@@ -15,9 +15,10 @@ export async function POST(request: Request) {
 
     // Cek authorization
     if (!isAuthorized) {
-      const authHeader = request.headers.get("authorization");
-      const cronSecret = process.env.CRON_SECRET || "expedient-cron-secret-2026";
-      if (authHeader !== `Bearer ${cronSecret}`) {
+      const authHeader = request.headers.get("authorization") || "";
+      const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+      const cronSecret = (process.env.CRON_SECRET || "").trim();
+      if (!cronSecret || !bearerToken || !timingSafeEqualString(bearerToken, cronSecret)) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
     }
@@ -27,7 +28,10 @@ export async function POST(request: Request) {
     const rawText = body.text || body.phones || "";
 
     if (action === "send_invitations") {
-      const adminPhone = process.env.ADMIN_WA_PHONE || "6282142877426";
+      const adminPhone = (process.env.ADMIN_WA_PHONE || "").trim();
+      if (!adminPhone) {
+        return NextResponse.json({ error: "ADMIN_WA_PHONE is not configured" }, { status: 500 });
+      }
       const result = await executeMemberInvitations(adminPhone);
       return NextResponse.json({
         success: result.success,

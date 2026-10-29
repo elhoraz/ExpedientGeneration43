@@ -6,15 +6,84 @@ import {
 import { executeAutoFix, executeStatusCheck } from "@/lib/sentinel/autoRemediator";
 import { executeAutonomousAiFix } from "@/lib/sentinel/aiCodeFixer";
 import { handleAdminConversationalMessage } from "@/lib/sentinel/conversationalAgent";
+import { timingSafeEqualString } from "@/lib/admin-auth";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+let lastWebhookUpgradeAttempt = 0;
+
+async function getExpectedTelegramSecret(): Promise<string> {
+  const explicitSecret = (process.env.TELEGRAM_WEBHOOK_SECRET || "").trim();
+  if (explicitSecret) return explicitSecret;
+
+  const botToken = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  if (!botToken) return "";
+
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(botToken),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode("expedient-telegram-webhook-secret-v1"));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function autoUpgradeTelegramWebhookSecret(expectedSecret: string): Promise<void> {
+  const now = Date.now();
+  if (now - lastWebhookUpgradeAttempt < 10 * 60 * 1000) return;
+  lastWebhookUpgradeAttempt = now;
+
+  const botToken = (process.env.TELEGRAM_BOT_TOKEN || "").trim();
+  if (!botToken || !expectedSecret) return;
+
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app").replace(/\/+$/, "");
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: `${siteUrl}/api/telegram/webhook`,
+        secret_token: expectedSecret,
+      }),
+    });
+  } catch (err) {
+    console.warn("[TELEGRAM-WEBHOOK-UPGRADE-WARN]:", err);
+  }
+}
 
 /**
  * Webhook Telegram Bot API Resmi untuk Aegis Sentinel DevOps & Autonomous AI Engineer
  */
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    const rl = rateLimit(`tg-webhook:${clientIp}`, 30, 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json({ ok: false, error: "Too many requests" }, { status: 429 });
+    }
+
+    const adminChatId = (process.env.TELEGRAM_ADMIN_CHAT_ID || "").trim();
+    const expectedSecret = await getExpectedTelegramSecret();
+
+    if (!adminChatId || !expectedSecret) {
+      console.error("[TELEGRAM-WEBHOOK] TELEGRAM_ADMIN_CHAT_ID or TELEGRAM_BOT_TOKEN is not configured.");
+      return NextResponse.json({ ok: false, error: "Webhook not configured" }, { status: 503 });
+    }
+
+    const providedSecret = (request.headers.get("x-telegram-bot-api-secret-token") || "").trim();
+    if (!providedSecret || !timingSafeEqualString(providedSecret, expectedSecret)) {
+      if (!providedSecret) {
+        await autoUpgradeTelegramWebhookSecret(expectedSecret);
+      }
+      console.warn(`[TELEGRAM-WEBHOOK-UNAUTHORIZED] Invalid or missing secret token from IP ${clientIp}`);
+      return NextResponse.json({ ok: false, error: "Unauthorized webhook signature" }, { status: 401 });
+    }
+
     const body = await request.json();
-    const adminChatId = (process.env.TELEGRAM_ADMIN_CHAT_ID || "8455610044").trim();
-    const adminWaPhone = (process.env.ADMIN_WA_PHONE || "6282142877426").trim();
 
     // 1. Menangani Klik Tombol Interaktif (Inline Keyboard Callback Query)
     if (body.callback_query) {

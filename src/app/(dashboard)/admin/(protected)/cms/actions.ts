@@ -14,8 +14,7 @@ async function verifyAdminAccess(): Promise<boolean> {
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
 
-  // 1. Cek token sesi HMAC bertanda tangan atau legacy
-  if (adminToken === "unlocked") return true;
+  // 1. Cek token sesi HMAC bertanda tangan
   if (await verifySignedAdminSession(adminToken)) return true;
 
   // 2. Cek apakah user Supabase yang sedang login memiliki role admin/superadmin

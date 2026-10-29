@@ -32,9 +32,8 @@ export async function GET() {
     const cookieStore = await cookies();
     const adminToken = cookieStore.get("expedient_admin_session")?.value;
     const isSignedAdmin = await verifySignedAdminSession(adminToken);
-    const isLegacyUnlocked = adminToken === "unlocked";
 
-    const isManager = userRole === "admin" || userRole === "bendahara" || userRole === "superadmin" || isSignedAdmin || isLegacyUnlocked;
+    const isManager = userRole === "admin" || userRole === "bendahara" || userRole === "superadmin" || isSignedAdmin;
 
     const { data: rawTransactions, error } = await supabase
       .from("baitul_maal_transactions")
@@ -123,9 +122,8 @@ export async function POST(req: Request) {
     const cookieStore = await cookies();
     const adminToken = cookieStore.get("expedient_admin_session")?.value;
     const isSignedAdmin = await verifySignedAdminSession(adminToken);
-    const isLegacyUnlocked = adminToken === "unlocked";
 
-    const isManager = profile?.role === "admin" || profile?.role === "bendahara" || profile?.role === "superadmin" || isSignedAdmin || isLegacyUnlocked;
+    const isManager = profile?.role === "admin" || profile?.role === "bendahara" || profile?.role === "superadmin" || isSignedAdmin;
 
     const body = await req.json();
     const action = body.action || "create_entry";

@@ -4,9 +4,18 @@ import { NextResponse } from "next/server";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { getRequestOrigin } from "@/lib/url";
 import { convertImageToWebp } from "@/lib/image/convertToWebp";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   const origin = getRequestOrigin(request);
+  const clientIp = getClientIp(request);
+  const rl = rateLimit(`auth-register:${clientIp}`, 10, 15 * 60 * 1000);
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Terlalu banyak percobaan pendaftaran. Silakan coba lagi beberapa saat lagi." },
+      { status: 429 }
+    );
+  }
   const formData = await request.formData();
   
   const email = String(formData.get("email") || "").trim().toLowerCase();
@@ -108,60 +117,72 @@ export async function POST(request: Request) {
   if (error) {
     let errorMessage = "Pendaftaran gagal.";
     if (error.message.includes("already registered") || error.message.includes("User already registered")) {
-      // Periksa apakah akun yang sudah ada tersebut BELUM diverifikasi (bisa lanjutkan verifikasi OTP)
+      // Periksa apakah akun yang sudah ada tersebut BELUM diverifikasi DAN pemohon mengetahui password akun tersebut
       try {
-        const adminSupabase = createAdminClient();
-        // Fetch users with large page size to avoid missing users beyond default limit of 50
-        const { data: { users } } = await adminSupabase.auth.admin.listUsers({
-          page: 1,
-          perPage: 1000,
+        const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
-        const existingUser = users?.find(u => u.email?.toLowerCase() === email);
+        const isPasswordVerified =
+          !signInErr ||
+          signInErr.message.toLowerCase().includes("email not confirmed") ||
+          Boolean(signInData?.user);
 
-        if (existingUser && !existingUser.email_confirmed_at) {
-          const { data: existingProfile } = await adminSupabase
-            .from("profiles")
-            .select("no_whatsapp, is_active, nama_lengkap, nama_panggilan")
-            .eq("id", existingUser.id)
-            .single();
+        if (!isPasswordVerified) {
+          errorMessage = "Email ini sudah terdaftar. Jika ini akun Anda, pastikan kata sandi sesuai atau masuk di halaman login.";
+        } else {
+          const adminSupabase = createAdminClient();
+          const { data: { users } } = await adminSupabase.auth.admin.listUsers({
+            page: 1,
+            perPage: 1000,
+          });
+          const existingUser = users?.find(u => u.email?.toLowerCase() === email);
 
-          if (!existingProfile?.is_active) {
-            // Update nomor whatsapp jika pengguna memasukkan nomor baru saat retry
-            if (no_whatsapp) {
-              await adminSupabase.from("profiles").update({ no_whatsapp }).eq("id", existingUser.id);
-              await adminSupabase.auth.admin.updateUserById(existingUser.id, {
-                user_metadata: {
-                  ...existingUser.user_metadata,
-                  no_whatsapp,
-                  nama_lengkap: nama_lengkap || existingUser.user_metadata?.nama_lengkap,
-                  nama_panggilan: nama_panggilan || existingUser.user_metadata?.nama_panggilan,
-                },
+          if (existingUser && !existingUser.email_confirmed_at) {
+            const { data: existingProfile } = await adminSupabase
+              .from("profiles")
+              .select("no_whatsapp, is_active, nama_lengkap, nama_panggilan")
+              .eq("id", existingUser.id)
+              .single();
+
+            if (!existingProfile?.is_active) {
+              // Update nomor whatsapp hanya karena pengguna telah terverifikasi memiliki password akun ini
+              if (no_whatsapp) {
+                await adminSupabase.from("profiles").update({ no_whatsapp }).eq("id", existingUser.id);
+                await adminSupabase.auth.admin.updateUserById(existingUser.id, {
+                  user_metadata: {
+                    ...existingUser.user_metadata,
+                    no_whatsapp,
+                    nama_lengkap: nama_lengkap || existingUser.user_metadata?.nama_lengkap,
+                    nama_panggilan: nama_panggilan || existingUser.user_metadata?.nama_panggilan,
+                  },
+                });
+              }
+
+              if (isJsonRequest) {
+                return NextResponse.json({
+                  success: true,
+                  email: existingUser.email,
+                  no_whatsapp: no_whatsapp || existingProfile?.no_whatsapp,
+                  nama_lengkap: existingProfile?.nama_lengkap || nama_lengkap,
+                  nama_panggilan: existingProfile?.nama_panggilan || nama_panggilan,
+                  userId: existingUser.id,
+                  resumed: true,
+                  message: "Akun ditemukan dan belum diverifikasi. Silakan lanjutkan verifikasi OTP.",
+                });
+              }
+
+              return NextResponse.redirect(`${origin}/register?verify=true&email=${encodeURIComponent(email)}`, {
+                status: 303,
               });
             }
-
-            if (isJsonRequest) {
-              return NextResponse.json({
-                success: true,
-                email: existingUser.email,
-                no_whatsapp: no_whatsapp || existingProfile?.no_whatsapp,
-                nama_lengkap: existingProfile?.nama_lengkap || nama_lengkap,
-                nama_panggilan: existingProfile?.nama_panggilan || nama_panggilan,
-                userId: existingUser.id,
-                resumed: true,
-                message: "Akun ditemukan dan belum diverifikasi. Silakan lanjutkan verifikasi OTP.",
-              });
-            }
-
-            return NextResponse.redirect(`${origin}/register?verify=true&email=${encodeURIComponent(email)}`, {
-              status: 303,
-            });
           }
+          errorMessage = "Email ini sudah terdaftar dan aktif. Silakan langsung masuk di halaman login.";
         }
       } catch (resumeErr) {
         console.error("Resume OTP check error:", resumeErr);
+        errorMessage = "Email ini sudah terdaftar dan aktif. Silakan langsung masuk di halaman login.";
       }
-
-      errorMessage = "Email ini sudah terdaftar dan aktif. Silakan langsung masuk di halaman login.";
     } else {
       errorMessage = error.message;
     }

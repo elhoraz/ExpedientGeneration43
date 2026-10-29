@@ -26,8 +26,7 @@ export default async function BaitulMaalPage() {
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
   const isSignedAdmin = await verifySignedAdminSession(adminToken);
-  const isLegacyUnlocked = adminToken === "unlocked";
-  const isManager = profile?.role === "admin" || profile?.role === "bendahara" || isSignedAdmin || isLegacyUnlocked;
+  const isManager = profile?.role === "admin" || profile?.role === "bendahara" || profile?.role === "superadmin" || isSignedAdmin;
 
   // Fetch transactions
   const { data: rawTransactions } = await supabase

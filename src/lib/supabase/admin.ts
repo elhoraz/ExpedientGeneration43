@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import WebSocket from "ws";
 
 // Polyfill WebSocket globally for Node.js environment
@@ -10,9 +10,8 @@ if (typeof global !== "undefined" && typeof (global as any).WebSocket === "undef
   (global as any).WebSocket = WebSocket;
 }
 
-const FALLBACK_SUPABASE_URL = "https://dodcwulqgrhqpbldrlik.supabase.co";
-const FALLBACK_SERVICE_ROLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvZGN3dWxxZ3JocXBibGRybGlrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDk3NDU4MiwiZXhwIjoyMDk2NTUwNTgyfQ.trCfE5Suo0KaG2W-qkx8NQ5Iv6USgNiF-ifo4H6nIHY";
+// Singleton cache for default stateless admin client to avoid re-instantiating on every request
+let cachedDefaultAdminClient: SupabaseClient<any, "public", any> | null = null;
 
 /**
  * Reusable Supabase Admin Client using Service Role Key.
@@ -23,10 +22,21 @@ export function createAdminClient(
   serviceRoleKey?: string,
   options?: Parameters<typeof createClient>[2]
 ) {
-  const supabaseUrl = (url || process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_SUPABASE_URL).trim();
-  const key = (serviceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY || FALLBACK_SERVICE_ROLE_KEY).trim();
+  const supabaseUrl = (url || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+  const key = (serviceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
 
-  return createClient(supabaseUrl, key, {
+  if (!supabaseUrl || !key) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variable."
+    );
+  }
+
+  const isDefaultCall = !url && !serviceRoleKey && !options;
+  if (isDefaultCall && cachedDefaultAdminClient) {
+    return cachedDefaultAdminClient;
+  }
+
+  const client = createClient(supabaseUrl, key, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -36,4 +46,10 @@ export function createAdminClient(
     },
     ...options,
   });
+
+  if (isDefaultCall) {
+    cachedDefaultAdminClient = client;
+  }
+
+  return client;
 }

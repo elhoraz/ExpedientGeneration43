@@ -1,11 +1,12 @@
+require('dotenv').config({ path: '.env.local' });
 const { Client } = require('pg');
 
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
 const client = new Client({
-  host: 'aws-1-ap-northeast-1.pooler.supabase.com',
-  port: 6543,
-  user: 'postgres.dodcwulqgrhqpbldrlik',
-  password: 'Expedient43!Generation',
-  database: 'postgres',
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 

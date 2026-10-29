@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendEmail } from "@/lib/email";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 async function logOtpDelivery(
   supabase: any,
@@ -32,8 +33,18 @@ async function logOtpDelivery(
 
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    const rl = rateLimit(`send-otp:${clientIp}`, 8, 10 * 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Terlalu banyak permintaan pengiriman OTP. Silakan tunggu beberapa menit." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || "").trim().toLowerCase();
+    const userId = String(body.userId || "").trim();
     const channel = String(body.channel || "").trim().toLowerCase(); // "gmail" or "whatsapp"
 
     if (!email) {
@@ -46,15 +57,25 @@ export async function POST(request: Request) {
 
     const adminSupabase = createAdminClient();
 
-    // 1. Cari user di Supabase Auth
-    const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers({
-      perPage: 1000,
-    });
-    if (listError) {
-      return NextResponse.json({ error: listError.message }, { status: 500 });
+    // 1. Cari user di Supabase Auth (Fast-path O(1) via getUserById jika userId disertakan, fallback ke listUsers)
+    let user: any = null;
+    if (userId) {
+      const { data: byIdData } = await adminSupabase.auth.admin.getUserById(userId);
+      if (byIdData?.user && byIdData.user.email?.toLowerCase() === email) {
+        user = byIdData.user;
+      }
     }
 
-    const user = users.find((u) => u.email?.toLowerCase() === email);
+    if (!user) {
+      const { data: { users }, error: listError } = await adminSupabase.auth.admin.listUsers({
+        perPage: 1000,
+      });
+      if (listError) {
+        return NextResponse.json({ error: listError.message }, { status: 500 });
+      }
+      user = users.find((u) => u.email?.toLowerCase() === email);
+    }
+
     if (!user) {
       return NextResponse.json(
         { error: "Akun dengan email ini belum terdaftar. Silakan lengkapi pendaftaran terlebih dahulu." },

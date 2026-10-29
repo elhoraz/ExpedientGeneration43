@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createSignedAdminSession } from "@/lib/admin-auth";
+import { createSignedAdminSession, timingSafeEqualString } from "@/lib/admin-auth";
 import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       );
     }
 
-    if (password && password === adminPassword) {
+    if (typeof password === "string" && password.length > 0 && timingSafeEqualString(password, adminPassword)) {
       // Set cryptographic HMAC-signed session token
       const signedToken = await createSignedAdminSession();
       const cookieStore = await cookies();

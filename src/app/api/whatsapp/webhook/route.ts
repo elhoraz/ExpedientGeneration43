@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { handleAdminAutoRemediation } from "@/lib/sentinel/autoRemediator";
+import { verifySignedAdminSession, timingSafeEqualString } from "@/lib/admin-auth";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 /**
  * GET Handler: Status Webhook Inbound Gateway (Baileys)
@@ -15,6 +18,12 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    const rl = rateLimit(`wa-webhook:${clientIp}`, 40, 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+
     const contentType = request.headers.get("content-type") || "";
     const incomingList: Array<{
       sender: string;
@@ -60,6 +69,37 @@ export async function POST(request: Request) {
     }
 
     const bodies = Array.isArray(rawBody) ? rawBody : [rawBody];
+
+    // Verifikasi autentikasi webhook (Secret Header / Query / Body atau Signed Admin Session)
+    const expectedSecret = (
+      process.env.WA_WEBHOOK_SECRET ||
+      process.env.GATEWAY_SECRET ||
+      process.env.CRON_SECRET ||
+      ""
+    ).trim();
+    const authHeader = request.headers.get("authorization") || "";
+    const bearerSecret = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+    const headerSecret = (
+      request.headers.get("x-webhook-secret") ||
+      request.headers.get("x-gateway-secret") ||
+      bearerSecret ||
+      new URL(request.url).searchParams.get("secret") ||
+      (rawBody && !Array.isArray(rawBody) ? String(rawBody.secret || "") : "") ||
+      ""
+    ).trim();
+
+    const cookieStore = await cookies();
+    const adminCookie = cookieStore.get("expedient_admin_session")?.value;
+    const isSignedAdmin = await verifySignedAdminSession(adminCookie);
+    const isSecretValid = Boolean(
+      expectedSecret && headerSecret && timingSafeEqualString(headerSecret, expectedSecret)
+    );
+
+    if (!isSecretValid && !isSignedAdmin) {
+      console.warn(`[WA-WEBHOOK-UNAUTHORIZED] Rejected unauthenticated webhook from IP ${clientIp}`);
+      return NextResponse.json({ error: "Unauthorized webhook request" }, { status: 401 });
+    }
+
     for (const body of bodies) {
       if (!body) continue;
 
@@ -197,7 +237,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const adminPhoneEnv = (process.env.ADMIN_WA_PHONE || "6282142877426").replace(/\D/g, "");
+    const adminPhoneEnv = (process.env.ADMIN_WA_PHONE || "").replace(/\D/g, "");
     const adminSupabase = createAdminClient();
 
     for (const item of incomingList) {
@@ -396,9 +436,10 @@ export async function POST(request: Request) {
 
       // Cek apakah pesan berasal dari Nomor WhatsApp Admin
       const isSenderAdmin =
-        numNorm === adminPhoneEnv ||
-        numNorm.endsWith(adminPhoneEnv.slice(-9)) ||
-        adminPhoneEnv.endsWith(numNorm.slice(-9));
+        adminPhoneEnv.length >= 9 &&
+        (numNorm === adminPhoneEnv ||
+          numNorm.endsWith(adminPhoneEnv.slice(-9)) ||
+          adminPhoneEnv.endsWith(numNorm.slice(-9)));
 
       if (isSenderAdmin) {
         console.log(`[SENTINEL-ADMIN-INCOMING] Pesan dari Admin (${numNorm}): "${messageText}"`);

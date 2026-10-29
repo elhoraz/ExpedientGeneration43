@@ -10,7 +10,8 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
   const type = searchParams.get('type') as EmailOtpType | null
-  const next = searchParams.get('next') ?? '/beranda'
+  const rawNext = searchParams.get('next') ?? '/beranda'
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') && !rawNext.includes('\\') ? rawNext : '/beranda'
 
   const errDesc = searchParams.get('error_description')
   if (errDesc) {

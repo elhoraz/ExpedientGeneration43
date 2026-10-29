@@ -71,14 +71,16 @@ export function rateLimit(
 
 /**
  * Extract client identifier from request for rate limiting.
- * Uses X-Forwarded-For header (Vercel) or falls back to a default.
+ * Prefers Vercel's trusted x-real-ip header to prevent X-Forwarded-For spoofing.
  */
 export function getClientIp(request: Request): string {
+  const realIp = request.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
   const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) {
-    return forwarded.split(",")[0].trim();
+    const parts = forwarded.split(",");
+    return parts[parts.length - 1].trim() || parts[0].trim();
   }
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) return realIp;
   return "unknown";
 }

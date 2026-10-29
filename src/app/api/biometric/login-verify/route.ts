@@ -28,26 +28,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Kredensial biometrik tidak ditemukan di sistem." }, { status: 404 });
     }
 
-    const originHeader = req.headers.get("origin") || req.headers.get("referer");
-    const origin = originHeader
-      ? new URL(originHeader).origin
-      : (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
-    const hostHeader = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
-    const hostname = hostHeader.split(":")[0];
-    const rpID = hostname || new URL(origin).hostname;
+    const isDev = process.env.NODE_ENV === "development";
+    const configuredSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app").replace(/\/+$/, "");
+    let configuredHostname = "expedientgeneration.vercel.app";
+    try {
+      configuredHostname = new URL(configuredSiteUrl).hostname;
+    } catch {}
 
     const allowedOrigins = Array.from(new Set([
-      origin,
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      ...(process.env.NEXT_PUBLIC_SITE_URL ? [process.env.NEXT_PUBLIC_SITE_URL] : [])
+      "https://expedientgeneration.vercel.app",
+      configuredSiteUrl,
+      ...(isDev ? ["http://localhost:3000", "http://127.0.0.1:3000"] : []),
     ].filter(Boolean)));
 
     const allowedRPIDs = Array.from(new Set([
-      rpID,
-      "localhost",
-      "127.0.0.1",
-      ...(process.env.NEXT_PUBLIC_SITE_URL ? [new URL(process.env.NEXT_PUBLIC_SITE_URL).hostname] : [])
+      "expedientgeneration.vercel.app",
+      configuredHostname,
+      ...(isDev ? ["localhost", "127.0.0.1"] : []),
     ].filter(Boolean)));
 
     let publicKeyBuffer: Uint8Array;

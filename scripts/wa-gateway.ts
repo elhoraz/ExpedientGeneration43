@@ -678,14 +678,8 @@ async function startBaileysGateway() {
       await sendReply(cleanJid, blueprintText, quotedMessage);
 
       let imgBuffer: Buffer | null = null;
-      const cfAccountId = (
-        process.env.CLOUDFLARE_ACCOUNT_ID ||
-        Buffer.from("NTQyNGI5NmYzZmM5OWIzY2YyZmVmOGFiNGE1Y2Y2M2U=", "base64").toString()
-      ).trim();
-      const cfToken = (
-        process.env.CLOUDFLARE_API_TOKEN ||
-        Buffer.from("Y2Z1dF96VzJaelpMS2VEVFc0bHpsN2tGUjdrdzltTkFEa25NekJsS3Y2OXpWY2U0N2Q3NTI=", "base64").toString()
-      ).trim();
+      const cfAccountId = (process.env.CLOUDFLARE_ACCOUNT_ID || "").trim();
+      const cfToken = (process.env.CLOUDFLARE_API_TOKEN || "").trim();
 
       // TIER 0: GOOGLE GEMINI IMAGE GENERATOR (Fast 2.5s Probe, Zero-Block)
       const googleKeys = [

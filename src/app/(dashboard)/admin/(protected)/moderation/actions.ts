@@ -1,14 +1,15 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
 export async function deleteAdminContent(formData: FormData) {
   const cookieStore = await cookies();
-  
-  // Verify Admin Session
-  if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
+  const adminToken = cookieStore.get("expedient_admin_session")?.value;
+  // Verify Admin Session (HMAC-SHA256)
+  if (!(await verifySignedAdminSession(adminToken))) {
     throw new Error("Unauthorized");
   }
 

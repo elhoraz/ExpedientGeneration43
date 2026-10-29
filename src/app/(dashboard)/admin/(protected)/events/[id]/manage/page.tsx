@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
@@ -13,7 +14,9 @@ export const metadata = {
 async function assignTicket(formData: FormData) {
   "use server";
   const cookieStore = await cookies();
-  if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") throw new Error("Unauthorized");
+  if (!(await verifySignedAdminSession(cookieStore.get("expedient_admin_session")?.value))) {
+    throw new Error("Unauthorized");
+  }
 
   const supabase = createAdminClient();
 
@@ -42,7 +45,9 @@ async function assignTicket(formData: FormData) {
 async function deleteTicket(formData: FormData) {
   "use server";
   const cookieStore = await cookies();
-  if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") throw new Error("Unauthorized");
+  if (!(await verifySignedAdminSession(cookieStore.get("expedient_admin_session")?.value))) {
+    throw new Error("Unauthorized");
+  }
 
   const supabase = createAdminClient();
 

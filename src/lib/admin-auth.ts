@@ -1,19 +1,26 @@
 // src/lib/admin-auth.ts
 // Cryptographic HMAC-SHA256 session token generator & verifier for Admin Panel
 
+let cachedHmacKey: { secret: string; key: CryptoKey } | null = null;
+
 async function getHmacKey(): Promise<CryptoKey> {
   const secret = process.env.ADMIN_MASTER_PASSWORD;
   if (!secret) {
     throw new Error("ADMIN_MASTER_PASSWORD environment variable is not configured.");
   }
+  if (cachedHmacKey && cachedHmacKey.secret === secret) {
+    return cachedHmacKey.key;
+  }
   const enc = new TextEncoder();
-  return crypto.subtle.importKey(
+  const key = await crypto.subtle.importKey(
     "raw",
     enc.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"]
   );
+  cachedHmacKey = { secret, key };
+  return key;
 }
 
 function bufferToHex(buffer: ArrayBuffer): string {
@@ -40,6 +47,23 @@ function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
     result |= a[i] ^ b[i];
   }
   return result === 0;
+}
+
+/**
+ * Constant-time comparison of two strings to prevent timing attacks on passwords/secrets.
+ */
+export function timingSafeEqualString(a: string, b: string): boolean {
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
+  if (aBytes.length !== bBytes.length) {
+    let dummy = 0;
+    for (let i = 0; i < aBytes.length; i++) {
+      dummy |= aBytes[i] ^ (bBytes[i % (bBytes.length || 1)] || 0);
+    }
+    return dummy === -1;
+  }
+  return timingSafeEqual(aBytes, bBytes);
 }
 
 /**

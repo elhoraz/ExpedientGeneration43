@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 import { cookies } from "next/headers";
 
 const jsonResponse = (
@@ -17,7 +18,8 @@ const getErrorMessage = (err: unknown) =>
 export async function POST() {
   try {
     const cookieStore = await cookies();
-    if (cookieStore.get("expedient_admin_session")?.value !== "unlocked") {
+    const adminToken = cookieStore.get("expedient_admin_session")?.value;
+    if (!(await verifySignedAdminSession(adminToken))) {
       return jsonResponse("error", "Forbidden: Admin panel is locked", null, { status: 403 });
     }
 

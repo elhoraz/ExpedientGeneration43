@@ -58,6 +58,7 @@ function RegisterFormContent() {
   const [selectedChannel, setSelectedChannel] = useState<"gmail" | "whatsapp" | null>(null);
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [registeredWa, setRegisteredWa] = useState("");
+  const [registeredUserId, setRegisteredUserId] = useState("");
   const [maskedTarget, setMaskedTarget] = useState("");
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
@@ -314,6 +315,7 @@ function RegisterFormContent() {
 
       setRegisteredEmail(data.email || "");
       setRegisteredWa(data.no_whatsapp || cleanWa || "");
+      setRegisteredUserId(data.userId || "");
       setIsOtpModalOpen(true);
       setOtpStep("choose_channel");
     } catch (err: any) {
@@ -337,7 +339,7 @@ function RegisterFormContent() {
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: registeredEmail, channel }),
+        body: JSON.stringify({ email: registeredEmail, userId: registeredUserId || undefined, channel }),
       });
 
       let data: any = {};
@@ -393,7 +395,7 @@ function RegisterFormContent() {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: registeredEmail, otp: fullOtp }),
+        body: JSON.stringify({ email: registeredEmail, userId: registeredUserId || undefined, otp: fullOtp }),
       });
 
       let data: any = {};

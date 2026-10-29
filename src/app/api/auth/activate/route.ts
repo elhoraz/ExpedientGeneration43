@@ -1,29 +1,61 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifySignedAdminSession } from "@/lib/admin-auth";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const userId = body.userId;
+    const requestedUserId = String(body.userId || "").trim();
 
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    const cookieStore = await cookies();
+    const adminToken = cookieStore.get("expedient_admin_session")?.value;
+    const isSignedAdmin = await verifySignedAdminSession(adminToken);
+
+    let targetUserId = "";
+
+    if (isSignedAdmin && requestedUserId) {
+      targetUserId = requestedUserId;
+    } else {
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        return NextResponse.json({ error: "Unauthorized: Sesi login diperlukan." }, { status: 401 });
+      }
+      if (requestedUserId && requestedUserId !== user.id) {
+        return NextResponse.json({ error: "Forbidden: Tidak dapat mengaktifkan akun pengguna lain." }, { status: 403 });
+      }
+      if (!user.email_confirmed_at) {
+        return NextResponse.json(
+          { error: "Forbidden: Email belum terverifikasi. Silakan selesaikan verifikasi OTP." },
+          { status: 403 }
+        );
+      }
+      targetUserId = user.id;
     }
 
     const adminSupabase = createAdminClient();
 
-    await adminSupabase.auth.admin.updateUserById(userId, { email_confirm: true });
-    await adminSupabase.from("profiles").update({ is_active: true }).eq("id", userId);
-
-    // Ambil data profil untuk ucapan selamat bergabung
+    // Ambil data profil terlebih dahulu untuk mencegah pengiriman pesan selamat datang ganda
     const { data: profile } = await adminSupabase
       .from("profiles")
-      .select("nama_lengkap, nama_panggilan, no_whatsapp")
-      .eq("id", userId)
+      .select("nama_lengkap, nama_panggilan, no_whatsapp, is_active")
+      .eq("id", targetUserId)
       .single();
 
-    if (profile?.no_whatsapp) {
+    const wasAlreadyActive = Boolean(profile?.is_active);
+
+    if (isSignedAdmin) {
+      await adminSupabase.auth.admin.updateUserById(targetUserId, { email_confirm: true });
+    }
+    await adminSupabase.from("profiles").update({ is_active: true }).eq("id", targetUserId);
+
+    if (!wasAlreadyActive && profile?.no_whatsapp) {
       const namaLengkap = profile.nama_lengkap || "Sahabat";
       const namaPanggilan = profile.nama_panggilan || "";
       const waWelcome = `✨ *BISMILLAHIRRAHMANIRRAHIM* ✨
@@ -61,4 +93,3 @@ Silakan masuk menggunakan email dan kata sandi Anda.
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

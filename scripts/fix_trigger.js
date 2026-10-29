@@ -1,7 +1,12 @@
+require('dotenv').config({ path: '.env.local' });
 const { Client } = require('pg');
 
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
 const client = new Client({
-  connectionString: 'postgresql://postgres:Expedient43!Generation@db.dodcwulqgrhqpbldrlik.supabase.co:5432/postgres'
+  connectionString: process.env.DATABASE_URL
 });
 
 async function run() {

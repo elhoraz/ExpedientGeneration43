@@ -3,28 +3,29 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsAppMessage, sendWhatsAppMessageWithDetail } from "@/lib/whatsapp";
-import { verifySignedAdminSession } from "@/lib/admin-auth";
+import { verifySignedAdminSession, timingSafeEqualString } from "@/lib/admin-auth";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const queryToken = searchParams.get('token');
+  const queryToken = (searchParams.get('token') || '').trim();
   const authHeader = request.headers.get('authorization');
-  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
-  const cronSecret = process.env.CRON_SECRET || "expedient-cron-secret-2026";
-  const userAgent = request.headers.get('user-agent') || '';
-  const isVercelCron = userAgent.includes('vercel-cron') || request.headers.get('x-vercel-cron') === '1';
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7).trim() : '';
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
 
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
   const isAdminSessionValid = adminToken ? await verifySignedAdminSession(adminToken) : false;
 
-  // Verify secret token for cron (Vercel Cron) or authenticated admin session
-  const isAuthorized = 
-    isVercelCron ||
-    (queryToken === cronSecret || bearerToken === cronSecret) || 
-    isAdminSessionValid;
+  const isSecretValid = Boolean(
+    cronSecret &&
+      ((bearerToken && timingSafeEqualString(bearerToken, cronSecret)) ||
+        (queryToken && timingSafeEqualString(queryToken, cronSecret)))
+  );
+
+  // Verify secret token for cron (Vercel Cron sends Authorization: Bearer <CRON_SECRET>) or authenticated admin session
+  const isAuthorized = isSecretValid || isAdminSessionValid;
 
   if (!isAuthorized) {
     return new NextResponse(
@@ -373,7 +374,7 @@ Jazakumullah khairan katsiran. Semoga Allah melapangkan rezeki antum sekeluarga.
   if (
     searchParams.get('run_icebreaker') === 'true' ||
     !searchParams.toString() ||
-    isVercelCron
+    isSecretValid
   ) {
     output += `\n[6] Memeriksa Keaktifan Grup Angkatan Non-Resmi (Inactivity 6 Jam)...\n`;
     try {

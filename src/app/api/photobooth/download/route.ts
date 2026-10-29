@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+const ALLOWED_PHOTOBOOTH_MIMES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "image/webp",
+  "video/mp4",
+  "video/webm",
+]);
+const MAX_PHOTOBOOTH_BYTES = 10 * 1024 * 1024; // 10 MB
 
 // In-memory cache for temporary download buffers (15-minute TTL)
 interface CachedFile {
@@ -29,6 +41,20 @@ function purgeExpiredCache() {
  */
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const rl = rateLimit(`photobooth-post:${clientIp}`, 20, 5 * 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json({ error: "Terlalu banyak permintaan. Coba lagi nanti." }, { status: 429 });
+    }
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized: Silakan login terlebih dahulu." }, { status: 401 });
+    }
+
     purgeExpiredCache();
 
     let buffer: Buffer | null = null;
@@ -71,6 +97,16 @@ export async function POST(req: NextRequest) {
     if (!buffer || buffer.length === 0) {
       return NextResponse.json({ error: "Missing or invalid file data" }, { status: 400 });
     }
+
+    if (buffer.length > MAX_PHOTOBOOTH_BYTES) {
+      return NextResponse.json({ error: "Ukuran file melebihi batas maksimal 10MB." }, { status: 413 });
+    }
+
+    const normalizedMime = mimeType.toLowerCase().split(";")[0].trim();
+    if (!ALLOWED_PHOTOBOOTH_MIMES.has(normalizedMime)) {
+      return NextResponse.json({ error: "Format file tidak diizinkan." }, { status: 400 });
+    }
+    mimeType = normalizedMime;
 
     // Clean safe filename
     const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -171,9 +207,25 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // 2. Proxy remote URL with attachment header if provided
+    // 2. Proxy remote URL with attachment header if provided (restricted to trusted Supabase Storage hosts)
     if (remoteUrl) {
-      const remoteRes = await fetch(remoteUrl);
+      let parsedRemote: URL;
+      try {
+        parsedRemote = new URL(remoteUrl);
+      } catch {
+        return new NextResponse("Invalid URL", { status: 400 });
+      }
+
+      const isAllowedHost =
+        parsedRemote.protocol === "https:" &&
+        (parsedRemote.hostname.endsWith(".supabase.co") ||
+          parsedRemote.hostname.endsWith(".supabase.in"));
+
+      if (!isAllowedHost) {
+        return new NextResponse("Forbidden remote host", { status: 403 });
+      }
+
+      const remoteRes = await fetch(parsedRemote.toString());
       if (remoteRes.ok) {
         const arrayBuf = await remoteRes.arrayBuffer();
         const buffer = Buffer.from(arrayBuf);
