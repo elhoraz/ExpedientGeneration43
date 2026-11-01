@@ -79,7 +79,6 @@ import {
 import {
   isDeveloperSupportInquiry,
   getDeveloperSupportMessage,
-  checkAndTriggerWeeklySystemMaintenance,
 } from "../src/lib/whatsapp/developerSupport";
 import { getCommunityGroupId, getOfficialGroupId } from "../src/lib/whatsapp";
 import {

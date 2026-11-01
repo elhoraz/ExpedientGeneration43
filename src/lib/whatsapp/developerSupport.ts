@@ -62,64 +62,6 @@ export function getWeeklySystemMaintenanceMessage(): string {
   );
 }
 
-/**
- * Pemeriksaan jadwal rutin mingguan (Momen A)
- * Jeda minimal 7 hari (1 minggu), dikirim di waktu santai (Jumat berkah / Malam Minggu)
- */
-export async function checkAndTriggerWeeklySystemMaintenance(
-  sendFn: (caption: string) => Promise<{ success: boolean }>
-): Promise<{ triggered: boolean; reason?: string }> {
-  try {
-    const supabase = createAdminClient();
-    const { data } = await supabase
-      .from("site_content")
-      .select("content_value")
-      .eq("content_key", WEEKLY_MAINTENANCE_KEY)
-      .maybeSingle();
-
-    const lastSent = data?.content_value ? Number(data.content_value) : 0;
-    const now = Date.now();
-
-    // Wajib jeda minimal 7 hari
-    if (now - lastSent < ONE_WEEK_MS) {
-      const daysLeft = Math.ceil((ONE_WEEK_MS - (now - lastSent)) / (24 * 60 * 60 * 1000));
-      return { triggered: false, reason: `Cooldown aktif (tersisa ${daysLeft} hari).` };
-    }
-
-    // Waktu yang pas: Jumat (09.00 - 11.00 WIB) atau Sabtu Malam (20.00 - 21.30 WIB)
-    const nowWib = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
-    const day = nowWib.getDay(); // 0 = Minggu, 5 = Jumat, 6 = Sabtu
-    const hour = nowWib.getHours();
-
-    const isJumatBerkah = day === 5 && hour >= 9 && hour <= 11;
-    const isMalamMinggu = day === 6 && hour >= 20 && hour <= 21;
-    // Jika sudah lewat 8 hari (terlewat dari seminggu), izinkan kirim di jam santai siang/sore (10.00 - 21.00 WIB)
-    const isOverdue = (now - lastSent > 8 * 24 * 60 * 60 * 1000) && (hour >= 10 && hour <= 21);
-
-    if (!isJumatBerkah && !isMalamMinggu && !isOverdue) {
-      return { triggered: false, reason: "Bukan jadwal waktu santai grup." };
-    }
-
-    const caption = getWeeklySystemMaintenanceMessage();
-    const res = await sendFn(caption);
-
-    if (res.success) {
-      await supabase.from("site_content").upsert(
-        {
-          content_key: WEEKLY_MAINTENANCE_KEY,
-          content_value: String(now),
-          content_type: "text",
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "content_key" }
-      );
-      return { triggered: true };
-    }
-  } catch (err: any) {
-    return { triggered: false, reason: err.message };
-  }
-  return { triggered: false };
-}
 
 /**
  * Cek apakah struk transfer yang dikirim ditujukan untuk operasional developer / server

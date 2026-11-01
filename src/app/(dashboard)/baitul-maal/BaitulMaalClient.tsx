@@ -114,7 +114,6 @@ export default function BaitulMaalClient({
   const [goldPrice, setGoldPrice] = useState(1350000); // Rp 1.350.000 / gram emas
 
   const { showAlert, showConfirm } = useConfirm();
-  const [isSendingReminder, setIsSendingReminder] = useState(false);
 
   const formatRupiah = (num: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -700,25 +699,6 @@ export default function BaitulMaalClient({
     printWindow.document.close();
   };
 
-  // Trigger monthly infaq reminder via WhatsApp Queue
-  const handleTriggerInfaqReminder = async () => {
-    const isConfirmed = await showConfirm(
-      "Kirim Pengingat Infaq Bulanan",
-      "Apakah Anda yakin ingin memicu pesan pengingat kas rutin bulanan via WhatsApp ke seluruh alumni yang mengaktifkan notifikasi?"
-    );
-    if (!isConfirmed) return;
-
-    setIsSendingReminder(true);
-    try {
-      const res = await fetch("/api/cron/run?run_infaq_reminder=true");
-      await res.text();
-      await showAlert("Berhasil", "Pesan pengingat infaq kas rutin bulanan berhasil dimasukkan ke antrean WhatsApp!");
-    } catch (e: any) {
-      await showAlert("Gagal", "Gagal memproses pengingat: " + e.message);
-    } finally {
-      setIsSendingReminder(false);
-    }
-  };
 
   // Zakat Calculator Logic
   const nisabTahunan = 85 * goldPrice; // Nisab 85g emas
@@ -827,17 +807,6 @@ export default function BaitulMaalClient({
                 }}
               >
                 <i className="fa-solid fa-building-columns"></i> Kelola Rekening Kas
-              </button>
-              <button
-                type="button"
-                className="btn-action-admin"
-                style={{ background: "rgba(37,211,102,0.15)", borderColor: "#25d366", color: "#25d366" }}
-                disabled={isSendingReminder}
-                onClick={handleTriggerInfaqReminder}
-                title="Pemicu broadcast pengingat infaq bulanan via WA"
-              >
-                <i className="fa-brands fa-whatsapp"></i>{" "}
-                {isSendingReminder ? "Memproses..." : "Pengingat Kas (WA)"}
               </button>
             </>
           )}
