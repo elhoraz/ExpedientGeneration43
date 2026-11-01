@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     let configuredHostname = "expedientgeneration.vercel.app";
     try {
       configuredHostname = new URL(configuredSiteUrl).hostname;
-    } catch {}
+    } catch { }
 
     const allowedOrigins = Array.from(new Set([
       "https://expedientgeneration.vercel.app",
@@ -124,7 +124,7 @@ export async function POST(req: Request) {
         redirect_url: "/beranda"
       });
       response.cookies.delete('webauthn_challenge');
-      
+
       return response;
     } else {
       return NextResponse.json({ verified: false, error: "Verifikasi biometrik tidak valid." }, { status: 400 });

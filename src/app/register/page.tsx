@@ -36,14 +36,14 @@ function RegisterFormContent() {
   };
 
   const pwdStrength = getPasswordStrength(passwordValue);
-  
+
   const searchParams = useSearchParams();
   const errorMsg = searchParams.get("error");
   const verifyParam = searchParams.get("verify");
   const emailParam = searchParams.get("email");
   const [showToast, setShowToast] = useState(!!errorMsg);
   const [toastMessage, setToastMessage] = useState(errorMsg || "");
-  
+
   // Forms & Photo Cropper
   const [imagePreview, setImagePreview] = useState("");
   const [rawCropImage, setRawCropImage] = useState<string | null>(null);
@@ -490,7 +490,7 @@ function RegisterFormContent() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
-    
+
     // Bersihkan status error sebelumnya
     const allControls = form.querySelectorAll(".input-control, .checkbox-container");
     allControls.forEach(ctrl => ctrl.classList.remove("is-invalid"));
@@ -632,11 +632,11 @@ function RegisterFormContent() {
       }
 
       showToastAlert(
-        locale === "ar" 
+        locale === "ar"
           ? "يرجى ملء جميع الحقول الإلزامية (*) بشكل صحيح."
           : locale === "en"
-          ? "Please complete all required fields (*) properly."
-          : "Mohon lengkapi semua kolom yang wajib diisi (*) dengan benar."
+            ? "Please complete all required fields (*) properly."
+            : "Mohon lengkapi semua kolom yang wajib diisi (*) dengan benar."
       );
       return;
     }
@@ -684,7 +684,7 @@ function RegisterFormContent() {
         <div id="dynamicToast" className={`quantum-toast toast-error ${showToast ? 'show' : ''}`}>
           <div className="toast-icon"><i className="fa-solid fa-shield-virus"></i></div>
           <div style={{ transform: "translateZ(15px)" }}>
-            <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", letterSpacing: "1px" }}>{tLang.register_extra?.toast_notification_title || "Pemberitahuan"}</strong><br/>
+            <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.15rem", letterSpacing: "1px" }}>{tLang.register_extra?.toast_notification_title || "Pemberitahuan"}</strong><br />
             <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>{toastMessage || errorMsg}</span>
           </div>
         </div>
@@ -726,7 +726,7 @@ function RegisterFormContent() {
 
           <form action="/auth/register" method="POST" encType="multipart/form-data" id="registerForm" noValidate onSubmit={handleSubmit}>
             <input type="hidden" name="foto_profil_base64" id="fotoProfilBase64Input" value={imagePreview} />
-            
+
             <div className="form-grid">
               <div className="input-group">
                 <input type="text" name="nama_lengkap" className="input-control" required minLength={3} placeholder=" " />
@@ -736,7 +736,7 @@ function RegisterFormContent() {
                 <div className="input-neon-line"></div>
                 <div className="error-hint">{locale === "ar" ? "الاسم الكامل مطلوب (3 أحرف على الأقل)." : locale === "en" ? "Full name is required (min 3 chars)." : "Nama lengkap wajib diisi minimal 3 karakter."}</div>
               </div>
-              
+
               <div className="input-group">
                 <input type="text" name="nama_panggilan" className="input-control" required minLength={2} placeholder=" " />
                 <label className="input-label">
@@ -758,7 +758,7 @@ function RegisterFormContent() {
                 <div className="input-neon-line"></div>
                 <div className="error-hint">{locale === "ar" ? "يرجى اختيار الجنس." : locale === "en" ? "Please select gender." : "Jenis kelamin wajib dipilih."}</div>
               </div>
-              
+
               <div className="input-group">
                 <input type="text" name="tempat_lahir" className="input-control" required minLength={2} placeholder=" " />
                 <label className="input-label">
@@ -794,16 +794,16 @@ function RegisterFormContent() {
                 <div className="input-neon-line"></div>
                 <div className="error-hint">{locale === "ar" ? "البريد الإلكتروني مطلوب وصحيح." : locale === "en" ? "Valid email address is required." : "Surel resmi wajib diisi dengan format yang benar."}</div>
               </div>
-              
+
               <div className="input-group">
-                <input 
-                  type="tel" 
-                  name="no_whatsapp" 
-                  className="input-control" 
-                  required 
-                  minLength={10} 
-                  maxLength={17} 
-                  placeholder=" " 
+                <input
+                  type="tel"
+                  name="no_whatsapp"
+                  className="input-control"
+                  required
+                  minLength={10}
+                  maxLength={17}
+                  placeholder=" "
                 />
                 <label className="input-label">
                   {tLang.register.whatsapp_label} <span className="req-star">*</span>
@@ -813,14 +813,14 @@ function RegisterFormContent() {
               </div>
 
               <div className="input-group span-full has-requirements">
-                <input 
-                  type={showPassword ? "text" : "password"} 
-                  name="password" 
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
                   id="passwordInput"
-                  className="input-control" 
-                  required 
-                  minLength={8} 
-                  placeholder=" " 
+                  className="input-control"
+                  required
+                  minLength={8}
+                  placeholder=" "
                   value={passwordValue}
                   onChange={(e) => {
                     setPasswordValue(e.target.value);
@@ -850,8 +850,8 @@ function RegisterFormContent() {
 
                   {passwordValue.length > 0 && (
                     <div className="pwd-strength-bar-wrap">
-                      <div 
-                        className={`pwd-strength-bar strength-${pwdStrength.level}`} 
+                      <div
+                        className={`pwd-strength-bar strength-${pwdStrength.level}`}
                         style={{ width: `${pwdStrength.percent}%` }}
                       ></div>
                     </div>
@@ -878,7 +878,7 @@ function RegisterFormContent() {
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
-              
+
               <div className="input-group">
                 <input type="text" name="cita_cita" className="input-control" placeholder=" " />
                 <label className="input-label">
@@ -896,7 +896,7 @@ function RegisterFormContent() {
                 <div className="input-neon-line"></div>
                 <div className="error-hint"></div>
               </div>
-              
+
               <div className="input-group">
                 <input type="text" name="akun_tiktok" className="input-control" placeholder=" " />
                 <label className="input-label">
@@ -910,7 +910,7 @@ function RegisterFormContent() {
                 <label className="input-label" style={{ top: "-20px", fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: 700 }}>
                   {tLang.register.photo_title} <span className="optional-badge">({locale === "ar" ? "اختياري" : locale === "en" ? "Optional" : "Opsional"})</span>
                 </label>
-                
+
                 {/* Upload Zone (Tampil saat belum ada foto terpilih) */}
                 {!imagePreview && (
                   <label className="upload-zone" onClick={() => fileInputRef.current?.click()}>
@@ -920,13 +920,13 @@ function RegisterFormContent() {
                     <span style={{ color: "#d4af37", fontSize: "0.75rem", marginTop: "4px" }}>
                       <i className="fa-solid fa-crop-simple"></i> {tLang.register.photo_crop_notice}
                     </span>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      name="foto_profil_file" 
-                      onChange={handleFileChange} 
-                      accept="image/*" 
-                      style={{ display: "none" }} 
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      name="foto_profil_file"
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      style={{ display: "none" }}
                     />
                   </label>
                 )}
@@ -940,15 +940,15 @@ function RegisterFormContent() {
                         <i className="fa-solid fa-circle-check"></i> {tLang.register.photo_ready}
                       </div>
                     </div>
-                    
+
                     <div className="preview-details">
                       <h4 className="preview-details-title">{tLang.register.photo_selected}</h4>
                       <p className="preview-details-sub">{tLang.register.photo_selected_desc}</p>
-                      
+
                       <div className="preview-actions">
-                        <button 
-                          type="button" 
-                          className="btn-preview-action btn-recrop" 
+                        <button
+                          type="button"
+                          className="btn-preview-action btn-recrop"
                           onClick={() => {
                             if (rawCropImage) {
                               setIsCropperOpen(true);
@@ -959,16 +959,16 @@ function RegisterFormContent() {
                         >
                           <i className="fa-solid fa-crop-simple"></i> {tLang.register.btn_recrop}
                         </button>
-                        <button 
-                          type="button" 
-                          className="btn-preview-action btn-change" 
+                        <button
+                          type="button"
+                          className="btn-preview-action btn-change"
                           onClick={handleResetPhoto}
                         >
                           <i className="fa-solid fa-arrows-rotate"></i> {tLang.register.btn_change_photo}
                         </button>
-                        <button 
-                          type="button" 
-                          className="btn-preview-action btn-remove" 
+                        <button
+                          type="button"
+                          className="btn-preview-action btn-remove"
                           onClick={handleRemovePhoto}
                           title={tLang.register.btn_remove_photo}
                         >
@@ -977,13 +977,13 @@ function RegisterFormContent() {
                       </div>
                     </div>
 
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      name="foto_profil_file" 
-                      onChange={handleFileChange} 
-                      accept="image/*" 
-                      style={{ display: "none" }} 
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      name="foto_profil_file"
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      style={{ display: "none" }}
                     />
                   </div>
                 )}
