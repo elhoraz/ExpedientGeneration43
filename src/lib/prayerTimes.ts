@@ -27,6 +27,27 @@ export const POPULAR_CITIES: CityPreset[] = [
   { name: "Madinah Al-Munawwarah", lat: 24.5247, lng: 39.5692, timezone: 3, region: "Arab Saudi (AST)" },
 ];
 
+/**
+ * Menemukan kota preset terdekat berdasarkan koordinat GPS
+ */
+export function findNearestCity(lat: number, lng: number): CityPreset {
+  let nearestCity = POPULAR_CITIES[0];
+  let minDistance = Infinity;
+
+  for (const city of POPULAR_CITIES) {
+    if (!city.kemenagCityId) continue;
+    const dLat = city.lat - lat;
+    const dLng = city.lng - lng;
+    const distSq = dLat * dLat + dLng * dLng;
+    if (distSq < minDistance) {
+      minDistance = distSq;
+      nearestCity = city;
+    }
+  }
+
+  return nearestCity;
+}
+
 export interface QiblaInfo {
   bearing: number; // 0 - 360 deg clockwise from True North
   distanceKm: number;
@@ -143,9 +164,9 @@ export function calculatePrayerTimes(
     return (Math.acos(cosH) * 180) / Math.PI;
   };
 
-  // Subuh (Kemenag standard -20°)
+  // Subuh (Kemenag standard -20° + 2 min ihtiyat)
   const hSubuh = hourAngle(-20);
-  const subuhHours = hSubuh !== null ? solarNoon - hSubuh / 15 : 4.5;
+  const subuhHours = (hSubuh !== null ? solarNoon - hSubuh / 15 : 4.5) + 2 / 60;
 
   // Syuruq (Sunrise -0.833°)
   const hSunrise = hourAngle(-0.833);
@@ -172,7 +193,7 @@ export function calculatePrayerTimes(
   const formatHours = (h: number) => {
     const normalized = (h + 24) % 24;
     const hrs = Math.floor(normalized);
-    const mins = Math.floor((normalized - hrs) * 60);
+    const mins = Math.round((normalized - hrs) * 60) % 60;
     return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   };
 

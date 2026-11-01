@@ -179,19 +179,30 @@ export default function AppNotificationManager() {
 
         // Active notification check: apakah sekarang berada di dalam waktu shalat aktif
         for (const prayer of prayerWindows) {
-          const isWithinWindow =
+          // Trigger ONLY within 3 minutes of prayer time entrance (e.g. 11:21 to 11:24)
+          // NEVER trigger when opening the app 10-60 minutes late!
+          const isEnteringPrayerTime =
             currentTotalMinutes >= prayer.startMinutes &&
-            currentTotalMinutes < prayer.endMinutes;
+            currentTotalMinutes <= prayer.startMinutes + 3;
 
-          if (isWithinWindow) {
+          if (isEnteringPrayerTime) {
             const notifKey = `prayer_notif_${prayer.name}_${dateStr}`;
             if (!localStorage.getItem(notifKey)) {
               localStorage.setItem(notifKey, "1");
 
-              // In native APK or silent mode, suppress web audio so native receiver handles audio appropriately
-              const isNative = Boolean((window as any).ExpedientNativeBridge);
+              const isApk = isAndroidNativeApp();
               const isSilent = Boolean((window as any).ExpedientNativeBridge?.isDeviceSilent?.());
-              if (!isNative && !isSilent) {
+
+              // 1. Tampilkan Visual Aegis Toast di layar aplikasi
+              showToast(
+                `🕌 Waktu Shalat ${prayer.name} (${prayer.time})`,
+                `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`,
+                "success"
+              );
+
+              // 2. Play web audio ONLY if not native APK (native APK handles audio via PrayerAlarmReceiver)
+              // and NOT in silent mode!
+              if (!isApk && !isSilent) {
                 try {
                   const adzanAudio = new Audio("/assets/audio/adzan_makkah.mp3");
                   adzanAudio.volume = 1.0;
@@ -199,19 +210,15 @@ export default function AppNotificationManager() {
                 } catch {}
               }
 
-              // 1. Tampilkan Visual Aegis Toast di layar aplikasi / web
-              showToast(
-                `🕌 Waktu Shalat ${prayer.name} (${prayer.time})`,
-                `Allahu Akbar, Allahu Akbar... Sedang masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`,
-                "success"
-              );
-
-              // 2. Kirim Notifikasi Sistem (Status bar HP / Desktop)
-              await sendSystemNotification({
-                title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
-                message: `Allahu Akbar, Allahu Akbar... Sedang masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
-                url: "/kiblat",
-              });
+              // 3. Send system notification ONLY if not native APK (native AlarmManager handles notification 777)
+              // This completely avoids double notifications on Android!
+              if (!isApk) {
+                await sendSystemNotification({
+                  title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
+                  message: `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
+                  url: "/kiblat",
+                });
+              }
               break;
             }
           }
@@ -297,6 +304,7 @@ export default function AppNotificationManager() {
     (window as any).testAdzanAlarm = handleTestAdzanAlarm;
     window.addEventListener("expedient_trigger_test_notif", handleTriggerTest);
     window.addEventListener("expedient_test_adzan_alarm", () => handleTestAdzanAlarm(5));
+    window.addEventListener("expedient_location_updated", checkPrayerSchedule);
 
     // 6. Automatic Native Android FCM Device Token Registration with User Binding
     const syncNativeFcmToken = async () => {
@@ -375,6 +383,7 @@ export default function AppNotificationManager() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("expedient_trigger_test_notif", handleTriggerTest);
       window.removeEventListener("expedient_fcm_token", handleFcmTokenEvent);
+      window.removeEventListener("expedient_location_updated", checkPrayerSchedule);
       authListener?.subscription?.unsubscribe();
       delete (window as any).triggerExpedientNotification;
       delete (window as any).testAdzanAlarm;

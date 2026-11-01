@@ -40,7 +40,7 @@ import android.content.ContentResolver;
 public class MainActivity extends BridgeActivity {
     public static final String NOTIFICATION_CHANNEL_ID = "expedient_main_channel";
     public static final String NOTIFICATION_CHANNEL_NAME = "Notifikasi Expedient 43";
-    public static final String ADZAN_CHANNEL_ID = "expedient_adzan_channel_v3";
+    public static final String ADZAN_CHANNEL_ID = "expedient_adzan_channel_v4";
     public static final String ADZAN_CHANNEL_NAME = "Panggilan Adzan & Waktu Shalat";
     private static final int NOTIF_PERMISSION_CODE = 101;
 
@@ -272,14 +272,7 @@ public class MainActivity extends BridgeActivity {
 
         @JavascriptInterface
         public boolean isDeviceSilent() {
-            try {
-                android.media.AudioManager am = (android.media.AudioManager) getSystemService(Context.AUDIO_SERVICE);
-                if (am != null) {
-                    int mode = am.getRingerMode();
-                    return mode == android.media.AudioManager.RINGER_MODE_SILENT || mode == android.media.AudioManager.RINGER_MODE_VIBRATE;
-                }
-            } catch (Exception ignored) {}
-            return false;
+            return PrayerAlarmReceiver.isDeviceSilent(MainActivity.this);
         }
 
         @JavascriptInterface
@@ -657,13 +650,14 @@ public class MainActivity extends BridgeActivity {
             channel.setShowBadge(true);
             manager.createNotificationChannel(channel);
 
-            // 2. Dedicated Adzan Channel with authentic Adzan audio & alarm usage
+            // 2. Dedicated Adzan Channel: STRICTLY SILENT on the channel level!
+            // Audio is exclusively managed by PrayerAlarmReceiver's MediaPlayer
+            // so that sound never plays twice and Silent/Vibrate/DND modes are strictly respected.
             try {
-                Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + getPackageName() + "/" + R.raw.adzan);
-                AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .build();
+                // Delete legacy channels that had audio embedded
+                manager.deleteNotificationChannel("expedient_adzan_channel_v3");
+                manager.deleteNotificationChannel("expedient_adzan_channel_v2");
+                manager.deleteNotificationChannel("expedient_adzan_channel");
 
                 NotificationChannel adzanChannel = new NotificationChannel(
                     ADZAN_CHANNEL_ID,
@@ -675,7 +669,7 @@ public class MainActivity extends BridgeActivity {
                 adzanChannel.setLightColor(0xFF00FF7F);
                 adzanChannel.enableVibration(true);
                 adzanChannel.setVibrationPattern(new long[]{0, 500, 250, 500, 250, 500});
-                adzanChannel.setSound(soundUri, audioAttributes);
+                adzanChannel.setSound(null, null); // Strictly SILENT channel
                 adzanChannel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
                 adzanChannel.setBypassDnd(false);
                 adzanChannel.setShowBadge(true);

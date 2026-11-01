@@ -6,13 +6,11 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.util.Log;
@@ -21,36 +19,91 @@ import java.util.Calendar;
 
 /**
  * Native Android BroadcastReceiver to wake up device and fire prayer alerts.
- * Automatically respects device Silent / Vibrate mode so loud audio is not blasted during meetings/classes.
+ * Strictly respects device Silent / Vibrate / Do Not Disturb (DND) modes so loud audio
+ * is NEVER blasted during meetings, classes, or when the user has muted their device.
+ * Audio is exclusively handled via MediaPlayer to prevent dual audio / echo playback.
  */
 public class PrayerAlarmReceiver extends BroadcastReceiver {
     private static final String TAG = "ExpedientAdzan";
     private static MediaPlayer activeMediaPlayer = null;
 
-    public static synchronized void playAdzanAudio(Context context) {
+    /**
+     * Comprehensive check if device is in Silent mode, Vibrate mode, or Do Not Disturb (DND).
+     */
+    public static boolean isDeviceSilent(Context context) {
+        if (context == null) return false;
         try {
-            stopAdzanAudio();
-
-            // Check if device is set to Silent or Vibrate mode
             AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
             if (audioManager != null) {
                 int ringerMode = audioManager.getRingerMode();
                 if (ringerMode == AudioManager.RINGER_MODE_SILENT || ringerMode == AudioManager.RINGER_MODE_VIBRATE) {
-                    Log.d(TAG, "Device is in Silent or Vibrate mode (ringerMode=" + ringerMode + "). Suppressing loud adzan audio.");
-                    return;
+                    return true;
                 }
+                // Check if notification or ring volume is turned to 0
+                int notifVol = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+                int ringVol = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+                if (notifVol == 0 && ringVol == 0) {
+                    return true;
+                }
+            }
+
+            // Check Do Not Disturb (DND) Interruption Filter on Android 6.0+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+                if (nm != null) {
+                    int filter = nm.getCurrentInterruptionFilter();
+                    // INTERRUPTION_FILTER_NONE = Total silence
+                    // INTERRUPTION_FILTER_PRIORITY / INTERRUPTION_FILTER_ALARMS when user wants DND
+                    if (filter == NotificationManager.INTERRUPTION_FILTER_NONE ||
+                        filter == NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "isDeviceSilent check notice: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Checks if device is specifically in Vibrate mode.
+     */
+    public static boolean isDeviceVibrate(Context context) {
+        if (context == null) return false;
+        try {
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager != null) {
+                return audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE;
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    /**
+     * Plays the adzan audio exactly once.
+     * Guaranteed to NEVER play if device is in Silent, Vibrate, or DND mode.
+     */
+    public static synchronized void playAdzanAudio(Context context) {
+        try {
+            stopAdzanAudio();
+
+            // Strict silence check: Never blast sound if device is silent or vibrate
+            if (isDeviceSilent(context)) {
+                Log.d(TAG, "Device is in Silent/Vibrate/DND mode. Suppressing adzan audio playback.");
+                return;
             }
 
             activeMediaPlayer = MediaPlayer.create(context.getApplicationContext(), R.raw.adzan);
             if (activeMediaPlayer != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                         .build();
                     activeMediaPlayer.setAudioAttributes(audioAttributes);
                 } else {
-                    activeMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
+                    activeMediaPlayer.setAudioStreamType(AudioManager.STREAM_RING);
                 }
                 activeMediaPlayer.setVolume(1.0f, 1.0f);
                 activeMediaPlayer.setOnCompletionListener(mp -> {
@@ -58,7 +111,7 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                     stopAdzanAudio();
                 });
                 activeMediaPlayer.start();
-                Log.d(TAG, "Adzan audio playback started.");
+                Log.d(TAG, "Single adzan audio playback started successfully.");
             }
         } catch (Exception e) {
             Log.e(TAG, "Error playing adzan audio: " + e.getMessage(), e);
@@ -146,25 +199,9 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                 Log.w(TAG, "WakeLock notice: " + wakeEx.getMessage());
             }
 
-            // 2. Check if device is in Silent or Vibrate mode
-            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            boolean isSilent = false;
-            boolean isVibrate = false;
-            if (audioManager != null) {
-                int ringerMode = audioManager.getRingerMode();
-                if (ringerMode == AudioManager.RINGER_MODE_SILENT) {
-                    isSilent = true;
-                } else if (ringerMode == AudioManager.RINGER_MODE_VIBRATE) {
-                    isVibrate = true;
-                }
-            }
-
-            // Only play loud adzan audio if device is in Normal mode
-            if (!isSilent && !isVibrate) {
-                playAdzanAudio(context);
-            } else {
-                Log.d(TAG, "Device is in Silent or Vibrate mode. Skipping loud adzan audio playback.");
-            }
+            // 2. Strict Silent & Vibrate mode detection
+            boolean isSilent = isDeviceSilent(context);
+            boolean isVibrate = isDeviceVibrate(context);
 
             // 3. Prepare notification details and intents
             String title = intent.getStringExtra("title");
@@ -202,27 +239,22 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
 
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager != null) {
-                Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.getPackageName() + "/" + R.raw.adzan);
-
+                // Channel must be SILENT (sound = null) to prevent dual audio playback
+                // and to guarantee silent mode is never overridden by Android's notification sound engine.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     NotificationChannel channel = new NotificationChannel(
                         MainActivity.ADZAN_CHANNEL_ID,
                         MainActivity.ADZAN_CHANNEL_NAME,
                         NotificationManager.IMPORTANCE_HIGH
                     );
-                    channel.setDescription("Kumandang suara adzan merdu dan pengingat waktu shalat 5 waktu.");
+                    channel.setDescription("Pemberitahuan waktu shalat resmi dan kumandang adzan.");
                     channel.enableLights(true);
                     channel.setLightColor(0xFF00FF7F);
-                    channel.enableVibration(true);
+                    channel.enableVibration(!isSilent);
                     channel.setVibrationPattern(new long[]{0, 500, 250, 500, 250, 500});
-
-                    AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .setUsage(AudioAttributes.USAGE_ALARM)
-                        .build();
-                    channel.setSound(soundUri, audioAttributes);
+                    channel.setSound(null, null); // Strictly SILENT channel
                     channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-                    channel.setBypassDnd(false); // Do not bypass DND/silent mode
+                    channel.setBypassDnd(false);
                     channel.setShowBadge(true);
                     manager.createNotificationChannel(channel);
                 }
@@ -233,18 +265,26 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                     .setContentText(message != null ? message : "Allahu Akbar, Allahu Akbar... Mari tunaikan shalat tepat waktu.")
                     .setStyle(new NotificationCompat.BigTextStyle().bigText(message != null ? message : ""))
                     .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .setCategory(NotificationCompat.CATEGORY_ALARM)
+                    .setCategory(NotificationCompat.CATEGORY_EVENT)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setOngoing(false)
                     .setAutoCancel(true)
+                    .setSound(null) // STRICTLY NO notification channel sound!
                     .setContentIntent(contentPendingIntent)
                     .setFullScreenIntent(contentPendingIntent, true);
 
-                if (isSilent) {
+                if (isSilent && !isVibrate) {
+                    // Total silence: No sound, no vibration
+                    Log.d(TAG, "Device is in Silent/DND mode. Suppressing audio and vibration.");
                     builder.setVibrate(new long[]{0});
                 } else if (isVibrate) {
+                    // Vibrate mode: No sound, gentle vibration
+                    Log.d(TAG, "Device is in Vibrate mode. Suppressing audio, keeping vibration.");
                     builder.setVibrate(new long[]{0, 500, 250, 500, 250, 500});
                 } else {
+                    // Normal mode: Play adzan audio exactly ONCE via MediaPlayer
+                    Log.d(TAG, "Device is in Normal mode. Playing single adzan audio.");
+                    playAdzanAudio(context);
                     builder.setVibrate(new long[]{0, 500, 250, 500, 250, 500})
                            .addAction(R.mipmap.ic_launcher, "⏹ Hentikan Adzan", stopPendingIntent);
                 }
@@ -254,7 +294,7 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                 manager.notify(777, builder.build());
             }
 
-            // 4. Auto-Reschedule this prayer for tomorrow (+24 hours) so the alarm never stops ringing!
+            // 4. Auto-Reschedule this prayer for tomorrow (+24 hours)
             int hour = intent.getIntExtra("hour", -1);
             int minute = intent.getIntExtra("minute", -1);
             String prayerName = intent.getStringExtra("prayerName");

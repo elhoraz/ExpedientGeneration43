@@ -2,7 +2,7 @@
 // Integrasi Data Resmi Jadwal Shalat Kementerian Agama Republik Indonesia (Bimas Islam)
 // Expedient Generation 43
 
-import { PrayerSchedule, calculatePrayerTimes } from "./prayerTimes";
+import { PrayerSchedule, calculatePrayerTimes, findNearestCity } from "./prayerTimes";
 
 export interface KemenagCityItem {
   id: string;
@@ -22,11 +22,24 @@ export async function getOfficialKemenagSchedule(
   fallbackLng: number = 111.4647,
   fallbackTimezone: number = 7
 ): Promise<PrayerSchedule> {
+  // If cityId is default Ponorogo, but coordinates indicate another location (e.g. GPS in Jakarta/Surabaya),
+  // automatically resolve nearest Kemenag city preset!
+  let targetCityId = cityId;
+  let targetLocationName = "KAB. PONOROGO";
+
+  if (targetCityId === DEFAULT_KEMENAG_CITY_ID && (Math.abs(fallbackLat - (-7.8671)) > 0.1 || Math.abs(fallbackLng - 111.4647) > 0.1)) {
+    const nearest = findNearestCity(fallbackLat, fallbackLng);
+    if (nearest?.kemenagCityId) {
+      targetCityId = nearest.kemenagCityId;
+      targetLocationName = nearest.name;
+    }
+  }
+
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   const dateKey = `${year}-${month}-${day}`;
-  const localCacheKey = `kemenag_prayer_schedule_${cityId}_${dateKey}`;
+  const localCacheKey = `kemenag_prayer_schedule_${targetCityId}_${dateKey}`;
 
   // 1. Coba baca dari localStorage cache
   if (typeof window !== "undefined") {
@@ -43,7 +56,7 @@ export async function getOfficialKemenagSchedule(
 
   // 2. Fetch jadwal resmi dari API internal /api/prayer-schedule
   try {
-    const res = await fetch(`/api/prayer-schedule?cityId=${cityId}&date=${dateKey}`, {
+    const res = await fetch(`/api/prayer-schedule?cityId=${targetCityId}&date=${dateKey}`, {
       headers: { Accept: "application/json" },
     });
 
@@ -66,7 +79,7 @@ export async function getOfficialKemenagSchedule(
             day: "numeric",
           }),
           isKemenagOfficial: true,
-          locationName: json.cityName || "KAB. PONOROGO",
+          locationName: json.cityName || targetLocationName,
         };
 
         // Simpan ke localStorage cache
@@ -80,15 +93,53 @@ export async function getOfficialKemenagSchedule(
       }
     }
   } catch (err) {
-    console.warn("Kemenag API fetch notice (switching to astronomical fallback):", err);
+    console.warn("Internal Kemenag API fetch notice:", err);
   }
 
-  // 3. Fallback: Hitung secara astronomis falakiyah standar Kemenag RI
+  // 2b. Direct external fetch fallback if internal API is unreachable
+  try {
+    const directRes = await fetch(`https://api.myquran.com/v2/sholat/jadwal/${targetCityId}/${year}/${month}/${day}`);
+    if (directRes.ok) {
+      const directJson = await directRes.json();
+      if (directJson.status && directJson.data && directJson.data.jadwal) {
+        const item = directJson.data.jadwal;
+        const schedule: PrayerSchedule = {
+          imsak: item.imsak,
+          subuh: item.subuh,
+          syuruq: item.terbit,
+          dzuhur: item.dzuhur,
+          ashar: item.ashar,
+          maghrib: item.maghrib,
+          isya: item.isya,
+          dateStr: item.tanggal || date.toLocaleDateString("id-ID", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+          isKemenagOfficial: true,
+          locationName: directJson.data.lokasi || targetLocationName,
+        };
+
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(localCacheKey, JSON.stringify(schedule));
+          } catch {}
+        }
+
+        return schedule;
+      }
+    }
+  } catch (directErr) {
+    console.warn("Direct Kemenag API fetch notice:", directErr);
+  }
+
+  // 3. Fallback: Hitung secara astronomis falakiyah standar Kemenag RI (dengan ihtiyat +2 menit)
   const fallback = calculatePrayerTimes(fallbackLat, fallbackLng, fallbackTimezone, date);
   return {
     ...fallback,
     isKemenagOfficial: false,
-    locationName: "Arrisalah Ponorogo (Akurasi Astronomis)",
+    locationName: `${targetLocationName} (Akurasi Falakiyah)`,
   };
 }
 

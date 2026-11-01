@@ -8,6 +8,7 @@ import {
   CityPreset,
   calculateQibla,
   calculatePrayerTimes,
+  findNearestCity,
   getNextPrayer,
   getCompassDirection,
   PrayerSchedule,
@@ -101,13 +102,30 @@ export default function KiblatClient() {
   const startPointerAngleRef = useRef<number>(0);
   const startContinuousHeadingRef = useRef<number>(initialQibla.bearing);
 
-  // Auto-detect mobile device on client mount
+  // Auto-detect mobile device on client mount & restore saved location
   useEffect(() => {
     if (typeof window === "undefined") return;
     const isMobile =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
       (window.innerWidth < 768 && window.matchMedia("(pointer: coarse)").matches);
     setDeviceMode(isMobile ? "mobile" : "desktop");
+
+    try {
+      const savedCityId = localStorage.getItem("expedient_kemenag_city_id");
+      if (savedCityId) {
+        const found = POPULAR_CITIES.find((c) => c.kemenagCityId === savedCityId);
+        if (found) {
+          setSelectedCity(found);
+        }
+      }
+      const savedLoc = localStorage.getItem("expedient_user_location");
+      if (savedLoc) {
+        const parsed = JSON.parse(savedLoc);
+        if (parsed.lat && parsed.lng) {
+          setCurrentLocation(parsed);
+        }
+      }
+    } catch {}
   }, []);
 
   // Fetch official Kemenag schedule when city or location changes
@@ -433,14 +451,26 @@ export default function KiblatClient() {
       (pos) => {
         const { latitude, longitude } = pos.coords;
         const tzOffset = Math.round(-new Date().getTimezoneOffset() / 60);
-        setCurrentLocation({
-          name: locale === "ar" ? "موقع GPS الخاص بك" : locale === "en" ? "Your GPS Location" : "Lokasi GPS Anda",
+        const nearestCity = findNearestCity(latitude, longitude);
+
+        const newLoc = {
+          name: locale === "ar" ? "موقع GPS الخاص بك" : locale === "en" ? "Your GPS Location" : `Lokasi GPS (${nearestCity.name})`,
           lat: latitude,
           lng: longitude,
-          timezone: tzOffset || 7,
+          timezone: tzOffset || nearestCity.timezone || 7,
           isGps: true,
-        });
+        };
+        setCurrentLocation(newLoc);
+        setSelectedCity(nearestCity);
         setIsGpsLoading(false);
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("expedient_user_location", JSON.stringify(newLoc));
+          if (nearestCity.kemenagCityId) {
+            localStorage.setItem("expedient_kemenag_city_id", nearestCity.kemenagCityId);
+          }
+          window.dispatchEvent(new CustomEvent("expedient_location_updated"));
+        }
 
         // Auto-align compass to the GPS location's accurate Qibla bearing on desktop!
         if (!isSensorActive) {
@@ -476,6 +506,14 @@ export default function KiblatClient() {
         isGps: false,
       };
       setCurrentLocation(newLoc);
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("expedient_user_location", JSON.stringify(newLoc));
+        if (city.kemenagCityId) {
+          localStorage.setItem("expedient_kemenag_city_id", city.kemenagCityId);
+        }
+        window.dispatchEvent(new CustomEvent("expedient_location_updated"));
+      }
 
       // Auto-align compass directly to the chosen city's Qibla bearing if not driven by mobile hardware sensor!
       if (!isSensorActive) {

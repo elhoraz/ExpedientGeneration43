@@ -12,11 +12,33 @@ export async function GET(request: Request) {
     const cityId = searchParams.get("cityId") || "1621"; // Default: Kab. Ponorogo
     const dateParam = searchParams.get("date"); // Optional YYYY-MM-DD
 
-    const targetDate = dateParam ? new Date(dateParam) : new Date();
-    const year = targetDate.getFullYear();
-    const month = String(targetDate.getMonth() + 1).padStart(2, "0");
-    const day = String(targetDate.getDate()).padStart(2, "0");
-    const targetDateStr = `${year}-${month}-${day}`;
+    let year: string;
+    let month: string;
+    let day: string;
+    let targetDateStr: string;
+
+    // Timezone-safe parsing: Never use new Date(dateParam) which parses as UTC midnight
+    // and causes date-rollback on UTC-n servers!
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      const parts = dateParam.split("-");
+      year = parts[0];
+      month = parts[1];
+      day = parts[2];
+      targetDateStr = dateParam;
+    } else {
+      // Default to current Indonesian calendar date (Asia/Jakarta, UTC+7)
+      const formatter = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Jakarta",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+      targetDateStr = formatter.format(new Date());
+      const parts = targetDateStr.split("-");
+      year = parts[0];
+      month = parts[1];
+      day = parts[2];
+    }
 
     const cacheKey = `${cityId}_${year}_${month}`;
     const now = Date.now();
@@ -26,45 +48,76 @@ export async function GET(request: Request) {
     if (cached && now - cached.timestamp < CACHE_TTL_MS) {
       monthData = cached.data;
     } else {
-      const apiUrl = `https://api.myquran.com/v2/sholat/jadwal/${cityId}/${year}/${month}`;
-      const response = await fetch(apiUrl, {
-        headers: {
-          "User-Agent": "ExpedientGeneration43/1.0",
-          Accept: "application/json",
-        },
-        next: { revalidate: 86400 },
-      });
+      try {
+        const apiUrl = `https://api.myquran.com/v2/sholat/jadwal/${cityId}/${year}/${month}`;
+        const response = await fetch(apiUrl, {
+          headers: {
+            "User-Agent": "ExpedientGeneration43/1.0",
+            Accept: "application/json",
+          },
+          next: { revalidate: 86400 },
+        });
 
-      if (response.ok) {
-        const json = await response.json();
-        if (json.status && json.data) {
-          monthData = json.data;
-          cache.set(cacheKey, { data: monthData, timestamp: now });
+        if (response.ok) {
+          const json = await response.json();
+          if (json.status && json.data) {
+            monthData = json.data;
+            cache.set(cacheKey, { data: monthData, timestamp: now });
+          }
         }
+      } catch (fetchErr) {
+        console.warn("Monthly schedule fetch error:", fetchErr);
       }
     }
 
-    if (!monthData || !monthData.jadwal) {
+    let todayJadwal = null;
+    let jadwalList: any[] = [];
+
+    if (monthData && monthData.jadwal) {
+      jadwalList = Array.isArray(monthData.jadwal) ? monthData.jadwal : [];
+      const dayNum = parseInt(day, 10);
+      todayJadwal =
+        jadwalList.find((j: any) => j.date === targetDateStr) ||
+        jadwalList[dayNum - 1] ||
+        jadwalList[0];
+    }
+
+    // Secondary fallback: fetch exact day endpoint if monthly was empty or failed
+    if (!todayJadwal) {
+      try {
+        const dayApiUrl = `https://api.myquran.com/v2/sholat/jadwal/${cityId}/${year}/${month}/${day}`;
+        const dayRes = await fetch(dayApiUrl, {
+          headers: {
+            "User-Agent": "ExpedientGeneration43/1.0",
+            Accept: "application/json",
+          },
+        });
+        if (dayRes.ok) {
+          const dayJson = await dayRes.json();
+          if (dayJson.status && dayJson.data && dayJson.data.jadwal) {
+            todayJadwal = dayJson.data.jadwal;
+            monthData = dayJson.data;
+          }
+        }
+      } catch (dayErr) {
+        console.warn("Daily schedule fetch fallback error:", dayErr);
+      }
+    }
+
+    if (!todayJadwal) {
       return NextResponse.json(
         { error: "Gagal memuat jadwal shalat resmi Kemenag", status: false },
         { status: 502 }
       );
     }
 
-    // Find today's schedule from monthData.jadwal
-    const jadwalList = Array.isArray(monthData.jadwal) ? monthData.jadwal : [];
-    const todayJadwal =
-      jadwalList.find((j: any) => j.date === targetDateStr) ||
-      jadwalList[targetDate.getDate() - 1] ||
-      jadwalList[0];
-
     return NextResponse.json(
       {
         status: true,
         source: "kemenag_ri",
         cityId,
-        cityName: monthData.lokasi || "KAB. PONOROGO",
-        province: monthData.daerah || "JAWA TIMUR",
+        cityName: monthData?.lokasi || "KAB. PONOROGO",
+        province: monthData?.daerah || "JAWA TIMUR",
         date: targetDateStr,
         schedule: todayJadwal,
         monthSchedule: jadwalList,
