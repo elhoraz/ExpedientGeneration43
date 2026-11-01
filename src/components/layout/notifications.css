@@ -45,9 +45,12 @@
 
 @media (max-width: 768px) and (orientation: portrait) {
   .notif-dropdown {
-    top: 70px !important;
-    left: 20px !important;
-    right: auto !important;
+    top: max(70px, calc(env(safe-area-inset-top, 0px) + 60px)) !important;
+    right: max(12px, env(safe-area-inset-right, 12px)) !important;
+    left: auto !important;
+    width: min(340px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 160px) !important;
   }
 }
 @media (orientation: landscape) {
@@ -55,7 +58,7 @@
     top: 52px !important;
     right: max(12px, env(safe-area-inset-right, 12px)) !important;
     left: auto !important;
-    max-height: calc(100vh - 60px) !important;
+    max-height: calc(100dvh - 60px) !important;
   }
 }
 

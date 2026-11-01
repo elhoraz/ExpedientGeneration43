@@ -781,9 +781,11 @@
   }
 
   .chat-room-header .back-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
   }
 
   .chat-room-header .contact-info img {
@@ -1035,9 +1037,11 @@
     gap: 0.6rem;
   }
   .chat-room-header .back-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 1rem;
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
   }
   .chat-room-header .contact-info img {
     width: 36px;
