@@ -200,12 +200,13 @@ export default function AppNotificationManager() {
                 "success"
               );
 
-              // 2. Play web audio ONLY if not native APK (native APK handles audio via PrayerAlarmReceiver)
-              // and NOT in silent mode!
-              if (!isApk && !isSilent) {
+              // 2. Play web audio ONLY if explicitly enabled on web and NOT in APK
+              // (Native APK handles audio exclusively via PrayerAlarmReceiver with hardware silent detection)
+              const webAutoAudio = typeof window !== "undefined" && localStorage.getItem("expedient_web_adzan_audio") === "true";
+              if (!isApk && webAutoAudio && !isSilent) {
                 try {
                   const adzanAudio = new Audio("/assets/audio/adzan_makkah.mp3");
-                  adzanAudio.volume = 1.0;
+                  adzanAudio.volume = 0.8;
                   adzanAudio.play().catch(() => {});
                 } catch {}
               }

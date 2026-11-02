@@ -187,14 +187,15 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
 
   // 1. Cek Emergency Killswitch
   try {
-    const { data: killData } = await supabase
+    const { data: rawKill } = await supabase
       .from("site_content")
       .select("content_value")
       .eq("content_key", "emergency_broadcast_killswitch")
       .maybeSingle();
 
-    if (killData?.content_value) {
-      const parsed = JSON.parse(killData.content_value);
+    const killVal = (rawKill as any)?.content_value;
+    if (typeof killVal === "string" && killVal.trim().length > 0) {
+      const parsed = JSON.parse(killVal);
       if (parsed.active) {
         return {
           success: false,
@@ -211,14 +212,15 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
   // Hal ini penting agar webhook retry dari Gateway/Vercel TIDAK BISA memproses antrean ganda secara paralel!
   let rawPhones: string[] = [];
   try {
-    const { data } = await supabase
+    const { data: rawData } = await supabase
       .from("site_content")
       .select("content_value")
       .eq("content_key", PENDING_INVITES_KEY)
       .maybeSingle();
 
-    if (data?.content_value) {
-      const parsed = JSON.parse(data.content_value);
+    const dataVal = (rawData as any)?.content_value;
+    if (typeof dataVal === "string" && dataVal.trim().length > 0) {
+      const parsed = JSON.parse(dataVal);
       if (Array.isArray(parsed)) rawPhones = parsed;
     }
 
@@ -247,15 +249,16 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
   const alreadySentSet = new Set<string>();
   try {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: recentQueue } = await supabase
+    const { data: rawRecentQueue } = await supabase
       .from("whatsapp_queue")
       .select("no_whatsapp")
       .eq("status", "sent_invite")
       .gte("created_at", sevenDaysAgo);
 
-    if (recentQueue) {
-      recentQueue.forEach((q) => {
-        if (q.no_whatsapp) alreadySentSet.add(q.no_whatsapp);
+    const queueList = rawRecentQueue as any;
+    if (Array.isArray(queueList)) {
+      queueList.forEach((q: any) => {
+        if (q && q.no_whatsapp) alreadySentSet.add(q.no_whatsapp);
       });
     }
   } catch (err: any) {

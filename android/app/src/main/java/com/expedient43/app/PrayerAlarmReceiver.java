@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -36,26 +37,45 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
             AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
             if (audioManager != null) {
                 int ringerMode = audioManager.getRingerMode();
+                // 1. Check Standard Ringer Mode (Silent or Vibrate)
                 if (ringerMode == AudioManager.RINGER_MODE_SILENT || ringerMode == AudioManager.RINGER_MODE_VIBRATE) {
+                    Log.d(TAG, "Device is in Silent or Vibrate ringer mode (" + ringerMode + ")");
                     return true;
                 }
-                // Check if notification or ring volume is turned to 0
+
+                // 2. Check if Notification or Ring stream is explicitly muted (API 23+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (audioManager.isStreamMute(AudioManager.STREAM_NOTIFICATION) ||
+                        audioManager.isStreamMute(AudioManager.STREAM_RING)) {
+                        Log.d(TAG, "Notification or Ring stream is muted via isStreamMute()");
+                        return true;
+                    }
+                }
+
+                // 3. Check if notification volume or ring volume is 0
                 int notifVol = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
                 int ringVol = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-                if (notifVol == 0 && ringVol == 0) {
+                if (notifVol == 0 || ringVol == 0) {
+                    Log.d(TAG, "Notification volume (" + notifVol + ") or Ring volume (" + ringVol + ") is 0");
+                    return true;
+                }
+
+                // 4. In-call check: never blast adzan if user is actively on a phone call or meeting
+                int mode = audioManager.getMode();
+                if (mode == AudioManager.MODE_IN_CALL || mode == AudioManager.MODE_IN_COMMUNICATION) {
+                    Log.d(TAG, "Device is actively in a phone or communication call (" + mode + ")");
                     return true;
                 }
             }
 
-            // Check Do Not Disturb (DND) Interruption Filter on Android 6.0+
+            // 5. Check Do Not Disturb (DND) Interruption Filter on Android 6.0+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 if (nm != null) {
                     int filter = nm.getCurrentInterruptionFilter();
-                    // INTERRUPTION_FILTER_NONE = Total silence
-                    // INTERRUPTION_FILTER_PRIORITY / INTERRUPTION_FILTER_ALARMS when user wants DND
-                    if (filter == NotificationManager.INTERRUPTION_FILTER_NONE ||
-                        filter == NotificationManager.INTERRUPTION_FILTER_PRIORITY) {
+                    // Any filter other than INTERRUPTION_FILTER_ALL means DND is active (Priority, None, Alarms)
+                    if (filter != NotificationManager.INTERRUPTION_FILTER_ALL && filter != 0) {
+                        Log.d(TAG, "Device Do Not Disturb (DND) filter active: " + filter);
                         return true;
                     }
                 }
@@ -74,7 +94,14 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
         try {
             AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
             if (audioManager != null) {
-                return audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE;
+                if (audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE) {
+                    return true;
+                }
+                // Also check if ring/notif volume is 0 and not silent
+                int notifVol = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+                if (notifVol == 0 && audioManager.getRingerMode() != AudioManager.RINGER_MODE_SILENT) {
+                    return true;
+                }
             }
         } catch (Exception ignored) {}
         return false;
@@ -83,36 +110,61 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
     /**
      * Plays the adzan audio exactly once.
      * Guaranteed to NEVER play if device is in Silent, Vibrate, or DND mode.
+     * MediaPlayer is configured with AudioAttributes BEFORE prepare() to ensure
+     * Android hardware-level audio routing to Notification stream.
      */
     public static synchronized void playAdzanAudio(Context context) {
         try {
             stopAdzanAudio();
 
-            // Strict silence check: Never blast sound if device is silent or vibrate
+            // Strict silence check: Never blast sound if device is silent, vibrate, or DND
             if (isDeviceSilent(context)) {
                 Log.d(TAG, "Device is in Silent/Vibrate/DND mode. Suppressing adzan audio playback.");
                 return;
             }
 
-            activeMediaPlayer = MediaPlayer.create(context.getApplicationContext(), R.raw.adzan);
-            if (activeMediaPlayer != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build();
-                    activeMediaPlayer.setAudioAttributes(audioAttributes);
-                } else {
-                    activeMediaPlayer.setAudioStreamType(AudioManager.STREAM_RING);
-                }
-                activeMediaPlayer.setVolume(1.0f, 1.0f);
-                activeMediaPlayer.setOnCompletionListener(mp -> {
-                    Log.d(TAG, "Adzan playback completed.");
-                    stopAdzanAudio();
-                });
-                activeMediaPlayer.start();
-                Log.d(TAG, "Single adzan audio playback started successfully.");
+            AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+            if (audioManager == null) return;
+
+            int currentVol = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
+            int maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION);
+            if (currentVol <= 0) {
+                Log.d(TAG, "Notification volume is 0. Aborting adzan audio playback.");
+                return;
             }
+
+            MediaPlayer mp = new MediaPlayer();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build();
+                mp.setAudioAttributes(audioAttributes);
+            } else {
+                mp.setAudioStreamType(AudioManager.STREAM_NOTIFICATION);
+            }
+
+            AssetFileDescriptor afd = context.getResources().openRawResourceFd(R.raw.adzan);
+            if (afd == null) {
+                Log.e(TAG, "Raw resource adzan not found in APK.");
+                return;
+            }
+
+            mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+
+            float volumeFactor = maxVol > 0 ? ((float) currentVol / (float) maxVol) : 0.8f;
+            mp.setVolume(volumeFactor, volumeFactor);
+
+            mp.setOnCompletionListener(mediaPlayer -> {
+                Log.d(TAG, "Adzan playback completed.");
+                stopAdzanAudio();
+            });
+
+            mp.prepare();
+            mp.start();
+            activeMediaPlayer = mp;
+            Log.d(TAG, "Single adzan audio playback started successfully (proportional volumeFactor: " + volumeFactor + ").");
         } catch (Exception e) {
             Log.e(TAG, "Error playing adzan audio: " + e.getMessage(), e);
         }

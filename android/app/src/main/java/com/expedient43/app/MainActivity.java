@@ -105,6 +105,12 @@ public class MainActivity extends BridgeActivity {
             settings.setAllowContentAccess(true);
             settings.setMediaPlaybackRequiresUserGesture(false);
 
+            // Custom User-Agent tag to allow immediate synchronous detection of Native APK shell
+            String currentUa = settings.getUserAgentString();
+            if (currentUa == null || !currentUa.contains("ExpedientNativeApp")) {
+                settings.setUserAgentString((currentUa != null ? currentUa : "") + " ExpedientNativeApp/1.2.2");
+            }
+
             // Enable cookies & third-party cookies for seamless authentication
             CookieManager cookieManager = CookieManager.getInstance();
             cookieManager.setAcceptCookie(true);
