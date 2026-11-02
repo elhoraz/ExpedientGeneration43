@@ -443,8 +443,6 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     lower.includes("siapa elhora") ||
     lower.includes("siapa taufiqi") ||
     lower.includes("jadwal reuni") ||
-    lower.includes("kas angkatan") ||
-    lower.includes("saldo baitul") ||
     lower.includes("hari santri") ||
     lower.includes("kesimpulan obrolan") ||
     lower.includes("rangkum obrolan") ||

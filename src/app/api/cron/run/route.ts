@@ -50,39 +50,41 @@ export async function GET(request: Request) {
     output += `Peringatan Gateway Check: ${gwErr.message}\n`;
   }
 
-  // 1. Process WhatsApp Queue
-  output += `\n[1] Memproses Antrian WhatsApp...\n`;
-  try {
-    const { data: waQueue, error: waError } = await supabase
-      .from('whatsapp_queue')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true })
-      .limit(10);
+  // 1. Process WhatsApp Queue (100% Pasif - Outbound Dinonaktifkan Otomatis)
+  output += `\n[1] Status Antrian WhatsApp...\n`;
+  if (searchParams.get('process_wa_queue') === 'true') {
+    try {
+      const { data: waQueue, error: waError } = await supabase
+        .from('whatsapp_queue')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true })
+        .limit(10);
 
-    if (waError) throw waError;
+      if (waError) throw waError;
+      let waSent = 0, waFailed = 0;
 
-    let waSent = 0, waFailed = 0;
-
-    for (const msg of (waQueue || [])) {
-      try {
-        const res = await sendWhatsAppMessageWithDetail(msg.no_whatsapp, msg.message);
-        
-        if (res.success) {
-          await supabase.from('whatsapp_queue').update({ status: 'sent', error_message: null, updated_at: new Date().toISOString() }).eq('id', msg.id);
-          waSent++;
-        } else {
-          throw new Error(res.reason || "Gagal terkirim via provider WhatsApp");
+      for (const msg of (waQueue || [])) {
+        try {
+          const res = await sendWhatsAppMessageWithDetail(msg.no_whatsapp, msg.message);
+          if (res.success) {
+            await supabase.from('whatsapp_queue').update({ status: 'sent', error_message: null, updated_at: new Date().toISOString() }).eq('id', msg.id);
+            waSent++;
+          } else {
+            throw new Error(res.reason || "Gagal terkirim via provider WhatsApp");
+          }
+        } catch (err: any) {
+          await supabase.from('whatsapp_queue').update({ status: 'failed', error_message: err.message, updated_at: new Date().toISOString() }).eq('id', msg.id);
+          waFailed++;
         }
-      } catch (err: any) {
-        await supabase.from('whatsapp_queue').update({ status: 'failed', error_message: err.message, updated_at: new Date().toISOString() }).eq('id', msg.id);
-        waFailed++;
       }
+      output += `  Terkirim : ${waSent}\n`;
+      output += `  Gagal    : ${waFailed}\n`;
+    } catch (e: any) {
+      output += `  ERROR: ${e.message}\n`;
     }
-    output += `  Terkirim : ${waSent}\n`;
-    output += `  Gagal    : ${waFailed}\n`;
-  } catch (e: any) {
-    output += `  ERROR: ${e.message}\n`;
+  } else {
+    output += `  [Zero-Ban Passive Mode] Pengiriman broadcast WhatsApp via background cron dinonaktifkan demi keamanan nomor bot.\n`;
   }
 
   // 2. Process Email Queue
@@ -209,109 +211,44 @@ export async function GET(request: Request) {
         }
         output += `  Total Notifikasi Web: ${birthdayUsers.length} | Japri WA Otomatis: Dinonaktifkan (Zero-Ban Mode)\n`;
 
-        // Pengiriman ucapan ke Grup WhatsApp Komunitas Angkatan (Broadcast Grup)
-        try {
-          const { sendWhatsAppGroupMessage, getCommunityGroupId } = await import("@/lib/whatsapp");
-          const { formatBirthdayGreetingMessage } = await import("@/lib/whatsapp/birthdayCelebrator");
-          const commGroupId = getCommunityGroupId();
-
-          for (const user of birthdayUsers) {
-            const parts = user.tanggal_lahir.split(/[-/]/);
-            let birthYear = parseInt(parts[0], 10);
-            if (parts[2].length === 4) birthYear = parseInt(parts[2], 10);
-            const rawAge = nowWib.getFullYear() - birthYear;
-
-            const { data: existingGroupWish } = await supabase
-              .from('whatsapp_queue')
-              .select('id')
-              .eq('no_whatsapp', commGroupId.slice(0, 20))
-              .eq('status', 'sent')
-              .ilike('message', `%${user.nama_lengkap}%`)
-              .gte('created_at', startOfDay.toISOString())
-              .maybeSingle();
-
-            if (existingGroupWish) {
-              output += `  [Skip Grup] Ucapan grup untuk ${user.nama_lengkap} sudah terkirim hari ini.\n`;
-              continue;
-            }
-
-            const groupMsg = formatBirthdayGreetingMessage({
-              id: user.id,
-              nama_lengkap: user.nama_lengkap,
-              nama_panggilan: user.nama_panggilan || user.nama_lengkap.split(" ")[0],
-              tanggal_lahir: user.tanggal_lahir,
-              no_whatsapp: user.no_whatsapp,
-              foto_profil: user.foto_profil,
-              usia: rawAge > 0 && rawAge < 120 ? rawAge : 0,
-            });
-
-            const userMentions = user.no_whatsapp ? [`${user.no_whatsapp.replace(/\D/g, "")}@s.whatsapp.net`] : [];
-            const grpSendRes = await sendWhatsAppGroupMessage(commGroupId, groupMsg, {
-              imageUrl: user.foto_profil || undefined,
-              mentions: userMentions,
-            });
-            await supabase.from('whatsapp_queue').insert([{
-              no_whatsapp: commGroupId.slice(0, 20),
-              message: groupMsg,
-              status: grpSendRes.success ? 'sent' : 'failed',
-              error_message: grpSendRes.success ? null : (grpSendRes.reason || 'Gagal terkirim ke grup komunitas')
-            }]);
-
-            if (grpSendRes.success) {
-              output += `  [Sukses Grup] Terkirim ucapan milad ${user.nama_lengkap} ke grup komunitas\n`;
-            } else {
-              output += `  [Gagal Grup] Gagal mengirim ke grup komunitas: ${grpSendRes.reason}\n`;
-            }
-          }
-        } catch (grpErr: any) {
-          output += `  [Error Grup Milad] ${grpErr.message}\n`;
-        }
+        output += `  [Zero-Ban Passive Mode] Broadcast ucapan milad WA grup dinonaktifkan demi keselamatan nomor bot.\n`;
       }
     } catch (e: any) {
       output += `  ERROR: ${e.message}\n`;
     }
   }
 
-  // 5. Graphic Design Studio Alerts (H-3, H-1, Hari-H)
-  if (
-    searchParams.get('run_design_alert') === 'true' ||
-    searchParams.get('run_birthday') === 'true' ||
-    !searchParams.toString()
-  ) {
+  // 5. Graphic Design Studio Alerts (Hanya jika force_design_alert=true)
+  if (searchParams.get('run_design_alert') === 'true' && searchParams.get('force_design_alert') === 'true') {
     output += `\n[5] Memeriksa & Mengirim Alert Grup Graphic Design...\n`;
     try {
       const { runDailyDesignAlerts } = await import('@/lib/whatsapp/designGroupAssistant');
       const designRes = await runDailyDesignAlerts();
       output += `  Status   : Sukses\n`;
       output += `  Terkirim : ${designRes.sentCount} alert\n`;
-      if (designRes.alerts.length > 0) {
-        output += `  Detail   : ${designRes.alerts.join(', ')}\n`;
-      }
     } catch (e: any) {
       output += `  ERROR Design Alert: ${e.message}\n`;
     }
+  } else {
+    output += `\n[5] Alert Grup Graphic Design: Dilewati (Zero-Ban Passive Mode)\n`;
   }
 
-  // 6. Community Group Inactivity Icebreaker (Pemicu Obrolan 6 Jam Sepi)
-  if (
-    searchParams.get('run_icebreaker') === 'true' ||
-    !searchParams.toString() ||
-    isSecretValid
-  ) {
-    output += `\n[6] Memeriksa Keaktifan Grup Angkatan Non-Resmi (Inactivity 6 Jam)...\n`;
+  // 6. Community Group Inactivity Icebreaker (Hanya jika force_icebreaker=true)
+  if (searchParams.get('run_icebreaker') === 'true' && searchParams.get('force_icebreaker') === 'true') {
+    output += `\n[6] Memeriksa Keaktifan Grup Angkatan Non-Resmi...\n`;
     try {
-      const forceIcebreaker = searchParams.get('force_icebreaker') === 'true';
       const { checkAndTriggerCommunityIcebreaker } = await import('@/lib/whatsapp/communityIcebreaker');
-      const iceRes = await checkAndTriggerCommunityIcebreaker(forceIcebreaker);
+      const iceRes = await checkAndTriggerCommunityIcebreaker(true);
       if (iceRes.triggered) {
-        output += `  Status   : Pemicu Obrolan Terkirim! (Hening ${iceRes.elapsedHours.toFixed(1)} jam)\n`;
-        output += `  Pesan    : "${iceRes.message?.slice(0, 100)}..."\n`;
+        output += `  Status   : Pemicu Obrolan Terkirim!\n`;
       } else {
         output += `  Status   : Dilewati (${iceRes.reason})\n`;
       }
     } catch (e: any) {
       output += `  ERROR Icebreaker: ${e.message}\n`;
     }
+  } else {
+    output += `\n[6] Pemicu Grup Sepi (Icebreaker): Dilewati (Zero-Ban Passive Mode)\n`;
   }
 
   output += `\n===== SELESAI =====\n`;

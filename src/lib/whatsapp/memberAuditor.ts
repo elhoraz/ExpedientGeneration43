@@ -175,6 +175,14 @@ export async function executeMemberInvitations(adminPhone: string): Promise<{
   failedCount: number;
   message: string;
 }> {
+  // 100% PURE PASSIVE MODE: Pengiriman cold japri massal dilarang demi keamanan anti-ban Meta
+  return {
+    success: true,
+    totalTarget: 0,
+    sentCount: 0,
+    failedCount: 0,
+    message: "ℹ️ Pengiriman japri undangan massal via WhatsApp dinonaktifkan demi perlindungan Anti-Ban Meta (Zero-Ban Mode). Silakan bagikan tautan pendaftaran langsung di grup resmi.",
+  };
   const supabase = createAdminClient();
 
   // 1. Cek Emergency Killswitch

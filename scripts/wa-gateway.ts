@@ -1214,28 +1214,9 @@ async function startBaileysGateway() {
         addLog(`📞 [CALL-INCOMING] Panggilan masuk (${call.isVideo ? "Video" : "Suara"}) dari ${callerJid}`, "warn");
 
         try {
-          // 1. Tolak panggilan secara otomatis agar tidak berdering tanpa henti
+          // 1. Tolak panggilan secara hening (silent reject) tanpa kirim chat keluar
           await sock.rejectCall(call.id, call.from);
-          addLog(`🚫 [CALL-REJECTED] Berhasil menolak panggilan ${call.id} dari ${callerJid}`, "info");
-
-          // 2. Cooldown 24 jam agar tidak spam jika penelpon mencoba berulang kali
-          const now = Date.now();
-          const lastNotified = lastCallNotifiedMap.get(callerJid) || 0;
-          if (now - lastNotified > 24 * 60 * 60 * 1000) {
-            lastCallNotifiedMap.set(callerJid, now);
-
-            const politeCallRejectMessage =
-              `*Afwan Sahabat!* 🙏\n\n` +
-              `Nomor WhatsApp ini merupakan *Bot Layanan Otomatis Santri Expedient 43* dan belum dapat menerima panggilan telepon maupun video call langsung.\n\n` +
-              `💡 *Antum tetap bisa berinteraksi dengan mudah lewat:*\n` +
-              `• 💬 *Pesan Teks*: Tanyakan informasi angkatan, profil alumni, kuis, atau obrolan santai.\n` +
-              `• 🎙️ *Pesan Suara (Voice Note)*: Kirimkan rekaman suara (VN), insya Allah bot akan langsung mendengarkan dan membalas dengan suara juga!\n` +
-              `• 🏷️ *Stiker WhatsApp*: Kirim atau balas (quote) foto dengan kata _"jadiin stiker"_.\n\n` +
-              `_Jazakumullahu khairan katsiran atas pengertiannya._ ✨`;
-
-            await sock.sendMessage(callerJid, { text: politeCallRejectMessage });
-            addLog(`📤 [CALL-REPLY-SENT] Pesan santun penolakan panggilan terkirim ke ${callerJid}`, "success");
-          }
+          addLog(`🚫 [CALL-REJECTED-SILENT] Berhasil menolak panggilan ${call.id} dari ${callerJid} secara hening (Zero-Ban Passive Mode)`, "info");
         } catch (callErr: any) {
           addLog(`❌ [CALL-REJECT-ERR] ${callErr.message}`, "error");
         }
@@ -2319,27 +2300,28 @@ async function startBaileysGateway() {
           }
           // CABANG B: GRUP ANGKATAN / KOMUNITAS
           else {
-            // A0. DETEKSI OTOMATIS PEMBAGIAN NOMOR TELEPON & KARTU KONTAK (Hanya Informatif di Grup, Tanpa Cold DM)
-            try {
-              const autoNumberRes = await handleAutomaticGroupNumberDetection({
-                groupId: remoteJid,
-                senderPhone,
-                senderName,
-                messageText,
-                quotedText,
-                quotedSender: quotedParticipant,
-                isQuotedFromBot: Boolean(isBotQuoted),
-                isPrivateChat: false,
-                contacts: incomingContacts,
-                // Strict Zero-Cold-DM: Jangan pernah oper customSender untuk japri pihak ketiga
-              });
+            // A0. DETEKSI NOMOR HANYA JIKA BOT DIPANGGIL/DI-MENTION (100% Pasif - Tidak Nimbrung Obrolan Teman)
+            if (isBotMentioned || isBotQuoted || messageText.startsWith("!")) {
+              try {
+                const autoNumberRes = await handleAutomaticGroupNumberDetection({
+                  groupId: remoteJid,
+                  senderPhone,
+                  senderName,
+                  messageText,
+                  quotedText,
+                  quotedSender: quotedParticipant,
+                  isQuotedFromBot: Boolean(isBotQuoted),
+                  isPrivateChat: false,
+                  contacts: incomingContacts,
+                });
 
-              if (autoNumberRes.handled) {
-                addLog(`📱 [AUTO-INVITE-GROUP] Berhasil memproses nomor telepon / kontak di grup dari ${senderName}`, "success");
-                continue;
+                if (autoNumberRes.handled) {
+                  addLog(`📱 [AUTO-INVITE-GROUP] Berhasil memproses nomor telepon / kontak di grup dari ${senderName} (atas panggilan user)`, "success");
+                  continue;
+                }
+              } catch (autoErr: any) {
+                addLog(`⚠️ [AUTO-INVITE-GROUP-ERR] ${autoErr.message}`, "warn");
               }
-            } catch (autoErr: any) {
-              addLog(`⚠️ [AUTO-INVITE-GROUP-ERR] ${autoErr.message}`, "warn");
             }
 
             const shouldRespondInCommunity = isBotMentioned || shouldGroupBotRespond(messageText, Boolean(isBotQuoted));
@@ -3218,54 +3200,8 @@ startBaileysGateway().catch((err) => {
 });
 
 // =============================================================================
-// SAFE SCHEDULED DAEMON: UCAPAN OTOMATIS GRUP ANGKATAN (ANTI-BAN PROTECTED)
+// 100% PURE PASSIVE MODE (ZERO-BAN GUARANTEE)
 // =============================================================================
-// 1. Tidak pernah menembak pesan saat startup/linking (tidak ada delay 60 detik).
-// 2. Hanya aktif pada jam pagi wajar manusia (Pukul 07:00 WIB untuk Milad & 08:00 WIB Jum'at).
-// 3. Mengirim secara terpusat ke Grup Komunitas Angkatan (WA_GROUP_COMMUNITY_ID).
-let lastBdayCheckDay = "";
-let lastFridayCheckDay = "";
-
-setInterval(async () => {
-  if (gatewayStatus !== "connected" || !currentSock) return;
-
-  try {
-    // Hitung waktu WIB (UTC+7)
-    const nowUtc = Date.now();
-    const wibDate = new Date(nowUtc + 7 * 60 * 60 * 1000);
-    const dayOfWeek = wibDate.getUTCDay(); // 0 = Minggu, 5 = Jumat
-    const hourWib = wibDate.getUTCHours();
-    const minWib = wibDate.getUTCMinutes();
-    const dateStr = wibDate.toISOString().slice(0, 10);
-
-    // ANTI-BAN WARMUP SWITCH: Jika env WA_DISABLE_OUTBOUND_CRON disetel 'true',
-    // jeda broadcast keluar agar bot hanya beroperasi secara pasif merespons chat grup/pribadi.
-    if (process.env.WA_DISABLE_OUTBOUND_CRON === "true") {
-      return;
-    }
-
-    // 1. UCAPAN MILAD / ULANG TAHUN: Setiap hari jam 07:00 - 07:30 WIB
-    if (hourWib === 7 && minWib <= 30 && lastBdayCheckDay !== dateStr) {
-      lastBdayCheckDay = dateStr;
-      const commGroupId = getCommunityGroupId();
-      addLog(`🎂 [BIRTHDAY-CRON] Memeriksa ucapan milad harian pukul 07:00 WIB...`, "info");
-      const bdayRes = await checkAndTriggerDailyBirthdayWishes(currentSock, commGroupId);
-      if (bdayRes.triggered) {
-        addLog(`🎂 [BIRTHDAY-SENT] Berhasil mengirimkan ucapan milad (${bdayRes.count} alumni) ke grup angkatan!`, "success");
-      }
-    }
-
-    // 2. JUM'AT BERKAH: Khusus hari Jum'at jam 08:00 - 08:30 WIB
-    if (dayOfWeek === 5 && hourWib === 8 && minWib <= 30 && lastFridayCheckDay !== dateStr) {
-      lastFridayCheckDay = dateStr;
-      const commGroupId = getCommunityGroupId();
-      addLog(`🌿 [FRIDAY-CRON] Memeriksa ucapan Jum'at Berkah pukul 08:00 WIB...`, "info");
-      const friRes = await checkAndTriggerFridayBlessing(currentSock, commGroupId);
-      if (friRes.triggered) {
-        addLog(`🌿 [FRIDAY-SENT] Berhasil mengirim pesan Jum'at Berkah ke grup angkatan!`, "success");
-      }
-    }
-  } catch (cronErr: any) {
-    addLog(`⚠️ [SAFE-CRON-ERR] ${cronErr.message}`, "warn");
-  }
-}, 10 * 60 * 1000); // Periksa setiap 10 menit
+// Seluruh timer dan cron daemon outbound dinonaktifkan secara permanen.
+// Bot beroperasi 100% murni pasif: HANYA merespons jika ada pesan masuk dari user/grup.
+// Tidak ada background interval yang menembak pesan keluar sendiri.
