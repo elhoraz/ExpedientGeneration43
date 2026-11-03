@@ -1244,6 +1244,47 @@ export default function KiblatClient() {
                   </div>
                 )}
               </div>
+
+              {/* Uji Alarm Adzan di Layar Kunci (5 Detik) */}
+              <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
+                <button
+                  type="button"
+                  className="btn-test-adzan-alarm"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      if (typeof (window as any).testAdzanAlarm === "function") {
+                        (window as any).testAdzanAlarm(5);
+                      } else {
+                        window.dispatchEvent(new CustomEvent("expedient_test_adzan_alarm"));
+                      }
+                    }
+                  }}
+                  style={{
+                    background: "linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.04))",
+                    border: "1px solid rgba(212, 175, 55, 0.45)",
+                    color: "var(--gold-main, #d4af37)",
+                    padding: "9px 18px",
+                    borderRadius: "999px",
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 4px 15px rgba(0,0,0,0.25)",
+                  }}
+                >
+                  <i className="fa-solid fa-bell-concierge"></i>
+                  <span>
+                    {locale === "ar"
+                      ? "تجربة منبه الأذان (خلال ٥ ثوانٍ)"
+                      : locale === "en"
+                      ? "Test Adhan Alarm (in 5s)"
+                      : "Uji Kumandang Adzan di HP (5 Detik)"}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
