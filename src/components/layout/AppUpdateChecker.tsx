@@ -19,6 +19,7 @@ interface AppVersionData {
 export default function AppUpdateChecker() {
   const pathname = usePathname();
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isNativeApp, setIsNativeApp] = useState(false);
   const [versionData, setVersionData] = useState<AppVersionData | null>(null);
   const [currentVersion, setCurrentVersion] = useState({ code: 1, name: "1.0.0" });
   const [isUpdating, setIsUpdating] = useState(false);
@@ -35,13 +36,7 @@ export default function AppUpdateChecker() {
           Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
           /wv|Capacitor|Expedient/i.test(navigator.userAgent);
 
-        // Hanya tampilkan jika di lingkungan aplikasi / WebView mobile
-        if (!isApk) return;
-
-        // Jangan pernah tampilkan jika sudah ditutup pada sesi ini
-        if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("dismissed_update_session") === "1") {
-          return;
-        }
+        setIsNativeApp(isApk);
 
         let installedCode = 1;
         let installedName = "1.0.0";
@@ -51,7 +46,7 @@ export default function AppUpdateChecker() {
             installedCode = Number((window as any).ExpedientNativeBridge.getAppVersionCode()) || 1;
             installedName = String((window as any).ExpedientNativeBridge.getAppVersionName?.() || "1.0.0");
           } catch (e) {
-            console.warn("Could not read app version code:", e);
+            console.warn("Could not read native app version code:", e);
           }
         }
 
@@ -61,20 +56,23 @@ export default function AppUpdateChecker() {
         if (!res.ok) return;
         const data: AppVersionData = await res.json();
 
-        // Check if there is a newer versionCode
-        if (data.latestVersionCode > installedCode) {
-          try {
-            const dismissedVer = localStorage.getItem("dismissed_update_version");
-            const dismissedTime = Number(localStorage.getItem("dismissed_update_time") || 0);
-            // Jangan ganggu pengguna jika sudah ditutup dalam 3 hari terakhir
-            if (
-              dismissedVer === String(data.latestVersionCode) &&
-              Date.now() - dismissedTime < 3 * 24 * 60 * 60 * 1000
-            ) {
+        if (isApk) {
+          // Native APK User
+          if (data.latestVersionCode > installedCode) {
+            const dismissedSession = sessionStorage.getItem(`dismissed_update_session_v${data.latestVersionCode}`);
+            if (dismissedSession === "1" && !data.forceUpdate) {
               return;
             }
-          } catch {}
-
+            setVersionData(data);
+            setUpdateAvailable(true);
+          }
+        } else {
+          // Web / PWA Browser User (Imbauan pembaruan APK v1.2.3)
+          const dismissedWeb = localStorage.getItem(`dismissed_web_update_v${data.latestVersionCode}`);
+          const dismissedSession = sessionStorage.getItem("dismissed_web_update_session");
+          if (dismissedWeb === "1" || dismissedSession === "1") {
+            return;
+          }
           setVersionData(data);
           setUpdateAvailable(true);
         }
@@ -83,8 +81,8 @@ export default function AppUpdateChecker() {
       }
     };
 
-    // Run check after initial load
-    const timer = setTimeout(checkUpdate, 2500);
+    // Run check promptly when user enters the app
+    const timer = setTimeout(checkUpdate, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -93,18 +91,16 @@ export default function AppUpdateChecker() {
     setIsUpdating(true);
 
     try {
-      sessionStorage.setItem("dismissed_update_session", "1");
-      localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
-      localStorage.setItem("dismissed_update_time", String(Date.now()));
+      if (isNativeApp) {
+        sessionStorage.setItem(`dismissed_update_session_v${versionData.latestVersionCode}`, "1");
+        localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
+      } else {
+        localStorage.setItem(`dismissed_web_update_v${versionData.latestVersionCode}`, "1");
+        sessionStorage.setItem("dismissed_web_update_session", "1");
+      }
     } catch {}
 
-    const isApk =
-      isAndroidNativeApp() ||
-      Boolean((window as any).ExpedientNativeBridge) ||
-      Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
-      /wv|Capacitor|Expedient/i.test(navigator.userAgent);
-
-    if (isApk && (window as any).ExpedientNativeBridge?.installApk) {
+    if (isNativeApp && (window as any).ExpedientNativeBridge?.installApk) {
       try {
         (window as any).ExpedientNativeBridge.installApk(versionData.apkUrl);
         return;
@@ -122,7 +118,7 @@ export default function AppUpdateChecker() {
       return;
     }
 
-    // Unduh langsung file APK resmi dari GitHub Release CDN
+    // Direct download or navigate to download page
     window.location.href = versionData.apkUrl;
 
     setTimeout(() => {
@@ -135,21 +131,22 @@ export default function AppUpdateChecker() {
     setIsDismissed(true);
     setUpdateAvailable(false);
     try {
-      sessionStorage.setItem("dismissed_update_session", "1");
       if (versionData) {
-        localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
-        localStorage.setItem("dismissed_update_time", String(Date.now()));
+        if (isNativeApp) {
+          sessionStorage.setItem(`dismissed_update_session_v${versionData.latestVersionCode}`, "1");
+          localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
+        } else {
+          localStorage.setItem(`dismissed_web_update_v${versionData.latestVersionCode}`, "1");
+          sessionStorage.setItem("dismissed_web_update_session", "1");
+        }
       }
     } catch {}
   };
 
-  // Jangan pernah tampilkan pop-up jika pengguna di landing page, login, atau pusat unduhan
+  // Jangan tampilkan jika sudah di halaman download
   if (
-    pathname === "/" ||
     pathname === "/download" ||
     pathname?.startsWith("/download/") ||
-    pathname === "/login" ||
-    pathname === "/register" ||
     !updateAvailable ||
     isDismissed ||
     !versionData
@@ -164,8 +161,8 @@ export default function AppUpdateChecker() {
         inset: 0,
         zIndex: 99999,
         background: "rgba(3, 7, 18, 0.78)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        backdropFilter: "blur(14px)",
+        WebkitBackdropFilter: "blur(14px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -174,14 +171,15 @@ export default function AppUpdateChecker() {
       }}
     >
       <div
+        className="update-dialog-card"
         style={{
           width: "100%",
-          maxWidth: "480px",
+          maxWidth: "490px",
           background: "linear-gradient(145deg, #0c1527 0%, #070e1c 100%)",
-          border: "1px solid rgba(212, 175, 55, 0.4)",
+          border: "1px solid rgba(212, 175, 55, 0.45)",
           borderRadius: "24px",
-          padding: "1.75rem",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 40px rgba(212, 175, 55, 0.15)",
+          padding: "1.85rem 1.65rem",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 45px rgba(212, 175, 55, 0.18)",
           color: "#e2e8f0",
           fontFamily: "var(--font-inter, sans-serif)",
           position: "relative",
@@ -195,9 +193,9 @@ export default function AppUpdateChecker() {
             top: "-50px",
             left: "50%",
             transform: "translateX(-50%)",
-            width: "200px",
+            width: "220px",
             height: "100px",
-            background: "radial-gradient(circle, rgba(212, 175, 55, 0.3) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, transparent 70%)",
             filter: "blur(20px)",
             pointerEvents: "none",
           }}
@@ -223,9 +221,13 @@ export default function AppUpdateChecker() {
             <i className="fa-solid fa-cloud-arrow-down" />
           </div>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
               <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700, color: "#fff" }}>
-                {versionData.forceUpdate ? "Pembaruan Wajib Aplikasi" : "Pembaruan Tersedia"}
+                {versionData.forceUpdate
+                  ? "Pembaruan Wajib Aplikasi"
+                  : isNativeApp
+                  ? "Pembaruan Aplikasi Tersedia"
+                  : "Aplikasi Resmi Expedient 43"}
               </h3>
               <span
                 style={{
@@ -235,61 +237,78 @@ export default function AppUpdateChecker() {
                   borderRadius: "999px",
                   background: "rgba(212, 175, 55, 0.2)",
                   color: "#f3ba2f",
-                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                  border: "1px solid rgba(212, 175, 55, 0.35)",
                 }}
               >
-                v{versionData.latestVersionName}
+                v{versionData.latestVersionName} (Build {versionData.latestVersionCode})
               </span>
             </div>
-            <p style={{ margin: "3px 0 0 0", fontSize: "0.82rem", color: "#94a3b8" }}>
-              Versi Anda saat ini:{" "}
-              <strong style={{ color: versionData.latestVersionCode > currentVersion.code ? "#f87171" : "#cbd5e1" }}>
-                v{currentVersion.name} {versionData.latestVersionCode > currentVersion.code ? "(Versi Lama)" : ""}
-              </strong>
+            <p style={{ margin: "4px 0 0 0", fontSize: "0.82rem", color: "#94a3b8" }}>
+              {isNativeApp ? (
+                <>
+                  Versi terpasang saat ini:{" "}
+                  <strong style={{ color: "#f87171" }}>
+                    v{currentVersion.name} (Build {currentVersion.code})
+                  </strong>
+                </>
+              ) : (
+                "Telah dirilis versi APK terbaru dengan fitur Adzan Mode Hening & DND Mutlak."
+              )}
             </p>
           </div>
         </div>
 
-        {versionData.latestVersionCode > currentVersion.code && (
-          <div
-            style={{
-              padding: "0.75rem 1rem",
-              borderRadius: "12px",
-              background: "rgba(212, 175, 55, 0.1)",
-              border: "1px solid rgba(212, 175, 55, 0.25)",
-              color: "#f3ba2f",
-              fontSize: "0.82rem",
-              lineHeight: 1.5,
-              marginBottom: "1rem",
-              display: "flex",
-              alignItems: "flex-start",
-              gap: "8px",
-            }}
-          >
-            <i className="fa-solid fa-sparkles" style={{ color: "#f3ba2f", marginTop: "3px", flexShrink: 0 }} />
-            <span>
-              Tersedia versi baru dengan pembaruan stabilitas dan fitur panggilan interaktif. Anda dapat memperbarui sekarang atau membukanya nanti di Pusat Unduhan.
-            </span>
-          </div>
-        )}
+        {/* Feature Highlights Banner */}
+        <div
+          style={{
+            padding: "0.85rem 1rem",
+            borderRadius: "14px",
+            background: "rgba(212, 175, 55, 0.12)",
+            border: "1px solid rgba(212, 175, 55, 0.3)",
+            color: "#f3ba2f",
+            fontSize: "0.84rem",
+            lineHeight: 1.5,
+            marginBottom: "1.25rem",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "10px",
+          }}
+        >
+          <i className="fa-solid fa-bell-slash" style={{ color: "#f3ba2f", marginTop: "3px", flexShrink: 0 }} />
+          <span>
+            {isNativeApp
+              ? "Pembaruan rilis v1.2.3 memperbaiki bug suara adzan ganda serta menjamin suara adzan tidak bersuara saat HP di mode hening atau Jangan Ganggu."
+              : "Untuk pengalaman notifikasi offline, alarm adzan akurat, dan direktori alumni yang lebih cepat, pasang aplikasi mobile resmi Expedient 43 di smartphone Anda."}
+          </span>
+        </div>
 
         {/* Release Notes */}
         <div
           style={{
-            background: "rgba(15, 23, 42, 0.65)",
-            border: "1px solid rgba(255, 255, 255, 0.07)",
+            background: "rgba(15, 23, 42, 0.7)",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
             borderRadius: "16px",
-            padding: "1rem 1.1rem",
+            padding: "1rem 1.15rem",
             marginBottom: "1.5rem",
           }}
         >
-          <div style={{ fontSize: "0.82rem", fontWeight: 600, color: "#f3ba2f", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "6px" }}>
+          <div
+            style={{
+              fontSize: "0.82rem",
+              fontWeight: 600,
+              color: "#f3ba2f",
+              marginBottom: "0.6rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
             <i className="fa-solid fa-sparkles" style={{ fontSize: "0.8rem" }} />
-            Catatan Pembaruan Rilis:
+            Catatan Pembaruan Rilis v{versionData.latestVersionName}:
           </div>
           <ul style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "0.82rem", color: "#cbd5e1", lineHeight: 1.6 }}>
             {versionData.releaseNotes.map((note, idx) => (
-              <li key={idx} style={{ marginBottom: idx === versionData.releaseNotes.length - 1 ? 0 : "4px" }}>
+              <li key={idx} style={{ marginBottom: idx === versionData.releaseNotes.length - 1 ? 0 : "5px" }}>
                 {note}
               </li>
             ))}
@@ -344,8 +363,8 @@ export default function AppUpdateChecker() {
                 flex: "1",
                 padding: "0.8rem 0.9rem",
                 borderRadius: "12px",
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.12)",
+                background: "rgba(255, 255, 255, 0.06)",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
                 color: "#94a3b8",
                 fontSize: "0.85rem",
                 fontWeight: 600,
@@ -377,7 +396,11 @@ export default function AppUpdateChecker() {
               }}
             >
               <i className="fa-solid fa-cloud-arrow-down" />
-              <span>Perbarui Sekarang (v{versionData.latestVersionName})</span>
+              <span>
+                {isNativeApp
+                  ? `Perbarui Sekarang (v${versionData.latestVersionName})`
+                  : `Unduh APK (v${versionData.latestVersionName})`}
+              </span>
             </button>
           </div>
         )}
