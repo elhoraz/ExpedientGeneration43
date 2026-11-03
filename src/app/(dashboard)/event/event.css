@@ -141,7 +141,7 @@ body.page-event .event-time,
 .event-wrapper .event-time {
     font-size: 1rem;
     color: var(--text-secondary);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
     font-weight: normal;
     background: rgba(255,255,255,0.03);
     padding: 4px 12px;

@@ -22,7 +22,6 @@ const COMMAND_DEFINITIONS = [
   { id: "multazam", key: "multazam", url: "/multazam", icon: "fa-kaaba" },
   { id: "wasiat", key: "wasiat", url: "/wasiat", icon: "fa-scroll" },
   { id: "kontemplasi", key: "kontemplasi", url: "/kontemplasi", icon: "fa-brain" },
-  { id: "celestial", key: "celestial", url: "/celestial", icon: "fa-star" },
   { id: "genesis", key: "genesis", url: "/genesis", icon: "fa-monument" },
   { id: "nexus", key: "nexus", url: "/nexus", icon: "fa-network-wired" },
   { id: "asmaul-husna", key: "asmaul_husna", url: "/asmaul-husna", icon: "fa-certificate" },

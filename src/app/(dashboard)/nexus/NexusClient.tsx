@@ -41,10 +41,10 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
     const scanAnim = gsap.to(".scanning-line", { top: "100%", duration: 1.5, repeat: -1, yoyo: true, ease: "sine.inOut" });
 
     const statuses = [
-        locale === "ar" ? "جارٍ استخراج الأثر اللغوي..." : locale === "en" ? "Extracting linguistic traces..." : "Mengekstraksi jejak linguistik...",
-        locale === "ar" ? "مقارنة مصفوفة الفئات..." : locale === "en" ? "Comparing category matrices..." : "Membandingkan matriks kategori...",
-        locale === "ar" ? "حساب تقاطع الرؤى والأهداف..." : locale === "en" ? "Calculating intersection of visions & aspirations..." : "Mengkalkulasi irisan visi & cita-cita...",
-        locale === "ar" ? "مزامنة الكوكبة التنفيذية..." : locale === "en" ? "Synchronizing executive constellations..." : "Menyinkronisasi konstelasi eksekutif..."
+        locale === "ar" ? "جارٍ مقارنة بيانات الاهتمامات..." : locale === "en" ? "Matching interests and cities..." : "Mencocokkan kesamaan kota domisili...",
+        locale === "ar" ? "البحث عن مجالات العمل المشتركة..." : locale === "en" ? "Analyzing fields and categories..." : "Mencari bidang minat & usaha yang selaras...",
+        locale === "ar" ? "حساب تقارب الطموحات..." : locale === "en" ? "Aligning aspirations & goals..." : "Menghitung keselarasan cita-cita santri...",
+        locale === "ar" ? "ترتيب أفضل التوصيات..." : locale === "en" ? "Organizing top peer matches..." : "Menyusun rekomendasi relasi sahabat..."
     ];
 
     let i = 0;
@@ -59,7 +59,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
         scanAnim.kill();
         gsap.to(".scanning-line", { opacity: 0, duration: 0.3 });
         gsap.to(".nexus-sphere", { scale: 1, duration: 0.5, ease: "power2.out" });
-        setStatusText(locale === "ar" ? "تمت المزامنة بنجاح. جارٍ تحميل النتائج." : locale === "en" ? "Synchronization Successful. Loading Results." : "Sinkronisasi Berhasil. Memuat Hasil.");
+        setStatusText(locale === "ar" ? "تم العثور على شركاء التوافق بنجاح." : locale === "en" ? "Recommendations ready. Loading results." : "Rekomendasi relasi berhasil disusun.");
         
         // Generate matches based on CI4 Jaccard Index logic
         const calculateSimilarity = (target: any, candidate: any) => {
@@ -149,7 +149,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
                 <div className="scanning-line"></div>
                 <div className="nexus-core-text">{isAnalyzing ? t.nexus.analyzing : <>{locale === "ar" ? "تفعيل" : locale === "en" ? "ACTIVATE" : "AKTIVASI"}<br/>{locale === "ar" ? "التحليل" : locale === "en" ? "ANALYSIS" : "ANALISIS"}</>}</div>
             </div>
-            <div style={{ color: 'var(--text-secondary)', fontFamily: 'monospace', letterSpacing: '2px', fontSize: '0.85rem', marginTop: '20px', minHeight: '20px' }}>
+            <div style={{ color: 'var(--text-secondary)', fontFamily: 'Inter', letterSpacing: '2px', fontSize: '0.85rem', marginTop: '20px', minHeight: '20px' }}>
                 {statusText}
             </div>
         </div>
@@ -158,7 +158,7 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
       {hasResults && (
         <div style={{ width: '100%', animation: 'fadeIn 1s' }}>
             <h3 style={{ fontFamily: "'Playfair Display', serif", color: "var(--text-primary)", fontSize: "1.8rem", fontWeight: "normal", marginBottom: "15px" }}>
-                {locale === "ar" ? "شركاؤك الاستراتيجيون" : locale === "en" ? "Your Strategic Peers" : "Kolega Strategis Anda"}
+                {locale === "ar" ? "شركاؤك الاستراتيجيون" : locale === "en" ? "Your Strategic Peers" : "Rekomendasi Sahabat Kolaborasi"}
             </h3>
             <div style={{ width: "60px", height: "3px", background: "var(--gold-main, #d4af37)", margin: "0 auto", borderRadius: "3px", boxShadow: "0 0 10px rgba(212,175,55,0.5)" }}></div>
             

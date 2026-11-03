@@ -113,7 +113,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
   return (
     <>
       {/* Dynamic Ambient Mouse Cursor Glow for Desktop */}
-      <GlobalMouseSpotlight />
+      {/* GlobalMouseSpotlight disabled for anti-slop visual restraint */}
 
       {/* Majestic Rotating 8-Point Islamic Star Watermark */}
       <ArabesqueWatermark />
@@ -426,32 +426,32 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           </div>
 
           <div className="heritage-pillars-grid reveal-stagger">
-            <TiltCard className="pillar-card">
+            <div className="pillar-card">
               <div className="pillar-icon-wrap">
                 <i className="fa-solid fa-globe"></i>
               </div>
               <h3 className="pillar-title">{t?.almamater?.p1_title}</h3>
               <p className="pillar-desc">{t?.almamater?.p1_desc}</p>
               <div className="pillar-badge">{t?.almamater?.p1_badge}</div>
-            </TiltCard>
+            </div>
 
-            <TiltCard className="pillar-card">
+            <div className="pillar-card">
               <div className="pillar-icon-wrap">
                 <i className="fa-solid fa-microchip"></i>
               </div>
               <h3 className="pillar-title">{t?.almamater?.p2_title}</h3>
               <p className="pillar-desc">{t?.almamater?.p2_desc}</p>
               <div className="pillar-badge">{t?.almamater?.p2_badge}</div>
-            </TiltCard>
+            </div>
 
-            <TiltCard className="pillar-card">
+            <div className="pillar-card">
               <div className="pillar-icon-wrap">
                 <i className="fa-solid fa-mosque"></i>
               </div>
               <h3 className="pillar-title">{t?.almamater?.p3_title}</h3>
               <p className="pillar-desc">{t?.almamater?.p3_desc}</p>
               <div className="pillar-badge">{t?.almamater?.p3_badge}</div>
-            </TiltCard>
+            </div>
           </div>
 
           {/* Video Dokumenter Profil & Suasana Almamater */}
@@ -537,7 +537,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 <h3 className="bento-title">{t?.ecosystem?.b1_title}</h3>
                 <p className="bento-desc">{t?.ecosystem?.b1_desc}</p>
                 <div className="bento-meta-strip">
-                  <span><i className="fa-solid fa-satellite"></i> 7.9892° S, 111.4392° E</span>
+                  <span><i className="fa-solid fa-location-dot"></i> Slahung, Ponorogo</span>
                   <span><i className="fa-solid fa-earth-asia"></i> 240+ Alumni Global</span>
                 </div>
               </div>
@@ -549,7 +549,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             </div>
 
             {/* Bento 2: Sovereign 3D KTA */}
-            <TiltCard className="bento-card bento-kta-card">
+            <div className="bento-card bento-kta-card">
               <div className="bento-foil-sheen" aria-hidden="true"></div>
               <div className="bento-badge">
                 <i className="fa-solid fa-cube"></i>
@@ -564,10 +564,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                   {t?.ecosystem?.b2_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
-            </TiltCard>
+            </div>
 
             {/* Bento 3: Museum Digital */}
-            <TiltCard className="bento-card">
+            <div className="bento-card">
               <div className="bento-badge">
                 <i className="fa-solid fa-landmark"></i>
                 <span>{t?.ecosystem?.b3_badge}</span>
@@ -581,10 +581,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                   {t?.ecosystem?.b3_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
-            </TiltCard>
+            </div>
 
             {/* Bento 4: Baitul Maal & Sinergi */}
-            <TiltCard className="bento-card bento-amal-card">
+            <div className="bento-card bento-amal-card">
               <div className="bento-badge">
                 <i className="fa-solid fa-hand-holding-dollar"></i>
                 <span>{t?.ecosystem?.b4_badge}</span>
@@ -599,10 +599,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                   {t?.ecosystem?.b4_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
-            </TiltCard>
+            </div>
 
             {/* Bento 5: Audio Lounge & Realtime */}
-            <TiltCard className="bento-card">
+            <div className="bento-card">
               <div className="bento-badge">
                 <i className="fa-solid fa-headphones"></i>
                 <span>{t?.ecosystem?.b5_badge}</span>
@@ -616,7 +616,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                   {t?.ecosystem?.b5_action} <i className="fa-solid fa-arrow-right"></i>
                 </Link>
               </div>
-            </TiltCard>
+            </div>
           </div>
         </section>
 

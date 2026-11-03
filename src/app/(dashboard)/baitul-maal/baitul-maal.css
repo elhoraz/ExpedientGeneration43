@@ -490,7 +490,7 @@
 :root[data-theme="light"] .maal-page-wrapper .tx-out-bg { color: #cc0000; border-color: rgba(204, 0, 0, 0.3); }
 
 .maal-page-wrapper .tx-details { flex: 1; }
-.maal-page-wrapper .tx-title { font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; }
+.maal-page-wrapper .tx-title { font-family: var(--font-manrope), var(--font-inter), sans-serif; font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; line-height: 1.4; }
 .maal-page-wrapper .tx-meta { display: flex; gap: 15px; font-size: 0.75rem; color: var(--text-secondary); }
 .maal-page-wrapper .tx-amount { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: bold; text-align: right; white-space: nowrap; }
 .maal-page-wrapper .tx-amount.in { color: #00c853; text-shadow: 0 0 10px rgba(0, 200, 83, 0.3); }

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "The Archive - 43rd Expedient",
+  title: "Direktori Sahabat Alumni - Expedient 43",
 };
 
 export default async function DirektoriPage() {

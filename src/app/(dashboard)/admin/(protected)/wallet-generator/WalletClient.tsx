@@ -10,8 +10,8 @@ import AdminLockBtn from "../../AdminLockBtn";
 
 export default function WalletClient({ users }: { users: any[] }) {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [eventName, setEventName] = useState("The Syndicate Annual Gala");
-  const [ticketClass, setTicketClass] = useState("VVIP");
+  const [eventName, setEventName] = useState("Temu Akbar Reuni Expedient 43");
+  const [ticketClass, setTicketClass] = useState("Undangan Resmi");
   const [isGenerating, setIsGenerating] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
   const ticketRef = useRef<HTMLDivElement>(null);
@@ -22,7 +22,7 @@ export default function WalletClient({ users }: { users: any[] }) {
   useEffect(() => {
     document.body.classList.add("page-admin");
     if (selectedUserId && eventName) {
-      const ticketData = `VVIP-PASS|${selectedUserId}|${eventName.replace(/\s+/g, '')}`;
+      const ticketData = `UNDANGAN-RESMI|${selectedUserId}|${eventName.replace(/\s+/g, '')}`;
       QRCode.toDataURL(ticketData, {
         width: 140,
         margin: 1,
@@ -119,9 +119,9 @@ export default function WalletClient({ users }: { users: any[] }) {
                           onChange={e => setTicketClass(e.target.value)}
                           style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-primary)", padding: "12px 16px", borderRadius: "10px", fontSize: "0.9rem", outline: "none", cursor: "pointer", transition: "all 0.3s" }}
                       >
-                          <option value="VVIP">VVIP Pass (Gold - Akses Penuh)</option>
-                          <option value="VIP">VIP Pass (Silver - Akses Terbatas)</option>
-                          <option value="REGULAR">Regular Pass (Standard - Area Utama)</option>
+                          <option value="VVIP">Undangan Utama (Gold - Akses Lengkap)</option>
+                          <option value="VIP">Undangan Khusus (Silver)</option>
+                          <option value="REGULAR">Undangan Sahabat (Standard)</option>
                       </select>
                   </div>
 

@@ -199,7 +199,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                     <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googletraffic'; }}><i className="fa-solid fa-traffic-light"></i> {t.radar_layers?.googletraffic || "Peta Lalu Lintas"}</button>
                     <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=navigation'; }}><i className="fa-solid fa-anchor"></i> {t.radar_layers?.navigation || "Peta Navigasi Laut"}</button>
                     <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=esristreet'; }}><i className="fa-solid fa-city"></i> {t.radar_layers?.esristreet || "Peta Tata Kota"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=toner'; }}><i className="fa-solid fa-microchip"></i> {t.radar_layers?.toner || "Peta Hacker (Toner)"}</button>
+                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=toner'; }}><i className="fa-solid fa-circle-half-stroke"></i> {t.radar_layers?.toner || "Peta Monokrom Kontras (Toner)"}</button>
                 </div>
             </div>
         </div>

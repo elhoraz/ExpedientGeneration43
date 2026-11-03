@@ -36,7 +36,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
   {
     id: "showcase-1",
     image_url: "/assets/foto_putra/Cover Depan.webp",
-    caption: "Sampul Emas Mahakarya Angkatan 43 — The Syndicate & Omega",
+    caption: "Sampul Emas Buku Kenangan Angkatan 43 — Expedient 43 (Putra & Putri)",
     likes_count: 43,
     year: 2025,
     album_id: "galeri_ekspi",
@@ -56,7 +56,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
   {
     id: "showcase-3",
     image_url: "/assets/foto_putri/Cover Depan.webp",
-    caption: "Arsip Keagungan Omega Dynasty — Generasi Putri 43",
+    caption: "Arsip Dokumentasi Santriwati — Generasi Putri Angkatan 43",
     likes_count: 39,
     year: 2025,
     album_id: "galeri_ekspi",
@@ -849,7 +849,7 @@ export default function GaleriClient({
 
           <div className="portrait-lock">
             <i className="fa-solid fa-mobile-screen"></i>
-            <h2>{locale === 'ar' ? 'الوصول مقفل' : locale === 'en' ? 'LOCKED ACCESS' : 'AKSES TERKUNCI'}</h2>
+            <h2>{locale === 'ar' ? 'تدوير الشاشة' : locale === 'en' ? 'Rotate Device' : 'Putar Layar ke Lanskap'}</h2>
             <p>
               {locale === 'ar'
                 ? 'يُفضل تصفح الكتاب التذكاري ثلاثي الأبعاد بالوضع الأفقي. يرجى تدوير جهازك.'
@@ -880,7 +880,7 @@ export default function GaleriClient({
                   boxShadow: "0 6px 20px rgba(212, 175, 55, 0.4)",
                 }}
               >
-                <i className="fa-solid fa-arrow-left"></i> {locale === 'ar' ? 'العودة إلى معرض الصور' : locale === 'en' ? 'Back to Photo Vault' : 'Kembali ke Galeri Foto'}
+                <i className="fa-solid fa-arrow-left"></i> {locale === 'ar' ? 'العودة إلى معرض الصور' : locale === 'en' ? 'Back to Photo Gallery' : 'Kembali ke Galeri Foto'}
               </button>
               <button
                 id="btnBypassLock"
@@ -906,11 +906,11 @@ export default function GaleriClient({
 
           <div className="gallery-stage" id="galleryStage">
             <div className="glitch-overlay" id="glitchOverlay"></div>
-            <div className="ethereal-text" id="etherealText" title="Double Click for Epilogue">THE SYNDICATE</div>
+            <div className="ethereal-text" id="etherealText" title="Double Click for Epilogue">EXPEDIENT 43</div>
             <canvas id="dustCanvas"></canvas>
             <div className="ambient-light" id="ambientLight"></div>
             <button className="dimension-shift-btn hover-trigger" id="btnShift">
-              <i className="fa-solid fa-rotate"></i> {locale === 'ar' ? 'التبديل إلى دفعة أوميغا (البنات)' : locale === 'en' ? 'SHIFT TO OMEGA (FEMALE)' : 'SHIFT TO OMEGA (PUTRI)'}
+              <i className="fa-solid fa-rotate"></i> {locale === 'ar' ? 'التبديل إلى ألبوم البنات' : locale === 'en' ? 'Switch to Girls Album' : 'Beralih ke Album Putri'}
             </button>
 
             <div className="dimension-core" id="dimCore">
@@ -1005,7 +1005,7 @@ export default function GaleriClient({
                   <div className="export-edition-box">
                     <div>
                       <div className="export-edition-title">
-                        <i className="fa-solid fa-venus" style={{ color: "#ff69b4", marginRight: "6px" }}></i> {locale === 'ar' ? 'طبعة البنات (Omega Dynasty)' : locale === 'en' ? 'Girls Edition (Omega Dynasty)' : 'Edisi Putri (Omega Dynasty)'}
+                        <i className="fa-solid fa-venus" style={{ color: "#ff69b4", marginRight: "6px" }}></i> {locale === 'ar' ? 'ألبوم البنات (كليات المعلمات)' : locale === 'en' ? 'Girls Edition (Kulliyyatul Muallimat)' : 'Edisi Putri (Kulliyyatul Muallimat)'}
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
                         82 {locale === 'ar' ? 'صفحة كاملة' : locale === 'en' ? 'Complete Pages' : 'Halaman Lengkap'}

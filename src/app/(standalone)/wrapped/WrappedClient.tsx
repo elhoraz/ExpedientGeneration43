@@ -52,7 +52,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
   return (
     <div className="wrapped-wrapper">
       <style>{`
-        body.page-wrapped { margin: 0; overflow: hidden; background: #060b14; color: #fff; font-family: 'Inter', sans-serif; }
+        body.page-wrapped { margin: 0; overflow: hidden; background: #060b14; color: #fff; font-family: var(--font-manrope), var(--font-inter), sans-serif; }
         .wrapped-wrapper { position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100vw; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         
         .progress-bar-container { position: absolute; top: max(16px, calc(env(safe-area-inset-top, 16px) + 6px)); left: max(16px, env(safe-area-inset-left, 16px)); right: max(75px, calc(env(safe-area-inset-right, 16px) + 60px)); display: flex; gap: 5px; z-index: 100; }
@@ -70,7 +70,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
 
         .title-huge { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 7vw, 5rem); color: #d4af37; margin: 0 0 20px 0; line-height: 1.1; }
         .subtitle { font-size: clamp(0.9rem, 3vw, 1.3rem); color: #ccc; margin-bottom: 30px; padding: 0 15px; }
-        .stat-huge { font-size: clamp(2.5rem, 12vw, 6rem); font-weight: 900; color: transparent; -webkit-text-stroke: 2px #d4af37; font-family: 'Inter', sans-serif; margin: 20px 0; }
+        .stat-huge { font-size: clamp(2.5rem, 12vw, 6rem); font-weight: 900; color: transparent; -webkit-text-stroke: 2px #d4af37; font-family: var(--font-manrope), var(--font-inter), sans-serif; margin: 20px 0; }
         
         .click-zone { position: absolute; top: 0; width: 50%; height: 100%; z-index: 50; cursor: pointer; }
         .click-left { left: 0; }
@@ -119,7 +119,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
           <h1 className="title-huge anim-text">Terima Kasih.</h1>
           <p className="subtitle anim-text">Mari buat kenangan baru di Expedient Generation tahun depan.</p>
           <Link href="/fitur" className="anim-text btn-action-vault" style={{ marginTop: '30px', padding: '15px 40px', background: '#d4af37', color: '#060b14', borderRadius: '30px', textDecoration: 'none', fontWeight: 'bold', letterSpacing: '2px', display: 'inline-block' }}>
-              KEMBALI KE VAULT
+              KEMBALI KE MENU UTAMA
           </Link>
       </div>
 

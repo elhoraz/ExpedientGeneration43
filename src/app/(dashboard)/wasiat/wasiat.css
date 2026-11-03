@@ -104,7 +104,7 @@
 .wasiat-page-wrapper .legacy-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 5px;
+  top: 0; left: 0; width: 100%; display: none;
   background: linear-gradient(90deg, transparent, var(--gold-main), transparent);
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
@@ -193,7 +193,7 @@
   align-items: center;
   gap: 10px;
   border-radius: 30px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-manrope), var(--font-inter), sans-serif;
 }
 .wasiat-page-wrapper .seal-btn:hover:not(:disabled) {
   background: rgba(212,175,55,0.1);
@@ -228,7 +228,7 @@
   border: 1px solid var(--glass-border);
   color: var(--text-primary);
   padding: 15px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-manrope), var(--font-inter), sans-serif;
   border-radius: 6px;
   outline: none;
   transition: border-color 0.3s;
@@ -294,7 +294,7 @@
   padding: 10px 30px;
   font-weight: bold;
   cursor: pointer;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-manrope), var(--font-inter), sans-serif;
   letter-spacing: 1px;
   transition: 0.3s;
   border-radius: 30px;

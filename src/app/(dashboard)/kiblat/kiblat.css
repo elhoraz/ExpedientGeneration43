@@ -22,7 +22,7 @@
     pointer-events: none;
     z-index: 0;
     background: radial-gradient(circle at 50% 10%, rgba(212, 175, 55, 0.1) 0%, transparent 65%),
-                radial-gradient(circle at 80% 80%, rgba(27, 94, 32, 0.08) 0%, transparent 60%);
+        radial-gradient(circle at 80% 80%, rgba(27, 94, 32, 0.08) 0%, transparent 60%);
 }
 
 .kiblat-container {
@@ -308,8 +308,8 @@
     background: radial-gradient(circle at center, #070d18 0%, #05080f 70%, #151a14 100%);
     border: 6px solid var(--gold-main, #d4af37);
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.8),
-                inset 0 0 35px rgba(212, 175, 55, 0.25),
-                0 0 30px rgba(212, 175, 55, 0.2);
+        inset 0 0 35px rgba(212, 175, 55, 0.25),
+        0 0 30px rgba(212, 175, 55, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -320,8 +320,8 @@
 .astrolabe-rim.aligned {
     border-color: #2bb97c !important;
     box-shadow: 0 0 60px rgba(43, 185, 124, 0.6),
-                inset 0 0 45px rgba(43, 185, 124, 0.3),
-                0 0 35px rgba(212, 175, 55, 0.35) !important;
+        inset 0 0 45px rgba(43, 185, 124, 0.3),
+        0 0 35px rgba(212, 175, 55, 0.35) !important;
 }
 
 /* The Rotating Astrolabe Rose Plate (Rotates by -heading) */
@@ -368,7 +368,7 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
     font-size: 0.58rem;
     font-weight: 600;
     color: rgba(212, 175, 55, 0.55);
@@ -445,8 +445,15 @@
 }
 
 @keyframes pulseKaaba {
-    0% { transform: scale(1); filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6)); }
-    100% { transform: scale(1.18); filter: drop-shadow(0 0 16px rgba(255, 215, 0, 1)); }
+    0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+    }
+
+    100% {
+        transform: scale(1.18);
+        filter: drop-shadow(0 0 16px rgba(255, 215, 0, 1));
+    }
 }
 
 .qibla-tag-pill {
@@ -503,7 +510,7 @@
     border: 1.5px solid #2bb97c;
     color: #2bb97c;
     box-shadow: 0 0 25px rgba(43, 185, 124, 0.4);
-    animation: bounceLock 0.5s ease;
+    animation: lockPulse 0.5s ease;
 }
 
 .turn-icon-pulse {
@@ -513,14 +520,29 @@
 }
 
 @keyframes pulseTurn {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.25); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.25);
+    }
 }
 
-@keyframes bounceLock {
-    0% { transform: scale(0.9); }
-    50% { transform: scale(1.08); }
-    100% { transform: scale(1); }
+@keyframes lockPulse {
+    0% {
+        transform: scale(0.9);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .kiblat-aligned-badge.searching {
@@ -692,7 +714,7 @@
 .next-prayer-name small {
     font-size: 1rem;
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
 }
 
 .next-prayer-timer {
@@ -854,7 +876,7 @@
 :root[data-theme="light"] .kiblat-bg-ambient,
 [data-theme="light"] .kiblat-bg-ambient {
     background: radial-gradient(circle at 50% 10%, rgba(170, 119, 28, 0.08) 0%, transparent 65%),
-                radial-gradient(circle at 80% 80%, rgba(43, 185, 124, 0.06) 0%, transparent 60%);
+        radial-gradient(circle at 80% 80%, rgba(43, 185, 124, 0.06) 0%, transparent 60%);
 }
 
 :root[data-theme="light"] .btn-kiblat-back,
@@ -946,16 +968,16 @@
     background: radial-gradient(circle at center, #ffffff 0%, #fcfaf5 60%, #f1e9dc 100%);
     border: 6px solid #b8860b;
     box-shadow: 0 15px 45px rgba(170, 119, 28, 0.18),
-                inset 0 0 35px rgba(184, 134, 11, 0.15),
-                0 0 25px rgba(184, 134, 11, 0.12);
+        inset 0 0 35px rgba(184, 134, 11, 0.15),
+        0 0 25px rgba(184, 134, 11, 0.12);
 }
 
 :root[data-theme="light"] .astrolabe-rim.aligned,
 [data-theme="light"] .astrolabe-rim.aligned {
     border-color: #10b981 !important;
     box-shadow: 0 0 50px rgba(16, 185, 129, 0.4),
-                inset 0 0 40px rgba(16, 185, 129, 0.2),
-                0 0 25px rgba(184, 134, 11, 0.2) !important;
+        inset 0 0 40px rgba(16, 185, 129, 0.2),
+        0 0 25px rgba(184, 134, 11, 0.2) !important;
 }
 
 :root[data-theme="light"] .astrolabe-ring-pattern,
@@ -1336,8 +1358,15 @@
 }
 
 @keyframes pulseRing {
-    0% { transform: scale(0.6); opacity: 1; }
-    100% { transform: scale(1.6); opacity: 0; }
+    0% {
+        transform: scale(0.6);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
 }
 
 .user-center-dot {
@@ -1719,9 +1748,20 @@
 }
 
 @keyframes statusPulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(43, 185, 124, 0.7); }
-    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(43, 185, 124, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(43, 185, 124, 0); }
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(43, 185, 124, 0.7);
+    }
+
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 10px rgba(43, 185, 124, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(43, 185, 124, 0);
+    }
 }
 
 .status-label-group {
@@ -1980,15 +2020,39 @@
     animation: soundWave 0.8s ease-in-out infinite alternate;
 }
 
-.wave-bar:nth-child(1) { height: 6px; animation-delay: 0.1s; }
-.wave-bar:nth-child(2) { height: 12px; animation-delay: 0.25s; }
-.wave-bar:nth-child(3) { height: 14px; animation-delay: 0.4s; }
-.wave-bar:nth-child(4) { height: 9px; animation-delay: 0.15s; }
-.wave-bar:nth-child(5) { height: 7px; animation-delay: 0.3s; }
+.wave-bar:nth-child(1) {
+    height: 6px;
+    animation-delay: 0.1s;
+}
+
+.wave-bar:nth-child(2) {
+    height: 12px;
+    animation-delay: 0.25s;
+}
+
+.wave-bar:nth-child(3) {
+    height: 14px;
+    animation-delay: 0.4s;
+}
+
+.wave-bar:nth-child(4) {
+    height: 9px;
+    animation-delay: 0.15s;
+}
+
+.wave-bar:nth-child(5) {
+    height: 7px;
+    animation-delay: 0.3s;
+}
 
 @keyframes soundWave {
-    0% { height: 3px; }
-    100% { height: 14px; }
+    0% {
+        height: 3px;
+    }
+
+    100% {
+        height: 14px;
+    }
 }
 
 .adzan-seek-bar {
@@ -2183,6 +2247,3 @@
 [data-theme="light"] .doa-translation {
     border-top-color: rgba(0, 0, 0, 0.08);
 }
-
-
-

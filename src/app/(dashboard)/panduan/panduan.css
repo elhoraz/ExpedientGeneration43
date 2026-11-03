@@ -72,7 +72,7 @@
   border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.3));
   border-radius: 40px;
   color: var(--text-primary, #ffffff);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-manrope), var(--font-inter), sans-serif;
   font-size: 0.95rem;
   outline: none;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);

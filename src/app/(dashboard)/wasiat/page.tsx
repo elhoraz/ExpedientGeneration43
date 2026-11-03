@@ -4,7 +4,7 @@ import WasiatClient from "./WasiatClient";
 import { getAvatarUrl } from "@/lib/avatar";
 
 export const metadata = {
-  title: "Amanah & Wasiat - The Legacy Vault",
+  title: "Amanah & Pesan Persaudaraan - Expedient 43",
 };
 
 export default async function WasiatPage() {

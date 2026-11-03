@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import EnigmaClient from "./EnigmaClient";
 
 export const metadata = {
-  title: "The Enigma Vault",
+  title: "Teka-Teki Sandi Santri - Expedient 43",
 };
 
 export default async function EnigmaPage() {

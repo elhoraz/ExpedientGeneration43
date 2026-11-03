@@ -175,7 +175,7 @@
     }
 
     .status-title { 
-        font-family: 'Inter', sans-serif; 
+        font-family: var(--font-manrope), var(--font-inter), sans-serif; 
         font-size: 0.65rem; 
         color: var(--text-secondary); 
         letter-spacing: 4px; 
@@ -224,7 +224,7 @@
         align-items: center; 
         gap: 15px; 
         transition: all 0.5s var(--awwwards-ease); 
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-manrope), var(--font-inter), sans-serif;
         box-shadow: var(--glass-shadow);
         overflow: hidden;
         position: relative;
@@ -351,7 +351,7 @@
         border-bottom: 1px solid var(--glass-border);
         color: var(--text-primary); 
         padding: 15px 0 10px 0; 
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-manrope), var(--font-inter), sans-serif;
         font-size: 1.1rem; 
         font-weight: 400;
         transition: all 0.4s ease;
@@ -447,7 +447,7 @@
         color: var(--bg-main); 
         padding: 22px; 
         border-radius: 16px; 
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-manrope), var(--font-inter), sans-serif;
         font-size: 0.85rem; 
         font-weight: 600; 
         letter-spacing: 3px; 
@@ -500,7 +500,7 @@
     
     .bio-status-title { 
         color: var(--text-primary); 
-        font-family: 'Inter', sans-serif; 
+        font-family: var(--font-manrope), var(--font-inter), sans-serif; 
         font-size: 0.85rem; 
         font-weight: 600;
         letter-spacing: 3px;
@@ -521,7 +521,7 @@
         color: var(--text-primary); 
         padding: 20px; 
         border-radius: 16px; 
-        font-family: 'Inter', sans-serif; 
+        font-family: var(--font-manrope), var(--font-inter), sans-serif; 
         font-size: 0.75rem; 
         font-weight: 600;
         letter-spacing: 2px; 
@@ -558,8 +558,8 @@
         box-shadow: var(--glass-shadow);
     }
     
-    .sys-msg.success { border-left: 4px solid var(--success-elegant); color: var(--text-primary); }
-    .sys-msg.error { border-left: 4px solid var(--danger-elegant); color: var(--text-primary); }
+    .sys-msg.success { border: 1px solid rgba(16, 185, 129, 0.35); color: var(--text-primary); }
+    .sys-msg.error { border: 1px solid rgba(239, 68, 68, 0.35); color: var(--text-primary); }
 
     textarea.form-input { resize: none; overflow: hidden; min-height: 40px; }
 

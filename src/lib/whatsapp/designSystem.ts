@@ -931,7 +931,7 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
   "10_FUTURISTIC_TECH": {
     id: "10_FUTURISTIC_TECH",
     name: "Futuristic Tech",
-    tagline: "Cyber Minimalist HUD with Monospace Coordinates & Data Grid",
+    tagline: "Modern Tech Visuals with Clean Monospace Accents & Grid",
     overlayType: "editorial_panel",
     targetCategories: ["INFOGRAPHIC", "SOCIAL_MEDIA_POST"],
     textSafeZone: {
@@ -951,11 +951,11 @@ export const DESIGN_PRESETS: Record<PresetId, DesignPreset> = {
     },
     renderSvg: (W, H, brief) => {
       const accent = brief.primary_colors?.[0] || "#06B6D4";
-      const rawHeadline = (brief.copywriting?.headline || "NEXT GEN AI").trim();
+      const rawHeadline = (brief.copywriting?.headline || "INOVASI & TEKNOLOGI").trim();
       const headline = escapeXml(rawHeadline.toUpperCase());
       const headlineSize = calculateHeadlineSize(rawHeadline, 90);
-      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "[SYS_VER: 43.0] // AI COGNITIVE PROTOCOL").toUpperCase());
-      const subheadline = escapeXml((brief.copywriting?.subheadline || "NEURAL QUANTUM ARCHITECTURE").toUpperCase());
+      const eyebrow = escapeXml((brief.copywriting?.eyebrow || "EXPEDIENT 43 // TEKNOLOGI DIGITAL").toUpperCase());
+      const subheadline = escapeXml((brief.copywriting?.subheadline || "KARYA & TRANSFORMASI KONTEMPORER").toUpperCase());
 
       return `
       <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">

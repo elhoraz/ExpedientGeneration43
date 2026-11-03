@@ -2609,7 +2609,7 @@ export default function PhotoboothClient() {
       {/* Studio Header */}
       <div className="studio-header">
         <div className="studio-badge">
-          <i className="fa-solid fa-camera-retro"></i> Aegis Studio Photobooth
+          <i className="fa-solid fa-camera-retro"></i> Studio Foto Kenangan Alumni
         </div>
         <h1 className="studio-title">
           {t.photobooth.title}
@@ -3024,11 +3024,11 @@ export default function PhotoboothClient() {
                     { id: "film", label: "🎞️ 35mm Analog" },
                     { id: "santri", label: "🕌 Nostalgia Santri" },
                     { id: "sakura", label: "🌸 Sakura Pastel" },
-                    { id: "cyber", label: "🌌 Cyberpunk Neon" },
+                    { id: "cyber", label: "🌌 Lazuardi Malam" },
                     { id: "parchment", label: "📜 Vintage Parchment" },
                     { id: "ocean", label: "🌊 Deep Ocean" },
                     { id: "velvet", label: "💜 Royal Velvet" },
-                    { id: "y2k", label: "⚡ Y2K Chrome" },
+                    { id: "y2k", label: "⚡ Siluet Perak" },
                     { id: "botanical", label: "🍃 Sage Botanical" },
                     { id: "monolith", label: "🖤 Dark Monolith" },
                   ].map((t) => (
@@ -3120,7 +3120,7 @@ export default function PhotoboothClient() {
                   className={`chip-btn ${filter === "cyber" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("cyber"); }}
                 >
-                  🔮 Cyber Glow
+                  🔮 Safir Malam
                 </button>
                 <button
                   className={`chip-btn ${filter === "pastel" ? "active" : ""}`}

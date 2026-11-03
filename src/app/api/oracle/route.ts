@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Unauthorized: Harap login terlebih dahulu untuk berkonsultasi dengan Oracle." },
+        { error: "Unauthorized: Harap login terlebih dahulu untuk mengakses Cermin Muhasabah." },
         { status: 401 }
       );
     }
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     if (!rl.success) {
       const waitMinutes = Math.max(1, Math.ceil(rl.resetIn / 60000));
       return NextResponse.json(
-        { error: `Batas konsultasi Oracle tercapai. Silakan coba kembali dalam ${waitMinutes} menit.` },
+        { error: `Batas permintaan refleksi tercapai. Silakan coba kembali dalam ${waitMinutes} menit.` },
         { status: 429 }
       );
     }
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
   } catch (err: any) {
     console.error("Oracle AI Error:", err);
     return NextResponse.json(
-      { error: "Gagal memproses permintaan AI Oracle. Silakan coba beberapa saat lagi." },
+      { error: "Gagal memproses nasehat refleksi. Silakan coba beberapa saat lagi." },
       { status: 500 }
     );
   }

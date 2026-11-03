@@ -177,7 +177,7 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
         await showAlert("Tidak Didukung", "Format enkripsi tidak didukung di versi ini.");
       }
     } catch (err) {
-      await showAlert("Akses Ditolak", "Gagal membuka segel: Kunci akses tidak cocok.");
+      await showAlert("Kata Sandi Belum Cocok", "Kunci pengaman yang Anda masukkan belum sesuai. Silakan coba kembali.");
     }
     
     setUnlockingId(null);

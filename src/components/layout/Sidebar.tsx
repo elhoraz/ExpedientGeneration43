@@ -93,7 +93,6 @@ export default function Sidebar() {
     "/oracle",
     "/enigma",
     "/genesis",
-    "/celestial",
     "/majlis",
     "/tarbiyah",
     "/baitul-maal",

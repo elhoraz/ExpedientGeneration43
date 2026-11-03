@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import OracleDynamic from "./OracleDynamic";
 
 export const metadata = {
-  title: "The Oracle's Vision",
+  title: "Cermin Muhasabah & Kapsul Waktu - Expedient 43",
 };
 
 export default async function OraclePage() {

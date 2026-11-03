@@ -640,7 +640,7 @@
     font-size: 0.8rem;
     color: #f8fafc;
     line-height: 1.5;
-    border-left: 3px solid var(--gold-main, #d4af37);
+    border: 1px solid rgba(212, 175, 55, 0.25);
 }
 
 .sirah-modal-footer-actions {

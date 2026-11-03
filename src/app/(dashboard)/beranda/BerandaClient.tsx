@@ -282,11 +282,11 @@ export default function BerandaClient({
               <div className="loader-ring-active"></div>
               <div className="loader-percent" id="loadPercent">0%</div>
           </div>
-          <div className="loader-lore" id="loaderLore">"Sovereign Protocol Initiated..."</div>
+          <div className="loader-lore" id="loaderLore">"Memuat Khazanah Sejarah..."</div>
           <div className="loader-status">{tLang.beranda.loader_preparing}</div>
       </div>
 
-      <div className="mecha-stage" id="stage">
+      <div className="mecha-stage museum-stage" id="stage">
           <div className="god-rays" id="godRays"></div>
           <div className="monumental-text" id="monumentalText">EXPEDIENT</div>
 
@@ -302,10 +302,10 @@ export default function BerandaClient({
           
           <div className="hud-controls">
               <div className="hud-hint" id="hudHint"><i className="fa-solid fa-arrows-left-right"></i> {tLang.beranda.hint_drag}</div>
-              <button className="btn-mecha hover-trigger" id="btnAction"><i className="fa-solid fa-expand"></i> {tLang.beranda.hint_spin}</button>
+              <button className="btn-mecha btn-museum hover-trigger" id="btnAction"><i className="fa-solid fa-expand"></i> {tLang.beranda.hint_spin}</button>
               <button 
                 type="button" 
-                className="btn-mecha hover-trigger" 
+                className="btn-mecha btn-museum hover-trigger" 
                 onClick={toggleAudio}
                 title={isPlayingAudio ? tLang.beranda.audio_paused : tLang.beranda.audio_playing}
                 style={{ marginLeft: '10px' }}
@@ -314,14 +314,14 @@ export default function BerandaClient({
               </button>
           </div>
 
-          <i className="fa-solid fa-chevron-down scroll-indicator" style={{ position: 'absolute', bottom: '5vh', left: '50%', transform: 'translateX(-50%)', color: '#d4af37', fontSize: '2rem', animation: 'bounceIndicator 2s infinite', zIndex: 20, opacity: 0.7 }}></i>
+          <i className="fa-solid fa-chevron-down scroll-indicator" style={{ position: 'absolute', bottom: '5vh', left: '50%', transform: 'translateX(-50%)', color: '#d4af37', fontSize: '1.8rem', animation: 'smoothScrollIndicator 2.5s ease-in-out infinite', zIndex: 20, opacity: 0.7 }}></i>
       </div>
 
       <div className="phil-modal" id="philModal">
           <div className="phil-content">
               <h2 className="phil-title" id="modalTitle">{tLang.beranda_extra.panca_jiwa_modal_title}</h2>
               <p className="phil-desc" id="modalDesc"></p>
-              <button className="btn-mecha hover-trigger" style={{ marginTop: '25px', padding: '10px 25px', fontSize: '0.8rem' }} onClick={closeModal}>{tLang.common.close.toUpperCase()}</button>
+              <button className="btn-mecha btn-museum hover-trigger" style={{ marginTop: '25px', padding: '10px 25px', fontSize: '0.8rem' }} onClick={closeModal}>{tLang.common.close.toUpperCase()}</button>
           </div>
       </div>
 
@@ -468,7 +468,7 @@ export default function BerandaClient({
                           const rank = idx + 1;
                           const borderColor = rank === 1 ? '#FFD700' : (rank === 2 ? '#E5E4E2' : (rank === 3 ? '#cd7f32' : 'var(--glass-border)'));
                           return (
-                              <div className="glass-panel reveal-up leaderboard-item" style={{ borderLeft: `4px solid ${borderColor}` }} key={idx}>
+                              <div className="glass-panel reveal-up leaderboard-item" style={{ border: `1px solid ${rank <= 3 ? borderColor + '55' : 'var(--glass-border)'}` }} key={idx}>
                                   <div className="leaderboard-info">
                                       <div className="leaderboard-rank">#{rank}</div>
                                       <img 

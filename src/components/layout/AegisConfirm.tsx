@@ -145,8 +145,8 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
               width: "90%",
               textAlign: "center",
               boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
-              fontFamily: isRTL ? "var(--font-amiri, serif), 'Inter', sans-serif" : "'Inter', sans-serif",
-              animation: "slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2)",
+              fontFamily: isRTL ? "var(--font-amiri, serif), var(--font-manrope), sans-serif" : "var(--font-manrope), var(--font-inter), sans-serif",
+              animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
             dir={isRTL ? "rtl" : "ltr"}
           >

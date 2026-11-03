@@ -112,8 +112,8 @@ export default async function TarbiyahNexusPage() {
       targetAvatar = p?.foto_profil;
     } else if (r.type === "Tender") {
       const s = syndicateMap.get(r.target_id);
-      targetName = s?.nama_bisnis || "Tender Bisnis";
-      targetSubtitle = s?.kategori || "B2B Syndicate";
+      targetName = s?.nama_bisnis || "Kemitraan Usaha";
+      targetSubtitle = s?.kategori || "Kemitraan Usaha Alumni";
       targetAvatar = s?.logo_url;
     }
 

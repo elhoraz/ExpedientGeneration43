@@ -107,7 +107,7 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
               {activeTicket ? (
               <div className="vip-ticket" ref={ticketRef}>
                   <div className="ticket-top">
-                      <div className="ticket-badge">VVIP PASS</div>
+                      <div className="ticket-badge">UNDANGAN RESMI</div>
                       <div className="cutout cutout-left"></div>
                       <div className="cutout cutout-right"></div>
                   </div>

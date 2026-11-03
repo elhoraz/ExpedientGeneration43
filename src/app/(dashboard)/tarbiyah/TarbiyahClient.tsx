@@ -19,7 +19,7 @@ interface Mentor {
   alamat_sekarang?: string;
 }
 
-interface Tender {
+interface Kemitraan {
   id: string;
   nama_bisnis: string;
   kategori?: string;
@@ -33,7 +33,7 @@ interface RequestItem {
   id: string;
   user_id: string;
   target_id: string;
-  type: "Mentor" | "Tender";
+  type: "Mentor" | "Kemitraan" | "Tender";
   status: "Pending" | "Approved" | "Rejected";
   created_at: string;
   target_name?: string;
@@ -70,7 +70,7 @@ export default function TarbiyahClient({
 }: {
   currentUser: CurrentUser;
   mentors: Mentor[];
-  tenders: Tender[];
+  tenders: Kemitraan[];
   sentRequests: RequestItem[];
   incomingRequests: RequestItem[];
   initialMateri: Materi[];
@@ -83,8 +83,9 @@ export default function TarbiyahClient({
   }, []);
 
   // Navigation
-  const [activeTab, setActiveTab] = useState<"mentor" | "tender" | "materi" | "my_requests" | "inbox">("mentor");
-  
+  const allKemitraans = tenders || [];
+  const [activeTab, setActiveTab] = useState<"mentor" | "kemitraan" | "materi" | "my_requests" | "inbox">("mentor");
+
   // Data States
   const [localSentRequests, setLocalSentRequests] = useState<RequestItem[]>(sentRequests);
   const [localIncomingRequests, setLocalIncomingRequests] = useState<RequestItem[]>(incomingRequests);
@@ -92,12 +93,12 @@ export default function TarbiyahClient({
 
   // Search & Filter States
   const [mentorSearch, setMentorSearch] = useState("");
-  const [tenderSearch, setTenderSearch] = useState("");
-  const [selectedTenderCat, setSelectedTenderCat] = useState("Semua");
+  const [kemitraanSearch, setKemitraanSearch] = useState("");
+  const [selectedKemitraanCat, setSelectedKemitraanCat] = useState("Semua");
 
   // Proposal Modal State
   const [isProposalModalOpen, setIsProposalModalOpen] = useState(false);
-  const [proposalTarget, setProposalTarget] = useState<{ id: string; name: string; type: "Mentor" | "Tender"; subtitle?: string; avatar?: string } | null>(null);
+  const [proposalTarget, setProposalTarget] = useState<{ id: string; name: string; type: "Mentor" | "Kemitraan" | "Tender"; subtitle?: string; avatar?: string } | null>(null);
   const [proposalSubject, setProposalSubject] = useState("");
   const [proposalMessage, setProposalMessage] = useState("");
   const [isSubmittingProposal, setIsSubmittingProposal] = useState(false);
@@ -123,32 +124,32 @@ export default function TarbiyahClient({
     });
   }, [mentors, mentorSearch]);
 
-  // Unique Tender Categories
-  const tenderCategories = useMemo(() => {
+  // Unique Kemitraan Categories
+  const kemitraanCategories = useMemo(() => {
     const cats = new Set<string>();
-    tenders.forEach(t => {
+    allKemitraans.forEach(t => {
       if (t.kategori) cats.add(t.kategori);
     });
     return ["Semua", ...Array.from(cats)];
-  }, [tenders]);
+  }, [allKemitraans]);
 
-  // Filtered Tenders
-  const filteredTenders = useMemo(() => {
-    return tenders.filter(t => {
-      const matchCat = selectedTenderCat === "Semua" || t.kategori === selectedTenderCat;
-      const q = tenderSearch.toLowerCase();
+  // Filtered Kemitraans
+  const filteredKemitraans = useMemo(() => {
+    return allKemitraans.filter(t => {
+      const matchCat = selectedKemitraanCat === "Semua" || t.kategori === selectedKemitraanCat;
+      const q = kemitraanSearch.toLowerCase();
       const name = (t.nama_bisnis || "").toLowerCase();
       const desc = (t.deskripsi || "").toLowerCase();
-      const matchSearch = !tenderSearch || name.includes(q) || desc.includes(q);
+      const matchSearch = !kemitraanSearch || name.includes(q) || desc.includes(q);
       return matchCat && matchSearch;
     });
-  }, [tenders, selectedTenderCat, tenderSearch]);
+  }, [allKemitraans, selectedKemitraanCat, kemitraanSearch]);
 
   const getSentRequestStatus = (targetId: string) => {
     return localSentRequests.find(r => r.target_id === targetId)?.status;
   };
 
-  const getSyndicateLogoUrl = (logoPath?: string, defaultName: string = "B") => {
+  const getBusinessLogoUrl = (logoPath?: string, defaultName: string = "B") => {
     if (!logoPath) {
       return `https://ui-avatars.com/api/?name=${encodeURIComponent(defaultName)}&background=222&color=fff`;
     }
@@ -166,15 +167,15 @@ export default function TarbiyahClient({
   };
 
   // Open Proposal Modal for specific target
-  const handleOpenProposal = (target: { id: string; name: string; type: "Mentor" | "Tender"; subtitle?: string; avatar?: string }) => {
+  const handleOpenProposal = (target: { id: string; name: string; type: "Mentor" | "Kemitraan" | "Tender"; subtitle?: string; avatar?: string }) => {
     setProposalTarget(target);
-    setProposalSubject(target.type === "Mentor" ? "Permohonan Mentoring & Konsultasi" : "Pengajuan Kerjasama B2B / Tender");
+    setProposalSubject(target.type === "Mentor" ? "Permohonan Mentoring & Konsultasi" : "Pengajuan Kerjasama & Kemitraan Usaha");
     setProposalMessage("");
     setIsProposalModalOpen(true);
   };
 
   // Open General Proposal from toolbar
-  const handleOpenGeneralProposal = (type: "Mentor" | "Tender") => {
+  const handleOpenGeneralProposal = (type: "Mentor" | "Kemitraan" | "Tender") => {
     if (type === "Mentor") {
       const first = mentors[0];
       setProposalTarget({
@@ -186,15 +187,15 @@ export default function TarbiyahClient({
       });
       setProposalSubject("Permohonan Mentoring & Bimbingan Karir");
     } else {
-      const first = tenders[0];
+      const first = allKemitraans[0];
       setProposalTarget({
         id: first?.id || "",
-        name: first ? first.nama_bisnis : "Pilih Bisnis Syndicate",
-        type: "Tender",
-        subtitle: first?.kategori || "B2B Syndicate",
+        name: first ? first.nama_bisnis : "Pilih Usaha Alumni",
+        type: "Kemitraan",
+        subtitle: first?.kategori || "Kemitraan Usaha Alumni",
         avatar: first?.logo_url,
       });
-      setProposalSubject("Pengajuan Kerjasama Bisnis / Tender");
+      setProposalSubject("Pengajuan Kerjasama & Kemitraan Usaha");
     }
     setProposalMessage("");
     setIsProposalModalOpen(true);
@@ -269,7 +270,7 @@ export default function TarbiyahClient({
     const confirmMsg = isApproved
       ? (locale === "ar" ? `هل أنت متأكد من رغبتك في الموافقة على طلب ${requesterName}؟` : locale === "en" ? `Are you sure you want to approve the request from ${requesterName}?` : `Apakah Anda yakin ingin menyetujui permohonan dari ${requesterName}?`)
       : (locale === "ar" ? `هل أنت متأكد من رغبتك في رفض طلب ${requesterName}؟` : locale === "en" ? `Are you sure you want to reject the request from ${requesterName}?` : `Apakah Anda yakin ingin menolak permohonan dari ${requesterName}?`);
-    
+
     const confirmed = await showConfirm(confirmTitle, confirmMsg);
     if (!confirmed) return;
 
@@ -384,10 +385,10 @@ export default function TarbiyahClient({
           </button>
           <button
             type="button"
-            className={`tab-btn ${activeTab === "tender" ? "active" : ""}`}
-            onClick={() => setActiveTab("tender")}
+            className={`tab-btn ${activeTab === "kemitraan" ? "active" : ""}`}
+            onClick={() => setActiveTab("kemitraan")}
           >
-            <i className="fa-solid fa-briefcase"></i> {t.tarbiyah.tab_tender} ({tenders.length})
+            <i className="fa-solid fa-briefcase"></i> {t.tarbiyah.tab_tender} ({allKemitraans.length})
           </button>
           <button
             type="button"
@@ -485,7 +486,7 @@ export default function TarbiyahClient({
                       <div className="card-actions">
                         <div className="card-btn-row">
                           <Link href={`/dossier/${m.id}`} className="btn-action-view" title={t.tarbiyah.view_dossier}>
-                            <i className="fa-regular fa-id-badge"></i> Dossier
+                            <i className="fa-regular fa-id-badge"></i> Profil
                           </Link>
                           {status && (
                             <span className={`status-pill-mini status-${status}`}>
@@ -526,18 +527,18 @@ export default function TarbiyahClient({
         )}
 
         {/* ===================================================================== */}
-        {/* TAB 2: SOVEREIGN B2B & TENDER */}
+        {/* TAB 2: KEMITRAAN & KOLABORASI USAHA */}
         {/* ===================================================================== */}
-        {activeTab === "tender" && (
+        {activeTab === "kemitraan" && (
           <div className="tab-content-section">
             <div className="tab-toolbar">
               <div className="category-chips">
-                {tenderCategories.map(cat => (
+                {kemitraanCategories.map(cat => (
                   <button
                     key={cat}
                     type="button"
-                    className={`chip-btn ${selectedTenderCat === cat ? "active" : ""}`}
-                    onClick={() => setSelectedTenderCat(cat)}
+                    className={`chip-btn ${selectedKemitraanCat === cat ? "active" : ""}`}
+                    onClick={() => setSelectedKemitraanCat(cat)}
                   >
                     {cat === "Semua" ? (locale === "ar" ? "الكل" : locale === "en" ? "All" : "Semua") : cat}
                   </button>
@@ -549,12 +550,12 @@ export default function TarbiyahClient({
                   <i className="fa-solid fa-magnifying-glass"></i>
                   <input
                     type="text"
-                    placeholder={locale === "ar" ? "ابحث عن مشروع، مناقصة، أو فرصة..." : locale === "en" ? "Search business, tender, or opportunities..." : "Cari bisnis, tender, atau peluang..."}
-                    value={tenderSearch}
-                    onChange={e => setTenderSearch(e.target.value)}
+                    placeholder={locale === "ar" ? "ابحث عن مشروع، مناقصة، أو فرصة..." : locale === "en" ? "Search business, kemitraan, or opportunities..." : "Cari bisnis, kemitraan, atau peluang..."}
+                    value={kemitraanSearch}
+                    onChange={e => setKemitraanSearch(e.target.value)}
                   />
-                  {tenderSearch && (
-                    <button type="button" className="btn-clear" onClick={() => setTenderSearch("")}>
+                  {kemitraanSearch && (
+                    <button type="button" className="btn-clear" onClick={() => setKemitraanSearch("")}>
                       &times;
                     </button>
                   )}
@@ -563,7 +564,7 @@ export default function TarbiyahClient({
                 <button
                   type="button"
                   className="btn-toolbar-action"
-                  onClick={() => handleOpenGeneralProposal("Tender")}
+                  onClick={() => handleOpenGeneralProposal("Kemitraan")}
                 >
                   <i className="fa-solid fa-handshake"></i> {locale === "ar" ? "تقديم مقترح B2B" : locale === "en" ? "Submit B2B Proposal" : "Ajukan Proposal B2B"}
                 </button>
@@ -571,23 +572,23 @@ export default function TarbiyahClient({
             </div>
 
             <div className="card-grid">
-              {filteredTenders.length === 0 ? (
+              {filteredKemitraans.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-store-slash"></i>
-                  <p>{locale === "ar" ? "لا توجد مشاريع تطابق خيارات التصفية." : locale === "en" ? "No business tenders match the filters." : "Tidak ada tender bisnis yang sesuai dengan filter."}</p>
+                  <p>{locale === "ar" ? "لا توجد مشاريع تطابق خيارات التصفية." : locale === "en" ? "No business allKemitraans match the filters." : "Tidak ada kemitraan usaha yang sesuai dengan filter."}</p>
                   <button
                     type="button"
                     className="btn-toolbar-action"
                     style={{ marginTop: "15px" }}
-                    onClick={() => handleOpenGeneralProposal("Tender")}
+                    onClick={() => handleOpenGeneralProposal("Kemitraan")}
                   >
                     <i className="fa-solid fa-handshake"></i> {locale === "ar" ? "تقديم مقترح شراكة" : locale === "en" ? "Submit Partnership Proposal" : "Ajukan Proposal Kerjasama"}
                   </button>
                 </div>
               ) : (
-                filteredTenders.map(t => {
+                filteredKemitraans.map(t => {
                   const status = getSentRequestStatus(t.id);
-                  const logo = getSyndicateLogoUrl(t.logo_url, t.nama_bisnis);
+                  const logo = getBusinessLogoUrl(t.logo_url, t.nama_bisnis);
 
                   return (
                     <div key={t.id} className="nexus-card item-card">
@@ -629,8 +630,8 @@ export default function TarbiyahClient({
                             handleOpenProposal({
                               id: t.id,
                               name: t.nama_bisnis,
-                              type: "Tender",
-                              subtitle: t.kategori || "B2B Syndicate",
+                              type: "Kemitraan",
+                              subtitle: t.kategori || "Kemitraan Usaha Alumni",
                               avatar: t.logo_url,
                             })
                           }
@@ -712,14 +713,14 @@ export default function TarbiyahClient({
           <div className="tab-content-section">
             <div className="section-intro">
               <h2 className="section-title">{locale === "ar" ? "الطلبات التي قدمتها" : locale === "en" ? "Requests You Have Submitted" : "Permohonan yang Telah Anda Ajukan"}</h2>
-              <p className="section-desc">{locale === "ar" ? "تابع حالة الاعتماد من المرشدين أو مشاريع الأعمال." : locale === "en" ? "Track approval status from mentors or business tenders." : "Pantau status persetujuan dari mentor atau tender bisnis yang Anda hubungi."}</p>
+              <p className="section-desc">{locale === "ar" ? "تابع حالة الاعتماد من المرشدين أو مشاريع الأعمال." : locale === "en" ? "Track approval status from mentors or business allKemitraans." : "Pantau status persetujuan dari mentor atau kemitraan usaha yang Anda hubungi."}</p>
             </div>
 
             <div className="requests-grid">
               {localSentRequests.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-envelope-open-text"></i>
-                  <p>{locale === "ar" ? "لم تقدم أي طلبات إرشاد أو مقترحات بعد." : locale === "en" ? "You have not submitted any mentorship or tender requests yet." : "Anda belum mengajukan permohonan bimbingan atau proposal tender."}</p>
+                  <p>{locale === "ar" ? "لم تقدم أي طلبات إرشاد أو مقترحات بعد." : locale === "en" ? "You have not submitted any mentorship or kemitraan requests yet." : "Anda belum mengajukan permohonan bimbingan atau proposal kemitraan."}</p>
                 </div>
               ) : (
                 localSentRequests.map(r => (
@@ -772,7 +773,7 @@ export default function TarbiyahClient({
               {localIncomingRequests.length === 0 ? (
                 <div className="empty-state-box">
                   <i className="fa-solid fa-inbox"></i>
-                  <p>{locale === "ar" ? "لا توجد طلبات إرشاد أو مناقصات موجهة إليك بعد." : locale === "en" ? "No mentorship or tender requests directed to you yet." : "Belum ada permohonan bimbingan atau tender yang ditujukan kepada Anda."}</p>
+                  <p>{locale === "ar" ? "لا توجد طلبات إرشاد أو مناقصات موجهة إليك بعد." : locale === "en" ? "No mentorship or kemitraan requests directed to you yet." : "Belum ada permohonan bimbingan atau kemitraan yang ditujukan kepada Anda."}</p>
                 </div>
               ) : (
                 localIncomingRequests.map(r => {
@@ -869,7 +870,7 @@ export default function TarbiyahClient({
 
             {/* Target Selector / Summary */}
             <div className="form-group">
-              <label>{locale === "ar" ? (proposalTarget.type === "Mentor" ? "المرشد المستهدف" : "المشروع المستهدف") : locale === "en" ? (proposalTarget.type === "Mentor" ? "TARGET MENTOR" : "TARGET BUSINESS TENDER") : `TARGET ${proposalTarget.type === "Mentor" ? "MENTOR" : "TENDER BISNIS"}`}</label>
+              <label>{locale === "ar" ? (proposalTarget.type === "Mentor" ? "المرشد المستهدف" : "المشروع المستهدف") : locale === "en" ? (proposalTarget.type === "Mentor" ? "TARGET MENTOR" : "TARGET BUSINESS TENDER") : `TARGET ${proposalTarget.type === "Mentor" ? "MENTOR" : "MITRA USAHA"}`}</label>
               {proposalTarget.type === "Mentor" ? (
                 <select
                   value={proposalTarget.id}
@@ -896,19 +897,19 @@ export default function TarbiyahClient({
                 <select
                   value={proposalTarget.id}
                   onChange={e => {
-                    const sel = tenders.find(t => t.id === e.target.value);
+                    const sel = allKemitraans.find(t => t.id === e.target.value);
                     if (sel) {
                       setProposalTarget({
                         id: sel.id,
                         name: sel.nama_bisnis,
-                        type: "Tender",
-                        subtitle: sel.kategori || "B2B Syndicate",
+                        type: "Kemitraan",
+                        subtitle: sel.kategori || "Kemitraan Usaha Alumni",
                         avatar: sel.logo_url,
                       });
                     }
                   }}
                 >
-                  {tenders.map(t => (
+                  {allKemitraans.map(t => (
                     <option key={t.id} value={t.id}>
                       {t.nama_bisnis} {t.kategori ? `— (${t.kategori})` : ""}
                     </option>

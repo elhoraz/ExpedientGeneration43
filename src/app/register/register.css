@@ -80,7 +80,7 @@
 @keyframes shimmerLiquid { to { background-position: 200% center; } }
 .subtitle-spec { font-size: 0.8rem; color: var(--text-secondary); letter-spacing: 4px; text-transform: uppercase; font-weight: 600; }
 
-.php-error-box { background: rgba(255, 51, 102, 0.08); border: 1px solid rgba(255, 51, 102, 0.5); padding: 20px 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(255, 51, 102, 0.15), inset 0 0 20px rgba(255, 51, 102, 0.05); animation: shakeError 0.5s cubic-bezier(.36,.07,.19,.97) both; border-left: 5px solid #ff3366; }
+.php-error-box { background: rgba(255, 51, 102, 0.08); border: 1px solid rgba(255, 51, 102, 0.35); padding: 20px 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(255, 51, 102, 0.15), inset 0 0 20px rgba(255, 51, 102, 0.05); animation: shakeError 0.5s cubic-bezier(.36,.07,.19,.97) both; }
 .php-error-box h4 { color: #ff3366; margin-bottom: 10px; font-weight: 700; font-size: 1.1rem; }
 .php-error-box ul { margin-left: 20px; color: #ff99aa; font-size: 0.9rem; line-height: 1.6; }
 
@@ -140,18 +140,18 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
 .required-notice { text-align: center; font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.5px; }
 
 .btn-magnetic-wrapper { display: inline-block; width: 100%; position: relative; margin-top: 20px; } 
-.btn-prime { position: relative; width: 100%; padding: 22px; border-radius: 18px; border: none; background: var(--gold-liquid); background-size: 200% auto; color: #060b14; font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.4); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.27); will-change: transform; }
+.btn-prime { position: relative; width: 100%; padding: 22px; border-radius: 18px; border: none; background: var(--gold-liquid); background-size: 200% auto; color: #060b14; font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.4); transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
 .btn-prime:hover { animation: shimmerLiquid 2.5s linear infinite; box-shadow: 0 20px 40px rgba(212, 175, 55, 0.4); }
 
 @keyframes shakeError { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
 .shake-anim { animation: shakeError 0.5s cubic-bezier(.36,.07,.19,.97) both !important; box-shadow: 0 0 30px rgba(255,51,102,0.6) !important; border: 1px solid #ff3366 !important; }
 
 /* ================= 8. VOLUMETRIC ALERTS ================= */
-.quantum-toast { position: fixed; top: 40px; right: -600px; padding: 20px 30px; border-radius: 20px; background: var(--glass-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-edge); color: var(--text-primary); display: flex; align-items: center; gap: 20px; box-shadow: var(--glass-shadow); transition: right 0.8s cubic-bezier(0.34, 1.56, 0.64, 1.2); z-index: 9999; transform-style: preserve-3d; }
+.quantum-toast { position: fixed; top: 40px; right: -600px; padding: 20px 30px; border-radius: 20px; background: var(--glass-surface); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-edge); color: var(--text-primary); display: flex; align-items: center; gap: 20px; box-shadow: var(--glass-shadow); transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1); z-index: 9999; transform-style: preserve-3d; }
 .quantum-toast.show { right: 40px; }
 .toast-icon { font-size: 2rem; transform: translateZ(25px); filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
-.toast-success { border-bottom: 4px solid #00c853; border-right: 2px solid #00c853; } .toast-success i { color: #00c853; }
-.toast-error { border-bottom: 4px solid #ff3366; border-right: 2px solid #ff3366; } .toast-error i { color: #ff3366; }
+.toast-success { border: 1px solid rgba(0, 200, 83, 0.4); box-shadow: 0 10px 25px rgba(0, 200, 83, 0.15); } .toast-success i { color: #00c853; }
+.toast-error { border: 1px solid rgba(255, 51, 102, 0.4); box-shadow: 0 10px 25px rgba(255, 51, 102, 0.15); } .toast-error i { color: #ff3366; }
 
 /* ================= 9. CROPPER & BIOMETRIC GATEWAY ================= */
 .crop-modal, .auth-vault { display: flex; position: fixed; inset: 0; background: rgba(6,11,20,0.95); z-index: 10000; justify-content: center; align-items: center; backdrop-filter: blur(25px); flex-direction: column; opacity: 0; pointer-events: none; transition: 0.4s ease; }
@@ -189,7 +189,7 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
 .live-node.done { background: var(--text-primary); }
 
 .status-display { text-align: center; min-width: 320px; padding: 20px; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-edge); border-radius: 20px; box-shadow: var(--glass-shadow); }
-.status-title { font-family: 'Inter', sans-serif; font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px; }
+.status-title { font-family: var(--font-manrope), var(--font-inter), sans-serif; font-size: 0.65rem; color: var(--text-secondary); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px; }
 .status-value { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 500; color: var(--text-primary); letter-spacing: 1px; min-height: 35px; }
 
 @media (max-width: 768px) {
@@ -505,7 +505,7 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
     font-size: 3.5rem;
     color: #25d366;
     margin-bottom: 15px;
-    animation: scaleCheck 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: scaleCheck 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes scaleCheck {
