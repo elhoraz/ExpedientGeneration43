@@ -281,24 +281,18 @@ export default function AppNotificationManager() {
         }
       }
 
-      // Web Fallback: Play Adzan audio directly
-      try {
-        const audio = new Audio("/assets/audio/adzan_makkah.mp3");
-        audio.volume = 1.0;
-        audio.play().catch(() => {});
-        sendSystemNotification({
-          title: "🕌 Kumandang Adzan Makkah",
-          message: "Allahu Akbar, Allahu Akbar... Kumandang adzan shalat berhasil diuji.",
-          url: "/kiblat",
-        });
-        showToast(
-          "Kumandang Adzan Berbunyi",
-          "Suara adzan Makkah sedang diputar secara real-time.",
-          "success"
-        );
-      } catch (err) {
-        console.error("Web audio adzan error:", err);
-      }
+      // Web Fallback: Browser Web TIDAK memiliki akses ke switch hardware Silent/DND HP!
+      // Oleh karena itu JANGAN pernah memutar audio MP3 secara otomatis di web untuk pengujian hening!
+      sendSystemNotification({
+        title: "🕌 Uji Pengingat Shalat (Mode Web)",
+        message: "Notifikasi shalat aktif. Untuk fitur kumandang adzan otomatis yang patuh Mode Hening & Jangan Ganggu, gunakan aplikasi APK resmi.",
+        url: "/kiblat",
+      });
+      showToast(
+        "Pengujian Mode Hening/DND",
+        "Deteksi sakelar hardware Mode Hening & Jangan Ganggu (DND) terintegrasi pada aplikasi APK Android. Pada browser web, sistem operasi melarang website membaca status hening fisik HP.",
+        "info"
+      );
     };
 
     (window as any).triggerExpedientNotification = handleTriggerTest;

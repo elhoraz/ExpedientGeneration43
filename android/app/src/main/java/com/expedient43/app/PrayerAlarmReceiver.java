@@ -52,11 +52,12 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                     }
                 }
 
-                // 3. Check if notification volume or ring volume is 0
+                // 3. Check if notification volume, ring volume, or media volume is 0
                 int notifVol = audioManager.getStreamVolume(AudioManager.STREAM_NOTIFICATION);
                 int ringVol = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-                if (notifVol == 0 || ringVol == 0) {
-                    Log.d(TAG, "Notification volume (" + notifVol + ") or Ring volume (" + ringVol + ") is 0");
+                int musicVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                if (notifVol == 0 || ringVol == 0 || musicVol == 0) {
+                    Log.d(TAG, "Volume level is 0 (notif: " + notifVol + ", ring: " + ringVol + ", music: " + musicVol + ")");
                     return true;
                 }
 
@@ -68,7 +69,18 @@ public class PrayerAlarmReceiver extends BroadcastReceiver {
                 }
             }
 
-            // 5. Check Do Not Disturb (DND) Interruption Filter on Android 6.0+
+            // 5. Check System-wide Zen Mode (Do Not Disturb) via Settings.Global
+            try {
+                int zenMode = android.provider.Settings.Global.getInt(context.getContentResolver(), "zen_mode", 0);
+                if (zenMode != 0) {
+                    Log.d(TAG, "Device Do Not Disturb (zen_mode) is active: " + zenMode);
+                    return true;
+                }
+            } catch (Exception zenEx) {
+                Log.w(TAG, "zen_mode check notice: " + zenEx.getMessage());
+            }
+
+            // 6. Check Do Not Disturb (DND) Interruption Filter on Android 6.0+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
                 if (nm != null) {
