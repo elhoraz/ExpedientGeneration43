@@ -107,7 +107,7 @@ export default function HistoryTimeline() {
               <div className="history-highlights-row">
                 {active.highlights.map((h, i) => (
                   <span key={i} className="highlight-pill">
-                    <i className="fa-solid fa-check"></i> {h}
+                    <span className="highlight-ornament">✦</span> {h}
                   </span>
                 ))}
               </div>

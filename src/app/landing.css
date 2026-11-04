@@ -2533,18 +2533,21 @@ body:has(.landing-wrapper) {
   gap: 6px;
   padding: 8px 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, #0e5a38, #073b24);
+  border: 1px solid rgba(212, 175, 55, 0.35);
   color: #ffffff;
   text-decoration: none;
   font-size: 0.78rem;
   font-weight: 700;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 14px rgba(7, 59, 36, 0.35);
   transition: all 0.2s ease;
 }
 
 .btn-explore-mahfuzhat:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.45);
+  background: linear-gradient(135deg, #136f45, #0a4d30);
+  border-color: #d4af37;
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.3);
 }
 
 /* ====== 13. SEJARAH & NAPAK TILAS PONDOK 1982 ====== */
@@ -2762,14 +2765,34 @@ body:has(.landing-wrapper) {
 .highlight-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 20px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  color: #e6c875;
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.highlight-pill .highlight-ornament {
+  color: #d4af37;
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+:root[data-theme="light"] .highlight-pill {
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(184, 147, 39, 0.35);
+  color: #6b4e07;
+}
+
+:root[data-theme="light"] .highlight-pill .highlight-ornament {
+  color: #8a6d1c;
 }
 
 /* Photobooth Integration inside History */
@@ -3079,14 +3102,20 @@ body:has(.landing-wrapper) {
   gap: 8px;
   padding: 6px 14px;
   border-radius: 30px;
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #34d399;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #d4af37;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   margin-bottom: 16px;
+}
+
+:root[data-theme="light"] .app-pill-feature {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: rgba(184, 147, 39, 0.4);
+  color: #785a12;
 }
 
 .app-feature-headline {
@@ -3284,9 +3313,15 @@ body:has(.landing-wrapper) {
   font-size: 0.58rem;
   padding: 2px 6px;
   border-radius: 6px;
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  background: rgba(212, 175, 55, 0.16);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #e5c365;
   font-weight: 700;
+}
+
+:root[data-theme="light"] .screen-badge {
+  background: rgba(212, 175, 55, 0.15);
+  color: #785a12;
 }
 
 /* Screen 1: Mock KTA */
@@ -3664,12 +3699,17 @@ body:has(.landing-wrapper) {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 20px;
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
+  background: rgba(212, 175, 55, 0.14);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #d4af37;
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 1px;
   margin-bottom: 12px;
+}
+
+:root[data-theme="light"] .drawer-section-badge {
+  color: #785a12;
 }
 
 .drawer-features-grid {
