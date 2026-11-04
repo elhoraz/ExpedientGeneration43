@@ -511,7 +511,7 @@
   border-radius: 24px;
   padding: 10px 18px;
   color: var(--text-primary, #ffffff);
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   outline: none;
   min-height: 42px;
@@ -976,7 +976,7 @@
   border-radius: 20px;
   padding: 8px 14px;
   color: var(--text-primary, #ffffff);
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.88rem;
   outline: none;
   transition: border-color 0.2s ease;

@@ -17,24 +17,58 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
   const router = useRouter();
 
   useEffect(() => {
-    const strings = ["MEMUAT BIODATA ALUMNI..."];
+    const strings = ["DECRYPTING DATA...", "BYPASSING FIREWALL...", "ACCESS GRANTED."];
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*";
     
     let progressValue = 0;
     let strIndex = 0;
 
-    const loadInterval = setTimeout(() => {
-        setProgress(100);
-        setLoading(false);
-    }, 120);
+    const loadInterval = setInterval(() => {
+        progressValue += Math.random() * 15;
+        if(progressValue > 100) progressValue = 100;
+        setProgress(progressValue);
+        
+        if (progressValue > 30 && strIndex === 0) { strIndex++; setDecryptText(strings[strIndex]); }
+        if (progressValue > 70 && strIndex === 1) { strIndex++; setDecryptText(strings[strIndex]); }
+        
+        if (progressValue === 100) {
+            clearInterval(loadInterval);
+            setTimeout(() => {
+                setLoading(false);
+                setTimeout(() => {
+                    if (contentRef.current) {
+                        contentRef.current.classList.add('visible');
+                    }
+                    decryptName();
+                }, 500);
+            }, 400);
+        }
+    }, 80);
 
     return () => clearInterval(loadInterval);
   }, []);
 
   const decryptName = () => {
-    if (nameRef.current) {
-      nameRef.current.innerText = nameRef.current.getAttribute('data-value') || '';
-    }
+    if (!nameRef.current) return;
+    const targetText = nameRef.current.getAttribute('data-value') || "";
+    let iterations = 0;
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*";
+    
+    const interval = setInterval(() => {
+        if (!nameRef.current) {
+            clearInterval(interval);
+            return;
+        }
+        nameRef.current.innerText = targetText.split("").map((letter, index) => {
+            if(index < iterations) return targetText[index];
+            return letters[Math.floor(Math.random() * letters.length)];
+        }).join("");
+        
+        if(iterations >= targetText.length){
+            clearInterval(interval);
+        }
+        iterations += 1 / 3;
+    }, 30);
   };
 
   useEffect(() => {
@@ -90,7 +124,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
         body { 
             background-color: var(--bg-noir); 
             color: #fff; 
-            font-family: var(--font-manrope), var(--font-inter), sans-serif; 
+            font-family: 'Inter', sans-serif; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -111,7 +145,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
             transition: opacity 0.5s ease;
         }
         .loader-text {
-            font-family: var(--font-manrope), var(--font-inter), sans-serif;
+            font-family: 'Space Mono', monospace;
             color: var(--dark-gold);
             font-size: 1.2rem;
             letter-spacing: 5px;
@@ -187,9 +221,9 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 0%, rgba(212,175,55,0.06), transparent 70%);
-
-
+            background-image: linear-gradient(rgba(212,175,55,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(212,175,55,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
             opacity: 0.5;
             z-index: 0;
             pointer-events: none;
@@ -222,7 +256,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
         .title-badge {
             background: linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent);
             color: var(--dark-gold);
-            font-family: var(--font-manrope), var(--font-inter), sans-serif;
+            font-family: 'Space Mono', monospace;
             font-size: 0.75rem;
             letter-spacing: 4px;
             padding: 5px 0;
@@ -244,7 +278,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
 
         .user-id {
             color: var(--dark-gold);
-            font-family: var(--font-manrope), var(--font-inter), sans-serif;
+            font-family: 'Space Mono', monospace;
             margin-bottom: 25px;
             letter-spacing: 2px;
             font-size: 0.9rem;
@@ -287,7 +321,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
             padding: 15px;
             border-radius: 12px;
             text-decoration: none;
-            font-family: var(--font-manrope), var(--font-inter), sans-serif;
+            font-family: 'Space Mono', monospace;
             font-size: 0.85rem;
             letter-spacing: 2px;
             text-transform: uppercase;
@@ -325,7 +359,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
       `}</style>
       
       {loading && (
-          <div id="biodata-loader">
+          <div id="hacker-loader">
               <div className="loader-text">{decryptText}</div>
               <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }}></div></div>
           </div>
@@ -336,7 +370,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
               <button onClick={() => window.history.length > 1 ? router.back() : router.push('/beranda')} className="btn-exit">
                   <i className="fa-solid fa-arrow-left"></i> {t.common.back.toUpperCase()}
               </button>
-              <div style={{ fontFamily: "var(--font-manrope), var(--font-inter), sans-serif", fontSize: "10px", color: "var(--dark-gold)", letterSpacing: "2px" }}>
+              <div style={{ fontFamily: "'Space Mono'", fontSize: "10px", color: "var(--dark-gold)", letterSpacing: "2px" }}>
                   ALUMNI TERVERIFIKASI <i className="fa-solid fa-check" style={{ color: "#00c853" }}></i>
               </div>
           </div>
@@ -357,7 +391,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
 
               <div className="title-badge">ALUMNI EXPEDIENT 43</div>
               
-              <div className="name" id="alumni-name" ref={nameRef} data-value={targetUser.nama_lengkap || targetUser.nama_panggilan}>
+              <div className="name" id="hacker-name" ref={nameRef} data-value={targetUser.nama_lengkap || targetUser.nama_panggilan}>
                   {targetUser.nama_lengkap || targetUser.nama_panggilan}
               </div>
               

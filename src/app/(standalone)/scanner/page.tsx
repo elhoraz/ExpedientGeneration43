@@ -1,7 +1,7 @@
 import ScannerClient from "./ScannerClient";
 
 export const metadata = {
-  title: "Pemindai Kartu Alumni - Expedient 43",
+  title: "Aegis Scanner - Expedient",
 };
 
 export default function ScannerPage() {

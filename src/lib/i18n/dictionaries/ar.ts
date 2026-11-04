@@ -349,7 +349,7 @@ export const arDictionary: Dictionary = {
     forgot_pass: "نسيت كلمة المرور؟",
     remember_me: "تذكرني",
     install_app: "تثبيت التطبيق",
-    install_modal_title: "تثبيت تطبيق بوابة الخريجين",
+    install_modal_title: "تثبيت تطبيق VVIP",
     install_android_step: "أندرويد (كروم)",
     install_android_desc: "اضغط على أيقونة النقاط الثلاث في الزاوية العلوية ثم اختر \"إضافة إلى الشاشة الرئيسية\".",
     install_ios_step: "آي أو إس / آيفون (سفاري)",
@@ -474,7 +474,7 @@ export const arDictionary: Dictionary = {
     confirm_delete_biometric: "هل أنت متأكد من حذف هذه البصمة البيومترية؟",
   },
   sovereign: {
-    title: "بطاقة الخريج الرقمية 3D",
+    title: "The Sovereign — بطاقة 3D",
     subtitle: "بطاقة عضوية رقمية ثلاثية الأبعاد بـ WebGL وحماية الباركود المشفر.",
     mode_3d: "نمط WebGL 3D",
     mode_lite: "نمط الهولوجرام الخفيف",
@@ -859,7 +859,7 @@ export const arDictionary: Dictionary = {
     back_home: "العودة للصفحة الرئيسية",
   },
   syndicate: {
-    title: "شبكة أعمال ومشاريع الخريجين",
+    title: "شبكة أعمال سنديكيت الخريجين",
     subtitle: "دليل المبادرات التجارية، والمنتجات الرائدة، والخدمات المهنية لخريجي دفعة إكسبيدينت ٤٣.",
     search_placeholder: "ابحث عن نشاط تجاري، أو منتج، أو خدمة...",
     all_categories: "جميع التصنيفات",
@@ -1426,7 +1426,7 @@ export const arDictionary: Dictionary = {
     toast_unlike_success: "تم إلغاء الإعجاب بالصورة.",
   },
   radar_layers: {
-    globe: "الكرة الأرضية التفاعلية 3D",
+    globe: "الكرة الأرضية المجسمة 3D",
     minimalist: "الخريطة المسطحة البسيطة",
     satellite: "الأقمار الصناعية للأرض",
     terrain: "خريطة التضاريس والارتفاعات",
@@ -1521,7 +1521,7 @@ export const arDictionary: Dictionary = {
     data_deleted_list: [
       "بيانات تسجيل الدخول، البريد الإلكتروني، رقم واتساب، وبيانات القياس الحيوي/التعرف على الوجه.",
       "ملف الخريج، الصورة الشخصية، وإحداثيات السكن على رادار الخريجين.",
-      "إعلانات مشاريعك التجارية في دليل أعمال الخريجين.",
+      "إعلانات مشاريعك التجارية في دليل الأعمال (Syndicate).",
       "رسائل الوصية الرقمية وسجل كافة النشاطات الشخصية.",
     ],
     data_retained_title: "سياسة الاحتفاظ المالي (بيت المال)",

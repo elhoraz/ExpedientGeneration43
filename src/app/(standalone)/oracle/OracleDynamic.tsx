@@ -36,7 +36,7 @@ const OracleClient = dynamic(() => import("./OracleClient"), {
           textTransform: "uppercase",
         }}
       >
-        Menyiapkan Kamera & Pendeteksi Ekspresi Wajah...
+        Menghubungkan Neural Oracle & Vision Models...
       </div>
     </div>
   ),

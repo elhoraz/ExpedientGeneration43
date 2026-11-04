@@ -52,9 +52,9 @@
 }
 
 .studio-title .gold-accent {
-  color: #e5c05d;
-
-
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 50%, #f3e5ab 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .studio-subtitle {
@@ -229,7 +229,7 @@
   font-weight: 900;
   color: #ffd700;
   text-shadow: 0 0 40px rgba(212, 175, 55, 0.8), 0 4px 20px rgba(0, 0, 0, 0.8);
-  animation: countdownPop 1s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: countdownPop 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
 }
 
 @keyframes countdownPop {

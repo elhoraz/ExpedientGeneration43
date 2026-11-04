@@ -428,10 +428,10 @@ export default function KontemplasiClient({ initialJournals, userId }: { initial
 
       <div className={`journal-panel ${journalPanelOpen ? 'open' : ''}`}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", color: "var(--gold-main, #d4af37)", margin: 0 }}>Catatan Muhasabah Diri</h2>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", color: "var(--gold-main, #d4af37)", margin: 0 }}>The Codex</h2>
               <button onClick={() => setJournalPanelOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
           </div>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>Tuliskan refleksi hati, rasa syukur, dan evaluasi diri Anda di sini.</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>Rekam jejak spiritual dan pikiran Anda di sini.</p>
           
           <form className="journal-form" onSubmit={submitJournal}>
               <textarea value={newContent} onChange={(e) => setNewContent(e.target.value)} placeholder="Apa yang sedang Anda renungkan hari ini?"></textarea>
@@ -441,7 +441,7 @@ export default function KontemplasiClient({ initialJournals, userId }: { initial
                   <option value="Bersyukur">Penuh Rasa Syukur</option>
                   <option value="Gelisah">Gelisah / Cemas</option>
               </select>
-              <button type="submit" style={{ width: '100%', padding: '15px', background: '#d4af37', border: 'none', borderRadius: '10px', fontWeight: 'bold' }}>Simpan Catatan</button>
+              <button type="submit" style={{ width: '100%', padding: '15px', background: '#d4af37', border: 'none', borderRadius: '10px', fontWeight: 'bold' }}>REKAM JEJAK</button>
           </form>
 
           <div style={{ marginTop: '30px', overflowY: 'auto', flex: 1 }}>

@@ -216,7 +216,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       ctx.fillStyle = isLightMode ? "rgba(180,134,0,0.08)" : "rgba(212,175,55,0.06)";
       ctx.font = '900 130px "Playfair Display", serif';
       ctx.textAlign = "center";
-      ctx.fillText("KARTU TANDA ANGGOTA ALUMNI", 1200, 240);
+      ctx.fillText("THE SOVEREIGN ALUMNI REGISTRY", 1200, 240);
 
       ctx.fillStyle = isLightMode ? "#8a6d1c" : "#d4af37";
       ctx.font = '600 24px "Inter", sans-serif';
@@ -269,13 +269,11 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       ctx.roundRect(idX + 50, idY + 50, 90, 70, 10);
       ctx.fill();
 
-      // Badge Resmi
+      // VVIP Badge
       ctx.fillStyle = isLightMode ? "#111" : "#ffffff";
       ctx.font = 'bold 32px "Playfair Display", serif';
       ctx.textAlign = "right";
-      ctx.font = 'bold 24px "Playfair Display", serif';
-      ctx.textAlign = "right";
-      ctx.fillText("ALUMNI", idX + idW - 50, idY + 95);
+      ctx.fillText("VVIP", idX + idW - 50, idY + 95);
 
       // Avatar Foto
       const pX = idX + 50, pY = idY + 160, pW = idW - 100, pH = 340;
@@ -743,7 +741,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                       }}
                     >
                       <i className="fa-solid fa-crown" style={{ color: "#d4af37", fontSize: 10 }} />
-                      <span style={{ fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: 1 }}>RESMI</span>
+                      <span style={{ fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: 1 }}>
+                        VVIP
+                      </span>
                     </div>
                   </div>
 

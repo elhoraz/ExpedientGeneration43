@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import DossierClient from "./DossierClient";
 
 export const metadata = {
-  title: "Biodata Sahabat - Expedient 43",
+  title: "Dossier Profil - Expedient",
 };
 
 export default async function DossierPage({ params }: { params: Promise<{ id: string }> }) {

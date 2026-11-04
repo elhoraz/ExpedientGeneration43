@@ -44,14 +44,14 @@ export default function ScannerClient() {
     // Simulate successful scan
     gsap.to(".scanner-frame", { borderColor: "#00c853", boxShadow: "0 0 50px #00c853", duration: 0.3 });
     setTimeout(() => {
-        router.push("/sovereign"); // Redirect to holographic AR view
+        router.push("/ar-hologram/demo"); // Redirect to holographic AR view
     }, 1000);
   };
 
   return (
     <div className="scanner-wrapper">
       <style>{`
-        body { background-color: #060b14; margin: 0; overflow: hidden; font-family: var(--font-manrope), var(--font-inter), sans-serif; }
+        body { background-color: #060b14; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
         .scanner-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; background: #060b14; }
         
         .video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.5; }
@@ -86,7 +86,7 @@ export default function ScannerClient() {
             <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '10px', fontFamily: 'Inter', letterSpacing: '1px' }}>
                 Arahkan kamera ke Kartu Alumni atau Kode QR
             </div>
-            <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '10px' }}>(Sentuh bingkai untuk membuka Kartu Alumni 3D)</div>
+            <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '10px' }}>(Klik kotak untuk simulasi scan sukses)</div>
         </div>
       </div>
     </div>

@@ -63,7 +63,7 @@ body.page-event .event-subtitle,
     font-size: 1.1rem;
     letter-spacing: 4px;
     text-transform: uppercase;
-    font-family: var(--font-manrope), sans-serif;
+    font-family: 'Courier New', monospace;
 }
 
 body.page-event .event-timeline,
@@ -141,7 +141,7 @@ body.page-event .event-time,
 .event-wrapper .event-time {
     font-size: 1rem;
     color: var(--text-secondary);
-    font-family: var(--font-manrope), var(--font-inter), sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: normal;
     background: rgba(255,255,255,0.03);
     padding: 4px 12px;

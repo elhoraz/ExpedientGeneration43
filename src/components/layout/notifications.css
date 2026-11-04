@@ -40,7 +40,7 @@
   display: block !important;
   opacity: 1 !important;
   transform: none !important;
-  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideDown 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @media (max-width: 768px) and (orientation: portrait) {
@@ -86,7 +86,7 @@
   border: none;
   background: transparent;
   color: var(--text-secondary, #a0a0a0);
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.82rem;
   font-weight: 600;
   border-radius: 10px;
@@ -147,7 +147,7 @@
 }
 
 .quest-header-progress {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.72rem;
   color: var(--text-secondary, #a0a0a0);
 }
@@ -219,7 +219,7 @@
 }
 
 .quest-tab-label {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   color: var(--text-primary, #f0e6d3);
   line-height: 1.25;
@@ -231,7 +231,7 @@
 }
 
 .quest-tab-action {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.7rem;
   color: var(--gold-main, #d4af37);
 }
@@ -255,7 +255,7 @@
   border: 1px dashed var(--glass-border, rgba(212, 175, 55, 0.25));
   border-radius: 8px;
   color: var(--text-secondary, #a0a0a0);
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   cursor: pointer;
   display: flex;
@@ -285,7 +285,7 @@
   margin: 0;
   font-size: 0.88rem;
   color: var(--text-primary, #f0e6d3);
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .btn-mark-all {

@@ -494,7 +494,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
             })}
           </div>
 
-          {/* NAVIGASI GALERI */}
+          {/* VVIP HUD CONTROLS */}
           <div
             className="gallery-nav-controls"
             onPointerDown={(e) => e.stopPropagation()}
@@ -761,7 +761,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               marginBottom: "14px", flexWrap: "wrap"
             }}>
               <i className="fa-solid fa-landmark" style={{ color: "#ffd700" }}></i>
-              <span>{locale === "ar" ? "أرشيف الذكريات — معهد الرسالة" : locale === "en" ? "PHOTO ARCHIVE — ARRISALAH MEMORIES" : "ARSIP DOKUMENTASI — MEMORI ARRISALAH"}</span>
+              <span>{locale === "ar" ? "الأرشيف السيادي — ذكريات الرسالة" : locale === "en" ? "SOVEREIGN ARCHIVE — ARRISALAH MEMORIES" : "SOVEREIGN ARCHIVE — MEMORI ARRISALAH"}</span>
             </div>
 
             {/* Photo */}

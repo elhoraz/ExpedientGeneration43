@@ -209,7 +209,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     setTimeout(() => {
         const overlay = document.getElementById('successOverlay');
         overlay!.classList.add('show');
-        gsap.to('.success-title', { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 0.5 });
+        gsap.to('.clearance-title', { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 0.5 });
         gsap.to('.secret-quote', { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 1.5 });
         gsap.to('.btn-return', { opacity: 1, y: 0, duration: 1, ease: "power3.out", delay: 2.5 });
     }, 2000);
@@ -219,7 +219,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     <>
       <style>{`
         :root { --enigma-gold: #d4af37; --enigma-dark: #060b14; }
-        body { margin: 0; background-color: var(--enigma-dark); user-select: none; font-family: var(--font-manrope), var(--font-inter), sans-serif; overflow-x: hidden; min-height: 100dvh; }
+        body { margin: 0; background-color: var(--enigma-dark); user-select: none; font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100dvh; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
             display: flex; align-items: center; gap: 10px;
@@ -255,9 +255,9 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
 
         .success-overlay { position: absolute; inset: 0; background: rgba(6,11,20,0.95); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 1.5s ease; }
         .success-overlay.show { opacity: 1; pointer-events: auto; }
-        .success-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(1.8rem, 6vw, 3.5rem); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
+        .clearance-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(1.8rem, 6vw, 3.5rem); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
         .secret-quote { font-family: 'Courier New', monospace; color: #fff; font-size: 0.95rem; text-align: center; max-width: 85%; line-height: 1.8; letter-spacing: 2px; transform: translateY(20px); opacity: 0; }
-        .btn-return { margin-top: 30px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: var(--font-manrope), var(--font-inter), sans-serif; text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
+        .btn-return { margin-top: 30px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
         .btn-return:hover { background: var(--enigma-gold); color: #060b14; }
 
         @media (max-width: 768px) { 
@@ -270,7 +270,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
       `}</style>
 
       <Link href="/fitur" className="btn-back-vault">
-        <i className="fa-solid fa-chevron-left"></i> Kembali
+        <i className="fa-solid fa-chevron-left"></i> Exit Enigma
       </Link>
 
       <div className="enigma-wrapper">
@@ -285,7 +285,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
         </div>
 
         <div className="riddle-box">
-          <div className="riddle-title">Teka-Teki Simpul Santri</div>
+          <div className="riddle-title">The Grand Alignment</div>
           
           {completed ? (
             <>
@@ -293,7 +293,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
                   SIMPUL TELAH TERPECAHKAN.
               </div>
               <div style={{ marginTop: '20px' }}>
-                  <button onClick={handleReset} className="btn-return" style={{ opacity: 1, transform: 'none', display: 'inline-block', padding: '10px 25px', marginTop: 0, background: 'transparent', borderColor: '#ff3366', color: '#ff3366', fontSize: '0.8rem' }}>KUNCI ULANG TEKA-TEKI</button>
+                  <button onClick={handleReset} className="btn-return" style={{ opacity: 1, transform: 'none', display: 'inline-block', padding: '10px 25px', marginTop: 0, background: 'transparent', borderColor: '#ff3366', color: '#ff3366', fontSize: '0.8rem' }}>KUNCI ULANG BRANKAS</button>
               </div>
             </>
           ) : (
@@ -307,16 +307,16 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
               <div style={{ marginTop: '30px' }}>
                   <button onClick={handleVerify} className="btn-return" style={{ opacity: 1, transform: 'none', display: 'inline-block', padding: '12px 30px', marginTop: 0, background: btnText === "AKSES DIBERIKAN" ? "#00c853" : "var(--enigma-gold)", color: '#060b14', fontWeight: 'bold' }}>{btnText}</button>
               </div>
-              <div id="errorMsg" style={{ marginTop: '15px', color: '#ff3366', fontSize: '0.85rem', letterSpacing: '1px', display: errorMsg ? 'block' : 'none' }}>Kombinasi sandi belum selaras. Silakan coba kembali.</div>
+              <div id="errorMsg" style={{ marginTop: '15px', color: '#ff3366', fontSize: '0.85rem', letterSpacing: '1px', display: errorMsg ? 'block' : 'none' }}>Kombinasi tidak selaras. Getaran ditolak.</div>
             </>
           )}
         </div>
 
         <div className="success-overlay" id="successOverlay">
-          <div className="success-title">Simpul Telah Terbuka</div>
-          <div className="secret-quote">"Man jadda wajada — Barangsiapa yang bersungguh-sungguh, niscaya ia akan berhasil.<br/>Keteguhan ikhtiar dan tawakkul adalah kunci kesuksesan sejati."</div>
+          <div className="clearance-title">Clearance: Apex</div>
+          <div className="secret-quote">"Intelijen sejati bukanlah mengetahui segalanya,<br/>melainkan melihat apa yang disembunyikan oleh dunia."</div>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' }} className="action-buttons">
-              <Link href="/fitur" className="btn-return">Kembali ke Menu Fitur</Link>
+              <Link href="/fitur" className="btn-return">Kembali ke Vault</Link>
               <button onClick={handleReset} className="btn-return" style={{ background: 'transparent', borderColor: '#ff3366', color: '#ff3366' }}>Kunci Ulang</button>
           </div>
         </div>

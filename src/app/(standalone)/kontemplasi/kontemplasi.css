@@ -36,7 +36,7 @@
 }
 .start-desc { 
     color: var(--text-secondary); 
-    font-family: var(--font-manrope), var(--font-inter), sans-serif; 
+    font-family: 'Inter', sans-serif; 
     max-width: 500px; 
     text-align: center; 
     line-height: 1.8; 
@@ -54,7 +54,7 @@
     border: 1px solid rgba(212, 175, 55, 0.3); 
     padding: 10px 20px; 
     border-radius: 30px; 
-    font-family: var(--font-manrope), var(--font-inter), sans-serif; 
+    font-family: 'Inter', sans-serif; 
     font-size: 0.85rem; 
     font-weight: 600; 
     text-transform: uppercase; 
@@ -71,7 +71,7 @@
     color: #d4af37; 
     border: 1px solid #d4af37; 
     padding: 15px 50px; 
-    font-family: var(--font-manrope), var(--font-inter), sans-serif; 
+    font-family: 'Inter', sans-serif; 
     font-size: clamp(0.78rem, 2vw, 0.85rem); 
     letter-spacing: clamp(2.5px, 0.8vw, 5px); 
     text-transform: uppercase; 
@@ -161,7 +161,7 @@
 .floating-wisdom { 
     position: absolute; 
     color: var(--text-secondary); 
-    font-family: var(--font-manrope), var(--font-inter), sans-serif; 
+    font-family: 'Inter', sans-serif; 
     font-style: italic; 
     font-size: clamp(0.9rem, 2.5vw, 1.4rem); 
     text-align: center; 
@@ -197,7 +197,7 @@
     flex-direction: column; 
     align-items: center; 
     gap: 8px; 
-    font-family: var(--font-manrope), var(--font-inter), sans-serif; 
+    font-family: 'Inter', sans-serif; 
 }
 .stealth-btn:hover { color: #d4af37; }
 .stealth-btn span { font-size: 0.68rem; letter-spacing: 2px; text-transform: uppercase; }
@@ -253,7 +253,7 @@
     display: flex; 
     flex-direction: column; 
     color: var(--text-primary); 
-    font-family: var(--font-manrope), var(--font-inter), sans-serif; 
+    font-family: 'Inter', sans-serif; 
     box-sizing: border-box;
     overflow-y: auto;
 }

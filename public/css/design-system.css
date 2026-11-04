@@ -99,37 +99,37 @@
 }
 
 .section-subtitle {
-    font-family: var(--font-manrope), sans-serif;
+    font-family: 'Courier New', monospace;
     color: var(--text-secondary, #7b8e9b);
     font-size: 0.75rem;
-    letter-spacing: 2.5px;
-    font-weight: 600;
+    letter-spacing: 4px;
     text-transform: uppercase;
 }
 
 /* ================= HUD / MONOSPACE TEXT ================= */
 .hud-text {
-    font-family: var(--font-manrope), sans-serif;
+    font-family: 'Courier New', monospace;
     color: #d4af37;
-    font-size: 0.75rem;
-    letter-spacing: 2px;
-    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
 }
 
 /* ================= STATUS BADGE ================= */
 .status-badge {
-    padding: 10px 24px;
+    padding: 15px 35px;
     background: rgba(0,0,0,0.6);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(212,175,55,0.3);
-    border-radius: 9999px;
+    border-radius: 8px;
     color: #fff;
-    font-family: var(--font-manrope), sans-serif;
-    font-size: 0.82rem;
-    letter-spacing: 1.5px;
-    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    font-weight: bold;
     text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-left: 4px solid #d4af37;
     text-transform: uppercase;
 }
 

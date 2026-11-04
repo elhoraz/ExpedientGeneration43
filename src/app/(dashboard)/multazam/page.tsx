@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import MultazamClient from "./MultazamClient";
 
 export const metadata = {
-  title: "Agenda Reuni & Dinding Doa - Expedient 43",
+  title: "Protokol Multazam - Expedient",
 };
 
 export default async function MultazamPage() {
@@ -34,7 +34,7 @@ export default async function MultazamPage() {
           event_date: ticket.events.event_date,
           location: ticket.events.location,
           dresscode: "Formal / Sesuai Tema",
-          seat_number: "Peserta Resmi"
+          seat_number: "VVIP"
       } : null;
 
       const { data: prayersData } = await supabase

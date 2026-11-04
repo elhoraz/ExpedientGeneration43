@@ -3,7 +3,7 @@ import GaleriClient from "./GaleriClient";
 import galeriManifest from "@/data/galeri-manifest.json";
 
 export const metadata = {
-  title: "Galeri Kenangan & Arsip Dokumentasi | Expedient Generation 43",
+  title: "Galeri & Visual Vault 5D | Expedient Generation 43",
   description: "Arsip visual dokumentasi kenangan, album momen, dan buku kenangan 3D interaktif angkatan Expedient 43.",
 };
 

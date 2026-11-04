@@ -93,7 +93,7 @@ body.page-radar .radar-hud { position:fixed; top:30px; left:150px; z-index:50; p
 body.page-radar .hud-title { font-family:'Playfair Display',serif; font-size:2rem; font-weight:900; color:var(--text-primary); text-shadow:0 6px 20px rgba(0,0,0,.9); }
 body.page-radar .hud-subtitle { font-size:.72rem; color:#d4af37; letter-spacing:3px; text-transform:uppercase; margin-top:4px; font-weight:600; }
 body.page-radar .stats-panel { margin-top:14px; display:flex; gap:12px; flex-wrap:wrap; }
-body.page-radar .stat-box { background:var(--glass-bg); backdrop-filter:var(--glass-blur); border:1px solid rgba(212, 175, 55, 0.25); padding:8px 16px; border-radius:10px; box-shadow:var(--glass-shadow); }
+body.page-radar .stat-box { background:var(--glass-bg); backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border); border-left:3px solid #d4af37; padding:8px 16px; border-radius:10px; box-shadow:var(--glass-shadow); }
 body.page-radar .stat-num { font-family:'Playfair Display',serif; font-size:1.6rem; color:#d4af37; font-weight:700; line-height:1; }
 body.page-radar .stat-label { font-size:.6rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:2px; margin-top:3px; }
 body.page-radar .status-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:#d4af37; margin-left:6px; vertical-align:middle; box-shadow:0 0 10px rgba(212,175,55,.8); animation:sdPulse 2s infinite; }
@@ -103,7 +103,7 @@ body.page-radar .status-dot { display:inline-block; width:7px; height:7px; borde
 body.page-radar .search-pill { position:fixed; top:30px; left:50%; transform:translateX(-50%); z-index:60; display:flex; align-items:center; gap:10px; background:var(--glass-bg); backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border); border-radius:50px; padding:8px 20px; box-shadow:var(--glass-shadow); width:320px; max-width:80vw; transition:border-color .3s; pointer-events: auto; }
 body.page-radar .search-pill:focus-within { border-color:rgba(212,175,55,.6); }
 body.page-radar .search-pill i { color:#d4af37; font-size:.9rem; }
-body.page-radar .search-pill input { background:none; border:none; outline:none; color:var(--text-primary); font-size:.82rem; font-weight:500; width:100%; font-family:var(--font-manrope), var(--font-inter), sans-serif; }
+body.page-radar .search-pill input { background:none; border:none; outline:none; color:var(--text-primary); font-size:.82rem; font-weight:500; width:100%; font-family:'Inter',sans-serif; }
 body.page-radar .search-pill input::placeholder { color:var(--text-secondary); }
 body.page-radar .search-results { position:fixed; top:75px; left:50%; transform:translateX(-50%); z-index:60; background:var(--glass-bg); backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border); border-radius:14px; width:320px; max-width:80vw; max-height:250px; overflow-y:auto; display:none; box-shadow:var(--glass-shadow); pointer-events: auto; }
 body.page-radar .search-results.open { display:block; }

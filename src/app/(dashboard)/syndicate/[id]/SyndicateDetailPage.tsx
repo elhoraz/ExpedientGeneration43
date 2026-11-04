@@ -483,7 +483,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
         {/* Footer Branding */}
         <div style={{ textAlign: "center", padding: "40px 20px 20px", borderTop: "1px solid var(--glass-border)", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
           <div style={{ fontFamily: "var(--font-playfair, serif)", color: "var(--gold-main)", fontSize: "1.1rem", fontWeight: 700, marginBottom: "6px" }}>
-            Jejaring Wirausaha Alumni Expedient 43
+            Expedient 43 Syndicate Network
           </div>
           <div>Direktori Usaha & Ekosistem Sinergi Bisnis Alumni</div>
         </div>

@@ -402,8 +402,7 @@ export default function SovereignThreeScene({
         }
         ctx.font = 'bold 50px "Playfair Display", serif';
         ctx.textAlign = "center";
-        ctx.font = 'bold 36px "Playfair Display", serif';
-        ctx.fillText("ALUMNI", 820, 212);
+        ctx.fillText("VVIP", 820, 215);
         ctx.textAlign = "left";
 
         const photoX = 160,
@@ -520,10 +519,10 @@ export default function SovereignThreeScene({
         ctx.fillStyle = isBump ? "#aaaaaa" : "#8b9ba8";
         ctx.font = '300 28px "Inter", sans-serif';
         const lines = [
-          "Kartu Tanda Anggota Resmi Keluarga Besar Expedient 43.",
-          "Sebagai bukti silaturahmi, identitas persaudaraan alumni,",
-          "dan sarana penguat ukhuwah Islamiyah sepanjang hayat.",
-          "Pondok Modern Arrisalah - Slahung, Ponorogo.",
+          "Properti VVIP Eksklusif Expedient Generation.",
+          "Kartu ini menyimpan data terenkripsi untuk",
+          "akses tanpa batas ke dalam ekosistem The Vault.",
+          "Penyalahgunaan akan dikenakan sanksi dewan.",
         ];
         lines.forEach((line, i) => ctx.fillText(line, 512, 680 + i * 45));
 
@@ -573,7 +572,7 @@ export default function SovereignThreeScene({
         ctx.fillStyle = isBump ? "#aaaaaa" : "#666";
         ctx.font = "22px monospace";
         ctx.letterSpacing = "5px";
-        ctx.fillText("KARTU TANDA ALUMNI RESMI", 100, 230);
+        ctx.fillText("VVIP ACCESS PLATINUM", 100, 230);
 
         if (!isBump) {
           ctx.fillStyle = "rgba(212,175,55,0.05)";
@@ -1307,7 +1306,7 @@ export default function SovereignThreeScene({
       >
         EXPEDIENT 43 • 3D STUDIO
         <br />
-        STATUS: [ALUMNI TERVERIFIKASI]
+        STATUS: [SOVEREIGN VERIFIED]
         <br />
         ANGGOTA: [{(user.nama_panggilan || user.nama_lengkap).toUpperCase()}]
       </div>

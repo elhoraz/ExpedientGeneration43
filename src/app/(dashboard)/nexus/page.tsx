@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import NexusClient from "./NexusClient";
 
 export const metadata = {
-  title: "Rekomendasi Relasi & Sinergi - Expedient 43",
+  title: "The Nexus - Prediksi Eksekutif",
 };
 
 export default async function NexusPage() {

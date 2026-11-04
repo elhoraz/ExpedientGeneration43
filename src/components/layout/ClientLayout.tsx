@@ -174,7 +174,66 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  // 2. Native OS cursor active by default
+  // 2. Custom Cursor (Hanya Desktop / Non-touch)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isCoarseOnly = window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches;
+    const hasFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    if (window.innerWidth <= 1024 || isCoarseOnly || !hasFinePointer) return;
+    
+    const isLite = document.documentElement.getAttribute("data-perf") === "lite";
+    if (isLite) return;
+
+    const cursorDot = document.getElementById("cursorDot");
+    const cursorRing = document.getElementById("cursorRing");
+    if (!cursorDot || !cursorRing) return;
+
+    let rafId: number | null = null;
+    let mouseX = 0;
+    let mouseY = 0;
+
+    const moveCursor = (e: MouseEvent) => {
+      // Lewati update DOM jika di halaman radar atau sovereign agar drag 100% responsif tanpa layout thrashing
+      if (document.body.classList.contains("page-radar") || document.body.classList.contains("page-sovereign")) return;
+
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          cursorDot.style.left = mouseX + "px";
+          cursorDot.style.top = mouseY + "px";
+          cursorRing.style.left = mouseX + "px";
+          cursorRing.style.top = mouseY + "px";
+          rafId = null;
+        });
+      }
+    };
+    document.addEventListener("mousemove", moveCursor);
+
+    const handleMouseEnter = () => {
+      cursorRing.style.transform = "translate(-50%, -50%) scale(1.5)";
+      cursorRing.style.borderColor = "#d4af37";
+    };
+    const handleMouseLeave = () => {
+      cursorRing.style.transform = "translate(-50%, -50%) scale(1)";
+      cursorRing.style.borderColor = "rgba(212,175,55,0.5)";
+    };
+
+    const interactiveEls = document.querySelectorAll("a, button, .hover-trigger, .cursor-bind, input, textarea, select");
+    interactiveEls.forEach((el) => {
+      el.addEventListener("mouseenter", handleMouseEnter);
+      el.addEventListener("mouseleave", handleMouseLeave);
+    });
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      document.removeEventListener("mousemove", moveCursor);
+      interactiveEls.forEach((el) => {
+        el.removeEventListener("mouseenter", handleMouseEnter);
+        el.removeEventListener("mouseleave", handleMouseLeave);
+      });
+    };
+  }, []);
 
   // 3. Ambient Particles (Hanya Desktop & Performa Memadai)
   useEffect(() => {

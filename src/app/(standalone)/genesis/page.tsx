@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import GenesisClient from "./GenesisClient";
 
 export const metadata = {
-  title: "Harmoni Lambang Angkatan - Expedient 43",
+  title: "The Genesis Core",
 };
 
 export default async function GenesisPage() {

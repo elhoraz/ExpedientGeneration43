@@ -1,10 +1,23 @@
+import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import CelestialClient from "./CelestialClient";
 
 export const metadata = {
-  title: "Mutiara Hikmah & Nasihat Santri - Expedient 43",
-  description: "Koleksi kata mutiara, mahfuzhat, dan nasehat asatidz alumni Expedient Generation 43.",
+  title: "The Celestial Codex",
 };
 
-export default function CelestialPage() {
-  redirect("/mahfuzhat");
+export default async function CelestialPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Similar to Divine Verse, we can mock the array of Tarot cards to stand alone
+  // without needing a database seeder for Phase 4.
+
+  return (
+    <CelestialClient />
+  );
 }

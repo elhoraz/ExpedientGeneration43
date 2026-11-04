@@ -9,21 +9,30 @@ import HelpButtonTrigger from "@/components/guide/HelpButtonTrigger";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="dashboard-root">
+    <>
       <Sidebar />
-      <div className="dashboard-content-area">
-        <Navbar />
-        <main className="main-wrapper">
-          {children}
-        </main>
-      </div>
+      <Navbar />
+
+      <main className="main-wrapper">
+        {children}
+      </main>
 
       {/* Global Dashboard UI Elements */}
+      
+      {/* Contextual page guide & floating help button */}
       <HelpButtonTrigger />
+
+      {/* Scroll to top button */}
       <ScrollTopButton />
+
+      {/* Global incoming call listener (works on ALL dashboard pages) */}
       <GlobalCallListener />
+
+      {/* Guided onboarding tour for new alumni */}
       <OnboardingProvider />
+
+      {/* Global Command Palette (Ctrl+K / Cmd+K) */}
       <CommandPalette />
-    </div>
+    </>
   );
 }

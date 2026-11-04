@@ -20,7 +20,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [statusText, setStatusText] = useState("MENYIAPKAN DETEKSI EKSPRESI...");
+  const [statusText, setStatusText] = useState("MEMUAT NEURAL NETWORKS...");
   const [isScanning, setIsScanning] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
@@ -49,7 +49,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             window.faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL)
           ]);
           setModelsLoaded(true);
-          setStatusText("MENYESUAIKAN FOTO PROFIL...");
+          setStatusText("MEMUAT DATA BIOMETRIK...");
 
           if (userProfile?.foto_profil) {
             try {
@@ -62,11 +62,11 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             }
           }
 
-          setStatusText("SIAP MEMULAI REFLEKSI");
+          setStatusText("SYSTEM STANDBY");
           initCamera();
         } catch (e) {
           console.error("Gagal memuat model:", e);
-          setStatusText("GAGAL MEMUAT DETEKSI WAJAH. Pastikan izin kamera aktif.");
+          setStatusText("GAGAL MEMUAT SISTEM AI. Pastikan model tersedia.");
         }
       }
     }, 500);
@@ -143,8 +143,8 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         const leftEye = resizedDets.landmarks.getLeftEye()[0];
         ctx.fillStyle = '#d4af37';
         ctx.font = '12px Courier New';
-        ctx.fillText(`KOORD: ${Math.round(nose.x)}, ${Math.round(nose.y)}`, nose.x + 15, nose.y);
-        ctx.fillText(`FOKUS WAJAH: TERKUNCI`, leftEye.x - 50, leftEye.y - 15);
+        ctx.fillText(`AXIS-N: ${Math.round(nose.x)}, ${Math.round(nose.y)}`, nose.x + 15, nose.y);
+        ctx.fillText(`OCULAR-L: LOCKED`, leftEye.x - 50, leftEye.y - 15);
       }
       requestAnimationFrame(drawFrame);
     };
@@ -187,7 +187,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       }
       setIsMatch(matchFound);
 
-      setStatusText(matchFound ? "REFLEKSI TERVERIFIKASI" : "TAMU TAK DIKENAL");
+      setStatusText(matchFound ? "FIRASAT TERVERIFIKASI" : "TAMU TAK DIKENAL");
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
       let maqam = "Tawakkul (Berserah Diri)";
@@ -263,10 +263,10 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       if (res.ok) {
         setAiInsight(data.insight);
       } else {
-        setAiInsight("Gagal memproses refleksi: " + data.error);
+        setAiInsight("Sistem Gagal Menghubungi Nalar Eksternal: " + data.error);
       }
     } catch (err) {
-      setAiInsight("Koneksi terganggu. Silakan coba beberapa saat lagi.");
+      setAiInsight("Interferensi Jaringan. Gagal menyelaraskan pandangan.");
     }
     setIsFetchingAi(false);
   };
@@ -275,7 +275,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
     setShowResult(false);
     setAiInsight(null);
     setIsMatch(null);
-    setStatusText("Kamera Siap");
+    setStatusText("SYSTEM STANDBY");
   };
 
   const handleSealMessage = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -332,7 +332,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             --oracle-dark: #060b14;
             --text-secondary: #8b9ba8;
         }
-        body.page-oracle { background: var(--oracle-dark); color: #fff; margin: 0; font-family: var(--font-manrope), var(--font-inter), sans-serif; overflow: hidden; }
+        body.page-oracle { background: var(--oracle-dark); color: #fff; margin: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
             display: flex; align-items: center; gap: 8px;
@@ -392,7 +392,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .result-overlay.show { opacity: 1; pointer-events: auto; }
         
         .controls-panel { margin-top: 30px; display: flex; gap: 15px; }
-        .btn-initiate { padding: 14px 36px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: var(--font-manrope), var(--font-inter), sans-serif; text-transform: uppercase; letter-spacing: 3px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
+        .btn-initiate { padding: 14px 36px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: 'Inter'; text-transform: uppercase; letter-spacing: 3px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
         .btn-initiate:hover { background: var(--oracle-gold); color: #060b14; }
         .btn-initiate:disabled { opacity: 0.5; pointer-events: none; }
         
@@ -411,7 +411,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           border: 1px solid rgba(212,175,55,0.4); border-radius: 16px;
           padding: 40px; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto;
           box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 40px rgba(212,175,55,0.05);
-          color: #dcdcdc; font-family: var(--font-manrope), var(--font-inter), sans-serif; line-height: 1.8;
+          color: #dcdcdc; font-family: 'Inter', sans-serif; line-height: 1.8;
           position: relative; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .oracle-insight-paper::-webkit-scrollbar { width: 4px; }
@@ -421,7 +421,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .oi-subtitle { color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; text-transform: uppercase; }
         .oi-quote-box {
           margin-top: 35px; padding: 30px; background: rgba(212,175,55,0.03);
-          border: 1px solid rgba(212,175,55,0.25); border-radius: 12px;
+          border-left: 3px solid var(--oracle-gold); border-radius: 0 12px 12px 0;
           font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--oracle-gold);
           position: relative; line-height: 1.7; text-align: center;
         }
@@ -429,7 +429,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .oi-close {
           display: block; margin: 40px auto 0; padding: 12px 40px; background: transparent;
           border: 1px solid var(--oracle-gold); color: var(--oracle-gold);
-          border-radius: 30px; font-family: var(--font-manrope), var(--font-inter), sans-serif; letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;
+          border-radius: 30px; font-family: 'Inter'; letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;
           cursor: pointer; transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .oi-close:hover { background: var(--oracle-gold); color: #060b14; box-shadow: 0 0 20px rgba(212,175,55,0.4); transform: translateY(-3px); }
@@ -479,7 +479,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       `}</style>
 
       <Link href="/fitur" className="btn-back-vault">
-        <i className="fa-solid fa-chevron-left"></i> Kembali
+        <i className="fa-solid fa-chevron-left"></i> Exit Vision
       </Link>
 
       <button className="btn-time-capsule" onClick={() => setCapsuleOpen(!capsuleOpen)}>
@@ -492,7 +492,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           <textarea name="vision_text" rows={4} placeholder="Tuliskan visi atau pesan rahasia untuk diri Anda di masa depan..." required></textarea>
           <label style={{fontSize:'0.8rem', color:'#888', marginBottom:'5px', display:'block'}}>Tanggal Dibuka:</label>
           <input type="date" name="unlock_date" required min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} />
-          <button type="submit" className="capsule-btn">SIMPAN PESAN WAKTU</button>
+          <button type="submit" className="capsule-btn">SEGEL PESAN</button>
         </form>
 
         <div style={{color:'var(--oracle-gold)', marginTop:'40px', marginBottom:'20px', fontWeight:'bold', letterSpacing:'2px'}}>ARSIP PESAN ANDA</div>
@@ -505,9 +505,9 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
               <div style={{fontFamily:'Courier New', fontSize:'0.9rem', color:'#fff', whiteSpace:'pre-wrap'}}>{v.vision_text}</div>
             ) : (
               new Date(v.unlock_date) <= new Date() ? (
-                <button onClick={() => handleUnlock(v.id, v.vision_text)} style={{background:'transparent', border:'1px solid #d4af37', color:'#d4af37', padding:'5px 10px', cursor:'pointer', fontSize:'0.8rem', borderRadius:'3px'}}>BUKA PESAN</button>
+                <button onClick={() => handleUnlock(v.id, v.vision_text)} style={{background:'transparent', border:'1px solid #d4af37', color:'#d4af37', padding:'5px 10px', cursor:'pointer', fontSize:'0.8rem', borderRadius:'3px'}}>BUKA SEGEL</button>
               ) : (
-                <div style={{fontSize:'0.8rem', color:'#888'}}>Pesan waktu aktif. Akan terbuka sesuai tanggal yang ditentukan.</div>
+                <div style={{fontSize:'0.8rem', color:'#888'}}>Segel Waktu Aktif. Menunggu takdir.</div>
               )
             )}
           </div>
@@ -524,7 +524,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
               {unlockedVision}
             </div>
             <div style={{marginTop:'30px', textAlign:'right'}}>
-              <button onClick={() => setUnlockedVision(null)} style={{background:'transparent', color:'var(--oracle-gold)', border:'1px solid var(--oracle-gold)', padding:'10px 25px', cursor:'pointer'}}>TUTUP CATATAN</button>
+              <button onClick={() => setUnlockedVision(null)} style={{background:'transparent', color:'var(--oracle-gold)', border:'1px solid var(--oracle-gold)', padding:'10px 25px', cursor:'pointer'}}>TUTUP DOKUMEN</button>
             </div>
           </div>
         </div>
@@ -550,9 +550,9 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             <div style={{color:'#fff', marginBottom:'20px'}}>{myDesc}</div>
             {resultData && (
               <div style={{fontFamily:'monospace', fontSize:'0.85rem', color:'#8b9ba8', background:'rgba(0,0,0,0.5)', padding:'15px', borderRadius:'8px', textAlign:'left', marginBottom: '15px'}}>
-                  <span style={{color:'#d4af37'}}>&gt;</span> KESEIMBANGAN WAJAH : {resultData.symmetryIndex}%<br/>
-                  <span style={{color:'#d4af37'}}>&gt;</span> EKSPRESI UTAMA    : {resultData.dominantEmotion.toUpperCase()}<br/>
-                  <span style={{color:'#d4af37'}}>&gt;</span> KONDISI HATI/MAQAM: <b style={{color:'#fff'}}>{resultData.maqam}</b>
+                  <span style={{color:'#d4af37'}}>&gt;</span> RESONANCE STABILITY : {resultData.symmetryIndex}%<br/>
+                  <span style={{color:'#d4af37'}}>&gt;</span> DOMINANT EMOTION  : {resultData.dominantEmotion.toUpperCase()}<br/>
+                  <span style={{color:'#d4af37'}}>&gt;</span> CURRENT MAQAM     : <b style={{color:'#fff'}}>{resultData.maqam}</b>
               </div>
             )}
             
@@ -562,7 +562,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
                 disabled={isFetchingAi}
                 style={{ width: "100%", background: "linear-gradient(45deg, #d4af37, #b8860b)", border: "none", color: "#000", padding: "10px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px" }}
               >
-                {isFetchingAi ? <><i className="fa-solid fa-circle-notch fa-spin"></i> MEMPROSES NASEHAT REFLEKSI...</> : <><i className="fa-solid fa-book-open-reader"></i> BACA NASEHAT & REFLEKSI</>}
+                {isFetchingAi ? <><i className="fa-solid fa-circle-notch fa-spin"></i> MEMPROSES NASIHAT AI...</> : <><i className="fa-solid fa-bolt"></i> BACA NASIHAT MASA DEPAN</>}
               </button>
             )}
           </div>
@@ -601,7 +601,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         <div className="controls-panel">
           {!showResult ? (
             <button className="btn-initiate" onClick={handleScan} disabled={!modelsLoaded || isScanning}>
-              <i className="fa-solid fa-camera"></i> Mulai Cermin Diri
+              <i className="fa-solid fa-eye"></i> Mulai Pemindaian
             </button>
           ) : (
             <button className="btn-initiate" onClick={handleReset}>

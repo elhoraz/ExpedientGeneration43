@@ -106,7 +106,7 @@
 /* Tooltip header */
 .onboarding-tooltip-step {
   display: inline-block;
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -137,7 +137,7 @@
 }
 
 .onboarding-tooltip-desc {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.88rem;
   line-height: 1.6;
   color: var(--text-secondary, #a0a0a0);
@@ -175,7 +175,7 @@
 
 /* Buttons */
 .onboarding-btn {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.82rem;
   font-weight: 600;
   padding: 8px 18px;
@@ -258,7 +258,7 @@
   top: 0;
   left: 0;
   right: 0;
-  display: none;
+  height: 3px;
   background: linear-gradient(90deg, transparent, var(--gold-main, #d4af37), transparent);
 }
 
@@ -282,7 +282,7 @@
 }
 
 .welcome-subtitle {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.92rem;
   color: var(--text-secondary, #a0a0a0);
   line-height: 1.65;
@@ -325,7 +325,7 @@
 }
 
 .welcome-feature-text {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.83rem;
   line-height: 1.5;
   color: var(--text-secondary, #a0a0a0);
@@ -344,7 +344,7 @@
 }
 
 .welcome-btn-tour {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.88rem;
   font-weight: 600;
   padding: 12px 28px;
@@ -365,7 +365,7 @@
 }
 
 .welcome-btn-skip {
-  font-family: var(--font-manrope), var(--font-inter), sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   padding: 12px 22px;
   border-radius: 12px;

@@ -1827,9 +1827,9 @@
 }
 
 .quran-hero-title .gold-text {
-  color: #e5c05d; font-weight: 800;
-
-
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 50%, #fef08a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   display: inline-block;
 }
 

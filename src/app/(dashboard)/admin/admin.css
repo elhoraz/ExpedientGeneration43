@@ -26,7 +26,7 @@ body.page-admin .admin-wrapper,
 .admin-wrapper .hover-glow-danger:hover { box-shadow: 0 10px 30px rgba(255, 51, 102, 0.2); border-color: #ff3366; }
 .admin-wrapper .hover-glow-cyan:hover { box-shadow: 0 10px 30px rgba(0, 191, 255, 0.2); border-color: #00bfff; }
 
-.admin-wrapper .metric-value { font-size: 3rem; font-family: var(--font-manrope), var(--font-inter), sans-serif; font-weight: 900; color: #d4af37; margin-bottom: 10px; }
+.admin-wrapper .metric-value { font-size: 3rem; font-family: 'Inter', sans-serif; font-weight: 900; color: #d4af37; margin-bottom: 10px; }
 .admin-wrapper .metric-label { font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; }
 
 .admin-wrapper .panel-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--text-primary); margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; }

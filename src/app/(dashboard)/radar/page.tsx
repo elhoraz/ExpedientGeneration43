@@ -51,7 +51,7 @@ export default async function RadarPage() {
         city: city,
         lat: parseFloat(u.lat),
         lng: parseFloat(u.lng),
-        type: "alumni",
+        type: "agent",
         foto: u.foto_profil ? getAvatarUrl(u.foto_profil, u.nama_panggilan || u.nama_lengkap) : null,
         wa: u.no_whatsapp || null,
         gender: u.jenis_kelamin || null,

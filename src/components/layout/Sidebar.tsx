@@ -2,253 +2,161 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
-interface NavItem {
-  href: string;
-  icon: string;
-  label: string;
-  tooltip: string;
-  authOnly?: boolean;
-}
-
-interface NavGroup {
-  title: string;
-  items: NavItem[];
-}
-
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const pathname = usePathname();
   const supabase = createClient();
-  const { t, locale } = useLanguage();
 
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsLoggedIn(!!user);
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("nama_panggilan, nama_lengkap")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (data) {
-          setUserName(data.nama_panggilan || data.nama_lengkap || "Santri");
-        }
-      }
     };
     checkAuth();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setIsLoggedIn(!!session?.user);
-      if (session?.user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("nama_panggilan, nama_lengkap")
-          .eq("id", session.user.id)
-          .maybeSingle();
-        if (data) {
-          setUserName(data.nama_panggilan || data.nama_lengkap || "Santri");
-        }
-      } else {
-        setUserName(null);
-      }
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      setIsLoggedIn(event !== "SIGNED_OUT");
     });
 
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  // Load collapsed state from localStorage
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("expedient_sidebar_collapsed");
-      if (saved === "true") {
-        setIsCollapsed(true);
-        document.body.classList.add("sidebar-collapsed");
-      }
-    } catch {}
-  }, []);
-
-  const toggleCollapse = () => {
-    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(20);
-    const next = !isCollapsed;
-    setIsCollapsed(next);
-    if (next) {
-      document.body.classList.add("sidebar-collapsed");
-      try { localStorage.setItem("expedient_sidebar_collapsed", "true"); } catch {}
+  const toggleSidebar = () => {
+    if (navigator.vibrate) navigator.vibrate(30);
+    
+    // Toggle state
+    const newState = !isOpen;
+    setIsOpen(newState);
+    
+    // Sync with body class (CSS uses body.sidebar-closed)
+    if (newState) {
+      document.body.classList.remove("sidebar-closed");
+      localStorage.setItem("expedient_sidebar", "open");
     } else {
-      document.body.classList.remove("sidebar-collapsed");
-      try { localStorage.setItem("expedient_sidebar_collapsed", "false"); } catch {}
+      document.body.classList.add("sidebar-closed");
+      localStorage.setItem("expedient_sidebar", "closed");
     }
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("expedient-sidebar-toggle", { detail: { isCollapsed: next } }));
+      window.dispatchEvent(new CustomEvent("expedient-sidebar-toggle", { detail: { isOpen: newState } }));
     }
   };
 
-  const navGroups: NavGroup[] = [
-    {
-      title: locale === "ar" ? "الرئيسية" : locale === "en" ? "MAIN" : "UTAMA",
-      items: [
-        { href: "/beranda", icon: "fa-house", label: t.sidebar?.museum || "Beranda", tooltip: "Museum Digital & Linimasa" },
-        { href: "/direktori", icon: "fa-address-book", label: t.sidebar?.directory || "Direktori", tooltip: "Buku Kontak Alumni" },
-        { href: "/galeri", icon: "fa-photo-film", label: t.sidebar?.gallery || "Galeri", tooltip: "Arsip Foto & Video" },
-      ],
-    },
-    {
-      title: locale === "ar" ? "الكنوز الروحية" : locale === "en" ? "HERITAGE" : "KHAZANAH",
-      items: [
-        { href: "/quran", icon: "fa-book-quran", label: "Al-Qur'an", tooltip: "Al-Qur'an Digital & Doa" },
-        { href: "/tarbiyah", icon: "fa-graduation-cap", label: "Tarbiyah", tooltip: "Tarbiyah & Nilai Kepesantrenan" },
-        { href: "/mahfuzhat", icon: "fa-feather-pointed", label: "Mahfuzhat", tooltip: "Kata Mutiara & Mahfuzhat" },
-        { href: "/sirah", icon: "fa-landmark-dome", label: "Sirah", tooltip: "Sirah Nabawiyah & Peta Jejak" },
-      ],
-    },
-    {
-      title: locale === "ar" ? "الشبكة والخدمات" : locale === "en" ? "NETWORK" : "JARINGAN",
-      items: [
-        { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar?.radar || "Radar", tooltip: "Peta Persebaran Alumni", authOnly: true },
-        { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar?.business || "Syndicate", tooltip: "Jaringan Bisnis Alumni", authOnly: true },
-        { href: "/fitur", icon: "fa-cubes", label: t.sidebar?.features || "Semua Fitur", tooltip: "Ekosistem Fitur Terpadu" },
-      ],
-    },
-    {
-      title: locale === "ar" ? "المساعدة" : locale === "en" ? "SUPPORT" : "BANTUAN",
-      items: [
-        { href: "/panduan", icon: "fa-circle-question", label: t.sidebar?.guide || "Panduan", tooltip: "Panduan Penggunaan Portal" },
-      ],
-    },
+  // Initialize sidebar state on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem("expedient_sidebar");
+    // Default to open if not set
+    if (savedState === "closed") {
+      setIsOpen(false);
+      document.body.classList.add("sidebar-closed");
+    } else {
+      setIsOpen(true);
+      document.body.classList.remove("sidebar-closed");
+    }
+  }, []);
+
+  const { t } = useLanguage();
+
+  // Public pages: accessible without login
+  const publicNavItems = [
+    { href: "/", icon: "fa-house", label: t.sidebar.home, tooltip: t.sidebar.tooltip_home },
+    { href: "/beranda", icon: "fa-landmark", label: t.sidebar.museum, tooltip: t.sidebar.tooltip_museum },
+    { href: "/direktori", icon: "fa-address-book", label: t.sidebar.directory, tooltip: t.sidebar.tooltip_directory },
+    { href: "/galeri", icon: "fa-film", label: t.sidebar.gallery, tooltip: t.sidebar.tooltip_gallery },
   ];
 
-  const mobileDockItems = [
-    { href: "/beranda", icon: "fa-house", label: t.sidebar?.museum || "Beranda" },
-    { href: "/direktori", icon: "fa-address-book", label: t.sidebar?.directory || "Direktori" },
-    { href: "/galeri", icon: "fa-photo-film", label: t.sidebar?.gallery || "Galeri" },
-    { href: "/fitur", icon: "fa-cubes", label: t.sidebar?.features || "Fitur" },
-    {
-      href: isLoggedIn ? "/profil" : "/login",
-      icon: isLoggedIn ? "fa-circle-user" : "fa-door-open",
-      label: isLoggedIn ? (t.sidebar?.profile || "Profil") : (t.sidebar?.login || "Masuk"),
-    },
+  // Auth-only pages
+  const authNavItems = [
+    { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: t.sidebar.tooltip_radar },
+    { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar.business, tooltip: t.sidebar.tooltip_business },
+    { href: "/fitur", icon: "fa-cubes", label: t.sidebar.features, tooltip: t.sidebar.tooltip_features },
+    { href: "/panduan", icon: "fa-book-bookmark", label: t.sidebar.guide, tooltip: t.sidebar.tooltip_guide, extraClass: "nav-item-panduan" },
   ];
 
-  const isItemActive = (href: string) => {
-    if (href === "/beranda") return pathname === "/beranda";
-    if (href === "/fitur") return pathname === "/fitur";
+  // Fitur sub-pages for active state detection
+  const fiturPages = [
+    "/fitur",
+    "/quran",
+    "/matsurat",
+    "/mahfuzhat",
+    "/asmaul-husna",
+    "/sirah",
+    "/tasbih",
+    "/kiblat",
+    "/khatam",
+    "/photobooth",
+    "/oracle",
+    "/enigma",
+    "/genesis",
+    "/celestial",
+    "/majlis",
+    "/tarbiyah",
+    "/baitul-maal",
+    "/wasiat",
+    "/multazam",
+    "/kontemplasi",
+    "/divine",
+    "/nexus",
+  ];
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+    if (href === "/fitur") {
+      return fiturPages.some(p => pathname?.startsWith(p));
+    }
     return pathname?.startsWith(href);
   };
 
   return (
     <>
-      {/* Desktop Sidebar (>= 1025px) */}
-      <aside className="sidebar desktop-only no-select" id="sidebarNav" aria-label="Navigasi Utama">
-        {/* Sidebar Header */}
-        <div className="sidebar-header">
-          <Link href="/beranda" className="sidebar-brand-link">
-            <Image
-              src="/icon-48.png"
-              alt="Expedient 43"
-              width={34}
-              height={34}
-              className="sidebar-logo"
-              priority
-            />
-            <div className="sidebar-brand-text">
-              <span className="sidebar-brand-title">EXPEDIENT</span>
-              <span className="sidebar-brand-sub">ANGKATAN 43</span>
-            </div>
+      <button className={`menu-toggle hover-trigger ${isOpen ? 'active' : ''}`} id="btnMenuOpen" title={t.sidebar.open_panel_title} onClick={toggleSidebar}>
+        <span className="line"></span>
+        <span className="line short"></span>
+      </button>
+
+      <nav className={`sidebar no-select ${isOpen ? 'active' : ''}`} id="sidebarNav">
+        <a href="#" className="nav-item hover-trigger" id="btnMenuClose" onClick={(e) => { e.preventDefault(); toggleSidebar(); }} data-tooltip={t.sidebar.tooltip_hide}>
+          <i className="fa-solid fa-compress"></i>
+          <span className="nav-label">{t.sidebar.close}</span>
+        </a>
+        
+        {/* Public navigation items */}
+        {publicNavItems.map((item) => (
+          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+            <i className={`fa-solid ${item.icon}`}></i>
+            <span className="nav-label">{item.label}</span>
           </Link>
-          <button
-            type="button"
-            className="sidebar-collapse-btn"
-            onClick={toggleCollapse}
-            title={isCollapsed ? "Perluas Menu" : "Ciutkan Menu"}
-            aria-label={isCollapsed ? "Perluas Menu" : "Ciutkan Menu"}
-          >
-            <i className={`fa-solid ${isCollapsed ? "fa-angles-right" : "fa-angles-left"}`}></i>
-          </button>
-        </div>
+        ))}
 
-        {/* Scrollable Nav Area */}
-        <div className="sidebar-nav-scroll">
-          {navGroups.map((group, gIdx) => (
-            <div key={gIdx} className="nav-section">
-              <span className="nav-section-title">{group.title}</span>
-              {group.items.map((item) => {
-                if (item.authOnly && !isLoggedIn) return null;
-                const active = isItemActive(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`nav-item ${active ? "active" : ""}`}
-                    data-tooltip={item.tooltip}
-                    onClick={() => {
-                      if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
-                    }}
-                  >
-                    <span className="nav-icon">
-                      <i className={`fa-solid ${item.icon}`}></i>
-                    </span>
-                    <span className="nav-label">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
-        </div>
+        {/* Auth-only navigation items */}
+        {isLoggedIn && authNavItems.map((item) => (
+          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+            <i className={`fa-solid ${item.icon}`}></i>
+            <span className="nav-label">{item.label}</span>
+          </Link>
+        ))}
+        
+        <div style={{ flexGrow: 1 }} className="nav-spacer"></div>
 
-        {/* Sidebar Footer (Desktop User Card) */}
-        <div className="sidebar-footer">
-          {isLoggedIn ? (
-            <Link href="/profil" className="sidebar-user-card" title="Buka Profil Saya">
-              <div className="sidebar-user-avatar">
-                <i className="fa-solid fa-user"></i>
-              </div>
-              <div className="sidebar-user-info">
-                <span className="sidebar-user-name">{userName || "Alumni"}</span>
-                <span className="sidebar-user-role">Santri Terverifikasi</span>
-              </div>
-            </Link>
-          ) : (
-            <Link href="/login" className="sidebar-user-card" title="Masuk ke Ruang Anggota">
-              <div className="sidebar-user-avatar">
-                <i className="fa-solid fa-door-open"></i>
-              </div>
-              <div className="sidebar-user-info">
-                <span className="sidebar-user-name">Masuk Akun</span>
-                <span className="sidebar-user-role">Akses Penuh Portal</span>
-              </div>
-            </Link>
-          )}
-        </div>
-      </aside>
-
-      {/* Mobile Bottom Navigation Dock (<= 1024px) */}
-      <nav className="mobile-bottom-dock mobile-only no-select" aria-label="Navigasi Cepat Mobile">
-        {mobileDockItems.map((item) => {
-          const active = isItemActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`mobile-dock-btn ${active ? "active" : ""}`}
-              onClick={() => {
-                if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(15);
-              }}
-            >
-              <span className="mobile-dock-icon">
-                <i className={`fa-solid ${item.icon}`}></i>
-              </span>
-              <span className="mobile-dock-label">{item.label}</span>
-            </Link>
-          );
-        })}
+        {/* Bottom: Profil (logged in) or Masuk (guest) */}
+        {isLoggedIn ? (
+          <Link href="/profil" className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`} data-tooltip={t.sidebar.profile} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+            <i className="fa-solid fa-circle-user"></i>
+            <span className="nav-label">{t.sidebar.profile}</span>
+          </Link>
+        ) : isLoggedIn === false ? (
+          <Link href="/login" className="nav-item hover-trigger" data-tooltip={t.sidebar.login} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+            <i className="fa-solid fa-door-open"></i>
+            <span className="nav-label">{t.sidebar.login}</span>
+          </Link>
+        ) : null}
       </nav>
     </>
   );
