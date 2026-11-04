@@ -1,3 +1,14 @@
+
+/* ==========================================================================
+   PROFESSIONAL ACCESSIBILITY & FOCUS HARMONY
+   ========================================================================== */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: 3px;
+  border-radius: inherit;
+}
 /* ==========================================================================
    LANDING PAGE STYLING — EXPEDIENT GENERATION 43
    PONDOK MODERN ARRISALAH PROGRAM INTERNASIONAL SLAHUNG PONOROGO
@@ -381,6 +392,13 @@ body:has(.landing-wrapper) {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.55);
   filter: brightness(1.08);
+}
+
+.landing-nav-island .nav-btn-portal:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);
+  filter: brightness(0.95);
+  transition-duration: 0.1s;
 }
 
 /* Desktop suppression of mobile hamburger button */
@@ -1065,6 +1083,12 @@ body:has(.landing-wrapper) {
   box-shadow: 0 16px 35px rgba(212, 175, 55, 0.5);
 }
 
+.btn-primary:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3) !important;
+  transition-duration: 0.1s;
+}
+
 .btn-secondary {
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
@@ -1098,6 +1122,11 @@ body:has(.landing-wrapper) {
   transform: translateY(-3px);
   border-color: rgba(212, 175, 55, 0.5);
   box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+}
+
+.btn-secondary:active {
+  transform: translateY(1px) scale(0.97);
+  transition-duration: 0.1s;
 }
 
 .btn-app-download {
