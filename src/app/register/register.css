@@ -76,7 +76,14 @@
 .logo-container.united .logo-utuh { opacity: 1; transform: scale(1); animation: floatLogo 5s ease-in-out infinite 2s; }
 @keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
-.title-holographic { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 700; background: var(--gold-liquid); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 1px; animation: shimmerLiquid 8s linear infinite; margin-bottom: 8px; }
+.title-holographic {
+    font-family: var(--font-playfair), Georgia, serif;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--gold-main, #d4af37);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
 @keyframes shimmerLiquid { to { background-position: 200% center; } }
 .subtitle-spec { font-size: 0.8rem; color: var(--text-secondary); letter-spacing: 4px; text-transform: uppercase; font-weight: 600; }
 

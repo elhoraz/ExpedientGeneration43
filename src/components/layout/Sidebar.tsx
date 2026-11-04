@@ -73,7 +73,7 @@ export default function Sidebar() {
         setIsCollapsed(true);
         document.body.classList.add("sidebar-collapsed");
       }
-    } catch {}
+    } catch { }
   }, []);
 
   const toggleCollapse = () => {
@@ -82,10 +82,10 @@ export default function Sidebar() {
     setIsCollapsed(next);
     if (next) {
       document.body.classList.add("sidebar-collapsed");
-      try { localStorage.setItem("expedient_sidebar_collapsed", "true"); } catch {}
+      try { localStorage.setItem("expedient_sidebar_collapsed", "true"); } catch { }
     } else {
       document.body.classList.remove("sidebar-collapsed");
-      try { localStorage.setItem("expedient_sidebar_collapsed", "false"); } catch {}
+      try { localStorage.setItem("expedient_sidebar_collapsed", "false"); } catch { }
     }
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("expedient-sidebar-toggle", { detail: { isCollapsed: next } }));
