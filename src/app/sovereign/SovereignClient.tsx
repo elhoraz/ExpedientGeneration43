@@ -322,12 +322,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       ctx.textAlign = "center";
       ctx.fillStyle = "#d4af37";
       ctx.font = 'bold 26px "Playfair Display", serif';
-      ctx.fillText("THE REGISTRY DIRECTIVE", bX + idW / 2, bY + 230);
+      ctx.fillText("KARTU ANGGOTA RESMI", bX + idW / 2, bY + 230);
 
       ctx.fillStyle = isLightMode ? "#555" : "#94a3b8";
       ctx.font = '18px "Inter", sans-serif';
-      ctx.fillText("Properti Eksklusif Expedient Generation 43.", bX + idW / 2, bY + 280);
-      ctx.fillText("Simpan kartu ini sebagai hak akses The Vault.", bX + idW / 2, bY + 315);
+      ctx.fillText("Expedient Generation 43", bX + idW / 2, bY + 280);
+      ctx.fillText("Pondok Modern Arrisalah Slahung Ponorogo", bX + idW / 2, bY + 315);
 
       // QR Code
       const qrBoxX = bX + (idW - 240) / 2, qrBoxY = bY + 360;

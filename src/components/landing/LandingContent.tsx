@@ -537,7 +537,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 <h3 className="bento-title">{t?.ecosystem?.b1_title}</h3>
                 <p className="bento-desc">{t?.ecosystem?.b1_desc}</p>
                 <div className="bento-meta-strip">
-                  <span><i className="fa-solid fa-satellite"></i> 7.9892° S, 111.4392° E</span>
+                  <span><i className="fa-solid fa-location-dot"></i> Slahung, Ponorogo</span>
                   <span><i className="fa-solid fa-earth-asia"></i> 240+ Alumni Global</span>
                 </div>
               </div>
@@ -548,11 +548,11 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               </div>
             </div>
 
-            {/* Bento 2: Sovereign 3D KTA */}
+            {/* Bento 2: 3D KTA */}
             <TiltCard className="bento-card bento-kta-card">
               <div className="bento-foil-sheen" aria-hidden="true"></div>
               <div className="bento-badge">
-                <i className="fa-solid fa-cube"></i>
+                <i className="fa-solid fa-id-card"></i>
                 <span>{t?.ecosystem?.b2_badge}</span>
               </div>
               <div className="bento-content">

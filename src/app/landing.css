@@ -1777,10 +1777,15 @@ body:has(.landing-wrapper) {
 .radar-live-dot {
   width: 8px;
   height: 8px;
-  background: #00c853;
+  background: #d4af37;
   border-radius: 50%;
-  box-shadow: 0 0 10px #00c853;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.6);
   animation: pulseLive 2s infinite ease-in-out;
+}
+
+:root[data-theme="light"] .radar-live-dot {
+  background: #b89327;
+  box-shadow: 0 0 8px rgba(184, 147, 39, 0.5);
 }
 
 @keyframes pulseLive {
@@ -4999,14 +5004,7 @@ body:has(.landing-wrapper) {
 .sonar-ring.ring-3 { width: 220px; height: 220px; border-style: solid; border-color: rgba(212, 175, 55, 0.12); }
 
 .sonar-sweep-beam {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 120px;
-  height: 120px;
-  transform-origin: top left;
-  background: conic-gradient(from 0deg at 0% 0%, rgba(212, 175, 55, 0.35) 0deg, transparent 60deg);
-  animation: sweepRadar 5s linear infinite;
+  display: none !important;
 }
 
 @keyframes sweepRadar {
@@ -5077,14 +5075,20 @@ body:has(.landing-wrapper) {
 .bento-live-pulse-badge {
   font-size: 0.6rem;
   font-weight: 700;
-  color: #22c55e;
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.3);
   padding: 2px 7px;
   border-radius: 999px;
   margin-left: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+:root[data-theme="light"] .bento-live-pulse-badge {
+  color: #785a12;
+  background: rgba(212, 175, 55, 0.14);
+  border-color: rgba(184, 147, 39, 0.35);
 }
 
 /* ==========================================================================

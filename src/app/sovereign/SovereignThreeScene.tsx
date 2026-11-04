@@ -519,10 +519,10 @@ export default function SovereignThreeScene({
         ctx.fillStyle = isBump ? "#aaaaaa" : "#8b9ba8";
         ctx.font = '300 28px "Inter", sans-serif';
         const lines = [
-          "Properti VVIP Eksklusif Expedient Generation.",
-          "Kartu ini menyimpan data terenkripsi untuk",
-          "akses tanpa batas ke dalam ekosistem The Vault.",
-          "Penyalahgunaan akan dikenakan sanksi dewan.",
+          "Kartu Tanda Anggota Resmi Expedient 43.",
+          "Pondok Modern Arrisalah Slahung Ponorogo.",
+          "Sarana silaturahmi & ukhuwah islamiyah.",
+          "Keluarga Besar Alumni Angkatan ke-43.",
         ];
         lines.forEach((line, i) => ctx.fillText(line, 512, 680 + i * 45));
 
