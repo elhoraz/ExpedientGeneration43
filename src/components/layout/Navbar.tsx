@@ -171,7 +171,7 @@ export default function Navbar() {
       {/* Left: Breadcrumbs on Desktop, Brand on Mobile */}
       <div className="top-navbar-left">
         <Link href="/beranda" className="top-navbar-brand mobile-only">
-          <img src="/icon-48.png" alt="Expedient 43" width={28} height={28} />
+          <img src="/icon-48.png" alt="Expedient 43" width={28} height={28} className="navbar-brand-logo" />
           <span>EXPEDIENT 43</span>
         </Link>
         <div className="top-breadcrumb desktop-only">
@@ -200,14 +200,14 @@ export default function Navbar() {
       <div className="top-navbar-right">
         {userId && (
           <div className="top-action-wrap" style={{ position: "relative" }}>
-            <button 
+            <button
               type="button"
-              className={`chat-widget ${chatOpen ? "active" : ""}`} 
+              className={`chat-widget ${chatOpen ? "active" : ""}`}
               id="btnChatWidget"
-              title={t.navbar?.chat_title || "Obrolan Angkatan"} 
-              onClick={() => { 
-                setChatOpen(!chatOpen); 
-                setHasNewNotif(false); 
+              title={t.navbar?.chat_title || "Obrolan Angkatan"}
+              onClick={() => {
+                setChatOpen(!chatOpen);
+                setHasNewNotif(false);
               }}
               aria-label={t.navbar?.chat_title || "Obrolan Angkatan"}
             >
@@ -238,7 +238,7 @@ export default function Navbar() {
                     >
                       <i className="fa-solid fa-expand"></i>
                     </Link>
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setChatOpen(false)}
                       className="chat-dropdown-btn-action"

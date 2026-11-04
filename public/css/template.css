@@ -1763,3 +1763,186 @@ img.skeleton-shimmer {
 
 
 
+
+
+/* ================= MOBILE BOTTOM DOCK (DEDICATED) ================= */
+.mobile-bottom-dock {
+    display: none;
+}
+
+@media (max-width: 1024px) {
+    .mobile-bottom-dock {
+        display: flex !important;
+        position: fixed !important;
+        top: auto !important;
+        bottom: max(10px, env(safe-area-inset-bottom, 10px)) !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: calc(100vw - 24px) !important;
+        max-width: 540px !important;
+        margin: 0 auto !important;
+        height: 64px !important;
+        border-radius: 24px !important;
+        border: 1px solid var(--glass-border) !important;
+        background: var(--sidebar-bg) !important;
+        backdrop-filter: blur(25px) !important;
+        -webkit-backdrop-filter: blur(25px) !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-around !important;
+        padding: 0 6px !important;
+        z-index: 9999 !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45) !important;
+    }
+
+    .mobile-dock-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-secondary);
+        text-decoration: none;
+        gap: 3px;
+        border-radius: 16px;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-dock-btn .mobile-dock-icon {
+        font-size: 1.15rem;
+        color: var(--text-secondary);
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+    }
+
+    .mobile-dock-btn .mobile-dock-label {
+        font-size: 0.6rem;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        transition: color 0.2s ease;
+    }
+
+    .mobile-dock-btn:hover,
+    .mobile-dock-btn:active {
+        color: var(--gold-main);
+    }
+
+    .mobile-dock-btn.active {
+        color: var(--gold-main);
+    }
+
+    .mobile-dock-btn.active .mobile-dock-icon {
+        color: var(--gold-main);
+        transform: translateY(-2px);
+    }
+
+    .mobile-dock-btn.active .mobile-dock-label {
+        color: var(--gold-main);
+        font-weight: 700;
+    }
+
+    .mobile-dock-btn:active .mobile-dock-icon {
+        transform: scale(0.9);
+    }
+}
+
+/* ================= TOP NAVBAR RESPONSIVENESS ================= */
+@media (max-width: 768px) {
+    .top-navbar {
+        height: 56px !important;
+        padding: 0 12px !important;
+        gap: 8px !important;
+    }
+
+    .top-navbar-left {
+        gap: 8px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .top-navbar-brand {
+        font-size: 0.8rem !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .top-navbar-brand img,
+    .top-navbar-brand .navbar-brand-logo {
+        width: 26px !important;
+        height: 26px !important;
+    }
+
+    .top-navbar-center {
+        max-width: none !important;
+        flex: 0 0 auto !important;
+    }
+
+    .topbar-search-trigger {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+    }
+
+    .topbar-search-trigger .search-text,
+    .topbar-search-trigger .search-kbd {
+        display: none !important;
+    }
+
+    .top-navbar-right {
+        gap: 6px !important;
+    }
+
+    .top-navbar-right .theme-widget,
+    .top-navbar-right .notif-widget,
+    .top-navbar-right .chat-widget,
+    .top-navbar-right .lang-widget,
+    .top-navbar-right .top-lang-switch {
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        min-height: 36px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 50% !important;
+    }
+
+    .top-navbar-right .widget-text {
+        display: none !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .top-navbar {
+        padding: 0 8px !important;
+        gap: 6px !important;
+    }
+
+    .top-navbar-brand span {
+        font-size: 0.72rem !important;
+    }
+
+    .top-navbar-right {
+        gap: 4px !important;
+    }
+
+    .top-navbar-right .theme-widget,
+    .top-navbar-right .notif-widget,
+    .top-navbar-right .chat-widget,
+    .top-navbar-right .lang-widget {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+    }
+
+    .top-navbar-right .icon-orb {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 0.8rem !important;
+    }
+}
