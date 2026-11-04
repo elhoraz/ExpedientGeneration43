@@ -89,7 +89,7 @@ export default function PolaroidMemories() {
     <section className="polaroid-section" id="kenangan">
       <div className="section-header reveal-on-scroll">
         <div className="tuku-heritage-badge" style={{ marginBottom: "12px" }}>
-          <span className="badge-bullet">🎞️</span>
+          <span className="badge-bullet">✦</span>
           <span>{t.memories_section.badge}</span>
         </div>
         <h2 className="section-title">

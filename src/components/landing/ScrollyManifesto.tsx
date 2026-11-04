@@ -84,7 +84,7 @@ export default function ScrollyManifesto({
 
       {sourceText && (
         <div className="scrolly-source-tag">
-          <span className="source-emblem">⚜️</span>
+          <span className="source-emblem">✦</span>
           <span>{sourceText}</span>
         </div>
       )}

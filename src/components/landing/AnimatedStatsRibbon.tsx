@@ -26,13 +26,13 @@ export default function AnimatedStatsRibbon({
   const targetAlumni = totalAlumni || 240;
   const targetYear = parseInt(gradYear, 10) || 2025;
   const targetGen = 43;
-  const targetUkhuwah = 100;
+  const targetStudy = 6;
 
   // Display states
   const [dispAlumni, setDispAlumni] = useState(0);
   const [dispYear, setDispYear] = useState(2000);
   const [dispGen, setDispGen] = useState(0);
-  const [dispUkhuwah, setDispUkhuwah] = useState(0);
+  const [dispStudy, setDispStudy] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function AnimatedStatsRibbon({
             setDispAlumni(Math.round(targetAlumni * ease));
             setDispYear(Math.round(startYear + (targetYear - startYear) * ease));
             setDispGen(Math.round(targetGen * ease));
-            setDispUkhuwah(Math.round(targetUkhuwah * ease));
+            setDispStudy(Math.round(targetStudy * ease));
 
             if (progress < 1) {
               requestAnimationFrame(animate);
@@ -66,7 +66,7 @@ export default function AnimatedStatsRibbon({
               setDispAlumni(targetAlumni);
               setDispYear(targetYear);
               setDispGen(targetGen);
-              setDispUkhuwah(targetUkhuwah);
+              setDispStudy(targetStudy);
               setIsFinished(true);
             }
           };
@@ -111,7 +111,7 @@ export default function AnimatedStatsRibbon({
       <div className="tuku-stat-divider">/</div>
 
       <div className="tuku-stat-item">
-        <span className="tuku-stat-num">{dispUkhuwah}%</span>
+        <span className="tuku-stat-num">{dispStudy} Th</span>
         <span className="tuku-stat-lbl">{ukhuwahLabel}</span>
       </div>
     </div>

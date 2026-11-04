@@ -38,7 +38,7 @@ export default function HistoryTimeline() {
     <section className="history-section" id="sejarah">
       <div className="section-header reveal-on-scroll">
         <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
-          <span className="badge-bullet">🏛️</span>
+          <span className="badge-bullet">✦</span>
           <span>{t.history_section.badge}</span>
         </div>
         <h2 className="section-title">

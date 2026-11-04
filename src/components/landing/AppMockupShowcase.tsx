@@ -15,9 +15,9 @@ export default function AppMockupShowcase() {
     <section className="app-showcase-section" id="aplikasi">
       <div className="section-header reveal-on-scroll">
         <div className="landing-prestige-badge" style={{ marginBottom: "14px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-          <i className="fa-brands fa-android" style={{ color: "#10b981" }}></i>
+          <i className="fa-brands fa-android" style={{ color: "#d4af37" }}></i>
           <span style={{ opacity: 0.4 }}>•</span>
-          <i className="fa-brands fa-apple" style={{ color: "#f8fafc" }}></i>
+          <i className="fa-brands fa-apple" style={{ color: "#d4af37" }}></i>
           <span>{locale === "ar" ? "تطبيق رسمي متوفر لأجهزة أندرويد وآيفون" : locale === "en" ? "Official App for Android & iPhone" : "Tersedia untuk Android & iPhone (iOS)"}</span>
         </div>
         <h2 className="section-title">
@@ -228,19 +228,18 @@ export default function AppMockupShowcase() {
                   <div className="screen-view screen-radar">
                     <div className="screen-header">
                       <span className="screen-title">
-                        {locale === "ar" ? "رادار الخريجين" : locale === "en" ? "GEOSPATIAL RADAR" : "RADAR GEOSPASIAL"}
+                        {locale === "ar" ? "خريطة الخريجين" : locale === "en" ? "GLOBAL ALUMNI MAP" : "PETA PERSEBARAN ALUMNI"}
                       </span>
                       <span className="screen-badge">
-                        {locale === "ar" ? "قمر صناعي حي" : locale === "en" ? "LIVE SATELLITE" : "LIVE SATELLITE"}
+                        {locale === "ar" ? "شبكة موثقة" : locale === "en" ? "GLOBAL NETWORK" : "JARINGAN GLOBAL"}
                       </span>
                     </div>
 
                     <div className="mock-radar-map">
-                      <div className="radar-sweep-beam"></div>
                       <div className="radar-ring r1"></div>
                       <div className="radar-ring r2"></div>
                       <div className="radar-pin p-center" title="Slahung Ponorogo">
-                        <i className="fa-solid fa-kaaba"></i>
+                        <i className="fa-solid fa-mosque"></i>
                       </div>
                       <div className="radar-pin p-egypt" title={locale === "ar" ? "القاهرة، مصر" : locale === "en" ? "Cairo, Egypt" : "Kairo, Mesir"}>
                         <span className="pin-dot"></span>

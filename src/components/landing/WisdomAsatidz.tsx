@@ -6,12 +6,12 @@ import TiltCard from "@/components/features/TiltCard";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const WISDOM_METAS: Record<string, { avatarBg: string; initials: string }> = {
-  pendiri: { avatarBg: "linear-gradient(135deg, #ca8a04, #854d0e)", initials: "MY" },
-  pimpinan: { avatarBg: "linear-gradient(135deg, #10b981, #064e3b)", initials: "MA" },
-  "ibu-pengasuh": { avatarBg: "linear-gradient(135deg, #ec4899, #9d174d)", initials: "IN" },
-  kmi: { avatarBg: "linear-gradient(135deg, #0284c7, #075985)", initials: "SR" },
-  pengasuhan: { avatarBg: "linear-gradient(135deg, #8b5cf6, #5b21b6)", initials: "SL" },
-  angkatan: { avatarBg: "linear-gradient(135deg, #e11d48, #9f1239)", initials: "EG" },
+  pendiri: { avatarBg: "linear-gradient(135deg, #c5a059, #85611e)", initials: "MY" },
+  pimpinan: { avatarBg: "linear-gradient(135deg, #0d5c3a, #063823)", initials: "MA" },
+  "ibu-pengasuh": { avatarBg: "linear-gradient(135deg, #a66a5e, #6e3d34)", initials: "IN" },
+  kmi: { avatarBg: "linear-gradient(135deg, #8c6d3b, #59421e)", initials: "SR" },
+  pengasuhan: { avatarBg: "linear-gradient(135deg, #1e4d3b, #0f2e22)", initials: "SL" },
+  angkatan: { avatarBg: "linear-gradient(135deg, #1e3a5f, #0d2138)", initials: "EG" },
 };
 
 export default function WisdomAsatidz() {
@@ -38,7 +38,7 @@ export default function WisdomAsatidz() {
     <section className="wisdom-section" id="nasehat">
       <div className="section-header reveal-on-scroll">
         <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
-          <span className="badge-bullet">📜</span>
+          <span className="badge-bullet">✦</span>
           <span>{t.wisdom_section.badge}</span>
         </div>
         <h2 className="section-title">

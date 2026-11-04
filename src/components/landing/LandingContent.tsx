@@ -224,8 +224,8 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
           {/* Almamater Dignified Tag */}
           <div className="tuku-heritage-badge">
-            <span className="badge-bullet">⚜️</span>
-            <span>{locale === "ar" ? "معهد الرسالة الحديث • دفعة ٢٠٢٥" : locale === "en" ? "ARRISALAH MODERN BOARDING SCHOOL • CLASS OF 2025" : "PONDOK MODERN ARRISALAH • KELAS 2025"}</span>
+            <span className="badge-bullet">✦</span>
+            <span>{locale === "ar" ? "معهد الرسالة الحديث • دفعة ٢٠٢٥" : locale === "en" ? "ARRISALAH MODERN BOARDING SCHOOL • CLASS OF 2025" : "PONDOK MODERN ARRISALAH • ALUMNI 2025"}</span>
           </div>
 
           {/* Clean Logo with Interactive Embossed Pesantren Stamp */}
@@ -327,7 +327,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== TUKU-STYLE RUNNING TICKER RIBBON (CSS-ONLY, ULTRA LIGHTWEIGHT) ====== */}
         <div className="tuku-running-ribbon" aria-hidden="true">
           <div className="tuku-ticker-track">
-            <span className="ticker-segment">⚜️ {t?.ticker?.seg_expedient}</span>
+            <span className="ticker-segment">✦ {t?.ticker?.seg_expedient}</span>
             <span className="ticker-dot">✦</span>
             <span className="ticker-segment">{t?.ticker?.seg_pondok}</span>
             <span className="ticker-dot">✦</span>
@@ -340,7 +340,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             <span className="ticker-segment">@expedientgeneration_</span>
             <span className="ticker-dot">✦</span>
             {/* Duplicate for seamless infinite loop */}
-            <span className="ticker-segment">⚜️ {t?.ticker?.seg_expedient}</span>
+            <span className="ticker-segment">✦ {t?.ticker?.seg_expedient}</span>
             <span className="ticker-dot">✦</span>
             <span className="ticker-segment">{t?.ticker?.seg_pondok}</span>
             <span className="ticker-dot">✦</span>
@@ -365,7 +365,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
-            <span className="flourish-emblem">⚜️</span>
+            <span className="flourish-emblem">۞</span>
             <span className="flourish-star">✦</span>
           </div>
           <div className="flourish-line"></div>
@@ -379,7 +379,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
-            <span className="flourish-emblem">📜</span>
+            <span className="flourish-emblem">۞</span>
             <span className="flourish-star">✦</span>
           </div>
           <div className="flourish-line"></div>
@@ -393,7 +393,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           <div className="flourish-line"></div>
           <div className="flourish-center">
             <span className="flourish-star">✦</span>
-            <span className="flourish-emblem">🕌</span>
+            <span className="flourish-emblem">۞</span>
             <span className="flourish-star">✦</span>
           </div>
           <div className="flourish-line"></div>
@@ -437,7 +437,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
             <TiltCard className="pillar-card">
               <div className="pillar-icon-wrap">
-                <i className="fa-solid fa-microchip"></i>
+                <i className="fa-solid fa-compass-drafting"></i>
               </div>
               <h3 className="pillar-title">{t?.almamater?.p2_title}</h3>
               <p className="pillar-desc">{t?.almamater?.p2_desc}</p>
