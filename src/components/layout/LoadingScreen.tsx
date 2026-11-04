@@ -3,27 +3,21 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-const loaderVariants = ["v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10"];
-
 export default function LoadingScreen() {
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [isFading, setIsFading] = useState(false);
-  const [variant, setVariant] = useState("v1");
 
   useEffect(() => {
     setMounted(true);
 
     try {
-      // Skip loader if user is navigating between pages (Aegis Transit)
       if (typeof window !== "undefined" && sessionStorage.getItem("aegis_transit")) {
         return;
       }
 
-      setVariant(loaderVariants[Math.floor(Math.random() * loaderVariants.length)]);
       setVisible(true);
 
-      // Quick smooth dismiss
       const timer = setTimeout(() => {
         setIsFading(true);
         setTimeout(() => {
@@ -31,8 +25,8 @@ export default function LoadingScreen() {
           try {
             sessionStorage.setItem("aegis_transit", "1");
           } catch {}
-        }, 300);
-      }, 500);
+        }, 180);
+      }, 240);
 
       return () => clearTimeout(timer);
     } catch {
@@ -45,72 +39,67 @@ export default function LoadingScreen() {
   return (
     <div
       id="loadingScreen"
-      className={`load-${variant}`}
       onClick={() => setVisible(false)}
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 999999,
+        zIndex: 999990,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        background: "var(--bg-main, #060b14)",
-        transition: "opacity 0.3s ease-out",
+        background: "var(--bg-main, #070d0d)",
+        transition: "opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s",
         opacity: isFading ? 0 : 1,
         pointerEvents: isFading ? "none" : "auto",
         cursor: "pointer",
       }}
     >
-      <div className="loader-logo-wrap">
-        {variant === "v1" && (
-          <>
-            <div className="pure-ripple"></div>
-            <div className="pure-ripple"></div>
-          </>
-        )}
-        {variant === "v2" && (
-          <>
-            <div className="cosmos-orbit orbit-1"></div>
-            <div className="cosmos-orbit orbit-2"></div>
-          </>
-        )}
-        {variant === "v5" && <div className="lunar-eclipse"></div>}
-        {variant === "v6" && <div className="solar-crown"></div>}
-        {variant === "v7" && <div className="sacred-lattice"></div>}
-        {variant === "v8" && <div className="prismatic-pulse"></div>}
-        {variant === "v9" && (
-          <div className="flowing-veils">
-            <div className="veil"></div>
-            <div className="veil"></div>
-            <div className="veil"></div>
-            <div className="veil"></div>
-            <div className="veil"></div>
-          </div>
-        )}
-        {variant === "v10" && (
-          <>
-            <div className="stellar-orbit">
-              <div className="stellar-dot"></div>
-            </div>
-            <div className="stellar-orbit reverse">
-              <div className="stellar-dot"></div>
-            </div>
-          </>
-        )}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
         <Image
           src="/images/logo-utuh.webp"
-          className="loader-logo"
-          alt="Loading Expedient"
-          width={80}
-          height={80}
+          alt="Expedient Generation 43"
+          width={72}
+          height={72}
           priority
-          style={{ width: "auto", height: "80px", objectFit: "contain" }}
+          style={{ width: "auto", height: "72px", objectFit: "contain", filter: "drop-shadow(0 4px 16px rgba(212, 175, 55, 0.3))" }}
         />
+        <div style={{
+          fontFamily: "var(--font-playfair), Georgia, serif",
+          fontSize: "0.95rem",
+          letterSpacing: "3px",
+          color: "var(--gold-main, #d4af37)",
+          fontWeight: 700,
+          textTransform: "uppercase"
+        }}>
+          Expedient Generation
+        </div>
+        <div style={{
+          width: "140px",
+          height: "2px",
+          background: "rgba(212, 175, 55, 0.15)",
+          borderRadius: "2px",
+          overflow: "hidden",
+          position: "relative"
+        }}>
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            height: "100%",
+            width: "50%",
+            background: "#d4af37",
+            borderRadius: "2px",
+            animation: "subtleLoadBar 0.8s ease-in-out infinite alternate"
+          }} />
+        </div>
       </div>
-      {variant === "v3" && (
-        <div className="gilded-reveal">EXPEDIENT GENERATION</div>
-      )}
+      <style jsx>{`
+        @keyframes subtleLoadBar {
+          0% { transform: translateX(-50%); }
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
     </div>
   );
 }

@@ -2,161 +2,245 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
+interface NavItem {
+  href: string;
+  icon: string;
+  label: string;
+  tooltip: string;
+  authOnly?: boolean;
+  mobileDock?: boolean;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
 export default function Sidebar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const pathname = usePathname();
   const supabase = createClient();
+  const { t, locale } = useLanguage();
 
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsLoggedIn(!!user);
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("nama_panggilan, nama_lengkap")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (data) {
+          setUserName(data.nama_panggilan || data.nama_lengkap || "Santri");
+        }
+      }
     };
     checkAuth();
 
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      setIsLoggedIn(event !== "SIGNED_OUT");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setIsLoggedIn(!!session?.user);
+      if (session?.user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("nama_panggilan, nama_lengkap")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        if (data) {
+          setUserName(data.nama_panggilan || data.nama_lengkap || "Santri");
+        }
+      } else {
+        setUserName(null);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, [supabase]);
 
-  const toggleSidebar = () => {
-    if (navigator.vibrate) navigator.vibrate(30);
-    
-    // Toggle state
-    const newState = !isOpen;
-    setIsOpen(newState);
-    
-    // Sync with body class (CSS uses body.sidebar-closed)
-    if (newState) {
-      document.body.classList.remove("sidebar-closed");
-      localStorage.setItem("expedient_sidebar", "open");
+  // Load collapsed state from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("expedient_sidebar_collapsed");
+      if (saved === "true") {
+        setIsCollapsed(true);
+        document.body.classList.add("sidebar-collapsed");
+      }
+    } catch {}
+  }, []);
+
+  const toggleCollapse = () => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(20);
+    const next = !isCollapsed;
+    setIsCollapsed(next);
+    if (next) {
+      document.body.classList.add("sidebar-collapsed");
+      try { localStorage.setItem("expedient_sidebar_collapsed", "true"); } catch {}
     } else {
-      document.body.classList.add("sidebar-closed");
-      localStorage.setItem("expedient_sidebar", "closed");
+      document.body.classList.remove("sidebar-collapsed");
+      try { localStorage.setItem("expedient_sidebar_collapsed", "false"); } catch {}
     }
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("expedient-sidebar-toggle", { detail: { isOpen: newState } }));
+      window.dispatchEvent(new CustomEvent("expedient-sidebar-toggle", { detail: { isCollapsed: next } }));
     }
   };
 
-  // Initialize sidebar state on mount
-  useEffect(() => {
-    const savedState = localStorage.getItem("expedient_sidebar");
-    // Default to open if not set
-    if (savedState === "closed") {
-      setIsOpen(false);
-      document.body.classList.add("sidebar-closed");
-    } else {
-      setIsOpen(true);
-      document.body.classList.remove("sidebar-closed");
-    }
-  }, []);
-
-  const { t } = useLanguage();
-
-  // Public pages: accessible without login
-  const publicNavItems = [
-    { href: "/", icon: "fa-house", label: t.sidebar.home, tooltip: t.sidebar.tooltip_home },
-    { href: "/beranda", icon: "fa-landmark", label: t.sidebar.museum, tooltip: t.sidebar.tooltip_museum },
-    { href: "/direktori", icon: "fa-address-book", label: t.sidebar.directory, tooltip: t.sidebar.tooltip_directory },
-    { href: "/galeri", icon: "fa-film", label: t.sidebar.gallery, tooltip: t.sidebar.tooltip_gallery },
+  const navGroups: NavGroup[] = [
+    {
+      title: locale === "ar" ? "الرئيسية" : locale === "en" ? "MAIN" : "UTAMA",
+      items: [
+        { href: "/beranda", icon: "fa-house", label: t.sidebar?.museum || "Beranda", tooltip: "Museum Digital & Linimasa", mobileDock: true },
+        { href: "/direktori", icon: "fa-address-book", label: t.sidebar?.directory || "Direktori", tooltip: "Buku Kontak Alumni", mobileDock: true },
+        { href: "/galeri", icon: "fa-photo-film", label: t.sidebar?.gallery || "Galeri", tooltip: "Arsip Foto & Video", mobileDock: true },
+      ],
+    },
+    {
+      title: locale === "ar" ? "الكنوز الروحية" : locale === "en" ? "HERITAGE" : "KHAZANAH",
+      items: [
+        { href: "/quran", icon: "fa-book-quran", label: "Al-Qur'an", tooltip: "Al-Qur'an Digital & Doa" },
+        { href: "/tarbiyah", icon: "fa-graduation-cap", label: "Tarbiyah", tooltip: "Tarbiyah & Nilai Kepesantrenan" },
+        { href: "/mahfuzhat", icon: "fa-feather-pointed", label: "Mahfuzhat", tooltip: "Kata Mutiara & Mahfuzhat" },
+        { href: "/sirah", icon: "fa-landmark-dome", label: "Sirah", tooltip: "Sirah Nabawiyah & Peta Jejak" },
+      ],
+    },
+    {
+      title: locale === "ar" ? "الشبكة والخدمات" : locale === "en" ? "NETWORK" : "JARINGAN",
+      items: [
+        { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar?.radar || "Radar", tooltip: "Peta Persebaran Alumni", authOnly: true },
+        { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar?.business || "Syndicate", tooltip: "Jaringan Bisnis Alumni", authOnly: true },
+        { href: "/fitur", icon: "fa-cubes", label: t.sidebar?.features || "Semua Fitur", tooltip: "Ekosistem Fitur Terpadu", mobileDock: true },
+      ],
+    },
+    {
+      title: locale === "ar" ? "المساعدة" : locale === "en" ? "SUPPORT" : "BANTUAN",
+      items: [
+        { href: "/panduan", icon: "fa-circle-question", label: t.sidebar?.guide || "Panduan", tooltip: "Panduan Penggunaan Portal" },
+      ],
+    },
   ];
 
-  // Auth-only pages
-  const authNavItems = [
-    { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: t.sidebar.tooltip_radar },
-    { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar.business, tooltip: t.sidebar.tooltip_business },
-    { href: "/fitur", icon: "fa-cubes", label: t.sidebar.features, tooltip: t.sidebar.tooltip_features },
-    { href: "/panduan", icon: "fa-book-bookmark", label: t.sidebar.guide, tooltip: t.sidebar.tooltip_guide, extraClass: "nav-item-panduan" },
-  ];
-
-  // Fitur sub-pages for active state detection
-  const fiturPages = [
-    "/fitur",
-    "/quran",
-    "/matsurat",
-    "/mahfuzhat",
-    "/asmaul-husna",
-    "/sirah",
-    "/tasbih",
-    "/kiblat",
-    "/khatam",
-    "/photobooth",
-    "/oracle",
-    "/enigma",
-    "/genesis",
-    "/majlis",
-    "/tarbiyah",
-    "/baitul-maal",
-    "/wasiat",
-    "/multazam",
-    "/kontemplasi",
-    "/divine",
-    "/nexus",
-  ];
-
-  const isActive = (href: string) => {
-    if (href === "/") {
-      return pathname === "/";
-    }
-    if (href === "/fitur") {
-      return fiturPages.some(p => pathname?.startsWith(p));
-    }
+  const isItemActive = (href: string) => {
+    if (href === "/beranda") return pathname === "/beranda";
+    if (href === "/fitur") return pathname === "/fitur";
     return pathname?.startsWith(href);
   };
 
   return (
-    <>
-      <button className={`menu-toggle hover-trigger ${isOpen ? 'active' : ''}`} id="btnMenuOpen" title={t.sidebar.open_panel_title} onClick={toggleSidebar}>
-        <span className="line"></span>
-        <span className="line short"></span>
-      </button>
+    <nav className="sidebar no-select" id="sidebarNav" aria-label="Navigasi Utama">
+      {/* Sidebar Header (Desktop) */}
+      <div className="sidebar-header desktop-only">
+        <Link href="/beranda" className="sidebar-brand-link">
+          <Image
+            src="/icon-48.png"
+            alt="Expedient 43"
+            width={34}
+            height={34}
+            className="sidebar-logo"
+            priority
+          />
+          <div className="sidebar-brand-text">
+            <span className="sidebar-brand-title">EXPEDIENT</span>
+            <span className="sidebar-brand-sub">ANGKATAN 43</span>
+          </div>
+        </Link>
+        <button
+          type="button"
+          className="sidebar-collapse-btn"
+          onClick={toggleCollapse}
+          title={isCollapsed ? "Perluas Menu" : "Ciutkan Menu"}
+          aria-label={isCollapsed ? "Perluas Menu" : "Ciutkan Menu"}
+        >
+          <i className={`fa-solid ${isCollapsed ? "fa-angles-right" : "fa-angles-left"}`}></i>
+        </button>
+      </div>
 
-      <nav className={`sidebar no-select ${isOpen ? 'active' : ''}`} id="sidebarNav">
-        <a href="#" className="nav-item hover-trigger" id="btnMenuClose" onClick={(e) => { e.preventDefault(); toggleSidebar(); }} data-tooltip={t.sidebar.tooltip_hide}>
-          <i className="fa-solid fa-compress"></i>
-          <span className="nav-label">{t.sidebar.close}</span>
-        </a>
-        
-        {/* Public navigation items */}
-        {publicNavItems.map((item) => (
-          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className={`fa-solid ${item.icon}`}></i>
-            <span className="nav-label">{item.label}</span>
-          </Link>
+      {/* Scrollable Nav Area */}
+      <div className="sidebar-nav-scroll">
+        {navGroups.map((group, gIdx) => (
+          <div key={gIdx} className="nav-section">
+            <span className="nav-section-title desktop-only">{group.title}</span>
+            {group.items.map((item) => {
+              if (item.authOnly && !isLoggedIn) return null;
+              const active = isItemActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-item ${active ? "active" : ""} ${item.mobileDock ? "mobile-dock-item" : "desktop-only-item"}`}
+                  data-tooltip={item.tooltip}
+                  onClick={() => {
+                    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
+                  }}
+                >
+                  <span className="nav-icon">
+                    <i className={`fa-solid ${item.icon}`}></i>
+                  </span>
+                  <span className="nav-label">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         ))}
 
-        {/* Auth-only navigation items */}
-        {isLoggedIn && authNavItems.map((item) => (
-          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className={`fa-solid ${item.icon}`}></i>
-            <span className="nav-label">{item.label}</span>
-          </Link>
-        ))}
-        
-        <div style={{ flexGrow: 1 }} className="nav-spacer"></div>
+        {/* Mobile Profile / Login Item (Inside Mobile Dock) */}
+        <div className="mobile-only-profile-item mobile-only">
+          {isLoggedIn ? (
+            <Link
+              href="/profil"
+              className={`nav-item ${pathname?.startsWith("/profil") ? "active" : ""}`}
+              onClick={() => { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10); }}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-circle-user"></i>
+              </span>
+              <span className="nav-label">{t.sidebar?.profile || "Profil"}</span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="nav-item"
+              onClick={() => { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10); }}
+            >
+              <span className="nav-icon">
+                <i className="fa-solid fa-door-open"></i>
+              </span>
+              <span className="nav-label">{t.sidebar?.login || "Masuk"}</span>
+            </Link>
+          )}
+        </div>
+      </div>
 
-        {/* Bottom: Profil (logged in) or Masuk (guest) */}
+      {/* Sidebar Footer (Desktop User Card) */}
+      <div className="sidebar-footer desktop-only">
         {isLoggedIn ? (
-          <Link href="/profil" className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`} data-tooltip={t.sidebar.profile} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className="fa-solid fa-circle-user"></i>
-            <span className="nav-label">{t.sidebar.profile}</span>
+          <Link href="/profil" className="sidebar-user-card" title="Buka Profil Saya">
+            <div className="sidebar-user-avatar">
+              <i className="fa-solid fa-user"></i>
+            </div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{userName || "Alumni"}</span>
+              <span className="sidebar-user-role">Santri Terverifikasi</span>
+            </div>
           </Link>
-        ) : isLoggedIn === false ? (
-          <Link href="/login" className="nav-item hover-trigger" data-tooltip={t.sidebar.login} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className="fa-solid fa-door-open"></i>
-            <span className="nav-label">{t.sidebar.login}</span>
+        ) : (
+          <Link href="/login" className="sidebar-user-card" title="Masuk ke Ruang Anggota">
+            <div className="sidebar-user-avatar">
+              <i className="fa-solid fa-door-open"></i>
+            </div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">Masuk Akun</span>
+              <span className="sidebar-user-role">Akses Penuh Portal</span>
+            </div>
           </Link>
-        ) : null}
-      </nav>
-    </>
+        )}
+      </div>
+    </nav>
   );
 }

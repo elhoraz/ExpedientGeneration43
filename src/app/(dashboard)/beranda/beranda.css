@@ -97,11 +97,30 @@
     .hud-hint { color: var(--text-secondary); font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; text-shadow: 0 0 10px var(--bg-main); transition: 0.3s; }
 
     .btn-mecha {
-        pointer-events: auto; background: var(--glass-bg); backdrop-filter: var(--glass-blur);
-        border: 1px solid rgba(212, 175, 55, 0.5); color: #d4af37; padding: 15px 40px; border-radius: 5px; 
-        text-transform: uppercase; letter-spacing: 4px; font-weight: 800; cursor: pointer; transition: 0.4s;
+        pointer-events: auto;
+        background: rgba(212, 175, 55, 0.08);
+        backdrop-filter: var(--glass-blur);
+        border: 1px solid rgba(212, 175, 55, 0.4);
+        color: var(--gold-main, #d4af37);
+        padding: 12px 28px;
+        border-radius: 9999px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-weight: 600;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
-    .btn-mecha:hover { background: #d4af37; color: var(--bg-main); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(212,175,55,0.3); }
+    .btn-mecha:hover {
+        background: #d4af37;
+        color: #070d0d;
+        border-color: #d4af37;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+    }
 
     @keyframes smoothScrollIndicator { 0%, 100% { transform: translate(-50%, 0); opacity: 0.6; } 50% { transform: translate(-50%, 6px); opacity: 1; } }
 
@@ -151,8 +170,20 @@
     .hall-section { padding: clamp(50px, 10vh, 120px) clamp(20px, 5vw, 80px); max-width: 1400px; margin: 0 auto; box-sizing: border-box; }
     .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 4vw, 3.5rem); color: #d4af37; text-align: center; margin-bottom: clamp(30px, 6vh, 60px); text-transform: uppercase; letter-spacing: 2px; }
     
-    .glass-panel { background: var(--glass-bg, rgba(12, 21, 38, 0.65)); backdrop-filter: blur(20px); border: 1px solid var(--glass-border, rgba(0, 210, 255, 0.2)); border-radius: 16px; padding: 30px; }
-    :root[data-theme="light"] .glass-panel { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(212, 175, 55, 0.4); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .glass-panel {
+        background: var(--bg-card, rgba(14, 25, 23, 0.88));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--glass-shadow);
+    }
+    :root[data-theme="light"] .glass-panel {
+        background: var(--bg-card, #ffffff);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
 
     .epigraph-section { text-align: center; min-height: 45vh; display: flex; align-items: center; justify-content: center; width: 100%; }
     .grand-text { font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 4vw, 3rem); line-height: 1.5; font-weight: 500; color: var(--text-main, #f8fafc); text-align: center; width: 100%; margin: 0 auto; }
