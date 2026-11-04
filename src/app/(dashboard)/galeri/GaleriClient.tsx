@@ -906,11 +906,11 @@ export default function GaleriClient({
 
           <div className="gallery-stage" id="galleryStage">
             <div className="glitch-overlay" id="glitchOverlay"></div>
-            <div className="ethereal-text" id="etherealText" title="Double Click for Epilogue">THE SYNDICATE</div>
+            <div className="ethereal-text" id="etherealText" title="Double Click for Epilogue">KHAZANAH KENANGAN</div>
             <canvas id="dustCanvas"></canvas>
             <div className="ambient-light" id="ambientLight"></div>
             <button className="dimension-shift-btn hover-trigger" id="btnShift">
-              <i className="fa-solid fa-rotate"></i> {locale === 'ar' ? 'التبديل إلى دفعة أوميغا (البنات)' : locale === 'en' ? 'SHIFT TO OMEGA (FEMALE)' : 'SHIFT TO OMEGA (PUTRI)'}
+              <i className="fa-solid fa-rotate"></i> {locale === 'ar' ? 'التبديل إلى ألبوم الطالبات' : locale === 'en' ? 'Beralih ke Album Putri' : 'Beralih ke Album Putri'}
             </button>
 
             <div className="dimension-core" id="dimCore">

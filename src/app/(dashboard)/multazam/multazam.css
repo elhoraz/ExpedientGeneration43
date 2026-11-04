@@ -24,8 +24,8 @@
 .multazam-page-wrapper .ticket-container { perspective: 1500px; margin-bottom: 50px; }
 .multazam-page-wrapper .vip-ticket { width: 100%; max-width: 350px; height: 600px; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border-radius: 20px; position: relative; transform-style: preserve-3d; box-shadow: var(--glass-shadow); border: 1px solid var(--glass-border); display: flex; flex-direction: column; overflow: hidden; margin: 0 auto; }
 .multazam-page-wrapper .vip-ticket::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 45%, rgba(212,175,55,0.4) 50%, rgba(255,255,255,0.1) 55%, transparent 100%); transform: translateZ(1px); pointer-events: none; opacity: 0; transition: opacity 0.5s; mix-blend-mode: color-dodge; }
-.multazam-page-wrapper .vip-ticket:hover::after { opacity: 1; animation: holoFoil 3s infinite linear; }
-@keyframes holoFoil { 0% { transform: translateY(-50%) translateX(-50%) rotate(0deg); } 100% { transform: translateY(0%) translateX(0%) rotate(360deg); } }
+.multazam-page-wrapper .vip-ticket { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease; }
+.multazam-page-wrapper .vip-ticket:hover { transform: translateY(-4px); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.15); }
 
 .multazam-page-wrapper .ticket-top { height: 250px; background-image: url('https://images.unsplash.com/photo-1519671482749-fd098f392a56?q=80&w=2670&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative; border-bottom: 2px dashed rgba(212,175,55,0.5); }
 .multazam-page-wrapper .ticket-top::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-main) 0%, transparent 100%); }

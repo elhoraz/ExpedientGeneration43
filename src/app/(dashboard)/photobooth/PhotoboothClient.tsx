@@ -1022,10 +1022,10 @@ export default function PhotoboothClient() {
     } else if (theme === "cyber") {
       ctx.fillStyle = "#080812";
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-      ctx.strokeStyle = "#00f0ff";
+      ctx.strokeStyle = "#10b981";
       ctx.lineWidth = 2 * scale;
-      ctx.shadowColor = "#00f0ff";
-      ctx.shadowBlur = 10 * scale;
+      ctx.shadowColor = "rgba(16, 185, 129, 0.4)";
+      ctx.shadowBlur = 8 * scale;
       ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
       ctx.shadowBlur = 0;
     } else if (theme === "parchment") {
@@ -1050,9 +1050,9 @@ export default function PhotoboothClient() {
       ctx.lineWidth = 2 * scale;
       ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
     } else if (theme === "y2k") {
-      ctx.fillStyle = "#ff007f";
+      ctx.fillStyle = "#1e1322";
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-      ctx.strokeStyle = "#00ffff";
+      ctx.strokeStyle = "#d4af37";
       ctx.lineWidth = 2 * scale;
       ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
     } else if (theme === "botanical") {
@@ -1343,7 +1343,7 @@ export default function PhotoboothClient() {
         const headerTitle = "EXPEDIENT GENERATION";
         let textCol = "#ffd700";
         if (theme === "white") textCol = "#111111";
-        else if (theme === "cyber") textCol = "#00f0ff";
+        else if (theme === "cyber") textCol = "#10b981";
         else if (theme === "sakura") textCol = "#c71f66";
         else if (theme === "parchment") textCol = "#4a2c11";
         else if (theme === "ocean") textCol = "#caf0f8";
@@ -1487,7 +1487,7 @@ export default function PhotoboothClient() {
         } else if (theme === "sakura") {
           textCol = "#c71f66"; subCol = "#800f2f"; borderCol = "#ffb3c1";
         } else if (theme === "cyber") {
-          textCol = "#00f0ff"; subCol = "#ff007f"; borderCol = "#00f0ff";
+          textCol = "#10b981"; subCol = "#059669"; borderCol = "#059669";
         } else if (theme === "parchment") {
           textCol = "#4a2c11"; subCol = "#7a5028"; borderCol = "#8b5a2b";
         } else if (theme === "ocean") {
@@ -1495,7 +1495,7 @@ export default function PhotoboothClient() {
         } else if (theme === "velvet") {
           textCol = "#f7d6e0"; subCol = "#c08081"; borderCol = "#d4af37";
         } else if (theme === "y2k") {
-          textCol = "#ffff00"; subCol = "#ffffff"; borderCol = "#00ffff";
+          textCol = "#d4af37"; subCol = "#e6c86e"; borderCol = "#d4af37";
         } else if (theme === "botanical") {
           textCol = "#d8f3dc"; subCol = "#95d5b2"; borderCol = "#52b788";
         } else if (theme === "monolith") {

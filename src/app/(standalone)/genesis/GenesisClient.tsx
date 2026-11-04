@@ -230,7 +230,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
         @keyframes pulseText { 0% { opacity: 0.5; } 100% { opacity: 1; } }
 
         .btn-singularity { pointer-events: auto; background: rgba(212, 175, 55, 0.1); backdrop-filter: blur(10px); border: 1px solid var(--genesis-gold); color: var(--genesis-gold); padding: 15px 40px; border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 4px; cursor: pointer; transition: all 0.4s ease; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
-        .btn-singularity:hover { background: var(--genesis-gold); color: #060b14; box-shadow: 0 0 40px rgba(212, 175, 55, 0.6); transform: scale(1.05); }
+        .btn-singularity:hover { background: var(--genesis-gold); color: #060b14; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.3); transform: scale(1.05); }
 
         .revelation-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; opacity: 0; pointer-events: none; transition: opacity 2s ease; }
         .revelation-box.show { opacity: 1; pointer-events: auto; }

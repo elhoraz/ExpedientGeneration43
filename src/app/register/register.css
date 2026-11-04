@@ -141,7 +141,7 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
 
 .btn-magnetic-wrapper { display: inline-block; width: 100%; position: relative; margin-top: 20px; } 
 .btn-prime { position: relative; width: 100%; padding: 22px; border-radius: 18px; border: none; background: var(--gold-liquid); background-size: 200% auto; color: #060b14; font-weight: 800; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.4); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.27); will-change: transform; }
-.btn-prime:hover { animation: shimmerLiquid 2.5s linear infinite; box-shadow: 0 20px 40px rgba(212, 175, 55, 0.4); }
+.btn-prime:hover { transform: translateY(-2px); box-shadow: 0 16px 35px rgba(212, 175, 55, 0.35); filter: brightness(1.08); }
 
 @keyframes shakeError { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
 .shake-anim { animation: shakeError 0.5s cubic-bezier(.36,.07,.19,.97) both !important; box-shadow: 0 0 30px rgba(255,51,102,0.6) !important; border: 1px solid #ff3366 !important; }
