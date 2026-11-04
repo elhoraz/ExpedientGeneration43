@@ -24,7 +24,7 @@
 }
 
 .syndicate-subtitle {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-manrope), sans-serif;
   font-size: clamp(0.8rem, 2vw, 0.95rem);
   color: var(--gold-main, #d4af37);
   letter-spacing: 5px;
@@ -128,7 +128,7 @@
 }
 
 .biz-founder-badge {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-manrope), sans-serif;
   color: #00c853;
   font-size: 0.7rem;
   letter-spacing: 1px;

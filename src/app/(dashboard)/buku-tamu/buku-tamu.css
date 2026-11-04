@@ -13,7 +13,7 @@
 .buku-tamu-wrapper .msg-card { background: var(--bg-secondary, rgba(15, 20, 18, 0.8)); border: 1px solid var(--glass-border); border-left: 3px solid #d4af37; padding: 20px; border-radius: 14px; margin-bottom: 18px; box-shadow: var(--glass-shadow); }
 .buku-tamu-wrapper .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; flex-wrap: wrap; gap: 6px; }
 .buku-tamu-wrapper .msg-author { color: #d4af37; font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: bold; }
-.buku-tamu-wrapper .msg-date { color: var(--text-secondary); font-size: 0.75rem; font-family: 'Courier New', monospace; }
+.buku-tamu-wrapper .msg-date { color: var(--text-secondary); font-size: 0.75rem; font-family: var(--font-manrope), sans-serif; }
 .buku-tamu-wrapper .msg-body { color: var(--text-primary); font-style: italic; line-height: 1.6; font-size: 0.92rem; }
 
 @media (max-width: 768px) {

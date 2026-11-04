@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         // 2. WhatsApp Broadcast (SVC-01)
         const waTargets = profiles.map(p => p.no_whatsapp).filter(Boolean);
         if (waTargets.length > 0) {
-          const waMessage = `📢 *Pengumuman Baru Expedient*\n\n*${title}*\n\nSilakan cek selengkapnya di portal Sovereign Nexus.`;
+          const waMessage = `📢 *Pengumuman Baru Expedient*\n\n*${title}*\n\nSilakan cek selengkapnya di Portal Resmi Expedient 43.`;
           await broadcastWhatsAppMessage(waTargets as string[], waMessage);
         }
       }

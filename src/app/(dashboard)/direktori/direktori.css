@@ -137,7 +137,7 @@ body.page-direktori .direktori-container,
 .direktori-container .swiper-slide-active .r-4 { transition-delay: 0.45s; }
 
 .direktori-container .detail-group { margin-bottom: 15px; }
-.direktori-container .d-label { font-family: 'Courier New', monospace; font-size: 0.65rem; color: #f3e5ab; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 4px; font-weight: 600; opacity: 0.95; }
+.direktori-container .d-label { font-family: var(--font-manrope), sans-serif; font-size: 0.65rem; color: #f3e5ab; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 4px; font-weight: 600; opacity: 0.95; }
 .direktori-container .d-value { font-family: 'Manrope', sans-serif; font-size: 0.92rem; color: var(--text-primary); font-weight: 500; }
 
 .direktori-container .card-quote { font-style: italic; font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--text-primary); line-height: 1.5; margin: 24px 0 18px; position: relative; opacity: 0.9; }

@@ -163,7 +163,7 @@ export default function BerandaClient({
       archive: {
           visi: { 
             date: isAr ? '٣٠ مارس ٢٠٢٦' : (isEn ? 'MARCH 30, 2026' : t('beranda_archive_1_date', '30 MARET 2026')), 
-            title: isAr ? 'إعلان رؤية العهد السيادي' : (isEn ? 'Sovereign Vision Declaration' : t('beranda_archive_1_title', 'Deklarasi Visi Sovereign')), 
+            title: isAr ? 'إعلان رؤية العهد السيادي' : (isEn ? 'Deklarasi Visi Angkatan 43' : t('beranda_archive_1_title', 'Deklarasi Visi Sovereign')), 
             content: isAr ? '<p>تسجل هذه الوثيقة العهد العظيم لدفعة إكسبيدينت بشأن رؤية ومسار المستقبل.</p><p>نعاهد الله على حفظ ميراث <span class="redacted" onclick="revealRedacted(this)">الإسلام</span> وتوثيق عرى <span class="redacted" onclick="revealRedacted(this)">الأخوة</span>.</p>' : (isEn ? '<p>This manuscript records the solemn pledge of the Expedient cohort regarding future vision.</p><p>We pledge to preserve the legacy of <span class="redacted" onclick="revealRedacted(this)">ISLAM</span> and bind tight our <span class="redacted" onclick="revealRedacted(this)">BROTHERHOOD</span>.</p>' : t('beranda_archive_1_content', '<p>Naskah ini mencatat sumpah agung angkatan Expedient mengenai visi dan arah tujuan masa depan.</p><p>Kami berjanji untuk memelihara warisan <span class="redacted" onclick="revealRedacted(this)">KEISLAMAN</span> dan mengikat erat <span class="redacted" onclick="revealRedacted(this)">PERSAUDARAAN</span>.</p><p>Nilai-nilai ini diukir bukan pada batu, melainkan pada karakter setiap individu.</p><p><em>Selesai.</em></p>')) 
           },
           simpul: { 
@@ -282,7 +282,7 @@ export default function BerandaClient({
               <div className="loader-ring-active"></div>
               <div className="loader-percent" id="loadPercent">0%</div>
           </div>
-          <div className="loader-lore" id="loaderLore">"Sovereign Protocol Initiated..."</div>
+          <div className="loader-lore" id="loaderLore">"Memuat Lembaran Sejarah..."</div>
           <div className="loader-status">{tLang.beranda.loader_preparing}</div>
       </div>
 
@@ -420,12 +420,12 @@ export default function BerandaClient({
               </div>
           </section>
 
-          {/* Modal Sovereign Archives */}
+          {/* Modal Arsip Kenangan Alumni */}
           <div className="archive-modal" id="archiveModal">
               <div className="archive-backdrop" onClick={() => (window as any).closeArchive?.()}></div>
               <div className="archive-paper" id="archivePaper">
                   <div className="archive-header">
-                      <div>SOVEREIGN ARCHIVE</div>
+                      <div>ARSIP KENANGAN ALUMNI</div>
                       <div id="arcDate">---</div>
                   </div>
                   <h1 className="archive-title" id="arcTitle">TITLE</h1>

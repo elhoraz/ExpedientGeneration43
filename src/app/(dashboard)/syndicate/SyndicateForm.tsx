@@ -846,7 +846,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <div>
                 <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--gold-main)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "6px" }}>
-                  <i className="fa-solid fa-award"></i> Promo Khusus Pemegang KTA Sovereign Expedient 43
+                  <i className="fa-solid fa-award"></i> Promo Khusus Pemegang KTA Resmi Expedient 43
                 </label>
                 <textarea
                   rows={3}

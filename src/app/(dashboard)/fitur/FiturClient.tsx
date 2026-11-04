@@ -765,7 +765,7 @@ export default function FiturClient({
       </div>
 
       {/* =========================================================================
-          2. DESKTOP VIEW: THE SOVEREIGN VAULT (SUPER KEREN & SINEMATIK > 900PX)
+          2. DESKTOP VIEW: KTA DIGITAL SANTRI (SUPER KEREN & SINEMATIK > 900PX)
           ========================================================================= */}
       <div className="desktop-vault-view">
 

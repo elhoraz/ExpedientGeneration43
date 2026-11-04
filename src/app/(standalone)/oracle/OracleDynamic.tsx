@@ -36,7 +36,7 @@ const OracleClient = dynamic(() => import("./OracleClient"), {
           textTransform: "uppercase",
         }}
       >
-        Menghubungkan Neural Oracle & Vision Models...
+        Menghubungkan Asisten Pintar Alumni...
       </div>
     </div>
   ),

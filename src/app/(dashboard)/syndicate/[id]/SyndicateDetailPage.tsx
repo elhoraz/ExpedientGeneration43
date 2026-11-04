@@ -316,7 +316,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 Hak Istimewa Alumni Expedient 43
               </div>
               <h3 style={{ fontSize: "1.25rem", color: "var(--text-primary)", fontWeight: 700, margin: "0 0 6px" }}>
-                Promo Diskon Pemegang KTA Sovereign
+                Promo Diskon Pemegang KTA Resmi
               </h3>
               <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.6 }}>
                 {business.promo_alumni}

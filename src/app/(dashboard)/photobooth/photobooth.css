@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AEGIS PHOTOBOOTH — LUXURY STUDIO EXPERIENCE
+   STUDIO FOTO KENANGAN — LUXURY STUDIO EXPERIENCE
    Expedient Generation 43rd Arrisalah
    ========================================================================== */
 
@@ -555,7 +555,7 @@
 }
 .photostrip-card.theme-cyber .strip-header,
 .photostrip-card.theme-cyber .strip-footer {
-  color: #00f0ff;
+  color: #10b981;
   text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
 }
 .photostrip-card.theme-cyber .strip-divider {
@@ -2080,7 +2080,7 @@
 }
 
 /* ==========================================================================
-   AEGIS PHOTOBOOTH — FULL LIGHT THEME (ROYAL PEARL & OBSIDIAN GOLD)
+   STUDIO FOTO KENANGAN — FULL LIGHT THEME (ROYAL PEARL & OBSIDIAN GOLD)
    ========================================================================== */
 :root[data-theme="light"] .photobooth-page {
   background: radial-gradient(circle at 50% 15%, rgba(212, 175, 55, 0.15) 0%, #f8fafc 70%);

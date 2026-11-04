@@ -260,7 +260,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
         
         <div className="hud-overlay" style={{ opacity: isSingularity ? 0 : 1 }}>
             <div className="hud-text">Usap layar untuk mendisrupsi partikel<br/>Biarkan untuk membentuk identitas</div>
-            <button type="button" className="btn-singularity" onClick={triggerSingularity}>Initiate Singularity</button>
+            <button type="button" className="btn-singularity" onClick={triggerSingularity}>Mulai Penjelajahan Sejarah</button>
         </div>
 
         <div className={`revelation-box ${showRevelation ? 'show' : ''}`}>

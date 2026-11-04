@@ -126,7 +126,7 @@ body:has(.landing-wrapper) {
 }
 
 .brand-subtitle {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-manrope), sans-serif;
   font-size: 0.52rem;
   letter-spacing: 1.2px;
   color: var(--text-secondary);
@@ -684,19 +684,17 @@ body:has(.landing-wrapper) {
   font-weight: 900;
   line-height: 1.12;
   margin-bottom: 14px;
-  background: linear-gradient(180deg, var(--text-primary) 30%, #d4af37 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
+  background: none !important;
   opacity: 0;
   animation: fadeUp 0.8s ease-out 0.4s forwards;
   letter-spacing: -0.5px;
 }
 
 :root[data-theme="light"] .landing-title-tuku {
-  background: linear-gradient(180deg, #0f172a 30%, #8c6d1f 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #062e24 !important;
+  background: none !important;
+  -webkit-text-fill-color: #062e24 !important;
 }
 
 .landing-subtitle-tuku {

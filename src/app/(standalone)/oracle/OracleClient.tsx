@@ -20,7 +20,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [statusText, setStatusText] = useState("MEMUAT NEURAL NETWORKS...");
+  const [statusText, setStatusText] = useState("MEMUAT ASISTEN ALUMNI...");
   const [isScanning, setIsScanning] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [resultData, setResultData] = useState<any>(null);

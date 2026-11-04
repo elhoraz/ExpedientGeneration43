@@ -102,7 +102,7 @@ body.page-galeri .face,
 
 /* HUD & NEW FEATURES */
 body.page-galeri .dimension-shift-btn,
-.gallery-stage .dimension-shift-btn { position: absolute; top: 3vh; left: 50%; transform: translateX(-50%); background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 10px 30px; border-radius: 30px; font-family: 'Courier New', monospace; letter-spacing: 3px; font-weight: bold; cursor: pointer; z-index: 100; transition: 0.4s; box-shadow: 0 0 15px rgba(212,175,55,0.2); font-size: clamp(0.7rem, 1.5vw, 1rem); }
+.gallery-stage .dimension-shift-btn { position: absolute; top: 3vh; left: 50%; transform: translateX(-50%); background: transparent; border: 1px solid #d4af37; color: #d4af37; padding: 10px 30px; border-radius: 30px; font-family: var(--font-manrope), sans-serif; letter-spacing: 3px; font-weight: bold; cursor: pointer; z-index: 100; transition: 0.4s; box-shadow: 0 0 15px rgba(212,175,55,0.2); font-size: clamp(0.7rem, 1.5vw, 1rem); }
 .gallery-stage .dimension-shift-btn:hover { background: #d4af37; color: #000; transform: translateX(-50%) scale(1.05); }
 .gallery-stage.dimensi-putri .dimension-shift-btn { border-color: #e0bfb8; color: #e0bfb8; box-shadow: 0 0 15px rgba(224, 191, 184, 0.2); }
 .gallery-stage.dimensi-putri .dimension-shift-btn:hover { background: #e0bfb8; color: #000; }
@@ -126,7 +126,7 @@ body.page-galeri .btn-icon,
 body.page-galeri #btnGoToPin,
 .gallery-stage #btnGoToPin { color: #fff; background: rgba(212, 175, 55, 0.5); border: 1px solid #d4af37; box-shadow: 0 0 20px rgba(212,175,55,0.8); }
 body.page-galeri .page-indicator,
-.gallery-stage .page-indicator { color: var(--text-secondary, #ccc); font-family: 'Courier New', monospace; font-size: clamp(0.7rem, 1vw, 0.9rem); letter-spacing: 2px; font-weight: bold; min-width: 120px; text-align: center; transition: 0.3s; }
+.gallery-stage .page-indicator { color: var(--text-secondary, #ccc); font-family: var(--font-manrope), sans-serif; font-size: clamp(0.7rem, 1vw, 0.9rem); letter-spacing: 2px; font-weight: bold; min-width: 120px; text-align: center; transition: 0.3s; }
 
 /* WHISPER BUTTON */
 body.page-galeri .whisper-btn,
@@ -1128,7 +1128,7 @@ body.mode-yearbook .dimension-shift-btn,
 }
 
 .lightbox-counter {
-    font-family: 'Courier New', monospace;
+    font-family: var(--font-manrope), sans-serif;
     font-size: 0.85rem;
     color: var(--gold-main, #d4af37);
     letter-spacing: 2px;
