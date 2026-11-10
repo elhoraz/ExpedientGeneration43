@@ -19,6 +19,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/matsurat',
     '/mahfuzhat',
     '/sirah',
+    '/privacy',
+    '/delete-account',
+    '/download',
   ];
 
   return routes.map((route) => ({

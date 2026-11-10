@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimit } from "@/lib/rate-limit";
 import webpush from "web-push";
 import { sendFcmNotification } from "@/lib/fcmServer";
 
@@ -48,8 +49,33 @@ export async function POST(req: Request) {
       );
     }
 
+    // Rate limit: max 10 call notifications per minute per caller
+    const rl = rateLimit(`push-call:${user.id}`, 10, 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json(
+        { status: "error", message: "Terlalu banyak panggilan. Silakan tunggu sebentar.", data: null },
+        { status: 429 }
+      );
+    }
+
     // Service role client to bypass RLS for cross-user queries
     const serviceClient = createAdminClient();
+
+    // Respect UGC user_blocks: if target user blocked caller, silently skip
+    const { data: blockRecord } = await serviceClient
+      .from("user_blocks")
+      .select("id")
+      .eq("blocker_id", targetUserId)
+      .eq("blocked_user_id", user.id)
+      .maybeSingle();
+
+    if (blockRecord) {
+      return NextResponse.json({
+        status: "success",
+        message: "Call notification skipped",
+        data: { sent: 0 },
+      });
+    }
 
     // Fetch caller's profile name
     let callerName = "Seseorang";

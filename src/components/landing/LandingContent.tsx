@@ -743,7 +743,9 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <span>•</span>
               <Link href="/download">{locale === "ar" ? "تحميل التطبيق (Android & iOS)" : locale === "en" ? "Download App (Android & iOS)" : "Unduh Aplikasi (Android & iOS)"}</Link>
               <span>•</span>
-              <Link href="/delete-account">{t?.footer?.link_privacy}</Link>
+              <Link href="/privacy">{t?.footer?.link_privacy || "Kebijakan Privasi"}</Link>
+              <span>•</span>
+              <Link href="/delete-account">{t?.footer?.link_delete_account || (locale === "ar" ? "حذف الحساب" : locale === "en" ? "Delete Account" : "Hapus Akun")}</Link>
             </div>
           </div>
         </footer>

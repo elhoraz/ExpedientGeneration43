@@ -15,10 +15,10 @@ export default async function WasiatPage() {
     redirect("/login");
   }
 
-  // Fetch all wasiats
+  // Fetch all wasiats (exclude passphrase_hash from client payload)
   const { data: wasiats } = await supabase
     .from("wasiats")
-    .select("*, profiles!wasiats_user_id_fkey(nama_panggilan, foto_profil)")
+    .select("id, user_id, encrypted_message, created_at, profiles!wasiats_user_id_fkey(nama_panggilan, foto_profil)")
     .order("created_at", { ascending: false });
 
   const formattedWasiats = wasiats?.map((w: any) => ({

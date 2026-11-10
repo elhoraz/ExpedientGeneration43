@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 // Server-side in-memory translation cache (LRU-like cache of 5,000 entries)
 const translationCache = new Map<string, string>();
@@ -64,6 +65,12 @@ async function translateSingle(text: string, to: string, from: string = "auto"):
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const rl = rateLimit(`translate:${clientIp}`, 60, 60 * 1000);
+    if (!rl.success) {
+      return NextResponse.json({ error: "Too many translation requests" }, { status: 429 });
+    }
+
     const body = await req.json();
     const { texts, text, to = "en", from = "auto" } = body;
 
@@ -82,8 +89,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ translations: {} });
     }
 
-    // Limit batch size to 50 items per request to ensure ultra-fast response
-    const limitedTexts = inputTexts.slice(0, 50);
+    // Limit batch size to 50 items per request & max 2000 chars per item
+    const limitedTexts = inputTexts.slice(0, 50).map((t) => String(t || "").slice(0, 2000));
 
     // Translate all items concurrently
     const results = await Promise.all(

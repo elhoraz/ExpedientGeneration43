@@ -196,6 +196,7 @@ export interface Dictionary {
     copy_text: string;
     link_apk: string;
     link_privacy: string;
+    link_delete_account?: string;
   };
   sidebar: {
     home: string;

@@ -159,6 +159,15 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
               <i className="fa-solid fa-location-crosshairs"></i>
               <span className="btn-radar-text">{t.radar.update_loc}</span>
             </button>
+            <button
+              className="btn-radar btn-radar-glass"
+              id="btnDeleteLocation"
+              title="Hapus lokasi saya dari radar (privasi)"
+              style={{ color: "#f87171" }}
+            >
+              <i className="fa-solid fa-location-slash"></i>
+              <span className="btn-radar-text">Sembunyikan Lokasi</span>
+            </button>
             <button className="btn-radar btn-radar-glass" id="btnAutoTour" title={t.radar.tour_map_title}>
               <i className="fa-solid fa-plane-departure"></i>
               <span className="btn-radar-text">{t.radar.tour_map}</span>

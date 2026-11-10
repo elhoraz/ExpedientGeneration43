@@ -14,9 +14,8 @@ async function getAdminContext() {
 
   // 1. Validasi via Token Sesi Admin HMAC
   const isSignedAdmin = await verifySignedAdminSession(adminToken);
-  const isLegacyUnlocked = adminToken === "unlocked";
 
-  if (isSignedAdmin || isLegacyUnlocked) {
+  if (isSignedAdmin) {
     return { ok: true, supabase: adminClient, currentAdmin: null };
   }
 

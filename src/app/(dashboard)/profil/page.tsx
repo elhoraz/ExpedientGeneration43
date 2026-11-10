@@ -14,12 +14,24 @@ export default async function ProfilPage() {
     redirect("/login");
   }
 
-  // Get user profile data from profiles table
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
+  // Fetch user profile, isolated biometric face data, and passkey biometrics in parallel
+  const [{ data: profile }, { data: faceRecord }, { data: biometrics }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("user_face_data")
+      .select("face_data")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("user_biometrics")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   // Merge email from auth user into profile data with resilient fallback
   const userData = {
@@ -30,15 +42,9 @@ export default async function ProfilPage() {
     prestise_points: profile?.prestise_points || 0,
     is_active: profile?.is_active ?? true,
     ...(profile || {}),
+    face_data: faceRecord?.face_data || null,
     email: user.email || "",
   };
-
-  // Fetch registered biometrics
-  const { data: biometrics } = await supabase
-    .from("user_biometrics")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
 
   return <ProfilClient user={userData} initialBiometrics={biometrics || []} />;
 }

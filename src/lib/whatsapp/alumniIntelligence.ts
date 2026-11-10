@@ -199,6 +199,44 @@ export async function resolveCohortContext(
       };
     }
 
+    // 1c. TANYA PONDOK MODERN ARRISALAH / SEJARAH / PIMPINAN / PROGRAM INTERNASIONAL / SLAHUNG / MEDSOS
+    if (
+      lower.includes("arrisalah") ||
+      lower.includes("slahung") ||
+      lower.includes("gundik") ||
+      lower.includes("pesantren") ||
+      lower.includes("pengajian ahad pagi") ||
+      lower.includes("kh ma'shum") ||
+      lower.includes("kh maksum") ||
+      lower.includes("azharullah") ||
+      lower.includes("program internasional") ||
+      lower.includes("kmi arrisalah") ||
+      lower.includes("optti") ||
+      lower.includes("ikpa") ||
+      lower.includes("sejarah pondok") ||
+      lower.includes("pendiri pondok") ||
+      lower.includes("pimpinan pondok")
+    ) {
+      return {
+        category: "philosophy",
+        summary:
+          `FAKTA RESMI PONDOK MODERN ARRISALAH PROGRAM INTERNASIONAL (SLAHUNG, PONOROGO):\n` +
+          `• Nama Lembaga: Pondok Modern Arrisalah Program Internasional (Arrisalah Islamic International College).\n` +
+          `• Lokasi: Desa Gundik, Kec. Slahung, Kab. Ponorogo, Jawa Timur (±15 km arah selatan pusat kota Ponorogo, jalur Ponorogo-Pacitan, di kaki perbukitan Slahung yang asri).\n` +
+          `• Sejarah & Pendiri: Dirintis pada 1 Muharram 1403 H / 18 Oktober 1982 M oleh Drs. KH. Muhammad Ma'shum Yusuf bin Taslim (alumnus KMI & IPD Pondok Modern Gontor, sekretaris pribadi Trimurti Gontor KH. Imam Zarkasyi selama 20 tahun). Awalnya bernama 'Madinatul Thullab' (Kota Santri), lalu pada 26 Februari 1985 diresmikan langsung oleh KH. Imam Zarkasyi dan berganti nama menjadi Pondok Modern Arrisalah.\n` +
+          `• Kepemimpinan: Drs. KH. Muhammad Ma'shum Yusuf memimpin sejak 1982 hingga beliau wafat pada 18 Juli 2020. Estafet kepemimpinan dan pengasuhan pondok saat ini dilanjutkan oleh putra sulung beliau, KH. Muhammad Azharullah, Lc.\n` +
+          `• Sistem & Kurikulum KMI: Mengadopsi 80%+ pola KMI (Kulliyatul Mu'allimin Al-Islamiyah) Pondok Modern Darussalam Gontor dengan asrama 24 jam. Disiplin dwi-bahasa resmi (Bahasa Arab & Inggris aktif 24 jam), kajian sains modern, serta literasi teknologi & komputer yang nilainya masuk rapor per semester.\n` +
+          `• Program Internasional: Penyiapan santri berwawasan global, fasih berbahasa Arab & Inggris fashih, dan persiapan menembus perguruan tinggi luar negeri ternama (seperti Universitas Al-Azhar Kairo Mesir, Timur Tengah, dll.) maupun universitas unggulan nasional.\n` +
+          `• Tradisi & Agenda Akbar: Pengajian Umum Ahad Pagi (tradisi syiar dakwah akbar legendaris tiap Ahad pagi yang dihadiri ribuan jamaah dari Ponorogo, Madiun, Pacitan, Trenggalek, Magetan), Pekan Perkenalan Khutbatul 'Arsy (PKA), Panggung Gembira (PG) santri akhir KMI, Fathu al-Kutub (kajian bedah kitab kuning ulama salaf), Amaliyah Tadris (praktik mengajar microteaching kelas 6), serta keorganisasian OPTTI dan Gerakan Pramuka.\n` +
+          `• Ikatan Alumni: IKPA (Ikatan Keluarga Pondok Modern Arrisalah). Angkatan 43 adalah Expedient Generation (Jiilul Hashiif / The Successors), lulusan tahun 2025.\n` +
+          `• Media Resmi:\n` +
+          `  - Website Lembaga: https://pm.arrisalah.id / https://pmarrisalah.sch.id / https://pmarrisalah.com\n` +
+          `  - Instagram Resmi: @pmarrisalah (Arrisalah Islamic International College)\n` +
+          `  - YouTube Resmi: Pengajian Umum Ahad Pagi Pm Arrisalah Ponorogo (@pengajianumumahadpagipmarr2004)\n` +
+          `  - Portal Web Angkatan 43: https://expedientgeneration.vercel.app`,
+      };
+    }
+
     // 2. TANYA ULANG TAHUN / MILAD (HARI INI / BULAN INI / TERDEKAT)
     if (
       lower.includes("ultah") ||
@@ -782,7 +820,13 @@ export async function resolveCohortContext(
 
   return {
     category: "general",
-    summary: `INFORMASI ANGKATAN:\nExpedient Generation 43 (Jiilul Hashiif) adalah ikatan alumni Pondok Modern Arrisalah Slahung Ponorogo lulusan tahun 2025. Motto: "The Successors" (Keluarga, Ukhuwah, & Prestasi). Portal resmi: https://expedientgeneration.vercel.app`,
+    summary:
+      `INFORMASI PONDOK MODERN ARRISALAH & ANGKATAN 43:\n` +
+      `• Lembaga: Pondok Modern Arrisalah Program Internasional (Arrisalah Islamic International College), Desa Gundik, Kec. Slahung, Kab. Ponorogo, Jawa Timur.\n` +
+      `• Sejarah: Dirintis 18 Okt 1982 oleh Drs. KH. Muhammad Ma'shum Yusuf bin Taslim (alumnus Gontor, sekretaris pribadi KH. Imam Zarkasyi 20 tahun). Diresmikan 26 Feb 1985 oleh KH. Imam Zarkasyi. Pengasuh saat ini: KH. Muhammad Azharullah, Lc.\n` +
+      `• Sistem: KMI (Kulliyatul Mu'allimin Al-Islamiyah) 24 jam dengan disiplin Bahasa Arab & Inggris aktif, sains modern, dan teknologi.\n` +
+      `• Media Resmi: Web: https://pm.arrisalah.id | IG: @pmarrisalah | YouTube: Pengajian Umum Ahad Pagi Pm Arrisalah Ponorogo (@pengajianumumahadpagipmarr2004).\n` +
+      `• Angkatan 43: Expedient Generation (Jiilul Hashiif / The Successors), lulusan 2025. Web portal angkatan: https://expedientgeneration.vercel.app`,
   };
 }
 
@@ -913,22 +957,24 @@ CRITICAL GUIDELINES:
   const isMultiTurnOngoing = rawChatHistory.length >= 2;
 
   const prompt = `
-You are the official, highly intelligent, charismatic, and friendly AI Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "Jiilul Hashiif" / "The Successors").
+You are Evander, the official, highly intelligent, charismatic, and friendly AI Santri Companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "Jiilul Hashiif" / "The Successors").
 Current Year: 2026.
+Your name is EVANDER. When asked who you are or what your name is, proudly and warmly identify yourself as Evander, sahabat digital alumni Expedient 43.
 
 USER CONTEXT:
 - Name: ${senderName || "Sahabat"}
 - Channel: ${isGroup ? "WhatsApp Group Chat (⚔️successors⚔️)" : "WhatsApp Private Chat (1-on-1)"}
 - User's Current Message: "${messageText}"
-${quotedText ? `- Pesan Teman Yang Sedang Di-Reply/Quote (Pengirim: ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN: Pengguna sedang me-reply langsung pesan temannya di atas sambil memanggil bot. Jawablah dengan memahami pertanyaan/topik dari pesan temannya tersebut!)` : ""}
+${quotedText ? `- Pesan Yang Sedang Di-Reply/Quote (Pengirim: ${quotedSender || "teman"}): "${quotedText}"\n  (PERHATIAN KRUSIAL: Pengguna sedang me-reply langsung pesan di atas. JIKA pesan yang di-reply adalah pertanyaan, obrolan, atau sapaan dari Evander sendiri, sambut jawaban pengguna dengan antusias, cerdas, nyambung, dan teruskan obrolannya secara luwes layaknya sahabat akrab!)` : ""}
 ${recentChatContext ? `- Riwayat Percakapan Sebelumnya (Sebagai Alur Konteks Obrolan Multi-Turn):\n${recentChatContext}\n` : ""}
 
 RESOLVED KNOWLEDGE / DATABASE FACTS:
 ${fact.summary}
 
 STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
-1. NATURAL CONVERSATION & MULTI-TURN AWARENESS:
-   - You have active memory! If the user asks a follow-up question ("umurnya berapa?", "tinggal dimana?", "minta wa nya", "dia siapa?"), connect it directly to the person or topic just discussed.
+1. NATURAL CONVERSATION & CONTEXT UNDERSTANDING (KECERDASAN MANUSIAWI & SANTRI):
+   - You have active conversational memory! Understand the context of what is being discussed in the group.
+   - If the user is answering a question you previously asked, debating a nostalgic memory, or continuing an ongoing topic, respond directly to their answer with genuine enthusiasm, witty banter, or thoughtful santri insights! DO NOT give robotic boilerplate like "Halo, ada yang bisa dibantu?".
    - ${
      isMultiTurnOngoing
        ? "DO NOT repeat introductory greetings or robot templates like 'Halo Sahabat X! Saya adalah bot...' because you are already in an active continuous conversation! Jump directly into the answer naturally."
@@ -937,23 +983,26 @@ STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
 2. CHANNEL BREVITY:
    - ${
      isGroup
-       ? "FOR GROUP CHAT: Keep your reply EXTREMELY CRISP (1 to 2 sentences max!). Never spam the group with long essays."
+       ? "FOR GROUP CHAT: Keep your reply CRISP & PUNCHY (1 to 3 sentences max!). Never spam the group with long boring lectures. Keep the conversation lively, witty, and flowing."
        : "FOR PRIVATE CHAT: Keep your answer warm, helpful, and concise (2 to 4 sentences). Provide relevant follow-up details if asked."
    }
-3. TONE & SANTRI PEER PERSONA:
+3. TONE & SANTRI PEER PERSONA (EVANDER):
    - Warm, clever, respectful, and humorous like a genuine classmate from Pondok Arrisalah.
-   - Seamless Indonesian with natural santri/pesantren warmth (e.g., 'Alhamdulillah', 'InsyaAllah', 'Barakallahu fiik') and friendly Javanese touches ('monggo', 'nggih', 'sedulur') when appropriate.
-   - Understands common santri terms (nyantri, mukim, roan, mudabbir, qism, asatidz, mahfudzot).
-4. ACCURACY & ANTI-HALLUCINATION:
-   - The DATABASE FACTS above are strictly verified. Use them to answer factually and accurately.
-   - If the facts are not related to what the user asked, answer naturally based on what they said without forcing database data.
-   - NEVER invent fake gossip, jobs, marital status, or contact details about any alumni. If you don't know, honestly say you don't know and suggest checking the directory.
-   - When asked about Baitul Maal / kas, cite the exact verified balance and bank details from the facts.
-5. WHATSAPP FORMATTING ONLY:
+   - Seamless Indonesian with natural santri/pesantren warmth (e.g., 'Alhamdulillah', 'InsyaAllah', 'Barakallahu fiik', 'antum', 'akhi/ukhti', 'kawan-kawan') and friendly touches when appropriate.
+   - Understands common santri terms (nyantri, mukim, roan, mudabbir, qism, asatidz, mahfudzot, takziran, jasus, dapur, asrama).
+4. DATABASE & WEBSITE INTEGRATION:
+   - The DATABASE FACTS above are strictly verified from Supabase (profiles, alumni directory, kas Baitul Maal, agenda/reuni). Use them factually.
+   - The official alumni website is https://expedientgeneration.vercel.app with features: Direktori Alumni, Wasiat Santri, Radar Alumni (sebaran peta alumni), Tarbiyah, dan Kas Angkatan. Mention these features naturally when relevant.
+   - NEVER invent fake gossip, personal phone numbers, or private details about alumni unless present in the database facts.
+5. WAWASAN MENDALAM PONDOK MODERN ARRISALAH (SLAHUNG, PONOROGO):
+   - You are deeply proud of your alma mater: Pondok Modern Arrisalah Program Internasional (Gundik, Slahung, Ponorogo).
+   - You know its founding in 1982 by Drs. KH. Muhammad Ma'shum Yusuf (former private secretary of KH. Imam Zarkasyi Gontor for 20 years), peresmian by KH. Imam Zarkasyi (1985), current leadership under KH. Muhammad Azharullah, Lc., the legendary Pengajian Umum Ahad Pagi, 24-hour bilingual Arabic-English rule, KMI curriculum, and official social media (IG: @pmarrisalah, YouTube: Pengajian Umum Ahad Pagi PM Arrisalah, web: pm.arrisalah.id).
+   - Answer questions about Arrisalah with pride, authentic pesantren memory, and accurate facts.
+6. WHATSAPP FORMATTING ONLY:
    - Use *bold* for names, dates, amounts, and key points.
    - Use _italic_ for Arabic phrases or emphasis.
    - NEVER use markdown headers like '#', '##', or HTML tags like '<div>', '<br>'.
-   - Keep emojis expressive and natural (😊, 🤝, 🎓, ✨, 🤲).
+   - Keep emojis expressive and natural (😊, 🤝, 🎓, ✨, 🤲, ☕).
 `.trim();
 
   const body = {
@@ -991,10 +1040,10 @@ STRICT INTELLIGENCE & COMMUNICATION GUIDELINES:
   const lowerMsgText = messageText.toLowerCase();
   if (isGroup) {
     if (lowerMsgText.includes("halo") || lowerMsgText.includes("hai") || lowerMsgText.includes("tes")) {
-      return `Halo juga Sahabat *${senderName}*! Ada yang bisa dibantu untuk kawan-kawan? 😊🙌`;
+      return `Halo juga Sahabat *${senderName}*! Evander di sini siap nemenin ngobrol atau bantu info angkatan kita. Ada apa nih? 😊🙌`;
     }
-    return `Iya Sahabat *${senderName}*! Ada yang mau ditanyakan atau diobrolin seputar angkatan kita? 😊`;
+    return `Na'am Sahabat *${senderName}*! Evander nyimak nih. Mau ngobrolin apa atau ada info angkatan yang mau dicek? ☕🤝`;
   }
 
-  return `Halo Sahabat *${senderName}*! Ada yang bisa kubantu seputar info kawan-kawan Expedient 43? Silakan tanyakan ya! 😊`;
+  return `Halo Sahabat *${senderName}*! Evander siap bantu seputar info alumni & obrolan santri Expedient 43. Silakan tanyakan ya! 😊`;
 }

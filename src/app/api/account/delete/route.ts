@@ -31,14 +31,43 @@ export async function POST(req: Request) {
 
     const userId = user.id;
 
-    // 1. Delete user-owned records
+    // 1. Delete user-owned records & media
     try {
-      await adminSupabase.from("user_biometrics").delete().eq("user_id", userId);
-      await adminSupabase.from("wasiat_vault").delete().eq("user_id", userId);
-      await adminSupabase.from("syndicate").delete().eq("user_id", userId);
-      await adminSupabase.from("activity_logs").delete().eq("user_id", userId);
-      await adminSupabase.from("notifications").delete().eq("user_id", userId);
-      await adminSupabase.from("user_blocks").delete().or(`blocker_id.eq.${userId},blocked_user_id.eq.${userId}`);
+      // Clean up uploaded avatar from storage if exists
+      const { data: profileData } = await adminSupabase
+        .from("profiles")
+        .select("foto_profil")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (profileData?.foto_profil && !profileData.foto_profil.startsWith("http")) {
+        try {
+          await adminSupabase.storage.from("profile-photos").remove([profileData.foto_profil]);
+        } catch (stErr) {
+          console.warn("Storage profile photo cleanup warning:", stErr);
+        }
+      }
+
+      // Comprehensive DB records cleanup
+      await Promise.allSettled([
+        adminSupabase.from("user_face_data").delete().eq("user_id", userId),
+        adminSupabase.from("user_biometrics").delete().eq("user_id", userId),
+        adminSupabase.from("push_subscriptions").delete().eq("user_id", userId),
+        adminSupabase.from("kontemplasi_journals").delete().eq("user_id", userId),
+        adminSupabase.from("prayers").delete().eq("user_id", userId),
+        adminSupabase.from("multazam_prayers").delete().eq("user_id", userId),
+        adminSupabase.from("event_rsvps").delete().eq("user_id", userId),
+        adminSupabase.from("buku_tamu").delete().eq("user_id", userId),
+        adminSupabase.from("chat_messages").delete().eq("sender_id", userId),
+        adminSupabase.from("wasiats").delete().eq("user_id", userId),
+        adminSupabase.from("wasiat_vault").delete().eq("user_id", userId),
+        adminSupabase.from("enigma_progress").delete().eq("user_id", userId),
+        adminSupabase.from("syndicate").delete().eq("user_id", userId),
+        adminSupabase.from("activity_logs").delete().eq("user_id", userId),
+        adminSupabase.from("notifications").delete().eq("user_id", userId),
+        adminSupabase.from("user_blocks").delete().or(`blocker_id.eq.${userId},blocked_user_id.eq.${userId}`),
+      ]);
+
       await adminSupabase.from("profiles").delete().eq("id", userId);
     } catch (dbErr) {
       console.warn("Error deleting sub-records for user:", dbErr);

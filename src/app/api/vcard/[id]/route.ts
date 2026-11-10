@@ -83,7 +83,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       headers: {
         "Content-Type": "text/vcard; charset=utf-8",
         "Content-Disposition": `attachment; filename="Expedient_${safeNick}.vcf"`,
-        "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        "Cache-Control": "private, no-store",
       },
     });
   } catch (err: any) {

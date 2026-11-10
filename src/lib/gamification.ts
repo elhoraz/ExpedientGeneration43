@@ -60,7 +60,13 @@ export async function addPrestise(
     }
   }
 
-  if (activityName === 'GUESTBOOK_ENTRY') {
+  if (
+    activityName === 'GUESTBOOK_ENTRY' ||
+    activityName.startsWith('WASIAT_UNLOCK_') ||
+    activityName.startsWith('KHATAM_JUZ_') ||
+    activityName.startsWith('CREATE_EVENT_') ||
+    activityName.startsWith('SYNDICATE_ADD_')
+  ) {
     const { count, error } = await supabase
       .from('prestise_logs')
       .select('*', { count: 'exact', head: true })
@@ -68,7 +74,7 @@ export async function addPrestise(
       .eq('activity_name', activityName);
 
     if (error || (count && count > 0)) {
-      return false; // Sudah pernah dapat poin buku tamu
+      return false; // Sudah pernah dapat poin untuk aktivitas sekali klaim ini
     }
   }
 

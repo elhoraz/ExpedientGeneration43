@@ -1426,6 +1426,8 @@ async function startBaileysGateway() {
           lower.startsWith("?") ||
           lower.startsWith("bot ") ||
           lower.startsWith("min ") ||
+          lower.startsWith("evander ") ||
+          lower.startsWith("vander ") ||
           lower.startsWith("siapa ") ||
           lower.startsWith("siapakah ") ||
           lower.startsWith("kapan ") ||
@@ -1440,6 +1442,8 @@ async function startBaileysGateway() {
           lower === "ping" ||
           lower === "tes" ||
           lower === "halo" ||
+          lower === "evander" ||
+          lower === "vander" ||
           lower === "p";
 
         // ATURAN ANTI-LOOP MUTLAK #1:
@@ -1487,17 +1491,22 @@ async function startBaileysGateway() {
         const mentionedJids: string[] = contextInfo?.mentionedJid || [];
         const quotedParticipant = (contextInfo?.participant || "").replace(/\D/g, "");
 
-        const isBotMentioned = mentionedJids.some((j: string) => {
-          const num = j.replace(/\D/g, "");
-          return (
-            num === botPhone ||
-            num.endsWith(botShortPhone) ||
-            num.includes("85151771289") ||
-            num.includes("89675010185") ||
-            num.includes("124005000474772") ||
-            (botLid && j.includes(botLid))
-          );
-        });
+        const isBotMentioned =
+          mentionedJids.some((j: string) => {
+            const num = j.replace(/\D/g, "");
+            return (
+              num === botPhone ||
+              num.endsWith(botShortPhone) ||
+              num.includes("85151771289") ||
+              num.includes("89675010185") ||
+              num.includes("124005000474772") ||
+              (botLid && j.includes(botLid))
+            );
+          }) ||
+          lower.includes("@evander") ||
+          lower.includes("@vander") ||
+          lower.includes("evander") ||
+          lower.includes("vander");
 
         const isBotQuoted =
           (botPhone && (quotedParticipant === botPhone || quotedParticipant.endsWith(botShortPhone))) ||
@@ -3200,8 +3209,46 @@ startBaileysGateway().catch((err) => {
 });
 
 // =============================================================================
-// 100% PURE PASSIVE MODE (ZERO-BAN GUARANTEE)
+// SAFE SCHEDULED DAEMON: EVANDER PENGHIDUP GRUP SEPI (06:00 - 23:00 WIB)
 // =============================================================================
-// Seluruh timer dan cron daemon outbound dinonaktifkan secara permanen.
-// Bot beroperasi 100% murni pasif: HANYA merespons jika ada pesan masuk dari user/grup.
-// Tidak ada background interval yang menembak pesan keluar sendiri.
+// 1. Beroperasi HANYA pada jam aktif wajar manusia santri (06:00 - 23:00 WIB).
+// 2. Hanya memicu pemantik obrolan jika grup hening >= batas waktu (default 4 jam).
+// 3. Auto-Sleep: Jika pemantik sebelumnya belum direspons anggota, bot tidak akan spamming lagi.
+// 4. Simulasi mengetik ('composing') sebelum kirim pesan agar natural.
+setInterval(async () => {
+  if (gatewayStatus !== "connected" || !currentSock) return;
+
+  try {
+    const nowUtc = Date.now();
+    const wibDate = new Date(nowUtc + 7 * 60 * 60 * 1000);
+    const hourWib = wibDate.getUTCHours();
+
+    // Jam operasional: 06:00 - 23:00 WIB (Hening 23:00 - 06:00 WIB)
+    if (hourWib < 6 || hourWib >= 23) {
+      return;
+    }
+
+    if (process.env.WA_DISABLE_OUTBOUND_CRON === "true") {
+      return;
+    }
+
+    const commGroupId = getCommunityGroupId();
+    if (!commGroupId) return;
+
+    // Periksa keheningan grup dan picu obrolan hangat santri jika memenuhi syarat
+    await checkAndTriggerCommunityIcebreaker(false, async (target, text) => {
+      try {
+        await currentSock.sendPresenceUpdate("composing", target).catch(() => {});
+        await new Promise((r) => setTimeout(r, 2500));
+        await currentSock.sendMessage(target, { text });
+        addLog(`💬 [EVANDER-ICEBREAKER-SENT] Pemantik obrolan berhasil dikirim ke grup ${target}!`, "success");
+        return { success: true };
+      } catch (err: any) {
+        addLog(`❌ [EVANDER-ICEBREAKER-ERR] Gagal mengirim pemantik: ${err.message}`, "error");
+        return { success: false, reason: err.message };
+      }
+    });
+  } catch (iceErr: any) {
+    addLog(`⚠️ [EVANDER-DAEMON-WARN] ${iceErr.message}`, "warn");
+  }
+}, 15 * 60 * 1000); // Evaluasi keheningan setiap 15 menit

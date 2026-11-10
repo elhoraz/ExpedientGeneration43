@@ -73,3 +73,33 @@ export async function POST(req: Request) {
     return jsonResponse("error", getErrorMessage(err), null, { status: 500 });
   }
 }
+
+export async function DELETE() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return jsonResponse("error", "Unauthorized - Anda harus login terlebih dahulu", null, { status: 401 });
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        lat: null,
+        lng: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      console.error("Supabase clear location error:", error);
+      return jsonResponse("error", error.message, null, { status: 500 });
+    }
+
+    return jsonResponse("success", "Lokasi Anda berhasil dihapus dari Radar.");
+  } catch (err: unknown) {
+    console.error("Location delete error:", err);
+    return jsonResponse("error", getErrorMessage(err), null, { status: 500 });
+  }
+}

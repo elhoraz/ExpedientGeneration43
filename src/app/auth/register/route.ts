@@ -287,12 +287,20 @@ export async function POST(request: Request) {
         akun_ig,
         akun_tiktok,
         is_active: false,
-        face_data: face_data ? face_data : null,
+        face_data: null,
         ...(foto_profil ? { foto_profil } : {})
       }, { onConflict: "id" });
 
     if (upsertError) {
       console.error("Error upserting profile after registration:", upsertError);
+    }
+
+    if (face_data && face_data.trim().length > 10) {
+      await adminSupabase.from("user_face_data").upsert({
+        user_id: data.user.id,
+        face_data: face_data.trim(),
+        updated_at: new Date().toISOString(),
+      });
     }
   }
 

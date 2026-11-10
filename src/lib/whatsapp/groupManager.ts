@@ -375,7 +375,7 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     return false;
   }
 
-  // 2. Tag / Mention Bot SPESIFIK (@bot, @89675010185, @min, @admin, @expedient, LID)
+  // 2. Tag / Mention Bot SPESIFIK (@bot, @evander, evander, vander, @89675010185, @min, @admin, @expedient, LID)
   if (
     lower.includes("105240321908772") ||
     lower.includes("85151771289") ||
@@ -384,7 +384,17 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     lower.includes("@bot") ||
     lower.includes("@min") ||
     lower.includes("@admin") ||
-    lower.includes("@expedient")
+    lower.includes("@expedient") ||
+    lower.includes("@evander") ||
+    lower.includes("@vander") ||
+    lower.includes("evander") ||
+    lower.includes("vander") ||
+    lower.startsWith("van ") ||
+    lower.startsWith("van,") ||
+    lower === "van" ||
+    lower.startsWith("der ") ||
+    lower.startsWith("der,") ||
+    lower === "der"
   ) {
     return true;
   }
@@ -398,7 +408,7 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     return true;
   }
 
-  // 4. Panggilan eksplisit kepada bot di awal kalimat
+  // 4. Panggilan eksplisit kepada Evander/bot di awal kalimat
   if (
     lower === "tes bot" ||
     lower === "test bot" ||
@@ -406,37 +416,41 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     lower.startsWith("test bot") ||
     lower.startsWith("halo bot") ||
     lower.startsWith("hai bot") ||
+    lower.startsWith("halo evander") ||
+    lower.startsWith("hai evander") ||
+    lower.startsWith("halo van") ||
+    lower.startsWith("hai van") ||
+    lower.startsWith("halo der") ||
+    lower.startsWith("hai der") ||
     lower.startsWith("bot ") ||
     lower.startsWith("bot,") ||
+    lower.startsWith("evander ") ||
+    lower.startsWith("evander,") ||
+    lower.startsWith("vander ") ||
+    lower.startsWith("vander,") ||
     lower.startsWith("min ") ||
     lower.startsWith("min,") ||
     lower === "bot" ||
     lower === "min" ||
+    lower === "evander" ||
+    lower === "vander" ||
     lower.startsWith("assalamu'alaikum bot") ||
-    lower.startsWith("assalamualaikum bot")
+    lower.startsWith("assalamualaikum bot") ||
+    lower.startsWith("assalamu'alaikum evander") ||
+    lower.startsWith("assalamualaikum evander") ||
+    lower.startsWith("assalamu'alaikum van") ||
+    lower.startsWith("assalamualaikum van")
   ) {
     return true;
   }
 
-  // 5. Jika me-reply pesan bot (quoted from bot), pastikan ada pertanyaan nyata atau panggilan bot
+  // 5. Jika me-reply pesan bot (quoted from bot):
+  // User sedang menjawab pertanyaan bot atau menyambung obrolan Evander, maka Evander WAJIB membalas!
   if (isQuotedFromBot) {
-    const hasQuestionOrBotCall =
-      lower.includes("?") ||
-      lower.includes("bot") ||
-      lower.includes("min") ||
-      lower.startsWith("siapa") ||
-      lower.startsWith("kapan") ||
-      lower.startsWith("kenapa") ||
-      lower.startsWith("gimana") ||
-      lower.startsWith("tolong") ||
-      lower.startsWith("coba");
-    if (!hasQuestionOrBotCall) {
-      return false;
-    }
     return true;
   }
 
-  // 6. Pertanyaan eksplisit tentang data angkatan / alumni yang terarah
+  // 6. Pertanyaan eksplisit tentang data angkatan / alumni / Pondok Arrisalah yang terarah
   if (
     lower.includes("ketua angkatan") ||
     lower.includes("siapa zaki") ||
@@ -444,6 +458,17 @@ export function shouldGroupBotRespond(messageText: string, isQuotedFromBot = fal
     lower.includes("siapa taufiqi") ||
     lower.includes("jadwal reuni") ||
     lower.includes("hari santri") ||
+    lower.includes("arrisalah") ||
+    lower.includes("slahung") ||
+    lower.includes("gundik") ||
+    lower.includes("kh ma'shum") ||
+    lower.includes("kh maksum") ||
+    lower.includes("azharullah") ||
+    lower.includes("sejarah pondok") ||
+    lower.includes("program internasional") ||
+    lower.includes("pengajian ahad pagi") ||
+    lower.includes("ig arrisalah") ||
+    lower.includes("youtube arrisalah") ||
     lower.includes("kesimpulan obrolan") ||
     lower.includes("rangkum obrolan") ||
     lower.includes("lagi bahas apa") ||
@@ -609,7 +634,7 @@ export async function handleIncomingGroupMessage(
     const { recordGroupChatMessage } = await import("@/lib/whatsapp/groupConversationBuffer");
     await recordGroupChatMessage(groupId, {
       senderPhone: "bot",
-      senderName: "Bot Expedient 43",
+      senderName: "Evander",
       messageText: replyText,
       timestamp: Date.now(),
       isFromBot: true,

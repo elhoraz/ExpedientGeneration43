@@ -13,6 +13,7 @@ const withPWA = withPWAInit({
     "!assets/models/**/*",
     "!sequence/**/*",
     "!uploads/**/*",
+    "!**/*.map",
   ],
 });
 
@@ -66,7 +67,7 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://va.vercel-scripts.com https://*.vercel-scripts.com https://*.pusher.com https://*.agora.io",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://unpkg.com",
       "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:",
-      "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://ui-avatars.com https://api.qrserver.com https://cdnjs.cloudflare.com https://unpkg.com https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.arcgisonline.com https://*.opentopomap.org https://*.google.com https://*.googleapis.com https://*.cartocdn.com https://*.ytimg.com https://i.ytimg.com https://img.youtube.com https://*.youtube.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://ui-avatars.com https://api.qrserver.com https://cdnjs.cloudflare.com https://unpkg.com https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.arcgisonline.com https://*.opentopomap.org https://*.google.com https://*.googleapis.com https://*.cartocdn.com https://*.ytimg.com https://i.ytimg.com https://img.youtube.com https://*.youtube.com https://gibs.earthdata.nasa.gov https://*.stadiamaps.com",
       "media-src 'self' blob: data: https://*.supabase.co https://*.googlevideo.com https://*.youtube.com https://audio.qurancdn.com https://*.qurancdn.com https://*.mp3quran.net https://everyayah.com https://*.everyayah.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://va.vercel-scripts.com https://*.vercel-scripts.com https://*.agora.io wss://*.agora.io https://expedient43-bot.onrender.com https://api.resend.com https://generativelanguage.googleapis.com https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.arcgisonline.com https://*.opentopomap.org https://*.google.com blob: data: https://*.googlevideo.com https://*.youtube.com https://audio.qurancdn.com https://*.qurancdn.com https://*.mp3quran.net https://everyayah.com https://*.everyayah.com https://api.quran.com",
       "worker-src 'self' blob: data:",
@@ -94,8 +95,8 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Exclude /radar (flat maps, satellite, terrain, etc.) from CSP so Leaflet can load freely
-        source: '/((?!radar).*)',
+        // Global Content-Security-Policy protecting all routes
+        source: '/(.*)',
         headers: [
           {
             key: 'Content-Security-Policy',

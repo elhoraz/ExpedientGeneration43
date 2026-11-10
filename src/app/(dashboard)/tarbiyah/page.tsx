@@ -42,11 +42,17 @@ export default async function TarbiyahNexusPage() {
   }));
 
   // 3. Fetch tenders (syndicate businesses)
-  const { data: tendersRaw } = await supabase
+  const { data: tendersDb } = await supabase
     .from("syndicate")
-    .select("id, nama_bisnis, kategori, deskripsi, logo_url, user_id, kontak")
+    .select("id, nama_bisnis, kategori, deskripsi, logo_bisnis, user_id, link_url")
     .order("created_at", { ascending: false })
     .limit(20);
+
+  const tendersRaw = (tendersDb || []).map((t: any) => ({
+    ...t,
+    logo_url: t.logo_bisnis || "",
+    kontak: t.link_url || "",
+  }));
 
   // 4. Fetch user's syndicate business IDs (to check for incoming tender requests)
   const mySyndicateIds = tendersRaw?.filter(t => t.user_id === user.id).map(t => t.id) || [];

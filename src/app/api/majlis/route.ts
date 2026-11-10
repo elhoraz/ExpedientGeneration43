@@ -125,8 +125,7 @@ export async function POST(request: Request) {
 
       const creatorName = creatorProfile?.nama_panggilan || "Anonim";
 
-      // Add Prestise Points (15 points for submitting a topic)
-      await addPrestise(adminSupabase as any, user.id, "MAJLIS_TOPIC", 15);
+      // Note: Prestise Points (+15 MAJLIS_TOPIC) are automatically awarded by DB trigger tr_award_majlis_points
 
       // Log Activity
       await adminSupabase.from("activity_logs").insert([

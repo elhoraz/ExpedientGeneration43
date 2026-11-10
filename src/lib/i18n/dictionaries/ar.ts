@@ -161,7 +161,8 @@ export const arDictionary: Dictionary = {
     srv_apk: "تحميل تطبيق أندرويد",
     copy_text: "Expedient Generation — الدفعة الـ ٤٣ بمعهد الرسالة الحديث للبرنامج الدولي سلاهونغ فونوروغو.",
     link_apk: "تحميل تطبيق الموبايل",
-    link_privacy: "سياسة الخصوصية وحذف الحساب",
+    link_privacy: "سياسة الخصوصية",
+    link_delete_account: "حذف الحساب",
   },
   sidebar: {
     home: "الرئيسية",

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { callGeminiResilient } from "@/lib/geminiResilient";
 
 export async function POST(req: Request) {
   try {
@@ -31,16 +31,6 @@ export async function POST(req: Request) {
     const origin = String(body.origin || "").slice(0, 150).trim();
     const vision = String(body.vision || "").slice(0, 500).trim();
     const motivation = String(body.motivation || "").slice(0, 500).trim();
-
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: "Kunci API Gemini belum diatur di server." },
-        { status: 500 }
-      );
-    }
-
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     let prompt = "";
     if (isGuest) {
@@ -80,9 +70,11 @@ export async function POST(req: Request) {
       `;
     }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const geminiRes = await callGeminiResilient({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    });
+    const text =
+      geminiRes?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") || "";
 
     return NextResponse.json({ insight: text });
   } catch (err: any) {

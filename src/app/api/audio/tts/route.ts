@@ -2,8 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-// In-memory audio buffer cache to provide instantaneous 0ms playback for repeated recitations
+// In-memory audio buffer cache with bounded LRU eviction to prevent OOM
 const audioCache = new Map<string, Buffer>();
+const MAX_AUDIO_CACHE_SIZE = 100;
+
+function setAudioCache(key: string, buffer: Buffer) {
+  if (audioCache.size >= MAX_AUDIO_CACHE_SIZE) {
+    const oldestKey = audioCache.keys().next().value;
+    if (oldestKey) audioCache.delete(oldestKey);
+  }
+  audioCache.set(key, buffer);
+}
 
 /**
  * OPTION A AUDIO ENGINE:
@@ -196,7 +205,7 @@ export async function GET(request: NextRequest) {
         const asmaAudioUrl = `https://6a0371d6d2c0468550d1fdea--gleaming-tapioca-363d34.netlify.app/${nameNumber}.mp3`;
         const buffer = await fetchAudioBuffer(asmaAudioUrl);
         if (buffer) {
-          audioCache.set(cacheKey, buffer);
+          setAudioCache(cacheKey, buffer);
           return new NextResponse(buffer as unknown as BodyInit, {
             status: 200,
             headers: {
@@ -253,7 +262,7 @@ export async function GET(request: NextRequest) {
 
         if (combined.length > 0) {
           const finalBuffer = Buffer.concat(combined);
-          audioCache.set(cacheKey, finalBuffer);
+          setAudioCache(cacheKey, finalBuffer);
           return new NextResponse(finalBuffer as unknown as BodyInit, {
             status: 200,
             headers: {
@@ -283,7 +292,7 @@ export async function GET(request: NextRequest) {
         }
 
         if (finalBuffer && finalBuffer.length > 0) {
-          audioCache.set(cacheKey, finalBuffer);
+          setAudioCache(cacheKey, finalBuffer);
           return new NextResponse(finalBuffer as unknown as BodyInit, {
             status: 200,
             headers: {

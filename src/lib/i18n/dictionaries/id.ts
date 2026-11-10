@@ -161,7 +161,8 @@ export const idDictionary: Dictionary = {
     srv_apk: "Unduh APK Android",
     copy_text: "Expedient Generation — 43rd Pondok Modern Arrisalah Program Internasional Slahung Ponorogo.",
     link_apk: "Unduh Aplikasi Mobile",
-    link_privacy: "Kebijakan Privasi & Hapus Akun",
+    link_privacy: "Kebijakan Privasi",
+    link_delete_account: "Hapus Akun",
   },
   sidebar: {
     home: "Depan",

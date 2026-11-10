@@ -94,6 +94,36 @@ describe('SEC-02: Admin Cryptographic Session Verification', () => {
     const isValid = await verifySignedAdminSession(expiredToken);
     assert.equal(isValid, false, "Expired token must be rejected");
   });
+
+  it('MUST ensure no admin API route accepts or references legacy "unlocked" token', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    
+    function scanDir(dir) {
+      let results = [];
+      const list = fs.readdirSync(dir);
+      for (const file of list) {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+        if (stat.isDirectory()) {
+          results = results.concat(scanDir(filePath));
+        } else if (file.endsWith('.ts') || file.endsWith('.tsx')) {
+          results.push(filePath);
+        }
+      }
+      return results;
+    }
+
+    const adminRoutes = scanDir(path.resolve(process.cwd(), 'src/app/api/admin'));
+    for (const routeFile of adminRoutes) {
+      const content = fs.readFileSync(routeFile, 'utf8');
+      assert.equal(
+        content.includes('=== "unlocked"') || content.includes("=== 'unlocked'"),
+        false,
+        `File ${routeFile} must not accept legacy "unlocked" token!`
+      );
+    }
+  });
 });
 
 describe('SEC-04: Baitul Maal Ledger Anti-Tampering Logic', () => {

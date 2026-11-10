@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import webpush from "web-push";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ export async function POST(req: Request) {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (profile?.role !== "admin") {
+    if (!["admin", "superadmin"].includes(profile?.role || "")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -44,8 +45,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Title and message are required" }, { status: 400 });
     }
 
-    // Ambil subscriptions
-    let query = supabase.from("push_subscriptions").select("*");
+    const adminSupabase = createAdminClient();
+
+    // Ambil subscriptions menggunakan service_role untuk bypass RLS per-user
+    let query = adminSupabase.from("push_subscriptions").select("*");
     if (targetUserId) {
       query = query.eq("user_id", targetUserId);
     }
@@ -75,7 +78,7 @@ export async function POST(req: Request) {
       return webpush.sendNotification(pushSubscription, payload).catch(async (e) => {
         if (e.statusCode === 404 || e.statusCode === 410) {
           // Berarti subscription sudah expired/dicabut dari sisi client, hapus dari database
-          await supabase.from("push_subscriptions").delete().eq("id", sub.id);
+          await adminSupabase.from("push_subscriptions").delete().eq("id", sub.id);
         } else {
           console.error("Failed to send push notification:", e);
         }

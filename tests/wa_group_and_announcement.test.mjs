@@ -60,10 +60,13 @@ function shouldGroupBotRespond(messageText) {
   if (!messageText) return false;
   const lower = messageText.trim().toLowerCase();
 
-  // 1. Tag / Mention Bot
+  // 1. Tag / Mention Bot & Evander
   if (
     lower.includes("89675010185") ||
     lower.includes("@bot") ||
+    lower.includes("@evander") ||
+    lower.includes("evander") ||
+    lower.includes("vander") ||
     lower.includes("bot") ||
     lower.includes("expedient") ||
     lower.includes("minbot") ||
@@ -144,7 +147,7 @@ function shouldGroupBotRespond(messageText) {
     return true;
   }
 
-  // 6. Pertanyaan Spesifik Seputar Angkatan & Website Portal
+  // 6. Pertanyaan Spesifik Seputar Angkatan, Website Portal, & Pondok Arrisalah Slahung
   if (
     ((lower.includes("siapa") || lower.includes("kapan") || lower.includes("info") || lower.includes("jadwal") || lower.includes("daftar")) &&
       (lower.includes("ultah") || lower.includes("milad") || lower.includes("ulang tahun"))) ||
@@ -157,7 +160,11 @@ function shouldGroupBotRespond(messageText) {
     lower.includes("website") ||
     lower.includes("fitur") ||
     lower.includes("portal") ||
-    lower.includes("link web")
+    lower.includes("link web") ||
+    lower.includes("arrisalah") ||
+    lower.includes("slahung") ||
+    lower.includes("gundik") ||
+    lower.includes("pengajian ahad pagi")
   ) {
     return true;
   }
@@ -234,7 +241,15 @@ describe('WhatsApp Group Gateway & Smart Trigger Validation', () => {
     assert.strictEqual(shouldGroupBotRespond('met ultah mat sukses selalu'), false);
     assert.strictEqual(shouldGroupBotRespond('traktir ultah dong mat'), false);
     assert.strictEqual(shouldGroupBotRespond('hbd rachmat'), false);
-    assert.strictEqual(shouldGroupBotRespond('wah si rachmat lagi ultah rek'), false);
+    // 6. Evander explicit mentions & triggers
+    assert.strictEqual(shouldGroupBotRespond('@evander apa kabar?'), true);
+    assert.strictEqual(shouldGroupBotRespond('halo evander'), true);
+    assert.strictEqual(shouldGroupBotRespond('vander kangen masa pondok nih'), true);
+
+    // 7. Pondok Modern Arrisalah Slahung specific queries
+    assert.strictEqual(shouldGroupBotRespond('siapa pendiri pondok arrisalah slahung?'), true);
+    assert.strictEqual(shouldGroupBotRespond('pimpinan arrisalah sekarang siapa ya?'), true);
+    assert.strictEqual(shouldGroupBotRespond('info pengajian ahad pagi arrisalah dong'), true);
   });
 
   it('MUST distinguish Friday blessing commands from casual conversation (Anti-Spam)', () => {

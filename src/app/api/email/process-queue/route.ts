@@ -1,18 +1,22 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email";
+import { timingSafeEqualString } from "@/lib/admin-auth";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   // Check authorization header for cron jobs
-  const authHeader = req.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const authHeader = req.headers.get('authorization') || '';
+  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
+
+  if (!cronSecret || !bearerToken || !timingSafeEqualString(bearerToken, cronSecret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Fetch pending emails
     const { data: queue, error } = await supabase

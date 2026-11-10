@@ -107,16 +107,18 @@ export default function WasiatClient({ currentUser, initialWasiats }: { currentU
       
       const { data, error } = await supabase.from("wasiats").insert([
         { user_id: currentUser.id, encrypted_message: finalPayload, passphrase_hash: authHash }
-      ]).select("*, profiles!wasiats_user_id_fkey(nama_panggilan, foto_profil)");
+      ]).select("id, user_id, encrypted_message, created_at, profiles!wasiats_user_id_fkey(nama_panggilan, foto_profil)");
 
       if (!error && data) {
         // Gamifikasi: WASIAT_STORE (+10 poin) — sama seperti CI4
         await addPrestise(supabase as any, currentUser.id, "WASIAT_STORE", 10);
 
+        const row: any = data[0];
+        const prof = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
         const formatted = {
-          ...data[0],
-          author_name: data[0].profiles?.nama_panggilan || "Anonim",
-          author_avatar: getAvatarUrl(data[0].profiles?.foto_profil, data[0].profiles?.nama_panggilan || "A")
+          ...row,
+          author_name: prof?.nama_panggilan || "Anonim",
+          author_avatar: getAvatarUrl(prof?.foto_profil, prof?.nama_panggilan || "A")
         };
         setWasiats([formatted, ...wasiats]);
         setNewMessage("");

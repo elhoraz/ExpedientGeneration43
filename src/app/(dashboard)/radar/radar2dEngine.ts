@@ -610,6 +610,31 @@ export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOp
       );
     };
   }
+
+  // Location Opt-out / Delete GPS from Radar
+  const btnDeleteLoc = document.getElementById('btnDeleteLocation') as HTMLButtonElement | null;
+  if (btnDeleteLoc) {
+    btnDeleteLoc.onclick = async () => {
+      if (!confirm('Apakah antum yakin ingin menghapus titik koordinat lokasi dari Radar?')) {
+        return;
+      }
+      btnDeleteLoc.disabled = true;
+      showStatus('Menghapus lokasi...');
+      try {
+        const res = await fetch('/api/radar/update-location', { method: 'DELETE' });
+        const data = await res.json();
+        if (data.status === 'success' || data.success) {
+          showStatus('Lokasi berhasil dihapus!', '#4ade80');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          throw new Error(data.message || 'Gagal menghapus');
+        }
+      } catch (err: any) {
+        showStatus('Gagal: ' + (err?.message || 'Error'), '#ff3366');
+        btnDeleteLoc.disabled = false;
+      }
+    };
+  }
 }
 
 export function destroyRadar2D() {

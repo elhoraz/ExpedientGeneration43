@@ -50,16 +50,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Use service role to update profiles table safely
+    // Use service role to store isolated face biometric safely
     const adminSupabase = createAdminClient();
 
     const { error: updateError } = await adminSupabase
-      .from("profiles")
-      .update({
+      .from("user_face_data")
+      .upsert({
+        user_id: user.id,
         face_data: faceDataString,
         updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+      });
 
     if (updateError) {
       console.error("Supabase face_data update error:", updateError);

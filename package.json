@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node scripts/test-runner.mjs",
     "cap:sync": "npx cap sync android",
     "cap:sync:ios": "npx cap sync ios",
     "cap:sync:all": "npx cap sync",

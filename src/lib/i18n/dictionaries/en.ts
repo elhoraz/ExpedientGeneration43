@@ -161,7 +161,8 @@ export const enDictionary: Dictionary = {
     srv_apk: "Download Android APK",
     copy_text: "Expedient Generation — 43rd Pondok Modern Arrisalah International Program Slahung Ponorogo.",
     link_apk: "Download Mobile App",
-    link_privacy: "Privacy Policy & Account Deletion",
+    link_privacy: "Privacy Policy",
+    link_delete_account: "Delete Account",
   },
   sidebar: {
     home: "Home",

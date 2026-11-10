@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request: Request) {
   try {
@@ -20,10 +21,14 @@ export async function POST(request: Request) {
     // Convert array to JSON string to store in DB
     const faceDataString = JSON.stringify(face_data);
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({ face_data: faceDataString })
-      .eq('id', user.id);
+    const adminSupabase = createAdminClient();
+    const { error } = await adminSupabase
+      .from('user_face_data')
+      .upsert({
+        user_id: user.id,
+        face_data: faceDataString,
+        updated_at: new Date().toISOString(),
+      });
 
     if (error) {
       console.error('Supabase update error:', error);

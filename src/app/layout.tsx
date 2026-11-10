@@ -138,7 +138,7 @@ export default async function RootLayout({
 }>) {
   const allCms = await getCachedSiteContent();
   return (
-    <html lang="id" className={`${inter.variable} ${playfair.variable} ${manrope.variable}`} suppressHydrationWarning>
+    <html lang="id" className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${amiri.variable}`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

@@ -193,8 +193,8 @@ export async function POST(request: Request) {
 
         if (!error) {
           dbSuccess = true;
-          // Award gamification prestise points
-          await addPrestise(supabase as any, user.id, "KHATAM_JUZ_COMPLETE", 25);
+          // Award gamification prestise points (one-time per session & juz)
+          await addPrestise(supabase as any, user.id, `KHATAM_JUZ_${session.id}_${targetJuz}`, 25);
         }
       } else if (action === "unclaim") {
         const { error } = await supabase
@@ -212,6 +212,28 @@ export async function POST(request: Request) {
           .eq("user_id", user.id);
 
         if (!error) dbSuccess = true;
+      }
+
+      if (dbSuccess) {
+        const { data: dbAllocations } = await supabase
+          .from("khatam_allocations")
+          .select("*")
+          .eq("session_id", session.id)
+          .order("juz_number", { ascending: true });
+
+        if (dbAllocations && dbAllocations.length > 0) {
+          const completedCount = dbAllocations.filter((a: any) => a.status === "completed").length;
+          return NextResponse.json({
+            success: true,
+            action,
+            juz_number: targetJuz,
+            allocations: dbAllocations,
+            session: {
+              ...session,
+              total_juz_completed: completedCount,
+            },
+          });
+        }
       }
     }
   } catch (err) {

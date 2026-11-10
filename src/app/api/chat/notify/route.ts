@@ -47,6 +47,18 @@ export async function POST(req: Request) {
 
     const serviceClient = createAdminClient();
 
+    // Respect UGC user_blocks: if receiver blocked sender, silently skip notification
+    const { data: blockRecord } = await serviceClient
+      .from("user_blocks")
+      .select("id")
+      .eq("blocker_id", receiverId)
+      .eq("blocked_user_id", user.id)
+      .maybeSingle();
+
+    if (blockRecord) {
+      return NextResponse.json({ status: "skipped" });
+    }
+
     // Fetch sender details
     const { data: senderProfile } = await serviceClient
       .from("profiles")

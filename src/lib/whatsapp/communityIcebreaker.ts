@@ -82,9 +82,9 @@ export async function getLastCommunityGroupActivity(): Promise<GroupActivityReco
 
 /**
  * Cek apakah jam saat ini masuk dalam Jam Istirahat / Hening (Quiet Hours)
- * Etika santri: Tidak memicu notifikasi grup antara pukul 23:00 - 06:30 WIB (tengah malam/tidur)
+ * Etika santri & Operasional Evander: Aktif 06:00 - 23:00 WIB (Hening pukul 23:00 - 06:00 WIB)
  */
-function isQuietHoursWIB(): boolean {
+export function isQuietHoursWIB(): boolean {
   try {
     const now = new Date();
     // Konversi ke Waktu Indonesia Barat (WIB = UTC+7)
@@ -94,11 +94,18 @@ function isQuietHoursWIB(): boolean {
       hour12: false,
     });
     const currentHourWIB = parseInt(formatter.format(now), 10);
-    // Jam hening: 23:00 malam s/d 06:30 pagi
-    return currentHourWIB >= 23 || currentHourWIB < 7;
+    // Jam hening: 23:00 malam s/d 06:00 pagi (Operasional: 06:00 - 23:00 WIB)
+    return currentHourWIB >= 23 || currentHourWIB < 6;
   } catch {
     return false;
   }
+}
+
+/**
+ * Cek apakah saat ini dalam jam operasional Evander (06:00 - 23:00 WIB)
+ */
+export function isOperatingHoursWIB(): boolean {
+  return !isQuietHoursWIB();
 }
 
 /**
@@ -106,10 +113,10 @@ function isQuietHoursWIB(): boolean {
  */
 const CURATED_CATCHY_ICEBREAKERS = [
   // 1. Nostalgia Makanan & Kehidupan Asrama
-  `Wah sepi banget nih grup, pada lagi sibuk apa kawan-kawan? ☕👀\n\nMumpung senggang, ana mau nanya hal paling krusial pas mondok dulu:\n*Antum tim yang kalo antre makan di dapur sukanya lauk telur dadar apa ayam suwir legendaris?* 😂👇`,
+  `Wah sepi banget nih grup, pada lagi sibuk apa kawan-kawan? ☕👀\n\nMumpung senggang, Evander mau nanya hal paling krusial pas mondok dulu:\n*Antum tim yang kalo antre makan di dapur sukanya lauk telur dadar apa ayam suwir legendaris?* 😂👇`,
 
   // 2. Debat Kasur Asrama
-  `Halo gaes, numpang lewat memecah keheningan... 🍃\n\nCoba jujur, pas di asrama dulu antum lebih suka kebagian *ranjang atas apa ranjang bawah?* Dan apa tragedi paling kocak yang pernah terjadi di lemari antum? 🛌🤣`,
+  `Halo gaes, Evander numpang lewat memecah keheningan... 🍃\n\nCoba jujur, pas di asrama dulu antum lebih suka kebagian *ranjang atas apa ranjang bawah?* Dan apa tragedi paling kocak yang pernah terjadi di lemari antum? 🛌🤣`,
 
   // 3. Absen Domisili & Kesibukan Sekarang
   `Sepi amat yaa, kayak lorong kelas pas jam tidur siang dulu... 😴🚪\n\nAbsen dulu dong sahabat The Successors 2025! Yang sekarang lagi di perantauan (kuliah/kerja), lagi pada berlabuh di kota mana aja nih? Ada yang sekota gak ya? 🙋‍♂️📍`,
@@ -124,7 +131,13 @@ const CURATED_CATCHY_ICEBREAKERS = [
   `Sebuah misteri terbesar di dunia pesantren yang belum terpecahkan:\n*Ke mana perginya sandal jepit yang hilang di tangga masjid pas salat Jumat?* 🩴😂\n\nAda yang kangen momen rebutan sandal wudhu gak nih?`,
 
   // 7. Motivasi & Semangat
-  `Assalamu'alaikum sahabat seperjuangan Expedient 43! 🌟\n\nCuma mau ngingetin: Semangat buat yang hari ini lagi ngerjain tugas kuliah, ngantor, ataupun merintis usaha. Semoga dilancarkan semua ikhtiar antum hari ini! Ada cerita seru apa minggu ini? 🤲🔥`,
+  `Assalamu'alaikum sahabat seperjuangan Expedient 43! 🌟\n\nEvander cuma mau ngingetin: Semangat buat yang hari ini lagi ngerjain tugas kuliah, ngantor, ataupun merintis usaha. Semoga dilancarkan semua ikhtiar antum hari ini! Ada cerita seru apa minggu ini? 🤲🔥`,
+
+  // 8. Nostalgia Slahung & Suasana Pondok Gundik
+  `Kangen gak sih sama ademnya udara Slahung di kaki perbukitan Gundik pas kabut pagi turun habis subuh? 🌄🍃\n\nKalo lagi nginget masa-masa nyantri di Arrisalah dulu, sudut pondok mana yang paling bikin antum nostalgia kawan-kawan? ☕🕌`,
+
+  // 9. Tradisi Pengajian Ahad Pagi
+  `Hari Ahad gini jadi inget ramenya Pengajian Umum Ahad Pagi Arrisalah... 🕌📻\n\nDari ribuan jamaah yang hadir di pondok, antum tim yang khidmat nyimak ceramah di masjid apa yang nyari jajan pasar legendaris di depan gerbang pondok? Ngaku hayo! 😆👇`,
 ];
 
 /**
@@ -139,16 +152,22 @@ async function generateCatchyIcebreakerWithAi(): Promise<string> {
   }
 
   const prompt = `
-You are the witty, beloved, and friendly AI Mascot of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "The Successors").
-Currently, the alumni WhatsApp group (⚔️successors⚔️) has been completely quiet for more than 6 hours.
+You are Evander, the witty, beloved, and friendly AI Santri companion of "Expedient Generation 43" (Alumni of Pondok Modern Arrisalah Slahung Ponorogo, Class of 2025, known as "The Successors" / "Jiilul Hashiif").
+Currently, the alumni WhatsApp group (⚔️successors⚔️) has been completely quiet for more than 4 hours.
 
 TASK:
-Write a SHORT, SUPER CATCHY, WITTY, and WARM conversation starter in informal, natural Indonesian/Santri slang (campuran santun, akrab, sedikit bahasa pondok seperti: 'antum', 'ngabsen', 'asrama', 'ustadz', 'dapur', 'jasus', 'kopi').
+Write a SHORT, SUPER CATCHY, WITTY, and WARM conversation starter in informal, natural Indonesian/Santri style (campuran santun, akrab, humor santri, sedikit istilah pondok seperti: 'antum', 'ngabsen', 'asrama', 'ustadz', 'dapur', 'jasus', 'kopi', 'roan', 'mudabbir', 'Gundik', 'Slahung').
+
+KNOWLEDGE & CONTEXT:
+- Your name is Evander.
+- Your beloved alma mater: Pondok Modern Arrisalah Program Internasional, Desa Gundik, Slahung, Ponorogo (didirikan 1982 oleh Drs. KH. Muhammad Ma'shum Yusuf, diasuh oleh KH. Muhammad Azharullah, Lc., IG: @pmarrisalah).
+- You know about the alumni portal: https://expedientgeneration.vercel.app (fitur direktori alumni, wasiat santri, radar alumni, tarbiyah, kas Baitul Maal).
+- You can bring up nostalgic memories of Gundik/Slahung, Pengajian Ahad Pagi, muhadharah pidato 3 bahasa, funny pesantren debates, asking how work/campus is going, or asking about alumni in different cities.
 
 REQUIREMENTS:
-1. Length: 2 to 4 sentences maximum.
+1. Length: 2 to 3 sentences maximum. Keep it concise for a WhatsApp group!
 2. Tone: Warm, funny, relatable, inviting interaction (e.g., asking a fun choice, nostalgic memory, or asking where everyone is living/studying now).
-3. Do NOT sound like an automated corporate bot. Sound like an old close classmate who suddenly drops a funny/nostalgic question to revive the chat!
+3. Do NOT sound like an automated corporate bot. Sound like an old close santri classmate who suddenly drops a funny/nostalgic question to revive the chat!
 4. Mention something relatable to alumni class of 2025 Arrisalah Slahung Ponorogo.
 5. End with a light, engaging question or call to action so people naturally want to reply!
 6. Output ONLY the WhatsApp message text (with emojis and formatting like *bold* where appropriate). No preamble.
@@ -191,22 +210,11 @@ export async function checkAndTriggerCommunityIcebreaker(
   const supabase = createAdminClient();
   const communityGroupId = getCommunityGroupId();
 
-  // 0. ANTI-BAN SAFEGUARD MUTLAK:
-  // Jangan pernah mengirim pesan pemicu otomatis ke grup sepi tanpa dipanggil admin (force).
-  // Mengirim pesan broadcast unprompted ke grup adalah pemicu utama deteksi bot spam oleh Meta WhatsApp.
-  if (!force) {
-    return {
-      triggered: false,
-      reason: "Icebreaker otomatis dinonaktifkan demi perlindungan Anti-Ban Meta WhatsApp (hanya aktif jika dipanggil manual).",
-      elapsedHours: 0,
-    };
-  }
-
-  // 1. Cek Jam Hening (Quiet Hours: 23.00 - 06.30 WIB)
+  // 1. Cek Jam Operasional Evander (Hanya aktif 06:00 - 23:00 WIB)
   if (!force && isQuietHoursWIB()) {
     return {
       triggered: false,
-      reason: "Saat ini jam istirahat malam (Quiet Hours WIB: 23.00-06.30). Bot tidak mengganggu istirahat alumni.",
+      reason: "Saat ini di luar jam operasional Evander (Jam Hening WIB: 23.00-06.00). Evander beristirahat dan tidak mengganggu waktu istirahat alumni.",
       elapsedHours: 0,
     };
   }
@@ -215,6 +223,22 @@ export async function checkAndTriggerCommunityIcebreaker(
   const lastActivity = await getLastCommunityGroupActivity();
   const now = Date.now();
   const lastActivityTimestamp = lastActivity?.timestamp;
+
+  // SAFEGUARD ANTI-SPAM: AUTO-SLEEP JIKA PEMANTIK SEBELUMNYA BELUM DIRESPONS ANGGOTA
+  // Jika pesan terakhir di grup dikirim oleh Evander/Bot sendiri dan belum ada chat masuk dari anggota manusia,
+  // JANGAN kirim pemantik lagi agar tidak spamming di grup sepi.
+  if (!force && lastActivity) {
+    const lastSender = (lastActivity.senderName || "").toLowerCase();
+    const lastPhone = (lastActivity.senderPhone || "").toLowerCase();
+    if (lastSender.includes("evander") || lastSender.includes("expedient") || lastPhone === "bot") {
+      const elapsedHoursSinceBot = lastActivityTimestamp ? (now - lastActivityTimestamp) / (1000 * 60 * 60) : 0;
+      return {
+        triggered: false,
+        reason: "Pemantik obrolan Evander sebelumnya belum direspons anggota grup. Evander auto-sleep agar tidak spam.",
+        elapsedHours: elapsedHoursSinceBot,
+      };
+    }
+  }
 
   // Jika belum ada catatan sama sekali di database dan tidak dipaksa (force), inisialisasi baseline
   if (!force && !lastActivityTimestamp) {
@@ -288,13 +312,13 @@ export async function checkAndTriggerCommunityIcebreaker(
         { onConflict: "content_key" }
       );
 
-      await recordCommunityGroupActivity(icebreakerMessage, "Expedient AI", "");
+      await recordCommunityGroupActivity(icebreakerMessage, "Evander", "bot");
 
       // Catat ke whatsapp_queue
       await supabase.from("whatsapp_queue").insert([
         {
           no_whatsapp: communityGroupId.slice(0, 20),
-          message: `[ICEBREAKER GRUP] "${icebreakerMessage.slice(0, 100)}..."`,
+          message: `[EVANDER-ICEBREAKER] "${icebreakerMessage.slice(0, 100)}..."`,
           status: "sent_group",
           error_message: `Pemicu keaktifan grup dikirim setelah hening ${elapsedHours.toFixed(1)} jam.`,
           created_at: new Date().toISOString(),

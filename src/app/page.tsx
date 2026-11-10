@@ -1,10 +1,12 @@
 import "./landing.css";
 import LandingContent from "@/components/landing/LandingContent";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export const revalidate = 300; // ISR: Revalidate landing page every 5 minutes
 
 export default async function LandingPage() {
   try {
-    const supabase = await createClient();
+    const adminSupabase = createAdminClient();
 
     const withTimeout = <T,>(promise: PromiseLike<T>, fallback: T): Promise<T> =>
       Promise.race([
@@ -14,11 +16,11 @@ export default async function LandingPage() {
 
     const [contentsRes, countRes] = await Promise.allSettled([
       withTimeout(
-        supabase.from("site_content").select("*").like("content_key", "landing_%"),
+        adminSupabase.from("site_content").select("*").like("content_key", "landing_%"),
         { data: [] } as any
       ),
       withTimeout(
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        adminSupabase.from("profiles").select("*", { count: "exact", head: true }),
         { count: 0 } as any
       ),
     ]);
