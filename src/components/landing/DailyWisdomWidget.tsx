@@ -78,7 +78,7 @@ export default function DailyWisdomWidget() {
   const copyWisdom = () => {
     if (typeof navigator !== "undefined") {
       if (navigator.vibrate) navigator.vibrate(10);
-      const textToCopy = `*Secarik Mahfuzhat Santri Arrisalah* 📜\n\n${current.arabic}\n"${current.latin}"\n\n_Artinya:_ ${current.arti}\n\n— Expedient Generation 43`;
+      const textToCopy = `*Secarik Mahfuzhat Santri Arrisalah*\n\n${current.arabic}\n"${current.latin}"\n\n_Artinya:_ ${current.arti}\n\n— Expedient Generation 43`;
       navigator.clipboard.writeText(textToCopy).then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2200);
@@ -89,7 +89,7 @@ export default function DailyWisdomWidget() {
   const shareToWhatsApp = () => {
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
     const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://expedientgeneration.vercel.app";
-    const textToShare = `*Secarik Mahfuzhat Santri Arrisalah* 📜\n\n${current.arabic}\n"${current.latin}"\n\n_${current.arti}_\n\n🔗 ${siteUrl}`;
+    const textToShare = `*Secarik Mahfuzhat Santri Arrisalah*\n\n${current.arabic}\n"${current.latin}"\n\n_${current.arti}_\n\n${siteUrl}`;
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
     window.open(waUrl, "_blank", "noopener,noreferrer");
   };

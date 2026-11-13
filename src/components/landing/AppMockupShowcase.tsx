@@ -14,12 +14,6 @@ export default function AppMockupShowcase() {
   return (
     <section className="app-showcase-section" id="aplikasi">
       <div className="section-header reveal-on-scroll">
-        <div className="landing-prestige-badge" style={{ marginBottom: "14px", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-          <i className="fa-brands fa-android" style={{ color: "#d4af37" }}></i>
-          <span style={{ opacity: 0.4 }}>•</span>
-          <i className="fa-brands fa-apple" style={{ color: "#d4af37" }}></i>
-          <span>{locale === "ar" ? "تطبيق رسمي متوفر لأجهزة أندرويد وآيفون" : locale === "en" ? "Official App for Android & iPhone" : "Tersedia untuk Android & iPhone (iOS)"}</span>
-        </div>
         <h2 className="section-title">
           {t.app_showcase.title}
         </h2>

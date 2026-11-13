@@ -97,7 +97,7 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
 
           {/* Section 1: Halaman Landing Anchor Links */}
           <div className="drawer-nav-section">
-            <span className="drawer-section-label">{t.drawer.section_landing}</span>
+            <span className="drawer-group-heading">{t.drawer.section_landing}</span>
             <div className="drawer-links-list">
               <a
                 href="#beranda"
@@ -259,7 +259,7 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
 
           {/* Section 3: Portal Anggota / Alumni */}
           <div className="drawer-nav-section">
-            <span className="drawer-section-label">{t.drawer.section_portal}</span>
+            <span className="drawer-group-heading">{t.drawer.section_portal}</span>
             <div className="drawer-auth-buttons">
               <Link href="/login" className="drawer-btn-login" onClick={onClose}>
                 <i className="fa-solid fa-circle-user"></i>

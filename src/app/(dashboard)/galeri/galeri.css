@@ -204,9 +204,9 @@ body.page-galeri .portrait-lock,
 body.page-galeri.bypass-portrait .portrait-lock { display: none !important; }
 body.page-galeri.bypass-portrait .gallery-stage { display: flex !important; }
 
-/* ===== LANDSCAPE MODE (Standard Gallery Presentation) ===== */
-/* In landscape orientation, the navbar is strictly docked on the LEFT side, leaving the bottom completely clear */
-@media (orientation: landscape) {
+/* ===== LANDSCAPE MODE (Standard Gallery Presentation on Mobile Landscape Devices) ===== */
+/* In mobile landscape orientation, the navbar is strictly docked on the LEFT side, leaving the bottom completely clear */
+@media (orientation: landscape) and (max-height: 600px) {
     body.page-galeri .sidebar {
         top: 10px !important;
         bottom: 10px !important;
@@ -456,6 +456,12 @@ body.page-galeri.bypass-portrait .gallery-stage { display: flex !important; }
     padding-top: 15px;
 }
 
+@media (max-width: 768px) {
+    .galeri-master-wrapper {
+        padding-top: calc(max(16px, env(safe-area-inset-top, 0px)) + 54px);
+    }
+}
+
 /* TOP DUAL-MODE SWITCHER DOCK (NON-OVERLAPPING IN FLOW) */
 .galeri-mode-switcher-dock {
     width: 100%;
@@ -477,6 +483,16 @@ body.mode-yearbook .galeri-mode-switcher-dock {
     margin: 0;
     padding: 0;
     width: auto;
+}
+
+@media (max-width: 768px) {
+    body.mode-yearbook .galeri-mode-switcher-dock {
+        top: calc(max(16px, env(safe-area-inset-top, 0px)) + 54px);
+    }
+    body.mode-yearbook .dimension-shift-btn,
+    .gallery-stage .dimension-shift-btn {
+        top: calc(max(16px, env(safe-area-inset-top, 0px)) + 114px) !important;
+    }
 }
 
 body.mode-yearbook .dimension-shift-btn,
@@ -1011,7 +1027,7 @@ body.mode-yearbook .dimension-shift-btn,
 .vault-fab-upload {
     position: fixed;
     bottom: 28px;
-    right: 170px;
+    right: 260px;
     z-index: 9990;
     background: linear-gradient(135deg, #d4af37, #b8860b);
     border: 1px solid rgba(255, 255, 255, 0.25);

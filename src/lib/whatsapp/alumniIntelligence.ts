@@ -433,7 +433,7 @@ export async function resolveCohortContext(
         .select("title, category, company, description, contact")
         .limit(4);
 
-      let syndicateSummary = `FAKTA EXPEDIENT SYNDICATE (Jejaring Bisnis & Karir Angkatan):\n`;
+      let syndicateSummary = `FAKTA JEJARING BISNIS ALUMNI EXPEDIENT 43 (Katalog Wirausaha & Jasa):\n`;
       if (syndicateItems && syndicateItems.length > 0) {
         syndicateSummary += syndicateItems
           .map((item) => `• *${item.title}* (${item.category || "Usaha"}) - ${item.company || "Alumni"} | Info: ${item.contact || "-"}`)
@@ -623,7 +623,7 @@ export async function resolveCohortContext(
           `2. 📸 *Galeri Masa Pondok*: Nostalgia kenangan indah masa nyantri.\n` +
           `3. 🎬 *Bioskop Mahakarya PG 643*: Pemutar video interaktif dokumentasi Panggung Gembira 643 (@JiilulHashiif).\n` +
           `4. 💰 *Baitul Maal*: Laporan kas transparan, donasi online, dan ta'awun kesehatan.\n` +
-          `5. 💼 *Expedient Syndicate*: Jejaring karir, lowongan kerja, dan kolaborasi bisnis alumni.\n` +
+          `5. 💼 *Jejaring Bisnis Alumni*: Katalog usaha, produk, dan kolaborasi ekonomi antar alumni.\n` +
           `6. ✍️ *Buku Tamu Online*: Titip salam dan pesan persahabatan antar alumni.\n` +
           `7. 📖 *Asmaul Husna & Doa*: Renungan 99 Asmaul Husna, arah kiblat & waktu sholat digital.\n` +
           `8. 🤖 *AI Photobooth*: Generator foto seru alumni bertenaga AI.`,

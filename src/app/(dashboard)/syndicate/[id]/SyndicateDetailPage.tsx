@@ -7,6 +7,7 @@ import QRCode from "qrcode";
 import { getAvatarUrl } from "@/lib/avatar";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getThemeConfig, slugify } from "@/lib/syndicate/themes";
 import "../syndicate.css";
 
 interface ProductItem {
@@ -63,11 +64,13 @@ interface Props {
 }
 
 export default function SyndicateDetailPage({ business, isOwner, viewerName }: Props) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { showAlert } = useConfirm();
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>("");
   const [copiedLink, setCopiedLink] = useState(false);
+
+  const themeConfig = getThemeConfig(business.theme);
 
   const ownerName = business.profiles?.nama_panggilan || business.profiles?.nama_lengkap || "Pemilik Usaha";
   const ownerAvatar = getAvatarUrl(business.profiles?.foto_profil, ownerName);
@@ -91,23 +94,27 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
 
   // Construct dynamic prefilled WhatsApp message
   const mainWaMessage = encodeURIComponent(
-    `Halo Mas/Mbak ${ownerName}, saya ${viewerName} (Alumni Expedient 43).\n\nSaya melihat profil bisnis "${business.nama_bisnis}" di website Alumni Expedient 43 dan tertarik untuk berkonsultasi/bertanya mengenai produk/layanan Anda. Terima kasih!`
+    `Halo Mas/Mbak ${ownerName}, saya ${viewerName} (Alumni Expedient 43).\n\nSaya melihat profil bisnis "${business.nama_bisnis}" di Direktori Bisnis Alumni Expedient 43 dan tertarik untuk berkonsultasi/bertanya mengenai produk/layanan Anda. Terima kasih!`
   );
   const mainWaUrl = cleanWa ? `https://wa.me/${cleanWa}?text=${mainWaMessage}` : "#";
 
-  // Generate QR code for sharing
+  const publicSlug = slugify(business.nama_bisnis) || business.id;
+  const publicPath = `/b/${publicSlug}`;
+
+  // Generate QR code for sharing the clean public URL
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const currentUrl = window.location.href;
-      QRCode.toDataURL(currentUrl, { width: 350, margin: 2, color: { dark: "#000000", light: "#ffffff" } })
+      const targetUrl = `${window.location.origin}${publicPath}`;
+      QRCode.toDataURL(targetUrl, { width: 350, margin: 2, color: { dark: "#060b14", light: "#ffffff" } })
         .then((url: string) => setQrCodeDataUrl(url))
         .catch((err: any) => console.error("QR Code error:", err));
     }
-  }, []);
+  }, [publicPath]);
 
   const handleCopyLink = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
+      const targetUrl = `${window.location.origin}${publicPath}`;
+      navigator.clipboard.writeText(targetUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     }
@@ -122,23 +129,63 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
   };
 
   return (
-    <div className="syndicate-page" style={{ paddingTop: "100px" }}>
+    <div className={`syndicate-page biz-theme-${themeConfig.id}`}>
       <div className="microsite-container">
         
-        {/* Navigation Breadcrumb */}
+        {/* Navigation Breadcrumb & Action Toolbar */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "25px", flexWrap: "wrap", gap: "10px" }}>
-          <Link href="/syndicate" style={{ color: "var(--text-secondary)", textDecoration: "none", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
+          <Link href="/syndicate" style={{ color: "var(--biz-text-secondary)", textDecoration: "none", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "8px", fontWeight: 600 }}>
             <i className="fa-solid fa-arrow-left"></i> {t.syndicate.back_to_list}
           </Link>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+            <span
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                color: "var(--biz-gold)",
+                backgroundColor: "var(--biz-gold-subtle)",
+                padding: "6px 14px",
+                borderRadius: "50px",
+                border: "1px solid var(--biz-card-border)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <i className={`fa-solid ${themeConfig.icon}`}></i> {themeConfig.name}
+            </span>
+
+            {/* Direct Link to Standalone Public Microsite */}
+            <Link
+              href={publicPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: "var(--biz-tag-bg)",
+                border: "1px solid var(--biz-card-border)",
+                color: "var(--biz-gold)",
+                padding: "8px 16px",
+                borderRadius: "50px",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px"
+              }}
+              title="Buka tampilan publik mandiri tanpa menu dashboard"
+            >
+              <i className="fa-solid fa-arrow-up-right-from-square"></i> Halaman Publik
+            </Link>
+
             {isOwner && (
               <Link 
                 href={`/syndicate/edit/${business.id}`}
                 style={{
-                  background: "rgba(212, 175, 55, 0.15)",
-                  border: "1px solid var(--gold-main)",
-                  color: "var(--gold-main)",
+                  background: "var(--biz-gold-subtle)",
+                  border: "1px solid var(--biz-gold)",
+                  color: "var(--biz-gold)",
                   padding: "8px 18px",
                   borderRadius: "50px",
                   fontSize: "0.8rem",
@@ -149,15 +196,15 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                   gap: "6px"
                 }}
               >
-                <i className="fa-solid fa-pen-to-square"></i> Edit Website Ini
+                <i className="fa-solid fa-pen-to-square"></i> {locale === "ar" ? "تعديل هذا الموقع" : locale === "en" ? "Edit This Webpage" : "Edit Profil Usaha"}
               </Link>
             )}
             <button
               onClick={() => setQrModalOpen(true)}
               style={{
-                background: "var(--glass-bg)",
-                border: "1px solid var(--glass-border)",
-                color: "var(--text-primary)",
+                background: "var(--biz-tag-bg)",
+                border: "1px solid var(--biz-tag-border)",
+                color: "var(--biz-text-primary)",
                 padding: "8px 16px",
                 borderRadius: "50px",
                 fontSize: "0.8rem",
@@ -167,7 +214,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 gap: "6px"
               }}
             >
-              <i className="fa-solid fa-qrcode"></i> Bagikan / QR
+              <i className="fa-solid fa-qrcode"></i> {locale === "ar" ? "مشاركة / رمز QR" : locale === "en" ? "Share / QR" : "Bagikan / QR"}
             </button>
           </div>
         </div>
@@ -178,6 +225,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
             src={banner} 
             alt="Banner Cover" 
             fill 
+            sizes="(max-width: 1080px) 100vw, 1040px"
             unoptimized={banner.startsWith("data:") || banner.includes("supabase.co")}
             priority
           />
@@ -191,11 +239,16 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               src={logo} 
               alt={business.nama_bisnis} 
               fill 
+              sizes="160px"
               unoptimized={logo.startsWith("data:") || logo.includes("supabase.co") || logo.includes("ui-avatars.com")}
             />
           </div>
 
           <h1 className="microsite-biz-name">{business.nama_bisnis}</h1>
+
+          <div className="microsite-archetype-divider" aria-hidden="true">
+            <i className={`fa-solid ${themeConfig.icon}`}></i>
+          </div>
 
           {business.tagline && (
             <div className="microsite-tagline-text">
@@ -205,18 +258,18 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
 
           {/* Badges Row */}
           <div className="microsite-badges-row">
-            <span className="microsite-badge-pill" style={{ background: "rgba(212, 175, 55, 0.15)", border: "1px solid var(--gold-main)", color: "var(--gold-main)" }}>
+            <span className="microsite-badge-pill" style={{ background: "var(--biz-gold-subtle)", border: "1px solid var(--biz-gold)", color: "var(--biz-gold)" }}>
               <i className="fa-solid fa-tag"></i> {business.kategori}
             </span>
 
             {business.kota && (
-              <span className="microsite-badge-pill" style={{ background: "rgba(255, 255, 255, 0.08)", border: "1px solid var(--glass-border)", color: "var(--text-secondary)" }}>
-                <i className="fa-solid fa-location-dot" style={{ color: "#ff4d6d" }}></i> {business.kota}
+              <span className="microsite-badge-pill" style={{ background: "var(--biz-tag-bg)", border: "1px solid var(--biz-tag-border)", color: "var(--biz-text-secondary)" }}>
+                <i className="fa-solid fa-location-dot" style={{ color: "#ef4444" }}></i> {business.kota}
               </span>
             )}
 
-            <span className="microsite-badge-pill" style={{ background: "rgba(0, 200, 83, 0.1)", border: "1px solid rgba(0, 200, 83, 0.3)", color: "#00c853" }}>
-              <i className="fa-solid fa-user-check"></i> Founder: {ownerName}
+            <span className="microsite-badge-pill" style={{ background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.35)", color: "var(--biz-badge-owner)" }}>
+              <i className="fa-solid fa-user-check"></i> {locale === "ar" ? "صاحب المشروع" : locale === "en" ? "Business Owner" : "Pemilik Usaha"}: {ownerName}
             </span>
           </div>
 
@@ -235,7 +288,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               className="btn-cta-wa"
             >
               <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.3rem" }}></i>
-              {t.syndicate.order_wa}
+              {themeConfig.ctaWaText || t.syndicate.order_wa}
             </a>
 
             {business.link_url && (
@@ -245,7 +298,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 rel="noopener noreferrer"
                 className="btn-cta-share"
               >
-                <i className="fa-solid fa-globe" style={{ color: "var(--gold-main)" }}></i>
+                <i className="fa-solid fa-globe" style={{ color: "var(--biz-gold)" }}></i>
                 {t.syndicate.visit_website}
               </a>
             )}
@@ -262,7 +315,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
           {/* Marketplace Hub (Shopee, Tokopedia, TikTok, GoFood, GrabFood, Instagram) */}
           {(marketplaces.shopee || marketplaces.tokopedia || marketplaces.tiktok || marketplaces.gofood || marketplaces.grabfood || marketplaces.instagram) && (
             <div className="marketplace-hub">
-              <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginRight: "6px", fontWeight: 600 }}>
+              <span style={{ fontSize: "0.85rem", color: "var(--biz-text-secondary)", marginRight: "6px", fontWeight: 600 }}>
                 Toko Online / Pesan Di:
               </span>
 
@@ -312,32 +365,32 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               <i className="fa-solid fa-award"></i>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "2px", color: "var(--gold-main)", fontWeight: 700, marginBottom: "4px" }}>
+              <div style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "2px", color: "var(--biz-gold)", fontWeight: 700, marginBottom: "4px" }}>
                 Hak Istimewa Alumni Expedient 43
               </div>
-              <h3 style={{ fontSize: "1.25rem", color: "var(--text-primary)", fontWeight: 700, margin: "0 0 6px" }}>
+              <h3 style={{ fontSize: "1.25rem", color: "var(--biz-text-primary)", fontWeight: 700, margin: "0 0 6px" }}>
                 Promo Diskon Pemegang KTA Resmi
               </h3>
-              <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.6 }}>
+              <p style={{ margin: 0, color: "var(--biz-text-secondary)", fontSize: "0.95rem", lineHeight: 1.6 }}>
                 {business.promo_alumni}
               </p>
             </div>
           </div>
         )}
 
-        {/* Showcase Produk & Layanan (WordPress-style Product Grid) */}
+        {/* Showcase Produk & Layanan (Theme-Tailored Product Grid) */}
         {products.length > 0 && (
           <div style={{ marginBottom: "50px" }}>
             <h2 className="products-section-title">
-              <i className="fa-solid fa-box-open" style={{ color: "var(--gold-main)" }}></i>
-              Produk & Layanan Pilihan
+              <i className={`fa-solid ${themeConfig.productsIcon}`} style={{ color: "var(--biz-gold)" }}></i>
+              {themeConfig.productsTitle}
             </h2>
 
             <div className="products-grid">
               {products.map((item, idx) => {
                 const productPhoto = item.foto || logo;
                 const orderText = encodeURIComponent(
-                  `Halo Mas/Mbak ${ownerName}, saya ${viewerName} (Alumni Expedient 43).\n\nSaya ingin memesan / menanyakan produk "${item.nama}"${item.harga ? ` (Harga: ${item.harga})` : ""} yang ada di halaman web bisnis Anda. Mohon info ketersediaannya. Terima kasih!`
+                  `Halo Mas/Mbak ${ownerName}, saya ${viewerName} (Alumni Expedient 43).\n\nSaya ingin memesan / menanyakan produk "${item.nama}"${item.harga ? ` (Harga: ${item.harga})` : ""} yang ada di halaman web bisnis Anda (${themeConfig.name}). Mohon info ketersediaannya. Terima kasih!`
                 );
                 const orderWaUrl = cleanWa ? `https://wa.me/${cleanWa}?text=${orderText}` : "#";
 
@@ -348,6 +401,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                         src={productPhoto} 
                         alt={item.nama} 
                         fill 
+                        sizes="(max-width: 640px) 100vw, 340px"
                         unoptimized={productPhoto.startsWith("data:") || productPhoto.includes("supabase.co")}
                       />
                       {item.harga && (
@@ -367,7 +421,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                         rel="noopener noreferrer"
                         className="btn-order-product"
                       >
-                        <i className="fa-brands fa-whatsapp"></i> Pesan via WhatsApp
+                        <i className="fa-brands fa-whatsapp"></i> {themeConfig.orderButtonText}
                       </a>
                     </div>
                   </div>
@@ -384,7 +438,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
             <h3>
               <i className="fa-solid fa-circle-info"></i> Tentang Usaha
             </h3>
-            <div style={{ color: "var(--text-secondary)", fontSize: "0.98rem", lineHeight: 1.8, whiteSpace: "pre-line" }}>
+            <div style={{ color: "var(--biz-text-secondary)", fontSize: "0.98rem", lineHeight: 1.8, whiteSpace: "pre-line" }}>
               {business.deskripsi}
             </div>
           </div>
@@ -394,16 +448,16 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
             <h3>
               <i className="fa-regular fa-clock"></i> Jam Operasional
             </h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "15px" }}>
+            <p style={{ color: "var(--biz-text-secondary)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "15px" }}>
               {business.jam_operasional || "Hubungi langsung via WhatsApp untuk janji temu / reservasi."}
             </p>
 
             {business.alamat && (
               <>
-                <h4 style={{ color: "var(--text-primary)", fontSize: "0.95rem", fontWeight: 700, margin: "15px 0 6px" }}>
+                <h4 style={{ color: "var(--biz-text-primary)", fontSize: "0.95rem", fontWeight: 700, margin: "15px 0 6px" }}>
                   Alamat / Lokasi:
                 </h4>
-                <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: 1.5, marginBottom: "15px" }}>
+                <p style={{ color: "var(--biz-text-secondary)", fontSize: "0.9rem", lineHeight: 1.5, marginBottom: "15px" }}>
                   {business.alamat}
                 </p>
               </>
@@ -418,7 +472,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  color: "var(--gold-main)",
+                  color: "var(--biz-gold)",
                   fontSize: "0.85rem",
                   fontWeight: 600,
                   textDecoration: "none"
@@ -432,7 +486,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
           {/* Profil Pemilik (Alumni Founder) */}
           <div className="microsite-info-card">
             <h3>
-              <i className="fa-solid fa-id-badge"></i> Founder & Alumni
+              <i className="fa-solid fa-id-badge"></i> {locale === "ar" ? "بيانات المالك والخريج" : locale === "en" ? "Business Owner & Alumni" : "Profil Pemilik Usaha"}
             </h3>
             <div style={{ display: "flex", alignItems: "center", gap: "15px", marginBottom: "15px" }}>
               <Image 
@@ -440,18 +494,18 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 alt={ownerName} 
                 width={65} 
                 height={65} 
-                style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid var(--gold-main)" }}
+                style={{ borderRadius: "50%", objectFit: "cover", border: "2px solid var(--biz-gold)", background: "var(--biz-banner-ph)" }}
                 unoptimized
               />
               <div>
-                <h4 style={{ color: "var(--text-primary)", fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
+                <h4 style={{ color: "var(--biz-text-primary)", fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
                   {ownerName}
                 </h4>
-                <div style={{ fontSize: "0.8rem", color: "#00c853", fontFamily: "monospace", marginTop: "2px" }}>
-                  Expedient 43 Alumni
+                <div style={{ fontSize: "0.8rem", color: "var(--biz-badge-owner)", fontWeight: 700, marginTop: "2px" }}>
+                  {locale === "ar" ? "خريج دفعة إكسبيدينت ٤٣" : locale === "en" ? "Expedient 43 Alumni" : "Alumni Expedient 43"}
                 </div>
                 {business.profiles?.akun_ig && (
-                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginTop: "2px" }}>
+                  <div style={{ fontSize: "0.8rem", color: "var(--biz-text-secondary)", marginTop: "2px" }}>
                     <i className="fa-brands fa-instagram" style={{ color: "#E1306C", marginRight: "4px" }}></i>
                     {business.profiles.akun_ig}
                   </div>
@@ -459,7 +513,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               </div>
             </div>
 
-            <div style={{ borderTop: "1px solid var(--glass-border)", paddingTop: "12px", marginTop: "10px" }}>
+            <div style={{ borderTop: "1px solid var(--biz-footer-border)", paddingTop: "12px", marginTop: "10px" }}>
               <a 
                 href={mainWaUrl} 
                 target={cleanWa ? "_blank" : "_self"} 
@@ -468,24 +522,24 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
-                  color: "#25D366",
+                  color: "#16a34a",
                   fontSize: "0.85rem",
                   fontWeight: 600,
                   textDecoration: "none"
                 }}
               >
-                <i className="fa-brands fa-whatsapp"></i> Hubungi Langsung: {waRaw || "Tidak ada nomor"}
+                <i className="fa-brands fa-whatsapp"></i> {locale === "ar" ? "تواصل مباشرة:" : locale === "en" ? "Direct Contact:" : "Hubungi Langsung:"} {waRaw || "Tidak ada nomor"}
               </a>
             </div>
           </div>
         </div>
 
         {/* Footer Branding */}
-        <div style={{ textAlign: "center", padding: "40px 20px 20px", borderTop: "1px solid var(--glass-border)", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-          <div style={{ fontFamily: "var(--font-playfair, serif)", color: "var(--gold-main)", fontSize: "1.1rem", fontWeight: 700, marginBottom: "6px" }}>
-            Expedient 43 Syndicate Network
+        <div style={{ textAlign: "center", padding: "40px 20px 20px", borderTop: "1px solid var(--biz-footer-border)", color: "var(--biz-text-secondary)", fontSize: "0.85rem" }}>
+          <div style={{ fontFamily: "var(--font-playfair, serif)", color: "var(--biz-gold)", fontSize: "1.1rem", fontWeight: 700, marginBottom: "6px" }}>
+            {locale === "ar" ? "دليل مشاريع ورواد أعمال دفعة إكسبيدينت ٤٣" : locale === "en" ? "Expedient 43 Alumni Business Network" : "Jejaring Bisnis & Usaha Alumni Expedient 43"}
           </div>
-          <div>Direktori Usaha & Ekosistem Sinergi Bisnis Alumni</div>
+          <div>{locale === "ar" ? "دليل الأعمال والتعاون الاقتصادي بين خريجي المعهد" : locale === "en" ? "Alumni Venture Directory & Collaborative Economic Ecosystem" : "Direktori Usaha & Ekosistem Sinergi Bisnis Santri Slahung"}</div>
         </div>
 
       </div>
@@ -496,20 +550,24 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
           <div className="qr-modal-box" onClick={(e) => e.stopPropagation()}>
             <button 
               onClick={() => setQrModalOpen(false)}
-              style={{ position: "absolute", top: "18px", right: "18px", background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "1.3rem", cursor: "pointer" }}
+              style={{ position: "absolute", top: "18px", right: "18px", background: "transparent", border: "none", color: "var(--biz-text-secondary)", fontSize: "1.3rem", cursor: "pointer" }}
             >
               <i className="fa-solid fa-times"></i>
             </button>
 
-            <h3 style={{ fontFamily: "var(--font-playfair, serif)", color: "var(--gold-main)", fontSize: "1.4rem", margin: "0 0 8px" }}>
-              QR Code Website Bisnis
+            <h3 style={{ fontFamily: "var(--biz-heading-font)", color: "var(--biz-gold)", fontSize: "1.4rem", margin: "0 0 8px" }}>
+              {locale === "ar" ? "رمز QR لصفحة المشروع" : locale === "en" ? "Business QR Code" : "QR Code Halaman Usaha"}
             </h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "20px" }}>
-              Scan untuk membuka website <strong>{business.nama_bisnis}</strong> di smartphone atau bagikan ke calon pembeli.
+            <p style={{ color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "20px" }}>
+              {locale === "ar" 
+                ? `امسح الرمز لفتح موقع ${business.nama_bisnis} على الهاتف أو شاركه مع العملاء.`
+                : locale === "en"
+                ? `Scan to open ${business.nama_bisnis} on a mobile device or share with clients.`
+                : `Scan untuk membuka profil usaha ${business.nama_bisnis} di smartphone atau bagikan ke pelanggan.`}
             </p>
 
             {qrCodeDataUrl && (
-              <div style={{ background: "#ffffff", padding: "15px", borderRadius: "16px", display: "inline-block", boxShadow: "0 10px 25px rgba(0,0,0,0.4)", marginBottom: "20px" }}>
+              <div style={{ background: "#ffffff", padding: "15px", borderRadius: "16px", display: "inline-block", boxShadow: "0 10px 25px rgba(0,0,0,0.25)", marginBottom: "20px" }}>
                 <Image src={qrCodeDataUrl} alt="QR Code" width={220} height={220} unoptimized />
               </div>
             )}
@@ -518,8 +576,8 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
               <button 
                 onClick={handleDownloadQr}
                 style={{
-                  background: "linear-gradient(135deg, #d4af37, #aa8529)",
-                  color: "#000",
+                  background: "var(--biz-gold-btn)",
+                  color: "var(--biz-btn-contrast-text)",
                   border: "none",
                   padding: "10px 20px",
                   borderRadius: "50px",
@@ -531,15 +589,15 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                   gap: "6px"
                 }}
               >
-                <i className="fa-solid fa-download"></i> Unduh QR
+                <i className="fa-solid fa-download"></i> {locale === "ar" ? "تحميل الرمز" : locale === "en" ? "Download QR" : "Unduh QR"}
               </button>
 
               <button 
                 onClick={handleCopyLink}
                 style={{
-                  background: "var(--glass-bg)",
-                  border: "1px solid var(--glass-border)",
-                  color: "var(--text-primary)",
+                  background: "var(--biz-tag-bg)",
+                  border: "1px solid var(--biz-tag-border)",
+                  color: "var(--biz-text-primary)",
                   padding: "10px 20px",
                   borderRadius: "50px",
                   fontSize: "0.85rem",
@@ -551,7 +609,7 @@ export default function SyndicateDetailPage({ business, isOwner, viewerName }: P
                 }}
               >
                 <i className={copiedLink ? "fa-solid fa-check" : "fa-solid fa-link"}></i>
-                {copiedLink ? "Tersalin!" : "Salin Link"}
+                {copiedLink ? (locale === "ar" ? "تم النسخ!" : locale === "en" ? "Copied!" : "Tersalin!") : (locale === "ar" ? "نسخ الرابط" : locale === "en" ? "Copy Link" : "Salin Link")}
               </button>
             </div>
           </div>

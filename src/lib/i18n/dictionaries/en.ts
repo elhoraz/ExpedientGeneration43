@@ -860,7 +860,7 @@ export const enDictionary: Dictionary = {
     back_home: "Back to Home",
   },
   syndicate: {
-    title: "Syndicate Business Network",
+    title: "Alumni Business Directory",
     subtitle: "Directory of entrepreneurial initiatives, flagship products, and professional services by Expedient 43 alumni.",
     search_placeholder: "Search businesses, products, or services...",
     all_categories: "All Categories",
@@ -872,7 +872,7 @@ export const enDictionary: Dictionary = {
     qr_code: "Business QR",
     empty_title: "No Businesses Registered Yet",
     empty_desc: "Be the first to introduce your brand and products to the alumni community.",
-    back_to_list: "Back to Catalog",
+    back_to_list: "Back to Directory",
     verified_badge: "Verified Alumni",
   },
   wasiat: {
@@ -1289,7 +1289,7 @@ export const enDictionary: Dictionary = {
       oracle: "Aura Photobooth Camera",
       enigma: "Personal Vault & Notes",
       radar: "Alumni Distribution Radar",
-      syndicate: "Alumni Syndicate Business Catalog",
+      syndicate: "Alumni Business Directory",
       majlis: "Majlis Studies & Discourse",
       baitul: "Treasury & Infaq (Baitul Maal)",
       tarbiyah: "Career Network & Mentoring",
@@ -1522,7 +1522,7 @@ export const enDictionary: Dictionary = {
     data_deleted_list: [
       "Login credentials, email, WhatsApp number, and biometric / facial recognition records.",
       "Alumni profile, avatar photo, and location coordinates on Alumni Radar.",
-      "Your enterprise listings in the Business Directory (Syndicate).",
+      "Your enterprise listings in the Alumni Business Directory.",
       "Digital testament messages and entire personal activity telemetry.",
     ],
     data_retained_title: "Financial Retention Policy (Baitul Maal)",

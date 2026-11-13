@@ -37,10 +37,6 @@ export default function HistoryTimeline() {
   return (
     <section className="history-section" id="sejarah">
       <div className="section-header reveal-on-scroll">
-        <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
-          <span className="badge-bullet">✦</span>
-          <span>{t.history_section.badge}</span>
-        </div>
         <h2 className="section-title">
           {t.history_section.title}
         </h2>
@@ -107,7 +103,7 @@ export default function HistoryTimeline() {
               <div className="history-highlights-row">
                 {active.highlights.map((h, i) => (
                   <span key={i} className="highlight-pill">
-                    <span className="highlight-ornament">✦</span> {h}
+                    <span className="highlight-ornament">•</span> {h}
                   </span>
                 ))}
               </div>

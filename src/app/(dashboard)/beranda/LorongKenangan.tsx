@@ -450,7 +450,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                         onError={(e) => {
                           const target = e.currentTarget;
                           target.onerror = null;
-                          target.src = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&q=80";
+                          target.src = "/assets/gallery/display/disp_rihlah_001.webp";
                         }}
                       />
 

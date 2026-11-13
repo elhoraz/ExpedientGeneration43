@@ -88,10 +88,6 @@ export default function PolaroidMemories() {
   return (
     <section className="polaroid-section" id="kenangan">
       <div className="section-header reveal-on-scroll">
-        <div className="tuku-heritage-badge" style={{ marginBottom: "12px" }}>
-          <span className="badge-bullet">✦</span>
-          <span>{t.memories_section.badge}</span>
-        </div>
         <h2 className="section-title">
           {t.memories_section.title}
         </h2>
@@ -214,11 +210,12 @@ export default function PolaroidMemories() {
           <i className="fa-solid fa-book-journal-whills"></i>
           <span>
             {locale === "ar"
-              ? "افتح أكثر من 150 صفحة في المتحف الرقمي ➔"
+              ? "افتح أكثر من 150 صفحة في المتحف الرقمي"
               : locale === "en"
-              ? "Open 150+ Full Album Pages in Museum ➔"
-              : "Buka 150+ Halaman Album Lengkap di Museum ➔"}
+              ? "Open 150+ Full Album Pages in Museum"
+              : "Buka 150+ Halaman Album Lengkap di Museum"}
           </span>
+          <i className="fa-solid fa-arrow-right" style={{ marginInlineStart: "8px" }}></i>
         </Link>
       </div>
     </section>

@@ -3,11 +3,11 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { getAvatarUrl } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { getThemeConfig, slugify } from "@/lib/syndicate/themes";
 import "./syndicate.css";
 
 interface Props {
@@ -60,25 +60,14 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
     });
   }, [portofolio, filter, searchQuery]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined" && (window as any).VanillaTilt) {
-      const elements = document.querySelectorAll(".biz-item");
-      if (elements.length > 0) {
-        (window as any).VanillaTilt.init(elements, {
-          max: 12,
-          speed: 400,
-          glare: true,
-          "max-glare": 0.15,
-          scale: 1.02,
-        });
-      }
-    }
-  }, [filteredBiz]);
-
   const handleDelete = async (id: string) => {
     const isConfirmed = await showConfirm(
-      "Konfirmasi Hapus",
-      "Apakah Anda yakin ingin menghapus data usaha ini beserta halaman websitenya?"
+      locale === "ar" ? "تأكيد الحذف" : locale === "en" ? "Confirm Deletion" : "Konfirmasi Hapus",
+      locale === "ar" 
+        ? "هل أنت متأكد من رغبتك في حذف هذا المشروع التجاري وصفحته؟"
+        : locale === "en"
+        ? "Are you sure you want to delete this business profile and its webpage?"
+        : "Apakah Anda yakin ingin menghapus data usaha ini beserta halaman profilnya?"
     );
     if (!isConfirmed) return;
 
@@ -86,27 +75,32 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
     const { error } = await supabase.from("syndicate").delete().eq("id", id);
     if (!error) {
       setPortofolio(portofolio.filter((b) => b.id !== id));
-      showAlert("Sukses", "Data usaha berhasil dihapus.");
+      showAlert(
+        locale === "ar" ? "تم بنجاح" : locale === "en" ? "Success" : "Sukses",
+        locale === "ar" ? "تم حذف بيانات المشروع بنجاح." : locale === "en" ? "Business listing successfully removed." : "Data usaha berhasil dihapus."
+      );
     } else {
-      showAlert("Gagal", `Gagal menghapus: ${error.message}`);
+      showAlert(
+        locale === "ar" ? "فشل" : locale === "en" ? "Failed" : "Gagal",
+        `${error.message}`
+      );
     }
   };
 
   return (
     <div className="syndicate-page">
+      <div className="syndicate-shell">
 
-      {/* Title Header */}
-      <div style={{ textAlign: "center", marginBottom: "35px" }}>
+      {/* Header Section */}
+      <div className="syndicate-header">
         <h1 className="syndicate-title">{t.syndicate.title}</h1>
-        <div className="syndicate-subtitle">
-          {t.syndicate.subtitle}
-        </div>
+        <p className="syndicate-subtitle">{t.syndicate.subtitle}</p>
       </div>
 
-      {/* Interactive Search Bar */}
+      {/* Search Bar */}
       <div className="syndicate-search-container">
         <div className="syndicate-search-box">
-          <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--gold-main)", fontSize: "1.1rem" }}></i>
+          <i className="fa-solid fa-magnifying-glass" style={{ color: "var(--biz-gold)", fontSize: "1rem" }}></i>
           <input
             type="text"
             className="syndicate-search-input"
@@ -117,7 +111,15 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", fontSize: "0.9rem" }}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--biz-text-muted)",
+                cursor: "pointer",
+                fontSize: "0.9rem",
+                padding: "4px",
+              }}
+              aria-label="Clear search"
             >
               <i className="fa-solid fa-times"></i>
             </button>
@@ -125,20 +127,9 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
         </div>
       </div>
 
-      {/* Filter Chips & Add Button */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "35px",
-          flexWrap: "wrap",
-          gap: "15px",
-          position: "relative",
-          zIndex: 10,
-        }}
-      >
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+      {/* Toolbar: Category Chips & Register Action */}
+      <div className="syndicate-toolbar">
+        <div className="syndicate-filter-chips">
           {["all", "F&B", "Teknologi", "Jasa", "Kreatif", "Retail", "Kesehatan", "Properti"].map((cat) => (
             <button
               key={cat}
@@ -150,66 +141,18 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
           ))}
         </div>
 
-        <Link
-          href="/syndicate/create"
-          style={{
-            background: "linear-gradient(135deg, #d4af37, #aa8529)",
-            border: "none",
-            color: "#000",
-            padding: "12px 22px",
-            borderRadius: "50px",
-            fontSize: "0.85rem",
-            fontWeight: 700,
-            textTransform: "uppercase",
-            letterSpacing: "1.5px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            boxShadow: "0 10px 20px rgba(212, 175, 55, 0.3)",
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-          }}
-        >
+        <Link href="/syndicate/create" className="btn-add-business">
           <i className="fa-solid fa-plus"></i> {t.syndicate.add_business}
         </Link>
       </div>
 
       {/* Business Cards Grid */}
-      <div
-        className="syndicate-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-          gap: "30px",
-        }}
-      >
+      <div className="syndicate-grid">
         {filteredBiz.length === 0 ? (
-          <div
-            style={{
-              gridColumn: "1 / -1",
-              textAlign: "center",
-              padding: "70px 20px",
-              background: "var(--bg-card)",
-              border: "1px dashed var(--glass-border)",
-              borderRadius: "20px",
-            }}
-          >
-            <i
-              className="fa-solid fa-store"
-              style={{ fontSize: "4rem", color: "var(--gold-main)", opacity: 0.4, marginBottom: "20px" }}
-            ></i>
-            <h3
-              style={{
-                color: "var(--text-primary)",
-                fontFamily: "var(--font-playfair, 'Playfair Display', serif)",
-                fontSize: "1.6rem",
-                marginBottom: "10px",
-              }}
-            >
-              {searchQuery ? t.syndicate.empty_title : t.syndicate.empty_title}
-            </h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+          <div className="syndicate-empty-state">
+            <i className="fa-solid fa-store"></i>
+            <h3>{t.syndicate.empty_title}</h3>
+            <p>
               {searchQuery
                 ? `${t.syndicate.empty_desc} ("${searchQuery}")`
                 : t.syndicate.empty_desc}
@@ -229,120 +172,73 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
                   : `/uploads/bisnis/${biz.logo_bisnis}`)
               : "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80";
 
+            const coverPhoto = biz.banner_url
+              ? (biz.banner_url.startsWith("http") || biz.banner_url.startsWith("/")
+                  ? biz.banner_url
+                  : `/uploads/bisnis/${biz.banner_url}`)
+              : logo;
+
             const marketplaces = biz.marketplace_links || {};
 
             // Dynamic WhatsApp greeting message
             const waText = encodeURIComponent(
-              `Halo Mas/Mbak ${ownerName}, saya ${viewerName} dari Alumni Expedient 43.\n\nSaya melihat usaha "${biz.nama_bisnis}" di Katalog Jaringan Usaha dan tertarik untuk bertanya/bermitra.`
+              `Halo Mas/Mbak ${ownerName}, saya ${viewerName} (Alumni Expedient 43).\n\nSaya melihat profil usaha "${biz.nama_bisnis}" di Direktori Bisnis Alumni dan tertarik untuk bertanya/bermitra.`
             );
             const waUrl = wa ? `https://wa.me/${wa}?text=${waText}` : "#";
 
+            const bizTheme = getThemeConfig(biz.theme);
+            const publicSlug = slugify(biz.nama_bisnis) || biz.id;
+
             return (
-              <div key={biz.id} className="biz-item syndicate-card">
+              <div key={biz.id} className="syndicate-card">
                 
                 {/* Banner / Card Cover */}
                 <Link href={`/syndicate/${biz.id}`} style={{ textDecoration: "none", display: "block" }}>
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "175px",
-                      background: "#0a0a0a",
-                      position: "relative",
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    {/* Category Pill */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "14px",
-                        right: "14px",
-                        background: "rgba(0, 0, 0, 0.75)",
-                        border: "1px solid var(--gold-main)",
-                        color: "var(--gold-main)",
-                        padding: "4px 10px",
-                        borderRadius: "6px",
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        letterSpacing: "1.5px",
-                        textTransform: "uppercase",
-                        backdropFilter: "blur(6px)",
-                        zIndex: 2,
-                      }}
-                    >
+                  <div className="biz-cover-wrapper">
+                    {/* Category Pill with Theme Icon */}
+                    <div className="biz-cat-badge">
+                      <i className={`fa-solid ${bizTheme.icon}`} style={{ marginRight: "4px" }}></i>
                       {biz.kategori}
                     </div>
 
                     {/* Promo Alumni Indicator */}
                     {biz.promo_alumni && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "14px",
-                          left: "14px",
-                          background: "rgba(212, 175, 55, 0.9)",
-                          color: "#000",
-                          padding: "4px 10px",
-                          borderRadius: "6px",
-                          fontSize: "0.68rem",
-                          fontWeight: 800,
-                          letterSpacing: "1px",
-                          textTransform: "uppercase",
-                          zIndex: 2,
-                          boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-                        }}
-                      >
+                      <div className="biz-promo-indicator">
                         <i className="fa-solid fa-gift" style={{ marginRight: "4px" }}></i> Promo KTA
                       </div>
                     )}
 
                     <Image
-                      src={logo}
-                      alt={biz.nama_bisnis || "Logo"}
+                      src={coverPhoto}
+                      alt={biz.nama_bisnis || "Cover"}
                       width={400}
                       height={175}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }}
-                      unoptimized={logo.startsWith("data:") || logo.includes("ui-avatars.com") || logo.includes("supabase.co")}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      unoptimized={coverPhoto.startsWith("data:") || coverPhoto.includes("ui-avatars.com") || coverPhoto.includes("supabase.co")}
                     />
                   </div>
                 </Link>
 
                 {/* Owner Info & Avatar */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "14px",
-                    padding: "0 20px",
-                    transform: "translateY(-20px)",
-                  }}
-                >
+                <div className="biz-owner-row">
                   <Image
                     src={ownerAvatar}
                     alt={ownerName}
                     width={56}
                     height={56}
-                    style={{
-                      width: "56px",
-                      height: "56px",
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      border: "3px solid var(--bg-card)",
-                      boxShadow: "0 5px 15px rgba(0,0,0,0.4)",
-                    }}
+                    className="biz-owner-avatar"
                     unoptimized
                   />
-                  <div style={{ display: "flex", flexDirection: "column", marginTop: "22px" }}>
+                  <div className="biz-owner-meta">
                     <h4 className="biz-owner-name">{ownerName}</h4>
-                    <span className="biz-founder-badge">Founder &bull; Expedient 43</span>
+                    <span className="biz-founder-badge">
+                      {locale === "ar" ? "مالك المشروع • دفعة ٤٣" : locale === "en" ? "Business Owner • Cohort 43" : "Pemilik Usaha • Alumni 43"}
+                    </span>
                   </div>
                 </div>
 
                 {/* Body Content */}
-                <div style={{ padding: "0 20px 18px", flexGrow: 1, marginTop: "-10px" }}>
+                <div className="biz-card-body">
                   <Link href={`/syndicate/${biz.id}`} style={{ textDecoration: "none" }}>
                     <h2 className="biz-name">{biz.nama_bisnis}</h2>
                   </Link>
@@ -351,25 +247,38 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
 
                   <div className="biz-desc">{biz.deskripsi}</div>
 
-                  {/* Meta Tags: City & Products count */}
+                  {/* Meta Tags: City, Products count & Vanity Web Pill */}
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center", marginTop: "6px" }}>
                     {biz.kota && (
                       <span className="biz-city-tag">
-                        <i className="fa-solid fa-location-dot" style={{ color: "#ff4d6d" }}></i> {biz.kota}
+                        <i className="fa-solid fa-location-dot" style={{ color: "#ef4444" }}></i> {biz.kota}
                       </span>
                     )}
 
                     {Array.isArray(biz.produk_layanan) && biz.produk_layanan.length > 0 && (
-                      <span className="biz-city-tag" style={{ borderColor: "rgba(212, 175, 55, 0.3)", color: "var(--gold-main)" }}>
+                      <span className="biz-city-tag" style={{ borderColor: "var(--biz-card-border)", color: "var(--biz-gold)" }}>
                         <i className="fa-solid fa-box-open"></i> {biz.produk_layanan.length} Produk/Jasa
                       </span>
                     )}
+
+                    <Link
+                      href={`/b/${publicSlug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="biz-city-tag"
+                      style={{ textDecoration: "none", borderColor: "var(--biz-card-border)", color: "var(--biz-gold)", fontWeight: 600 }}
+                      title={`Buka laman publik /b/${publicSlug}`}
+                    >
+                      <i className="fa-solid fa-globe"></i> /b/{publicSlug}
+                    </Link>
                   </div>
 
                   {/* Marketplace Icons if available */}
                   {(marketplaces.shopee || marketplaces.tokopedia || marketplaces.tiktok || marketplaces.gofood) && (
                     <div className="biz-marketplace-row">
-                      <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginRight: "2px" }}>Tersedia di:</span>
+                      <span style={{ fontSize: "0.72rem", color: "var(--biz-text-muted)", marginRight: "2px" }}>
+                        {locale === "ar" ? "متوفر على:" : locale === "en" ? "Available on:" : "Tersedia di:"}
+                      </span>
                       {marketplaces.shopee && (
                         <a href={marketplaces.shopee} target="_blank" rel="noopener noreferrer" className="biz-mkt-pill" title="Shopee">
                           <i className="fa-solid fa-bag-shopping" style={{ color: "#EE4D2D" }}></i>
@@ -403,69 +312,45 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
                     onClick={async (e) => {
                       if (!wa) {
                         e.preventDefault();
-                        await showAlert("Tidak Tersedia", "Pemilik bisnis belum mencantumkan nomor WhatsApp yang aktif.");
+                        await showAlert(
+                          locale === "ar" ? "غير متوفر" : locale === "en" ? "Not Available" : "Tidak Tersedia",
+                          locale === "ar" ? "لم يقم صاحب المشروع بإضافة رقم واتساب بعد." : locale === "en" ? "The owner has not provided an active WhatsApp number." : "Pemilik usaha belum mencantumkan nomor WhatsApp yang aktif."
+                        );
                       }
                     }}
                     className="biz-footer-btn btn-wa"
-                    style={{ borderRight: "1px solid var(--glass-border, rgba(255,255,255,0.08))" }}
+                    style={{ borderRight: "1px solid var(--biz-footer-border)" }}
                   >
                     <i className="fa-brands fa-whatsapp" style={{ fontSize: "1rem" }}></i> {t.syndicate.order_wa}
                   </a>
 
                   <Link href={`/syndicate/${biz.id}`} className="biz-footer-btn btn-site">
-                    <i className="fa-solid fa-globe"></i> {t.syndicate.view_details}
+                    <i className="fa-solid fa-arrow-up-right-from-square"></i> {t.syndicate.view_details}
                   </Link>
                 </div>
 
                 {/* Owner Admin Actions (Edit / Delete) */}
                 {biz.user_id === userId && (
-                  <div
-                    style={{
-                      display: "flex",
-                      background: "rgba(0,0,0,0.3)",
-                      borderTop: "1px solid var(--glass-border)",
-                    }}
-                  >
+                  <div className="biz-admin-row">
+                    <Link
+                      href={`/b/${publicSlug}`}
+                      target="_blank"
+                      className="biz-admin-btn-pub"
+                      title="Buka Halaman Publik Mandiri"
+                    >
+                      <i className="fa-solid fa-arrow-up-right-from-square"></i> Web Publik
+                    </Link>
                     <Link
                       href={`/syndicate/edit/${biz.id}`}
-                      style={{
-                        flex: 1,
-                        padding: "11px",
-                        textAlign: "center",
-                        color: "var(--gold-main)",
-                        borderRight: "1px solid var(--glass-border)",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        letterSpacing: "0.5px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "6px",
-                        textDecoration: "none",
-                      }}
+                      className="biz-admin-btn-edit"
                     >
-                      <i className="fa-solid fa-pen-to-square"></i> Edit
+                      <i className="fa-solid fa-pen-to-square"></i> {t.common.edit}
                     </Link>
                     <button
                       onClick={() => handleDelete(biz.id)}
-                      style={{
-                        flex: 1,
-                        padding: "11px",
-                        textAlign: "center",
-                        color: "#ff4d6d",
-                        background: "transparent",
-                        border: "none",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        letterSpacing: "0.5px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: "6px",
-                        cursor: "pointer",
-                      }}
+                      className="biz-admin-btn-delete"
                     >
-                      <i className="fa-solid fa-trash"></i> Hapus
+                      <i className="fa-solid fa-trash"></i> {t.common.delete}
                     </button>
                   </div>
                 )}
@@ -474,22 +359,7 @@ export default function SyndicateClient({ initialPortofolio, userId, viewerName 
           })
         )}
       </div>
-
-      <Script
-        src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          if ((window as any).VanillaTilt) {
-            (window as any).VanillaTilt.init(document.querySelectorAll(".biz-item"), {
-              max: 12,
-              speed: 400,
-              glare: true,
-              "max-glare": 0.15,
-              scale: 1.02,
-            });
-          }
-        }}
-      />
+      </div>
     </div>
   );
 }

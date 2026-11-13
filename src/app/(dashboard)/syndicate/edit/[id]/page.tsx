@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import SyndicateForm from "../../SyndicateForm";
 
 export const metadata = {
-  title: "Edit Syndicate | Expedient",
+  title: "Edit Profil Usaha Alumni | Expedient 43",
 };
 
 export default async function EditSyndicatePage({ params }: { params: Promise<{ id: string }> }) {

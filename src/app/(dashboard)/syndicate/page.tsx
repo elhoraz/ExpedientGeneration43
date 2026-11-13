@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import SyndicateClient from "./SyndicateClient";
 
 export const metadata = {
-  title: "Katalog Bisnis Alumni - Expedient 43",
+  title: "Jejaring Bisnis Alumni - Expedient 43",
 };
 
 export default async function SyndicatePage() {
@@ -43,6 +43,7 @@ export default async function SyndicatePage() {
       promo_alumni,
       jam_operasional,
       maps_url,
+      theme,
       marketplace_links,
       produk_layanan,
       user_id,

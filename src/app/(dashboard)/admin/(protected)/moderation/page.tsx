@@ -134,7 +134,7 @@ export default async function ModerationPage() {
 
       {/* SYNDICATE */}
       <div className="mod-section">
-        <div className="mod-title"><i className="fa-solid fa-briefcase"></i> Bisnis Syndicate</div>
+        <div className="mod-title"><i className="fa-solid fa-briefcase"></i> Jejaring Bisnis Alumni</div>
         {syndicate && syndicate.length > 0 ? (
           syndicate.map((b) => (
             <div key={b.id} className="mod-card">

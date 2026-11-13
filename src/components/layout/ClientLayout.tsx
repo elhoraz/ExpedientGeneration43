@@ -314,6 +314,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     };
   }, []);
 
+  const isPublicMicrosite = pathname?.startsWith("/b/");
+
   return (
     <ConfirmProvider>
       <ToastProvider>
@@ -344,9 +346,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <span>Koneksi internet terputus — Sinkronisasi real-time dijeda</span>
           </div>
         )}
-        <LoadingScreen />
-        <AppUpdateChecker />
-        <AppNotificationManager />
+        {!isPublicMicrosite && <LoadingScreen />}
+        {!isPublicMicrosite && <AppUpdateChecker />}
+        {!isPublicMicrosite && <AppNotificationManager />}
         <DynamicPageTranslator />
         {children}
       </ToastProvider>

@@ -27,7 +27,7 @@
 .multazam-page-wrapper .vip-ticket { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease; }
 .multazam-page-wrapper .vip-ticket:hover { transform: translateY(-4px); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.15); }
 
-.multazam-page-wrapper .ticket-top { height: 250px; background-image: url('https://images.unsplash.com/photo-1519671482749-fd098f392a56?q=80&w=2670&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative; border-bottom: 2px dashed rgba(212,175,55,0.5); }
+.multazam-page-wrapper .ticket-top { height: 250px; background-image: url('https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=2670&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative; border-bottom: 2px dashed rgba(212,175,55,0.5); }
 .multazam-page-wrapper .ticket-top::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-main) 0%, transparent 100%); }
 .multazam-page-wrapper .ticket-badge { position: absolute; top: 20px; right: 20px; background: var(--gold-main); color: #000; font-size: 0.7rem; font-weight: bold; padding: 5px 12px; border-radius: 20px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
 

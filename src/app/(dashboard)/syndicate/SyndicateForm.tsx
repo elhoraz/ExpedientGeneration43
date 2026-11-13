@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { BUSINESS_THEMES, slugify } from "@/lib/syndicate/themes";
 import "./syndicate.css";
 
 interface ProductItem {
@@ -57,14 +58,23 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
   const router = useRouter();
   const supabase = createClient();
   const { showAlert } = useConfirm();
-  const { locale, t } = useLanguage();
+  const { locale } = useLanguage();
   const [activeTab, setActiveTab] = useState<"info" | "marketplace" | "branding" | "produk" | "promo">("info");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [waNumber, setWaNumber] = useState(userWhatsapp);
+  const [isLightMode, setIsLightMode] = useState(false);
 
   useEffect(() => {
     document.body.classList.add("page-syndicate");
+    const syncTheme = () => {
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
+      setIsLightMode(current === "light");
+    };
+    syncTheme();
+    const obs = new MutationObserver(syncTheme);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     return () => {
+      obs.disconnect();
       document.body.classList.remove("page-syndicate");
     };
   }, []);
@@ -341,28 +351,31 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
     }
   };
 
+  const previewSlug = slugify(formData.nama_bisnis) || initialData?.id || "nama-bisnis-anda";
+
   return (
-    <div className="syndicate-page" style={{ paddingTop: "100px" }}>
+    <div className="syndicate-page">
+      <div className="syndicate-shell">
       <div className="syndicate-form-card">
         
         {/* Header Title */}
         <div style={{ marginBottom: "25px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
           <div>
-            <div style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "3px", color: "var(--gold-main)", fontWeight: 700 }}>
-              Alumni Business Website Builder
+            <div style={{ fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "2.5px", color: "var(--biz-gold)", fontWeight: 700 }}>
+              {locale === "ar" ? "لوحة إنشاء موقع الأعمال" : locale === "en" ? "Alumni Business Page Builder" : "Penyusun Halaman Usaha Alumni"}
             </div>
-            <h2 style={{ fontFamily: "var(--font-playfair, 'Playfair Display', serif)", color: "var(--text-primary, #ffffff)", margin: "4px 0 0", fontSize: "1.9rem" }}>
+            <h2 style={{ fontFamily: "var(--font-playfair, 'Playfair Display', serif)", color: "var(--biz-text-primary)", margin: "4px 0 0", fontSize: "1.9rem" }}>
               {initialData
-                ? (locale === "ar" ? "إدارة موقع عملك" : locale === "en" ? "Manage Your Business Website" : "Kelola Website Bisnis Anda")
-                : (locale === "ar" ? "إنشاء موقع وكتالوج الأعمال" : locale === "en" ? "Create Business Website & Catalog" : "Buat Website & Katalog Usaha")}
+                ? (locale === "ar" ? "إدارة صفحة عملك" : locale === "en" ? "Manage Your Business Profile" : "Kelola Profil Bisnis Anda")
+                : (locale === "ar" ? "إنشاء صفحة وكتالوج الأعمال" : locale === "en" ? "Create Business Profile & Catalog" : "Buat Profil & Katalog Usaha")}
             </h2>
           </div>
-          <Link href="/syndicate" style={{ color: "var(--text-secondary)", textDecoration: "none", fontSize: "1.3rem" }}>
+          <Link href="/syndicate" style={{ color: "var(--biz-text-secondary)", textDecoration: "none", fontSize: "1.3rem" }} aria-label="Kembali ke direktori">
             <i className="fa-solid fa-times"></i>
           </Link>
         </div>
 
-        {/* Tab Navigation (WordPress-lite CMS) */}
+        {/* Tab Navigation */}
         <div className="syndicate-tabs">
           <button
             type="button"
@@ -383,7 +396,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
             className={`syndicate-tab-btn ${activeTab === "branding" ? "active" : ""}`}
             onClick={() => setActiveTab("branding")}
           >
-            <i className="fa-solid fa-image"></i> {locale === "ar" ? "الشعار والبانر" : locale === "en" ? "Logo & Banner" : "Logo & Banner"}
+            <i className="fa-solid fa-image"></i> {locale === "ar" ? "الشعار والبانر" : locale === "en" ? "Logo & Banner" : "Logo, Banner & Desain"}
           </button>
           <button
             type="button"
@@ -407,8 +420,8 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
           {activeTab === "info" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
-                  Nama Bisnis / Usaha <span style={{ color: "#ff4d6d" }}>*</span>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  Nama Bisnis / Usaha <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -418,12 +431,19 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                   className="syndicate-input"
                   placeholder="Misal: Studio Kopi Berbek, PT Mahakarya Digital"
                 />
+                <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.84rem", color: "var(--biz-text-secondary)", flexWrap: "wrap" }}>
+                  <i className="fa-solid fa-link" style={{ color: "var(--biz-gold)" }}></i>
+                  <span>Link Halaman Publik Otomatis:</span>
+                  <code style={{ color: "var(--biz-gold)", backgroundColor: "var(--biz-tag-bg)", padding: "3px 10px", borderRadius: "6px" }}>
+                    /b/{previewSlug}?tema={formData.theme || "gold"}
+                  </code>
+                </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "15px" }}>
                 <div>
-                  <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
-                    Kategori <span style={{ color: "#ff4d6d" }}>*</span>
+                  <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                    Kategori <span style={{ color: "#ef4444" }}>*</span>
                   </label>
                   <select
                     value={formData.kategori}
@@ -439,7 +459,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                 </div>
 
                 <div>
-                  <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                     Kota / Domisili Usaha
                   </label>
                   <input
@@ -453,7 +473,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               </div>
 
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                   Slogan / Tagline Bisnis (Singkat)
                 </label>
                 <input
@@ -466,8 +486,8 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               </div>
 
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
-                  Tentang Usaha & Deskripsi Lengkap <span style={{ color: "#ff4d6d" }}>*</span>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  Tentang Usaha & Deskripsi Lengkap <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <textarea
                   required
@@ -481,8 +501,8 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "15px" }}>
                 <div>
-                  <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
-                    Nomor WhatsApp (Aktif) <span style={{ color: "#ff4d6d" }}>*</span>
+                  <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                    Nomor WhatsApp (Aktif) <span style={{ color: "#ef4444" }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -492,13 +512,13 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                     className="syndicate-input"
                     placeholder="Misal: 08123456789"
                   />
-                  <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
+                  <small style={{ color: "var(--biz-text-secondary)", fontSize: "0.75rem" }}>
                     Pelanggan akan langsung menghubungi nomor ini dengan template pesan otomatis.
                   </small>
                 </div>
 
                 <div>
-                  <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                     Website Resmi (Opsional)
                   </label>
                   <input
@@ -512,7 +532,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               </div>
 
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                   Alamat Fisik / Workshop
                 </label>
                 <input
@@ -529,13 +549,13 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
           {/* TAB 2: MARKETPLACE LINKS */}
           {activeTab === "marketplace" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-              <div style={{ background: "rgba(212, 175, 55, 0.08)", border: "1px solid var(--glass-border)", padding: "14px 18px", borderRadius: "12px", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                <i className="fa-solid fa-circle-info" style={{ color: "var(--gold-main)", marginRight: "6px" }}></i>
+              <div style={{ background: "var(--biz-gold-subtle)", border: "1px solid var(--biz-card-border)", padding: "14px 18px", borderRadius: "12px", fontSize: "0.85rem", color: "var(--biz-text-secondary)" }}>
+                <i className="fa-solid fa-circle-info" style={{ color: "var(--biz-gold)", marginRight: "6px" }}></i>
                 Semua tautan marketplace ini bersifat <strong>opsional</strong>. Cantumkan platform toko online yang aktif agar calon pembeli dapat langsung berbelanja melalui aplikasi favorit mereka.
               </div>
 
               <div>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                   <i className="fa-solid fa-bag-shopping" style={{ color: "#EE4D2D" }}></i> Link Toko Shopee
                 </label>
                 <input
@@ -548,7 +568,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               </div>
 
               <div>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                   <i className="fa-solid fa-store" style={{ color: "#03AC0E" }}></i> Link Toko Tokopedia
                 </label>
                 <input
@@ -561,8 +581,8 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               </div>
 
               <div>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
-                  <i className="fa-brands fa-tiktok" style={{ color: "#ffffff" }}></i> Link TikTok Shop / Profil TikTok
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  <i className="fa-brands fa-tiktok" style={{ color: "var(--biz-text-primary)" }}></i> Link TikTok Shop / Profil TikTok
                 </label>
                 <input
                   type="url"
@@ -575,7 +595,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "15px" }}>
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                     <i className="fa-solid fa-motorcycle" style={{ color: "#E31B23" }}></i> Link GoFood (Khusus F&B)
                   </label>
                   <input
@@ -588,7 +608,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                 </div>
 
                 <div>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                     <i className="fa-solid fa-utensils" style={{ color: "#00B14F" }}></i> Link GrabFood (Khusus F&B)
                   </label>
                   <input
@@ -602,7 +622,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               </div>
 
               <div>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                   <i className="fa-brands fa-instagram" style={{ color: "#E1306C" }}></i> Link Akun Instagram Bisnis
                 </label>
                 <input
@@ -622,7 +642,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               
               {/* Cover Banner Uploader (16:9) */}
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "8px" }}>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "8px" }}>
                   Foto Cover / Banner Header Website (Landscape 16:9)
                 </label>
                 <div
@@ -631,8 +651,8 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                     width: "100%",
                     height: "180px",
                     borderRadius: "16px",
-                    background: "rgba(255, 255, 255, 0.04)",
-                    border: "2px dashed var(--glass-border)",
+                    background: "var(--biz-tag-bg)",
+                    border: "2px dashed var(--biz-card-border)",
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
@@ -646,11 +666,11 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                     <img src={previewBanner} alt="Banner Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
                     <>
-                      <i className="fa-solid fa-panorama" style={{ fontSize: "2.5rem", color: "var(--gold-main)", opacity: 0.6, marginBottom: "8px" }}></i>
-                      <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Klik untuk Unggah Banner Cover (Rekomendasi 1280x720)</span>
+                      <i className="fa-solid fa-panorama" style={{ fontSize: "2.5rem", color: "var(--biz-gold)", opacity: 0.75, marginBottom: "8px" }}></i>
+                      <span style={{ fontSize: "0.85rem", color: "var(--biz-text-secondary)" }}>Klik untuk Unggah Banner Cover (Rekomendasi 1280x720)</span>
                     </>
                   )}
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "0.75rem", textAlign: "center", padding: "6px 0" }}>
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.72)", color: "#fff", fontSize: "0.75rem", textAlign: "center", padding: "6px 0" }}>
                     Ubah Banner Cover
                   </div>
                 </div>
@@ -659,18 +679,18 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
 
               {/* Logo Bisnis Uploader (1:1) */}
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "8px" }}>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "8px" }}>
                   Logo Bisnis (Persegi 1:1)
                 </label>
-                <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
                   <div
                     onClick={() => logoInputRef.current?.click()}
                     style={{
                       width: "120px",
                       height: "120px",
                       borderRadius: "20px",
-                      background: "rgba(255, 255, 255, 0.04)",
-                      border: "2px dashed var(--gold-main)",
+                      background: "var(--biz-tag-bg)",
+                      border: "2px dashed var(--biz-gold)",
                       display: "flex",
                       justifyContent: "center",
                       alignItems: "center",
@@ -683,33 +703,145 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                     {previewLogo ? (
                       <img src={previewLogo} alt="Logo Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
-                      <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: "2rem", color: "var(--gold-main)", opacity: 0.6 }}></i>
+                      <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: "2rem", color: "var(--biz-gold)", opacity: 0.75 }}></i>
                     )}
-                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.7)", color: "#fff", fontSize: "0.7rem", textAlign: "center", padding: "4px 0" }}>
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.72)", color: "#fff", fontSize: "0.7rem", textAlign: "center", padding: "4px 0" }}>
                       Upload Logo
                     </div>
                   </div>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: 1.5 }}>
+                  <div style={{ color: "var(--biz-text-secondary)", fontSize: "0.85rem", lineHeight: 1.5, flex: "1 1 220px" }}>
                     Logo akan ditampilkan melayang di bagian atas halaman website bisnis dan di kartu katalog utama.
                     <br />
-                    <span style={{ color: "var(--gold-main)", fontWeight: 600 }}>Format yang didukung: JPG, PNG, WEBP (Maks 10MB)</span>
+                    <span style={{ color: "var(--biz-gold)", fontWeight: 600 }}>Format yang didukung: JPG, PNG, WEBP (Maks 10MB)</span>
                   </div>
                 </div>
                 <input type="file" ref={logoInputRef} onChange={(e) => handleFileChange(e, "logo")} accept="image/*" style={{ display: "none" }} />
               </div>
 
+              {/* Theme & Design Archetype Selector */}
+              <div style={{ marginTop: "14px", paddingTop: "20px" }}>
+                <label style={{ display: "block", color: "var(--biz-text-primary)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "4px" }}>
+                  {locale === "ar" ? "قالب وهوية تصميم الموقع" : locale === "en" ? "Website Design Archetype & Theme" : "Pilihan Arketipe & Gaya Desain Halaman Usaha"}
+                </label>
+                <div style={{ color: "var(--biz-text-secondary)", fontSize: "0.86rem", marginBottom: "14px", lineHeight: 1.55 }}>
+                  {locale === "ar"
+                    ? "اختر طابع التصميم الذي يلائم طبيعة عملك التجاري. كل قالب يمتلك ألوانه وأسلوبه الخاص."
+                    : locale === "en"
+                    ? "Select the visual archetype tailored to your business industry. Each theme has a distinct layout and colour system."
+                    : "Pilih arketipe visual yang mencerminkan bidang usaha Anda. Setiap tema memiliki struktur tata letak, tipografi, dan palet warna yang berbeda."}
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 250px), 1fr))", gap: "12px" }}>
+                  {Object.values(BUSINESS_THEMES).map((th) => {
+                    const isSelected = (formData.theme || "gold") === th.id;
+                    const accent = isLightMode ? th.lightColor : th.color;
+                    const activeBadgeText =
+                      isLightMode || th.id === "heritage" || th.id === "retail"
+                        ? isLightMode
+                          ? "#ffffff"
+                          : th.id === "retail"
+                          ? "#0e0e10"
+                          : "#0a140f"
+                        : "#0b0f17";
+                    return (
+                      <div
+                        key={th.id}
+                        onClick={() => setFormData({ ...formData, theme: th.id })}
+                        style={{
+                          padding: "16px",
+                          borderRadius: "14px",
+                          outline: isSelected ? `2px solid ${accent}` : "none",
+                          backgroundColor: isSelected ? "var(--biz-gold-subtle)" : "var(--biz-tag-bg)",
+                          cursor: "pointer",
+                          transition: "background-color 0.2s ease-out, transform 0.2s ease-out",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                          position: "relative",
+                        }}
+                      >
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span
+                            style={{
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "10px",
+                              backgroundColor: `${accent}20`,
+                              color: accent,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontSize: "0.95rem",
+                            }}
+                          >
+                            <i className={`fa-solid ${th.icon}`}></i>
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              padding: "4px 10px",
+                              borderRadius: "999px",
+                              backgroundColor: isSelected ? accent : "var(--biz-surface)",
+                              color: isSelected ? activeBadgeText : "var(--biz-text-secondary)",
+                            }}
+                          >
+                            {isSelected ? "Aktif" : th.categoryFit.split(",")[0]}
+                          </span>
+                        </div>
+
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: "0.98rem", color: "var(--biz-text-primary)" }}>
+                            {th.name}
+                          </div>
+                          <div style={{ fontSize: "0.82rem", color: accent, fontWeight: 600 }}>
+                            {th.tagline}
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: "0.84rem", color: "var(--biz-text-secondary)", lineHeight: 1.45, marginTop: "2px" }}>
+                          {th.description}
+                        </div>
+
+                        {initialData?.id && (
+                          <div style={{ marginTop: "auto", paddingTop: "6px" }}>
+                            <Link
+                              href={`/b/${previewSlug}?tema=${th.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                fontSize: "0.82rem",
+                                fontWeight: 700,
+                                color: accent,
+                                textDecoration: "none",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "6px",
+                              }}
+                            >
+                              Pratinjau langsung
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
             </div>
           )}
 
-          {/* TAB 4: PRODUK & LAYANAN (WORDPRESS REPEATER) */}
+          {/* TAB 4: PRODUK & LAYANAN */}
           {activeTab === "produk" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
                 <div>
-                  <h3 style={{ color: "var(--text-primary)", fontSize: "1.1rem", margin: 0 }}>
+                  <h3 style={{ color: "var(--biz-text-primary)", fontSize: "1.1rem", margin: 0 }}>
                     Katalog Produk / Menu / Jasa Unggulan
                   </h3>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>
+                  <div style={{ color: "var(--biz-text-secondary)", fontSize: "0.82rem" }}>
                     Tambahkan produk atau layanan agar calon pelanggan dapat langsung memesan via WhatsApp.
                   </div>
                 </div>
@@ -717,9 +849,9 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                   type="button"
                   onClick={addProductItem}
                   style={{
-                    background: "rgba(212, 175, 55, 0.15)",
-                    border: "1px solid var(--gold-main)",
-                    color: "var(--gold-main)",
+                    background: "var(--biz-gold-subtle)",
+                    border: "1px solid var(--biz-gold)",
+                    color: "var(--biz-gold)",
                     padding: "8px 16px",
                     borderRadius: "50px",
                     fontSize: "0.82rem",
@@ -744,9 +876,9 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               />
 
               {(!formData.produk_layanan || formData.produk_layanan.length === 0) ? (
-                <div style={{ textAlign: "center", padding: "40px 20px", background: "rgba(255,255,255,0.02)", border: "1px dashed var(--glass-border)", borderRadius: "14px" }}>
-                  <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", color: "var(--text-secondary)", opacity: 0.5, marginBottom: "12px" }}></i>
-                  <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", margin: 0 }}>
+                <div style={{ textAlign: "center", padding: "40px 20px", background: "var(--biz-tag-bg)", border: "1px dashed var(--biz-card-border)", borderRadius: "14px" }}>
+                  <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", color: "var(--biz-gold)", opacity: 0.6, marginBottom: "12px" }}></i>
+                  <p style={{ color: "var(--biz-text-secondary)", fontSize: "0.9rem", margin: 0 }}>
                     Belum ada produk atau layanan yang ditambahkan. Klik tombol <strong>&ldquo;Tambah Produk/Jasa&rdquo;</strong> di atas.
                   </p>
                 </div>
@@ -768,8 +900,8 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
 
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px", marginBottom: "12px" }}>
                       <div>
-                        <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: "4px" }}>
-                          Nama Produk / Layanan <span style={{ color: "#ff4d6d" }}>*</span>
+                        <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.8rem", marginBottom: "4px" }}>
+                          Nama Produk / Layanan <span style={{ color: "#ef4444" }}>*</span>
                         </label>
                         <input
                           type="text"
@@ -782,7 +914,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                       </div>
 
                       <div>
-                        <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: "4px" }}>
+                        <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.8rem", marginBottom: "4px" }}>
                           Estimasi Harga / Tarif
                         </label>
                         <input
@@ -797,7 +929,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "12px", alignItems: "center" }}>
                       <div>
-                        <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.8rem", marginBottom: "4px" }}>
+                        <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.8rem", marginBottom: "4px" }}>
                           Deskripsi Singkat Produk/Jasa
                         </label>
                         <input
@@ -817,9 +949,9 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                             productImgRef.current?.click();
                           }}
                           style={{
-                            background: prod.foto ? "rgba(0, 200, 83, 0.15)" : "rgba(255, 255, 255, 0.08)",
-                            border: `1px solid ${prod.foto ? "#00c853" : "var(--glass-border)"}`,
-                            color: prod.foto ? "#00c853" : "var(--text-primary)",
+                            background: prod.foto ? "rgba(22, 163, 74, 0.14)" : "var(--biz-card-bg)",
+                            border: `1px solid ${prod.foto ? "#16a34a" : "var(--biz-tag-border)"}`,
+                            color: prod.foto ? "#16a34a" : "var(--biz-text-primary)",
                             padding: "10px 14px",
                             borderRadius: "10px",
                             fontSize: "0.82rem",
@@ -845,7 +977,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
           {activeTab === "promo" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <div>
-                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--gold-main)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "6px" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--biz-gold)", fontSize: "0.95rem", fontWeight: 700, marginBottom: "6px" }}>
                   <i className="fa-solid fa-award"></i> Promo Khusus Pemegang KTA Resmi Expedient 43
                 </label>
                 <textarea
@@ -853,15 +985,15 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                   value={formData.promo_alumni || ""}
                   onChange={(e) => setFormData({ ...formData, promo_alumni: e.target.value })}
                   className="syndicate-textarea"
-                  placeholder="Contoh: Dapatkan diskon 15% atau Free Upgrade untuk sesama alumni Expedient 43 dengan menunjukkan KTA Sovereign digital!"
+                  placeholder="Contoh: Dapatkan diskon 15% atau Free Upgrade untuk sesama alumni Expedient 43 dengan menunjukkan KTA digital!"
                 />
-                <small style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
-                  Promo ini akan disorot dengan bingkai emas khusus di halaman website bisnis Anda dan katalog alumni.
+                <small style={{ color: "var(--biz-text-secondary)", fontSize: "0.75rem" }}>
+                  Promo ini akan disorot dengan bingkai khusus di halaman website bisnis Anda dan katalog alumni.
                 </small>
               </div>
 
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                   Jam & Hari Operasional
                 </label>
                 <input
@@ -874,7 +1006,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               </div>
 
               <div>
-                <label style={{ display: "block", color: "var(--text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
+                <label style={{ display: "block", color: "var(--biz-text-secondary)", fontSize: "0.85rem", marginBottom: "6px" }}>
                   Link Google Maps Lokasi Usaha
                 </label>
                 <input
@@ -895,8 +1027,8 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
               disabled={isSubmitting}
               style={{
                 flex: 1,
-                background: "linear-gradient(135deg, #d4af37, #aa8529)",
-                color: "#000",
+                background: "var(--biz-gold-btn)",
+                color: "var(--biz-btn-contrast-text)",
                 border: "none",
                 padding: "16px 24px",
                 borderRadius: "14px",
@@ -904,7 +1036,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                 fontWeight: 700,
                 cursor: isSubmitting ? "wait" : "pointer",
                 opacity: isSubmitting ? 0.7 : 1,
-                boxShadow: "0 10px 25px rgba(212,175,55,0.3)",
+                boxShadow: "0 8px 24px rgba(170, 119, 28, 0.25)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -920,6 +1052,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
 
         </form>
 
+      </div>
       </div>
 
       {/* Image Cropper Modal */}

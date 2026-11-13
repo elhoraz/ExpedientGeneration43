@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import SyndicateForm from "../SyndicateForm";
 
 export const metadata = {
-  title: "Registrasi Syndicate | Expedient",
+  title: "Pendaftaran Usaha Alumni | Expedient 43",
 };
 
 export default async function CreateSyndicatePage() {

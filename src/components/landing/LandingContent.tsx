@@ -224,7 +224,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
           {/* Almamater Dignified Tag */}
           <div className="tuku-heritage-badge">
-            <span className="badge-bullet">✦</span>
+            <span className="badge-bullet">•</span>
             <span>{locale === "ar" ? "معهد الرسالة الحديث • دفعة ٢٠٢٥" : locale === "en" ? "ARRISALAH MODERN BOARDING SCHOOL • CLASS OF 2025" : "PONDOK MODERN ARRISALAH • ALUMNI 2025"}</span>
           </div>
 
@@ -256,10 +256,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <div className="stamp-center-emblem">43</div>
             </div>
           </div>
-
-          <p className="landing-eyebrow-tuku">
-            {t?.hero?.badge}
-          </p>
 
           <h1 className="landing-title-tuku">
             Expedient Generation
@@ -327,31 +323,31 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== TUKU-STYLE RUNNING TICKER RIBBON (CSS-ONLY, ULTRA LIGHTWEIGHT) ====== */}
         <div className="tuku-running-ribbon" aria-hidden="true">
           <div className="tuku-ticker-track">
-            <span className="ticker-segment">✦ {t?.ticker?.seg_expedient}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-segment">{t?.ticker?.seg_expedient}</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_pondok}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_pg}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_motto}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_santri}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">@expedientgeneration_</span>
-            <span className="ticker-dot">✦</span>
-            {/* Duplicate for seamless infinite loop */}
-            <span className="ticker-segment">✦ {t?.ticker?.seg_expedient}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
+            {/* Duplicate for continuous infinite loop */}
+            <span className="ticker-segment">{t?.ticker?.seg_expedient}</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_pondok}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_pg}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_motto}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">{t?.ticker?.seg_santri}</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
             <span className="ticker-segment">@expedientgeneration_</span>
-            <span className="ticker-dot">✦</span>
+            <span className="ticker-dot">•</span>
           </div>
         </div>
 
@@ -364,9 +360,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
-            <span className="flourish-star">✦</span>
             <span className="flourish-emblem">۞</span>
-            <span className="flourish-star">✦</span>
           </div>
           <div className="flourish-line"></div>
         </div>
@@ -378,9 +372,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
-            <span className="flourish-star">✦</span>
             <span className="flourish-emblem">۞</span>
-            <span className="flourish-star">✦</span>
           </div>
           <div className="flourish-line"></div>
         </div>
@@ -392,9 +384,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
-            <span className="flourish-star">✦</span>
             <span className="flourish-emblem">۞</span>
-            <span className="flourish-star">✦</span>
           </div>
           <div className="flourish-line"></div>
         </div>
@@ -406,9 +396,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <div className="islamic-flourish-divider" aria-hidden="true">
           <div className="flourish-line"></div>
           <div className="flourish-center">
-            <span className="flourish-star">✦</span>
-            <span className="flourish-emblem">⚜️</span>
-            <span className="flourish-star">✦</span>
+            <span className="flourish-emblem">۞</span>
           </div>
           <div className="flourish-line"></div>
         </div>
@@ -416,7 +404,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== SECTION 3: ALMAMATER HERITAGE (BUMI SLAHUNG) ====== */}
         <section className="heritage-section" id="almamater">
           <div className="section-header reveal-on-scroll">
-            <p className="section-eyebrow">{t?.almamater?.eyebrow}</p>
             <h2 className="section-title">
               {t?.almamater?.title}
             </h2>
@@ -427,30 +414,51 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
           <div className="heritage-pillars-grid reveal-stagger">
             <TiltCard className="pillar-card">
-              <div className="pillar-icon-wrap">
-                <i className="fa-solid fa-globe"></i>
+              <div className="pillar-photo-wrap">
+                <Image
+                  src="/assets/foto_putra/Hal 8.webp"
+                  alt={t?.almamater?.p1_title || "Program Internasional"}
+                  width={380}
+                  height={220}
+                  className="pillar-photo-img"
+                  loading="lazy"
+                />
+                <div className="pillar-badge">{t?.almamater?.p1_badge}</div>
               </div>
               <h3 className="pillar-title">{t?.almamater?.p1_title}</h3>
               <p className="pillar-desc">{t?.almamater?.p1_desc}</p>
-              <div className="pillar-badge">{t?.almamater?.p1_badge}</div>
             </TiltCard>
 
             <TiltCard className="pillar-card">
-              <div className="pillar-icon-wrap">
-                <i className="fa-solid fa-compass-drafting"></i>
+              <div className="pillar-photo-wrap">
+                <Image
+                  src="/assets/foto_putra/Hal 4.webp"
+                  alt={t?.almamater?.p2_title || "Pelopor Tepat Teknologi"}
+                  width={380}
+                  height={220}
+                  className="pillar-photo-img"
+                  loading="lazy"
+                />
+                <div className="pillar-badge">{t?.almamater?.p2_badge}</div>
               </div>
               <h3 className="pillar-title">{t?.almamater?.p2_title}</h3>
               <p className="pillar-desc">{t?.almamater?.p2_desc}</p>
-              <div className="pillar-badge">{t?.almamater?.p2_badge}</div>
             </TiltCard>
 
             <TiltCard className="pillar-card">
-              <div className="pillar-icon-wrap">
-                <i className="fa-solid fa-mosque"></i>
+              <div className="pillar-photo-wrap">
+                <Image
+                  src="/assets/foto_putra/Hal 6.webp"
+                  alt={t?.almamater?.p3_title || "Panca Jiwa Arrisalah"}
+                  width={380}
+                  height={220}
+                  className="pillar-photo-img"
+                  loading="lazy"
+                />
+                <div className="pillar-badge">{t?.almamater?.p3_badge}</div>
               </div>
               <h3 className="pillar-title">{t?.almamater?.p3_title}</h3>
               <p className="pillar-desc">{t?.almamater?.p3_desc}</p>
-              <div className="pillar-badge">{t?.almamater?.p3_badge}</div>
             </TiltCard>
           </div>
 
@@ -466,7 +474,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== SECTION 5: THE PHILOSOPHY OF EXPEDIENT (IDENTITAS 43) ====== */}
         <section className="philosophy-section" id="filosofi">
           <div className="section-header reveal-on-scroll">
-            <p className="section-eyebrow">{t?.philosophy?.eyebrow}</p>
             <h2 className="section-title">{t?.philosophy?.title}</h2>
           </div>
 
@@ -501,7 +508,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== SECTION 6: BENTO GRID EKOSISTEM DIGITAL ====== */}
         <section className="bento-section" id="ekosistem">
           <div className="section-header reveal-on-scroll">
-            <p className="section-eyebrow">{t?.ecosystem?.eyebrow}</p>
             <h2 className="section-title">{t?.ecosystem?.title}</h2>
             <p className="section-lead">{t?.ecosystem?.lead}</p>
           </div>
@@ -624,7 +630,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         <section className="cta-banner-section">
           <div className="cta-banner-box reveal-on-scroll">
             <div className="cta-glow-circle"></div>
-            <p className="cta-banner-eyebrow">{t?.cta?.eyebrow}</p>
             <h2 className="cta-banner-title">
               {t?.cta?.title}
             </h2>

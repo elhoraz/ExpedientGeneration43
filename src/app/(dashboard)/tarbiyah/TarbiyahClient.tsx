@@ -189,9 +189,9 @@ export default function TarbiyahClient({
       const first = tenders[0];
       setProposalTarget({
         id: first?.id || "",
-        name: first ? first.nama_bisnis : "Pilih Bisnis Syndicate",
+        name: first ? first.nama_bisnis : "Pilih Bisnis Alumni",
         type: "Tender",
-        subtitle: first?.kategori || "B2B Syndicate",
+        subtitle: first?.kategori || "Kemitraan Usaha Alumni",
         avatar: first?.logo_url,
       });
       setProposalSubject("Pengajuan Kerjasama Bisnis / Tender");
@@ -630,7 +630,7 @@ export default function TarbiyahClient({
                               id: t.id,
                               name: t.nama_bisnis,
                               type: "Tender",
-                              subtitle: t.kategori || "B2B Syndicate",
+                              subtitle: t.kategori || "Kemitraan Usaha Alumni",
                               avatar: t.logo_url,
                             })
                           }
@@ -902,7 +902,7 @@ export default function TarbiyahClient({
                         id: sel.id,
                         name: sel.nama_bisnis,
                         type: "Tender",
-                        subtitle: sel.kategori || "B2B Syndicate",
+                        subtitle: sel.kategori || "Kemitraan Usaha Alumni",
                         avatar: sel.logo_url,
                       });
                     }

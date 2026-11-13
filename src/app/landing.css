@@ -448,7 +448,8 @@ body:has(.landing-wrapper) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
   padding: 120px 20px 80px;
   text-align: center;
 }
@@ -1251,6 +1252,8 @@ body:has(.landing-wrapper) {
   font-size: clamp(0.9rem, 1.8vw, 1.05rem);
   color: var(--text-secondary);
   line-height: 1.85;
+  max-width: 68ch;
+  margin: 0 auto;
 }
 
 /* ====== 4. SECTION 1: HERITAGE (BUMI SLAHUNG) ====== */
@@ -1275,24 +1278,49 @@ body:has(.landing-wrapper) {
 }
 
 .pillar-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
+  background: #0d1310;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
-  padding: 36px 28px;
+  padding: 20px 20px 26px;
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  transition: all 0.4s ease;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme="light"] .pillar-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
 .pillar-card:hover {
-  border-color: rgba(212, 175, 55, 0.45);
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 30px rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.5);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.pillar-photo-wrap {
+  position: relative;
+  width: 100%;
+  height: 195px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  background: #060b14;
+}
+
+.pillar-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pillar-card:hover .pillar-photo-img {
+  transform: scale(1.05);
 }
 
 .pillar-icon-wrap {
@@ -1314,30 +1342,38 @@ body:has(.landing-wrapper) {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   line-height: 1.35;
 }
 
 .pillar-desc {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
   line-height: 1.75;
   flex-grow: 1;
-  margin-bottom: 20px;
 }
 
-.pillar-badge {
-  font-family: var(--font-sans, 'Inter', -apple-system, sans-serif);
+.pillar-card .pillar-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  font-family: var(--font-sans, -apple-system, sans-serif);
   font-size: 0.65rem;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   font-weight: 700;
   color: #d4af37;
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  display: inline-block;
+  background: rgba(8, 12, 10, 0.88);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+
+:root[data-theme="light"] .pillar-card .pillar-badge {
+  background: rgba(255, 255, 255, 0.92);
+  color: #8c6d1f;
+  border-color: rgba(184, 151, 47, 0.4);
 }
 
 /* Heritage Video Card */
@@ -1640,8 +1676,8 @@ body:has(.landing-wrapper) {
 .epigraph-card {
   position: relative;
   border-radius: 24px;
-  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.08), rgba(0, 0, 0, 0.45));
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: #0d1411;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 50px 30px;
   text-align: center;
   margin-bottom: 40px;
@@ -1650,7 +1686,9 @@ body:has(.landing-wrapper) {
 }
 
 :root[data-theme="light"] .epigraph-card {
-  background: radial-gradient(circle at center, rgba(212, 175, 55, 0.12), rgba(255, 255, 255, 0.85));
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .epigraph-quote-mark {
@@ -1705,17 +1743,24 @@ body:has(.landing-wrapper) {
 }
 
 .philo-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
+  background: #0d1411;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 36px 30px;
-  transition: all 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme="light"] .philo-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
 .philo-card:hover {
-  border-color: rgba(212, 175, 55, 0.4);
+  border-color: rgba(212, 175, 55, 0.45);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
 }
 
 .philo-icon {
@@ -1770,24 +1815,28 @@ body:has(.landing-wrapper) {
 }
 
 .bento-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
+  background: #0d1411;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 22px;
   padding: 32px 28px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.4s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+:root[data-theme="light"] .bento-card {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
 .bento-card:hover {
   border-color: rgba(212, 175, 55, 0.45);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35), 0 0 35px rgba(212, 175, 55, 0.12);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
   transform: translateY(-4px);
 }
 
@@ -2313,10 +2362,8 @@ body:has(.landing-wrapper) {
   .philo-card,
   .epigraph-card,
   .cta-banner-box {
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    background: rgba(12, 18, 15, 0.82);
-    border: 1px solid rgba(212, 175, 55, 0.28);
+    background: #0d1411;
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   :root[data-theme="light"] .pillar-card,
@@ -2324,8 +2371,8 @@ body:has(.landing-wrapper) {
   :root[data-theme="light"] .philo-card,
   :root[data-theme="light"] .epigraph-card,
   :root[data-theme="light"] .cta-banner-box {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(212, 175, 55, 0.35);
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.08);
   }
 }
 
@@ -2965,29 +3012,28 @@ body:has(.landing-wrapper) {
 .wisdom-card {
   padding: 28px 24px;
   border-radius: 22px;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  background: #0d1411;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, border-color 0.25s ease;
   will-change: transform;
 }
 
 :root[data-theme="light"] .wisdom-card {
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
 .wisdom-card:hover {
-  transform: translateY(-4px) scale(1.015);
-  border-color: rgba(212, 175, 55, 0.65);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 25px rgba(212, 175, 55, 0.15);
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
 }
 
 .wisdom-card:active {
@@ -3687,6 +3733,7 @@ body:has(.landing-wrapper) {
   margin: 0 !important;
 }
 
+.drawer-group-heading,
 .drawer-section-label {
   display: block;
   font-size: 0.68rem;
@@ -5397,14 +5444,13 @@ body:has(.landing-wrapper) {
   }
 
   .pillar-card {
-    padding: 22px 18px !important;
+    padding: 16px 16px 20px !important;
     border-radius: 18px !important;
   }
 
-  .pillar-icon-wrap {
-    width: 44px !important;
-    height: 44px !important;
-    font-size: 1.25rem !important;
+  .pillar-photo-wrap {
+    height: 165px !important;
+    border-radius: 12px !important;
     margin-bottom: 14px !important;
   }
 

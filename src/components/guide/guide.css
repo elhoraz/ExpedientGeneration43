@@ -554,18 +554,18 @@ body.sidebar-closed .floating-help-btn {
    -------------------------------------------------------------------------- */
 @media (min-width: 769px) and (max-width: 1024px) {
   .floating-help-btn {
-    bottom: 28px;
-    right: 24px;
+    bottom: 28px !important;
+    right: 24px !important;
   }
 }
 
 /* Page-specific avoidance on desktop */
 body.page-radar .floating-help-btn {
-  bottom: 120px;
+  bottom: 245px;
   right: 35px;
 }
 
-@media (max-width: 1024px), (pointer: coarse) and (orientation: portrait) {
+@media (max-width: 768px) and (orientation: portrait), (max-width: 768px) and (pointer: coarse) {
   .floating-help-btn {
     /* Angkat tombol di atas floating bottom dock mobile dan safe-area gesture bar */
     bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
@@ -584,15 +584,25 @@ body.page-radar .floating-help-btn {
     transform: none !important;
   }
 
-  /* Radar & Quran page clearance on mobile */
-  body.page-radar .floating-help-btn {
-    bottom: calc(160px + max(16px, env(safe-area-inset-bottom, 16px)));
-    right: 14px;
+  /* Radar clearance on mobile (menghindari filter panel & radar controls baik saat sidebar buka maupun tutup) */
+  body.page-radar:not(.sidebar-closed) .floating-help-btn {
+    bottom: calc(205px + max(16px, env(safe-area-inset-bottom, 16px))) !important;
+    right: 14px !important;
   }
 
-  body.page-quran .floating-help-btn {
-    bottom: calc(165px + max(16px, env(safe-area-inset-bottom, 16px)));
-    right: 16px;
+  body.page-radar.sidebar-closed .floating-help-btn {
+    bottom: max(145px, calc(env(safe-area-inset-bottom, 16px) + 130px)) !important;
+    right: 14px !important;
+  }
+
+  body.page-quran:not(.sidebar-closed) .floating-help-btn {
+    bottom: calc(185px + max(16px, env(safe-area-inset-bottom, 16px))) !important;
+    right: 16px !important;
+  }
+
+  body.page-quran.sidebar-closed .floating-help-btn {
+    bottom: max(85px, calc(env(safe-area-inset-bottom, 16px) + 70px)) !important;
+    right: 16px !important;
   }
 
   /* Sembunyikan teks label "Bantuan" & badge di mobile kecil agar ramping jadi lingkaran FAB */

@@ -55,6 +55,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/forgot-password') ||
     request.nextUrl.pathname.startsWith('/auth') ||
     request.nextUrl.pathname.startsWith('/download') ||
+    request.nextUrl.pathname === '/b' ||
+    request.nextUrl.pathname.startsWith('/b/') ||
     request.nextUrl.pathname.startsWith('/beranda') ||
     request.nextUrl.pathname.startsWith('/direktori') ||
     request.nextUrl.pathname.startsWith('/galeri') ||

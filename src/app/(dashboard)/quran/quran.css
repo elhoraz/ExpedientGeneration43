@@ -5246,7 +5246,7 @@
   }
 
   .quran-floating-audio-bar {
-    bottom: max(105px, calc(env(safe-area-inset-bottom, 16px) + 85px));
+    bottom: max(118px, calc(env(safe-area-inset-bottom, 16px) + 102px));
     width: calc(100% - 24px);
     z-index: 9970;
     transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, background 0.3s ease;
@@ -5254,6 +5254,28 @@
 
   body.sidebar-closed .quran-floating-audio-bar {
     bottom: max(16px, calc(env(safe-area-inset-bottom, 16px) + 8px));
+  }
+
+  /* Micro Touch Targets Enlargement on Mobile (Fitts's Law) */
+  .left-block-action-btn {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.75rem !important;
+  }
+  .quick-pill-audio {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 0.75rem !important;
+  }
+  .zoom-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.8rem !important;
+  }
+  .timer-action-btn {
+    width: 36px !important;
+    height: 36px !important;
+    font-size: 0.85rem !important;
   }
 
   .quran-page-root {

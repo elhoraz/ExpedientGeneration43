@@ -1,29 +1,30 @@
 /*
  * ===================================================
  * fitur.css — Dual-Experience Sovereign Vault & Mobile Bento Hub
- * Desktop: The Sovereign 3D Cinematic Vault (> 900px)
+ * Desktop: The Sovereign 3D Vault (> 900px)
  * Mobile: Smart Bento Widget Hub (<= 900px)
+ * Refactored to Strict Unified Editorial Pesantren Aesthetic (Anti-Slop)
  * ===================================================
  */
 
 body.page-fitur .vault-wrapper,
 .vault-wrapper {
   --gold-main: #d4af37;
-  --gold-light: #ffd700;
-  --gold-glow: rgba(212, 175, 55, 0.35);
-  --card-bg-base: linear-gradient(160deg, rgba(14, 22, 18, 0.88) 0%, rgba(5, 9, 7, 0.96) 100%);
-  --card-border: rgba(212, 175, 55, 0.22);
-  --card-border-hover: rgba(212, 175, 55, 0.7);
-  --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
-  --card-shadow-hover: 0 25px 55px rgba(0, 0, 0, 0.85), 0 0 35px var(--gold-glow);
-  --card-title-color: #ffffff;
+  --gold-light: #e5c158;
+  --gold-glow: rgba(212, 175, 55, 0.25);
+  --card-bg-base: #0d151c;
+  --card-border: rgba(212, 175, 55, 0.18);
+  --card-border-hover: rgba(212, 175, 55, 0.55);
+  --card-shadow: none;
+  --card-shadow-hover: 0 16px 36px rgba(0, 0, 0, 0.6);
+  --card-title-color: #f1f5f9;
   --card-desc-color: #94a3b8;
   --title-color: #d4af37;
   --subtitle-color: #8899a6;
 
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -40,12 +41,12 @@ body.page-fitur .vault-wrapper,
 body.page-fitur[data-theme="light"] .vault-wrapper {
   --gold-main: #aa771c;
   --gold-light: #c89528;
-  --gold-glow: rgba(170, 119, 28, 0.2);
-  --card-bg-base: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(246, 248, 246, 0.98) 100%);
-  --card-border: rgba(170, 119, 28, 0.25);
-  --card-border-hover: rgba(170, 119, 28, 0.7);
-  --card-shadow: 0 15px 35px rgba(0, 20, 15, 0.08);
-  --card-shadow-hover: 0 20px 45px rgba(170, 119, 28, 0.18);
+  --gold-glow: rgba(170, 119, 28, 0.15);
+  --card-bg-base: #ffffff;
+  --card-border: rgba(170, 119, 28, 0.2);
+  --card-border-hover: rgba(170, 119, 28, 0.55);
+  --card-shadow: none;
+  --card-shadow-hover: 0 12px 28px rgba(170, 119, 28, 0.15);
   --card-title-color: #0f172a;
   --card-desc-color: #475569;
   --title-color: #aa771c;
@@ -76,32 +77,30 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: rgba(212, 175, 55, 0.1);
+  background: rgba(212, 175, 55, 0.08);
   border: 1px solid var(--gold-main);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
   color: var(--gold-main);
-  box-shadow: 0 0 30px rgba(212, 175, 55, 0.25);
   margin-bottom: 18px;
   animation: pulseEmblem 3s infinite ease-in-out;
 }
 
 @keyframes pulseEmblem {
-  0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); transform: scale(1); }
-  50% { box-shadow: 0 0 35px rgba(212, 175, 55, 0.4); transform: scale(1.04); }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
 }
 
 .desktop-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), Georgia, serif;
   color: var(--title-color);
   font-size: clamp(2.4rem, 4.5vw, 3.8rem);
   margin: 0;
   letter-spacing: 4px;
   text-transform: uppercase;
   font-weight: 700;
-  text-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
 .desktop-subtitle {
@@ -121,13 +120,14 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 45px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(13, 21, 28, 0.92);
   padding: 8px 12px;
   border-radius: 50px;
   border: 1px solid var(--card-border);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+:root[data-theme="light"] .desktop-category-bar {
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .category-pill-btn {
@@ -143,7 +143,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: color 0.25s ease, background-color 0.25s ease, border-color 0.25s ease;
   font-family: inherit;
 }
 
@@ -157,7 +157,6 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   background: var(--gold-main);
   color: #060b09;
   font-weight: 700;
-  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
 }
 
 :root[data-theme="light"] .category-pill-btn.active {
@@ -182,19 +181,16 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   transform-style: preserve-3d;
   background: var(--card-bg-base);
   border: 1px solid var(--card-border);
-  box-shadow: var(--card-shadow);
   overflow: hidden;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   transition: border-color 0.4s cubic-bezier(0.25, 1, 0.5, 1),
               box-shadow 0.4s cubic-bezier(0.25, 1, 0.5, 1),
-              background 0.4s ease;
+              background-color 0.4s ease;
   display: block;
 }
 
 .premium-card:hover {
   border-color: var(--card-border-hover);
-  box-shadow: var(--card-shadow-hover);
+  box-shadow: var(--card-shadow-hover); /* taste-skill-ignore: interactive hover elevation */
 }
 
 .premium-card .card-bg {
@@ -213,16 +209,17 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   transform: scale(1.08);
 }
 
+/* Neutral Scrim Overlay Over Photo */
 .card-glow-layer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(3, 7, 5, 0.98) 0%, rgba(3, 7, 5, 0.65) 55%, transparent 100%);
+  background: linear-gradient(to top, rgba(3, 7, 5, 0.98) 0%, rgba(3, 7, 5, 0.65) 55%, transparent 100%); /* taste-skill-ignore: neutral scrim over photo */
   z-index: 2;
   transition: opacity 0.5s ease;
 }
 
 :root[data-theme="light"] .card-glow-layer {
-  background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.8) 55%, rgba(255, 255, 255, 0.2) 100%);
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.8) 55%, rgba(255, 255, 255, 0.2) 100%); /* taste-skill-ignore: neutral scrim over photo */
 }
 
 .card-badge-tag {
@@ -230,7 +227,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   top: 20px;
   left: 20px;
   z-index: 5;
-  background: rgba(212, 175, 55, 0.2);
+  background: rgba(13, 21, 28, 0.9);
   border: 1px solid var(--gold-main);
   color: var(--gold-light);
   font-size: 0.68rem;
@@ -239,7 +236,11 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   letter-spacing: 1.5px;
   padding: 5px 12px;
   border-radius: 20px;
-  backdrop-filter: blur(10px);
+}
+
+:root[data-theme="light"] .card-badge-tag {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--gold-main);
 }
 
 .premium-card .card-icon {
@@ -248,7 +249,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   top: 25px;
   font-size: 2.2rem;
   color: rgba(212, 175, 55, 0.35);
-  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: color 0.3s ease, transform 0.4s ease;
   transform: translateZ(30px);
   z-index: 3;
 }
@@ -256,7 +257,6 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 .premium-card:hover .card-icon {
   color: var(--gold-main);
   transform: translateZ(50px) scale(1.15) rotate(6deg);
-  text-shadow: 0 0 25px var(--gold-glow);
 }
 
 .premium-card .card-content {
@@ -270,7 +270,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 }
 
 .premium-card .card-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair), Georgia, serif;
   color: var(--card-title-color);
   font-size: 1.5rem;
   margin: 0 0 10px 0;
@@ -303,7 +303,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  transition: all 0.3s ease;
+  transition: color 0.25s ease, transform 0.25s ease;
 }
 
 .premium-card:hover .launch-btn {
@@ -312,7 +312,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 }
 
 :root[data-theme="light"] .premium-card:hover .launch-btn {
-  color: #000;
+  color: #0f172a;
 }
 
 /* ==========================================================================
@@ -342,24 +342,28 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 
   body.page-fitur .vault-wrapper,
   .vault-wrapper {
-    padding: 16px 14px 100px 14px;
+    padding: max(72px, env(safe-area-inset-top, 20px) + 52px) 14px 100px 14px;
   }
 
-  /* Base Mobile Bento Card */
+  @media (max-height: 600px) {
+    body.page-fitur .vault-wrapper,
+    .vault-wrapper {
+      padding: 24px 14px 80px 14px;
+    }
+  }
+
+  /* UNIFIED MOBILE BENTO CARD (SATU BAHAN & SATU BORDER KONSISTEN) */
   .mobile-bento-card {
     background: var(--card-bg-base);
     border: 1px solid var(--card-border);
     border-radius: 20px;
     padding: 18px;
-    box-shadow: var(--card-shadow);
     text-decoration: none;
     color: var(--card-title-color);
     display: block;
     position: relative;
     overflow: hidden;
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease;
     box-sizing: border-box;
   }
 
@@ -368,15 +372,9 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     border-color: var(--gold-main);
   }
 
-  /* WIDGET 1: PROFIL & KTA DIGITAL */
+  /* WIDGET 1: PROFIL & KTA DIGITAL (MEMAKAI SURFACE KONSISTEN) */
   .widget-profile-card {
     padding: 20px;
-    background: linear-gradient(145deg, rgba(212, 175, 55, 0.08) 0%, rgba(10, 16, 12, 0.95) 100%);
-    border: 1px solid rgba(212, 175, 55, 0.35);
-  }
-
-  :root[data-theme="light"] .widget-profile-card {
-    background: linear-gradient(145deg, rgba(170, 119, 28, 0.08) 0%, rgba(255, 255, 255, 0.98) 100%);
   }
 
   .widget-profile-header {
@@ -392,7 +390,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--gold-main);
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    background: rgba(212, 175, 55, 0.1);
     flex-shrink: 0;
   }
 
@@ -409,7 +407,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   }
 
   .widget-user-name {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-playfair), Georgia, serif;
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--card-title-color);
@@ -434,17 +432,17 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     letter-spacing: 0.8px;
     padding: 3px 9px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     display: inline-flex;
     align-items: center;
     gap: 4px;
   }
 
   .widget-points-badge {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(212, 175, 55, 0.08);
     border: 1px solid var(--card-border);
     color: var(--gold-main);
-    font-family: monospace;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
     font-size: 0.75rem;
     font-weight: 700;
     padding: 3px 8px;
@@ -467,24 +465,27 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: transform 0.2s;
+    transition: transform 0.2s ease, background-color 0.2s ease;
   }
 
   .widget-action-btn.primary {
-    background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+    background: var(--gold-main);
     color: #060b09;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
+  }
+
+  :root[data-theme="light"] .widget-action-btn.primary {
+    color: #ffffff;
   }
 
   .widget-action-btn.secondary {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--card-border);
     color: var(--card-title-color);
   }
 
   .widget-action-btn.tertiary {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid var(--card-border);
     color: var(--card-desc-color);
     padding: 10px 14px;
@@ -497,7 +498,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     gap: 12px;
   }
 
-  /* WIDGET 2 & 3: KAS & ULANG TAHUN */
+  /* UNIFIED WIDGET HEADER & ICONS */
   .widget-card-top {
     display: flex;
     align-items: center;
@@ -505,26 +506,29 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     margin-bottom: 12px;
   }
 
-  .widget-card-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+  /* WADAH IKON DISIPLIN (SERAGAM ROYAL GOLD FILIGREE) */
+  .widget-card-icon,
+  .bubble-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.05rem;
+    color: var(--gold-main);
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    flex-shrink: 0;
   }
 
-  .widget-card-icon.kas {
-    background: rgba(37, 211, 102, 0.15);
-    color: #25d366;
+  :root[data-theme="light"] .widget-card-icon,
+  :root[data-theme="light"] .bubble-icon-wrap {
+    background: rgba(170, 119, 28, 0.08);
+    border-color: rgba(170, 119, 28, 0.2);
   }
 
-  .widget-card-icon.bday {
-    background: rgba(255, 215, 0, 0.15);
-    color: #ffd700;
-  }
-
+  /* STATUS PILL (HANYA UNTUK STATUS FUNGSIONAL) */
   .widget-status-pill {
     font-size: 0.65rem;
     font-weight: 700;
@@ -534,42 +538,34 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     letter-spacing: 0.5px;
   }
 
-  .widget-status-pill.paid {
-    background: rgba(37, 211, 102, 0.15);
-    color: #25d366;
-    border: 1px solid rgba(37, 211, 102, 0.3);
-  }
-
-  .widget-status-pill.unpaid {
-    background: rgba(212, 175, 55, 0.15);
-    color: var(--gold-main);
-    border: 1px solid rgba(212, 175, 55, 0.3);
-  }
-
+  .widget-status-pill.paid,
   .widget-status-pill.bday-active {
-    background: rgba(255, 215, 0, 0.18);
-    color: #ffd700;
-    border: 1px solid rgba(255, 215, 0, 0.4);
-    animation: pulseBday 2s infinite ease-in-out;
+    background: rgba(43, 185, 124, 0.12);
+    color: #2bb97c;
+    border: 1px solid rgba(43, 185, 124, 0.3);
   }
 
+  :root[data-theme="light"] .widget-status-pill.paid,
+  :root[data-theme="light"] .widget-status-pill.bday-active {
+    background: rgba(5, 150, 105, 0.08);
+    color: #059669;
+    border-color: rgba(5, 150, 105, 0.25);
+  }
+
+  .widget-status-pill.unpaid,
   .widget-status-pill.bday-soon {
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--card-desc-color);
+    background: rgba(212, 175, 55, 0.08);
+    color: var(--gold-main);
     border: 1px solid var(--card-border);
   }
 
-  @keyframes pulseBday {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-  }
-
   .widget-kas-amount {
-    font-size: 1.18rem;
+    font-size: 1.25rem;
     font-weight: 800;
     color: var(--card-title-color);
-    font-family: monospace;
-    letter-spacing: -0.5px;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
     margin-bottom: 2px;
   }
 
@@ -589,26 +585,33 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     line-height: 1.3;
   }
 
+  /* UNIFIED FOOTER LINK (SEMUA MEMAKAI ROYAL GOLD) */
   .widget-card-footer-link {
     margin-top: 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.75rem;
+    font-size: 0.76rem;
     color: var(--gold-main);
     font-weight: 600;
+    transition: color 0.2s ease;
   }
 
-  .widget-card-footer-link.bday {
-    color: #25d366;
+  .widget-card-footer-link i {
+    transition: transform 0.2s ease;
   }
 
-  /* WIDGET 4: EVENT TERDEKAT */
-  .widget-event-card {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(10, 16, 12, 0.95) 100%);
-    border-color: rgba(59, 130, 246, 0.3);
+  .widget-card-footer-link:hover,
+  .widget-card-footer-link:active {
+    color: var(--gold-light);
   }
 
+  .mobile-bento-card:hover .widget-card-footer-link i,
+  .mobile-bento-card:active .widget-card-footer-link i {
+    transform: translateX(3px);
+  }
+
+  /* WIDGET 4: EVENT & KHATAM (MEMAKAI SURFACE KONSISTEN) */
   .widget-event-badge-row {
     display: flex;
     align-items: center;
@@ -616,26 +619,36 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     margin-bottom: 8px;
   }
 
-  .widget-event-countdown {
-    background: #3b82f6;
-    color: #fff;
+  .widget-event-countdown,
+  .khatam-countdown {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--gold-main);
+    border: 1px solid rgba(212, 175, 55, 0.28);
     font-size: 0.7rem;
-    font-weight: 800;
+    font-weight: 700;
     padding: 3px 10px;
     border-radius: 12px;
     letter-spacing: 0.5px;
-    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.4);
   }
 
-  .widget-event-tag {
+  :root[data-theme="light"] .widget-event-countdown,
+  :root[data-theme="light"] .khatam-countdown {
+    background: rgba(170, 119, 28, 0.08);
+    border-color: rgba(170, 119, 28, 0.25);
+  }
+
+  .widget-event-tag,
+  .khatam-tag {
     font-size: 0.68rem;
     color: var(--card-desc-color);
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: 600;
   }
 
-  .widget-event-title {
-    font-family: 'Playfair Display', serif;
+  .widget-event-title,
+  .khatam-title {
+    font-family: var(--font-playfair), Georgia, serif;
     font-size: 1.15rem;
     font-weight: 700;
     color: var(--card-title-color);
@@ -656,58 +669,56 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     gap: 5px;
   }
 
+  .khatam-subtext {
+    font-size: 0.78rem;
+    color: var(--card-desc-color);
+  }
+
   /* WIDGET 5 & 6: BUBBLE ROW (CHAT & PHOTOBOOTH) */
   .widget-action-bubble {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    min-height: 110px;
     gap: 12px;
-    padding: 14px 16px;
   }
 
-  .bubble-icon-wrap {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+  .bubble-card-header {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.15rem;
-    flex-shrink: 0;
-  }
-
-  .bubble-icon-wrap.chat {
-    background: rgba(168, 85, 247, 0.15);
-    color: #a855f7;
-    box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
-  }
-
-  .bubble-icon-wrap.photobooth {
-    background: rgba(244, 63, 94, 0.15);
-    color: #f43f5e;
-    box-shadow: 0 0 15px rgba(244, 63, 94, 0.2);
+    justify-content: space-between;
+    width: 100%;
   }
 
   .bubble-text {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
   }
 
   .bubble-text h4 {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.92rem;
     font-weight: 700;
     color: var(--card-title-color);
   }
 
   .bubble-text p {
-    margin: 2px 0 0 0;
-    font-size: 0.68rem;
+    margin: 3px 0 0 0;
+    font-size: 0.72rem;
     color: var(--card-desc-color);
+    line-height: 1.35;
   }
 
   .bubble-chevron {
     color: var(--card-desc-color);
     font-size: 0.75rem;
+    transition: transform 0.2s ease, color 0.2s ease;
+  }
+
+  .widget-action-bubble:hover .bubble-chevron,
+  .widget-action-bubble:active .bubble-chevron {
+    color: var(--gold-main);
+    transform: translateX(3px);
   }
 
   /* WIDGET 7: QUICK SEARCH CARD */
@@ -716,8 +727,12 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     align-items: center;
     gap: 10px;
     padding: 8px 10px 8px 16px;
-    background: rgba(255, 255, 255, 0.03);
     border-radius: 16px;
+    transition: border-color 0.2s ease;
+  }
+
+  .widget-search-card:focus-within {
+    border-color: var(--gold-main);
   }
 
   .search-icon {
@@ -750,7 +765,11 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     cursor: pointer;
   }
 
-  /* MINI APP DRAWER (SEMUA FITUR ANGKATAN) */
+  :root[data-theme="light"] .search-btn {
+    color: #ffffff;
+  }
+
+  /* MINI APP DRAWER (SOVEREIGN VAULT CATALOG) */
   .mobile-apps-section {
     margin-top: 10px;
     background: var(--card-bg-base);
@@ -782,7 +801,7 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   .mobile-section-counter {
     font-size: 0.7rem;
     color: var(--card-desc-color);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(212, 175, 55, 0.06);
     padding: 3px 8px;
     border-radius: 10px;
     border: 1px solid var(--card-border);
@@ -800,13 +819,14 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     align-items: center;
     text-decoration: none;
     gap: 6px;
-    transition: transform 0.2s;
+    transition: transform 0.2s ease;
   }
 
   .mobile-app-item:active {
     transform: scale(0.92);
   }
 
+  /* DISIPLIN ROYAL GOLD FILIGREE BADGE UNTUK SEMUA 30 MINI APP */
   .mobile-app-icon-badge {
     width: 52px;
     height: 52px;
@@ -814,10 +834,30 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
-    border: 1px solid transparent;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s;
+    font-size: 1.25rem;
+    color: var(--gold-main);
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .mobile-app-item:hover .mobile-app-icon-badge,
+  .mobile-app-item:active .mobile-app-icon-badge {
+    border-color: var(--gold-main);
+    background: rgba(212, 175, 55, 0.16);
+    transform: scale(0.95);
+  }
+
+  :root[data-theme="light"] .mobile-app-icon-badge {
+    color: var(--gold-main);
+    background: rgba(170, 119, 28, 0.07);
+    border-color: rgba(170, 119, 28, 0.2);
+  }
+
+  :root[data-theme="light"] .mobile-app-item:hover .mobile-app-icon-badge,
+  :root[data-theme="light"] .mobile-app-item:active .mobile-app-icon-badge {
+    background: rgba(170, 119, 28, 0.14);
+    border-color: var(--gold-main);
   }
 
   .mobile-app-name {
@@ -825,10 +865,34 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
     color: var(--card-title-color);
     font-weight: 600;
     text-align: center;
-    line-height: 1.2;
-    white-space: nowrap;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 68px;
+    white-space: normal;
+    height: 2.5em;
+    max-width: 76px;
+  }
+
+  /* Mode Siang (Light Theme) Contrast Refinement */
+  :root[data-theme="light"] .widget-action-btn.secondary,
+  :root[data-theme="light"] .widget-action-btn.tertiary {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(170, 119, 28, 0.25);
+    color: var(--card-title-color);
+  }
+
+  :root[data-theme="light"] .widget-action-btn.secondary:hover,
+  :root[data-theme="light"] .widget-action-btn.tertiary:hover {
+    background: rgba(170, 119, 28, 0.1);
+    border-color: var(--gold-main);
+  }
+
+  :root[data-theme="light"] .widget-points-badge {
+    background: rgba(170, 119, 28, 0.08);
+    border-color: rgba(170, 119, 28, 0.25);
+    color: var(--gold-main);
   }
 }

@@ -139,7 +139,7 @@ body.page-admin .btn-cancel:hover { border-color: var(--text-primary); color: va
 .batch-save-widget {
     position: fixed;
     bottom: 30px;
-    right: 170px;
+    right: 260px;
     background: linear-gradient(135deg, #d4af37, #b8860b);
     color: #000;
     padding: 15px 25px;

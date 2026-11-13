@@ -173,11 +173,35 @@
 /* --------------------------------------------------------------------------
    2. CHAT ROOM (PERSONAL & LOUNGE) LAYOUT
    -------------------------------------------------------------------------- */
+body.page-chat .main-wrapper {
+  overflow: hidden !important;
+}
+
+/* In active chat room, prevent global floating widgets from blocking call & action buttons */
+body.page-chat .chat-widget {
+  display: none !important;
+}
+
+@media (max-width: 1024px) {
+  body.page-chat .theme-widget,
+  body.page-chat .notif-widget,
+  body.page-chat .chat-widget {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  body.page-chat .chat-room-header {
+    padding-right: 175px !important;
+  }
+}
+
 .chat-room-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
+  height: 100%;
+  max-height: 100%;
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding-top: 0;
@@ -430,16 +454,16 @@
   background: rgba(255, 85, 85, 0.2);
   border: none;
   color: #ff5555;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: 0.2s;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .btn-delete-msg:hover, .btn-delete-msg:active {
@@ -1030,7 +1054,8 @@
   }
 
   .chat-room-container {
-    height: 100svh;
+    height: 100%;
+    max-height: 100%;
   }
   .chat-room-header {
     padding: 10px 12px;

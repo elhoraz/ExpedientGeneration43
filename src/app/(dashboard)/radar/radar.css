@@ -203,19 +203,19 @@ body.page-radar.sidebar-closed .leaderboard { left: 40px; }
 
 /* ===== MOBILE APP-LIKE EXPERIENCE ===== */
 @media(max-width:768px) {
-    /* Search Bar ke atas penuh - Hindari Dynamic Island & Notch iPhone */
+    /* Search Bar ke atas penuh - Diberikan clearance di bawah widget global kanan atas */
     body.page-radar .search-pill { 
-        top: max(16px, calc(env(safe-area-inset-top, 16px) + 8px)); 
+        top: calc(max(16px, env(safe-area-inset-top, 16px)) + 52px); 
         width: calc(100vw - 32px); 
     }
     body.page-radar .search-results { 
-        top: max(68px, calc(env(safe-area-inset-top, 16px) + 60px)); 
+        top: calc(max(16px, env(safe-area-inset-top, 16px)) + 104px); 
         width: calc(100vw - 32px); 
     }
 
     /* HUD jadi pill horizontal kecil di bawah search */
     body.page-radar .radar-hud { 
-        top: max(74px, calc(env(safe-area-inset-top, 16px) + 66px)); 
+        top: calc(max(16px, env(safe-area-inset-top, 16px)) + 110px); 
         left: 16px; 
         right: 16px; 
         display: flex; 
@@ -277,6 +277,10 @@ body.page-radar.sidebar-closed .leaderboard { left: 40px; }
     body.page-radar .btn-radar-glass { background:rgba(255,255,255,0.06); color:var(--text-primary); }
     body.page-radar .sync-status { position:absolute; top:-25px; right:10px; text-align:right; }
     body.page-radar .btn-radar-text { display:inline-block; }
+    @media (max-width: 480px) {
+        body.page-radar .btn-radar:not(.btn-radar-gold) .btn-radar-text { display: none; }
+        body.page-radar .btn-radar { padding: 8px 10px; }
+    }
     
     /* Map Dropdown menu naik ke atas */
     body.page-radar .map-dropdown { bottom:120%; margin-bottom:15px; left:auto; right:0; min-width:160px; text-align:center; }

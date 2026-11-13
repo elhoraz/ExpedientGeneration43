@@ -243,7 +243,7 @@ export default async function EventsPage() {
               <i className="fa-regular fa-calendar-xmark"></i>
             </div>
             <h3 style={{ color: "var(--text-primary)", fontSize: "1.1rem", margin: "0 0 8px 0" }}>Belum Ada Agenda</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: "400px", margin: "0 auto" }}>Agenda acara The Syndicate yang Anda tambahkan akan muncul di sini dan otomatis di-broadcast ke seluruh anggota.</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", maxWidth: "400px", margin: "0 auto" }}>Agenda acara alumni Expedient 43 yang Anda tambahkan akan muncul di sini dan otomatis di-broadcast ke seluruh anggota.</p>
           </div>
         )}
       </div>

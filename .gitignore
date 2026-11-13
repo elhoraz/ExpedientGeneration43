@@ -79,5 +79,6 @@ supabase/backup/
 *.sql.bak
 *.dump
 
-# Local AI workspace
+# Local AI workspace & tooling artifacts
 .gemini/
+.taste-skill/

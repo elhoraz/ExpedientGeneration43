@@ -860,8 +860,8 @@ export const idDictionary: Dictionary = {
     back_home: "Kembali ke Beranda",
   },
   syndicate: {
-    title: "Syndicate Business Network",
-    subtitle: "Katalog jejaring wirausaha, produk unggulan, dan jasa profesional sesama alumni Expedient 43.",
+    title: "Jejaring Bisnis Alumni",
+    subtitle: "Katalog wirausaha, produk unggulan, dan jasa profesional alumni Expedient 43 Ar-Risalah Slahung.",
     search_placeholder: "Cari bisnis, produk, atau jasa alumni...",
     all_categories: "Semua Kategori",
     add_business: "Daftarkan Usaha Anda",
@@ -872,7 +872,7 @@ export const idDictionary: Dictionary = {
     qr_code: "QR Usaha",
     empty_title: "Belum Ada Usaha Terdaftar",
     empty_desc: "Jadilah yang pertama mempromosikan karya dan usaha Anda kepada seluruh keluarga besar alumni.",
-    back_to_list: "Kembali ke Katalog",
+    back_to_list: "Kembali ke Direktori",
     verified_badge: "Terverifikasi Alumni",
   },
   wasiat: {
@@ -1289,7 +1289,7 @@ export const idDictionary: Dictionary = {
       oracle: "Kamera Aura Positif",
       enigma: "Catatan Kenangan Pribadi",
       radar: "Peta Persebaran Alumni",
-      syndicate: "Katalog Bisnis & Usaha Alumni",
+      syndicate: "Direktori Bisnis Alumni",
       majlis: "Majlis Kajian & Suara",
       baitul: "Kas & Donasi (Baitul Maal)",
       tarbiyah: "Jejaring Karir & Mentoring",
@@ -1522,7 +1522,7 @@ export const idDictionary: Dictionary = {
     data_deleted_list: [
       "Kredensial login, email, nomor WhatsApp, dan data biometrik/face recognition.",
       "Profil alumni, foto profil, dan titik koordinat domisili pada Radar Alumni.",
-      "Listing usaha Anda pada Direktori Bisnis (Syndicate).",
+      "Listing usaha Anda pada Direktori Bisnis Alumni.",
       "Pesan wasiat digital dan seluruh log aktivitas pribadi.",
     ],
     data_retained_title: "Kebijakan Retensi Finansial (Baitul Maal)",

@@ -6,12 +6,12 @@ import TiltCard from "@/components/features/TiltCard";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 const WISDOM_METAS: Record<string, { avatarBg: string; initials: string }> = {
-  pendiri: { avatarBg: "linear-gradient(135deg, #c5a059, #85611e)", initials: "MY" },
-  pimpinan: { avatarBg: "linear-gradient(135deg, #0d5c3a, #063823)", initials: "MA" },
-  "ibu-pengasuh": { avatarBg: "linear-gradient(135deg, #a66a5e, #6e3d34)", initials: "IN" },
-  kmi: { avatarBg: "linear-gradient(135deg, #8c6d3b, #59421e)", initials: "SR" },
-  pengasuhan: { avatarBg: "linear-gradient(135deg, #1e4d3b, #0f2e22)", initials: "SL" },
-  angkatan: { avatarBg: "linear-gradient(135deg, #1e3a5f, #0d2138)", initials: "EG" },
+  pendiri: { avatarBg: "#92702a", initials: "MY" },
+  pimpinan: { avatarBg: "#063823", initials: "MA" },
+  "ibu-pengasuh": { avatarBg: "#6e3d34", initials: "IN" },
+  kmi: { avatarBg: "#59421e", initials: "SR" },
+  pengasuhan: { avatarBg: "#0f2e22", initials: "SL" },
+  angkatan: { avatarBg: "#0d2138", initials: "EG" },
 };
 
 export default function WisdomAsatidz() {
@@ -28,7 +28,7 @@ export default function WisdomAsatidz() {
 
   const list = (t.wisdom_items && t.wisdom_items.length > 0 ? t.wisdom_items : []).map(item => ({
     ...item,
-    avatarBg: WISDOM_METAS[item.id]?.avatarBg || "linear-gradient(135deg, #ca8a04, #854d0e)",
+    avatarBg: WISDOM_METAS[item.id]?.avatarBg || "#854d0e",
     initials: WISDOM_METAS[item.id]?.initials || "AS",
   }));
 
@@ -37,10 +37,6 @@ export default function WisdomAsatidz() {
   return (
     <section className="wisdom-section" id="nasehat">
       <div className="section-header reveal-on-scroll">
-        <div className="tuku-heritage-badge" style={{ marginBottom: "14px" }}>
-          <span className="badge-bullet">✦</span>
-          <span>{t.wisdom_section.badge}</span>
-        </div>
         <h2 className="section-title">
           {t.wisdom_section.title}
         </h2>
