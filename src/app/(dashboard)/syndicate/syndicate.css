@@ -1,25 +1,28 @@
 /* ================= JEJARING BISNIS ALUMNI & 5 BESPOKE TEMPLATE ARCHETYPES ================= */
 
-.syndicate-page,
-.standalone-microsite-viewport {
-  --biz-bg: #111214;
-  --biz-surface: #191b1f;
-  --biz-surface-2: #22252b;
-  --biz-surface-hover: #2a2e35;
-  --biz-text-primary: #efeeec;
-  --biz-text-secondary: #c9c7c3;
-  --biz-text-muted: #a19f9a;
-  --biz-accent: #d4af37;
-  --biz-accent-hover: #e3c154;
-  --biz-accent-ink: #111214;
+/* --------------------------------------------------------------------------
+ * PORTAL DASHBOARD SCOPE (.syndicate-page)
+ * Harmonizes background & surfaces with Portal Navbar (--bg-main / Midnight Navy & Ivory)
+ * -------------------------------------------------------------------------- */
+.syndicate-page {
+  --biz-bg: transparent;
+  --biz-surface: #0b1424;
+  --biz-surface-2: #122038;
+  --biz-surface-hover: #182b4a;
+  --biz-text-primary: var(--text-primary, #ffffff);
+  --biz-text-secondary: var(--text-secondary, #94a3b8);
+  --biz-text-muted: #7c8ea6;
+  --biz-accent: var(--gold-main, #d4af37);
+  --biz-accent-hover: #e5c458;
+  --biz-accent-ink: #060b14;
   --biz-accent-subtle: rgba(212, 175, 55, 0.14);
   --biz-status-ok: #4ade80;
-  --biz-status-ok-bg: #143624;
+  --biz-status-ok-bg: #103324;
   --biz-status-ok-ink: #d9fbe5;
-  --biz-banner-ph: #191b1f;
-  --biz-input-bg: #0c0d0f;
-  --biz-input-border: rgba(255, 255, 255, 0.18);
-  --biz-input-text: #f4f1ea;
+  --biz-banner-ph: #08101e;
+  --biz-input-bg: #070d18;
+  --biz-input-border: rgba(212, 175, 55, 0.24);
+  --biz-input-text: #f8fafc;
 
   /* Backward-compatible aliases for dashboard modules */
   --biz-card-bg: var(--biz-surface);
@@ -48,11 +51,141 @@
   --biz-radius: 14px;
   --biz-btn-radius: 999px;
   --biz-shell-max: 1180px;
+  --biz-portal-outline: rgba(212, 175, 55, 0.15);
 }
 
-/* Light Mode Base (Royale Editorial) */
 :root[data-theme="light"] .syndicate-page,
-html[data-theme="light"] .syndicate-page,
+html[data-theme="light"] .syndicate-page {
+  --biz-bg: transparent;
+  --biz-surface: #ffffff;
+  --biz-surface-2: #eef2f6;
+  --biz-surface-hover: #e2e8f0;
+  --biz-text-primary: #0f172a;
+  --biz-text-secondary: #475569;
+  --biz-text-muted: #64748b;
+  --biz-accent: #aa771c;
+  --biz-accent-hover: #8f6215;
+  --biz-accent-ink: #ffffff;
+  --biz-accent-subtle: rgba(170, 119, 28, 0.11);
+  --biz-status-ok: #059669;
+  --biz-status-ok-bg: #dcfce7;
+  --biz-status-ok-ink: #065f46;
+  --biz-banner-ph: #e2e8f0;
+  --biz-input-bg: #f8fafc;
+  --biz-input-border: #cbd5e1;
+  --biz-input-text: #0f172a;
+  --biz-badge-owner: #059669;
+  --biz-portal-outline: rgba(15, 23, 42, 0.09);
+}
+
+/* Dashboard preview accents keep transparent portal background */
+.syndicate-page.biz-theme-bistro {
+  --biz-accent: #eab308;
+  --biz-accent-hover: #facc15;
+  --biz-accent-ink: #060b14;
+  --biz-heading-font: var(--font-playfair), Georgia, serif;
+  --biz-radius: 10px;
+  --biz-btn-radius: 8px;
+}
+
+:root[data-theme="light"] .syndicate-page.biz-theme-bistro,
+html[data-theme="light"] .syndicate-page.biz-theme-bistro {
+  --biz-accent: #9f1239;
+  --biz-accent-hover: #881337;
+  --biz-accent-ink: #ffffff;
+}
+
+.syndicate-page.biz-theme-retail {
+  --biz-heading-font: var(--font-manrope), system-ui, sans-serif;
+  --biz-radius: 6px;
+  --biz-btn-radius: 4px;
+}
+
+.syndicate-page.biz-theme-agency {
+  --biz-accent: #38bdf8;
+  --biz-accent-hover: #7dd3fc;
+  --biz-accent-ink: #060b14;
+  --biz-heading-font: var(--font-manrope), system-ui, sans-serif;
+  --biz-radius: 8px;
+  --biz-btn-radius: 6px;
+}
+
+:root[data-theme="light"] .syndicate-page.biz-theme-agency,
+html[data-theme="light"] .syndicate-page.biz-theme-agency {
+  --biz-accent: #0369a1;
+  --biz-accent-hover: #075985;
+  --biz-accent-ink: #ffffff;
+}
+
+.syndicate-page.biz-theme-heritage {
+  --biz-accent: #52d699;
+  --biz-accent-hover: #70e2ad;
+  --biz-accent-ink: #060b14;
+  --biz-heading-font: var(--font-amiri), Georgia, serif;
+  --biz-radius: 16px;
+  --biz-btn-radius: 12px;
+}
+
+:root[data-theme="light"] .syndicate-page.biz-theme-heritage,
+html[data-theme="light"] .syndicate-page.biz-theme-heritage {
+  --biz-accent: #065f46;
+  --biz-accent-hover: #044e3a;
+  --biz-accent-ink: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+ * STANDALONE PUBLIC MICROSITE SCOPE (.standalone-microsite-viewport)
+ * Independent per-archetype palettes without dashboard navbar
+ * -------------------------------------------------------------------------- */
+.standalone-microsite-viewport {
+  --biz-bg: #111214;
+  --biz-surface: #191b1f;
+  --biz-surface-2: #22252b;
+  --biz-surface-hover: #2a2e35;
+  --biz-text-primary: #efeeec;
+  --biz-text-secondary: #c9c7c3;
+  --biz-text-muted: #a19f9a;
+  --biz-accent: #d4af37;
+  --biz-accent-hover: #e3c154;
+  --biz-accent-ink: #111214;
+  --biz-accent-subtle: rgba(212, 175, 55, 0.14);
+  --biz-status-ok: #4ade80;
+  --biz-status-ok-bg: #143624;
+  --biz-status-ok-ink: #d9fbe5;
+  --biz-banner-ph: #191b1f;
+  --biz-input-bg: #0c0d0f;
+  --biz-input-border: rgba(255, 255, 255, 0.18);
+  --biz-input-text: #f4f1ea;
+
+  --biz-card-bg: var(--biz-surface);
+  --biz-card-border: rgba(255, 255, 255, 0.08);
+  --biz-card-border-hover: var(--biz-accent);
+  --biz-gold: var(--biz-accent);
+  --biz-gold-hover: var(--biz-accent-hover);
+  --biz-gold-subtle: var(--biz-accent-subtle);
+  --biz-gold-btn: var(--biz-accent);
+  --biz-gold-btn-hover: var(--biz-accent-hover);
+  --biz-btn-contrast-text: var(--biz-accent-ink);
+  --biz-tag-bg: var(--biz-surface-2);
+  --biz-tag-border: rgba(255, 255, 255, 0.1);
+  --biz-tag-text: var(--biz-text-secondary);
+  --biz-search-bg: var(--biz-surface);
+  --biz-search-border: rgba(255, 255, 255, 0.14);
+  --biz-footer-actions-bg: var(--biz-surface-2);
+  --biz-footer-border: rgba(255, 255, 255, 0.08);
+  --biz-empty-bg: var(--biz-surface);
+  --biz-admin-actions-bg: var(--biz-surface-2);
+  --biz-badge-owner: #4ade80;
+
+  --biz-heading-font: var(--font-amiri), Georgia, serif;
+  --biz-body-font: var(--font-manrope), system-ui, sans-serif;
+  --biz-heading-tracking: -0.015em;
+  --biz-radius: 14px;
+  --biz-btn-radius: 999px;
+  --biz-shell-max: 1180px;
+}
+
+/* Light Mode Base (Royale Editorial Standalone) */
 :root[data-theme="light"] .standalone-microsite-viewport,
 html[data-theme="light"] .standalone-microsite-viewport {
   --biz-bg: #f5f4ef;
@@ -76,10 +209,9 @@ html[data-theme="light"] .standalone-microsite-viewport {
   --biz-badge-owner: #0b6e4f;
 }
 
-/* ================= 5 ARCHETYPE COLOR & TYPOGRAPHY SYSTEMS ================= */
+/* ================= 5 ARCHETYPE COLOR & TYPOGRAPHY SYSTEMS (STANDALONE) ================= */
 
 /* 1. Gold: Royale Editorial */
-.syndicate-page.biz-theme-gold,
 .standalone-microsite-viewport.biz-theme-gold {
   --biz-heading-font: var(--font-amiri), Georgia, serif;
   --biz-radius: 14px;
@@ -87,7 +219,6 @@ html[data-theme="light"] .standalone-microsite-viewport {
 }
 
 /* 2. Bistro: Culinary & Bistro Ledger (Warm Espresso & Saffron Dark / Chalk & Crimson Light) */
-.syndicate-page.biz-theme-bistro,
 .standalone-microsite-viewport.biz-theme-bistro {
   --biz-bg: #141110;
   --biz-surface: #1d1816;
@@ -107,8 +238,6 @@ html[data-theme="light"] .standalone-microsite-viewport {
   --biz-btn-radius: 8px;
 }
 
-:root[data-theme="light"] .syndicate-page.biz-theme-bistro,
-html[data-theme="light"] .syndicate-page.biz-theme-bistro,
 :root[data-theme="light"] .standalone-microsite-viewport.biz-theme-bistro,
 html[data-theme="light"] .standalone-microsite-viewport.biz-theme-bistro {
   --biz-bg: #f4f3ef;
@@ -126,7 +255,6 @@ html[data-theme="light"] .standalone-microsite-viewport.biz-theme-bistro {
 }
 
 /* 3. Retail: Lookbook Boutique (Gallery Monochrome Stark & Architectural Corners) */
-.syndicate-page.biz-theme-retail,
 .standalone-microsite-viewport.biz-theme-retail {
   --biz-bg: #0e0e10;
   --biz-surface: #17171a;
@@ -146,8 +274,6 @@ html[data-theme="light"] .standalone-microsite-viewport.biz-theme-bistro {
   --biz-btn-radius: 3px;
 }
 
-:root[data-theme="light"] .syndicate-page.biz-theme-retail,
-html[data-theme="light"] .syndicate-page.biz-theme-retail,
 :root[data-theme="light"] .standalone-microsite-viewport.biz-theme-retail,
 html[data-theme="light"] .standalone-microsite-viewport.biz-theme-retail {
   --biz-bg: #f4f4f6;
@@ -165,7 +291,6 @@ html[data-theme="light"] .standalone-microsite-viewport.biz-theme-retail {
 }
 
 /* 4. Agency: Modern Studio & Lab (Deep Slate Cobalt & Precision Grid) */
-.syndicate-page.biz-theme-agency,
 .standalone-microsite-viewport.biz-theme-agency {
   --biz-bg: #0d1117;
   --biz-surface: #151b23;
@@ -185,8 +310,6 @@ html[data-theme="light"] .standalone-microsite-viewport.biz-theme-retail {
   --biz-btn-radius: 6px;
 }
 
-:root[data-theme="light"] .syndicate-page.biz-theme-agency,
-html[data-theme="light"] .syndicate-page.biz-theme-agency,
 :root[data-theme="light"] .standalone-microsite-viewport.biz-theme-agency,
 html[data-theme="light"] .standalone-microsite-viewport.biz-theme-agency {
   --biz-bg: #f2f5f8;
@@ -204,7 +327,6 @@ html[data-theme="light"] .standalone-microsite-viewport.biz-theme-agency {
 }
 
 /* 5. Heritage: Santri Heritage Craft (Pine Forest Obsidian / Limestone) */
-.syndicate-page.biz-theme-heritage,
 .standalone-microsite-viewport.biz-theme-heritage {
   --biz-bg: #0e1512;
   --biz-surface: #16201c;
@@ -224,8 +346,6 @@ html[data-theme="light"] .standalone-microsite-viewport.biz-theme-agency {
   --biz-btn-radius: 12px;
 }
 
-:root[data-theme="light"] .syndicate-page.biz-theme-heritage,
-html[data-theme="light"] .syndicate-page.biz-theme-heritage,
 :root[data-theme="light"] .standalone-microsite-viewport.biz-theme-heritage,
 html[data-theme="light"] .standalone-microsite-viewport.biz-theme-heritage {
   --biz-bg: #f2f4f0;
@@ -279,10 +399,14 @@ body:has(.standalone-microsite-viewport)
   width: 100%;
   min-height: 100svh;
   padding: 96px 28px 72px;
-  background-color: var(--biz-bg);
+  background-color: transparent;
   color: var(--biz-text-primary);
   font-family: var(--biz-body-font);
   z-index: 1;
+}
+
+.syndicate-page :is(.syndicate-card, .syndicate-search-box, .syndicate-form-card, .syndicate-empty-state, .microsite-info-card, .privilege-card, .product-card) {
+  outline: 1px solid var(--biz-portal-outline, transparent);
 }
 
 @media (max-width: 768px) {
@@ -655,7 +779,7 @@ body:has(.standalone-microsite-viewport)
 
 .biz-admin-row {
   padding: 10px 20px;
-  background-color: var(--biz-bg);
+  background-color: var(--biz-banner-ph);
   display: flex;
   gap: 8px;
 }
