@@ -89,6 +89,24 @@
     } else {
       if (window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.origin.includes("localhost")) {
         window.location.replace("https://expedientgeneration.vercel.app");
+      } else {
+        (async function recoverFromStaleSW() {
+          try {
+            if ("serviceWorker" in navigator) {
+              var regs = await navigator.serviceWorker.getRegistrations();
+              await Promise.all(regs.map(function (r) { return r.unregister(); }));
+            }
+            if ("caches" in window) {
+              var keys = await caches.keys();
+              await Promise.all(keys.map(function (k) { return caches.delete(k); }));
+            }
+          } catch (e) {}
+          if (!window.location.search.includes("sw_recovered=1")) {
+            window.location.replace("/?sw_recovered=1");
+          } else {
+            window.location.replace("/login");
+          }
+        })();
       }
     }
   </script>

@@ -4,6 +4,11 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import {
+  CordobaSpreadSkeleton,
+  QuranSurahReaderSkeleton,
+  QuranTafsirSkeleton,
+} from "@/components/ui/Skeleton";
+import {
   QURAN_SURAHS,
   JUZ_LIST,
   QARI_LIST,
@@ -1282,15 +1287,8 @@ export default function QuranClient({
 
           {/* LOADING / ERROR STATE */}
           {loadingPage && (
-            <div className="cordoba-loading-state">
-              <i className="fa-solid fa-spinner fa-spin loading-icon"></i>
-              <p>
-                {locale === "ar"
-                  ? `تحضير صفحة ${toArabicNumerals(cordobaPage)} من مصحف الحفاظ قرطبة...`
-                  : locale === "en"
-                  ? `Preparing Page ${cordobaPage} of Al-Hufaz Cordoba Mushaf...`
-                  : `Mempersiapkan Lembaran Halaman ${cordobaPage} Mushaf Al-Hufaz Cordoba...`}
-              </p>
+            <div style={{ margin: "12px 0 20px" }} aria-busy="true">
+              <CordobaSpreadSkeleton />
             </div>
           )}
 
@@ -2061,14 +2059,8 @@ export default function QuranClient({
           {/* Loading Indicator when opening a Surah */}
           {loadingSurah && (
             <div className="quran-loading-overlay">
-              <div className="quran-loading-card">
-                <i className="fa-solid fa-circle-notch fa-spin"></i>
-                <span className="loading-title">
-                  {locale === "ar" ? "فتح سورة القرآن الكريم..." : locale === "en" ? "Opening Quran Surah..." : "Membuka Surah Al-Qur'an..."}
-                </span>
-                <span className="loading-desc">
-                  {locale === "ar" ? "تحميل الآيات والتلاوة الصوتية الرسمية" : locale === "en" ? "Loading verses, Latin transliteration, and official audio" : "Memuat ayat, transliterasi Latin, dan murottal resmi"}
-                </span>
+              <div style={{ width: "min(680px, 94vw)", maxHeight: "82vh", overflow: "hidden" }}>
+                <QuranSurahReaderSkeleton />
               </div>
             </div>
           )}
@@ -2933,10 +2925,7 @@ export default function QuranClient({
             </div>
             <div className="quran-modal-body">
               {loadingTafsir ? (
-                <div className="modal-loading-state">
-                  <i className="fa-solid fa-spinner fa-spin"></i>
-                  <p>{locale === "ar" ? "جارٍ تحميل التفسير..." : locale === "en" ? "Loading verse tafsir..." : "Memuat tafsir ayat..."}</p>
-                </div>
+                <QuranTafsirSkeleton />
               ) : (
                 <>
                   {selectedAyahTafsir && selectedSurah && (

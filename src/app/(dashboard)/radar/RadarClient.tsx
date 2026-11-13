@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { mountRadar2D, destroyRadar2D } from "./radar2dEngine";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { RadarSkeleton } from "@/components/ui/Skeleton";
 import "leaflet/dist/leaflet.css";
 import "./radar.css";
 
@@ -249,7 +250,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
 
 export default function RadarClient({ nodes }: { nodes: any[] }) {
     return (
-        <Suspense fallback={<div>Loading Radar...</div>}>
+        <Suspense fallback={<RadarSkeleton />}>
             <RadarMapContent nodes={nodes} />
         </Suspense>
     )

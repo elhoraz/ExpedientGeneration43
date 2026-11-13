@@ -15,27 +15,13 @@ import {
   NextPrayerInfo,
 } from "@/lib/prayerTimes";
 import { getOfficialKemenagSchedule, DEFAULT_KEMENAG_CITY_ID } from "@/lib/kemenagPrayerTimes";
+import { QiblaMapSkeleton } from "@/components/ui/Skeleton";
 import "./kiblat.css";
 
 // Dynamic import for Leaflet Qibla Map to prevent SSR errors
 const QiblaMap = dynamic(() => import("./QiblaMap"), {
   ssr: false,
-  loading: () => (
-    <div
-      style={{
-        height: "360px",
-        borderRadius: "14px",
-        background: "rgba(12, 18, 30, 0.6)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--gold-main)",
-        gap: "10px",
-      }}
-    >
-      <i className="fa-solid fa-spinner fa-spin"></i> Memuat Peta Satelit Presisi...
-    </div>
-  ),
+  loading: () => <QiblaMapSkeleton />,
 });
 
 // 12 Degree mark labels every 30 deg

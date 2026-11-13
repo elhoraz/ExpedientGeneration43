@@ -7,6 +7,7 @@ import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
+import { AuthCardSkeleton } from "@/components/ui/Skeleton";
 import "./login.css";
 
 function LoginContent() {
@@ -397,7 +398,7 @@ function LoginContent() {
 
 export default function LoginClient() {
   return (
-    <Suspense fallback={<div className="login-page" style={{ width: "100%", minHeight: "100vh" }}></div>}>
+    <Suspense fallback={<div className="login-page" style={{ width: "100%", minHeight: "100vh" }}><AuthCardSkeleton /></div>}>
       <LoginContent />
     </Suspense>
   );

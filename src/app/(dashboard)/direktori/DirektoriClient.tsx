@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Swiper from "swiper";
@@ -8,1686 +8,1029 @@ import { EffectCoverflow, Navigation, Keyboard } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
-import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
-import { getGelar, getGelarIcon, getBadgeColor } from "@/lib/gamification";
-import { createClient } from "@/lib/supabase/client";
-import { useLanguage } from "@/lib/i18n/LanguageContext";
-import { ASATIDZ_ITEMS, AsatidzItem, AsatidzCategory } from "@/lib/data/asatidzData";
 import "./direktori.css";
 
-interface ProfileItem {
-  id: string;
-  nama_lengkap: string;
-  nama_panggilan: string | null;
-  jenis_kelamin: string | null;
-  foto_profil: string | null;
-  tempat_lahir: string | null;
-  tanggal_lahir: string | null;
-  alamat_lengkap: string | null;
-  cita_cita: string | null;
-  motivasi_hidup: string | null;
-  akun_ig: string | null;
-  akun_tiktok: string | null;
-  no_whatsapp: string | null;
-  role: string | null;
-  is_active: boolean | null;
-  prestise_points?: number | null;
-  kelas?: string | null;
-  tahun_masuk?: number | null;
-  tahun_lulus?: number | null;
-  privacy_settings?: {
-    show_whatsapp?: boolean;
-    show_social?: boolean;
-    show_domisili?: boolean;
-  } | null;
+import { createClient } from "@/lib/supabase/client";
+import { getAvatarFallback, getAvatarUrl } from "@/lib/avatar";
+import { getGelar, getGelarIcon } from "@/lib/gamification";
+import { ASATIDZ_ITEMS, AsatidzItem } from "@/lib/data/asatidzData";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { ProfileItem, buildWhatsAppLink } from "./types";
+import { AlumniDetailSheet, QrContactModal } from "./components/AlumniDetailSheet";
+import { AsatidzSection } from "./components/AsatidzSection";
+
+interface DirektoriClientProps {
+  alumni: ProfileItem[];
+  isLoggedIn: boolean;
+  currentUserId: string | null;
 }
+
+const FATIHAH_STORAGE_KEY = "ekspi_asatidz_fatihah_v1";
+const PAGE_SIZE = 30;
+const COVERFLOW_LIMIT = 60;
 
 export default function DirektoriClient({
   alumni: initialAlumni,
   isLoggedIn,
   currentUserId,
-}: {
-  alumni: ProfileItem[];
-  isLoggedIn: boolean;
-  currentUserId: string | null;
-}) {
-  const { t, locale } = useLanguage();
-  const [alumni, setAlumni] = useState<ProfileItem[]>(initialAlumni || []);
-  const [isSelfHealing, setIsSelfHealing] = useState(false);
-  const [search, setSearch] = useState("");
-  const [genderFilter, setGenderFilter] = useState<"all" | "Laki-laki" | "Perempuan">("all");
-  const [classFilter, setClassFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"name_asc" | "name_desc" | "points" | "recent">("name_asc");
-  const [viewMode, setViewMode] = useState<"grid" | "coverflow" | "list">("grid");
+}: DirektoriClientProps) {
+  const { locale, t } = useLanguage();
+  const [alumni, setAlumni] = useState<ProfileItem[]>(initialAlumni);
+  const [isFallbackLoading, setIsFallbackLoading] = useState(
+    initialAlumni.length === 0
+  );
 
-  // Main Switcher: Alumni vs Asatidz
-  const [mainTab, setMainTab] = useState<"alumni" | "asatidz">("alumni");
-  const [asatidzCategory, setAsatidzCategory] = useState<"all" | "pimpinan" | "guru" | "tutor" | "ustadzah">("all");
+  // Sync SSR updates
+  useEffect(() => {
+    setAlumni(initialAlumni);
+    if (initialAlumni.length > 0) {
+      setIsFallbackLoading(false);
+    }
+  }, [initialAlumni]);
+
+  // Self-healing fallback fetch when SSR prop arrives empty
+  useEffect(() => {
+    if (initialAlumni.length > 0) return;
+
+    let active = true;
+    async function fallbackFetch() {
+      setIsFallbackLoading(true);
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("profiles")
+          .select(
+            "id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points, kelas, tahun_masuk, tahun_lulus, privacy_settings"
+          )
+          .order("nama_lengkap", { ascending: true });
+
+        if (!error && data && active) {
+          const sanitized: ProfileItem[] = isLoggedIn
+            ? (data as ProfileItem[])
+            : (data as ProfileItem[]).map((item) => ({
+                ...item,
+                no_whatsapp: null,
+                tanggal_lahir: null,
+                alamat_lengkap: item.alamat_lengkap
+                  ? item.alamat_lengkap.split(",").pop()?.trim() || "Indonesia"
+                  : null,
+              }));
+          setAlumni(sanitized);
+        }
+      } catch {
+        // Silent fallback on offline or transient error
+      } finally {
+        if (active) setIsFallbackLoading(false);
+      }
+    }
+
+    fallbackFetch();
+    return () => {
+      active = false;
+    };
+  }, [initialAlumni.length, isLoggedIn]);
+
+  // Top-level directory tab & filters
+  const [activeMainTab, setActiveMainTab] = useState<"alumni" | "asatidz">("alumni");
+  const [asatidzCategory, setAsatidzCategory] = useState<
+    "all" | "pimpinan" | "guru" | "tutor" | "ustadzah"
+  >("all");
   const [selectedAsatidz, setSelectedAsatidz] = useState<AsatidzItem | null>(null);
 
-  // Dynamic real count calculation for Asatidz categories
-  const asatidzCounts = useMemo(() => {
-    return {
-      all: ASATIDZ_ITEMS.length,
-      pimpinan: ASATIDZ_ITEMS.filter((i) => i.category === "pimpinan").length,
-      guru: ASATIDZ_ITEMS.filter((i) => i.category === "guru").length,
-      tutor: ASATIDZ_ITEMS.filter((i) => i.category === "tutor").length,
-      ustadzah: ASATIDZ_ITEMS.filter((i) => i.category === "ustadzah" || i.isMotherHeadmaster).length,
-    };
-  }, []);
-  const [fatihahCounts, setFatihahCounts] = useState<{ [id: string]: number }>({});
-  const [fatihahToast, setFatihahToast] = useState<{ [id: string]: boolean }>({});
+  const [search, setSearch] = useState("");
+  const [genderFilter, setGenderFilter] = useState<"all" | "L" | "P">("all");
+  const [classFilter, setClassFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"name_asc" | "name_desc" | "points">("name_asc");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "coverflow">("grid");
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
-  // Selected user for Mobile Bottom Sheet / Modal Detail
+  // Modals / Bottom sheet state
   const [selectedUser, setSelectedUser] = useState<ProfileItem | null>(null);
-  const [sheetTab, setSheetTab] = useState<"biodata" | "kontak" | "visi">("biodata");
   const [isSheetClosing, setIsSheetClosing] = useState(false);
-
-  // Pagination & Swiper states
-  const [visibleCount, setVisibleCount] = useState(30);
-  const [activeIndex, setActiveIndex] = useState(0);
   const [qrModalUser, setQrModalUser] = useState<ProfileItem | null>(null);
-  const [failedPhotos, setFailedPhotos] = useState<{ [id: string]: boolean }>({});
+  const [failedPhotos, setFailedPhotos] = useState<Record<string, boolean>>({});
+  const [coverflowIndex, setCoverflowIndex] = useState(0);
 
-  const swiperRef = useRef<any>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const bottomSheetRef = useRef<HTMLDivElement>(null);
+  // Al-Fatihah devotion counts for Asatidz
+  const [fatihahCounts, setFatihahCounts] = useState<Record<string, number>>({});
+  const [fatihahToast, setFatihahToast] = useState<Record<string, boolean>>({});
 
-  // Trigger safe haptic
-  const triggerHaptic = useCallback((duration = 12) => {
-    if (typeof window !== "undefined" && "vibrate" in navigator) {
-      try {
-        navigator.vibrate(duration);
-      } catch {}
-    }
-  }, []);
-
-  // Sync state if initialAlumni changes
-  useEffect(() => {
-    if (initialAlumni && initialAlumni.length > 0) {
-      setAlumni(initialAlumni);
-    }
-  }, [initialAlumni]);
-
-  // Self-healing fallback if server prop was empty due to cache
-  useEffect(() => {
-    if (!initialAlumni || initialAlumni.length === 0) {
-      setIsSelfHealing(true);
-      const supabase = createClient();
-      const fetchAlumni = async () => {
-        try {
-          const { data: fullData, error: fullError } = await supabase
-            .from("profiles")
-            .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points, kelas, tahun_masuk, tahun_lulus, privacy_settings")
-            .or("is_active.eq.true,is_active.is.null")
-            .order("id", { ascending: true });
-
-          if (!fullError && fullData && fullData.length > 0) {
-            setAlumni(fullData as any);
-          } else {
-            const { data: fallbackData } = await supabase
-              .from("profiles")
-              .select("id, nama_lengkap, nama_panggilan, jenis_kelamin, foto_profil, tempat_lahir, tanggal_lahir, alamat_lengkap, cita_cita, motivasi_hidup, akun_ig, akun_tiktok, no_whatsapp, role, is_active, prestise_points")
-              .or("is_active.eq.true,is_active.is.null")
-              .order("id", { ascending: true });
-            if (fallbackData && fallbackData.length > 0) {
-              setAlumni(fallbackData as any);
-            }
-          }
-        } catch {
-          // ignore
-        } finally {
-          setIsSelfHealing(false);
-        }
-      };
-      fetchAlumni();
-    }
-  }, [initialAlumni]);
-
-  // CSS Scoping
-  useEffect(() => {
-    document.body.classList.add("page-direktori");
-    return () => {
-      document.body.classList.remove("page-direktori");
-    };
-  }, []);
-
-  // Keyboard accessibility
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "/" && document.activeElement !== searchInputRef.current) {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      } else if (e.key === "Escape") {
-        if (selectedUser) closeBottomSheet();
-        if (qrModalUser) setQrModalUser(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedUser, qrModalUser]);
-
-  // Close Bottom Sheet with smooth animation
-  const closeBottomSheet = () => {
-    setIsSheetClosing(true);
-    setTimeout(() => {
-      setSelectedUser(null);
-      setIsSheetClosing(false);
-      setSheetTab("biodata");
-    }, 250);
-  };
-
-  const openUserDetail = (user: ProfileItem) => {
-    triggerHaptic(15);
-    setSelectedUser(user);
-    setSheetTab("biodata");
-  };
-
-  // Distinct classes available
-  const availableClasses = useMemo(() => {
-    const classes = new Set<string>();
-    alumni.forEach((a) => {
-      if (a.kelas && a.kelas.trim().length > 0) {
-        classes.add(a.kelas.trim());
-      }
-    });
-    return Array.from(classes).sort();
-  }, [alumni]);
-
-  // Filter & Sort Pipeline
-  const filteredAndSortedAlumni = useMemo(() => {
-    let result = alumni.filter((user) => {
-      // 1. Text Search
-      const searchString = `${user.nama_lengkap || ""} ${user.nama_panggilan || ""} ${user.alamat_lengkap || ""} ${user.tempat_lahir || ""} ${user.motivasi_hidup || ""} ${user.kelas || ""}`.toLowerCase();
-      if (search.trim() && !searchString.includes(search.toLowerCase())) {
-        return false;
-      }
-
-      // 2. Gender Filter
-      if (genderFilter !== "all" && user.jenis_kelamin !== genderFilter) {
-        return false;
-      }
-
-      // 3. Class Filter
-      if (classFilter !== "all" && user.kelas !== classFilter) {
-        return false;
-      }
-
-      return true;
-    });
-
-    // 4. Sorting
-    result.sort((a, b) => {
-      if (sortBy === "name_asc") {
-        const nameA = a.nama_panggilan || a.nama_lengkap || "";
-        const nameB = b.nama_panggilan || b.nama_lengkap || "";
-        return nameA.localeCompare(nameB);
-      }
-      if (sortBy === "name_desc") {
-        const nameA = a.nama_panggilan || a.nama_lengkap || "";
-        const nameB = b.nama_panggilan || b.nama_lengkap || "";
-        return nameB.localeCompare(nameA);
-      }
-      if (sortBy === "points") {
-        return (b.prestise_points || 0) - (a.prestise_points || 0);
-      }
-      return 0; // default order
-    });
-
-    return result;
-  }, [alumni, search, genderFilter, classFilter, sortBy]);
-
-  // Load and persist Asatidz Al-Fatihah gift counts
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("expedient_asatidz_fatihah");
+      const saved = localStorage.getItem(FATIHAH_STORAGE_KEY);
       if (saved) {
-        setFatihahCounts(JSON.parse(saved));
-      }
-    } catch {}
-  }, []);
-
-  const handleGiftFatihah = (asatidzId: string) => {
-    triggerHaptic(30);
-    setFatihahCounts((prev) => {
-      const nextVal = (prev[asatidzId] || 0) + 1;
-      const updated = { ...prev, [asatidzId]: nextVal };
-      try {
-        localStorage.setItem("expedient_asatidz_fatihah", JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-
-    setFatihahToast((prev) => ({ ...prev, [asatidzId]: true }));
-    setTimeout(() => {
-      setFatihahToast((prev) => ({ ...prev, [asatidzId]: false }));
-    }, 2800);
-  };
-
-  // Filtered Asatidz by category and search
-  const filteredAsatidz = useMemo(() => {
-    return ASATIDZ_ITEMS.filter((item) => {
-      if (asatidzCategory !== "all") {
-        if (asatidzCategory === "ustadzah") {
-          if (item.category !== "ustadzah" && !item.isMotherHeadmaster) {
-            return false;
-          }
-        } else if (item.category !== asatidzCategory) {
-          return false;
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === "object") {
+          setFatihahCounts(parsed);
         }
       }
-      if (search.trim()) {
-        const q = search.toLowerCase();
-        const matchesName = item.name.toLowerCase().includes(q);
-        const matchesRole = item.role.toLowerCase().includes(q);
-        const matchesSubject = item.subject?.toLowerCase().includes(q) || false;
-        const matchesQuote = item.quote?.toLowerCase().includes(q) || false;
-        const matchesClass = item.classAssigned?.toLowerCase().includes(q) || false;
-        return matchesName || matchesRole || matchesSubject || matchesQuote || matchesClass;
-      }
-      return true;
-    });
-  }, [asatidzCategory, search]);
-
-  // Init Swiper if Coverflow mode is selected
-  useEffect(() => {
-    if (viewMode !== "coverflow") return;
-    if (typeof window === "undefined") return;
-
-    if (swiperRef.current) {
-      try {
-        swiperRef.current.destroy(true, true);
-      } catch {}
+    } catch {
+      // Ignore storage access errors
     }
+  }, []);
 
-    const timer = setTimeout(() => {
-      const isMobile = window.innerWidth < 768;
-      try {
-        swiperRef.current = new Swiper(".mySwiper", {
-          modules: [EffectCoverflow, Navigation, Keyboard],
-          effect: "coverflow",
-          grabCursor: true,
-          centeredSlides: true,
-          slidesPerView: "auto",
-          initialSlide: 0,
-          speed: 500,
-          touchRatio: 1.2,
-          touchAngle: 45,
-          threshold: 5,
-          coverflowEffect: {
-            rotate: isMobile ? 0 : 15,
-            stretch: 0,
-            depth: isMobile ? 80 : 350,
-            modifier: 1,
-            slideShadows: false,
-          },
-          navigation: { nextEl: "#btnNext", prevEl: "#btnPrev" },
-          keyboard: { enabled: true },
-          on: {
-            slideChange: (swiper: any) => {
-              setActiveIndex(swiper.activeIndex);
-              triggerHaptic(10);
-            },
-          },
-          observer: true,
-          observeParents: true,
-        });
-      } catch (err) {
-        console.error("Swiper init error:", err);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const loadMoreSentinelRef = useRef<HTMLDivElement>(null);
+  const swiperContainerRef = useRef<HTMLDivElement>(null);
+  const swiperInstanceRef = useRef<Swiper | null>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerHaptic = useCallback((duration = 10) => {
+    try {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate(duration);
       }
-    }, 60);
+    } catch {
+      // Ignore unsupported environments
+    }
+  }, []);
+
+  const handlePhotoError = useCallback((userId: string) => {
+    setFailedPhotos((prev) => (prev[userId] ? prev : { ...prev, [userId]: true }));
+  }, []);
+
+  const openBottomSheet = useCallback(
+    (user: ProfileItem) => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+      setIsSheetClosing(false);
+      setSelectedUser(user);
+      triggerHaptic(12);
+    },
+    [triggerHaptic]
+  );
+
+  const closeBottomSheet = useCallback(() => {
+    setIsSheetClosing(true);
+    closeTimeoutRef.current = setTimeout(() => {
+      setSelectedUser(null);
+      setIsSheetClosing(false);
+    }, 240);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
+  }, []);
+
+  const handleGiftFatihah = useCallback(
+    (id: string) => {
+      triggerHaptic(15);
+      setFatihahCounts((prev) => {
+        const next = { ...prev, [id]: (prev[id] || 0) + 1 };
+        try {
+          localStorage.setItem(FATIHAH_STORAGE_KEY, JSON.stringify(next));
+        } catch {
+          // Ignore quota/storage errors
+        }
+        return next;
+      });
+      setFatihahToast((prev) => ({ ...prev, [id]: true }));
+      setTimeout(() => {
+        setFatihahToast((prev) => ({ ...prev, [id]: false }));
+      }, 3200);
+    },
+    [triggerHaptic]
+  );
+
+  // Body + main-wrapper scroll lock when any overlay/sheet is open
+  useEffect(() => {
+    const isOverlayOpen = Boolean(selectedUser || qrModalUser || selectedAsatidz);
+    if (!isOverlayOpen) return;
+
+    const prevBodyOverflow = document.body.style.overflow;
+    const mainWrapper = document.querySelector(".main-wrapper") as HTMLElement | null;
+    const prevWrapperOverflow = mainWrapper ? mainWrapper.style.overflow : "";
+
+    document.body.style.overflow = "hidden";
+    if (mainWrapper) {
+      mainWrapper.style.overflow = "hidden";
+    }
 
     return () => {
-      clearTimeout(timer);
-      if (swiperRef.current) {
-        try {
-          swiperRef.current.destroy(true, true);
-        } catch {}
+      document.body.style.overflow = prevBodyOverflow;
+      if (mainWrapper) {
+        mainWrapper.style.overflow = prevWrapperOverflow;
       }
     };
-  }, [viewMode, filteredAndSortedAlumni, triggerHaptic]);
+  }, [selectedUser, qrModalUser, selectedAsatidz]);
 
-  const displayedAlumni = filteredAndSortedAlumni.slice(0, visibleCount);
+  // Global keyboard shortcuts ('/' to search, 'Escape' to close overlays)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (qrModalUser) {
+          setQrModalUser(null);
+          return;
+        }
+        if (selectedAsatidz) {
+          setSelectedAsatidz(null);
+          return;
+        }
+        if (selectedUser) {
+          closeBottomSheet();
+          return;
+        }
+        if (document.activeElement === searchInputRef.current && search) {
+          setSearch("");
+        }
+      }
 
-  // Helper for masking WhatsApp phone
-  const getWhatsAppLink = (user: ProfileItem) => {
-    if (!isLoggedIn) return null; // Protect privacy from unauthenticated visitors
-    const isOwner = currentUserId && currentUserId === user.id;
-    const isPublic = user.privacy_settings?.show_whatsapp !== false;
+      if (
+        e.key === "/" &&
+        activeMainTab === "alumni" &&
+        !selectedUser &&
+        !qrModalUser &&
+        !selectedAsatidz
+      ) {
+        const tag = (document.activeElement?.tagName || "").toUpperCase();
+        if (tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
+          e.preventDefault();
+          searchInputRef.current?.focus();
+        }
+      }
+    };
 
-    if (!user.no_whatsapp) return null;
-    if (!isPublic && !isOwner) return null; // hidden by privacy
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    activeMainTab,
+    closeBottomSheet,
+    qrModalUser,
+    search,
+    selectedAsatidz,
+    selectedUser,
+  ]);
 
-    let raw = user.no_whatsapp.replace(/\D/g, "");
-    if (raw.startsWith("0")) raw = "62" + raw.slice(1);
-    if (!raw.startsWith("62")) raw = "62" + raw;
-    return `https://wa.me/${raw}?text=${encodeURIComponent("Assalamu'alaikum sahabat Expedient 43...")}`;
-  };
+  // Extract sorted class filters & gender counts
+  const { uniqueClasses, genderCounts } = useMemo(() => {
+    const classSet = new Set<string>();
+    let male = 0;
+    let female = 0;
 
-  const formatDisplayPhone = (user: ProfileItem) => {
-    if (!isLoggedIn) return "🔒 Terkunci (Khusus Anggota)";
-    const isOwner = currentUserId && currentUserId === user.id;
-    const isPublic = user.privacy_settings?.show_whatsapp !== false;
-
-    if (!user.no_whatsapp) return "-";
-    if (!isPublic && !isOwner) {
-      // Masking: +62 812-••••-•••
-      const raw = user.no_whatsapp.replace(/\D/g, "");
-      return raw.length > 6 ? `+${raw.slice(0, 4)} ••••-••• (Privat)` : "Nomor Disembunyikan";
+    for (const item of alumni) {
+      if (item.kelas?.trim()) {
+        classSet.add(item.kelas.trim());
+      }
+      const g = (item.jenis_kelamin || "").trim().toUpperCase();
+      if (g.startsWith("L")) male += 1;
+      else if (g.startsWith("P")) female += 1;
     }
-    return user.no_whatsapp;
+
+    const sortedClasses = Array.from(classSet).sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" })
+    );
+
+    return {
+      uniqueClasses: sortedClasses,
+      genderCounts: { all: alumni.length, L: male, P: female },
+    };
+  }, [alumni]);
+
+  // Filter & sort alumni
+  const filteredAndSortedAlumni = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    const filtered = alumni.filter((user) => {
+      if (genderFilter !== "all") {
+        const g = (user.jenis_kelamin || "").trim().toUpperCase();
+        if (!g.startsWith(genderFilter)) return false;
+      }
+
+      if (classFilter !== "all") {
+        if ((user.kelas || "").trim() !== classFilter) return false;
+      }
+
+      if (!q) return true;
+      return (
+        (user.nama_lengkap || "").toLowerCase().includes(q) ||
+        (user.nama_panggilan || "").toLowerCase().includes(q) ||
+        (user.alamat_lengkap || "").toLowerCase().includes(q) ||
+        (user.tempat_lahir || "").toLowerCase().includes(q) ||
+        (user.cita_cita || "").toLowerCase().includes(q) ||
+        (user.kelas || "").toLowerCase().includes(q) ||
+        (user.motivasi_hidup || "").toLowerCase().includes(q)
+      );
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (sortBy === "name_asc") {
+        return (a.nama_lengkap || "").localeCompare(b.nama_lengkap || "", "id");
+      }
+      if (sortBy === "name_desc") {
+        return (b.nama_lengkap || "").localeCompare(a.nama_lengkap || "", "id");
+      }
+      const diff = (b.prestise_points || 0) - (a.prestise_points || 0);
+      if (diff !== 0) return diff;
+      return (a.nama_lengkap || "").localeCompare(b.nama_lengkap || "", "id");
+    });
+  }, [alumni, classFilter, genderFilter, search, sortBy]);
+
+  // Reset pagination when criteria change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+    setCoverflowIndex(0);
+  }, [search, genderFilter, classFilter, sortBy, activeMainTab]);
+
+  // Auto-paginate on scroll sentinel
+  useEffect(() => {
+    const sentinel = loadMoreSentinelRef.current;
+    if (
+      !sentinel ||
+      activeMainTab !== "alumni" ||
+      viewMode === "coverflow" ||
+      visibleCount >= filteredAndSortedAlumni.length
+    ) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) =>
+            Math.min(prev + PAGE_SIZE, filteredAndSortedAlumni.length)
+          );
+        }
+      },
+      { rootMargin: "220px 0px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [activeMainTab, filteredAndSortedAlumni.length, viewMode, visibleCount]);
+
+  const coverflowAlumni = useMemo(
+    () => filteredAndSortedAlumni.slice(0, COVERFLOW_LIMIT),
+    [filteredAndSortedAlumni]
+  );
+
+  // Initialize Swiper 3D Coverflow when active
+  useEffect(() => {
+    if (
+      activeMainTab !== "alumni" ||
+      viewMode !== "coverflow" ||
+      coverflowAlumni.length === 0 ||
+      !swiperContainerRef.current
+    ) {
+      if (swiperInstanceRef.current) {
+        swiperInstanceRef.current.destroy(true, true);
+        swiperInstanceRef.current = null;
+      }
+      return;
+    }
+
+    if (swiperInstanceRef.current) {
+      swiperInstanceRef.current.destroy(true, true);
+      swiperInstanceRef.current = null;
+    }
+
+    const swiper = new Swiper(swiperContainerRef.current, {
+      modules: [EffectCoverflow, Navigation, Keyboard],
+      effect: "coverflow",
+      grabCursor: true,
+      centeredSlides: true,
+      slidesPerView: "auto",
+      initialSlide: Math.min(2, Math.max(0, coverflowAlumni.length - 1)),
+      coverflowEffect: {
+        rotate: 22,
+        stretch: 0,
+        depth: 160,
+        modifier: 1,
+        slideShadows: false,
+      },
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+      keyboard: {
+        enabled: true,
+      },
+      on: {
+        init(sw) {
+          setCoverflowIndex(sw.activeIndex);
+        },
+        slideChange(sw) {
+          setCoverflowIndex(sw.activeIndex);
+        },
+      },
+    });
+
+    swiperInstanceRef.current = swiper;
+
+    return () => {
+      swiper.destroy(true, true);
+      swiperInstanceRef.current = null;
+    };
+  }, [activeMainTab, viewMode, coverflowAlumni]);
+
+  const visibleAlumni = useMemo(
+    () => filteredAndSortedAlumni.slice(0, visibleCount),
+    [filteredAndSortedAlumni, visibleCount]
+  );
+
+  const hasActiveFilter =
+    Boolean(search.trim()) || genderFilter !== "all" || classFilter !== "all";
+
+  const resetAllFilters = () => {
+    setSearch("");
+    setGenderFilter("all");
+    setClassFilter("all");
+    triggerHaptic(10);
   };
+
+  const pageTitle =
+    locale === "ar"
+      ? "دليل الخريجين والأساتذة"
+      : locale === "en"
+      ? "Cohort 43 Directory"
+      : "Direktori Angkatan 43";
 
   return (
     <div className="direktori-container">
-      <div className="ethereal-glow"></div>
+      {/* Compact Operational Header */}
+      <header className="direktori-header">
+        <div className="direktori-header-top">
+          <div>
+            <h1 className="direktori-title">{pageTitle}</h1>
+            <p className="direktori-summary">
+              <span>
+                <strong>{alumni.length}</strong> {t.direktori.stat_total}
+              </span>
+              <span aria-hidden="true">•</span>
+              <span>
+                <strong>{ASATIDZ_ITEMS.length}</strong> {t.direktori_extra.tab_asatidz}
+              </span>
+            </p>
+          </div>
 
-
-      {/* ================= HERO ARCHIVE HEADER ================= */}
-      <div className="direktori-hero-header">
-        <div className="direktori-hero-badge">
-          <i className="fa-solid fa-compass"></i>
-          <span>{t.direktori_extra.hero_badge}</span>
-        </div>
-        <h1 className="direktori-hero-title">
-          {t.direktori_extra.hero_title}
-        </h1>
-        <p className="direktori-hero-desc">
-          {t.direktori_extra.hero_desc}
-        </p>
-      </div>
-
-      {/* ================= MAIN DIRECTORY SWITCHER TABS ================= */}
-      <div className="direktori-main-tabs" role="tablist" aria-label={t.direktori_extra.hero_badge}>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mainTab === "alumni"}
-          className={`main-tab-btn ${mainTab === "alumni" ? "active" : ""}`}
-          onClick={() => {
-            setMainTab("alumni");
-            setSearch("");
-            triggerHaptic(10);
-          }}
-        >
-          <i className="fa-solid fa-graduation-cap"></i>
-          <span className="tab-title">{t.direktori_extra.tab_alumni}</span>
-          <span className="tab-pill-count">{alumni.length}</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mainTab === "asatidz"}
-          className={`main-tab-btn ${mainTab === "asatidz" ? "active" : ""}`}
-          onClick={() => {
-            setMainTab("asatidz");
-            setSearch("");
-            triggerHaptic(10);
-          }}
-        >
-          <i className="fa-solid fa-landmark"></i>
-          <span className="tab-title">{t.direktori_extra.tab_asatidz}</span>
-          <span className="tab-pill-count">{ASATIDZ_ITEMS.length}</span>
-        </button>
-      </div>
-
-      {/* ================= ALUMNI SECTION ================= */}
-      {mainTab === "alumni" && (
-        <>
-          {/* ================= STICKY SEARCH & FILTER CONTROL DECK ================= */}
-          <div className="direktori-control-deck">
-        {/* Search Input Bar */}
-        <div className="search-pill-wrapper">
-          <i className="fa-solid fa-magnifying-glass search-pill-icon"></i>
-          <input
-            ref={searchInputRef}
-            type="text"
-            className="search-pill-input"
-            placeholder={t.direktori.search_placeholder}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          {search && (
+          <div
+            className="direktori-main-tabs"
+            role="tablist"
+            aria-label={pageTitle}
+          >
             <button
               type="button"
-              className="search-pill-clear"
+              role="tab"
+              aria-selected={activeMainTab === "alumni"}
+              className={`main-tab-btn ${activeMainTab === "alumni" ? "active" : ""}`}
               onClick={() => {
-                setSearch("");
-                searchInputRef.current?.focus();
-                triggerHaptic(8);
-              }}
-              title="Hapus pencarian"
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-          )}
-        </div>
-
-        {/* Horizontal Scrollable Filter Chips (Mobile-First) */}
-        <div className="filter-chips-scroll">
-          {/* Gender Filter Chips */}
-          <button
-            type="button"
-            className={`chip-item ${genderFilter === "all" ? "active" : ""}`}
-            onClick={() => {
-              setGenderFilter("all");
-              triggerHaptic(10);
-            }}
-          >
-            <i className="fa-solid fa-users"></i> {t.direktori.filter_gender_all}
-          </button>
-          <button
-            type="button"
-            className={`chip-item chip-putra ${genderFilter === "Laki-laki" ? "active" : ""}`}
-            onClick={() => {
-              setGenderFilter(genderFilter === "Laki-laki" ? "all" : "Laki-laki");
-              triggerHaptic(10);
-            }}
-          >
-            <i className="fa-solid fa-mars"></i> {t.direktori.filter_gender_male}
-          </button>
-          <button
-            type="button"
-            className={`chip-item chip-putri ${genderFilter === "Perempuan" ? "active" : ""}`}
-            onClick={() => {
-              setGenderFilter(genderFilter === "Perempuan" ? "all" : "Perempuan");
-              triggerHaptic(10);
-            }}
-          >
-            <i className="fa-solid fa-venus"></i> {t.direktori.filter_gender_female}
-          </button>
-
-          {/* Class Filters (If available) */}
-          {availableClasses.map((cls) => (
-            <button
-              key={cls}
-              type="button"
-              className={`chip-item ${classFilter === cls ? "active" : ""}`}
-              onClick={() => {
-                setClassFilter(classFilter === cls ? "all" : cls);
+                setActiveMainTab("alumni");
                 triggerHaptic(10);
               }}
             >
-              <i className="fa-solid fa-chalkboard-user"></i> {t.direktori_extra.filter_class_prefix} {cls}
+              <i className="fa-solid fa-user-graduate" aria-hidden="true"></i>
+              <span>{t.direktori_extra.tab_alumni}</span>
             </button>
-          ))}
-        </div>
-
-        {/* View Switcher & Sorting Bar */}
-        <div className="view-and-sort-bar">
-          <div className="results-count">
-            <span>{filteredAndSortedAlumni.length}</span> {t.direktori.stat_total}
-          </div>
-
-          <div className="controls-right">
-            {/* Sort Selector */}
-            <select
-              className="sort-dropdown"
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value as any);
-                triggerHaptic(8);
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeMainTab === "asatidz"}
+              className={`main-tab-btn ${activeMainTab === "asatidz" ? "active" : ""}`}
+              onClick={() => {
+                setActiveMainTab("asatidz");
+                triggerHaptic(10);
               }}
             >
-              <option value="name_asc">{t.direktori.sort_name_asc}</option>
-              <option value="name_desc">{t.direktori.sort_name_desc}</option>
-              <option value="points">{t.direktori.sort_points}</option>
-            </select>
-
-            {/* Layout Toggle Buttons */}
-            <div className="view-mode-group">
-              <button
-                type="button"
-                className={`mode-btn ${viewMode === "grid" ? "active" : ""}`}
-                onClick={() => {
-                  setViewMode("grid");
-                  triggerHaptic(10);
-                }}
-                title={t.direktori.view_grid}
-              >
-                <i className="fa-solid fa-grip"></i>
-              </button>
-              <button
-                type="button"
-                className={`mode-btn ${viewMode === "list" ? "active" : ""}`}
-                onClick={() => {
-                  setViewMode("list");
-                  triggerHaptic(10);
-                }}
-                title={t.direktori.view_list}
-              >
-                <i className="fa-solid fa-list-ul"></i>
-              </button>
-              <button
-                type="button"
-                className={`mode-btn ${viewMode === "coverflow" ? "active" : ""}`}
-                onClick={() => {
-                  setViewMode("coverflow");
-                  triggerHaptic(10);
-                }}
-                title={t.direktori.view_coverflow}
-              >
-                <i className="fa-solid fa-layer-group"></i>
-              </button>
-            </div>
+              <i className="fa-solid fa-mosque" aria-hidden="true"></i>
+              <span>{t.direktori_extra.tab_asatidz}</span>
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* ================= MAIN CONTENT LISTING ================= */}
-      {filteredAndSortedAlumni.length === 0 ? (
-        <div className="empty-direktori-state">
-          {isSelfHealing ? (
-            <div>
-              <i className="fa-solid fa-circle-notch fa-spin empty-icon"></i>
-              <p>{t.direktori.connecting_text}</p>
+      {activeMainTab === "asatidz" ? (
+        <AsatidzSection
+          search={search}
+          onSearchChange={setSearch}
+          asatidzCategory={asatidzCategory}
+          onCategoryChange={setAsatidzCategory}
+          selectedAsatidz={selectedAsatidz}
+          onSelectAsatidz={setSelectedAsatidz}
+          fatihahCounts={fatihahCounts}
+          fatihahToast={fatihahToast}
+          onGiftFatihah={handleGiftFatihah}
+          triggerHaptic={triggerHaptic}
+          locale={locale}
+          t={t}
+        />
+      ) : (
+        <>
+          {/* Sticky Search & Filter Control Deck */}
+          <div className="direktori-control-deck">
+            <div className="search-pill-wrapper">
+              <i
+                className="fa-solid fa-magnifying-glass search-pill-icon"
+                aria-hidden="true"
+              ></i>
+              <input
+                ref={searchInputRef}
+                type="search"
+                className="search-pill-input"
+                placeholder={t.direktori.search_placeholder}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label={t.direktori.search_placeholder}
+              />
+              {search ? (
+                <button
+                  type="button"
+                  className="search-pill-clear"
+                  onClick={() => {
+                    setSearch("");
+                    searchInputRef.current?.focus();
+                  }}
+                  aria-label="Hapus pencarian"
+                >
+                  <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+              ) : (
+                <kbd className="search-shortcut-kbd" aria-hidden="true">
+                  /
+                </kbd>
+              )}
             </div>
-          ) : (
-            <div>
-              <i className="fa-solid fa-user-slash empty-icon"></i>
+
+            {/* Gender & Class Chips */}
+            <div
+              className="filter-chips-scroll"
+              role="region"
+              aria-label="Filter alumni"
+            >
+              <button
+                type="button"
+                className={`chip-item ${genderFilter === "all" && classFilter === "all" ? "active" : ""}`}
+                onClick={resetAllFilters}
+              >
+                <span>{t.direktori.filter_gender_all}</span>
+                <span className="chip-count">{genderCounts.all}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`chip-item ${genderFilter === "L" ? "active" : ""}`}
+                onClick={() => {
+                  setGenderFilter((prev) => (prev === "L" ? "all" : "L"));
+                  triggerHaptic(8);
+                }}
+              >
+                <span>{t.direktori.filter_gender_male}</span>
+                <span className="chip-count">{genderCounts.L}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`chip-item ${genderFilter === "P" ? "active" : ""}`}
+                onClick={() => {
+                  setGenderFilter((prev) => (prev === "P" ? "all" : "P"));
+                  triggerHaptic(8);
+                }}
+              >
+                <span>{t.direktori.filter_gender_female}</span>
+                <span className="chip-count">{genderCounts.P}</span>
+              </button>
+
+              {uniqueClasses.map((cls) => (
+                <button
+                  key={cls}
+                  type="button"
+                  className={`chip-item ${classFilter === cls ? "active" : ""}`}
+                  onClick={() => {
+                    setClassFilter((prev) => (prev === cls ? "all" : cls));
+                    triggerHaptic(8);
+                  }}
+                >
+                  <span>
+                    {t.direktori_extra.filter_class_prefix} {cls}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Count + Sort + View Mode Bar */}
+            <div className="view-and-sort-bar">
+              <div className="results-count">
+                <strong>{filteredAndSortedAlumni.length}</strong>{" "}
+                {locale === "ar"
+                  ? "نتيجة"
+                  : locale === "en"
+                  ? "matched"
+                  : "alumni ditemukan"}
+                {hasActiveFilter && (
+                  <button
+                    type="button"
+                    className="inline-reset-btn"
+                    onClick={resetAllFilters}
+                  >
+                    {t.direktori.reset_filter}
+                  </button>
+                )}
+              </div>
+
+              <div className="controls-right-group">
+                <select
+                  className="sort-dropdown"
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value as "name_asc" | "name_desc" | "points");
+                    triggerHaptic(8);
+                  }}
+                  aria-label="Urutkan daftar alumni"
+                >
+                  <option value="name_asc">{t.direktori.sort_name_asc}</option>
+                  <option value="name_desc">{t.direktori.sort_name_desc}</option>
+                  <option value="points">{t.direktori.sort_points}</option>
+                </select>
+
+                <div className="view-mode-group" role="group" aria-label="Mode tampilan">
+                  <button
+                    type="button"
+                    className={`mode-btn ${viewMode === "grid" ? "active" : ""}`}
+                    onClick={() => {
+                      setViewMode("grid");
+                      triggerHaptic(8);
+                    }}
+                    title={t.direktori.view_grid}
+                    aria-label={t.direktori.view_grid}
+                    aria-pressed={viewMode === "grid"}
+                  >
+                    <i className="fa-solid fa-table-cells-large" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className={`mode-btn ${viewMode === "list" ? "active" : ""}`}
+                    onClick={() => {
+                      setViewMode("list");
+                      triggerHaptic(8);
+                    }}
+                    title={t.direktori.view_list}
+                    aria-label={t.direktori.view_list}
+                    aria-pressed={viewMode === "list"}
+                  >
+                    <i className="fa-solid fa-list" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    className={`mode-btn ${viewMode === "coverflow" ? "active" : ""}`}
+                    onClick={() => {
+                      setViewMode("coverflow");
+                      triggerHaptic(8);
+                    }}
+                    title={t.direktori.view_coverflow}
+                    aria-label={t.direktori.view_coverflow}
+                    aria-pressed={viewMode === "coverflow"}
+                  >
+                    <i className="fa-solid fa-layer-group" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Directory Body */}
+          {isFallbackLoading ? (
+            <div className="direktori-loading-banner" role="status">
+              <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i>
+              <span>{t.direktori.connecting_text}</span>
+            </div>
+          ) : filteredAndSortedAlumni.length === 0 ? (
+            <div className="empty-direktori-state">
+              <i className="fa-solid fa-user-slash empty-icon" aria-hidden="true"></i>
               <h3>{t.direktori.empty_title}</h3>
               <p>{t.direktori.empty_desc}</p>
               <button
                 type="button"
                 className="btn-reset-filters"
-                onClick={() => {
-                  setSearch("");
-                  setGenderFilter("all");
-                  setClassFilter("all");
-                  triggerHaptic(12);
-                }}
+                onClick={resetAllFilters}
               >
                 {t.direktori.reset_filter}
               </button>
             </div>
-          )}
-        </div>
-      ) : (
-        <>
-          {/* 1. GRID CARDS VIEW (DEFAULT - SUPER MOBILE FRIENDLY) */}
-          {viewMode === "grid" && (
-            <div className="direktori-grid-container">
-              {displayedAlumni.map((user) => {
-                const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
-                const gelar = getGelar(user.prestise_points || 0);
-                const gelarIcon = getGelarIcon(user.prestise_points || 0);
-                const badgeColor = getBadgeColor(user.prestise_points || 0);
+          ) : viewMode === "grid" ? (
+            <>
+              <div className="direktori-grid-container">
+                {visibleAlumni.map((user) => {
+                  const displayNickname = user.nama_panggilan || "Alumni 43";
+                  const points = user.prestise_points || 0;
+                  const waLink = buildWhatsAppLink(user, isLoggedIn, currentUserId);
+                  const subtitleText =
+                    user.alamat_lengkap ||
+                    user.cita_cita ||
+                    user.tempat_lahir ||
+                    getGelar(points);
 
-                return (
-                  <div
-                    key={user.id}
-                    className="alumni-grid-card cursor-bind"
-                    onClick={() => openUserDetail(user)}
-                  >
-                    {/* Top Identity Row */}
-                    <div className="card-top-row">
-                      <div className="card-avatar-wrapper">
-                        <Image
-                          src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto}
-                          width={72}
-                          height={72}
-                          className="card-avatar-img"
-                          alt={user.nama_panggilan || user.nama_lengkap}
-                          sizes="72px"
-                          onError={() => setFailedPhotos((prev) => ({ ...prev, [user.id]: true }))}
-                          unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
-                        />
-                        {user.jenis_kelamin === "Laki-laki" && (
-                          <span className="gender-dot dot-putra" title="Putra">
-                            <i className="fa-solid fa-mars"></i>
-                          </span>
-                        )}
-                        {user.jenis_kelamin === "Perempuan" && (
-                          <span className="gender-dot dot-putri" title="Putri">
-                            <i className="fa-solid fa-venus"></i>
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="card-heading">
-                        <div className="card-nickname">{user.nama_panggilan || "Alumni"}</div>
-                        <div className="card-fullname">{user.nama_lengkap}</div>
-                        <div className="card-badges-row">
-                          {user.kelas && <span className="badge-class">Kls {user.kelas}</span>}
-                          <span className="badge-gelar" style={{ background: badgeColor }}>
-                            <i className={gelarIcon}></i> {gelar}
-                          </span>
+                  return (
+                    <article key={user.id} className="alumni-card">
+                      <button
+                        type="button"
+                        className="card-open-trigger"
+                        onClick={() => openBottomSheet(user)}
+                        aria-label={`${user.nama_lengkap} - ${t.direktori.card_detail_btn}`}
+                      >
+                        <div className="card-avatar-wrap">
+                          <Image
+                            src={
+                              failedPhotos[user.id]
+                                ? getAvatarFallback(displayNickname || user.nama_lengkap)
+                                : getAvatarUrl(
+                                    user.foto_profil,
+                                    displayNickname || user.nama_lengkap
+                                  )
+                            }
+                            width={64}
+                            height={64}
+                            className="card-avatar-img"
+                            alt={user.nama_lengkap}
+                            sizes="(min-width: 640px) 64px, 52px"
+                            onError={() => handlePhotoError(user.id)}
+                            unoptimized
+                          />
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Meta info */}
-                    <div className="card-meta-list">
-                      <div className="meta-item">
-                        <i className="fa-solid fa-location-dot"></i>
-                        <span>{user.alamat_lengkap || user.tempat_lahir || "Domisili belum diisi"}</span>
-                      </div>
-                      {user.cita_cita && (
-                        <div className="meta-item aspiration">
-                          <i className="fa-solid fa-compass"></i>
-                          <span>{user.cita_cita}</span>
+                        <div className="card-info">
+                          <div className="card-name-row">
+                            <h2 className="card-name">{user.nama_lengkap}</h2>
+                            {user.kelas && (
+                              <span className="card-class-pill">{user.kelas}</span>
+                            )}
+                          </div>
+
+                          <div className="card-gelar-line">
+                            <i className={getGelarIcon(points)} aria-hidden="true"></i>
+                            <span>
+                              {displayNickname} • {getGelar(points)}
+                            </span>
+                          </div>
+
+                          <div className="card-meta-line">
+                            <i className="fa-solid fa-location-dot" aria-hidden="true"></i>
+                            <span>{subtitleText}</span>
+                          </div>
                         </div>
-                      )}
-                    </div>
+                      </button>
 
-                    {/* Bottom Tap Action Hint */}
-                    <div className="card-footer-tap">
-                      <span>{t.direktori.card_detail_btn}</span>
-                      <i className="fa-solid fa-chevron-right"></i>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      <div className="card-actions">
+                        {waLink ? (
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="card-quick-action is-wa"
+                            title={t.direktori.contact_wa}
+                            aria-label={`${t.direktori.contact_wa}: ${user.nama_lengkap}`}
+                            onClick={() => triggerHaptic(12)}
+                          >
+                            <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                          </a>
+                        ) : isLoggedIn ? (
+                          <Link
+                            href={`/chat/personal/${user.id}`}
+                            className="card-quick-action is-chat"
+                            title={`Chat ${displayNickname}`}
+                            aria-label={`Chat ${user.nama_lengkap}`}
+                            onClick={() => triggerHaptic(10)}
+                          >
+                            <i className="fa-solid fa-comment-dots" aria-hidden="true"></i>
+                          </Link>
+                        ) : null}
 
-          {/* 2. COMPACT CONTACT LIST VIEW */}
-          {viewMode === "list" && (
-            <div className="direktori-list-container">
-              {displayedAlumni.map((user) => {
-                const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
-
-                return (
-                  <div
-                    key={user.id}
-                    className="alumni-list-row cursor-bind"
-                    onClick={() => openUserDetail(user)}
-                  >
-                    <div className="list-avatar">
-                      <Image
-                        src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto}
-                        width={46}
-                        height={46}
-                        className="list-avatar-img"
-                        alt={user.nama_panggilan || user.nama_lengkap}
-                        sizes="46px"
-                        onError={() => setFailedPhotos((prev) => ({ ...prev, [user.id]: true }))}
-                        unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
-                      />
-                    </div>
-
-                    <div className="list-info">
-                      <div className="list-primary-name">
-                        <strong>{user.nama_panggilan || user.nama_lengkap}</strong>
-                        {user.nama_panggilan && <span className="list-full-sub">({user.nama_lengkap})</span>}
+                        <button
+                          type="button"
+                          className="card-chevron-btn"
+                          onClick={() => openBottomSheet(user)}
+                          aria-label={t.direktori.card_detail_btn}
+                          tabIndex={-1}
+                        >
+                          <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </button>
                       </div>
-                      <div className="list-meta-sub">
-                        <span>{user.kelas ? `Kls ${user.kelas} • ` : ""}{user.tempat_lahir || user.alamat_lengkap || "Alumni 43"}</span>
-                      </div>
-                    </div>
-
-                    <div className="list-right-arrow">
-                      <i className="fa-solid fa-angle-right"></i>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* 3. 3D SWIPER COVERFLOW VIEW (PRESERVED) */}
-          {viewMode === "coverflow" && (
-            <div className="coverflow-wrapper">
-              <div className="mobile-swipe-hint">
-                <i className="fa-solid fa-arrows-left-right"></i> Geser kartu ({activeIndex + 1} dari {filteredAndSortedAlumni.length})
+                    </article>
+                  );
+                })}
               </div>
 
-              <div className="swiper mySwiper">
-                <div className="swiper-wrapper" id="swiperWrapper">
-                  {displayedAlumni.map((user, idx) => {
-                    const foto = getAvatarUrl(user.foto_profil, user.nama_panggilan || user.nama_lengkap);
-                    const gelar = getGelar(user.prestise_points || 0);
+              {visibleCount < filteredAndSortedAlumni.length && (
+                <div className="load-more-container" ref={loadMoreSentinelRef}>
+                  <button
+                    type="button"
+                    className="btn-load-more"
+                    onClick={() => {
+                      setVisibleCount((prev) => prev + PAGE_SIZE);
+                      triggerHaptic(8);
+                    }}
+                  >
+                    {locale === "ar"
+                      ? `عرض المزيد (${filteredAndSortedAlumni.length - visibleCount})`
+                      : locale === "en"
+                      ? `Load more (${filteredAndSortedAlumni.length - visibleCount} remaining)`
+                      : `Muat ${Math.min(
+                          PAGE_SIZE,
+                          filteredAndSortedAlumni.length - visibleCount
+                        )} Alumni Lagi`}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : viewMode === "list" ? (
+            <>
+              <div className="direktori-list-container">
+                {visibleAlumni.map((user) => {
+                  const displayNickname = user.nama_panggilan || "Alumni 43";
+                  const waLink = buildWhatsAppLink(user, isLoggedIn, currentUserId);
+                  return (
+                    <article key={user.id} className="list-row-item">
+                      <button
+                        type="button"
+                        className="list-row-trigger"
+                        onClick={() => openBottomSheet(user)}
+                        aria-label={`${user.nama_lengkap} - ${t.direktori.card_detail_btn}`}
+                      >
+                        <Image
+                          src={
+                            failedPhotos[user.id]
+                              ? getAvatarFallback(displayNickname || user.nama_lengkap)
+                              : getAvatarUrl(
+                                  user.foto_profil,
+                                  displayNickname || user.nama_lengkap
+                                )
+                          }
+                          width={40}
+                          height={40}
+                          className="list-avatar-img"
+                          alt={user.nama_lengkap}
+                          sizes="40px"
+                          onError={() => handlePhotoError(user.id)}
+                          unoptimized
+                        />
+                        <div className="list-row-info">
+                          <div className="list-row-name">{user.nama_lengkap}</div>
+                          <div className="list-row-meta">
+                            <span>{displayNickname}</span>
+                            {user.kelas && <span>• Kelas {user.kelas}</span>}
+                            {user.alamat_lengkap && <span>• {user.alamat_lengkap}</span>}
+                          </div>
+                        </div>
+                      </button>
 
+                      <div className="list-row-actions">
+                        {waLink ? (
+                          <a
+                            href={waLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="card-quick-action is-wa"
+                            title={t.direktori.contact_wa}
+                            aria-label={`${t.direktori.contact_wa}: ${user.nama_lengkap}`}
+                          >
+                            <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                          </a>
+                        ) : isLoggedIn ? (
+                          <Link
+                            href={`/chat/personal/${user.id}`}
+                            className="card-quick-action is-chat"
+                            title={`Chat ${displayNickname}`}
+                            aria-label={`Chat ${user.nama_lengkap}`}
+                          >
+                            <i className="fa-solid fa-comment-dots" aria-hidden="true"></i>
+                          </Link>
+                        ) : null}
+
+                        <button
+                          type="button"
+                          className="card-chevron-btn"
+                          onClick={() => openBottomSheet(user)}
+                          aria-label={t.direktori.card_detail_btn}
+                          tabIndex={-1}
+                        >
+                          <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {visibleCount < filteredAndSortedAlumni.length && (
+                <div className="load-more-container" ref={loadMoreSentinelRef}>
+                  <button
+                    type="button"
+                    className="btn-load-more"
+                    onClick={() => {
+                      setVisibleCount((prev) => prev + PAGE_SIZE);
+                      triggerHaptic(8);
+                    }}
+                  >
+                    {locale === "ar"
+                      ? `عرض المزيد (${filteredAndSortedAlumni.length - visibleCount})`
+                      : locale === "en"
+                      ? `Load more (${filteredAndSortedAlumni.length - visibleCount} remaining)`
+                      : `Muat ${Math.min(
+                          PAGE_SIZE,
+                          filteredAndSortedAlumni.length - visibleCount
+                        )} Alumni Lagi`}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="coverflow-view-shell">
+              <div className="swiper coverflow-swiper" ref={swiperContainerRef}>
+                <div className="swiper-wrapper">
+                  {coverflowAlumni.map((user) => {
+                    const displayNickname = user.nama_panggilan || "Alumni 43";
+                    const points = user.prestise_points || 0;
                     return (
-                      <div key={user.id} className="swiper-slide alumni-slide">
-                        <div className="luminary-card" onClick={() => openUserDetail(user)}>
-                          <div className="photo-ring">
+                      <div key={user.id} className="swiper-slide coverflow-slide">
+                        <article className="coverflow-card">
+                          <div className="coverflow-avatar-wrap">
                             <Image
-                              src={failedPhotos[user.id] ? getAvatarFallback(user.nama_panggilan || user.nama_lengkap) : foto}
-                              width={150}
-                              height={150}
-                              className="card-photo"
-                              alt={user.nama_panggilan || user.nama_lengkap}
-                              priority={idx < 6}
-                              sizes="150px"
-                              onError={() => setFailedPhotos((prev) => ({ ...prev, [user.id]: true }))}
-                              unoptimized={foto.startsWith("data:") || foto.includes("ui-avatars.com")}
+                              src={
+                                failedPhotos[user.id]
+                                  ? getAvatarFallback(displayNickname || user.nama_lengkap)
+                                  : getAvatarUrl(
+                                      user.foto_profil,
+                                      displayNickname || user.nama_lengkap
+                                    )
+                              }
+                              width={112}
+                              height={112}
+                              className="coverflow-avatar-img"
+                              alt={user.nama_lengkap}
+                              sizes="112px"
+                              onError={() => handlePhotoError(user.id)}
+                              unoptimized
                             />
                           </div>
-                          <h3 className="card-name">{user.nama_panggilan}</h3>
-                          <div className="card-full-name">{user.nama_lengkap}</div>
-                          <div style={{ fontSize: "0.75rem", color: "var(--gold-main, #d4af37)", marginTop: "4px" }}>
-                            {gelar} {user.kelas ? `• Kelas ${user.kelas}` : ""}
+                          <h2 className="coverflow-name">{user.nama_lengkap}</h2>
+                          <div className="coverflow-sub">
+                            {displayNickname}
+                            {user.kelas ? ` • Kelas ${user.kelas}` : ""}
                           </div>
-
-                          <div className="card-quote" style={{ margin: "14px 0", fontSize: "0.82rem", fontStyle: "italic", opacity: 0.85 }}>
-                            "{user.motivasi_hidup || "Menjaga warisan, membangun masa depan."}"
+                          <div className="coverflow-gelar">
+                            <i className={getGelarIcon(points)} aria-hidden="true"></i>
+                            <span>{getGelar(points)}</span>
                           </div>
-
+                          {user.alamat_lengkap && (
+                            <div className="coverflow-domisili">{user.alamat_lengkap}</div>
+                          )}
                           <button
                             type="button"
-                            className="btn-open-dossier"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openUserDetail(user);
-                            }}
+                            className="coverflow-detail-btn"
+                            onClick={() => openBottomSheet(user)}
                           >
-                            <i className="fa-solid fa-id-card"></i> {t.direktori.card_detail_btn}
+                            {t.direktori.card_detail_btn}
                           </button>
-                        </div>
+                        </article>
                       </div>
                     );
                   })}
                 </div>
+                <div className="swiper-button-prev" aria-label="Slide sebelumnya"></div>
+                <div className="swiper-button-next" aria-label="Slide berikutnya"></div>
               </div>
 
-              <div className="nav-arrow nav-prev" id="btnPrev">
-                <i className="fa-solid fa-chevron-left"></i>
+              <div className="coverflow-footer-status">
+                <span>
+                  {Math.min(coverflowIndex + 1, coverflowAlumni.length)} /{" "}
+                  {coverflowAlumni.length}
+                </span>
+                {filteredAndSortedAlumni.length > COVERFLOW_LIMIT && (
+                  <span>
+                    (Menampilkan {COVERFLOW_LIMIT} pertama dari{" "}
+                    {filteredAndSortedAlumni.length})
+                  </span>
+                )}
               </div>
-              <div className="nav-arrow nav-next" id="btnNext">
-                <i className="fa-solid fa-chevron-right"></i>
-              </div>
-            </div>
-          )}
-
-          {/* Load More Trigger */}
-          {visibleCount < filteredAndSortedAlumni.length && (
-            <div style={{ textAlign: "center", margin: "35px 0" }}>
-              <button
-                type="button"
-                className="btn-load-more cursor-bind"
-                onClick={() => {
-                  setVisibleCount((prev) => Math.min(prev + 30, filteredAndSortedAlumni.length));
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-angles-down"></i> Tampilkan Lebih Banyak ({filteredAndSortedAlumni.length - visibleCount} tersisa)
-              </button>
             </div>
           )}
         </>
       )}
-        </>
-      )}
 
-      {/* ================= 2. DEWAN GURU & ASATIDZ SECTION ================= */}
-      {mainTab === "asatidz" && (
-        <div className="asatidz-wrapper" style={{ width: "100%" }}>
-          {/* Section Header */}
-          <div className="asatidz-section-header">
-            <div className="asatidz-header-badge">
-              <i className="fa-solid fa-book-bookmark"></i>
-              <span>Arsip Kehormatan Buku Tahunan</span>
-            </div>
-            <h2 className="asatidz-header-title">Diwan Asatidz & Masyayikh</h2>
-            <p className="asatidz-header-desc">
-              {locale === "ar" ? "دعوات مباركة ونصائح حكيمة وتوجيهات أساتذتنا الأفاضل مرشدي دفعة إكسبيدينت 43." : locale === "en" ? "Prayers, wise advice, and guidance from our esteemed teachers guiding Expedient 43." : "Untaian doa, petuah bijak, dan jejak bimbingan para guru mulia pembimbing angkatan Expedient 43."}
-            </p>
-          </div>
+      {/* Detail Sheet & Local QR Modal */}
+      <AlumniDetailSheet
+        user={selectedUser}
+        isClosing={isSheetClosing}
+        isLoggedIn={isLoggedIn}
+        currentUserId={currentUserId}
+        failedPhotos={failedPhotos}
+        onPhotoError={handlePhotoError}
+        onClose={closeBottomSheet}
+        onOpenQr={(u) => setQrModalUser(u)}
+        triggerHaptic={triggerHaptic}
+        locale={locale}
+        t={t}
+      />
 
-          {/* Search & Category Filter Deck for Asatidz */}
-          <div className="direktori-control-deck" style={{ marginBottom: "32px" }}>
-            {/* Search Input Bar */}
-            <div className="search-pill-wrapper">
-              <i className="fa-solid fa-magnifying-glass search-pill-icon"></i>
-              <input
-                type="text"
-                className="search-pill-input"
-                placeholder={locale === "ar" ? "ابحث عن اسم الأستاذ، المسؤولية، أو المادة..." : locale === "en" ? "Search teacher name, role, or subject..." : "Cari nama guru, amanah, atau pelajaran..."}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              {search && (
-                <button
-                  type="button"
-                  className="search-pill-clear"
-                  onClick={() => setSearch("")}
-                  title={locale === "ar" ? "مسح البحث" : locale === "en" ? "Clear search" : "Hapus pencarian"}
-                >
-                  <i className="fa-solid fa-xmark"></i>
-                </button>
-              )}
-            </div>
-
-            {/* Category Filter Chips */}
-            <div className="filter-chips-scroll">
-              <button
-                type="button"
-                className={`chip-item ${asatidzCategory === "all" ? "active" : ""}`}
-                onClick={() => {
-                  setAsatidzCategory("all");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-layer-group"></i> {t.direktori_extra.asatidz_cat_all} ({asatidzCounts.all})
-              </button>
-              <button
-                type="button"
-                className={`chip-item chip-pimpinan ${asatidzCategory === "pimpinan" ? "active" : ""}`}
-                onClick={() => {
-                  setAsatidzCategory("pimpinan");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-crown" style={{ color: "#ffd700" }}></i> {t.direktori_extra.asatidz_cat_pimpinan} ({asatidzCounts.pimpinan})
-              </button>
-              <button
-                type="button"
-                className={`chip-item chip-putra ${asatidzCategory === "guru" ? "active" : ""}`}
-                onClick={() => {
-                  setAsatidzCategory("guru");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-person" style={{ color: "#34d399" }}></i> {t.direktori_extra.asatidz_cat_guru} ({asatidzCounts.guru})
-              </button>
-              <button
-                type="button"
-                className={`chip-item chip-tutor ${asatidzCategory === "tutor" ? "active" : ""}`}
-                onClick={() => {
-                  setAsatidzCategory("tutor");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-graduation-cap" style={{ color: "#c084fc" }}></i> {t.direktori_extra.asatidz_cat_tutor} ({asatidzCounts.tutor})
-              </button>
-              <button
-                type="button"
-                className={`chip-item chip-putri ${asatidzCategory === "ustadzah" ? "active" : ""}`}
-                onClick={() => {
-                  setAsatidzCategory("ustadzah");
-                  triggerHaptic(10);
-                }}
-              >
-                <i className="fa-solid fa-person-dress" style={{ color: "#fb7185" }}></i> {t.direktori_extra.asatidz_cat_ustadzah} ({asatidzCounts.ustadzah})
-              </button>
-            </div>
-          </div>
-
-          {/* Asatidz Grid Listing */}
-          <div className="asatidz-grid-container">
-            {filteredAsatidz.length === 0 ? (
-              <div className="empty-direktori-state">
-                <i className="fa-solid fa-chalkboard-user empty-icon"></i>
-                <h3>{t.direktori.empty_title}</h3>
-                <p>{t.direktori.empty_desc}</p>
-                <button
-                  type="button"
-                  className="btn-reset-filters"
-                  onClick={() => {
-                    setSearch("");
-                    setAsatidzCategory("all");
-                    triggerHaptic(10);
-                  }}
-                >
-                  {t.direktori.reset_filter}
-                </button>
-              </div>
-            ) : (
-              <div className="asatidz-grid">
-                {filteredAsatidz.map((item) => {
-                  const fatihahCount = fatihahCounts[item.id] || 0;
-                  return (
-                    <div
-                      key={item.id}
-                      className={`asatidz-card cursor-bind ${item.isFounder ? "founder-card" : ""} ${item.isSuccessor ? "successor-card" : ""} ${item.isMotherHeadmaster ? "mother-card" : ""}`}
-                      onClick={() => {
-                        setSelectedAsatidz(item);
-                        triggerHaptic(15);
-                      }}
-                    >
-                      {item.isFounder && (
-                        <div className="asatidz-founder-ribbon">
-                          <i className="fa-solid fa-crown"></i> {locale === "ar" ? "مؤسس المعهد" : locale === "en" ? "Pondok Founder" : "Pendiri Pondok"}
-                        </div>
-                      )}
-                      {item.isSuccessor && (
-                        <div className="asatidz-successor-ribbon">
-                          <i className="fa-solid fa-certificate"></i> {locale === "ar" ? "خليفة المؤسس" : locale === "en" ? "Founder Successor" : "Penerus Pendiri"}
-                        </div>
-                      )}
-                      {item.isMotherHeadmaster && (
-                        <div className="asatidz-mother-ribbon">
-                          <i className="fa-solid fa-heart"></i> {locale === "ar" ? "مديرة قسم البنات" : locale === "en" ? "Head of Female Branch" : "Pimpinan Putri"}
-                        </div>
-                      )}
-                      {/* Portrait Yearbook Crop Frame */}
-                      <div className="asatidz-frame-outer">
-                        <div className="asatidz-frame-inner">
-                          {item.photoUrl ? (
-                            <img
-                              src={item.photoUrl}
-                              alt={item.name}
-                              className="asatidz-img"
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                const fallback = e.currentTarget.nextElementSibling;
-                                if (fallback) (fallback as HTMLElement).style.display = "flex";
-                              }}
-                            />
-                          ) : null}
-                          <div
-                            className="asatidz-fallback-avatar"
-                            style={{ display: item.photoUrl ? "none" : "flex" }}
-                          >
-                            <i className="fa-solid fa-user-tie asatidz-fallback-icon"></i>
-                            <span className="asatidz-fallback-initials">
-                              {item.titleHonorific || "USTADZ"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Badge Category */}
-                      <div
-                        className={`asatidz-badge ${
-                          item.category === "pimpinan"
-                            ? "badge-pimpinan"
-                            : item.category === "ustadzah" || item.isMotherHeadmaster
-                            ? "badge-ustadzah"
-                            : item.category === "tutor"
-                            ? "badge-tutor"
-                            : "badge-guru"
-                        }`}
-                      >
-                        {item.category === "pimpinan" && <i className="fa-solid fa-crown"></i>}
-                        {item.category === "guru" && <i className="fa-solid fa-person"></i>}
-                        {item.category === "tutor" && <i className="fa-solid fa-graduation-cap"></i>}
-                        {(item.category === "ustadzah" || item.isMotherHeadmaster) && <i className="fa-solid fa-person-dress"></i>}
-                        <span>
-                          {item.category === "pimpinan"
-                            ? t.direktori_extra.asatidz_cat_pimpinan
-                            : item.category === "ustadzah" || item.isMotherHeadmaster
-                            ? t.direktori_extra.asatidz_cat_ustadzah
-                            : item.category === "tutor"
-                            ? t.direktori_extra.asatidz_cat_tutor
-                            : t.direktori_extra.asatidz_cat_guru}
-                        </span>
-                      </div>
-
-                      {/* Name */}
-                      <h3 className="asatidz-name">{item.name}</h3>
-
-                      {/* Role & Subject */}
-                      <div className="asatidz-role">{item.role}</div>
-                      {item.subject && (
-                        <div className="asatidz-subject">
-                          <i className="fa-solid fa-book"></i> {item.subject}
-                        </div>
-                      )}
-
-                      {/* Rahimahullah Indicator */}
-                      {item.isRahimahullah && (
-                        <div className="asatidz-rahimahullah-chip">
-                          <i className="fa-solid fa-hands-praying"></i> Rahimahullah
-                        </div>
-                      )}
-
-                      {/* Quote Preview from Yearbook */}
-                      {item.quote && (
-                        <div className="asatidz-quote-preview">
-                          &ldquo;{item.quote}&rdquo;
-                        </div>
-                      )}
-
-                      {/* Fatihah Counter Indicator */}
-                      {fatihahCount > 0 && (
-                        <div
-                          style={{
-                            marginTop: "12px",
-                            fontSize: "0.75rem",
-                            color: "#ffd700",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "5px",
-                          }}
-                        >
-                          <i className="fa-solid fa-heart" style={{ color: "#f43f5e" }}></i>
-                          <span>{fatihahCount} {t.direktori_extra.fatihah_sent_toast}</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ================= NATIVE DRAGGABLE BOTTOM SHEET / MODAL DETAIL ================= */}
-      {selectedUser && (
-        <div
-          className={`sheet-backdrop ${isSheetClosing ? "closing" : ""}`}
-          onClick={closeBottomSheet}
-        >
-          <div
-            ref={bottomSheetRef}
-            className={`alumni-bottom-sheet ${isSheetClosing ? "closing" : ""}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Pull Bar (Mobile Native Handle) */}
-            <div className="sheet-drag-handle" onClick={closeBottomSheet}>
-              <div className="drag-pill"></div>
-            </div>
-
-            {/* Sheet Header */}
-            <div className="sheet-header">
-              <button
-                type="button"
-                className="sheet-close-btn"
-                onClick={closeBottomSheet}
-                title={t.common.close}
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
-
-              <div className="sheet-hero-row">
-                <div className="sheet-avatar-ring">
-                  <Image
-                    src={failedPhotos[selectedUser.id] ? getAvatarFallback(selectedUser.nama_panggilan || selectedUser.nama_lengkap) : getAvatarUrl(selectedUser.foto_profil, selectedUser.nama_panggilan || selectedUser.nama_lengkap)}
-                    width={90}
-                    height={90}
-                    className="sheet-avatar-img"
-                    alt={selectedUser.nama_panggilan || selectedUser.nama_lengkap}
-                    sizes="90px"
-                    onError={() => setFailedPhotos((prev) => ({ ...prev, [selectedUser.id]: true }))}
-                    unoptimized
-                  />
-                </div>
-
-                <div className="sheet-hero-info">
-                  <h2 className="sheet-user-name">{selectedUser.nama_lengkap}</h2>
-                  <div className="sheet-user-panggilan">
-                    {locale === 'ar' ? 'اللقب: ' : locale === 'en' ? 'Nickname: ' : 'Panggilan: '}<strong>{selectedUser.nama_panggilan || "-"}</strong>
-                  </div>
-                  <div className="sheet-badges-container">
-                    <span
-                      className="sheet-gelar-badge"
-                      style={{ background: getBadgeColor(selectedUser.prestise_points || 0) }}
-                    >
-                      <i className={getGelarIcon(selectedUser.prestise_points || 0)}></i> {getGelar(selectedUser.prestise_points || 0)}
-                    </span>
-                    {selectedUser.kelas && <span className="sheet-class-badge">{t.direktori_extra.filter_class_prefix} {selectedUser.kelas}</span>}
-                    <span className="sheet-class-badge">Expedient 43</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Action Dock (1-Click Actions) */}
-            <div className="sheet-action-dock">
-              {/* WhatsApp Direct Chat */}
-              {(() => {
-                if (!isLoggedIn) {
-                  return (
-                    <Link
-                      href="/login"
-                      className="dock-action-btn dock-disabled"
-                      title={t.direktori.wa_locked}
-                    >
-                      <i className="fa-solid fa-lock"></i>
-                      <span>{t.direktori.wa_locked}</span>
-                    </Link>
-                  );
-                }
-                const waLink = getWhatsAppLink(selectedUser);
-                if (waLink) {
-                  return (
-                    <a
-                      href={waLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="dock-action-btn dock-whatsapp"
-                      title={t.direktori.contact_wa}
-                      onClick={() => triggerHaptic(15)}
-                    >
-                      <i className="fa-brands fa-whatsapp"></i>
-                      <span>WhatsApp</span>
-                    </a>
-                  );
-                }
-                return (
-                  <button
-                    type="button"
-                    disabled
-                    className="dock-action-btn dock-disabled"
-                    title="Nomor WhatsApp disembunyikan oleh alumni demi privasi"
-                  >
-                    <i className="fa-solid fa-lock"></i>
-                    <span>{t.direktori.wa_private}</span>
-                  </button>
-                );
-              })()}
-
-              {/* Simpan Kontak vCard (.vcf) */}
-              {isLoggedIn ? (
-                <a
-                  href={`/api/vcard/${selectedUser.id}`}
-                  download={`Expedient_${(selectedUser.nama_panggilan || selectedUser.nama_lengkap || "Kontak").replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`}
-                  className="dock-action-btn dock-vcard"
-                  title="Simpan Kontak ke HP (.vcf)"
-                  onClick={() => triggerHaptic(12)}
-                >
-                  <i className="fa-solid fa-address-card"></i>
-                  <span>{t.direktori.card_vcard_btn}</span>
-                </a>
-              ) : (
-                <Link
-                  href="/login"
-                  className="dock-action-btn dock-disabled"
-                  title="Masuk untuk mengunduh kontak resmi alumni"
-                >
-                  <i className="fa-solid fa-lock"></i>
-                  <span>{t.direktori.card_vcard_btn}</span>
-                </Link>
-              )}
-
-              {/* Tampilkan QR Kontak */}
-              <button
-                type="button"
-                className="dock-action-btn dock-qr"
-                onClick={() => {
-                  triggerHaptic(10);
-                  setQrModalUser(selectedUser);
-                }}
-                title="Pindai QR Kontak"
-              >
-                <i className="fa-solid fa-qrcode"></i>
-                <span>QR</span>
-              </button>
-
-              {/* Kirim Pesan Internal Portal */}
-              {isLoggedIn && (
-                <Link
-                  href={`/chat/personal/${selectedUser.id}`}
-                  className="dock-action-btn dock-chat"
-                  title="Obrolan Internal Portal"
-                  onClick={() => triggerHaptic(12)}
-                >
-                  <i className="fa-solid fa-comment-dots"></i>
-                  <span>Portal</span>
-                </Link>
-              )}
-            </div>
-
-            {/* Sheet Tabs */}
-            <div className="sheet-tabs-nav">
-              <button
-                type="button"
-                className={`sheet-tab-btn ${sheetTab === "biodata" ? "active" : ""}`}
-                onClick={() => {
-                  setSheetTab("biodata");
-                  triggerHaptic(8);
-                }}
-              >
-                <i className="fa-solid fa-user"></i> {t.direktori.modal_personal}
-              </button>
-              <button
-                type="button"
-                className={`sheet-tab-btn ${sheetTab === "kontak" ? "active" : ""}`}
-                onClick={() => {
-                  setSheetTab("kontak");
-                  triggerHaptic(8);
-                }}
-              >
-                <i className="fa-solid fa-phone"></i> {t.direktori.modal_social}
-              </button>
-              <button
-                type="button"
-                className={`sheet-tab-btn ${sheetTab === "visi" ? "active" : ""}`}
-                onClick={() => {
-                  setSheetTab("visi");
-                  triggerHaptic(8);
-                }}
-              >
-                <i className="fa-solid fa-bullseye"></i> {t.direktori.modal_vision}
-              </button>
-            </div>
-
-            {/* Sheet Tab Body */}
-            <div className="sheet-content-body">
-              {sheetTab === "biodata" && (
-                <div className="sheet-section-block">
-                  <div className="sheet-field-group">
-                    <span className="field-label">{t.direktori.field_birth}</span>
-                    <span className="field-value">
-                      {selectedUser.tempat_lahir || "-"}
-                      {selectedUser.tanggal_lahir
-                        ? `, ${new Date(selectedUser.tanggal_lahir).toLocaleDateString(locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID", {
-                            day: "2-digit",
-                            month: "long",
-                            year: "numeric",
-                          })}`
-                        : ""}
-                    </span>
-                  </div>
-
-                  <div className="sheet-field-group">
-                    <span className="field-label">{t.direktori.field_domicile}</span>
-                    <span className="field-value">{selectedUser.alamat_lengkap || (locale === "ar" ? "لم يُسجّل بعد" : locale === "en" ? "Not recorded yet" : "Belum dicatat")}</span>
-                  </div>
-
-                  <div className="sheet-field-group">
-                    <span className="field-label">{t.direktori.field_aspiration}</span>
-                    <span className="field-value">{selectedUser.cita_cita || (locale === "ar" ? "أن أكون شخصاً نافعاً للأمة." : locale === "en" ? "To become a beneficial individual for society." : "Menjadi pribadi yang berdaya guna bagi umat.")}</span>
-                  </div>
-                </div>
-              )}
-
-              {sheetTab === "kontak" && (
-                <div className="sheet-section-block">
-                  <div className="sheet-field-group">
-                    <span className="field-label">{t.direktori.field_phone}</span>
-                    <span className="field-value">{formatDisplayPhone(selectedUser)}</span>
-                    {!isLoggedIn ? (
-                      <span className="privacy-shield-note" style={{ color: "#d4af37", marginTop: "6px", display: "inline-block" }}>
-                        <i className="fa-solid fa-lock"></i> {t.direktori.privacy_shield_guest}{" "}
-                        <Link href="/login" style={{ color: "#ffd700", textDecoration: "underline", fontWeight: 600 }}>
-                          {locale === "ar" ? "دخول" : locale === "en" ? "Login" : "Masuk"}
-                        </Link>
-                      </span>
-                    ) : selectedUser.privacy_settings?.show_whatsapp === false && selectedUser.id !== currentUserId ? (
-                      <span className="privacy-shield-note">
-                        <i className="fa-solid fa-shield-halved"></i> {t.direktori.privacy_shield_member}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div className="sheet-field-group">
-                    <span className="field-label">{t.direktori.field_vcard}</span>
-                    <span className="field-value">
-                      {isLoggedIn ? (
-                        t.direktori.vcard_desc_member
-                      ) : (
-                        <span>
-                          {t.direktori.vcard_desc_guest}{" "}
-                          <Link href="/login" style={{ color: "#d4af37", textDecoration: "underline" }}>
-                            {locale === "ar" ? "دخول" : locale === "en" ? "Login" : "Masuk"}
-                          </Link>
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {sheetTab === "visi" && (
-                <div className="sheet-section-block">
-                  <div className="sheet-field-group">
-                    <span className="field-label">{t.direktori.field_quote}</span>
-                    <blockquote className="sheet-quote">
-                      "{selectedUser.motivasi_hidup || (locale === "ar" ? "ابق مخلصاً، بسيطاً، ومعتمداً على النفس أينما خطوت." : locale === "en" ? "Stay sincere, simple, and self-reliant wherever you tread." : "Tetap ikhlas, sederhana, dan berdikari di mana pun melangkah.")}"
-                    </blockquote>
-                  </div>
-
-                  <div className="sheet-field-group">
-                    <span className="field-label">{t.direktori.field_social}</span>
-                    <div className="sheet-social-links">
-                      {selectedUser.akun_ig ? (
-                        <a
-                          href={`https://instagram.com/${selectedUser.akun_ig.replace("@", "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="sheet-social-badge ig-badge"
-                        >
-                          <i className="fa-brands fa-instagram"></i> @{selectedUser.akun_ig.replace("@", "")}
-                        </a>
-                      ) : (
-                        <span style={{ fontSize: "0.8rem", opacity: 0.6 }}>
-                          {locale === "ar" ? "إنستغرام لم يُسجّل بعد" : locale === "en" ? "Instagram not listed" : "Instagram belum dicantumkan"}
-                        </span>
-                      )}
-
-                      {selectedUser.akun_tiktok && (
-                        <a
-                          href={`https://tiktok.com/@${selectedUser.akun_tiktok.replace("@", "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="sheet-social-badge tt-badge"
-                        >
-                          <i className="fa-brands fa-tiktok"></i> @{selectedUser.akun_tiktok.replace("@", "")}
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= QR CODE VCARD MODAL ================= */}
-      {qrModalUser && (
-        <div className="qr-modal-backdrop" onClick={() => setQrModalUser(null)}>
-          <div className="qr-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="qr-card-tag">{t.direktori.field_vcard.toUpperCase()}</div>
-            <h3 className="qr-card-title">{qrModalUser.nama_panggilan || qrModalUser.nama_lengkap}</h3>
-            <p className="qr-card-desc">
-              {locale === "ar"
-                ? "وجّه كاميرا هاتفك نحو رمز الاستجابة السريعة لحفظ جهة الاتصال تلقائياً."
-                : locale === "en"
-                ? "Point your phone camera at the QR Code to automatically save the contact."
-                : "Arahkan kamera smartphone ke QR Code untuk simpan kontak otomatis."}
-            </p>
-
-            <div className="qr-frame">
-              {(() => {
-                let rawPhone = (qrModalUser.no_whatsapp || "").replace(/\D/g, "");
-                if (rawPhone.startsWith("0")) rawPhone = "62" + rawPhone.slice(1);
-                const phoneFormatted = rawPhone ? `+${rawPhone}` : "";
-                const isWaHidden = qrModalUser.privacy_settings?.show_whatsapp === false && qrModalUser.id !== currentUserId;
-
-                const vcardPayload = [
-                  "BEGIN:VCARD",
-                  "VERSION:3.0",
-                  `FN:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan}`,
-                  `N:${qrModalUser.nama_lengkap || qrModalUser.nama_panggilan};;;;`,
-                  `NICKNAME:${qrModalUser.nama_panggilan || ""}`,
-                  "ORG:Expedient Generation 43",
-                  !isWaHidden && phoneFormatted ? `TEL;TYPE=CELL,VOICE:${phoneFormatted}` : "",
-                  "NOTE:Alumni Expedient Generation Angkatan 43",
-                  "END:VCARD",
-                ]
-                  .filter(Boolean)
-                  .join("\r\n");
-
-                return (
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=${encodeURIComponent(vcardPayload)}`}
-                    alt={t.direktori.field_vcard}
-                    className="qr-img-canvas"
-                  />
-                );
-              })()}
-            </div>
-
-            <div className="qr-card-actions">
-              <a
-                href={`/api/vcard/${qrModalUser.id}`}
-                download={`Expedient_${(qrModalUser.nama_panggilan || qrModalUser.nama_lengkap || "Kontak").replace(/[^a-zA-Z0-9_-]/g, "_")}.vcf`}
-                className="btn-download-vcf"
-              >
-                <i className="fa-solid fa-download"></i> {locale === "ar" ? "تنزيل ملف .vcf" : locale === "en" ? "Download .vcf File" : "Unduh File .vcf"}
-              </a>
-              <button
-                type="button"
-                className="btn-close-qr"
-                onClick={() => setQrModalUser(null)}
-              >
-                {locale === "ar" ? "إغلاق" : locale === "en" ? "Close" : "Tutup"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ================= ASATIDZ DETAIL MODAL ================= */}
-      {selectedAsatidz && (
-        <div
-          className="asatidz-modal-overlay"
-          onClick={() => setSelectedAsatidz(null)}
-        >
-          <div
-            className="asatidz-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="asatidz-modal-close"
-              onClick={() => setSelectedAsatidz(null)}
-              aria-label="Tutup Detail Guru"
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-
-            {/* Yearbook Portrait in Modal */}
-            <div className="asatidz-frame-outer asatidz-modal-frame">
-              <div className="asatidz-frame-inner">
-                {selectedAsatidz.photoUrl ? (
-                  <img
-                    src={selectedAsatidz.photoUrl}
-                    alt={selectedAsatidz.name}
-                    className="asatidz-img"
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                      const fallback = e.currentTarget.nextElementSibling;
-                      if (fallback) (fallback as HTMLElement).style.display = "flex";
-                    }}
-                  />
-                ) : null}
-                <div
-                  className="asatidz-fallback-avatar"
-                  style={{ display: selectedAsatidz.photoUrl ? "none" : "flex" }}
-                >
-                  <i className="fa-solid fa-user-tie asatidz-fallback-icon"></i>
-                  <span className="asatidz-fallback-initials">
-                    {selectedAsatidz.titleHonorific || "USTADZ"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Category Badge */}
-            <div
-              className={`asatidz-badge ${
-                selectedAsatidz.category === "pimpinan"
-                  ? "badge-pimpinan"
-                  : selectedAsatidz.category === "ustadzah" || selectedAsatidz.isMotherHeadmaster
-                  ? "badge-ustadzah"
-                  : selectedAsatidz.category === "tutor"
-                  ? "badge-tutor"
-                  : "badge-guru"
-              }`}
-            >
-              <span>{selectedAsatidz.role}</span>
-            </div>
-
-            <h3 className="asatidz-name" style={{ fontSize: "1.4rem", margin: "6px 0 2px" }}>
-              {selectedAsatidz.name}
-            </h3>
-
-            {selectedAsatidz.subject && (
-              <div className="asatidz-subject" style={{ fontSize: "0.88rem", marginTop: "4px" }}>
-                <i className="fa-solid fa-book"></i> {selectedAsatidz.subject}
-              </div>
-            )}
-
-            {/* Full Quote Box from Yearbook */}
-            {selectedAsatidz.quote && (
-              <div className="asatidz-modal-quote-box">
-                <i
-                  className="fa-solid fa-quote-left"
-                  style={{
-                    color: "rgba(212, 175, 55, 0.4)",
-                    fontSize: "1.2rem",
-                    display: "block",
-                    marginBottom: "8px",
-                  }}
-                ></i>
-                <p className="asatidz-modal-quote-text">
-                  &ldquo;{selectedAsatidz.quote}&rdquo;
-                </p>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    color: "#d4af37",
-                    marginTop: "10px",
-                    letterSpacing: "1px",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  — Buku Tahunan Expedient 43
-                </div>
-              </div>
-            )}
-
-            {/* Wasiat & Nasihat Pendiri / Penerus */}
-            {selectedAsatidz.wasiat && (
-              <div className="founder-wasiat-section">
-                <div className="founder-wasiat-header">
-                  <span>
-                    <i
-                      className={
-                        selectedAsatidz.isFounder
-                          ? "fa-solid fa-scroll"
-                          : selectedAsatidz.isMotherHeadmaster
-                          ? "fa-solid fa-heart"
-                          : selectedAsatidz.id === "pimpinan_shoiman"
-                          ? "fa-solid fa-compass"
-                          : selectedAsatidz.id === "pimpinan_winardi"
-                          ? "fa-solid fa-lightbulb"
-                          : selectedAsatidz.id === "pimpinan_saroni"
-                          ? "fa-solid fa-mosque"
-                          : "fa-solid fa-feather-pointed"
-                      }
-                    ></i>{" "}
-                    {selectedAsatidz.isFounder
-                      ? "20 Wasiat & Falsafah Hidup"
-                      : selectedAsatidz.isMotherHeadmaster
-                      ? "Pesan Kasih 3 Nasihat Mulia"
-                      : selectedAsatidz.id === "pimpinan_shoiman"
-                      ? "Pesan Nasihat Direktur Pengasuhan"
-                      : selectedAsatidz.id === "pimpinan_winardi"
-                      ? "Untaian Mutiara Hikmah Direktur Keputrian"
-                      : selectedAsatidz.id === "pimpinan_saroni"
-                      ? "Pesan Mutiara Direktur KMI"
-                      : "Pesan Nasihat Keistiqomahan"}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      opacity: 0.9,
-                      color: selectedAsatidz.isFounder
-                        ? "#d4af37"
-                        : selectedAsatidz.isMotherHeadmaster
-                        ? "#f472b6"
-                        : selectedAsatidz.id === "pimpinan_shoiman"
-                        ? "#10b981"
-                        : selectedAsatidz.id === "pimpinan_winardi"
-                        ? "#a855f7"
-                        : selectedAsatidz.id === "pimpinan_saroni"
-                        ? "#0284c7"
-                        : "#38bdf8",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {selectedAsatidz.isFounder
-                      ? "Pendiri Arrisalah"
-                      : selectedAsatidz.isMotherHeadmaster
-                      ? "Pimpinan Putri & Istri Pimpinan"
-                      : selectedAsatidz.id === "pimpinan_shoiman"
-                      ? "Direktur Pengasuhan Santri"
-                      : selectedAsatidz.id === "pimpinan_winardi"
-                      ? "Direktur Pengasuhan Putri"
-                      : selectedAsatidz.id === "pimpinan_saroni"
-                      ? "Direktur KMI Arrisalah"
-                      : "Putra & Penerus Pendiri"}
-                  </span>
-                </div>
-                <div className="founder-wasiat-list">
-                  {selectedAsatidz.wasiat.map((w, idx) => (
-                    <div
-                      key={idx}
-                      className={`founder-wasiat-item ${
-                        selectedAsatidz.isSuccessor
-                          ? "successor-wasiat-item"
-                          : selectedAsatidz.isMotherHeadmaster
-                          ? "mother-wasiat-item"
-                          : selectedAsatidz.id === "pimpinan_shoiman"
-                          ? "shoiman-wasiat-item"
-                          : selectedAsatidz.id === "pimpinan_winardi"
-                          ? "winardi-wasiat-item"
-                          : selectedAsatidz.id === "pimpinan_saroni"
-                          ? "saroni-wasiat-item"
-                          : ""
-                      }`}
-                    >
-                      {w}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Collage Kenangan / Naskah Asli Buku Tahunan */}
-            {selectedAsatidz.collageUrl && (
-              <div className="founder-collage-box">
-                <div className="founder-collage-header">
-                  <i className="fa-solid fa-image"></i>
-                  <span>
-                    {selectedAsatidz.isFounder
-                      ? "Dokumentasi Kenangan (Terima Kasih Kyaiku)"
-                      : selectedAsatidz.isMotherHeadmaster
-                      ? "Naskah Nasihat Tulisan Tangan Ustadzah Indriatin"
-                      : selectedAsatidz.id === "pimpinan_shoiman"
-                      ? "Naskah Nasihat Direktur Pengasuhan Santri"
-                      : selectedAsatidz.id === "pimpinan_winardi"
-                      ? "Naskah Mutiara Hikmah Ustadz Winardi Yusuf"
-                      : selectedAsatidz.id === "pimpinan_saroni"
-                      ? "Naskah Pesan Direktur KMI Al-Ustadz Sa'roni, Lc."
-                      : "Naskah Asli Tulisan Tangan Buku Tahunan"}
-                  </span>
-                </div>
-                <img
-                  src={selectedAsatidz.collageUrl}
-                  alt={
-                    selectedAsatidz.isFounder
-                      ? "Kenangan Terima Kasih Kyaiku"
-                      : selectedAsatidz.isMotherHeadmaster
-                      ? "Naskah Nasihat Ustadzah Indriatin"
-                      : selectedAsatidz.id === "pimpinan_shoiman"
-                      ? "Naskah Nasihat Ustadz Shoiman Lukmanul Hakim"
-                      : selectedAsatidz.id === "pimpinan_winardi"
-                      ? "Naskah Mutiara Hikmah Ustadz Winardi Yusuf"
-                      : selectedAsatidz.id === "pimpinan_saroni"
-                      ? "Naskah Pesan Direktur KMI Al-Ustadz Sa'roni, Lc."
-                      : "Naskah Pesan KH Muhammad Azharullah"
-                  }
-                  className="founder-collage-img"
-                />
-              </div>
-            )}
-
-            {/* Interactive Hadiahkan Al-Fatihah */}
-            <button
-              type="button"
-              className="btn-fatihah-guru"
-              onClick={() => handleGiftFatihah(selectedAsatidz.id)}
-            >
-              <i className="fa-solid fa-hands-praying"></i>
-              <span>{t.direktori_extra.btn_send_fatihah}</span>
-              <span
-                style={{
-                  background: "rgba(0,0,0,0.3)",
-                  padding: "2px 8px",
-                  borderRadius: "12px",
-                  fontSize: "0.8rem",
-                  marginLeft: "4px",
-                }}
-              >
-                {fatihahCounts[selectedAsatidz.id] || 0}
-              </span>
-            </button>
-
-            {/* Temporary Toast confirmation */}
-            {fatihahToast[selectedAsatidz.id] && (
-              <div
-                style={{
-                  marginTop: "12px",
-                  fontSize: "0.82rem",
-                  color: "#34d399",
-                  fontWeight: 600,
-                  animation: "fadeInModal 0.2s ease-out",
-                }}
-              >
-                <i className="fa-solid fa-check-circle"></i> {t.direktori_extra.fatihah_sent_toast} 🤲
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <QrContactModal
+        user={qrModalUser}
+        isLoggedIn={isLoggedIn}
+        currentUserId={currentUserId}
+        onClose={() => setQrModalUser(null)}
+        locale={locale}
+        t={t}
+      />
     </div>
   );
 }

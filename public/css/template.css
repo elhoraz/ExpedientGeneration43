@@ -811,7 +811,7 @@ body.sidebar-closed .floating-help-btn {
     border: 1px solid rgba(212, 175, 55, 0.12) !important;
     pointer-events: none;
     box-shadow: none !important;
-    display: inline-block;
+    display: block;
     box-sizing: border-box;
 }
 
@@ -1128,6 +1128,133 @@ img.skeleton-shimmer {
 }
 .skeleton-card-media { width: 100%; height: 180px; border-radius: 12px; margin-bottom: 16px; }
 
+/* Responsive Visibility & Route-Matched Skeleton Grids (Zero-FOUC during Suspense stream) */
+.hide-mobile { display: block; }
+.show-mobile-only { display: none; }
+@media (max-width: 768px) {
+    .hide-mobile { display: none !important; }
+    .show-mobile-only { display: block !important; }
+}
+
+.sk-shell {
+    width: 100%;
+    margin: 0 auto;
+    padding: 32px 24px 84px;
+    box-sizing: border-box;
+}
+.sk-shell-1280 { max-width: 1280px; }
+.sk-shell-1200 { max-width: 1200px; }
+.sk-shell-1150 { max-width: 1150px; }
+.sk-shell-1100 { max-width: 1100px; }
+.sk-shell-960  { max-width: 960px; }
+.sk-shell-900  { max-width: 900px; }
+.sk-shell-850  { max-width: 850px; }
+@media (max-width: 768px) {
+    .sk-shell { padding: 20px 16px 84px; }
+}
+
+/* Fitur Hub Mobile vs Desktop Switcher (matches fitur.css 900px breakpoint) */
+.sk-fitur-mobile { display: none; width: 100%; max-width: 560px; margin: 0 auto; padding: 14px 14px 88px; box-sizing: border-box; }
+.sk-fitur-desktop { display: block; width: 100%; max-width: 1280px; margin: 0 auto; padding: 36px 28px 80px; box-sizing: border-box; }
+@media (max-width: 900px) {
+    .sk-fitur-mobile { display: block; }
+    .sk-fitur-desktop { display: none; }
+}
+.sk-fitur-bento-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sk-fitur-apps-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.sk-fitur-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+/* Direktori Responsive Grid & Header (matches direktori.css breakpoints) */
+.sk-direktori-header { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+.sk-direktori-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.sk-direktori-card { padding: 12px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.sk-direktori-card-main { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+.sk-direktori-card-actions { flex-shrink: 0; display: flex; align-items: center; }
+@media (min-width: 640px) {
+  .sk-direktori-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .sk-direktori-card { flex-direction: column; align-items: stretch; justify-content: space-between; padding: 16px; gap: 12px; }
+  .sk-direktori-card-actions { border-top: 1px solid var(--glass-border, rgba(212,175,55,0.12)); padding-top: 10px; justify-content: flex-start; }
+}
+@media (min-width: 768px) {
+  .sk-direktori-header { flex-direction: row; align-items: center; justify-content: space-between; gap: 20px; }
+}
+@media (min-width: 1024px) { .sk-direktori-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
+@media (min-width: 1360px) { .sk-direktori-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; } }
+
+/* Galeri Masonry & Safe Top Clearance (matches galeri.css) */
+.sk-galeri-wrap {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 28px 24px 80px;
+    box-sizing: border-box;
+}
+@media (max-width: 768px) {
+    .sk-galeri-wrap {
+        padding: calc(max(16px, env(safe-area-inset-top, 0px)) + 54px) 14px 84px;
+    }
+}
+.sk-masonry-grid { column-count: 2; column-gap: 12px; }
+@media (min-width: 640px) { .sk-masonry-grid { column-count: 3; column-gap: 16px; } }
+@media (min-width: 1024px) { .sk-masonry-grid { column-count: 4; column-gap: 18px; } }
+.sk-masonry-item { break-inside: avoid; margin-bottom: 14px; border-radius: 16px; width: 100%; }
+
+/* Profil Tabs & Grid (matches profil.css 900px breakpoint) */
+.sk-profil-tabs { display: none; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.sk-profil-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; align-items: start; }
+@media (max-width: 900px) {
+    .sk-profil-tabs { display: flex; }
+    .sk-profil-grid { grid-template-columns: 1fr; gap: 18px; }
+}
+
+/* Generic Responsive Grids */
+.sk-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.sk-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.sk-grid-2-fixed { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.sk-admin-charts { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+.sk-studio-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; width: 100%; max-width: 1040px; margin: 0 auto; align-items: start; }
+@media (max-width: 1060px) {
+    .sk-studio-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+    .sk-grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .sk-admin-charts { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+    .sk-grid-3 { grid-template-columns: 1fr; }
+    .sk-grid-2 { grid-template-columns: 1fr; gap: 14px; }
+}
+
+/* Beranda Fullscreen Hero Stage + 3-col Stats (even on mobile) */
+.sk-beranda-hero {
+    min-height: 100svh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 48px 20px 36px;
+    box-sizing: border-box;
+}
+.sk-beranda-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 960px; margin: 0 auto; }
+@media (max-width: 640px) {
+    .sk-beranda-stats { gap: 8px; }
+}
+
+/* Chat Room Locked Viewport Container */
+.sk-chat-room {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: calc(100dvh - var(--nav-clearance, 0px));
+    max-height: 100%;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
 /* ================= 16. P3: SMART SCROLL-TO-TOP (#26) ================= */
 .scroll-top-btn {
     position: fixed; right: 28px; bottom: 84px;
@@ -1165,6 +1292,10 @@ img.skeleton-shimmer {
     *, ::before, ::after {
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
+    }
+    .skeleton-shimmer {
+        animation: none !important;
+        background-position: 0 0 !important;
     }
     .aurora-blob, .film-grain, #particles-js {
         display: none !important;

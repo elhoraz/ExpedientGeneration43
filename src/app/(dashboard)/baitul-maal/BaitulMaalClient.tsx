@@ -967,18 +967,18 @@ export default function BaitulMaalClient({
             {isFilterLoading ? (
               [1, 2, 3].map((i) => (
                 <div className="tx-item" key={i} style={{ opacity: 0.9 }}>
-                  <div className="tx-left">
+                  <div className="tx-left" style={{ minWidth: 0, flex: 1 }}>
                     <div className="skeleton-shimmer skeleton-circle" style={{ width: 44, height: 44, flexShrink: 0 }} />
-                    <div className="tx-details" style={{ width: "100%" }}>
-                      <div className="skeleton-shimmer" style={{ width: "55%", height: 16, borderRadius: 4, marginBottom: 8 }} />
-                      <div style={{ display: "flex", gap: "10px" }}>
-                        <div className="skeleton-shimmer" style={{ width: 110, height: 12, borderRadius: 4 }} />
-                        <div className="skeleton-shimmer" style={{ width: 130, height: 12, borderRadius: 4 }} />
+                    <div className="tx-details" style={{ width: "100%", minWidth: 0 }}>
+                      <div className="skeleton-shimmer" style={{ width: "62%", height: 16, borderRadius: 4, marginBottom: 8 }} />
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                        <div className="skeleton-shimmer" style={{ width: "38%", maxWidth: 110, height: 12, borderRadius: 4 }} />
+                        <div className="skeleton-shimmer" style={{ width: "44%", maxWidth: 130, height: 12, borderRadius: 4 }} />
                       </div>
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div className="skeleton-shimmer skeleton-pill" style={{ width: 110, height: 26 }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexShrink: 0 }}>
+                    <div className="skeleton-shimmer skeleton-pill" style={{ width: 96, height: 26 }} />
                     <div className="skeleton-shimmer skeleton-pill hide-mobile" style={{ width: 70, height: 28 }} />
                   </div>
                 </div>

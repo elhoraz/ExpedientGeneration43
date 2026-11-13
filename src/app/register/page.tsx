@@ -9,6 +9,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
+import { AuthCardSkeleton } from "@/components/ui/Skeleton";
 import "./register.css";
 
 function RegisterFormContent() {
@@ -1294,7 +1295,7 @@ function RegisterFormContent() {
 
 export default function RegisterClient() {
   return (
-    <Suspense fallback={<div style={{ width: "100%", minHeight: "100vh", background: "#060b14" }}></div>}>
+    <Suspense fallback={<div style={{ width: "100%", minHeight: "100vh", background: "var(--bg-body, #060b14)" }}><AuthCardSkeleton /></div>}>
       <RegisterFormContent />
     </Suspense>
   );

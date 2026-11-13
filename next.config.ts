@@ -6,6 +6,7 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   publicExcludes: [
     "!noprecache/**/*",
+    "!index.html",
     "!assets/audio/**/*",
     "!assets/foto_putra/**/*",
     "!assets/foto_putri/**/*",
