@@ -51,7 +51,7 @@ export default function ScannerClient() {
   return (
     <div className="scanner-wrapper">
       <style>{`
-        body { background-color: #060b14; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        body { background-color: #060b14; margin: 0; overflow: hidden; font-family: var(--font-sans, inherit); }
         .scanner-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; background: #060b14; }
         
         .video-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.5; }

@@ -38,11 +38,12 @@ export default function FiturClient({
   eventWidget = { nearest: null },
 }: FiturClientProps) {
   const cardsRef = useRef<(HTMLAnchorElement | null)[]>([]);
-  const { t, locale } = useLanguage();
+  const { t, locale, setLocale } = useLanguage();
   const router = useRouter();
 
-  // Desktop Category Filter state
+  // Desktop & Mobile Category Filter state
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [mobileCategory, setMobileCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   const points = userProfile?.prestise_points || 0;
@@ -101,7 +102,7 @@ export default function FiturClient({
       desc: t.fitur.photobooth_desc,
       href: "/photobooth",
       icon: "fa-camera-retro",
-      bg: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.photobooth_btn,
       badge: "Populer",
     },
@@ -123,7 +124,7 @@ export default function FiturClient({
       desc: t.fitur.kta_desc,
       href: "/sovereign",
       icon: "fa-id-card",
-      bg: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.kta_btn,
       badge: "Eksklusif 3D",
     },
@@ -134,7 +135,7 @@ export default function FiturClient({
       desc: t.fitur.scanner_desc,
       href: "/scanner",
       icon: "fa-qrcode",
-      bg: "https://images.unsplash.com/photo-1595079676339-1534801ad6cf?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1595079676339-1534801ad6cf?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.scanner_btn,
       badge: "Scanner",
     },
@@ -145,7 +146,7 @@ export default function FiturClient({
       desc: t.fitur.radar_desc,
       href: "/radar",
       icon: "fa-location-dot",
-      bg: "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.radar_btn,
       badge: "Peta GPS",
     },
@@ -156,7 +157,7 @@ export default function FiturClient({
       desc: t.fitur.buku_tamu_desc,
       href: "/buku-tamu",
       icon: "fa-pen-nib",
-      bg: "https://images.unsplash.com/photo-1455390582262-044cdead277a?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1455390582262-044cdead277a?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.buku_tamu_btn,
       badge: "Presensi Santri",
     },
@@ -167,7 +168,7 @@ export default function FiturClient({
       desc: t.fitur.quick_chat_desc,
       href: "/chat",
       icon: "fa-comments",
-      bg: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.quick_chat_btn,
       badge: "Real-time",
     },
@@ -178,7 +179,7 @@ export default function FiturClient({
       desc: t.fitur.quick_dir_desc,
       href: "/direktori",
       icon: "fa-address-book",
-      bg: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.quick_dir_btn,
     },
     {
@@ -188,7 +189,7 @@ export default function FiturClient({
       desc: locale === "ar" ? "رزنامة أعياد ميلاد رفقاء الدفعة، بطاقات تهنئة تفاعلية فاخرة، ومشاركة أطيب الدعوات والأمنيات عبر واتساب." : locale === "en" ? "Cohort birthday calendar, interactive luxury cards, and instant blessings & prayer sharing via WhatsApp." : "Kalender milad alumni, kartu ucapan interaktif dinamis dengan zodiak & umur, serta kirim doa via WhatsApp.",
       href: "/birthday",
       icon: "fa-cake-candles",
-      bg: "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=75&w=720&auto=format&fit=crop",
       btnText: locale === "ar" ? "فتح التقويم" : locale === "en" ? "Open Calendar" : "Lihat Kalender",
       badge: "Interaktif",
     },
@@ -199,7 +200,7 @@ export default function FiturClient({
       desc: t.fitur.baitul_desc,
       href: "/baitul-maal",
       icon: "fa-hand-holding-dollar",
-      bg: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.baitul_btn,
       badge: "Amanah Kas",
     },
@@ -210,7 +211,7 @@ export default function FiturClient({
       desc: locale === "ar" ? "دليل مشاريع وريادة أعمال رفقاء الدفعة، المنتجات المتميزة، وفرص التعاون والشراكة الاقتصادية." : locale === "en" ? "Cohort entrepreneurship catalog, featured alumni ventures, and collaborative business partnerships." : "Katalog jejaring wirausaha santri, direktori bisnis & jasa alumni, dan etalase kolaborasi ekonomi angkatan.",
       href: "/syndicate",
       icon: "fa-briefcase",
-      bg: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=75&w=720&auto=format&fit=crop",
       btnText: locale === "ar" ? "استعراض الأعمال" : locale === "en" ? "Explore Directory" : "Jelajahi Usaha",
       badge: "Jejaring Bisnis",
     },
@@ -221,7 +222,7 @@ export default function FiturClient({
       desc: t.fitur.wasiat_desc,
       href: "/wasiat",
       icon: "fa-scroll",
-      bg: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.wasiat_btn,
     },
     {
@@ -231,7 +232,7 @@ export default function FiturClient({
       desc: t.event.subtitle,
       href: "/event",
       icon: "fa-calendar-days",
-      bg: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1511578314322-379afb476865?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.launch_btn,
     },
     {
@@ -241,7 +242,7 @@ export default function FiturClient({
       desc: t.fitur.majlis_desc,
       href: "/majlis",
       icon: "fa-microphone-lines",
-      bg: "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.majlis_btn,
     },
     {
@@ -251,7 +252,7 @@ export default function FiturClient({
       desc: t.fitur.tarbiyah_desc,
       href: "/tarbiyah",
       icon: "fa-handshake-angle",
-      bg: "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1577896851231-70ef18881754?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.tarbiyah_btn,
     },
     {
@@ -261,7 +262,7 @@ export default function FiturClient({
       desc: "Fitur kamera interaktif untuk mendeteksi ekspresi wajah dan membagikan kutipan semangat persaudaraan.",
       href: "/oracle",
       icon: "fa-camera",
-      bg: "https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1512790182412-b19e6d62bc39?q=75&w=720&auto=format&fit=crop",
       btnText: "Mulai Kamera",
     },
     {
@@ -271,7 +272,7 @@ export default function FiturClient({
       desc: t.fitur.multazam_desc,
       href: "/multazam",
       icon: "fa-kaaba",
-      bg: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.multazam_btn,
     },
     {
@@ -281,7 +282,7 @@ export default function FiturClient({
       desc: t.fitur.kontemplasi_desc,
       href: "/kontemplasi",
       icon: "fa-spa",
-      bg: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.kontemplasi_btn,
     },
     {
@@ -291,7 +292,7 @@ export default function FiturClient({
       desc: t.fitur.celestial_desc,
       href: "/celestial",
       icon: "fa-star",
-      bg: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.celestial_btn,
     },
     {
@@ -301,7 +302,7 @@ export default function FiturClient({
       desc: t.fitur.quick_khatam_desc,
       href: "/quran?tab=khataman",
       icon: "fa-book-quran",
-      bg: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.quick_khatam_btn,
       badge: "Live Tracker",
     },
@@ -312,7 +313,7 @@ export default function FiturClient({
       desc: t.fitur.quick_kiblat_desc,
       href: "/kiblat",
       icon: "fa-compass",
-      bg: "https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.quick_kiblat_btn,
       badge: "Kompas GPS",
     },
@@ -323,7 +324,7 @@ export default function FiturClient({
       desc: "Mushaf Al-Qur'an digital 30 Juz & 114 Surah lengkap standar Kemenag RI dengan murottal 6 Qari, transliterasi Latin, terjemahan resmi, tafsir ringkas, dan bookmark tilawah.",
       href: "/quran",
       icon: "fa-quran",
-      bg: "https://images.unsplash.com/photo-1585036156171-384164a8c675?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1585036156171-384164a8c675?q=75&w=720&auto=format&fit=crop",
       btnText: "Buka Mushaf",
       badge: "Kemenag RI",
     },
@@ -334,7 +335,7 @@ export default function FiturClient({
       desc: "Hitung dzikir harian dengan umpan balik getaran haptic smartphone, animasi cincin mutiara emas 33 butir, dan fadilah doa.",
       href: "/tasbih",
       icon: "fa-gem",
-      bg: "https://images.unsplash.com/photo-1564769625905-50e93615e769?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1564769625905-50e93615e769?q=75&w=720&auto=format&fit=crop",
       btnText: "Mulai Dzikir",
       badge: "Haptic Dzikir",
     },
@@ -345,7 +346,7 @@ export default function FiturClient({
       desc: "Tadabbur ayat-ayat suci Al-Qur'an dan hadits pilihan harian sebagai pedoman moral dan bekal amal shalih.",
       href: "/divine",
       icon: "fa-book-open",
-      bg: "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=75&w=720&auto=format&fit=crop",
       btnText: "Resapi Ayat",
     },
     {
@@ -355,7 +356,7 @@ export default function FiturClient({
       desc: "Untaian doa pelindung fajar dan senja Rasulullah SAW dengan penghitung haptic tasbih interaktif, audio tilawah, dan doa Rabithah ukhuwah.",
       href: "/matsurat",
       icon: "fa-hands-praying",
-      bg: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?q=75&w=720&auto=format&fit=crop",
       btnText: "Buka Al-Ma’tsurat",
       badge: "Amalan Harian",
     },
@@ -366,7 +367,7 @@ export default function FiturClient({
       desc: "Koleksi kata mutiara klasik pesantren, kuis sambung hafalan berhadiah predikat santri, dan generator story WhatsApp Obsidian Gold.",
       href: "/mahfuzhat",
       icon: "fa-feather-pointed",
-      bg: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=75&w=720&auto=format&fit=crop",
       btnText: "Buka Mahfuzhat",
       badge: "Koleksi Hikmah",
     },
@@ -377,7 +378,7 @@ export default function FiturClient({
       desc: "Eksplorasi spiritual 99 Nama Agung Allah SWT, lembar tadabbur & dalil Al-Qur'an, mode tasbih dzikir haptic interaktif, dan pemutar murattal audio sekuensial.",
       href: "/asmaul-husna",
       icon: "fa-certificate",
-      bg: "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1542816417-0983c9c9ad53?q=75&w=720&auto=format&fit=crop",
       btnText: "Buka Asmaul Husna",
       badge: "Asma Agung",
     },
@@ -388,7 +389,7 @@ export default function FiturClient({
       desc: "Peta kartografi manuskrip kuno 2.5D Jazirah Arab, linimasa peristiwa agung Makkah & Madinah, dan tadabbur prinsip kepemimpinan Rasulullah SAW.",
       href: "/sirah",
       icon: "fa-map-location-dot",
-      bg: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=75&w=720&auto=format&fit=crop",
       btnText: "Mulai Ekspedisi",
       badge: "Peta Sejarah",
     },
@@ -399,7 +400,7 @@ export default function FiturClient({
       desc: "Buku catatan pribadi yang aman. Simpan kenangan masa nyantri, catatan perjalanan, dan resolusi masa depan Anda.",
       href: "/enigma",
       icon: "fa-book-bookmark",
-      bg: "https://images.unsplash.com/photo-1517842645767-c639042777db?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1517842645767-c639042777db?q=75&w=720&auto=format&fit=crop",
       btnText: "Buka Catatan",
     },
     {
@@ -409,7 +410,7 @@ export default function FiturClient({
       desc: t.fitur.genesis_desc,
       href: "/genesis",
       icon: "fa-landmark",
-      bg: "https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1508807526345-15e9b5f4eaff?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.genesis_btn,
     },
     {
@@ -419,7 +420,7 @@ export default function FiturClient({
       desc: t.fitur.nexus_desc,
       href: "/nexus",
       icon: "fa-network-wired",
-      bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.nexus_btn,
     },
     {
@@ -429,7 +430,7 @@ export default function FiturClient({
       desc: "Rangkuman jejak aktivitas dan momen interaksi kebersamaan Anda di portal alumni sepanjang tahun ini.",
       href: "/wrapped",
       icon: "fa-film",
-      bg: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=75&w=720&auto=format&fit=crop",
       btnText: "Lihat Kilas Balik",
     },
     {
@@ -439,7 +440,7 @@ export default function FiturClient({
       desc: t.panduan.subtitle,
       href: "/panduan",
       icon: "fa-circle-question",
-      bg: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=1600&auto=format&fit=crop",
+      bg: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=75&w=720&auto=format&fit=crop",
       btnText: t.fitur.panduan_btn,
     },
   ];
@@ -449,42 +450,49 @@ export default function FiturClient({
     (f) => selectedCategory === "all" || f.category === selectedCategory
   );
 
-  // Mini App Drawer items for mobile launcher (Unified Royal Vault Catalog - 33 Features)
+  // Mini App Drawer items for mobile launcher (Categorized 33 Features)
   const MINI_APPS = [
-    { href: "/sovereign", name: locale === "ar" ? "بطاقة الهوية 3D" : locale === "en" ? "3D ID Card" : "KTA 3D", icon: "fa-id-card" },
-    { href: "/scanner", name: t.fitur.scanner_btn, icon: "fa-qrcode" },
-    { href: "/radar", name: t.fitur.radar_btn, icon: "fa-location-dot" },
-    { href: "/buku-tamu", name: locale === "ar" ? "دفتر الزوار" : locale === "en" ? "Guestbook" : "Buku Tamu", icon: "fa-pen-nib" },
-    { href: "/baitul-maal", name: t.fitur.launcher_baitul, icon: "fa-hand-holding-dollar" },
-    { href: "/syndicate", name: locale === "ar" ? "دليل الأعمال" : locale === "en" ? "Business" : "Bisnis Alumni", icon: "fa-briefcase" },
-    { href: "/chat", name: t.fitur.launcher_chat, icon: "fa-comments" },
-    { href: "/direktori", name: t.fitur.launcher_direktori, icon: "fa-address-book" },
-    { href: "/galeri", name: t.fitur.launcher_galeri, icon: "fa-images" },
-    { href: "/birthday", name: locale === "ar" ? "أعياد الميلاد" : locale === "en" ? "Birthdays" : "Ulang Tahun", icon: "fa-cake-candles" },
-    { href: "/photobooth", name: t.fitur.launcher_photobooth, icon: "fa-camera-retro" },
-    { href: "/event", name: t.fitur.launcher_event, icon: "fa-calendar-days" },
-    { href: "/wasiat", name: t.fitur.launcher_wasiat, icon: "fa-scroll" },
-    { href: "/majlis", name: t.fitur.launcher_majlis, icon: "fa-microphone-lines" },
-    { href: "/tarbiyah", name: t.fitur.launcher_tarbiyah, icon: "fa-handshake-angle" },
-    { href: "/oracle", name: "Oracle", icon: "fa-camera" },
-    { href: "/multazam", name: t.fitur.launcher_multazam, icon: "fa-kaaba" },
-    { href: "/quran", name: t.fitur.launcher_quran, icon: "fa-quran" },
-    { href: "/quran?tab=khataman", name: t.fitur.launcher_khatam, icon: "fa-book-quran" },
-    { href: "/kiblat", name: t.fitur.launcher_kiblat, icon: "fa-compass" },
-    { href: "/tasbih", name: t.fitur.launcher_tasbih, icon: "fa-gem" },
-    { href: "/kontemplasi", name: t.fitur.launcher_kontemplasi, icon: "fa-spa" },
-    { href: "/celestial", name: t.fitur.launcher_celestial, icon: "fa-star" },
-    { href: "/divine", name: locale === "ar" ? "الآيات المباركة" : locale === "en" ? "Divine Verses" : "Ayat Suci", icon: "fa-book-open" },
-    { href: "/matsurat", name: t.fitur.launcher_matsurat, icon: "fa-hands-praying" },
-    { href: "/mahfuzhat", name: t.fitur.launcher_mahfuzhat, icon: "fa-feather-pointed" },
-    { href: "/asmaul-husna", name: t.fitur.launcher_asmaul, icon: "fa-certificate" },
-    { href: "/sirah", name: t.fitur.launcher_sirah, icon: "fa-map-location-dot" },
-    { href: "/enigma", name: locale === "ar" ? "مذكرات إنيغما" : locale === "en" ? "Enigma Notes" : "Catatan", icon: "fa-book-bookmark" },
-    { href: "/genesis", name: "Genesis", icon: "fa-landmark" },
-    { href: "/nexus", name: t.fitur.launcher_nexus, icon: "fa-network-wired" },
-    { href: "/wrapped", name: "Wrapped", icon: "fa-film" },
-    { href: "/panduan", name: t.fitur.launcher_panduan, icon: "fa-circle-question" },
+    { href: "/sovereign", category: "social", name: locale === "ar" ? "بطاقة الهوية 3D" : locale === "en" ? "3D ID Card" : "KTA 3D", icon: "fa-id-card" },
+    { href: "/scanner", category: "social", name: t.fitur.scanner_btn, icon: "fa-qrcode" },
+    { href: "/radar", category: "social", name: t.fitur.radar_btn, icon: "fa-location-dot" },
+    { href: "/buku-tamu", category: "social", name: locale === "ar" ? "دفتر الزوار" : locale === "en" ? "Guestbook" : "Buku Tamu", icon: "fa-pen-nib" },
+    { href: "/baitul-maal", category: "kas", name: t.fitur.launcher_baitul, icon: "fa-hand-holding-dollar" },
+    { href: "/syndicate", category: "kas", name: locale === "ar" ? "دليل الأعمال" : locale === "en" ? "Business" : "Bisnis Alumni", icon: "fa-briefcase" },
+    { href: "/chat", category: "social", name: t.fitur.launcher_chat, icon: "fa-comments" },
+    { href: "/direktori", category: "social", name: t.fitur.launcher_direktori, icon: "fa-address-book" },
+    { href: "/galeri", category: "media", name: t.fitur.launcher_galeri, icon: "fa-images" },
+    { href: "/birthday", category: "social", name: locale === "ar" ? "أعياد الميلاد" : locale === "en" ? "Birthdays" : "Ulang Tahun", icon: "fa-cake-candles" },
+    { href: "/photobooth", category: "media", name: t.fitur.launcher_photobooth, icon: "fa-camera-retro" },
+    { href: "/event", category: "social", name: t.fitur.launcher_event, icon: "fa-calendar-days" },
+    { href: "/wasiat", category: "kas", name: t.fitur.launcher_wasiat, icon: "fa-scroll" },
+    { href: "/majlis", category: "spiritual", name: t.fitur.launcher_majlis, icon: "fa-microphone-lines" },
+    { href: "/tarbiyah", category: "social", name: t.fitur.launcher_tarbiyah, icon: "fa-handshake-angle" },
+    { href: "/oracle", category: "media", name: "Oracle", icon: "fa-camera" },
+    { href: "/multazam", category: "spiritual", name: t.fitur.launcher_multazam, icon: "fa-kaaba" },
+    { href: "/quran", category: "spiritual", name: t.fitur.launcher_quran, icon: "fa-quran" },
+    { href: "/quran?tab=khataman", category: "spiritual", name: t.fitur.launcher_khatam, icon: "fa-book-quran" },
+    { href: "/kiblat", category: "spiritual", name: t.fitur.launcher_kiblat, icon: "fa-compass" },
+    { href: "/tasbih", category: "spiritual", name: t.fitur.launcher_tasbih, icon: "fa-gem" },
+    { href: "/kontemplasi", category: "spiritual", name: t.fitur.launcher_kontemplasi, icon: "fa-spa" },
+    { href: "/celestial", category: "spiritual", name: t.fitur.launcher_celestial, icon: "fa-star" },
+    { href: "/divine", category: "spiritual", name: locale === "ar" ? "الآيات المباركة" : locale === "en" ? "Divine Verses" : "Ayat Suci", icon: "fa-book-open" },
+    { href: "/matsurat", category: "spiritual", name: t.fitur.launcher_matsurat, icon: "fa-hands-praying" },
+    { href: "/mahfuzhat", category: "spiritual", name: t.fitur.launcher_mahfuzhat, icon: "fa-feather-pointed" },
+    { href: "/asmaul-husna", category: "spiritual", name: t.fitur.launcher_asmaul, icon: "fa-certificate" },
+    { href: "/sirah", category: "spiritual", name: t.fitur.launcher_sirah, icon: "fa-map-location-dot" },
+    { href: "/enigma", category: "explore", name: locale === "ar" ? "مذكرات إنيغما" : locale === "en" ? "Enigma Notes" : "Catatan", icon: "fa-book-bookmark" },
+    { href: "/genesis", category: "explore", name: "Genesis", icon: "fa-landmark" },
+    { href: "/nexus", category: "social", name: t.fitur.launcher_nexus, icon: "fa-network-wired" },
+    { href: "/wrapped", category: "explore", name: "Wrapped", icon: "fa-film" },
+    { href: "/panduan", category: "explore", name: t.fitur.launcher_panduan, icon: "fa-circle-question" },
   ];
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredMiniApps = MINI_APPS.filter((app) => {
+    const matchCategory = mobileCategory === "all" || app.category === mobileCategory;
+    const matchQuery = !normalizedQuery || app.name.toLowerCase().includes(normalizedQuery) || app.href.toLowerCase().includes(normalizedQuery);
+    return matchCategory && matchQuery;
+  });
 
   // Setup GSAP and 3D Tilt for Desktop
   useEffect(() => {
@@ -500,10 +508,10 @@ export default function FiturClient({
         gsap.from(".desktop-category-bar", { opacity: 0, y: -15, duration: 0.8, delay: 0.1, ease: "power2.out", clearProps: "all" });
         gsap.from(".desktop-card", {
           opacity: 0,
-          y: 50,
-          duration: 0.8,
-          stagger: 0.05,
-          ease: "back.out(1.2)",
+          y: 28,
+          duration: 0.65,
+          stagger: 0.04,
+          ease: "expo.out",
           clearProps: "all",
         });
       } else {
@@ -606,9 +614,41 @@ export default function FiturClient({
               <i className="fa-solid fa-qrcode"></i>
               <span>Pindai QR</span>
             </Link>
-            <Link href="/profil" className="widget-action-btn tertiary">
+            <Link href="/profil" className="widget-action-btn tertiary" aria-label={t.sidebar.profile}>
               <i className="fa-solid fa-gear"></i>
             </Link>
+          </div>
+
+          <div className="widget-quick-prefs">
+            <div className="widget-lang-group" role="group" aria-label={locale === "ar" ? "اللغة" : locale === "en" ? "Language" : "Bahasa"}>
+              <span className="widget-prefs-label">
+                <i className="fa-solid fa-globe"></i> {locale === "ar" ? "اللغة" : locale === "en" ? "Lang" : "Bahasa"}
+              </span>
+              {(["id", "en", "ar"] as const).map((code) => (
+                <button
+                  key={code}
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(12);
+                    setLocale(code);
+                  }}
+                  className={`widget-pref-pill ${locale === code ? "active" : ""}`}
+                >
+                  {code.toUpperCase()}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="widget-guide-pill"
+              onClick={() => {
+                if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(15);
+                window.dispatchEvent(new CustomEvent("expedient-open-guide"));
+              }}
+            >
+              <i className="fa-solid fa-circle-question"></i>
+              <span>{locale === "ar" ? "مساعدة" : locale === "en" ? "Help" : "Panduan"}</span>
+            </button>
           </div>
         </div>
 
@@ -709,13 +749,13 @@ export default function FiturClient({
                 {locale === "ar" ? "قريباً" : locale === "en" ? "Upcoming" : "Agenda"}
               </span>
             </div>
-            <h3 className="widget-event-title" style={{ fontSize: "1.05rem", marginBottom: "4px" }}>
+            <h3 className="widget-event-title widget-event-title-compact">
               {locale === "ar" ? "الفعاليات واللقاءات" : locale === "en" ? "Events & Reunions" : "Agenda & Reuni Angkatan"}
             </h3>
             <div className="widget-card-label">
               {locale === "ar" ? "لا توجد فعاليات جديدة حالياً. خططوا معاً!" : locale === "en" ? "No new events yet. Plan together!" : "Belum ada agenda baru. Rencanakan bersama!"}
             </div>
-            <div className="widget-card-footer-link" style={{ marginTop: "12px" }}>
+            <div className="widget-card-footer-link widget-card-footer-compact">
               <span>{locale === "ar" ? "فتح التقويم" : locale === "en" ? "Open Calendar" : "Buka Kalender Agenda"}</span>
               <i className="fa-solid fa-arrow-right"></i>
             </div>
@@ -767,52 +807,99 @@ export default function FiturClient({
           <h3 className="widget-event-title khatam-title">
             {locale === "ar" ? "ختمة جماعية للدفعة 43" : locale === "en" ? "Cohort 43 Group Khatam" : "Khatam Bersama Angkatan 43"}
           </h3>
-          <div className="widget-event-meta" style={{ justifyContent: "space-between", alignItems: "center" }}>
+          <div className="widget-event-meta widget-khatam-meta">
             <span className="khatam-subtext">
-              <i className="fa-solid fa-circle-check" style={{ color: "#2bb97c", marginRight: "6px" }}></i>
+              <i className="fa-solid fa-circle-check khatam-check-icon"></i>
               {locale === "ar" ? "اختر وأكمل جزأك" : locale === "en" ? "Claim & Complete Your Juz" : "Ambil & Selesaikan Juz Anda"}
             </span>
-            <div className="widget-card-footer-link khatam-link" style={{ marginTop: 0 }}>
+            <div className="widget-card-footer-link khatam-link">
               <span>{locale === "ar" ? "فتح اللوحة" : locale === "en" ? "Open Board" : "Buka Papan"}</span>
               <i className="fa-solid fa-arrow-right"></i>
             </div>
           </div>
         </Link>
 
-        {/* WIDGET 7: QUICK SEARCH ALUMNI */}
+        {/* WIDGET 7: QUICK SEARCH ALUMNI & FITUR */}
         <form onSubmit={handleSearchSubmit} className="mobile-bento-card widget-search-card">
           <i className="fa-solid fa-magnifying-glass search-icon"></i>
           <input
             type="text"
-            placeholder={locale === "ar" ? "ابحث عن اسم زميل الخريجين..." : locale === "en" ? "Search alumni friend name..." : "Cari nama kawan alumni..."}
+            placeholder={locale === "ar" ? "ابحث عن ميزة أو زميل..." : locale === "en" ? "Filter features or search alumni..." : "Cari fitur atau nama alumni..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              className="search-clear-btn"
+              onClick={() => setSearchQuery("")}
+              aria-label="Clear"
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          )}
           <button type="submit" className="search-btn">
-            {locale === "ar" ? "بحث" : locale === "en" ? "Search" : "Cari"}
+            {locale === "ar" ? "بحث" : locale === "en" ? "Directory" : "Direktori"}
           </button>
         </form>
 
-        {/* MINI APP DRAWER (SEMUA FITUR ANGKATAN) */}
+        {/* MINI APP DRAWER (SEMUA FITUR ANGKATAN - CATEGORIZED) */}
         <div className="mobile-apps-section">
           <div className="mobile-section-header">
             <h3 className="mobile-section-title">
-              <i className="fa-solid fa-shapes"></i> {locale === "ar" ? "المرافق والميزات الأخرى" : locale === "en" ? "Other Features & Facilities" : "Fasilitas & Fitur Lainnya"}
+              <i className="fa-solid fa-shapes"></i> {locale === "ar" ? "المرافق والميزات" : locale === "en" ? "Portal Features" : "Semua Fitur Portal"}
             </h3>
-            <span className="mobile-section-counter">{MINI_APPS.length} {locale === "ar" ? "قائمة" : locale === "en" ? "Menus" : "Menu"}</span>
+            <span className="mobile-section-counter">
+              {filteredMiniApps.length} {locale === "ar" ? "قائمة" : locale === "en" ? "Menus" : "Menu"}
+            </span>
           </div>
 
-          <div className="mobile-app-grid">
-            {MINI_APPS.map((app, idx) => (
-              <Link key={idx} href={app.href} className="mobile-app-item">
-                <div className="mobile-app-icon-badge">
-                  <i className={`fa-solid ${app.icon}`}></i>
-                </div>
-                <span className="mobile-app-name">{app.name}</span>
-              </Link>
+          <div className="mobile-category-strip" role="tablist">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                role="tab"
+                aria-selected={mobileCategory === cat.id}
+                onClick={() => setMobileCategory(cat.id)}
+                className={`mobile-cat-pill ${mobileCategory === cat.id ? "active" : ""}`}
+              >
+                <i className={cat.icon}></i>
+                <span>{cat.label}</span>
+              </button>
             ))}
           </div>
+
+          {filteredMiniApps.length > 0 ? (
+            <div className="mobile-app-grid">
+              {filteredMiniApps.map((app) => (
+                <Link key={app.href} href={app.href} className="mobile-app-item">
+                  <div className="mobile-app-icon-badge">
+                    <i className={`fa-solid ${app.icon}`}></i>
+                  </div>
+                  <span className="mobile-app-name">{app.name}</span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="mobile-apps-empty">
+              <p>
+                {locale === "ar"
+                  ? `لا توجد ميزة مطابقة لـ "${searchQuery}"`
+                  : locale === "en"
+                    ? `No feature matched "${searchQuery}"`
+                    : `Tidak ada fitur bernama "${searchQuery}"`}
+              </p>
+              <Link
+                href={`/direktori?search=${encodeURIComponent(searchQuery.trim())}`}
+                className="mobile-dir-fallback-btn"
+              >
+                <i className="fa-solid fa-address-book"></i>{" "}
+                {locale === "ar" ? "ابحث في دليل الخريجين" : locale === "en" ? "Search in Alumni Directory" : `Cari "${searchQuery}" di Direktori Alumni`}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 
@@ -855,7 +942,15 @@ export default function FiturClient({
                 cardsRef.current[idx] = el;
               }}
             >
-              <div className="card-bg" style={{ backgroundImage: `url('${item.bg}')` }}></div>
+              <div className="card-bg">
+                <img
+                  src={item.bg}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="card-bg-img"
+                />
+              </div>
               <div className="card-glow-layer"></div>
               {item.badge && <div className="card-badge-tag">{item.badge}</div>}
               <i className={`fa-solid ${item.icon} card-icon`}></i>

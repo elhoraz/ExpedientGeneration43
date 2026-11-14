@@ -219,7 +219,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     <>
       <style>{`
         :root { --enigma-gold: #d4af37; --enigma-dark: #060b14; }
-        body { margin: 0; background-color: var(--enigma-dark); user-select: none; font-family: 'Inter', sans-serif; overflow-x: hidden; min-height: 100dvh; }
+        body { margin: 0; background-color: var(--enigma-dark); user-select: none; font-family: var(--font-sans, inherit); overflow-x: hidden; min-height: 100dvh; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
             display: flex; align-items: center; gap: 10px;
@@ -257,7 +257,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
         .success-overlay.show { opacity: 1; pointer-events: auto; }
         .clearance-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(1.8rem, 6vw, 3.5rem); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
         .secret-quote { font-family: 'Courier New', monospace; color: #fff; font-size: 0.95rem; text-align: center; max-width: 85%; line-height: 1.8; letter-spacing: 2px; transform: translateY(20px); opacity: 0; }
-        .btn-return { margin-top: 30px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
+        .btn-return { margin-top: 30px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: var(--font-sans, inherit); text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
         .btn-return:hover { background: var(--enigma-gold); color: #060b14; }
 
         @media (max-width: 768px) { 

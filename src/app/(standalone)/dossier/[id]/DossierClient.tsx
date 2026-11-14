@@ -124,7 +124,7 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
         body { 
             background-color: var(--bg-noir); 
             color: #fff; 
-            font-family: 'Inter', sans-serif; 
+            font-family: var(--font-sans, inherit); 
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -221,10 +221,8 @@ export default function DossierClient({ targetUser, age }: { targetUser: any, ag
             content: '';
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(212,175,55,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(212,175,55,0.05) 1px, transparent 1px);
-            background-size: 20px 20px;
-            opacity: 0.5;
+            background: radial-gradient(circle at top right, rgba(212,175,55,0.06), transparent 60%);
+            opacity: 0.7;
             z-index: 0;
             pointer-events: none;
         }

@@ -21,7 +21,7 @@
   border-radius: 40px;
   padding: 6px 14px 6px 6px;
   color: var(--gold-main, #d4af37);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans, inherit);
   cursor: pointer;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.15);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -164,7 +164,7 @@ body.sidebar-closed .floating-help-btn {
   border-radius: 24px;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.15);
   overflow: hidden;
-  animation: guideCardEnter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+  animation: guideCardEnter 0.3s var(--awwwards-ease, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
 }
 
 @keyframes guideCardEnter {
@@ -567,49 +567,7 @@ body.page-radar .floating-help-btn {
 
 @media (max-width: 768px) and (orientation: portrait), (max-width: 768px) and (pointer: coarse) {
   .floating-help-btn {
-    /* Angkat tombol di atas floating bottom dock mobile dan safe-area gesture bar */
-    bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
-    right: 16px;
-    padding: 6px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-  }
-
-  /* Ketika navbar disembunyikan di mobile, tombol bantuan ikut turun menempati posisi dock */
-  body.sidebar-closed .floating-help-btn {
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px))) !important;
-    right: 16px !important;
-    transform: none !important;
-  }
-
-  /* Radar clearance on mobile (menghindari filter panel & radar controls baik saat sidebar buka maupun tutup) */
-  body.page-radar:not(.sidebar-closed) .floating-help-btn {
-    bottom: calc(205px + max(16px, env(safe-area-inset-bottom, 16px))) !important;
-    right: 14px !important;
-  }
-
-  body.page-radar.sidebar-closed .floating-help-btn {
-    bottom: max(145px, calc(env(safe-area-inset-bottom, 16px) + 130px)) !important;
-    right: 14px !important;
-  }
-
-  body.page-quran:not(.sidebar-closed) .floating-help-btn {
-    bottom: calc(185px + max(16px, env(safe-area-inset-bottom, 16px))) !important;
-    right: 16px !important;
-  }
-
-  body.page-quran.sidebar-closed .floating-help-btn {
-    bottom: max(85px, calc(env(safe-area-inset-bottom, 16px) + 70px)) !important;
-    right: 16px !important;
-  }
-
-  /* Sembunyikan teks label "Bantuan" & badge di mobile kecil agar ramping jadi lingkaran FAB */
-  .floating-help-btn .help-btn-label,
-  .floating-help-btn .help-btn-divider,
-  .floating-help-btn .help-btn-lang {
-    display: none;
+    display: none !important;
   }
 
   .guide-modal-card {

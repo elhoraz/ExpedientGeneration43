@@ -29,11 +29,11 @@ export default function Sidebar() {
 
   const toggleSidebar = () => {
     if (navigator.vibrate) navigator.vibrate(30);
-    
+
     // Toggle state
     const newState = !isOpen;
     setIsOpen(newState);
-    
+
     // Sync with body class (CSS uses body.sidebar-closed)
     if (newState) {
       document.body.classList.remove("sidebar-closed");
@@ -60,22 +60,23 @@ export default function Sidebar() {
     }
   }, []);
 
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
 
   // Public pages: accessible without login
-  const publicNavItems = [
-    { href: "/", icon: "fa-house", label: t.sidebar.home, tooltip: t.sidebar.tooltip_home },
+  // On mobile 5-tab bar: Beranda · Direktori · Galeri · Fitur · Profil
+  const publicNavItems: Array<{ href: string; icon: string; label: string; tooltip: string; extraClass?: string }> = [
+    { href: "/", icon: "fa-house", label: t.sidebar.home, tooltip: t.sidebar.tooltip_home, extraClass: isLoggedIn ? "mobile-hide-nav" : "" },
     { href: "/beranda", icon: "fa-landmark", label: t.sidebar.museum, tooltip: t.sidebar.tooltip_museum },
     { href: "/direktori", icon: "fa-address-book", label: t.sidebar.directory, tooltip: t.sidebar.tooltip_directory },
     { href: "/galeri", icon: "fa-film", label: t.sidebar.gallery, tooltip: t.sidebar.tooltip_gallery },
   ];
 
-  // Auth-only pages
-  const authNavItems = [
-    { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: t.sidebar.tooltip_radar },
-    { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar.business, tooltip: t.sidebar.tooltip_business },
-    { href: "/fitur", icon: "fa-cubes", label: t.sidebar.features, tooltip: t.sidebar.tooltip_features },
-    { href: "/panduan", icon: "fa-book-bookmark", label: t.sidebar.guide, tooltip: t.sidebar.tooltip_guide, extraClass: "nav-item-panduan" },
+  // Auth-only desktop rail pages + Fitur core tab (Panduan stays accessible publicly on desktop)
+  const authNavItems: Array<{ href: string; icon: string; label: string; tooltip: string; authOnly?: boolean; extraClass?: string }> = [
+    { href: "/radar", icon: "fa-map-location-dot", label: t.sidebar.radar, tooltip: t.sidebar.tooltip_radar, authOnly: true, extraClass: "mobile-hide-nav" },
+    { href: "/syndicate", icon: "fa-briefcase", label: t.sidebar.business, tooltip: t.sidebar.tooltip_business, authOnly: true, extraClass: "mobile-hide-nav" },
+    { href: "/fitur", icon: "fa-cubes", label: t.sidebar.features, tooltip: t.sidebar.tooltip_features, authOnly: true },
+    { href: "/panduan", icon: "fa-book-bookmark", label: t.sidebar.guide, tooltip: t.sidebar.tooltip_guide, authOnly: false, extraClass: "nav-item-panduan mobile-hide-nav" },
   ];
 
   // Fitur sub-pages for active state detection
@@ -102,6 +103,9 @@ export default function Sidebar() {
     "/kontemplasi",
     "/divine",
     "/nexus",
+    "/event",
+    "/buku-tamu",
+    "/birthday",
   ];
 
   const isActive = (href: string) => {
@@ -121,42 +125,52 @@ export default function Sidebar() {
         <span className="line short"></span>
       </button>
 
-      <nav className={`sidebar no-select ${isOpen ? 'active' : ''}`} id="sidebarNav">
+      <nav className={`sidebar no-select ${isOpen ? 'active' : ''}`} id="sidebarNav" role="navigation" aria-label="Main Navigation">
         <a href="#" className="nav-item hover-trigger" id="btnMenuClose" onClick={(e) => { e.preventDefault(); toggleSidebar(); }} data-tooltip={t.sidebar.tooltip_hide}>
-          <i className="fa-solid fa-compress"></i>
+          <span className="nav-icon-pill">
+            <i className="fa-solid fa-compress"></i>
+          </span>
           <span className="nav-label">{t.sidebar.close}</span>
         </a>
-        
+
         {/* Public navigation items */}
         {publicNavItems.map((item) => (
-          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className={`fa-solid ${item.icon}`}></i>
-            <span className="nav-label">{item.label}</span>
-          </Link>
-        ))}
-
-        {/* Auth-only navigation items */}
-        {isLoggedIn && authNavItems.map((item) => (
           <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
             <i className={`fa-solid ${item.icon}`}></i>
             <span className="nav-label">{item.label}</span>
           </Link>
         ))}
-        
+
+        {/* Auth / Feature navigation items */}
+        {authNavItems
+          .filter((item) => !item.authOnly || isLoggedIn)
+          .map((item) => (
+            <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+              <span className="nav-icon-pill">
+                <i className={`fa-solid ${item.icon}`}></i>
+              </span>
+              <span className="nav-label">{item.label}</span>
+            </Link>
+          ))}
+
         <div style={{ flexGrow: 1 }} className="nav-spacer"></div>
 
         {/* Bottom: Profil (logged in) or Masuk (guest) */}
         {isLoggedIn ? (
           <Link href="/profil" className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`} data-tooltip={t.sidebar.profile} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className="fa-solid fa-circle-user"></i>
+            <span className="nav-icon-pill">
+              <i className="fa-solid fa-circle-user"></i>
+            </span>
             <span className="nav-label">{t.sidebar.profile}</span>
           </Link>
-        ) : isLoggedIn === false ? (
-          <Link href="/login" className="nav-item hover-trigger" data-tooltip={t.sidebar.login} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className="fa-solid fa-door-open"></i>
+        ) : (
+          <Link href="/login" className={`nav-item hover-trigger ${pathname?.startsWith("/login") ? 'active' : ''}`} data-tooltip={t.sidebar.login} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+            <span className="nav-icon-pill">
+              <i className="fa-solid fa-door-open"></i>
+            </span>
             <span className="nav-label">{t.sidebar.login}</span>
           </Link>
-        ) : null}
+        )}
       </nav>
     </>
   );

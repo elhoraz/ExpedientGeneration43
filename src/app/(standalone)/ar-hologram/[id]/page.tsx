@@ -31,7 +31,7 @@ export default function ARHologramClient() {
   return (
     <div className="ar-wrapper">
       <style>{`
-        body { background-color: #060b14; margin: 0; overflow: hidden; font-family: 'Inter', sans-serif; }
+        body { background-color: #060b14; margin: 0; overflow: hidden; font-family: var(--font-sans, inherit); }
         .ar-wrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; background: radial-gradient(circle at center, rgba(212,175,55,0.1) 0%, #060b14 70%); }
         
         .ar-scene { perspective: 1000px; width: 300px; height: 400px; position: relative; }

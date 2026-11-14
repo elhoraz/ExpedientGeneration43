@@ -175,7 +175,7 @@
     }
 
     .status-title { 
-        font-family: 'Inter', sans-serif; 
+        font-family: var(--font-sans, inherit); 
         font-size: 0.65rem; 
         color: var(--text-secondary); 
         letter-spacing: 4px; 
@@ -224,7 +224,7 @@
         align-items: center; 
         gap: 15px; 
         transition: all 0.5s var(--awwwards-ease); 
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-sans, inherit);
         box-shadow: var(--glass-shadow);
         overflow: hidden;
         position: relative;
@@ -351,7 +351,7 @@
         border-bottom: 1px solid var(--glass-border);
         color: var(--text-primary); 
         padding: 15px 0 10px 0; 
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-sans, inherit);
         font-size: 1.1rem; 
         font-weight: 400;
         transition: all 0.4s ease;
@@ -447,7 +447,7 @@
         color: var(--bg-main); 
         padding: 22px; 
         border-radius: 16px; 
-        font-family: 'Inter', sans-serif;
+        font-family: var(--font-sans, inherit);
         font-size: 0.85rem; 
         font-weight: 600; 
         letter-spacing: 3px; 
@@ -500,7 +500,7 @@
     
     .bio-status-title { 
         color: var(--text-primary); 
-        font-family: 'Inter', sans-serif; 
+        font-family: var(--font-sans, inherit); 
         font-size: 0.85rem; 
         font-weight: 600;
         letter-spacing: 3px;
@@ -521,7 +521,7 @@
         color: var(--text-primary); 
         padding: 20px; 
         border-radius: 16px; 
-        font-family: 'Inter', sans-serif; 
+        font-family: var(--font-sans, inherit); 
         font-size: 0.75rem; 
         font-weight: 600;
         letter-spacing: 2px; 
@@ -558,8 +558,8 @@
         box-shadow: var(--glass-shadow);
     }
     
-    .sys-msg.success { border-left: 4px solid var(--success-elegant); color: var(--text-primary); }
-    .sys-msg.error { border-left: 4px solid var(--danger-elegant); color: var(--text-primary); }
+    .sys-msg.success { border-color: rgba(43, 185, 124, 0.45); background: rgba(43, 185, 124, 0.08); color: var(--text-primary); }
+    .sys-msg.error { border-color: rgba(217, 69, 95, 0.45); background: rgba(217, 69, 95, 0.08); color: var(--text-primary); }
 
     textarea.form-input { resize: none; overflow: hidden; min-height: 40px; }
 
@@ -735,7 +735,7 @@
     /* MOBILE RESPONSIVENESS */
     @media (max-width: 768px) {
         .profil-wrapper { 
-            padding: 80px 12px 120px; 
+            padding: var(--top-widget-clearance, 72px) 12px 120px; 
             overflow-x: hidden;
             max-width: 100vw;
             box-sizing: border-box;
@@ -878,4 +878,46 @@
         .lang-cards-grid {
             grid-template-columns: 1fr !important;
         }
+    }
+
+    .profil-utility-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    @media (max-width: 480px) {
+        .profil-utility-links {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .profil-guide-trigger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--glass-border);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-primary);
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: border-color 0.25s ease, background 0.25s ease, color 0.25s ease;
+    }
+
+    .profil-guide-trigger i {
+        color: var(--gold-premium, #d4af37);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+    }
+
+    .profil-guide-trigger:hover {
+        border-color: var(--gold-premium, #d4af37);
+        background: rgba(212, 175, 55, 0.08);
     }

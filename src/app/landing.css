@@ -515,7 +515,7 @@ body:has(.landing-wrapper) {
   margin-bottom: 22px;
   opacity: 0;
   animation: fadeUp 0.8s ease-out 0.2s forwards;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease, box-shadow 0.25s ease;
   will-change: transform;
   position: relative;
   overflow: hidden;
@@ -597,7 +597,7 @@ body:has(.landing-wrapper) {
   cursor: pointer;
   user-select: none;
   transform: rotate(-5deg);
-  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease, filter 0.2s ease;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, border-color 0.25s ease, filter 0.2s ease;
   will-change: transform;
   overflow: hidden;
 }
@@ -749,7 +749,7 @@ body:has(.landing-wrapper) {
   color: var(--text-primary);
   text-decoration: none;
   font-size: clamp(0.76rem, 1.5vw, 0.84rem);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   will-change: transform;
 }
 
@@ -783,9 +783,7 @@ body:has(.landing-wrapper) {
 
 .tuku-ig-link i.fa-instagram {
   font-size: 1rem;
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #e1306c;
 }
 
 .tuku-ig-handle {
@@ -834,7 +832,7 @@ body:has(.landing-wrapper) {
   font-size: 0.85rem;
   letter-spacing: 1px;
   text-transform: uppercase;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, filter 0.2s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease, filter 0.2s ease;
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
   flex: 1;
   min-width: 190px;
@@ -893,7 +891,7 @@ body:has(.landing-wrapper) {
   font-weight: 700;
   font-size: 0.85rem;
   letter-spacing: 0.5px;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   flex: 1;
   min-width: 160px;
   will-change: transform;
@@ -1432,7 +1430,7 @@ body:has(.landing-wrapper) {
   font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .heritage-cat-btn:hover {
@@ -2099,9 +2097,7 @@ body:has(.landing-wrapper) {
 
 .footer-ig-link i.fa-instagram {
   font-size: 1rem;
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #e1306c;
 }
 
 .footer-ig-badge {
@@ -2504,7 +2500,7 @@ body:has(.landing-wrapper) {
   border-style: solid;
   border-width: 28px 28px 0 0;
   border-color: rgba(212, 175, 55, 0.65) transparent transparent transparent;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
@@ -2662,7 +2658,7 @@ body:has(.landing-wrapper) {
   border: 1px solid rgba(212, 175, 55, 0.25);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease;
   will-change: transform;
 }
 
@@ -3053,7 +3049,7 @@ body:has(.landing-wrapper) {
   border-style: solid;
   border-width: 0 0 20px 20px;
   border-color: transparent transparent rgba(212, 175, 55, 0.45) transparent;
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.25s ease;
   pointer-events: none;
   z-index: 2;
   border-bottom-right-radius: 20px;
@@ -3908,9 +3904,7 @@ body:has(.landing-wrapper) {
 
 .drawer-btn-ig i {
   font-size: 1.3rem;
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #e1306c;
 }
 
 .drawer-btn-yt {
@@ -4107,7 +4101,7 @@ body:has(.landing-wrapper) {
   color: var(--text-primary);
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
   user-select: none;
   will-change: transform;
 }
@@ -4230,7 +4224,7 @@ body:has(.landing-wrapper) {
   border: 1px solid rgba(240, 235, 220, 0.4);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.25);
   transform: rotate(var(--rotate-deg, 0deg));
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   scroll-snap-align: center;
   flex-shrink: 0;

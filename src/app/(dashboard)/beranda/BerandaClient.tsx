@@ -277,7 +277,7 @@ export default function BerandaClient({
               <button className="btn-mecha hover-trigger" id="btnAction"><i className="fa-solid fa-expand"></i> {tLang.beranda.hint_spin}</button>
           </div>
 
-          <i className="fa-solid fa-chevron-down scroll-indicator" style={{ position: 'absolute', bottom: '5vh', left: '50%', transform: 'translateX(-50%)', color: '#d4af37', fontSize: '2rem', animation: 'bounceIndicator 2s infinite', zIndex: 20, opacity: 0.7 }}></i>
+          <i className="fa-solid fa-chevron-down scroll-indicator" style={{ position: 'absolute', bottom: '5vh', left: '50%', transform: 'translateX(-50%)', color: '#d4af37', fontSize: '2rem', animation: 'floatDownIndicator 2.4s ease-in-out infinite', zIndex: 20, opacity: 0.7 }}></i>
       </div>
 
       <div className="phil-modal" id="philModal">
@@ -431,7 +431,7 @@ export default function BerandaClient({
                           const rank = idx + 1;
                           const borderColor = rank === 1 ? '#FFD700' : (rank === 2 ? '#E5E4E2' : (rank === 3 ? '#cd7f32' : 'var(--glass-border)'));
                           return (
-                              <div className="glass-panel reveal-up leaderboard-item" style={{ borderLeft: `4px solid ${borderColor}` }} key={idx}>
+                              <div className="glass-panel reveal-up leaderboard-item" style={{ borderColor: rank <= 3 ? borderColor : 'var(--glass-border)' }} key={idx}>
                                   <div className="leaderboard-info">
                                       <div className="leaderboard-rank">#{rank}</div>
                                       <img 

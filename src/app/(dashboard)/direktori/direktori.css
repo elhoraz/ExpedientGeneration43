@@ -29,7 +29,7 @@
   width: 100%;
   max-width: 1360px;
   margin: 0 auto;
-  padding: calc(max(16px, env(safe-area-inset-top, 0px)) + 54px) 14px 110px;
+  padding: var(--top-widget-clearance, calc(max(16px, env(safe-area-inset-top, 0px)) + 54px)) 14px 110px;
   color: var(--dir-text);
   overflow-x: clip;
   box-sizing: border-box;

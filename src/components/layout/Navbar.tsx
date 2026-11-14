@@ -142,7 +142,24 @@ function urlBase64ToUint8Array(base64String: string) {
 
   return (
     <>
-      <>
+      <div className="top-utility-dock">
+        {/* Command Palette / Quick Search Trigger */}
+        <button
+          type="button"
+          className="search-widget hover-trigger"
+          id="btnSearchWidget"
+          title={`${t.navbar.search_palette} (Ctrl+K)`}
+          aria-label={t.navbar.search_palette}
+          onClick={() => {
+            if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(12);
+            window.dispatchEvent(new CustomEvent("expedient-open-command-palette"));
+          }}
+        >
+          <div className="icon-orb">
+            <i className="fa-solid fa-magnifying-glass"></i>
+          </div>
+        </button>
+
         {/* Obrolan Angkatan - Hanya untuk anggota terautentikasi */}
         {userId && (
           <a 
@@ -169,15 +186,15 @@ function urlBase64ToUint8Array(base64String: string) {
           </a>
         )}
 
-        {/* Theme Toggle Widget */}
-        <ThemeToggle />
-        
         {/* Notification Bell Widget */}
         {userId && <NotificationBell userId={userId} />}
 
-        {/* Global Incoming Call Receiver Widget */}
-        {userId && <GlobalCallReceiver userId={userId} />}
-      </>
+        {/* Theme Toggle Widget */}
+        <ThemeToggle />
+      </div>
+
+      {/* Global Incoming Call Receiver Widget */}
+      {userId && <GlobalCallReceiver userId={userId} />}
 
       {userId && chatOpen && (
         <div className="chat-dropdown">

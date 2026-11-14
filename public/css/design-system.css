@@ -129,7 +129,7 @@
     font-weight: bold;
     text-align: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    border-left: 4px solid #d4af37;
+    border: 1px solid rgba(212,175,55,0.45);
     text-transform: uppercase;
 }
 
@@ -146,7 +146,7 @@
     padding: 0;
     background-color: #060b14;
     overflow: hidden;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans, inherit);
 }
 
 /* ================= SCANNER / OVERLAY COMMON ================= */

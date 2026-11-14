@@ -1304,6 +1304,8 @@ export const idDictionary: Dictionary = {
       mahfuzhat: "Mahfuzhat & Hikmah Santri",
       sirah: "Sirah Nabawiyah & Peta Jejak 3D",
       panduan: "Pusat Panduan & Bantuan Alumni",
+      fitur: "Pusat Semua Fitur (Fitur Hub)",
+      help_guide: "Buka Panduan Halaman Ini",
       profile: "Profil Saya & Pengaturan",
       admin: "Panel Admin Angkatan",
       lang_id: "Ganti Bahasa: Indonesia (Bahasa Indonesia)",

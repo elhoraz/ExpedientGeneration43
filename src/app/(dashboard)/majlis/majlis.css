@@ -8,7 +8,7 @@
 
   background-color: transparent;
   background-image: radial-gradient(circle at 50% 50%, rgba(212,175,55,0.05) 0%, transparent 70%);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans, inherit);
   width: 100%;
   height: 100svh;
   overflow: hidden;
@@ -109,7 +109,7 @@ body.page-majlis .main-wrapper {
 .majlis-page-wrapper .btn-stop-speaker-panel:hover { background: rgba(255,51,102,0.3); }
 
 /* Form */
-.majlis-page-wrapper .majlis-form input, .majlis-page-wrapper .majlis-form textarea { width: 100%; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 12px; margin-bottom: 12px; border-radius: 6px; font-family: 'Inter', sans-serif; box-sizing: border-box; transition: border-color 0.3s; outline: none; }
+.majlis-page-wrapper .majlis-form input, .majlis-page-wrapper .majlis-form textarea { width: 100%; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 12px; margin-bottom: 12px; border-radius: 6px; font-family: var(--font-sans, inherit); box-sizing: border-box; transition: border-color 0.3s; outline: none; }
 .majlis-page-wrapper .majlis-form textarea { resize: none; }
 .majlis-page-wrapper .majlis-form input:focus, .majlis-page-wrapper .majlis-form textarea:focus { border-color: var(--gold-main); }
 .majlis-page-wrapper .majlis-form input::placeholder, .majlis-page-wrapper .majlis-form textarea::placeholder { color: var(--text-secondary); }

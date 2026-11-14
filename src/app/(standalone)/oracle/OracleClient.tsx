@@ -332,7 +332,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
             --oracle-dark: #060b14;
             --text-secondary: #8b9ba8;
         }
-        body.page-oracle { background: var(--oracle-dark); color: #fff; margin: 0; font-family: 'Inter', sans-serif; overflow: hidden; }
+        body.page-oracle { background: var(--oracle-dark); color: #fff; margin: 0; font-family: var(--font-sans, inherit); overflow: hidden; }
         .btn-back-vault {
             position: absolute; top: 30px; left: 30px; z-index: 100;
             display: flex; align-items: center; gap: 8px;
@@ -392,7 +392,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .result-overlay.show { opacity: 1; pointer-events: auto; }
         
         .controls-panel { margin-top: 30px; display: flex; gap: 15px; }
-        .btn-initiate { padding: 14px 36px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: 'Inter'; text-transform: uppercase; letter-spacing: 3px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
+        .btn-initiate { padding: 14px 36px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: var(--font-sans, inherit); text-transform: uppercase; letter-spacing: 3px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
         .btn-initiate:hover { background: var(--oracle-gold); color: #060b14; }
         .btn-initiate:disabled { opacity: 0.5; pointer-events: none; }
         
@@ -411,7 +411,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           border: 1px solid rgba(212,175,55,0.4); border-radius: 16px;
           padding: 40px; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto;
           box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 40px rgba(212,175,55,0.05);
-          color: #dcdcdc; font-family: 'Inter', sans-serif; line-height: 1.8;
+          color: #dcdcdc; font-family: var(--font-sans, inherit); line-height: 1.8;
           position: relative; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .oracle-insight-paper::-webkit-scrollbar { width: 4px; }
@@ -421,7 +421,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .oi-subtitle { color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; text-transform: uppercase; }
         .oi-quote-box {
           margin-top: 35px; padding: 30px; background: rgba(212,175,55,0.03);
-          border-left: 3px solid var(--oracle-gold); border-radius: 0 12px 12px 0;
+          border: 1px solid rgba(212,175,55,0.25); border-radius: 12px;
           font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--oracle-gold);
           position: relative; line-height: 1.7; text-align: center;
         }
@@ -429,7 +429,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .oi-close {
           display: block; margin: 40px auto 0; padding: 12px 40px; background: transparent;
           border: 1px solid var(--oracle-gold); color: var(--oracle-gold);
-          border-radius: 30px; font-family: 'Inter'; letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;
+          border-radius: 30px; font-family: var(--font-sans, inherit); letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;
           cursor: pointer; transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .oi-close:hover { background: var(--oracle-gold); color: #060b14; box-shadow: 0 0 20px rgba(212,175,55,0.4); transform: translateY(-3px); }

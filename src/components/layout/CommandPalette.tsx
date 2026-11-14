@@ -8,6 +8,7 @@ import { Locale } from "@/lib/i18n/types";
 import "./CommandPalette.css";
 
 const COMMAND_DEFINITIONS = [
+  { id: "fitur", key: "fitur", url: "/fitur", icon: "fa-cubes" },
   { id: "beranda", key: "beranda", url: "/beranda", icon: "fa-landmark" },
   { id: "direktori", key: "direktori", url: "/direktori", icon: "fa-address-book" },
   { id: "galeri", key: "galeri", url: "/galeri", icon: "fa-photo-film" },
@@ -30,6 +31,7 @@ const COMMAND_DEFINITIONS = [
   { id: "mahfuzhat", key: "mahfuzhat", url: "/mahfuzhat", icon: "fa-feather-pointed" },
   { id: "sirah", key: "sirah", url: "/sirah", icon: "fa-map-location-dot" },
   { id: "panduan", key: "panduan", url: "/panduan", icon: "fa-book-bookmark" },
+  { id: "help-guide", key: "help_guide", url: "action:open-guide", icon: "fa-circle-question" },
   { id: "profile", key: "profile", url: "/profil", icon: "fa-circle-user" },
   { id: "admin", key: "admin", url: "/admin", icon: "fa-shield-halved" },
   { id: "lang-id", key: "lang_id", url: "lang:id", icon: "fa-globe" },
@@ -55,6 +57,11 @@ export default function CommandPalette() {
   );
 
   const executeCommand = (cmd: (typeof commands)[0]) => {
+    if (cmd.url === "action:open-guide") {
+      setIsOpen(false);
+      window.dispatchEvent(new CustomEvent("expedient-open-guide"));
+      return;
+    }
     if (cmd.url.startsWith("lang:")) {
       const targetLang = cmd.url.slice(5) as Locale;
       if (typeof navigator !== "undefined" && navigator.vibrate) {
@@ -74,9 +81,14 @@ export default function CommandPalette() {
         setIsOpen(true);
       }
     };
-    
+    const handleOpenEvent = () => setIsOpen(true);
+
     window.addEventListener("keydown", handleGlobalKeyDown);
-    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+    window.addEventListener("expedient-open-command-palette", handleOpenEvent);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+      window.removeEventListener("expedient-open-command-palette", handleOpenEvent);
+    };
   }, []);
 
   useEffect(() => {
@@ -135,6 +147,35 @@ export default function CommandPalette() {
             spellCheck="false" 
           />
           <kbd className="cmd-esc-hint" onClick={() => setIsOpen(false)}>ESC</kbd>
+        </div>
+
+        <div className="cmd-quick-strip">
+          <div className="cmd-quick-langs" role="group" aria-label={locale === "ar" ? "اللغة" : locale === "en" ? "Language" : "Bahasa"}>
+            {(["id", "en", "ar"] as Locale[]).map((langCode) => (
+              <button
+                key={langCode}
+                type="button"
+                className={`cmd-quick-pill ${locale === langCode ? "active" : ""}`}
+                onClick={() => {
+                  if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(12);
+                  setLocale(langCode);
+                }}
+              >
+                {langCode.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="cmd-quick-help"
+            onClick={() => {
+              setIsOpen(false);
+              window.dispatchEvent(new CustomEvent("expedient-open-guide"));
+            }}
+          >
+            <i className="fa-solid fa-circle-question"></i>
+            <span>{locale === "ar" ? "مساعدة الصفحة" : locale === "en" ? "Page Guide" : "Bantuan"}</span>
+          </button>
         </div>
         
         <div className="cmd-results">

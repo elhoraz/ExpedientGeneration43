@@ -805,6 +805,20 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
                             {tLang.profil.lang_preference_desc}
                         </p>
                         <LanguageSwitcher variant="cards" />
+                        <div className="profil-utility-links">
+                            <button
+                                type="button"
+                                className="profil-guide-trigger cursor-bind"
+                                onClick={() => window.dispatchEvent(new CustomEvent("expedient-open-guide"))}
+                            >
+                                <i className="fa-solid fa-circle-question"></i>
+                                <span>{tLang.command_palette.commands.help_guide}</span>
+                            </button>
+                            <Link href="/panduan" className="profil-guide-trigger cursor-bind">
+                                <i className="fa-solid fa-book-open"></i>
+                                <span>{tLang.command_palette.commands.panduan}</span>
+                            </Link>
+                        </div>
                     </div>
 
                     <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> {tLang.profil.biometric_title}</h2>

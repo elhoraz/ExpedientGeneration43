@@ -1304,6 +1304,8 @@ export const enDictionary: Dictionary = {
       mahfuzhat: "Santri Mahfuzhat & Maxims",
       sirah: "Prophetic Sirah & 3D Interactive Map",
       panduan: "Alumni Guide & FAQ Center",
+      fitur: "All Features Hub (Fitur)",
+      help_guide: "Open Help Guide for This Page",
       profile: "My Profile & Settings",
       admin: "Cohort Admin Panel",
       lang_id: "Switch Language: Indonesian (Bahasa Indonesia)",

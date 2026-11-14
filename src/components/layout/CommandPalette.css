@@ -7,7 +7,7 @@
   height: 100dvh;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(8px);
-  z-index: 9999;
+  z-index: 10050;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -267,4 +267,66 @@
   .cmd-search-bar {
     padding: 12px 16px;
   }
+}
+
+.cmd-quick-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cmd-quick-langs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cmd-quick-pill,
+.cmd-quick-help {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  background: rgba(212, 175, 55, 0.06);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.cmd-quick-pill:hover,
+.cmd-quick-help:hover {
+  border-color: var(--gold-main, #d4af37);
+  color: var(--text-primary);
+}
+
+.cmd-quick-pill.active {
+  background: var(--gold-main, #d4af37);
+  border-color: var(--gold-main, #d4af37);
+  color: #060b14;
+}
+
+:root[data-theme="light"] .cmd-quick-strip {
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+:root[data-theme="light"] .cmd-quick-pill,
+:root[data-theme="light"] .cmd-quick-help {
+  color: #475569;
+  background: rgba(170, 119, 28, 0.06);
+  border-color: rgba(170, 119, 28, 0.25);
+}
+
+:root[data-theme="light"] .cmd-quick-pill.active {
+  background: #aa771c;
+  border-color: #aa771c;
+  color: #ffffff;
 }

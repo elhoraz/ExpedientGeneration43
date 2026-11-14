@@ -5,7 +5,7 @@
     max-width: 100vw;
     background-color: var(--bg-main);
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans, inherit);
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -299,7 +299,7 @@
     backdrop-filter: blur(10px);
     border: 1px solid var(--gold-main, #d4af37);
     color: var(--gold-main, #d4af37);
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans, inherit);
     font-size: clamp(0.78rem, 2vw, 0.88rem);
     font-weight: 600;
     text-transform: uppercase;

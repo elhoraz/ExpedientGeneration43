@@ -1304,6 +1304,8 @@ export const arDictionary: Dictionary = {
       mahfuzhat: "محفوظات وحكم طلاب المعهد",
       sirah: "السيرة النبوية والخريطة التفاعلية",
       panduan: "مركز الإرشادات والأسئلة الشائعة",
+      fitur: "مركز جميع الميزات (Hub)",
+      help_guide: "فتح دليل المساعدة لهذه الصفحة",
       profile: "ملفي الشخصي والإعدادات",
       admin: "لوحة تحكم إدارة الدفعة",
       lang_id: "تغيير اللغة: الإندونيسية (Bahasa Indonesia)",
