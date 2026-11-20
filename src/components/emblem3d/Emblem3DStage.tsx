@@ -653,8 +653,38 @@ export default function Emblem3DStage({
         powerPreference: "high-performance",
       });
       renderer.shadowMap.enabled = false;
+
+      // Detect strictly entry-level devices (< OPPO A96 4G / < 8GB RAM / <= 4 cores / weak GPU).
+      // OPPO A96 (8GB RAM, 8 cores, Adreno 610) & stronger phones stay in full mobile-standard PBR!
+      let gpuRendererName = "";
+      try {
+        const gl = renderer.getContext();
+        const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+        if (dbg) {
+          gpuRendererName = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || "");
+        }
+      } catch {}
+
+      const navAny = navigator as unknown as { deviceMemory?: number };
+      const devMem = typeof navAny.deviceMemory === "number" ? navAny.deviceMemory : null;
+      const cpuCores = typeof navigator.hardwareConcurrency === "number" ? navigator.hardwareConcurrency : null;
+      const isUltraEntryGpu =
+        /PowerVR.*(GE8320|GE8322|GE8300|GE8100)|Adreno.*(30\d|40\d|504|505|506|508|509|510)|Mali-4\d\d|Mali-T7\d\d|Mali-T8[23]0|Mali-G31/i.test(
+          gpuRendererName
+        );
+      let isLiteTier =
+        isMobInit &&
+        (isUltraEntryGpu ||
+          (devMem !== null && devMem <= 4) ||
+          (cpuCores !== null && cpuCores <= 4));
+
+      const getMaxDpr = (w: number) => {
+        if (w >= 768) return 2;
+        return isLiteTier ? 1.0 : 1.15;
+      };
+
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobInit ? 1.15 : 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, getMaxDpr(width)));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 0.9;
       renderer.domElement.style.display = "block";
@@ -663,16 +693,27 @@ export default function Emblem3DStage({
       renderer.domElement.style.touchAction = "pan-y";
       mount.appendChild(renderer.domElement);
 
-      const pmrem = new THREE.PMREMGenerator(renderer);
-      const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-      scene.environment = envTex;
-      if ("environmentIntensity" in scene) {
-        (scene as any).environmentIntensity = isMobInit ? 0.42 : 0.36;
+      let pmrem: any = null;
+      let envTex: any = null;
+      if (!isLiteTier) {
+        pmrem = new THREE.PMREMGenerator(renderer);
+        envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+        scene.environment = envTex;
+        if ("environmentIntensity" in scene) {
+          (scene as any).environmentIntensity = isMobInit ? 0.42 : 0.36;
+        }
       }
 
-      scene.add(new THREE.AmbientLight(0xffffff, isMobInit ? 0.42 : 0.32));
+      const ambientLight = new THREE.AmbientLight(0xffffff, isLiteTier ? 0.58 : isMobInit ? 0.42 : 0.32);
+      scene.add(ambientLight);
 
-      const keyLight = new THREE.DirectionalLight(0xfff5e0, isMobInit ? 1.6 : 1.45);
+      let hemiLight: any = null;
+      if (isLiteTier) {
+        hemiLight = new THREE.HemisphereLight(0xfff5dc, 0x3b4d6b, 0.95);
+        scene.add(hemiLight);
+      }
+
+      const keyLight = new THREE.DirectionalLight(0xfff5e0, isMobInit ? 1.65 : 1.45);
       keyLight.position.set(4, 5, 6);
       scene.add(keyLight);
 
@@ -698,6 +739,68 @@ export default function Emblem3DStage({
         burstLight.position.set(0, 0, 0.75);
         scene.add(burstLight);
       }
+
+      const convertGroupToLitePhong = (rootObj: any) => {
+        const matCache = new Map<any, any>();
+        rootObj.traverse((child: any) => {
+          if (!child.isMesh || !child.material) return;
+          const mapSingle = (mat: any) => {
+            if (mat.isMeshPhongMaterial) return mat;
+            if (matCache.has(mat)) return matCache.get(mat);
+            const roughness = typeof mat.roughness === "number" ? mat.roughness : 0.35;
+            const metalness = typeof mat.metalness === "number" ? mat.metalness : 0.25;
+            const shininess = Math.max(20, Math.min(96, (1 - roughness) * 95));
+            const specLvl = metalness > 0.5 ? 0.58 : 0.34;
+            const phong = new THREE.MeshPhongMaterial({
+              color: mat.color ? mat.color.clone() : new THREE.Color(0xffffff),
+              map: mat.map || null,
+              emissive: mat.emissive ? mat.emissive.clone() : new THREE.Color(0x000000),
+              emissiveIntensity: mat.emissiveIntensity ?? 1,
+              specular: new THREE.Color(specLvl, specLvl * 0.95, specLvl * 0.82),
+              shininess,
+              side: mat.side,
+              transparent: mat.transparent,
+              opacity: mat.opacity,
+            });
+            matCache.set(mat, phong);
+            mat.dispose?.();
+            return phong;
+          };
+          child.material = Array.isArray(child.material)
+            ? child.material.map(mapSingle)
+            : mapSingle(child.material);
+        });
+      };
+
+      const activateLiteTier = () => {
+        if (isLiteTier || !isMobInit) return;
+        isLiteTier = true;
+        const w = mount.clientWidth || window.innerWidth;
+        const h = mount.clientHeight || window.innerHeight;
+        renderer.setPixelRatio(1);
+        renderer.setSize(w, h);
+        scene.environment = null;
+        if (envTex) {
+          envTex.dispose();
+          envTex = null;
+        }
+        if (pmrem) {
+          pmrem.dispose();
+          pmrem = null;
+        }
+        ambientLight.intensity = 0.58;
+        if (!hemiLight) {
+          hemiLight = new THREE.HemisphereLight(0xfff5dc, 0x3b4d6b, 0.95);
+          scene.add(hemiLight);
+        }
+        convertGroupToLitePhong(emblemGroup);
+        if (threeRef.current.coreParticles.length > 8) {
+          threeRef.current.coreParticles = threeRef.current.coreParticles.slice(0, 8);
+        }
+        try {
+          renderer.compile(scene, camera);
+        } catch {}
+      };
 
       const emblemGroup = new THREE.Group();
       emblemGroup.position.y = isMobInit ? 0.16 : 0;
@@ -787,6 +890,18 @@ export default function Emblem3DStage({
           runtimes.sort((a, b) => a.def.id - b.def.id);
           threeRef.current.shards = runtimes;
           computeLayout();
+
+          if (isLiteTier) {
+            convertGroupToLitePhong(emblemGroup);
+            if (threeRef.current.coreParticles.length > 8) {
+              threeRef.current.coreParticles = threeRef.current.coreParticles.slice(0, 8);
+            }
+          }
+
+          // Pre-compile WebGL shaders before fading out loader to eliminate first-frame stutter
+          try {
+            renderer.compile(scene, camera);
+          } catch {}
 
           setLoadProgress(100);
           setTimeout(() => {
@@ -1037,9 +1152,12 @@ export default function Emblem3DStage({
         const isMob = w < 768;
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMob ? 1.15 : 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, getMaxDpr(w)));
         renderer.setSize(w, h);
         initParticles();
+        if (isLiteTier && threeRef.current.coreParticles.length > 8) {
+          threeRef.current.coreParticles = threeRef.current.coreParticles.slice(0, 8);
+        }
         computeLayout();
 
         if (!stateRef.current.isAnimating) {
@@ -1092,43 +1210,73 @@ export default function Emblem3DStage({
         if (renderer.domElement.parentNode) {
           renderer.domElement.parentNode.removeChild(renderer.domElement);
         }
-        envTex.dispose();
-        pmrem.dispose();
+        if (envTex) envTex.dispose();
+        if (pmrem) pmrem.dispose();
         renderer.dispose();
       };
 
       const projVec = new THREE.Vector3();
-      const clock = new THREE.Clock();
+      let lastFrameMs = performance.now();
+      let perfAccumMs = 0;
+      let perfFrameCount = 0;
 
       const animate = () => {
         animId = requestAnimationFrame(animate);
         const st = stateRef.current;
 
         if (!st.isInViewport && !st.isAnimating) {
+          lastFrameMs = performance.now();
           return;
         }
 
-        const t = clock.getElapsedTime();
+        const nowMs = performance.now();
+        const elapsedMs = nowMs - lastFrameMs;
+
+        // Low-end tier uses locked ~30fps pacing to avoid uneven frame jitter and thermal throttling
+        if (isLiteTier && !st.isAnimating && elapsedMs < 31) {
+          return;
+        }
+
+        const dtSec = Math.min(0.06, Math.max(0.004, elapsedMs * 0.001));
+        const dtMult = dtSec * 60;
+        lastFrameMs = nowMs;
+        const t = nowMs * 0.001;
+
+        // Dynamic safety check for unannounced weak mobile hardware (< ~25fps sustained).
+        // Devices with >= 8GB RAM (e.g. OPPO A96) only auto-step down if severely below ~17fps.
+        if (isMobInit && !isLiteTier && threeRef.current.shards.length > 0 && elapsedMs < 150) {
+          perfAccumMs += elapsedMs;
+          perfFrameCount++;
+          if (perfFrameCount >= 32) {
+            const avgMs = perfAccumMs / perfFrameCount;
+            const thresholdMs = devMem !== null && devMem >= 8 ? 58 : 39;
+            if (avgMs > thresholdMs) {
+              activateLiteTier();
+            }
+            perfAccumMs = 0;
+            perfFrameCount = 0;
+          }
+        }
 
         if (!st.isAnimating) {
-          camera.position.z += (st.camTargetZ - camera.position.z) * 0.08;
+          camera.position.z += (st.camTargetZ - camera.position.z) * Math.min(1, 0.08 * dtMult);
         }
 
         if (!st.isAnimating) {
           if (!st.isScattered) {
             if (st.dragTarget !== "full") {
               if (Math.abs(st.emblemVelY) > 0.0005) {
-                emblemGroup.rotation.y += st.emblemVelY;
-                st.emblemVelY *= 0.945;
+                emblemGroup.rotation.y += st.emblemVelY * dtMult;
+                st.emblemVelY *= Math.pow(0.945, dtMult);
               } else if (st.autoSpin) {
-                emblemGroup.rotation.y += 0.0065;
+                emblemGroup.rotation.y += 0.0065 * dtMult;
               }
               if (Math.abs(st.emblemVelX) > 0.0005) {
                 emblemGroup.rotation.x = Math.max(
                   -1.15,
-                  Math.min(1.15, emblemGroup.rotation.x + st.emblemVelX)
+                  Math.min(1.15, emblemGroup.rotation.x + st.emblemVelX * dtMult)
                 );
-                st.emblemVelX *= 0.92;
+                st.emblemVelX *= Math.pow(0.92, dtMult);
               }
             }
           } else {
@@ -1136,22 +1284,22 @@ export default function Emblem3DStage({
               const isDraggingThis = st.dragTarget === sh;
               if (!isDraggingThis) {
                 if (Math.abs(sh.velY) > 0.0008) {
-                  sh.obj.rotation.y += sh.velY;
-                  sh.velY *= 0.94;
+                  sh.obj.rotation.y += sh.velY * dtMult;
+                  sh.velY *= Math.pow(0.94, dtMult);
                 } else if (st.autoSpin) {
-                  sh.obj.rotation.y += 0.0075;
+                  sh.obj.rotation.y += 0.0075 * dtMult;
                 }
 
                 if (Math.abs(sh.velX) > 0.0008) {
-                  sh.obj.rotation.x += sh.velX;
-                  sh.velX *= 0.93;
+                  sh.obj.rotation.x += sh.velX * dtMult;
+                  sh.velX *= Math.pow(0.93, dtMult);
                 } else {
-                  sh.obj.rotation.x *= 0.985;
+                  sh.obj.rotation.x *= Math.pow(0.985, dtMult);
                 }
               }
 
               const targetHover = sh.isHovered || isDraggingThis ? 1.18 : 1.0;
-              sh.hoverMult += (targetHover - sh.hoverMult) * 0.14;
+              sh.hoverMult += (targetHover - sh.hoverMult) * Math.min(1, 0.14 * dtMult);
               const sVal = sh.scatterTarget.scale * sh.hoverMult;
               sh.obj.scale.set(sVal, sVal, sVal);
 
@@ -1181,7 +1329,7 @@ export default function Emblem3DStage({
 
           ctxConstel.beginPath();
           threeRef.current.coreParticles.forEach((p) => {
-            p.angle += p.speed;
+            p.angle += p.speed * dtMult;
             const targetX = p.baseX + Math.cos(p.angle) * p.radius;
             const targetY = p.baseY + Math.sin(p.angle) * (p.radius * 0.52);
 
