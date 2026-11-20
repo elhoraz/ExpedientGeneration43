@@ -8,6 +8,7 @@ import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { sanitizeHtml } from "@/lib/sanitize";
 import LorongKenangan from "./LorongKenangan";
+import Emblem3DStage from "@/components/emblem3d/Emblem3DStage";
 import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import "./beranda.css";
 
@@ -28,10 +29,75 @@ export default function BerandaClient({
 }) {
   const { t } = useCms();
   const { t: tLang, locale } = useLanguage();
+  const isAr = locale === "ar";
+  const isEn = locale === "en";
+
+  const localizedLores = [
+    t('beranda_lore_1', '"Dan bersabarlah kamu bersama-sama dengan orang-orang yang menyeru Tuhannya di pagi dan senja hari..." (Al-Kahfi: 28)'),
+    t('beranda_lore_2', '"Niscaya Allah akan meninggikan orang-orang yang beriman di antaramu dan orang-orang yang diberi ilmu pengetahuan..." (Al-Mujadilah: 11)'),
+    t('beranda_lore_3', '"Dan berpeganglah kamu semuanya kepada tali (agama) Allah, dan janganlah kamu bercerai berai..." (Ali Imran: 103)'),
+    t('beranda_lore_4', '"Maka sesungguhnya sesudah kesulitan itu ada kemudahan..." (Al-Insyirah: 5)'),
+    t('beranda_lore_5', '"Bukanlah golongan kami orang yang tidak menyayangi yang muda dan tidak menghormati yang tua." (HR. Tirmidzi)')
+  ];
+
+  const localizedShards = [
+    {
+      title: isAr ? 'الأرض مع شهادتين وقلم ذهبي وكتابين' : (isEn ? 'Earth with Two Shahadas, Golden Feather Pen, and Two Books' : t('beranda_shard_1_title', 'Bumi dengan 2 Lafadz Syahadat, Pena Bulu Emas dan Dua Kitab')),
+      desc: isAr ? 'يرمز إلى خلافة الأرض ونشر قيم وشريعة الإسلام القويمة في أرجاء المعمورة، مستمسكين بالقرآن والسنة.' : (isEn ? 'Symbolizing leadership on Earth to spread Islamic values and teachings globally, upholding the Quran and Sunnah.' : t('beranda_shard_1_desc', 'Melambangkan yang menyiratkan makna QS. Al-Baqarah : 30 sebagai pemimpin di bumi yang mempunyai misi dalam menyebarluaskan ajaran, nilai, dan syariat Islam yang benar ke seluruh jagat raya. Pena bulu emas dan dua kitab melambangkan kewajiban alumni Expedient Generation, dalam menjalankan amanah yang berdasarkan Al-Quran\'an & As - Sunnah.'))
+    },
+    {
+      title: isAr ? 'شعار المعهد الأم' : (isEn ? 'Alma Mater Inscription' : t('beranda_shard_2_title', 'Tulisan Almamater')),
+      desc: isAr ? 'دعاء بأن يكون خريجو عام 2025 أصحاب خاتمة حسنة وحملة لرسالة النبي محمد صلى الله عليه وسلم.' : (isEn ? 'A prayer for 2025 graduates to achieve an honorable legacy and champion the Prophet’s message.' : t('beranda_shard_2_desc', 'Sebagai doa agar alumni Arrisalah tahun 2025 menjadi alumni yang husnul khotimah dan membangun kejayaan risalah Nabi Muhammad SAW.'))
+    },
+    {
+      title: isAr ? 'الخاتم الذهبي' : (isEn ? 'Golden Ring' : t('beranda_shard_3_title', 'Cincin Emas')),
+      desc: isAr ? 'يرمز إلى القوة والمكانة النفيسة والعزيمة الصادقة والرؤية المستقبلية.' : (isEn ? 'Signifies strength, precious value, iron determination, and visionary character.' : t('beranda_shard_3_desc', 'Cincin emas bermakna kekuatan dan sesuatu yang berharga, melambangkan tekat yang kuat, serta karakter yang visioner.'))
+    },
+    {
+      title: isAr ? 'الوشاح الأبيض' : (isEn ? 'White Sash' : t('beranda_shard_4_title', 'Selendang Berwarna Putih')),
+      desc: isAr ? 'رمز لأواصر الأخوة المتينة النقية المبنية على العقيدة والإيمان.' : (isEn ? 'Represents close and solid fraternity, based on pure faith and Islamic values.' : t('beranda_shard_4_desc', 'Selendang melambangkan persaudaraan yang erat dan solid, berdasarkan asas iman dan agama Islam yang harus dijaga kesuciannya.'))
+    },
+    {
+      title: isAr ? 'راية المعهد الحديث' : (isEn ? 'Pondok Modern Flag' : t('beranda_shard_5_title', 'Bendera Pondok Modern')),
+      desc: isAr ? 'رمز للمعهد كمؤسسة تربوية تعلو فوق كل العصبيات ولجميع الفئات.' : (isEn ? 'Symbol of Pondok Modern as an educational bastion standing above and for all factions.' : t('beranda_shard_5_desc', 'Merupakan simbol Pondok Modern sebagai lembaga pendidikan yang selalu berada di atas dan untuk semua golongan.'))
+    },
+    {
+      title: isAr ? 'درع التنجستن النفيس' : (isEn ? 'Tungsten Precious Shield' : t('beranda_shard_6_title', 'Kelopak Logam Mulia Tungsten')),
+      desc: isAr ? 'رمز لصلابة الحماية والدرع الحصين أمام وسواس الشيطان وتحديات العصر.' : (isEn ? 'Represents the strongest shield guarding character against temptation and worldly trials.' : t('beranda_shard_6_desc', 'Kelopak logam mulia tungsten merupakan material terkuat di dunia yang melambangkan perisai diri yang kuat dari godaan syaitan yang terkutuk.'))
+    },
+    {
+      title: isAr ? 'درع ربع الحزب الثماني' : (isEn ? 'Rub Al-Hizb Octagonal Shield' : t('beranda_shard_7_title', 'Perisai Rub Al-Hizb')),
+      desc: isAr ? 'يرمز لالتزام الخريجين بالقرآن ونشر الرحمة للعالمين في ثمانية اتجاهات مع بريق الفضة السماوية.' : (isEn ? 'Represents commitment to the Quran and spreading blessings to all directions with modesty and resilience.' : t('beranda_shard_7_desc', 'Bentuk segi delapan ini merepresentasikan Rub Al-Hizb, simbol klasik pembatas ayat Al-Qur\'an, yang melambangkan komitmen alumni sebagai benteng iman dan pengamal kalam suci. Delapan sudutnya melambangkan delapan pintu surga sekaligus kesiapan menyebarkan kemaslahatan rahmatan lil-\'alamin ke delapan penjuru mata angin. Dibalut kilau perak (Al-Fidhdhah) yang terinspirasi dari keindahan perhiasan surga (QS. Al-Insan: 21), simbol ini menegaskan karakter alumni yang tangguh, adaptif, dan berharga tinggi, namun tetap bersahaja dalam kerendahan hati (tawadhu).'))
+    },
+    {
+      title: isAr ? 'بتلات الرخام الأزرق (Blue Marble)' : (isEn ? 'Blue Marble Petals' : t('beranda_shard_8_title', 'Kelopak Blue Marble')),
+      desc: isAr ? 'تأكيد على مسؤولية عمارة الأرض والحفاظ على كوكبنا أمانة من الله تعالى.' : (isEn ? 'Emphasizes ecological responsibility and sustainability as entrusted stewards of Allah’s creation.' : t('beranda_shard_8_desc', 'Merupakan sebutan pertama kali untuk foto bumi yang pertama, yang diambil pada 7 Desember 1972, melambangkan gerakan dalam menjaga dan melestarikan bumi sebagai amanah yang dibebankan kepada seluruh umat manusia sesuai dengan QS. Al-Baqarah: 56. Memicu perlunya pembangkitan berkelanjutan untuk menjaga planet. Kepercayaan, loyalitas, tanggung jawab, keamanan simbol surga spiritualitas. Dan berlist-kan emas melambangkan bahwa alumni Arrisalah tahun 2025 adalah sesuatu yang berharga.'))
+    },
+    {
+      title: isAr ? 'قرن الوعل الذهبي بلفظ محمد ﷺ' : (isEn ? 'Golden Antler with Muhammad (PBUH)' : t('beranda_shard_9_title', 'Tanduk Rusa Emas Berlafazkan Muhammad SAW')),
+      desc: isAr ? 'علو الهمة في إحياء رسالة النبي ﷺ مع حجر الياقوت الأحمر كرمز لأصل التوحيد الراسخ.' : (isEn ? 'High aspiration in resurrecting the Prophet’s message, anchored upon foundational Tawhid.' : t('beranda_shard_9_desc', 'Melambangkan semangat yang tinggi dalam menggapai cita-cita yang mulia, sebagai simbol regenerasi dan kebangkitan risalah Nabi Muhammad SAW. Kehadiran batu rubi merah di poros tengah bawah mengambil makna dari istilah bahasa Sanskerta Ratna yang berarti permata paling berharga. Batu Ratna ini merepresentasikan prinsip ketauhidan sebagai pondasi utama yang tunggal dan utuh. Posisinya yang diletakkan di bagian paling bawah menegaskan bahwa seluruh pergerakan, semangat perjuangan, dan cita-cita alumni harus berakar kuat pada asas tauhid yang kokoh kepada Allah SWT.'))
+    },
+    {
+      title: isAr ? 'الدرع الفولاذي الثماني' : (isEn ? 'Octagonal Steel Shield' : t('beranda_shard_10_title', 'Perisai Baja Berbentuk Segi 8')),
+      desc: isAr ? 'رسوخ أصول الإسلام ونشر نوره في جميع الجهات الأربع وما بينها.' : (isEn ? 'Firm principles of Islam radiating empowered blessings across all eight horizons.' : t('beranda_shard_10_desc', 'Menggambarkan asas Islam yang kokoh dan delapan arah mata angin yang memberi dampak pemberdayaan potensi yang memancar ke seluruh penjuru alam (rahmatan lil-alamin), serta menyiratkan makna seperti dalam QS. Al-Baqarah: 115, yakni kemanapun kamu menghadap, disanalah wajah-Nya.'))
+    },
+    {
+      title: isAr ? 'التاج الذهبي بلفظ الجلالة الله' : (isEn ? 'Golden Crown with Allah (SWT)' : t('beranda_shard_11_title', 'Mahkota Emas Berlambangkan Allah SWT')),
+      desc: isAr ? 'يعلو كل الرموز ليعبر عن وحدانية الله المطلقة وأن كل عمل يرجع إليه سبحانه.' : (isEn ? 'Highest crown representing absolute divine sovereignty; all endeavors originate and return to Allah.' : t('beranda_shard_11_desc', 'Melambangkan kekuasaan, keabadian, kebijaksanaan dan legitimasi. Simbol ini terletak di atas melambangkan bahwa Allah SWT yang Maha Esa dan segala aspek kehidupan ini bermuara kepada-Nya tiada daya dan upaya selain dari kehendak Allah Taala.'))
+    },
+    {
+      title: isAr ? 'الجواهر الخمس' : (isEn ? 'Five Jewels' : t('beranda_shard_12_title', 'Lima Permata')),
+      desc: isAr ? 'ترمز إلى أركان الإسلام الخمسة التي يبنى عليها الدين القويم.' : (isEn ? 'Symbolizing the Five Pillars of Islam forming the core bedrock of faith.' : t('beranda_shard_12_desc', 'Lima permata bermakna lima rukun Islam yang mendasari berdirinya agama Islam.'))
+    },
+    {
+      title: isAr ? 'أحجار الزمرد الست' : (isEn ? 'Six Emerald Stones' : t('beranda_shard_13_title', 'Enam Batu Zamrud')),
+      desc: isAr ? 'ترمز لأركان الإيمان الستة كأساس لا يتزعزع في قلب المؤمن.' : (isEn ? 'Representing the Six Articles of Faith as the unshakeable foundation of a believer.' : t('beranda_shard_13_desc', 'Enam batu zamrud sebagai simbol kemakmuran dan kelimpahan yang melambangkan enam rukun iman sebagai asas dasar keyakinan seorang muslim.'))
+    }
+  ];
 
   useEffect(() => {
     document.body.classList.add("page-beranda");
-    
+
     // Animate birthday toast if celebrants exist today
     let bdayTimer: NodeJS.Timeout | null = null;
     if (birthdayUsers && birthdayUsers.length > 0) {
@@ -43,116 +109,54 @@ export default function BerandaClient({
         }
       }, 2500);
     }
-    
-    const isAr = locale === "ar";
-    const isEn = locale === "en";
 
-    // Setup window CMS config
+    // Setup window CMS config (retained for Panca Jiwa & Archive modals in beranda.js)
     (window as any).BERANDA_CMS = {
-      lores: [
-          t('beranda_lore_1', '"Dan bersabarlah kamu bersama-sama dengan orang-orang yang menyeru Tuhannya di pagi dan senja hari..." (Al-Kahfi: 28)'),
-          t('beranda_lore_2', '"Niscaya Allah akan meninggikan orang-orang yang beriman di antaramu dan orang-orang yang diberi ilmu pengetahuan..." (Al-Mujadilah: 11)'),
-          t('beranda_lore_3', '"Dan berpeganglah kamu semuanya kepada tali (agama) Allah, dan janganlah kamu bercerai berai..." (Ali Imran: 103)'),
-          t('beranda_lore_4', '"Maka sesungguhnya sesudah kesulitan itu ada kemudahan..." (Al-Insyirah: 5)'),
-          t('beranda_lore_5', '"Bukanlah golongan kami orang yang tidak menyayangi yang muda dan tidak menghormati yang tua." (HR. Tirmidzi)')
-      ],
-      shards: [
-          { 
-            title: isAr ? 'الأرض مع شهادتين وقلم ذهبي وكتابين' : (isEn ? 'Earth with Two Shahadas, Golden Feather Pen, and Two Books' : t('beranda_shard_1_title', 'Bumi dengan 2 Lafazd Syahadat, Pena Bulu Emas dan Dua Kitab')), 
-            desc: isAr ? 'يرمز إلى خلافة الأرض ونشر قيم وشريعة الإسلام القويمة في أرجاء المعمورة، مستمسكين بالقرآن والسنة.' : (isEn ? 'Symbolizing leadership on Earth to spread Islamic values and teachings globally, upholding the Quran and Sunnah.' : t('beranda_shard_1_desc', 'Melambangkan yang menyiratkan makna QS. Al-Baqarah : 30 sebagai pemimpin di bumi yang mempunyai misi dalam menyebarluaskan ajaran, nilai, dan syariat Islam yang benar ke seluruh jagat raya. Pena bulu emas dan dua kitab melambangkan kewajiban alumni Expedient Generation, dalam menjalankan amanah yang berdasarkan Al-Quran\'an & As - Sunnah.')) 
-          },
-          { 
-            title: isAr ? 'شعار المعهد الأم' : (isEn ? 'Alma Mater Inscription' : t('beranda_shard_2_title', 'Tulisan Almamater')), 
-            desc: isAr ? 'دعاء بأن يكون خريجو عام 2025 أصحاب خاتمة حسنة وحملة لرسالة النبي محمد صلى الله عليه وسلم.' : (isEn ? 'A prayer for 2025 graduates to achieve an honorable legacy and champion the Prophet’s message.' : t('beranda_shard_2_desc', 'Sebagai doa agar alumni Arrisalah tahun 2025 menjadi alumni yang husnul khotimah dan membangun kejayaan risalah Nabi Muhammad SAW.')) 
-          },
-          { 
-            title: isAr ? 'الخاتم الذهبي' : (isEn ? 'Golden Ring' : t('beranda_shard_3_title', 'Cincin Emas')), 
-            desc: isAr ? 'يرمز إلى القوة والمكانة النفيسة والعزيمة الصادقة والرؤية المستقبلية.' : (isEn ? 'Signifies strength, precious value, iron determination, and visionary character.' : t('beranda_shard_3_desc', 'Cincin emas bermakna kekuatan dan sesuatu yang berharga, melambangkan tekat yang kuat, serta karakter yang visioner.')) 
-          },
-          { 
-            title: isAr ? 'الوشاح الأبيض' : (isEn ? 'White Sash' : t('beranda_shard_4_title', 'Selendang Berwarna Putih')), 
-            desc: isAr ? 'رمز لأواصر الأخوة المتينة النقية المبنية على العقيدة والإيمان.' : (isEn ? 'Represents close and solid fraternity, based on pure faith and Islamic values.' : t('beranda_shard_4_desc', 'Selendang melambangkan persaudaraan yang erat dan solid, berdasarkan asas iman dan agama Islam yang harus dijaga kesuciannya.')) 
-          },
-          { 
-            title: isAr ? 'راية المعهد الحديث' : (isEn ? 'Pondok Modern Flag' : t('beranda_shard_5_title', 'Bendera Pondok Modern')), 
-            desc: isAr ? 'رمز للمعهد كمؤسسة تربوية تعلو فوق كل العصبيات ولجميع الفئات.' : (isEn ? 'Symbol of Pondok Modern as an educational bastion standing above and for all factions.' : t('beranda_shard_5_desc', 'Merupakan simbol Pondok Modern sebagai lembaga pendidikan yang selalu berada di atas dan untuk semua golongan.')) 
-          },
-          { 
-            title: isAr ? 'درع التنجستن النفيس' : (isEn ? 'Tungsten Precious Shield' : t('beranda_shard_6_title', 'Kelopak Logam Mulia Tungsten')), 
-            desc: isAr ? 'رمز لصلابة الحماية والدرع الحصين أمام وسواس الشيطان وتحديات العصر.' : (isEn ? 'Represents the strongest shield guarding character against temptation and worldly trials.' : t('beranda_shard_6_desc', 'Kelopak logam mulia tungsten merupakan material terkuat di dunia yang melambangkan perisai diri yang kuat dari godaan syaitan yang terkutuk.')) 
-          },
-          { 
-            title: isAr ? 'درع ربع الحزب الثماني' : (isEn ? 'Rub Al-Hizb Octagonal Shield' : t('beranda_shard_7_title', 'Perisai Rub Al-Hizb')), 
-            desc: isAr ? 'يرمز لالتزام الخريجين بالقرآن ونشر الرحمة للعالمين في ثمانية اتجاهات مع بريق الفضة السماوية.' : (isEn ? 'Represents commitment to the Quran and spreading blessings to all directions with modesty and resilience.' : t('beranda_shard_7_desc', 'Bentuk segi delapan ini merepresentasikan Rub Al-Hizb, simbol klasik pembatas ayat Al-Qur\'an, yang melambangkan komitmen alumni sebagai benteng iman dan pengamal kalam suci. Delapan sudutnya melambangkan delapan pintu surga sekaligus kesiapan menyebarkan kemaslahatan rahmatan lil-\'alamin ke delapan penjuru mata angin. Dibalut kilau perak (Al-Fidhdhah) yang terinspirasi dari keindahan perhiasan surga (QS. Al-Insan: 21), simbol ini menegaskan karakter alumni yang tangguh, adaptif, dan berharga tinggi, namun tetap bersahaja dalam kerendahan hati (tawadhu).')) 
-          },
-          { 
-            title: isAr ? 'بتلات الرخام الأزرق (Blue Marble)' : (isEn ? 'Blue Marble Petals' : t('beranda_shard_8_title', 'Kelopak Blue Marble')), 
-            desc: isAr ? 'تأكيد على مسؤولية عمارة الأرض والحفاظ على كوكبنا أمانة من الله تعالى.' : (isEn ? 'Emphasizes ecological responsibility and sustainability as entrusted stewards of Allah’s creation.' : t('beranda_shard_8_desc', 'Merupakan sebutan pertama kali untuk foto bumi yang pertama, yang diambil pada 7 Desember 1972, melambangkan gerakan dalam menjaga dan melestarikan bumi sebagai amanah yang dibebankan kepada seluruh umat manusia sesuai dengan QS. Al-Baqarah: 56. Memicu perlunya pembangkitan berkelanjutan untuk menjaga planet. Kepercayaan, loyalitas, tanggung jawab, keamanan simbol surga spiritualitas. Dan berlist-kan emas melambangkan bahwa alumni Arrisalah tahun 2025 adalah sesuatu yang berharga.')) 
-          },
-          { 
-            title: isAr ? 'قرن الوعل الذهبي بلفظ محمد ﷺ' : (isEn ? 'Golden Antler with Muhammad (PBUH)' : t('beranda_shard_9_title', 'Tanduk Rusa Emas Berlafazkan Muhammad SAW')), 
-            desc: isAr ? 'علو الهمة في إحياء رسالة النبي ﷺ مع حجر الياقوت الأحمر كرمز لأصل التوحيد الراسخ.' : (isEn ? 'High aspiration in resurrecting the Prophet’s message, anchored upon foundational Tawhid.' : t('beranda_shard_9_desc', 'Melambangkan semangat yang tinggi dalam menggapai cita-cita yang mulia, sebagai simbol regenerasi dan kebangkitan risalah Nabi Muhammad SAW. Kehadiran batu rubi merah di poros tengah bawah mengambil makna dari istilah bahasa Sanskerta Ratna yang berarti permata paling berharga. Batu Ratna ini merepresentasikan prinsip ketauhidan sebagai pondasi utama yang tunggal dan utuh. Posisinya yang diletakkan di bagian paling bawah menegaskan bahwa seluruh pergerakan, semangat perjuangan, dan cita-cita alumni harus berakar kuat pada asas tauhid yang kokoh kepada Allah SWT.')) 
-          },
-          { 
-            title: isAr ? 'الدرع الفولاذي الثماني' : (isEn ? 'Octagonal Steel Shield' : t('beranda_shard_10_title', 'Perisai Baja Berbentuk Segi 8')), 
-            desc: isAr ? 'رسوخ أصول الإسلام ونشر نوره في جميع الجهات الأربع وما بينها.' : (isEn ? 'Firm principles of Islam radiating empowered blessings across all eight horizons.' : t('beranda_shard_10_desc', 'Menggambarkan asas Islam yang kokoh dan delapan arah mata angin yang memberi dampak pemberdayaan potensi yang memancar ke seluruh penjuru alam (rahmatan lil-alamin), serta menyiratkan makna seperti dalam QS. Al-Baqarah: 115, yakni kemanapun kamu menghadap, disanalah wajah-Nya.')) 
-          },
-          { 
-            title: isAr ? 'التاج الذهبي بلفظ الجلالة الله' : (isEn ? 'Golden Crown with Allah (SWT)' : t('beranda_shard_11_title', 'Mahkota Emas Berlambangkan Allah SWT')), 
-            desc: isAr ? 'يعلو كل الرموز ليعبر عن وحدانية الله المطلقة وأن كل عمل يرجع إليه سبحانه.' : (isEn ? 'Highest crown representing absolute divine sovereignty; all endeavors originate and return to Allah.' : t('beranda_shard_11_desc', 'Melambangkan kekuasaan, keabadian, kebijaksanaan dan legitimasi. Simbol ini terletak di atas melambangkan bahwa Allah SWT yang Maha Esa dan segala aspek kehidupan ini bermuara kepada-Nya tiada daya dan upaya selain dari kehendak Allah Taala.')) 
-          },
-          { 
-            title: isAr ? 'الجواهر الخمس' : (isEn ? 'Five Jewels' : t('beranda_shard_12_title', 'Lima Permata')), 
-            desc: isAr ? 'ترمز إلى أركان الإسلام الخمسة التي يبنى عليها الدين القويم.' : (isEn ? 'Symbolizing the Five Pillars of Islam forming the core bedrock of faith.' : t('beranda_shard_12_desc', 'Lima permata bermakna lima rukun Islam yang mendasari berdirinya agama Islam.')) 
-          },
-          { 
-            title: isAr ? 'أحجار الزمرد الست' : (isEn ? 'Six Emerald Stones' : t('beranda_shard_13_title', 'Enam Batu Zamrud')), 
-            desc: isAr ? 'ترمز لأركان الإيمان الستة كأساس لا يتزعزع في قلب المؤمن.' : (isEn ? 'Representing the Six Articles of Faith as the unshakeable foundation of a believer.' : t('beranda_shard_13_desc', 'Enam batu zamrud sebagai simbol kemakmuran dan kelimpahan yang melambangkan enam rukun iman sebagai asas dasar keyakinan seorang muslim.')) 
-          }
-      ],
+      lores: localizedLores,
+      shards: localizedShards,
       jiwa: {
-          keikhlasan: { 
-            title: isAr ? '١. الإخلاص' : (isEn ? '1. Sincerity (Ikhlas)' : t('beranda_jiwa_1_title', '1. Keikhlasan')), 
-            desc: isAr ? '<p>المبدأ الأول هو الإخلاص؛ العمل لله وحده دون ابتغاء مصلحة دنيوية أو رياء، فالمعلم يخلص في التربية، والطلاب يخلصون في التعلّم.</p>' : (isEn ? '<p>The first soul is sincerity: acting purely for the sake of Allah SWT without seeking worldly praise or personal gain.</p>' : t('beranda_jiwa_1_desc', '<p>Jiwa yang pertama adalah keikhlasan. Prinsip ini berarti <em>sepi ing pamrih</em>, yakni berbuat sesuatu bukan karena didorong oleh keinginan untuk mendapatkan keuntungan tertentu, melainkan hanya untuk Allah SWT semata. Segala perbuatan dilakukan dengan niat semata-mata untuk ibadah, Lillah. Kiai dan guru ikhlas dalam mendidik, para pembantu Kiai ikhlas dalam membantu menjalankan proses pendidikan, serta para santri yang ikhlas dididik.</p><p>Jiwa ini menciptakan suasana kehidupan pondok yang harmonis antara Kiai yang disegani dengan santri yang taat, cinta dan penuh hormat. Jiwa ini pula yang menjadikan para santri senantiasa siap berjuang di jalan Allah, di manapun dan kapanpun.</p>')) 
-          },
-          kesederhanaan: { 
-            title: isAr ? '٢. البساطة' : (isEn ? '2. Simplicity' : t('beranda_jiwa_2_title', '2. Kesederhanaan')), 
-            desc: isAr ? '<p>البساطة ليست فقراً ولا استسلاماً، بل هي عزة نفس وقوة تحمّل واستعلاء على الترف الزائف لمواجهة معارك الحياة برجولة.</p>' : (isEn ? '<p>Simplicity does not mean poverty; it embodies inner strength, endurance, and self-mastery in facing life struggles.</p>' : t('beranda_jiwa_2_desc', '<p>Kehidupan yang sederhana tentu sangat erat kaitannya dengan pondok pesantren. Kehidupan santri yang tentram bersahaja tentu jauh dari kata berlebihan, mubazir and lain sebagainya. Sederhana tidak berarti pasif atau menerima begitu saja, tidak juga berarti miskin dan melarat.</p><p>Justru dalam jiwa kesederhanan itu terdapat nilai-nilai kekuatan, kesanggupan, ketabahan dan penguasaan diri dalam menghadapi perjuangan hidup.</p>')) 
-          },
-          kemandirian: { 
-            title: isAr ? '٣. الاعتماد على النفس' : (isEn ? '3. Self-Reliance' : t('beranda_jiwa_3_title', '3. Kemandirian')), 
-            desc: isAr ? '<p>القدرة على خدمة النفس وبناء الاستقلالية، حتى لا يعتمد الطالب أو المعهد على صدقة أو معونة الآخرين.</p>' : (isEn ? '<p>Self-reliance equips students to stand on their own feet and manage their responsibilities independently.</p>' : t('beranda_jiwa_3_desc', '<p>Kemandirian atau sering disebut juga dengan Berdikari (Berdiri di atas kaki sendiri) adalah kesanggupan menolong diri sendiri. Jiwa tersebut merupakan senjata ampuh yang dibekalkan pesantren kepada para santrinya. Berdikari tidak saja berarti bahwa santri sanggup belajar dan berlatih mengurus segala kepentingannya sendiri, tetapi pondok pesantren itu sendiri sebagai lembaga pendidikan juga harus sanggup berdikari sehingga tidak pernah menyandarkan kehidupannya kepada bantuan atau belas kasihan pihak lain.</p><p>Gontor menerapkan <em>Zelp-Berdruiping Systeem</em> (sama-sama memberikan iuran dan sama-sama memakai). Semua pekerjaan yang ada di dalam pondok dikerjakan oleh Kiai, guru dan para santrinya sendiri.</p>')) 
-          },
-          ukhuwah: { 
-            title: isAr ? '٤. الأخوة الإسلامية' : (isEn ? '4. Islamic Brotherhood' : t('beranda_jiwa_4_title', '4. Ukhuwwah Islamiyyah')), 
-            desc: isAr ? '<p>رباط الأخوة الوثيق في السراء والضراء، يذيب كل الفوارق العرقية والقبلية والاجتماعية في بوتقة الإيمان الواحد.</p>' : (isEn ? '<p>Deep Islamic brotherhood shared through all joy and sorrow, breaking all ethnic and social boundaries.</p>' : t('beranda_jiwa_4_desc', '<p>Kehidupan di pondok pesantren diliputi suasana persaudaraan yang akrab, sehingga segala suka dan duka dirasakan bersama dalam jalinan ukhuwwah Islamiyyah. Tidak ada dinding pemisah di antara mereka; apapun latarbelakang keluarga, suku, budaya, bahkan bangsa semua larut dalam jalinan ukhuwwah Islamiyyah.</p><p>Ukhuwah ini bukan saja selama mereka di Pondok, tetapi juga mempengaruhi ke arah persatuan umat dalam masyarakat setelah mereka terjun di masyarakat.</p>')) 
-          },
-          kebebasan: { 
-            title: isAr ? '٥. الحرية' : (isEn ? '5. Freedom & Independence' : t('beranda_jiwa_5_title', '5. Kebebasan')), 
-            desc: isAr ? '<p>الحرية الإيجابية المسؤولة في التفكير واختيار طريق المستقبل ضمن الحدود الشرعية والقيم النبيلة.</p>' : (isEn ? '<p>Responsible freedom of thought and action within positive lines, guided by the foundational principles.</p>' : t('beranda_jiwa_5_desc', '<p>Bebas dalam berpikir dan berbuat, bebas dalam menentukan masa depan, bebas dalam memilih jalan hidup, dan bahkan bebas dari berbagai pengaruh negatif dari luar dirinya. Jiwa bebas ini akan menjadikan santri berjiwa besar dan optimis dalam menghadapi segala kesulitan.</p><p>Seringkali ditemukan unsur-unsur negatif dari kebebasan yang tak terkontrol, yaitu apabila kebebasan itu disalahgunakan, sehingga terlalu bebas (liberal) dan berakibat hilangnya arah tujuan dan prinsip. Ada pula yang terlalu bebas (untuk tidak mau dipengaruhi), berpegang teguh kepada tradisi yang dianggapnya baik, sehingga tidak mau mengikuti perkembangan zaman.</p><p>Maka kebebasan ini harus dikembalikan ke aslinya, yaitu bebas di dalam garis-garis yang positif, dengan penuh tanggungjawab; baik di dalam kehidupan pondok pesantren itu sendiri, maupun dalam kehidupan masyarakat. Untuk bisa mendapatkan kebebasan, seorang santri haruslah memegang teguh 4 prinsip sebelumnya agar tidak terjerumus ke dalam kebebasan yang salah.</p>')) 
-          }
+        keikhlasan: {
+          title: isAr ? '١. الإخلاص' : (isEn ? '1. Sincerity (Ikhlas)' : t('beranda_jiwa_1_title', '1. Keikhlasan')),
+          desc: isAr ? '<p>المبدأ الأول هو الإخلاص؛ العمل لله وحده دون ابتغاء مصلحة دنيوية أو رياء، فالمعلم يخلص في التربية، والطلاب يخلصون في التعلّم.</p>' : (isEn ? '<p>The first soul is sincerity: acting purely for the sake of Allah SWT without seeking worldly praise or personal gain.</p>' : t('beranda_jiwa_1_desc', '<p>Jiwa yang pertama adalah keikhlasan. Prinsip ini berarti <em>sepi ing pamrih</em>, yakni berbuat sesuatu bukan karena didorong oleh keinginan untuk mendapatkan keuntungan tertentu, melainkan hanya untuk Allah SWT semata. Segala perbuatan dilakukan dengan niat semata-mata untuk ibadah, Lillah. Kiai dan guru ikhlas dalam mendidik, para pembantu Kiai ikhlas dalam membantu menjalankan proses pendidikan, serta para santri yang ikhlas dididik.</p><p>Jiwa ini menciptakan suasana kehidupan pondok yang harmonis antara Kiai yang disegani dengan santri yang taat, cinta dan penuh hormat. Jiwa ini pula yang menjadikan para santri senantiasa siap berjuang di jalan Allah, di manapun dan kapanpun.</p>'))
+        },
+        kesederhanaan: {
+          title: isAr ? '٢. البساطة' : (isEn ? '2. Simplicity' : t('beranda_jiwa_2_title', '2. Kesederhanaan')),
+          desc: isAr ? '<p>البساطة ليست فقراً ولا استسلاماً، بل هي عزة نفس وقوة تحمّل واستعلاء على الترف الزائف لمواجهة معارك الحياة برجولة.</p>' : (isEn ? '<p>Simplicity does not mean poverty; it embodies inner strength, endurance, and self-mastery in facing life struggles.</p>' : t('beranda_jiwa_2_desc', '<p>Kehidupan yang sederhana tentu sangat erat kaitannya dengan pondok pesantren. Kehidupan santri yang tentram bersahaja tentu jauh dari kata berlebihan, mubazir and lain sebagainya. Sederhana tidak berarti pasif atau menerima begitu saja, tidak juga berarti miskin dan melarat.</p><p>Justru dalam jiwa kesederhanan itu terdapat nilai-nilai kekuatan, kesanggupan, ketabahan dan penguasaan diri dalam menghadapi perjuangan hidup.</p>'))
+        },
+        kemandirian: {
+          title: isAr ? '٣. الاعتماد على النفس' : (isEn ? '3. Self-Reliance' : t('beranda_jiwa_3_title', '3. Kemandirian')),
+          desc: isAr ? '<p>القدرة على خدمة النفس وبناء الاستقلالية، حتى لا يعتمد الطالب أو المعهد على صدقة أو معونة الآخرين.</p>' : (isEn ? '<p>Self-reliance equips students to stand on their own feet and manage their responsibilities independently.</p>' : t('beranda_jiwa_3_desc', '<p>Kemandirian atau sering disebut juga dengan Berdikari (Berdiri di atas kaki sendiri) adalah kesanggupan menolong diri sendiri. Jiwa tersebut merupakan senjata ampuh yang dibekalkan pesantren kepada para santrinya. Berdikari tidak saja berarti bahwa santri sanggup belajar dan berlatih mengurus segala kepentingannya sendiri, tetapi pondok pesantren itu sendiri sebagai lembaga pendidikan juga harus sanggup berdikari sehingga tidak pernah menyandarkan kehidupannya kepada bantuan atau belas kasihan pihak lain.</p><p>Gontor menerapkan <em>Zelp-Berdruiping Systeem</em> (sama-sama memberikan iuran dan sama-sama memakai). Semua pekerjaan yang ada di dalam pondok dikerjakan oleh Kiai, guru dan para santrinya sendiri.</p>'))
+        },
+        ukhuwah: {
+          title: isAr ? '٤. الأخوة الإسلامية' : (isEn ? '4. Islamic Brotherhood' : t('beranda_jiwa_4_title', '4. Ukhuwwah Islamiyyah')),
+          desc: isAr ? '<p>رباط الأخوة الوثيق في السراء والضراء، يذيب كل الفوارق العرقية والقبلية والاجتماعية في بوتقة الإيمان الواحد.</p>' : (isEn ? '<p>Deep Islamic brotherhood shared through all joy and sorrow, breaking all ethnic and social boundaries.</p>' : t('beranda_jiwa_4_desc', '<p>Kehidupan di pondok pesantren diliputi suasana persaudaraan yang akrab, sehingga segala suka dan duka dirasakan bersama dalam jalinan ukhuwwah Islamiyyah. Tidak ada dinding pemisah di antara mereka; apapun latarbelakang keluarga, suku, budaya, bahkan bangsa semua larut dalam jalinan ukhuwwah Islamiyyah.</p><p>Ukhuwah ini bukan saja selama mereka di Pondok, tetapi juga mempengaruhi ke arah persatuan umat dalam masyarakat setelah mereka terjun di masyarakat.</p>'))
+        },
+        kebebasan: {
+          title: isAr ? '٥. الحرية' : (isEn ? '5. Freedom & Independence' : t('beranda_jiwa_5_title', '5. Kebebasan')),
+          desc: isAr ? '<p>الحرية الإيجابية المسؤولة في التفكير واختيار طريق المستقبل ضمن الحدود الشرعية والقيم النبيلة.</p>' : (isEn ? '<p>Responsible freedom of thought and action within positive lines, guided by the foundational principles.</p>' : t('beranda_jiwa_5_desc', '<p>Bebas dalam berpikir dan berbuat, bebas dalam menentukan masa depan, bebas dalam memilih jalan hidup, dan bahkan bebas dari berbagai pengaruh negatif dari luar dirinya. Jiwa bebas ini akan menjadikan santri berjiwa besar dan optimis dalam menghadapi segala kesulitan.</p><p>Seringkali ditemukan unsur-unsur negatif dari kebebasan yang tak terkontrol, yaitu apabila kebebasan itu disalahgunakan, sehingga terlalu bebas (liberal) dan berakibat hilangnya arah tujuan dan prinsip. Ada pula yang terlalu bebas (untuk tidak mau dipengaruhi), berpegang teguh kepada tradisi yang dianggapnya baik, sehingga tidak mau mengikuti perkembangan zaman.</p><p>Maka kebebasan ini harus dikembalikan ke aslinya, yaitu bebas di dalam garis-garis yang positif, dengan penuh tanggungjawab; baik di dalam kehidupan pondok pesantren itu sendiri, maupun dalam kehidupan masyarakat. Untuk bisa mendapatkan kebebasan, seorang santri haruslah memegang teguh 4 prinsip sebelumnya agar tidak terjerumus ke dalam kebebasan yang salah.</p>'))
+        }
       },
       archive: {
-          visi: { 
-            date: isAr ? '٣٠ مارس ٢٠٢٦' : (isEn ? 'MARCH 30, 2026' : t('beranda_archive_1_date', '30 MARET 2026')), 
-            title: isAr ? 'إعلان رؤية العهد السيادي' : (isEn ? 'Deklarasi Visi Angkatan 43' : t('beranda_archive_1_title', 'Deklarasi Visi Sovereign')), 
-            content: isAr ? '<p>تسجل هذه الوثيقة العهد العظيم لدفعة إكسبيدينت بشأن رؤية ومسار المستقبل.</p><p>نعاهد الله على حفظ ميراث <span class="redacted" onclick="revealRedacted(this)">الإسلام</span> وتوثيق عرى <span class="redacted" onclick="revealRedacted(this)">الأخوة</span>.</p>' : (isEn ? '<p>This manuscript records the solemn pledge of the Expedient cohort regarding future vision.</p><p>We pledge to preserve the legacy of <span class="redacted" onclick="revealRedacted(this)">ISLAM</span> and bind tight our <span class="redacted" onclick="revealRedacted(this)">BROTHERHOOD</span>.</p>' : t('beranda_archive_1_content', '<p>Naskah ini mencatat sumpah agung angkatan Expedient mengenai visi dan arah tujuan masa depan.</p><p>Kami berjanji untuk memelihara warisan <span class="redacted" onclick="revealRedacted(this)">KEISLAMAN</span> dan mengikat erat <span class="redacted" onclick="revealRedacted(this)">PERSAUDARAAN</span>.</p><p>Nilai-nilai ini diukir bukan pada batu, melainkan pada karakter setiap individu.</p><p><em>Selesai.</em></p>')) 
-          },
-          simpul: { 
-            date: isAr ? '١٥ فبراير ٢٠٢٦' : (isEn ? 'FEBRUARY 15, 2026' : t('beranda_archive_2_date', '15 FEBRUARI 2026')), 
-            title: isAr ? 'ميثاق الطهر: صون قيم الرسالة' : (isEn ? 'Purity Knot: Safeguarding Arrisalah Values' : t('beranda_archive_2_title', 'Simpul Kesucian: Menjaga Nilai Arrisalah')), 
-            content: isAr ? '<p>مخطوطة حول صون القيم النقية في مرحلة ما بعد التخرج.</p><p>مهما بلغت زينة الدنيا، يظل ارتكازنا على <span class="redacted" onclick="revealRedacted(this)">بساطة</span> القلب والتواضع.</p>' : (isEn ? '<p>A manuscript on preserving pure values in post-graduation harmony.</p><p>Behind worldly splendor, our foundation rests upon heartful <span class="redacted" onclick="revealRedacted(this)">SIMPLICITY</span>.</p>' : t('beranda_archive_2_content', '<p>Manuskrip mengenai pemeliharaan nilai-nilai murni dalam harmoni pasca-kelulusan.</p><p>Di balik kemewahan dunia, pondasi kita tetap bersandar pada <span class="redacted" onclick="revealRedacted(this)">KESEDERHANAAN</span> hati.</p><p>Setiap duta angkatan diharapkan menjadi mercusuar teladan di manapun mereka memijakkan kaki.</p><p><em>Tertanda, Dewan Kehormatan.</em></p>')) 
-          }
+        visi: {
+          date: isAr ? '٣٠ مارس ٢٠٢٦' : (isEn ? 'MARCH 30, 2026' : t('beranda_archive_1_date', '30 MARET 2026')),
+          title: isAr ? 'إعلان رؤية العهد السيادي' : (isEn ? 'Deklarasi Visi Angkatan 43' : t('beranda_archive_1_title', 'Deklarasi Visi Sovereign')),
+          content: isAr ? '<p>تسجل هذه الوثيقة العهد العظيم لدفعة إكسبيدينت بشأن رؤية ومسار المستقبل.</p><p>نعاهد الله على حفظ ميراث <span class="redacted" onclick="revealRedacted(this)">الإسلام</span> وتوثيق عرى <span class="redacted" onclick="revealRedacted(this)">الأخوة</span>.</p>' : (isEn ? '<p>This manuscript records the solemn pledge of the Expedient cohort regarding future vision.</p><p>We pledge to preserve the legacy of <span class="redacted" onclick="revealRedacted(this)">ISLAM</span> and bind tight our <span class="redacted" onclick="revealRedacted(this)">BROTHERHOOD</span>.</p>' : t('beranda_archive_1_content', '<p>Naskah ini mencatat sumpah agung angkatan Expedient mengenai visi dan arah tujuan masa depan.</p><p>Kami berjanji untuk memelihara warisan <span class="redacted" onclick="revealRedacted(this)">KEISLAMAN</span> dan mengikat erat <span class="redacted" onclick="revealRedacted(this)">PERSAUDARAAN</span>.</p><p>Nilai-nilai ini diukir bukan pada batu, melainkan pada karakter setiap individu.</p><p><em>Selesai.</em></p>'))
+        },
+        simpul: {
+          date: isAr ? '١٥ فبراير ٢٠٢٦' : (isEn ? 'FEBRUARY 15, 2026' : t('beranda_archive_2_date', '15 FEBRUARI 2026')),
+          title: isAr ? 'ميثاق الطهر: صون قيم الرسالة' : (isEn ? 'Purity Knot: Safeguarding Arrisalah Values' : t('beranda_archive_2_title', 'Simpul Kesucian: Menjaga Nilai Arrisalah')),
+          content: isAr ? '<p>مخطوطة حول صون القيم النقية في مرحلة ما بعد التخرج.</p><p>مهما بلغت زينة الدنيا، يظل ارتكازنا على <span class="redacted" onclick="revealRedacted(this)">بساطة</span> القلب والتواضع.</p>' : (isEn ? '<p>A manuscript on preserving pure values in post-graduation harmony.</p><p>Behind worldly splendor, our foundation rests upon heartful <span class="redacted" onclick="revealRedacted(this)">SIMPLICITY</span>.</p>' : t('beranda_archive_2_content', '<p>Manuskrip mengenai pemeliharaan nilai-nilai murni dalam harmoni pasca-kelulusan.</p><p>Di balik kemewahan dunia, pondasi kita tetap bersandar pada <span class="redacted" onclick="revealRedacted(this)">KESEDERHANAAN</span> hati.</p><p>Setiap duta angkatan diharapkan menjadi mercusuar teladan di manapun mereka memijakkan kaki.</p><p><em>Tertanda, Dewan Kehormatan.</em></p>'))
+        }
       },
       ui: {
-          hint_spin: isAr ? 'تدوير الهولوغرام...' : (isEn ? 'ROTATING HOLOGRAM...' : t('beranda_ui_hint_spin', 'MEMUTAR HOLOGRAM...')),
-          hint_drag: isAr ? "<i class='fa-solid fa-arrows-left-right'></i> اسحب لتدوير المجسّم" : (isEn ? "<i class='fa-solid fa-arrows-left-right'></i> Drag to Rotate" : t('beranda_ui_hint_drag', "<i class='fa-solid fa-arrows-left-right'></i> Tahan & Geser Untuk Memutar")),
-          hint_interact: isAr ? "<i class='fa-solid fa-hand-pointer'></i> اسحب للتدوير / انقر للبيانات" : (isEn ? "<i class='fa-solid fa-hand-pointer'></i> Drag to Rotate / Click for Data" : t('beranda_ui_hint_interact', "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar / Klik Untuk Data")),
-          hint_lock: isAr ? 'تثبيت التشكيل...' : (isEn ? 'LOCKING FORMATION...' : t('beranda_ui_hint_lock', 'MENGUNCI FORMASI...')),
-          btn_process: isAr ? '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ المعالجة...' : (isEn ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...' : t('beranda_ui_btn_process', '<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...')),
-          btn_assemble: isAr ? '<i class="fa-solid fa-circle-notch fa-spin"></i> تجميع...' : (isEn ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Assembling...' : t('beranda_ui_btn_assemble', '<i class="fa-solid fa-circle-notch fa-spin"></i> Merakit...')),
-          btn_unite: isAr ? '<i class="fa-solid fa-compress"></i> توحيد الهوية' : (isEn ? '<i class="fa-solid fa-compress"></i> Unite Identity' : t('beranda_ui_btn_unite', '<i class="fa-solid fa-compress"></i> Satukan Identitas')),
-          btn_scatter: isAr ? '<i class="fa-solid fa-expand"></i> تفريق التشكيل' : (isEn ? '<i class="fa-solid fa-expand"></i> Disperse Formation' : t('beranda_ui_btn_scatter', '<i class="fa-solid fa-expand"></i> Pencar Formasi'))
+        hint_spin: isAr ? 'تدوير الهولوغرام...' : (isEn ? 'ROTATING HOLOGRAM...' : t('beranda_ui_hint_spin', 'MEMUTAR HOLOGRAM...')),
+        hint_drag: isAr ? "<i class='fa-solid fa-arrows-left-right'></i> اسحب لتدوير المجسّم" : (isEn ? "<i class='fa-solid fa-arrows-left-right'></i> Drag to Rotate" : t('beranda_ui_hint_drag', "<i class='fa-solid fa-arrows-left-right'></i> Tahan & Geser Untuk Memutar")),
+        hint_interact: isAr ? "<i class='fa-solid fa-hand-pointer'></i> اسحب للتدوير / انقر للبيانات" : (isEn ? "<i class='fa-solid fa-hand-pointer'></i> Drag to Rotate / Click for Data" : t('beranda_ui_hint_interact', "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar / Klik Untuk Data")),
+        hint_lock: isAr ? 'تثبيت التشكيل...' : (isEn ? 'LOCKING FORMATION...' : t('beranda_ui_hint_lock', 'MENGUNCI FORMASI...')),
+        btn_process: isAr ? '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ المعالجة...' : (isEn ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...' : t('beranda_ui_btn_process', '<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...')),
+        btn_assemble: isAr ? '<i class="fa-solid fa-circle-notch fa-spin"></i> تجميع...' : (isEn ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Assembling...' : t('beranda_ui_btn_assemble', '<i class="fa-solid fa-circle-notch fa-spin"></i> Merakit...')),
+        btn_unite: isAr ? '<i class="fa-solid fa-compress"></i> توحيد الهوية' : (isEn ? '<i class="fa-solid fa-compress"></i> Unite Identity' : t('beranda_ui_btn_unite', '<i class="fa-solid fa-compress"></i> Satukan Identitas')),
+        btn_scatter: isAr ? '<i class="fa-solid fa-expand"></i> تفريق التشكيل' : (isEn ? '<i class="fa-solid fa-expand"></i> Disperse Formation' : t('beranda_ui_btn_scatter', '<i class="fa-solid fa-expand"></i> Pencar Formasi'))
       }
     };
 
@@ -174,18 +178,8 @@ export default function BerandaClient({
       startBeranda();
     });
 
-    // React-level safety fallback: never let the loader stay stuck
+    // React-level safety fallback: unlock reveal elements if scroll triggers fail
     const safetyTimer = setTimeout(() => {
-      const loader = document.getElementById("loader");
-      if (loader && loader.style.display !== "none") {
-        loader.style.opacity = "0";
-        loader.style.pointerEvents = "none";
-        setTimeout(() => {
-          if (loader) loader.style.display = "none";
-        }, 500);
-      }
-
-      // Safeguard: Ensure content is visible even if GSAP or scroll triggers fail
       const hiddenEls = document.querySelectorAll<HTMLElement>(".reveal-up, .timeline-node");
       hiddenEls.forEach((el) => {
         const computed = window.getComputedStyle(el);
@@ -215,16 +209,12 @@ export default function BerandaClient({
 
   const { showAlert } = useConfirm();
 
-  const closeModal = () => {
-    document.getElementById('philModal')?.classList.remove('active');
-  };
-
   const handleGuestbookSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const nama = formData.get('nama') as string;
     const pesan = formData.get('pesan') as string;
-    
+
     // API expects message
     try {
       const res = await fetch('/api/buku-tamu', {
@@ -244,337 +234,319 @@ export default function BerandaClient({
     }
   };
 
-  // Render HTML langsung (tanpa gate isClient) agar premium-loader tampil segera
-
   return (
     <>
-      <div className="premium-loader" id="loader">
-          <div className="circular-loader">
-              <div className="loader-ring"></div>
-              <div className="loader-ring-active"></div>
-              <div className="loader-percent" id="loadPercent">0%</div>
-          </div>
-          <div className="loader-lore" id="loaderLore">"Memuat Lembaran Sejarah..."</div>
-          <div className="loader-status">{tLang.beranda.loader_preparing}</div>
-      </div>
-
-      <div className="mecha-stage" id="stage">
-          <div className="god-rays" id="godRays"></div>
-          <div className="monumental-text" id="monumentalText">EXPEDIENT</div>
-
-          <canvas id="constellationCanvas"></canvas>
-
-          <div className="logo-utuh-container hover-trigger" id="fullLogoBox">
-              <canvas id="fullLogoCanvas" width="800" height="450"></canvas>
-              <img src="/images/logo-utuh.webp" id="fullLogoStatic" alt="Static" />
-          </div>
-          
-          <div className="shards-universe" id="shardsContainer"></div>
-          <div className="merge-flash" id="flashEffect"></div>
-          
-          <div className="hud-controls">
-              <div className="hud-hint" id="hudHint"><i className="fa-solid fa-arrows-left-right"></i> {tLang.beranda.hint_drag}</div>
-              <button className="btn-mecha hover-trigger" id="btnAction"><i className="fa-solid fa-expand"></i> {tLang.beranda.hint_spin}</button>
-          </div>
-
-          <i className="fa-solid fa-chevron-down scroll-indicator" style={{ position: 'absolute', bottom: '5vh', left: '50%', transform: 'translateX(-50%)', color: '#d4af37', fontSize: '2rem', animation: 'floatDownIndicator 2.4s ease-in-out infinite', zIndex: 20, opacity: 0.7 }}></i>
-      </div>
-
-      <div className="phil-modal" id="philModal">
-          <div className="phil-content">
-              <h2 className="phil-title" id="modalTitle">{tLang.beranda_extra.panca_jiwa_modal_title}</h2>
-              <p className="phil-desc" id="modalDesc"></p>
-              <button className="btn-mecha hover-trigger" style={{ marginTop: '25px', padding: '10px 25px', fontSize: '0.8rem' }} onClick={closeModal}>{tLang.common.close.toUpperCase()}</button>
-          </div>
-      </div>
+      <Emblem3DStage
+        lores={localizedLores}
+        localizedShards={localizedShards}
+        loaderPreparingText={tLang.beranda.loader_preparing}
+        closeLabel={tLang.common.close}
+        uiLabels={{
+          hintDrag: tLang.beranda.hint_drag,
+          hintInteract: isAr
+            ? "اسحب للتدوير · انقر للمعنى"
+            : isEn
+            ? "Drag a Shard to Rotate · Tap for Meaning"
+            : "GESER SERPIHAN UNTUK PUTAR · KETUK UNTUK MAKNA",
+          hintSpin: isAr
+            ? "تدوير الشعار..."
+            : isEn
+            ? "ROTATING EMBLEM..."
+            : "MEMUTAR LAMBANG 3D...",
+          btnScatter: tLang.beranda.hint_spin,
+          btnUnite: isAr ? "توحيد الهوية" : isEn ? "Unite Identity" : "Satukan Identitas",
+          btnProcess: isAr ? "جارٍ المعالجة..." : isEn ? "Processing..." : "Memproses...",
+          btnAssemble: isAr ? "تجميع..." : isEn ? "Assembling..." : "Merakit...",
+        }}
+      />
 
       <main className="museum-halls">
-          <section className="hall-section epigraph-section">
-              <h1 className="grand-text reveal-up" dangerouslySetInnerHTML={{__html: sanitizeHtml(locale === 'id' ? t('beranda_epigraph', tLang.beranda.epigraph_text) : tLang.beranda.epigraph_text)}}></h1>
-          </section>
+        <section className="hall-section epigraph-section">
+          <h1 className="grand-text reveal-up" dangerouslySetInnerHTML={{ __html: sanitizeHtml(locale === 'id' ? t('beranda_epigraph', tLang.beranda.epigraph_text) : tLang.beranda.epigraph_text) }}></h1>
+        </section>
 
-          <section className="hall-section">
-              <div className="stats-grid">
-                  <div className="stat-card glass-panel reveal-up">
-                      <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_1_num', '124')}>0</span>+</h3>
-                      <p className="stat-label">{locale === 'id' ? t('beranda_stat_1_label', tLang.beranda.stat_alumni) : tLang.beranda.stat_alumni}</p>
-                  </div>
-                  <div className="stat-card glass-panel reveal-up">
-                      <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_2_num', '34')}>0</span></h3>
-                      <p className="stat-label">{locale === 'id' ? t('beranda_stat_2_label', tLang.beranda.stat_regions) : tLang.beranda.stat_regions}</p>
-                  </div>
-                  <div className="stat-card glass-panel reveal-up">
-                      <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_3_num', '2025')}>0</span></h3>
-                      <p className="stat-label">{locale === 'id' ? t('beranda_stat_3_label', tLang.beranda.stat_revival_year) : tLang.beranda.stat_revival_year}</p>
-                  </div>
-              </div>
-          </section>
+        <section className="hall-section">
+          <div className="stats-grid">
+            <div className="stat-card glass-panel reveal-up">
+              <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_1_num', '124')}>0</span>+</h3>
+              <p className="stat-label">{locale === 'id' ? t('beranda_stat_1_label', tLang.beranda.stat_alumni) : tLang.beranda.stat_alumni}</p>
+            </div>
+            <div className="stat-card glass-panel reveal-up">
+              <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_2_num', '34')}>0</span></h3>
+              <p className="stat-label">{locale === 'id' ? t('beranda_stat_2_label', tLang.beranda.stat_regions) : tLang.beranda.stat_regions}</p>
+            </div>
+            <div className="stat-card glass-panel reveal-up">
+              <h3 className="stat-number"><span className="gsap-counter" data-target={t('beranda_stat_3_num', '2025')}>0</span></h3>
+              <p className="stat-label">{locale === 'id' ? t('beranda_stat_3_label', tLang.beranda.stat_revival_year) : tLang.beranda.stat_revival_year}</p>
+            </div>
+          </div>
+        </section>
 
-          {/* SECTION: KHATAM BERSAMA TRACKER */}
-          <section className="hall-section" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-              <div className="glass-panel reveal-up" style={{
-                  padding: 'clamp(24px, 4vw, 36px)',
-                  borderRadius: '24px',
-                  background: 'linear-gradient(135deg, rgba(27, 94, 32, 0.15) 0%, rgba(10, 15, 25, 0.7) 100%)',
-                  border: '1px solid rgba(212, 175, 55, 0.35)',
-                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+        {/* SECTION: KHATAM BERSAMA TRACKER */}
+        <section className="hall-section" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+          <div className="glass-panel reveal-up" style={{
+            padding: 'clamp(24px, 4vw, 36px)',
+            borderRadius: '24px',
+            background: 'linear-gradient(135deg, rgba(27, 94, 32, 0.15) 0%, rgba(10, 15, 25, 0.7) 100%)',
+            border: '1px solid rgba(212, 175, 55, 0.35)',
+            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            maxWidth: '1000px',
+            margin: '0 auto',
+            position: 'relative',
+            overflow: 'hidden',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '46px',
+                  height: '46px',
+                  borderRadius: '12px',
+                  background: 'rgba(212, 175, 55, 0.15)',
+                  border: '1px solid var(--gold-main)',
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '16px',
-                  maxWidth: '1000px',
-                  margin: '0 auto',
-                  position: 'relative',
-                  overflow: 'hidden',
-              }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{
-                              width: '46px',
-                              height: '46px',
-                              borderRadius: '12px',
-                              background: 'rgba(212, 175, 55, 0.15)',
-                              border: '1px solid var(--gold-main)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'var(--gold-main)',
-                              fontSize: '1.2rem',
-                          }}>
-                              <i className="fa-solid fa-book-quran"></i>
-                          </div>
-                          <div>
-                              <div style={{ fontSize: '0.72rem', letterSpacing: '2px', color: 'var(--gold-main)', textTransform: 'uppercase', fontWeight: 700 }}>
-                                  {tLang.beranda_extra.spiritual_synergy}
-                              </div>
-                              <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'var(--text-primary)' }}>
-                                  {tLang.beranda_extra.khatam_realtime_title}
-                              </h3>
-                          </div>
-                      </div>
-                      <Link href="/quran?tab=khataman" className="btn-stamp" style={{ padding: '8px 20px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <span>{tLang.beranda_extra.khatam_board_btn}</span>
-                          <i className="fa-solid fa-arrow-right"></i>
-                      </Link>
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--gold-main)',
+                  fontSize: '1.2rem',
+                }}>
+                  <i className="fa-solid fa-book-quran"></i>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.72rem', letterSpacing: '2px', color: 'var(--gold-main)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    {tLang.beranda_extra.spiritual_synergy}
                   </div>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-                      {tLang.beranda_extra.khatam_movement_desc}
-                  </p>
+                  <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'var(--text-primary)' }}>
+                    {tLang.beranda_extra.khatam_realtime_title}
+                  </h3>
+                </div>
               </div>
-          </section>
-
-          <section className="hall-section">
-              <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_gallery_title', tLang.beranda.galeri_title) : tLang.beranda.galeri_title}</h2>
-              <LorongKenangan galeri={galeri} />
-          </section>
-
-          <section className="hall-section">
-              <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_manuskrip_title', tLang.beranda.manuskrip_title) : tLang.beranda.manuskrip_title}</h2>
-              <div className="news-list">
-                  <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('visi')} style={{ cursor: 'pointer' }}>
-                      <span className="news-date">{tLang.beranda_extra.archive_date_visi}</span>
-                      <h3 className="news-title">{tLang.beranda_extra.archive_title_visi}</h3>
-                      <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
-                  </article>
-                  <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('simpul')} style={{ cursor: 'pointer' }}>
-                      <span className="news-date">{tLang.beranda_extra.archive_date_simpul}</span>
-                      <h3 className="news-title">{tLang.beranda_extra.archive_title_simpul}</h3>
-                      <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
-                  </article>
-              </div>
-          </section>
-
-          {/* Modal Arsip Kenangan Alumni */}
-          <div className="archive-modal" id="archiveModal">
-              <div className="archive-backdrop" onClick={() => (window as any).closeArchive?.()}></div>
-              <div className="archive-paper" id="archivePaper">
-                  <div className="archive-header">
-                      <div>ARSIP KENANGAN ALUMNI</div>
-                      <div id="arcDate">---</div>
-                  </div>
-                  <h1 className="archive-title" id="arcTitle">TITLE</h1>
-                  <div className="archive-body" id="arcBody">
-                      {/* Content injected here */}
-                  </div>
-                  <button className="btn-stamp" style={{ marginTop: '40px', display: 'block', width: '100%', borderColor: 'var(--glass-border)', color: 'var(--text-primary)' }} onClick={() => (window as any).closeArchive?.()}>{tLang.beranda.close_manuscript}</button>
-              </div>
+              <Link href="/quran?tab=khataman" className="btn-stamp" style={{ padding: '8px 20px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <span>{tLang.beranda_extra.khatam_board_btn}</span>
+                <i className="fa-solid fa-arrow-right"></i>
+              </Link>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              {tLang.beranda_extra.khatam_movement_desc}
+            </p>
           </div>
+        </section>
 
-          <section className="hall-section">
-              <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_kurator_title', tLang.beranda.kurator_title) : tLang.beranda.kurator_title}</h2>
-              <div className="curator-grid">
-                  {kurator.map((k, idx) => (
-                      <div className="curator-card glass-panel reveal-up" key={idx}>
-                          <div className="curator-img-wrap">
-                            <img 
-                              src={getAvatarUrl(k.foto_profil, k.nama_panggilan || k.nama_lengkap)} 
-                              alt={k.nama_lengkap || "Kurator"} 
-                              onError={(e) => {
-                                e.currentTarget.onerror = null;
-                                e.currentTarget.src = getAvatarFallback(k.nama_panggilan || k.nama_lengkap);
-                              }}
-                            />
-                          </div>
-                          <div className="curator-info">
-                              <h4>{k.nama_lengkap}</h4>
-                              <p>{k.jabatan || 'Admin'}</p>
-                          </div>
-                      </div>
-                  ))}
-              </div>
-          </section>
+        <section className="hall-section">
+          <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_gallery_title', tLang.beranda.galeri_title) : tLang.beranda.galeri_title}</h2>
+          <LorongKenangan galeri={galeri} />
+        </section>
 
-          {leaderboard.length > 0 && (
-              <section className="hall-section" style={{ paddingTop: 0 }}>
-                  <h2 className="section-title reveal-up" style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>{locale === 'id' ? t('beranda_leaderboard_title', tLang.beranda.kurator_subtitle) : tLang.beranda.kurator_subtitle}</h2>
-                  <div className="leaderboard-container">
-                      {leaderboard.map((l, idx) => {
-                          const rank = idx + 1;
-                          const borderColor = rank === 1 ? '#FFD700' : (rank === 2 ? '#E5E4E2' : (rank === 3 ? '#cd7f32' : 'var(--glass-border)'));
-                          return (
-                              <div className="glass-panel reveal-up leaderboard-item" style={{ borderColor: rank <= 3 ? borderColor : 'var(--glass-border)' }} key={idx}>
-                                  <div className="leaderboard-info">
-                                      <div className="leaderboard-rank">#{rank}</div>
-                                      <img 
-                                        src={getAvatarUrl(l.foto_profil, l.nama_panggilan || l.nama_lengkap)} 
-                                        className="leaderboard-avatar" 
-                                        alt="Avatar" 
-                                        onError={(e) => {
-                                          e.currentTarget.onerror = null;
-                                          e.currentTarget.src = getAvatarFallback(l.nama_panggilan || l.nama_lengkap);
-                                        }}
-                                      />
-                                      <div>
-                                          <div className="leaderboard-name">{l.nama_panggilan || l.nama_lengkap}</div>
-                                          <div className="leaderboard-label">{tLang.beranda.accumulated_points}</div>
-                                      </div>
-                                  </div>
-                                  <div className="leaderboard-score">
-                                      {new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID').format(l.prestise_points || 0)}
-                                  </div>
-                              </div>
-                          );
-                      })}
-                  </div>
-              </section>
-          )}
-
-          <section className="hall-section monolith-section">
-              <div className="monolith-pillar">
-                  <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('keikhlasan')}>{tLang.beranda.jiwa_keikhlasan}</h2>
-                  <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kesederhanaan')}>{tLang.beranda.jiwa_kesederhanaan}</h2>
-                  <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kemandirian')}>{tLang.beranda.jiwa_kemandirian}</h2>
-                  <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('ukhuwah')}>{tLang.beranda.jiwa_ukhuwah}</h2>
-                  <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kebebasan')}>{tLang.beranda.jiwa_kebebasan}</h2>
-              </div>
-          </section>
-
-          {/* Modal Khusus Panca Jiwa */}
-          <div className="jiwa-modal" id="jiwaModal">
-              <div className="jiwa-anim-container" id="jiwaAnimContainer"></div>
-              <div className="jiwa-content" id="jiwaContent">
-                  <h2 className="jiwa-title" id="jiwaTitle">{tLang.beranda_extra.panca_jiwa_modal_title}</h2>
-                  <div className="jiwa-desc" id="jiwaDesc">{tLang.beranda.close_explanation}</div>
-                  <button className="btn-stamp" style={{ marginTop: '30px', fontSize: '0.8rem', padding: '10px 20px' }} onClick={() => (window as any).closeJiwa?.()}>{tLang.beranda.close_explanation}</button>
-              </div>
+        <section className="hall-section">
+          <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_manuskrip_title', tLang.beranda.manuskrip_title) : tLang.beranda.manuskrip_title}</h2>
+          <div className="news-list">
+            <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('visi')} style={{ cursor: 'pointer' }}>
+              <span className="news-date">{tLang.beranda_extra.archive_date_visi}</span>
+              <h3 className="news-title">{tLang.beranda_extra.archive_title_visi}</h3>
+              <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
+            </article>
+            <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('simpul')} style={{ cursor: 'pointer' }}>
+              <span className="news-date">{tLang.beranda_extra.archive_date_simpul}</span>
+              <h3 className="news-title">{tLang.beranda_extra.archive_title_simpul}</h3>
+              <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
+            </article>
           </div>
+        </section>
 
-          <section className="hall-section">
-              <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_timeline_title', tLang.beranda.timeline_title) : tLang.beranda.timeline_title}</h2>
-              <div className="golden-timeline">
-                  <div className="timeline-node">
-                      <div className="node-dot"></div>
-                      <div className="node-content glass-panel">
-                          <span className="node-year">{tLang.beranda.timeline_origin_label}</span>
-                          <p>{tLang.beranda.timeline_origin_desc}</p>
-                      </div>
-                  </div>
-                  <div className="timeline-node">
-                      <div className="node-dot"></div>
-                      <div className="node-content glass-panel">
-                          <span className="node-year">{tLang.beranda.timeline_forge_label}</span>
-                          <p>{tLang.beranda.timeline_forge_desc}</p>
-                      </div>
-                  </div>
+        {/* Modal Arsip Kenangan Alumni */}
+        <div className="archive-modal" id="archiveModal">
+          <div className="archive-backdrop" onClick={() => (window as any).closeArchive?.()}></div>
+          <div className="archive-paper" id="archivePaper">
+            <div className="archive-header">
+              <div>ARSIP KENANGAN ALUMNI</div>
+              <div id="arcDate">---</div>
+            </div>
+            <h1 className="archive-title" id="arcTitle">TITLE</h1>
+            <div className="archive-body" id="arcBody">
+              {/* Content injected here */}
+            </div>
+            <button className="btn-stamp" style={{ marginTop: '40px', display: 'block', width: '100%', borderColor: 'var(--glass-border)', color: 'var(--text-primary)' }} onClick={() => (window as any).closeArchive?.()}>{tLang.beranda.close_manuscript}</button>
+          </div>
+        </div>
+
+        <section className="hall-section">
+          <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_kurator_title', tLang.beranda.kurator_title) : tLang.beranda.kurator_title}</h2>
+          <div className="curator-grid">
+            {kurator.map((k, idx) => (
+              <div className="curator-card glass-panel reveal-up" key={idx}>
+                <div className="curator-img-wrap">
+                  <img
+                    src={getAvatarUrl(k.foto_profil, k.nama_panggilan || k.nama_lengkap)}
+                    alt={k.nama_lengkap || "Kurator"}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = getAvatarFallback(k.nama_panggilan || k.nama_lengkap);
+                    }}
+                  />
+                </div>
+                <div className="curator-info">
+                  <h4>{k.nama_lengkap}</h4>
+                  <p>{k.jabatan || 'Admin'}</p>
+                </div>
               </div>
-          </section>
+            ))}
+          </div>
+        </section>
 
-          <section className="hall-section ledger-section reveal-up">
-              <h2 className="section-title" style={{ marginBottom: '20px' }}>{tLang.beranda.buku_tamu_title}</h2>
-              <p style={{ color: 'var(--text-muted, #5e7a6b)', marginBottom: '40px', fontSize: '0.9rem' }}>{tLang.beranda.buku_tamu_subtitle}</p>
-              
-              {isLoggedIn ? (
-                  <form onSubmit={handleGuestbookSubmit} className="ledger-form" id="ledgerForm">
-                      <input type="text" name="nama" className="luxury-input input-signature" placeholder={tLang.beranda.sign_name} required />
-                      <textarea name="pesan" className="luxury-input" placeholder={tLang.beranda.sign_placeholder} rows={2} required></textarea>
+        {leaderboard.length > 0 && (
+          <section className="hall-section" style={{ paddingTop: 0 }}>
+            <h2 className="section-title reveal-up" style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}>{locale === 'id' ? t('beranda_leaderboard_title', tLang.beranda.kurator_subtitle) : tLang.beranda.kurator_subtitle}</h2>
+            <div className="leaderboard-container">
+              {leaderboard.map((l, idx) => {
+                const rank = idx + 1;
+                const borderColor = rank === 1 ? '#FFD700' : (rank === 2 ? '#E5E4E2' : (rank === 3 ? '#cd7f32' : 'var(--glass-border)'));
+                return (
+                  <div className="glass-panel reveal-up leaderboard-item" style={{ borderColor: rank <= 3 ? borderColor : 'var(--glass-border)' }} key={idx}>
+                    <div className="leaderboard-info">
+                      <div className="leaderboard-rank">#{rank}</div>
+                      <img
+                        src={getAvatarUrl(l.foto_profil, l.nama_panggilan || l.nama_lengkap)}
+                        className="leaderboard-avatar"
+                        alt="Avatar"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = getAvatarFallback(l.nama_panggilan || l.nama_lengkap);
+                        }}
+                      />
                       <div>
-                          <button type="submit" className="btn-stamp" id="desktopSubmitBtn">{tLang.beranda.buku_tamu_btn.toUpperCase()}</button>
-                          
-                          <div className="swipe-seal-container" id="swipeSealContainer">
-                              <div className="swipe-fill" id="swipeFill"></div>
-                              <div className="swipe-text" id="swipeText">{tLang.beranda.swipe_to_seal} <i className="fa-solid fa-arrow-right" style={{ marginLeft: '10px' }}></i></div>
-                              <div className="swipe-knob" id="swipeKnob"><i className="fa-solid fa-fingerprint"></i></div>
-                          </div>
+                        <div className="leaderboard-name">{l.nama_panggilan || l.nama_lengkap}</div>
+                        <div className="leaderboard-label">{tLang.beranda.accumulated_points}</div>
                       </div>
-                  </form>
-              ) : (
-                  <div className="guestbook-empty">
-                      <i className="fa-solid fa-lock guestbook-empty-icon"></i>
-                      <p className="guestbook-empty-text">{tLang.beranda.buku_tamu_empty_locked}</p>
-                      <Link href="/login" className="guestbook-login-link">
-                          <i className="fa-solid fa-door-open"></i> {tLang.beranda.buku_tamu_login_cta}
-                      </Link>
+                    </div>
+                    <div className="leaderboard-score">
+                      {new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID').format(l.prestise_points || 0)}
+                    </div>
                   </div>
-              )}
-
-              {bukuTamu.length > 0 && (
-                  <div className="guestbook-list">
-                      <h3 className="guestbook-title">{tLang.beranda.buku_tamu_recent_title}</h3>
-                      <div className="guestbook-items">
-                          {bukuTamu.map((bt, idx) => (
-                              <div className="guestbook-item" key={idx}>
-                                  <div className="guestbook-name">{bt.nama}</div>
-                                  <div className="guestbook-msg">"{bt.pesan}"</div>
-                                  <div className="guestbook-date">{new Date(bt.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-                              </div>
-                          ))}
-                      </div>
-                      <div className="guestbook-footer">
-                          <a href="/buku-tamu" className="guestbook-more-link">{tLang.beranda.buku_tamu_view_all} <i className="fa-solid fa-arrow-right"></i></a>
-                      </div>
-                  </div>
-              )}
+                );
+              })}
+            </div>
           </section>
+        )}
 
-          {birthdayUsers.length > 0 && (
-              <div id="bdayToast" style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%) translateY(150px)', width: '90%', maxWidth: '400px', background: 'var(--glass-bg)', backdropFilter: 'blur(30px)', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '16px', padding: '20px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', gap: '15px', opacity: 0, transition: '0.8s cubic-bezier(0.16,1,0.3,1)' }}>
-                  <div style={{ width: '50px', height: '50px', background: 'rgba(212,175,55,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', fontSize: '1.5rem', flexShrink: 0 }}>
-                      <i className="fa-solid fa-cake-candles"></i>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                      <div style={{ fontFamily: "'Playfair Display',serif", color: '#d4af37', fontWeight: 700, fontSize: '1.1rem', marginBottom: '5px' }}>{tLang.beranda.bday_title}</div>
-                      <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.4 }}>
-                          {tLang.beranda.bday_today_is} <strong>{birthdayUsers[0].nama_panggilan || birthdayUsers[0].nama_lengkap}</strong>
-                          {birthdayUsers.length > 1 ? (locale === 'ar' ? ' وآخرون' : locale === 'en' ? ` and ${birthdayUsers.length - 1} other alumni` : ` dan ${birthdayUsers.length - 1} alumni lainnya`) : ''}. <br/>
-                          <Link href={birthdayUsers.length === 1 ? `/birthday/${birthdayUsers[0].id}` : "/birthday"} style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>{tLang.beranda.bday_send_wish} <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
-                      </div>
-                  </div>
-                  <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 800); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px' }}><i className="fa-solid fa-times"></i></button>
+        <section className="hall-section monolith-section">
+          <div className="monolith-pillar">
+            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('keikhlasan')}>{tLang.beranda.jiwa_keikhlasan}</h2>
+            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kesederhanaan')}>{tLang.beranda.jiwa_kesederhanaan}</h2>
+            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kemandirian')}>{tLang.beranda.jiwa_kemandirian}</h2>
+            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('ukhuwah')}>{tLang.beranda.jiwa_ukhuwah}</h2>
+            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kebebasan')}>{tLang.beranda.jiwa_kebebasan}</h2>
+          </div>
+        </section>
+
+        {/* Modal Khusus Panca Jiwa */}
+        <div className="jiwa-modal" id="jiwaModal">
+          <div className="jiwa-anim-container" id="jiwaAnimContainer"></div>
+          <div className="jiwa-content" id="jiwaContent">
+            <h2 className="jiwa-title" id="jiwaTitle">{tLang.beranda_extra.panca_jiwa_modal_title}</h2>
+            <div className="jiwa-desc" id="jiwaDesc">{tLang.beranda.close_explanation}</div>
+            <button className="btn-stamp" style={{ marginTop: '30px', fontSize: '0.8rem', padding: '10px 20px' }} onClick={() => (window as any).closeJiwa?.()}>{tLang.beranda.close_explanation}</button>
+          </div>
+        </div>
+
+        <section className="hall-section">
+          <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_timeline_title', tLang.beranda.timeline_title) : tLang.beranda.timeline_title}</h2>
+          <div className="golden-timeline">
+            <div className="timeline-node">
+              <div className="node-dot"></div>
+              <div className="node-content glass-panel">
+                <span className="node-year">{tLang.beranda.timeline_origin_label}</span>
+                <p>{tLang.beranda.timeline_origin_desc}</p>
               </div>
+            </div>
+            <div className="timeline-node">
+              <div className="node-dot"></div>
+              <div className="node-content glass-panel">
+                <span className="node-year">{tLang.beranda.timeline_forge_label}</span>
+                <p>{tLang.beranda.timeline_forge_desc}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="hall-section ledger-section reveal-up">
+          <h2 className="section-title" style={{ marginBottom: '20px' }}>{tLang.beranda.buku_tamu_title}</h2>
+          <p style={{ color: 'var(--text-muted, #5e7a6b)', marginBottom: '40px', fontSize: '0.9rem' }}>{tLang.beranda.buku_tamu_subtitle}</p>
+
+          {isLoggedIn ? (
+            <form onSubmit={handleGuestbookSubmit} className="ledger-form" id="ledgerForm">
+              <input type="text" name="nama" className="luxury-input input-signature" placeholder={tLang.beranda.sign_name} required />
+              <textarea name="pesan" className="luxury-input" placeholder={tLang.beranda.sign_placeholder} rows={2} required></textarea>
+              <div>
+                <button type="submit" className="btn-stamp" id="desktopSubmitBtn">{tLang.beranda.buku_tamu_btn.toUpperCase()}</button>
+
+                <div className="swipe-seal-container" id="swipeSealContainer">
+                  <div className="swipe-fill" id="swipeFill"></div>
+                  <div className="swipe-text" id="swipeText">{tLang.beranda.swipe_to_seal} <i className="fa-solid fa-arrow-right" style={{ marginLeft: '10px' }}></i></div>
+                  <div className="swipe-knob" id="swipeKnob"><i className="fa-solid fa-fingerprint"></i></div>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <div className="guestbook-empty">
+              <i className="fa-solid fa-lock guestbook-empty-icon"></i>
+              <p className="guestbook-empty-text">{tLang.beranda.buku_tamu_empty_locked}</p>
+              <Link href="/login" className="guestbook-login-link">
+                <i className="fa-solid fa-door-open"></i> {tLang.beranda.buku_tamu_login_cta}
+              </Link>
+            </div>
           )}
+
+          {bukuTamu.length > 0 && (
+            <div className="guestbook-list">
+              <h3 className="guestbook-title">{tLang.beranda.buku_tamu_recent_title}</h3>
+              <div className="guestbook-items">
+                {bukuTamu.map((bt, idx) => (
+                  <div className="guestbook-item" key={idx}>
+                    <div className="guestbook-name">{bt.nama}</div>
+                    <div className="guestbook-msg">"{bt.pesan}"</div>
+                    <div className="guestbook-date">{new Date(bt.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="guestbook-footer">
+                <a href="/buku-tamu" className="guestbook-more-link">{tLang.beranda.buku_tamu_view_all} <i className="fa-solid fa-arrow-right"></i></a>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {birthdayUsers.length > 0 && (
+          <div id="bdayToast" style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%) translateY(150px)', width: '90%', maxWidth: '400px', background: 'var(--glass-bg)', backdropFilter: 'blur(30px)', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '16px', padding: '20px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', gap: '15px', opacity: 0, transition: '0.8s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div style={{ width: '50px', height: '50px', background: 'rgba(212,175,55,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', fontSize: '1.5rem', flexShrink: 0 }}>
+              <i className="fa-solid fa-cake-candles"></i>
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Playfair Display',serif", color: '#d4af37', fontWeight: 700, fontSize: '1.1rem', marginBottom: '5px' }}>{tLang.beranda.bday_title}</div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.4 }}>
+                {tLang.beranda.bday_today_is} <strong>{birthdayUsers[0].nama_panggilan || birthdayUsers[0].nama_lengkap}</strong>
+                {birthdayUsers.length > 1 ? (locale === 'ar' ? ' وآخرون' : locale === 'en' ? ` and ${birthdayUsers.length - 1} other alumni` : ` dan ${birthdayUsers.length - 1} alumni lainnya`) : ''}. <br />
+                <Link href={birthdayUsers.length === 1 ? `/birthday/${birthdayUsers[0].id}` : "/birthday"} style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>{tLang.beranda.bday_send_wish} <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
+              </div>
+            </div>
+            <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 800); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px' }}><i className="fa-solid fa-times"></i></button>
+          </div>
+        )}
       </main>
 
       {/* GSAP, ScrollTrigger & Script Utama Beranda */}
-      <Script 
-        src="/vendor/gsap/gsap.min.js" 
-        strategy="afterInteractive" 
+      <Script
+        src="/vendor/gsap/gsap.min.js"
+        strategy="afterInteractive"
       />
-      <Script 
-        src="/vendor/gsap/ScrollTrigger.min.js" 
-        strategy="afterInteractive" 
+      <Script
+        src="/vendor/gsap/ScrollTrigger.min.js"
+        strategy="afterInteractive"
       />
-      <Script 
-        src="/assets/js/beranda.js" 
-        strategy="afterInteractive" 
+      <Script
+        src="/assets/js/beranda.js"
+        strategy="afterInteractive"
         onReady={() => {
           if (typeof (window as any).initBeranda === "function") {
             (window as any).initBeranda();
