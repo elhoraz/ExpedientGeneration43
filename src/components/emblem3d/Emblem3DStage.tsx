@@ -606,7 +606,7 @@ export default function Emblem3DStage({
       constelCanvas.width = w;
       constelCanvas.height = h;
       const isMob = w < 768;
-      const count = isMob ? 22 : 58;
+      const count = isMob ? 14 : 58;
       const parts: CoreParticle[] = [];
       for (let i = 0; i < count; i++) {
         const r = Math.random() * (isMob ? 135 : 190) + (isMob ? 65 : 85);
@@ -648,12 +648,13 @@ export default function Emblem3DStage({
       camera.position.set(0, 0, stateRef.current.camTargetZ);
 
       const renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: !isMobInit,
         alpha: true,
         powerPreference: "high-performance",
       });
+      renderer.shadowMap.enabled = false;
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobInit ? 1.75 : 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobInit ? 1.15 : 2));
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 0.9;
       renderer.domElement.style.display = "block";
@@ -666,34 +667,37 @@ export default function Emblem3DStage({
       const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
       scene.environment = envTex;
       if ("environmentIntensity" in scene) {
-        (scene as any).environmentIntensity = 0.36;
+        (scene as any).environmentIntensity = isMobInit ? 0.42 : 0.36;
       }
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.32));
+      scene.add(new THREE.AmbientLight(0xffffff, isMobInit ? 0.42 : 0.32));
 
-      const keyLight = new THREE.DirectionalLight(0xfff5e0, 1.45);
+      const keyLight = new THREE.DirectionalLight(0xfff5e0, isMobInit ? 1.6 : 1.45);
       keyLight.position.set(4, 5, 6);
       scene.add(keyLight);
 
-      const fillLight = new THREE.DirectionalLight(0x90caf9, 0.45);
-      fillLight.position.set(-5, -2, 4);
-      scene.add(fillLight);
-
-      const backKeyLight = new THREE.DirectionalLight(0xfff4d4, 1.3);
+      const backKeyLight = new THREE.DirectionalLight(0xfff4d4, isMobInit ? 1.4 : 1.3);
       backKeyLight.position.set(-3, 4, -6);
       scene.add(backKeyLight);
 
-      const rimLight = new THREE.DirectionalLight(0x4fc3f7, 0.95);
-      rimLight.position.set(3, 3, -5);
-      scene.add(rimLight);
+      let burstLight: any = null;
+      if (!isMobInit) {
+        const fillLight = new THREE.DirectionalLight(0x90caf9, 0.45);
+        fillLight.position.set(-5, -2, 4);
+        scene.add(fillLight);
 
-      const goldUnderLight = new THREE.PointLight(0xd4af37, 0.75, 14);
-      goldUnderLight.position.set(0, -3.5, 3);
-      scene.add(goldUnderLight);
+        const rimLight = new THREE.DirectionalLight(0x4fc3f7, 0.95);
+        rimLight.position.set(3, 3, -5);
+        scene.add(rimLight);
 
-      const burstLight = new THREE.PointLight(0xffd54f, 0, 12);
-      burstLight.position.set(0, 0, 0.75);
-      scene.add(burstLight);
+        const goldUnderLight = new THREE.PointLight(0xd4af37, 0.75, 14);
+        goldUnderLight.position.set(0, -3.5, 3);
+        scene.add(goldUnderLight);
+
+        burstLight = new THREE.PointLight(0xffd54f, 0, 12);
+        burstLight.position.set(0, 0, 0.75);
+        scene.add(burstLight);
+      }
 
       const emblemGroup = new THREE.Group();
       emblemGroup.position.y = isMobInit ? 0.16 : 0;
@@ -735,9 +739,13 @@ export default function Emblem3DStage({
       };
       threeRef.current.computeLayout = computeLayout;
 
+      const modelUrl = isMobInit
+        ? "/assets/models/expedient-43-logo-mobile.glb?v=13shards_mob2"
+        : "/assets/models/expedient-43-logo.glb?v=13shards_v4";
+
       const loader = new GLTFLoader();
       loader.load(
-        "/assets/models/expedient-43-logo.glb?v=13shards_v4",
+        modelUrl,
         (gltf) => {
           if (isCancelled) return;
           const rawRoot = gltf.scene;
@@ -1029,7 +1037,7 @@ export default function Emblem3DStage({
         const isMob = w < 768;
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMob ? 1.75 : 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMob ? 1.15 : 2));
         renderer.setSize(w, h);
         initParticles();
         computeLayout();
@@ -1155,20 +1163,23 @@ export default function Emblem3DStage({
 
         const cw = constelCanvas.width;
         const ch = constelCanvas.height;
-        emblemGroup.updateMatrixWorld(true);
-        threeRef.current.shards.forEach((sh) => {
-          sh.obj.getWorldPosition(projVec);
-          projVec.project(camera);
-          sh.screenX = (projVec.x * 0.5 + 0.5) * cw;
-          sh.screenY = (-projVec.y * 0.5 + 0.5) * ch;
-        });
+        const needShardProj = st.isScattered || st.isAnimating;
+        if (needShardProj) {
+          emblemGroup.updateMatrixWorld(true);
+          threeRef.current.shards.forEach((sh) => {
+            sh.obj.getWorldPosition(projVec);
+            projVec.project(camera);
+            sh.screenX = (projVec.x * 0.5 + 0.5) * cw;
+            sh.screenY = (-projVec.y * 0.5 + 0.5) * ch;
+          });
+        }
 
         if (ctxConstel) {
           ctxConstel.clearRect(0, 0, cw, ch);
           const goldRgb = st.isLightMode ? "172, 128, 18" : "212, 175, 55";
+          const isMob = cw < 768;
 
           ctxConstel.beginPath();
-          const isMob = cw < 768;
           threeRef.current.coreParticles.forEach((p) => {
             p.angle += p.speed;
             const targetX = p.baseX + Math.cos(p.angle) * p.radius;
@@ -1183,9 +1194,9 @@ export default function Emblem3DStage({
                 p.offsetX -= (dx / dist) * force * 14;
                 p.offsetY -= (dy / dist) * force * 14;
               }
+              p.offsetX *= 0.95;
+              p.offsetY *= 0.95;
             }
-            p.offsetX *= 0.95;
-            p.offsetY *= 0.95;
 
             const drawX = targetX + p.offsetX;
             const drawY = targetY + p.offsetY;
@@ -1195,7 +1206,7 @@ export default function Emblem3DStage({
           ctxConstel.fillStyle = `rgba(${goldRgb}, ${st.isLightMode ? 0.65 : 0.58})`;
           ctxConstel.fill();
 
-          if ((st.isScattered || st.isAnimating) && threeRef.current.shards.length > 1) {
+          if (needShardProj && threeRef.current.shards.length > 1) {
             const cx = cw / 2;
             const cy = ch / 2 - (isMob ? ch * 0.03 : 0);
             const baseAlpha = (isMob ? 0.16 : 0.28) + st.lineIntensityBoost;
@@ -1226,11 +1237,21 @@ export default function Emblem3DStage({
             ctxConstel.save();
             for (const sw of threeRef.current.shockwaves) {
               if (sw.alpha <= 0.01) continue;
-              ctxConstel.globalAlpha = Math.max(0, Math.min(1, sw.alpha));
+              const baseA = Math.max(0, Math.min(1, sw.alpha));
               ctxConstel.strokeStyle = sw.color;
+              if (isMob) {
+                // Zero-blur double-stroke glow on mobile (no Android Chrome CPU shadowBlur stall)
+                ctxConstel.globalAlpha = baseA * 0.24;
+                ctxConstel.lineWidth = sw.lineWidth * 2.3;
+                ctxConstel.beginPath();
+                ctxConstel.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
+                ctxConstel.stroke();
+              } else {
+                ctxConstel.shadowColor = sw.color;
+                ctxConstel.shadowBlur = 18;
+              }
+              ctxConstel.globalAlpha = baseA;
               ctxConstel.lineWidth = sw.lineWidth;
-              ctxConstel.shadowColor = sw.color;
-              ctxConstel.shadowBlur = 18;
               ctxConstel.beginPath();
               ctxConstel.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
               ctxConstel.stroke();
@@ -1400,6 +1421,19 @@ export default function Emblem3DStage({
           -webkit-overflow-scrolling: touch;
         }
         @media (max-width: 768px) {
+          #stage .god-rays {
+            mix-blend-mode: normal !important;
+          }
+          #stage .btn-mecha,
+          .btn-mecha-util {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: rgba(10, 17, 32, 0.9) !important;
+          }
+          :root[data-theme="light"] #stage .btn-mecha,
+          :root[data-theme="light"] .btn-mecha-util {
+            background: rgba(255, 255, 255, 0.94) !important;
+          }
           #stage .hud-controls {
             bottom: calc(108px + env(safe-area-inset-bottom, 0px));
             gap: 10px;
