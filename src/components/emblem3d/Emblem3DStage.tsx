@@ -747,13 +747,17 @@ export default function Emblem3DStage({
           const mapSingle = (mat: any) => {
             if (mat.isMeshPhongMaterial) return mat;
             if (matCache.has(mat)) return matCache.get(mat);
+            const hasOrmMap = !!(mat.metalnessMap || mat.roughnessMap);
             const roughness = typeof mat.roughness === "number" ? mat.roughness : 0.35;
             const metalness = typeof mat.metalness === "number" ? mat.metalness : 0.25;
-            const shininess = Math.max(20, Math.min(96, (1 - roughness) * 95));
-            const specLvl = metalness > 0.5 ? 0.58 : 0.34;
+            // Atlas materials carry roughness/metalness in a texture (factors are 1.0), so use balanced defaults
+            const shininess = hasOrmMap ? 54 : Math.max(20, Math.min(96, (1 - roughness) * 95));
+            const specLvl = hasOrmMap ? 0.42 : metalness > 0.5 ? 0.58 : 0.34;
             const phong = new THREE.MeshPhongMaterial({
               color: mat.color ? mat.color.clone() : new THREE.Color(0xffffff),
               map: mat.map || null,
+              normalMap: mat.normalMap || null,
+              normalScale: mat.normalScale ? mat.normalScale.clone() : new THREE.Vector2(1, 1),
               emissive: mat.emissive ? mat.emissive.clone() : new THREE.Color(0x000000),
               emissiveIntensity: mat.emissiveIntensity ?? 1,
               specular: new THREE.Color(specLvl, specLvl * 0.95, specLvl * 0.82),
@@ -843,7 +847,7 @@ export default function Emblem3DStage({
       threeRef.current.computeLayout = computeLayout;
 
       const modelUrl = isMobInit
-        ? "/assets/models/expedient-43-logo-mobile.glb?v=13shards_mob2"
+        ? "/assets/models/expedient-43-logo-mobile-v3.glb?v=atlas3"
         : "/assets/models/expedient-43-logo.glb?v=13shards_v4";
 
       const loader = new GLTFLoader();
