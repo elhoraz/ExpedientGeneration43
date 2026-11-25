@@ -188,7 +188,7 @@ export const arDictionary: Dictionary = {
     open_panel_title: "فتح لوحة التنقل",
   },
   beranda: {
-    stage_badge: "متحف 3D وخزينة الذكريات",
+    stage_badge: "معرض الشعار ثلاثي الأبعاد",
     hint_drag: "حرِّك المؤشر لتدوير المجسّم",
     hint_spin: "انقر لتغيير زاوية الرؤية",
     audio_pill_title: "نشيد ومارش المعهد",
@@ -232,7 +232,7 @@ export const arDictionary: Dictionary = {
     loader_preparing: "جاري تحضير قاعة المعرض...",
     stat_alumni: "خريجو إكسبيدينت",
     stat_regions: "مناطق الانتشار",
-    stat_revival_year: "عام النهضة",
+    stat_revival_year: "دفعة التخرج",
     epigraph_text: "لسنا مجرد دفعة تخرج.<br class=\"desktop-br\" /> بل نحن <span class=\"highlight-gold\">أسرة واحدة</span> نشأت وتربت معاً في رحاب معهد الرسالة.",
     toast_sent_success: "تم إرسال رسالة سجل الزوار بنجاح.",
   },
@@ -1389,7 +1389,7 @@ export const arDictionary: Dictionary = {
   },
   beranda_extra: {
     spiritual_synergy: "التآزر الإيماني",
-    khatam_realtime_title: "ختمة القرآن الجماعية المباشرة",
+    khatam_realtime_title: "ختمة القرآن الجماعية",
     khatam_board_btn: "عرض لوحة الثلاثين جزءاً",
     khatam_movement_desc: "برنامج جزء لكل خريج لختم القرآن الكريم كاملاً في ثلاثين جزءاً بالتعاون بين أسرة الدفعة الثالثة والأربعين.",
     archive_date_visi: "٣٠ مارس ٢٠٢٦",

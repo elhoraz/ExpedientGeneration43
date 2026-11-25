@@ -18,14 +18,16 @@ export default function WelcomeModal({
   return (
     <div className="welcome-modal-backdrop" onClick={onSkip}>
       <div className="welcome-modal" onClick={(e) => e.stopPropagation()}>
-        <span className="welcome-emoji">👋</span>
+        <div className="welcome-crest" aria-hidden="true">
+          <i className="fa-solid fa-star-and-crescent"></i>
+        </div>
 
         <h2 className="welcome-title">
           {locale === "ar"
             ? `أهلاً وسهلاً، ${displayName}!`
             : locale === "en"
-            ? `Welcome, ${displayName}!`
-            : `Ahlan wa Sahlan, ${displayName}!`}
+              ? `Welcome, ${displayName}!`
+              : `Ahlan wa Sahlan, ${displayName}!`}
         </h2>
 
         <p className="welcome-subtitle">
@@ -63,8 +65,8 @@ export default function WelcomeModal({
               {locale === "ar"
                 ? "أرشيف الصور، الفيديو، خط التاريخ الزمني، وشعار الدفعة ثلاثي الأبعاد."
                 : locale === "en"
-                ? "Archive of photos, videos, timeline history, and interactive 3D cohort emblem."
-                : "Arsip foto, video, timeline sejarah, dan logo 3D interaktif angkatan."}
+                  ? "Archive of photos, videos, timeline history, and interactive 3D cohort emblem."
+                  : "Arsip foto, video, timeline sejarah, dan logo 3D interaktif angkatan."}
             </div>
           </div>
           <div className="welcome-feature-item">
@@ -78,8 +80,8 @@ export default function WelcomeModal({
               {locale === "ar"
                 ? "ابحث عن بيانات الزملاء، خريطة الانتشار الجغرافي، والتواصل المباشر."
                 : locale === "en"
-                ? "Search alumni directory, see regional distribution map, and direct messaging."
-                : "Cari kontak alumni, lihat peta persebaran, dan ngobrol langsung."}
+                  ? "Search alumni directory, see regional distribution map, and direct messaging."
+                  : "Cari kontak alumni, lihat peta persebaran, dan ngobrol langsung."}
             </div>
           </div>
           <div className="welcome-feature-item">
@@ -93,8 +95,8 @@ export default function WelcomeModal({
               {locale === "ar"
                 ? "شبكة الأعمال والمهن، بيت المال، جداول اللقاءات، والمزيد."
                 : locale === "en"
-                ? "Career networking, cohort treasury, reunion schedules, and much more."
-                : "Jejaring karir, kas angkatan, jadwal reuni, dan banyak lagi."}
+                  ? "Career networking, cohort treasury, reunion schedules, and much more."
+                  : "Jejaring karir, kas angkatan, jadwal reuni, dan banyak lagi."}
             </div>
           </div>
         </div>

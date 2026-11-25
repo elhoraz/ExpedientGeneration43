@@ -139,24 +139,24 @@ export default function BerandaClient({
       archive: {
         visi: {
           date: isAr ? '٣٠ مارس ٢٠٢٦' : (isEn ? 'MARCH 30, 2026' : t('beranda_archive_1_date', '30 MARET 2026')),
-          title: isAr ? 'إعلان رؤية العهد السيادي' : (isEn ? 'Deklarasi Visi Angkatan 43' : t('beranda_archive_1_title', 'Deklarasi Visi Sovereign')),
-          content: isAr ? '<p>تسجل هذه الوثيقة العهد العظيم لدفعة إكسبيدينت بشأن رؤية ومسار المستقبل.</p><p>نعاهد الله على حفظ ميراث <span class="redacted" onclick="revealRedacted(this)">الإسلام</span> وتوثيق عرى <span class="redacted" onclick="revealRedacted(this)">الأخوة</span>.</p>' : (isEn ? '<p>This manuscript records the solemn pledge of the Expedient cohort regarding future vision.</p><p>We pledge to preserve the legacy of <span class="redacted" onclick="revealRedacted(this)">ISLAM</span> and bind tight our <span class="redacted" onclick="revealRedacted(this)">BROTHERHOOD</span>.</p>' : t('beranda_archive_1_content', '<p>Naskah ini mencatat sumpah agung angkatan Expedient mengenai visi dan arah tujuan masa depan.</p><p>Kami berjanji untuk memelihara warisan <span class="redacted" onclick="revealRedacted(this)">KEISLAMAN</span> dan mengikat erat <span class="redacted" onclick="revealRedacted(this)">PERSAUDARAAN</span>.</p><p>Nilai-nilai ini diukir bukan pada batu, melainkan pada karakter setiap individu.</p><p><em>Selesai.</em></p>'))
+          title: isAr ? 'إعلان رؤية الدفعة ٤٣' : (isEn ? 'Cohort 43 Vision Declaration' : t('beranda_archive_1_title', 'Penetapan Visi Angkatan')),
+          content: isAr ? '<p>تسجل هذه الوثيقة العهد المشترك لدفعة إكسبيدينت بشأن رؤية ومسار المستقبل.</p><p>نعاهد الله على حفظ ميراث <span class="redacted" onclick="revealRedacted(this)">الإسلام</span> وتوثيق عرى <span class="redacted" onclick="revealRedacted(this)">الأخوة</span>.</p>' : (isEn ? '<p>This manuscript records the shared commitment of the Expedient cohort regarding our future direction.</p><p>We pledge to preserve the legacy of <span class="redacted" onclick="revealRedacted(this)">ISLAM</span> and keep strong our <span class="redacted" onclick="revealRedacted(this)">BROTHERHOOD</span>.</p>' : t('beranda_archive_1_content', '<p>Naskah ini mencatat komitmen bersama angkatan Expedient mengenai visi dan arah tujuan masa depan.</p><p>Kami berjanji untuk memelihara warisan <span class="redacted" onclick="revealRedacted(this)">KEISLAMAN</span> dan mengikat erat <span class="redacted" onclick="revealRedacted(this)">PERSAUDARAAN</span>.</p><p>Nilai-nilai ini tertanam dalam karakter dan langkah setiap alumni.</p><p><em>Selesai.</em></p>'))
         },
         simpul: {
           date: isAr ? '١٥ فبراير ٢٠٢٦' : (isEn ? 'FEBRUARY 15, 2026' : t('beranda_archive_2_date', '15 FEBRUARI 2026')),
           title: isAr ? 'ميثاق الطهر: صون قيم الرسالة' : (isEn ? 'Purity Knot: Safeguarding Arrisalah Values' : t('beranda_archive_2_title', 'Simpul Kesucian: Menjaga Nilai Arrisalah')),
-          content: isAr ? '<p>مخطوطة حول صون القيم النقية في مرحلة ما بعد التخرج.</p><p>مهما بلغت زينة الدنيا، يظل ارتكازنا على <span class="redacted" onclick="revealRedacted(this)">بساطة</span> القلب والتواضع.</p>' : (isEn ? '<p>A manuscript on preserving pure values in post-graduation harmony.</p><p>Behind worldly splendor, our foundation rests upon heartful <span class="redacted" onclick="revealRedacted(this)">SIMPLICITY</span>.</p>' : t('beranda_archive_2_content', '<p>Manuskrip mengenai pemeliharaan nilai-nilai murni dalam harmoni pasca-kelulusan.</p><p>Di balik kemewahan dunia, pondasi kita tetap bersandar pada <span class="redacted" onclick="revealRedacted(this)">KESEDERHANAAN</span> hati.</p><p>Setiap duta angkatan diharapkan menjadi mercusuar teladan di manapun mereka memijakkan kaki.</p><p><em>Tertanda, Dewan Kehormatan.</em></p>'))
+          content: isAr ? '<p>مخطوطة حول صون القيم النقية في مرحلة ما بعد التخرج.</p><p>مهما بلغت زينة الدنيا، يظل ارتكازنا على <span class="redacted" onclick="revealRedacted(this)">بساطة</span> القلب والتواضع.</p>' : (isEn ? '<p>A manuscript on preserving pure values in post-graduation harmony.</p><p>Behind worldly splendor, our foundation rests upon heartful <span class="redacted" onclick="revealRedacted(this)">SIMPLICITY</span>.</p>' : t('beranda_archive_2_content', '<p>Manuskrip mengenai pemeliharaan nilai-nilai murni dalam kehidupan pasca-kelulusan.</p><p>Di balik kesibukan dunia, pijakan kita tetap bersandar pada <span class="redacted" onclick="revealRedacted(this)">KESEDERHANAAN</span> hati.</p><p>Setiap alumni diharapkan menjadi teladan kebaikan di mana pun berada.</p><p><em>Pondok Modern Arrisalah.</em></p>'))
         }
       },
       ui: {
-        hint_spin: isAr ? 'تدوير الهولوغرام...' : (isEn ? 'ROTATING HOLOGRAM...' : t('beranda_ui_hint_spin', 'MEMUTAR HOLOGRAM...')),
+        hint_spin: isAr ? 'تدوير الشعار...' : (isEn ? 'Rotating emblem...' : t('beranda_ui_hint_spin', 'Memutar lambang 3D...')),
         hint_drag: isAr ? "<i class='fa-solid fa-arrows-left-right'></i> اسحب لتدوير المجسّم" : (isEn ? "<i class='fa-solid fa-arrows-left-right'></i> Drag to Rotate" : t('beranda_ui_hint_drag', "<i class='fa-solid fa-arrows-left-right'></i> Tahan & Geser Untuk Memutar")),
-        hint_interact: isAr ? "<i class='fa-solid fa-hand-pointer'></i> اسحب للتدوير / انقر للبيانات" : (isEn ? "<i class='fa-solid fa-hand-pointer'></i> Drag to Rotate / Click for Data" : t('beranda_ui_hint_interact', "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar / Klik Untuk Data")),
-        hint_lock: isAr ? 'تثبيت التشكيل...' : (isEn ? 'LOCKING FORMATION...' : t('beranda_ui_hint_lock', 'MENGUNCI FORMASI...')),
+        hint_interact: isAr ? "<i class='fa-solid fa-hand-pointer'></i> اسحب للتدوير · انقر للمعنى" : (isEn ? "<i class='fa-solid fa-hand-pointer'></i> Drag to Rotate · Click for Meaning" : t('beranda_ui_hint_interact', "<i class='fa-solid fa-hand-pointer'></i> Geser Untuk Putar · Ketuk Untuk Makna")),
+        hint_lock: isAr ? 'تثبيت العرض...' : (isEn ? 'Position locked' : t('beranda_ui_hint_lock', 'Menahan posisi...')),
         btn_process: isAr ? '<i class="fa-solid fa-circle-notch fa-spin"></i> جارٍ المعالجة...' : (isEn ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...' : t('beranda_ui_btn_process', '<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...')),
         btn_assemble: isAr ? '<i class="fa-solid fa-circle-notch fa-spin"></i> تجميع...' : (isEn ? '<i class="fa-solid fa-circle-notch fa-spin"></i> Assembling...' : t('beranda_ui_btn_assemble', '<i class="fa-solid fa-circle-notch fa-spin"></i> Merakit...')),
         btn_unite: isAr ? '<i class="fa-solid fa-compress"></i> توحيد الهوية' : (isEn ? '<i class="fa-solid fa-compress"></i> Unite Identity' : t('beranda_ui_btn_unite', '<i class="fa-solid fa-compress"></i> Satukan Identitas')),
-        btn_scatter: isAr ? '<i class="fa-solid fa-expand"></i> تفريق التشكيل' : (isEn ? '<i class="fa-solid fa-expand"></i> Disperse Formation' : t('beranda_ui_btn_scatter', '<i class="fa-solid fa-expand"></i> Pencar Formasi'))
+        btn_scatter: isAr ? '<i class="fa-solid fa-expand"></i> تفريق الأجزاء' : (isEn ? '<i class="fa-solid fa-expand"></i> Separate Parts' : t('beranda_ui_btn_scatter', '<i class="fa-solid fa-expand"></i> Sebarkan Bagian'))
       }
     };
 
@@ -459,7 +459,7 @@ export default function BerandaClient({
 
         <section className="hall-section ledger-section reveal-up">
           <h2 className="section-title" style={{ marginBottom: '20px' }}>{tLang.beranda.buku_tamu_title}</h2>
-          <p style={{ color: 'var(--text-muted, #5e7a6b)', marginBottom: '40px', fontSize: '0.9rem' }}>{tLang.beranda.buku_tamu_subtitle}</p>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '40px', fontSize: '0.9rem' }}>{tLang.beranda.buku_tamu_subtitle}</p>
 
           {isLoggedIn ? (
             <form onSubmit={handleGuestbookSubmit} className="ledger-form" id="ledgerForm">

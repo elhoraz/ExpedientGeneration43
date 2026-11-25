@@ -162,16 +162,16 @@ function urlBase64ToUint8Array(base64String: string) {
 
         {/* Obrolan Angkatan - Hanya untuk anggota terautentikasi */}
         {userId && (
-          <a 
-            href="#"
-            className="chat-widget hover-trigger" 
+          <button
+            type="button"
+            className="chat-widget hover-trigger"
             id="btnChatWidget"
-            title={t.navbar.chat_title} 
-            onClick={(e) => { 
-              e.preventDefault(); 
-              setChatOpen(!chatOpen); 
-              setNotifOpen(false); 
-              setHasNewNotif(false); 
+            title={t.navbar.chat_title}
+            aria-label={t.navbar.chat_title}
+            onClick={() => {
+              setChatOpen(!chatOpen);
+              setNotifOpen(false);
+              setHasNewNotif(false);
             }}
           >
             <div className="icon-orb">
@@ -180,10 +180,11 @@ function urlBase64ToUint8Array(base64String: string) {
             {hasNewNotif && (
               <span id="chatBadge" className="chat-badge" style={{
                 display: "block", position: "absolute", top: "2px", right: "2px",
-                width: "12px", height: "12px", background: "#ff5555", borderRadius: "50%"
+                width: "11px", height: "11px", background: "#dc2626", borderRadius: "50%",
+                border: "2px solid var(--bg-card)"
               }}></span>
             )}
-          </a>
+          </button>
         )}
 
         {/* Notification Bell Widget */}
