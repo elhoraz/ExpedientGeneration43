@@ -126,82 +126,74 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.85)",
-            backdropFilter: "blur(10px)",
+            background: "rgba(6, 11, 20, 0.72)",
+            backdropFilter: "blur(8px)",
             zIndex: 100000,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            animation: "fadeIn 0.3s ease",
+            animation: "fadeIn 0.25s ease",
           }}
         >
           <div
             style={{
-              background: "rgba(15, 18, 16, 0.9)",
-              border: "1px solid rgba(212, 175, 55, 0.4)",
-              borderRadius: "20px",
-              padding: "35px 30px",
+              background: "var(--bg-card, #0f141e)",
+              border: "1px solid var(--border-strong, rgba(242, 239, 233, 0.19))",
+              borderRadius: "18px",
+              padding: "28px 24px",
               maxWidth: "400px",
               width: "90%",
               textAlign: "center",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
+              boxShadow: "var(--glass-shadow, 0 20px 50px rgba(0,0,0,0.6))",
               fontFamily: isRTL ? "var(--font-amiri, serif), sans-serif" : "var(--font-sans, inherit)",
-              animation: "slideUp 0.3s var(--awwwards-ease, cubic-bezier(0.16, 1, 0.3, 1))",
+              animation: "slideUp 0.25s var(--awwwards-ease, cubic-bezier(0.16, 1, 0.3, 1))",
             }}
             dir={isRTL ? "rtl" : "ltr"}
           >
-            <div style={{ fontSize: "3rem", color: "#d4af37", marginBottom: "15px" }}>
+            <div style={{ fontSize: "2.4rem", color: "var(--gold-main, #d4af37)", marginBottom: "12px" }}>
               <i className="fa-solid fa-circle-exclamation"></i>
             </div>
-            <h3 style={{ color: "#d4af37", fontFamily: isRTL ? "inherit" : "'Playfair Display', serif", margin: "0 0 15px 0", fontSize: "1.5rem" }}>
+            <h3 style={{ color: "var(--text-primary, #f2efe9)", fontFamily: isRTL ? "inherit" : "var(--font-playfair, 'Playfair Display', serif)", margin: "0 0 12px 0", fontSize: "1.35rem" }}>
               {getLocalizedText(dialog.title, locale, true)}
             </h3>
-            <p style={{ color: "#ccc", fontSize: "0.95rem", marginBottom: "30px", lineHeight: "1.5" }}>
+            <p style={{ color: "var(--text-secondary, #a1a8b5)", fontSize: "0.94rem", marginBottom: "24px", lineHeight: "1.55" }}>
               {getLocalizedText(dialog.message, locale, false)}
             </p>
-            <div style={{ display: "flex", gap: "15px", justifyContent: "center" }}>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
               {!dialog.isAlert && (
                 <button
                   onClick={() => handleClose(false)}
                   style={{
                     flex: 1,
-                    padding: "12px 15px",
-                    border: "1px solid rgba(255, 255, 255, 0.2)",
-                    background: "rgba(255, 255, 255, 0.05)",
-                    color: "#fff",
-                    borderRadius: "50px",
+                    padding: "11px 16px",
+                    minHeight: "44px",
+                    border: "1px solid var(--border-strong, rgba(242, 239, 233, 0.19))",
+                    background: "var(--surface-raised, #171e2c)",
+                    color: "var(--text-primary, #f2efe9)",
+                    borderRadius: "12px",
                     cursor: "pointer",
-                    fontWeight: "bold",
-                    letterSpacing: "1px",
-                    transition: "0.3s",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    transition: "opacity 0.2s ease",
                   }}
-                  onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
-                  onMouseOut={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                 >
-                  {locale === "ar" ? "إلغاء" : locale === "en" ? "CANCEL" : "BATAL"}
+                  {locale === "ar" ? "إلغاء" : locale === "en" ? "Cancel" : "Batal"}
                 </button>
               )}
               <button
                 onClick={() => handleClose(true)}
+                className="btn-gold"
                 style={{
                   flex: 1,
-                  padding: "12px 15px",
-                  border: "none",
-                  background: "linear-gradient(135deg, #d4af37, #aa8529)",
-                  color: "#000",
-                  borderRadius: "50px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
-                  letterSpacing: "1px",
-                  transition: "0.3s",
-                  boxShadow: "0 5px 15px rgba(212, 175, 55, 0.3)",
+                  padding: "11px 16px",
+                  minHeight: "44px",
+                  borderRadius: "12px",
+                  fontSize: "0.9rem",
                 }}
-                onMouseOver={(e) => (e.currentTarget.style.transform = "translateY(-2px)")}
-                onMouseOut={(e) => (e.currentTarget.style.transform = "translateY(0)")}
               >
                 {dialog.isAlert
-                  ? (locale === "ar" ? "حسناً، فهمت" : locale === "en" ? "UNDERSTOOD" : "MENGERTI")
-                  : (locale === "ar" ? "نعم، متابعة" : locale === "en" ? "YES, PROCEED" : "YA, LANJUTKAN")}
+                  ? (locale === "ar" ? "حسناً، فهمت" : locale === "en" ? "Understood" : "Mengerti")
+                  : (locale === "ar" ? "نعم، متابعة" : locale === "en" ? "Confirm" : "Ya, Lanjutkan")}
               </button>
             </div>
           </div>

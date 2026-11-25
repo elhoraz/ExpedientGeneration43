@@ -4,7 +4,7 @@ import PhotoboothDynamic from "./PhotoboothDynamic";
 
 export const metadata = {
   title: "Studio Photobooth | Expedient Generation",
-  description: "Abadikan momen kebersamaan dan cetak kenangan photostrip eksklusif Expedient 43rd Arrisalah.",
+  description: "Abadikan momen kebersamaan dan cetak photostrip kenangan Expedient 43rd Arrisalah.",
 };
 
 export default async function PhotoboothPage() {

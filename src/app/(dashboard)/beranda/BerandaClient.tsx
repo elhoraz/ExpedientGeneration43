@@ -246,13 +246,13 @@ export default function BerandaClient({
           hintInteract: isAr
             ? "اسحب للتدوير · انقر للمعنى"
             : isEn
-            ? "Drag a Shard to Rotate · Tap for Meaning"
-            : "GESER SERPIHAN UNTUK PUTAR · KETUK UNTUK MAKNA",
+            ? "Drag a piece to rotate · Tap for meaning"
+            : "Geser bagian untuk putar · Ketuk untuk makna",
           hintSpin: isAr
             ? "تدوير الشعار..."
             : isEn
-            ? "ROTATING EMBLEM..."
-            : "MEMUTAR LAMBANG 3D...",
+            ? "Rotating emblem..."
+            : "Memutar lambang 3D...",
           btnScatter: tLang.beranda.hint_spin,
           btnUnite: isAr ? "توحيد الهوية" : isEn ? "Unite Identity" : "Satukan Identitas",
           btnProcess: isAr ? "جارٍ المعالجة..." : isEn ? "Processing..." : "Memproses...",
@@ -284,51 +284,38 @@ export default function BerandaClient({
 
         {/* SECTION: KHATAM BERSAMA TRACKER */}
         <section className="hall-section" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-          <div className="glass-panel reveal-up" style={{
-            padding: 'clamp(24px, 4vw, 36px)',
-            borderRadius: '24px',
-            background: 'linear-gradient(135deg, rgba(27, 94, 32, 0.15) 0%, rgba(10, 15, 25, 0.7) 100%)',
-            border: '1px solid rgba(212, 175, 55, 0.35)',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px',
-            maxWidth: '1000px',
-            margin: '0 auto',
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
+          <div className="glass-panel beranda-khatam-card reveal-up">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
-                  width: '46px',
-                  height: '46px',
+                  width: '44px',
+                  height: '44px',
                   borderRadius: '12px',
-                  background: 'rgba(212, 175, 55, 0.15)',
-                  border: '1px solid var(--gold-main)',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--gold-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: 'var(--gold-main)',
-                  fontSize: '1.2rem',
+                  fontSize: '1.15rem',
                 }}>
                   <i className="fa-solid fa-book-quran"></i>
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.72rem', letterSpacing: '2px', color: 'var(--gold-main)', textTransform: 'uppercase', fontWeight: 700 }}>
+                  <div style={{ fontSize: '0.75rem', letterSpacing: '0.06em', color: 'var(--gold-main)', textTransform: 'uppercase', fontWeight: 700 }}>
                     {tLang.beranda_extra.spiritual_synergy}
                   </div>
-                  <h3 style={{ margin: 0, fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.2rem, 3vw, 1.6rem)', color: 'var(--text-primary)' }}>
+                  <h3 style={{ margin: 0, fontFamily: "var(--font-playfair, 'Playfair Display', serif)", fontSize: 'clamp(1.2rem, 3vw, 1.55rem)', color: 'var(--text-primary)' }}>
                     {tLang.beranda_extra.khatam_realtime_title}
                   </h3>
                 </div>
               </div>
-              <Link href="/quran?tab=khataman" className="btn-stamp" style={{ padding: '8px 20px', fontSize: '0.78rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <Link href="/quran?tab=khataman" className="btn-stamp" style={{ marginTop: 0, padding: '10px 20px', fontSize: '0.84rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                 <span>{tLang.beranda_extra.khatam_board_btn}</span>
                 <i className="fa-solid fa-arrow-right"></i>
               </Link>
             </div>
-            <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
               {tLang.beranda_extra.khatam_movement_desc}
             </p>
           </div>
@@ -360,7 +347,7 @@ export default function BerandaClient({
           <div className="archive-backdrop" onClick={() => (window as any).closeArchive?.()}></div>
           <div className="archive-paper" id="archivePaper">
             <div className="archive-header">
-              <div>ARSIP KENANGAN ALUMNI</div>
+              <div>Arsip Kenangan Alumni</div>
               <div id="arcDate">---</div>
             </div>
             <h1 className="archive-title" id="arcTitle">TITLE</h1>
@@ -401,7 +388,7 @@ export default function BerandaClient({
             <div className="leaderboard-container">
               {leaderboard.map((l, idx) => {
                 const rank = idx + 1;
-                const borderColor = rank === 1 ? '#FFD700' : (rank === 2 ? '#E5E4E2' : (rank === 3 ? '#cd7f32' : 'var(--glass-border)'));
+                const borderColor = rank === 1 ? 'var(--gold-main, #d4af37)' : (rank === 2 ? 'var(--border-strong)' : (rank === 3 ? '#b45309' : 'var(--glass-border)'));
                 return (
                   <div className="glass-panel reveal-up leaderboard-item" style={{ borderColor: rank <= 3 ? borderColor : 'var(--glass-border)' }} key={idx}>
                     <div className="leaderboard-info">
@@ -479,7 +466,7 @@ export default function BerandaClient({
               <input type="text" name="nama" className="luxury-input input-signature" placeholder={tLang.beranda.sign_name} required />
               <textarea name="pesan" className="luxury-input" placeholder={tLang.beranda.sign_placeholder} rows={2} required></textarea>
               <div>
-                <button type="submit" className="btn-stamp" id="desktopSubmitBtn">{tLang.beranda.buku_tamu_btn.toUpperCase()}</button>
+                <button type="submit" className="btn-stamp" id="desktopSubmitBtn">{tLang.beranda.buku_tamu_btn}</button>
 
                 <div className="swipe-seal-container" id="swipeSealContainer">
                   <div className="swipe-fill" id="swipeFill"></div>
@@ -518,19 +505,19 @@ export default function BerandaClient({
         </section>
 
         {birthdayUsers.length > 0 && (
-          <div id="bdayToast" style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%) translateY(150px)', width: '90%', maxWidth: '400px', background: 'var(--glass-bg)', backdropFilter: 'blur(30px)', border: '1px solid rgba(212,175,55,0.4)', borderRadius: '16px', padding: '20px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', gap: '15px', opacity: 0, transition: '0.8s cubic-bezier(0.16,1,0.3,1)' }}>
-            <div style={{ width: '50px', height: '50px', background: 'rgba(212,175,55,0.1)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d4af37', fontSize: '1.5rem', flexShrink: 0 }}>
+          <div id="bdayToast" style={{ position: 'fixed', bottom: '40px', left: '50%', transform: 'translateX(-50%) translateY(150px)', width: '90%', maxWidth: '400px', background: 'var(--bg-card)', border: '1px solid var(--border-strong)', borderRadius: '16px', padding: '18px 20px', boxShadow: 'var(--glass-shadow)', zIndex: 99999, display: 'flex', alignItems: 'center', gap: '15px', opacity: 0, transition: 'transform 0.5s cubic-bezier(0.16,1,0.3,1), opacity 0.4s ease' }}>
+            <div style={{ width: '48px', height: '48px', background: 'var(--surface-raised)', border: '1px solid var(--gold-border)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--gold-main)', fontSize: '1.35rem', flexShrink: 0 }}>
               <i className="fa-solid fa-cake-candles"></i>
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: "'Playfair Display',serif", color: '#d4af37', fontWeight: 700, fontSize: '1.1rem', marginBottom: '5px' }}>{tLang.beranda.bday_title}</div>
-              <div style={{ color: 'var(--text-primary)', fontSize: '0.85rem', lineHeight: 1.4 }}>
+              <div style={{ fontFamily: "var(--font-playfair, 'Playfair Display', serif)", color: 'var(--gold-main)', fontWeight: 700, fontSize: '1.05rem', marginBottom: '4px' }}>{tLang.beranda.bday_title}</div>
+              <div style={{ color: 'var(--text-primary)', fontSize: '0.86rem', lineHeight: 1.45 }}>
                 {tLang.beranda.bday_today_is} <strong>{birthdayUsers[0].nama_panggilan || birthdayUsers[0].nama_lengkap}</strong>
                 {birthdayUsers.length > 1 ? (locale === 'ar' ? ' وآخرون' : locale === 'en' ? ` and ${birthdayUsers.length - 1} other alumni` : ` dan ${birthdayUsers.length - 1} alumni lainnya`) : ''}. <br />
-                <Link href={birthdayUsers.length === 1 ? `/birthday/${birthdayUsers[0].id}` : "/birthday"} style={{ color: '#d4af37', textDecoration: 'none', fontWeight: 'bold', marginTop: '5px', display: 'inline-block' }}>{tLang.beranda.bday_send_wish} <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
+                <Link href={birthdayUsers.length === 1 ? `/birthday/${birthdayUsers[0].id}` : "/birthday"} style={{ color: 'var(--gold-main)', textDecoration: 'none', fontWeight: 700, marginTop: '5px', display: 'inline-block' }}>{tLang.beranda.bday_send_wish} <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
               </div>
             </div>
-            <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 800); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '5px' }}><i className="fa-solid fa-times"></i></button>
+            <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 500); }} aria-label={tLang.common.close} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', minWidth: '36px', minHeight: '36px', padding: '5px' }}><i className="fa-solid fa-times"></i></button>
           </div>
         )}
       </main>

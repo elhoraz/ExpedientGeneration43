@@ -11,6 +11,8 @@ import {
   findNearestCity,
   getNextPrayer,
   getCompassDirection,
+  formatQiblaQuadrant,
+  formatTimezoneLabel,
   PrayerSchedule,
   NextPrayerInfo,
 } from "@/lib/prayerTimes";
@@ -22,6 +24,18 @@ import "./kiblat.css";
 const QiblaMap = dynamic(() => import("./QiblaMap"), {
   ssr: false,
   loading: () => <QiblaMapSkeleton />,
+});
+
+const KiblatAstrolabe3D = dynamic(() => import("./KiblatAstrolabe3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="astrolabe-3d-shell astrolabe-3d-skeleton">
+      <div className="astrolabe-3d-loader">
+        <div className="astrolabe-3d-spinner" />
+        <span>Memuat kompas 3D...</span>
+      </div>
+    </div>
+  ),
 });
 
 // 12 Degree mark labels every 30 deg
@@ -64,16 +78,28 @@ export default function KiblatClient() {
   // Device Mode: "desktop" (Auto-aligned & manual drag) vs "mobile" (Real-time physical sensors)
   const [deviceMode, setDeviceMode] = useState<"desktop" | "mobile">("desktop");
 
-  // Automatically start locked directly onto Ka'bah for Desktop / default view!
+  // Automatically start locked directly onto Ka'bah for Desktop / default view
   const [heading, setHeading] = useState<number>(initialQibla.bearing);
   const [manualOffset, setManualOffset] = useState<number>(0);
   const [continuousHeading, setContinuousHeading] = useState<number>(initialQibla.bearing);
   const [isSensorActive, setIsSensorActive] = useState<boolean>(false);
+  const [isSensorListening, setIsSensorListening] = useState<boolean>(false);
+  const [sensorUnavailable, setSensorUnavailable] = useState<boolean>(false);
   const [needsIosPermission, setNeedsIosPermission] = useState<boolean>(false);
+  const deviceModeRef = useRef<"desktop" | "mobile">("desktop");
+  const hasSensorReadingRef = useRef<boolean>(false);
+  const sensorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const orientListenerAttachedRef = useRef<boolean>(false);
   const [isGpsLoading, setIsGpsLoading] = useState<boolean>(false);
-  const [now, setNow] = useState<Date>(new Date());
+  const [gpsStatus, setGpsStatus] = useState<{ type: "error" | "info"; message: string } | null>(null);
+  const [now, setNow] = useState<Date | null>(null);
+  const [isScheduleLoading, setIsScheduleLoading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"compass" | "map">("compass");
+  const [compassStyle, setCompassStyle] = useState<"3d" | "2d">("3d");
+  const [cameraPreset, setCameraPreset] = useState<"perspective" | "kaaba" | "top">("perspective");
+  const [hasCustomOrbit, setHasCustomOrbit] = useState<boolean>(false);
+  const [resetOrbitSignal, setResetOrbitSignal] = useState<number>(0);
 
   // Genuine Adzan Audio Player state
   const [adzanVersion, setAdzanVersion] = useState<"makkah" | "madinah">("makkah");
@@ -91,10 +117,13 @@ export default function KiblatClient() {
   // Auto-detect mobile device on client mount & restore saved location
   useEffect(() => {
     if (typeof window === "undefined") return;
+    document.body.classList.add("page-kiblat");
     const isMobile =
       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
       (window.innerWidth < 768 && window.matchMedia("(pointer: coarse)").matches);
-    setDeviceMode(isMobile ? "mobile" : "desktop");
+    const detectedMode = isMobile ? "mobile" : "desktop";
+    deviceModeRef.current = detectedMode;
+    setDeviceMode(detectedMode);
 
     try {
       const savedCityId = localStorage.getItem("expedient_kemenag_city_id");
@@ -112,13 +141,38 @@ export default function KiblatClient() {
         }
       }
     } catch {}
+
+    return () => {
+      document.body.classList.remove("page-kiblat");
+    };
   }, []);
 
-  // Fetch official Kemenag schedule when city or location changes
+  const currentDateKey = now
+    ? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+    : "";
+
+  // Fetch official Kemenag schedule when city, location, or calendar date changes (never per-second)
   useEffect(() => {
+    if (!currentDateKey || !now) return;
+
+    const isIndonesiaGps =
+      currentLocation.isGps &&
+      currentLocation.lat >= -11.5 &&
+      currentLocation.lat <= 6.5 &&
+      currentLocation.lng >= 94.5 &&
+      currentLocation.lng <= 141.5;
+    const shouldFetchKemenag = currentLocation.isGps ? isIndonesiaGps : Boolean(selectedCity?.kemenagCityId);
+
+    if (!shouldFetchKemenag) {
+      setKemenagSchedule(null);
+      setIsScheduleLoading(false);
+      return;
+    }
+
     let isMounted = true;
     const fetchOfficialSchedule = async () => {
       const cityId = selectedCity?.kemenagCityId || DEFAULT_KEMENAG_CITY_ID;
+      setIsScheduleLoading(true);
       try {
         const sched = await getOfficialKemenagSchedule(
           cityId,
@@ -129,34 +183,77 @@ export default function KiblatClient() {
         );
         if (isMounted) {
           setKemenagSchedule(sched);
+          setIsScheduleLoading(false);
           if (typeof window !== "undefined" && selectedCity?.kemenagCityId) {
             localStorage.setItem("expedient_kemenag_city_id", selectedCity.kemenagCityId);
           }
         }
       } catch (e) {
         console.warn("Could not fetch official Kemenag schedule:", e);
+        if (isMounted) {
+          setKemenagSchedule(null);
+          setIsScheduleLoading(false);
+        }
       }
     };
     fetchOfficialSchedule();
     return () => {
       isMounted = false;
     };
-  }, [selectedCity, currentLocation, now]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCity?.kemenagCityId, currentLocation.lat, currentLocation.lng, currentLocation.timezone, currentLocation.isGps, currentDateKey]);
 
   // Qibla calculations (Bearing, Distance, Falak angles, DMS)
   const qiblaInfo = calculateQibla(currentLocation.lat, currentLocation.lng);
-  const astronomicalSchedule: PrayerSchedule = calculatePrayerTimes(
-    currentLocation.lat,
-    currentLocation.lng,
-    currentLocation.timezone,
-    now
-  );
+  const astronomicalSchedule: PrayerSchedule = now
+    ? calculatePrayerTimes(
+        currentLocation.lat,
+        currentLocation.lng,
+        currentLocation.timezone,
+        now
+      )
+    : {
+        imsak: "--:--",
+        subuh: "--:--",
+        syuruq: "--:--",
+        dzuhur: "--:--",
+        ashar: "--:--",
+        maghrib: "--:--",
+        isya: "--:--",
+        dateStr: "\u00A0",
+      };
   // Prioritaskan jadwal resmi Kemenag RI jika tersedia untuk kota tersebut
   const prayerSchedule: PrayerSchedule = kemenagSchedule || astronomicalSchedule;
-  const nextPrayer: NextPrayerInfo = getNextPrayer(prayerSchedule, now);
+  const nextPrayer: NextPrayerInfo = now
+    ? getNextPrayer(prayerSchedule, now, currentLocation.timezone)
+    : {
+        id: "subuh",
+        name: t.kiblat.prayer_subuh,
+        arabicName: "الفجر",
+        time: "--:--",
+        countdown: "--:--:--",
+        isImminent: false,
+      };
+
+  const nextPrayerLocalizedName =
+    nextPrayer.id === "subuh"
+      ? t.kiblat.prayer_subuh
+      : nextPrayer.id === "dzuhur"
+      ? t.kiblat.prayer_dzuhur
+      : nextPrayer.id === "ashar"
+      ? t.kiblat.prayer_ashar
+      : nextPrayer.id === "maghrib"
+      ? t.kiblat.prayer_maghrib
+      : t.kiblat.prayer_isya;
+
+  // Target Qibla cardinal direction & quadrant deviation
+  const qiblaDirection = getCompassDirection(qiblaInfo.bearing, locale);
+  const qiblaQuadrant = formatQiblaQuadrant(qiblaInfo.bearing, qiblaInfo.distanceKm, locale);
+  const locationTzLabel = formatTimezoneLabel(currentLocation.timezone);
 
   // Effective Heading taking into account any manual magnetic calibration offset
   const effectiveHeading = (heading + manualOffset + 360) % 360;
+  const displayHeading = Math.round(effectiveHeading * 10) / 10;
 
   // Direction info for device heading
   const currentDirection = getCompassDirection(effectiveHeading, locale);
@@ -172,7 +269,7 @@ export default function KiblatClient() {
   // Smooth continuous heading updater (prevents 360° flip glitch)
   const updateHeading = useCallback((newHeading: number) => {
     const normalized = ((newHeading % 360) + 360) % 360;
-    setHeading(Math.round(normalized));
+    setHeading(Math.round(normalized * 10) / 10);
 
     setContinuousHeading((prev) => {
       // Find shortest delta from prev
@@ -187,6 +284,21 @@ export default function KiblatClient() {
     updateHeading(qiblaInfo.bearing);
   }, [qiblaInfo.bearing, updateHeading]);
 
+  const handle3DDragStart = useCallback(() => {
+    setIsDragging(true);
+    setIsSensorActive(false);
+  }, []);
+
+  const handle3DHeadingDrag = useCallback((newContinuous: number) => {
+    const normalized = ((newContinuous % 360) + 360) % 360;
+    setHeading(Math.round(normalized));
+    setContinuousHeading(newContinuous);
+  }, []);
+
+  const handle3DDragEnd = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
   // Haptic feedback when locking onto Ka'bah
   useEffect(() => {
     if (isAligned && !prevAlignedRef.current) {
@@ -197,8 +309,9 @@ export default function KiblatClient() {
     prevAlignedRef.current = isAligned;
   }, [isAligned]);
 
-  // Live 1-second clock
+  // Live 1-second clock (initialized post-mount to avoid SSR hydration mismatch)
   useEffect(() => {
+    setNow(new Date());
     const timer = setInterval(() => {
       setNow(new Date());
     }, 1000);
@@ -298,6 +411,7 @@ export default function KiblatClient() {
   // Robust Device Orientation Event Handler
   const handleOrientation = useCallback(
     (e: DeviceOrientationEvent) => {
+      if (deviceModeRef.current !== "mobile") return;
       let compass: number | null = null;
 
       // 1. iOS Safari (native tilt-compensated webkitCompassHeading 0-360)
@@ -328,15 +442,41 @@ export default function KiblatClient() {
       }
 
       if (compass !== null && !isNaN(compass)) {
+        hasSensorReadingRef.current = true;
+        if (sensorTimeoutRef.current) {
+          clearTimeout(sensorTimeoutRef.current);
+          sensorTimeoutRef.current = null;
+        }
         updateHeading(compass);
+        setSensorUnavailable(false);
+        setIsSensorListening(false);
         setIsSensorActive(true);
       }
     },
     [updateHeading]
   );
 
-  // Activate Sensor (User gesture required on iOS Safari)
-  const activateCompassSensor = async () => {
+  // Activate Sensor (requires user gesture on iOS Safari; verifies real hardware events before marking active)
+  const activateCompassSensor = useCallback(async () => {
+    if (sensorTimeoutRef.current) {
+      clearTimeout(sensorTimeoutRef.current);
+      sensorTimeoutRef.current = null;
+    }
+    hasSensorReadingRef.current = false;
+    setSensorUnavailable(false);
+    setIsSensorActive(false);
+
+    const startAvailabilityTimer = () => {
+      setIsSensorListening(true);
+      sensorTimeoutRef.current = setTimeout(() => {
+        if (!hasSensorReadingRef.current) {
+          setIsSensorListening(false);
+          setIsSensorActive(false);
+          setSensorUnavailable(true);
+        }
+      }, 1400);
+    };
+
     if (
       typeof DeviceOrientationEvent !== "undefined" &&
       typeof (DeviceOrientationEvent as any).requestPermission === "function"
@@ -344,23 +484,38 @@ export default function KiblatClient() {
       try {
         const res = await (DeviceOrientationEvent as any).requestPermission();
         if (res === "granted") {
-          window.addEventListener("deviceorientation", handleOrientation, true);
+          if (!orientListenerAttachedRef.current) {
+            window.addEventListener("deviceorientation", handleOrientation, true);
+            orientListenerAttachedRef.current = true;
+          }
           setNeedsIosPermission(false);
-          setIsSensorActive(true);
+          startAvailabilityTimer();
+        } else {
+          setSensorUnavailable(true);
+          setIsSensorListening(false);
         }
       } catch (err) {
         console.warn("iOS orientation permission error:", err);
+        setSensorUnavailable(true);
+        setIsSensorListening(false);
       }
     } else if (typeof window !== "undefined") {
       const win = window as any;
-      if ("ondeviceorientationabsolute" in win) {
-        win.addEventListener("deviceorientationabsolute", handleOrientation, true);
-      } else {
-        win.addEventListener("deviceorientation", handleOrientation, true);
+      if (!("DeviceOrientationEvent" in win) && !("AbsoluteOrientationSensor" in win)) {
+        setSensorUnavailable(true);
+        return;
       }
-      setIsSensorActive(true);
+      if (!orientListenerAttachedRef.current) {
+        if ("ondeviceorientationabsolute" in win) {
+          win.addEventListener("deviceorientationabsolute", handleOrientation, true);
+        } else {
+          win.addEventListener("deviceorientation", handleOrientation, true);
+        }
+        orientListenerAttachedRef.current = true;
+      }
+      startAvailabilityTimer();
     }
-  };
+  }, [handleOrientation]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -373,6 +528,7 @@ export default function KiblatClient() {
       try {
         const sensor = new win.AbsoluteOrientationSensor({ frequency: 60 });
         sensor.addEventListener("reading", () => {
+          if (deviceModeRef.current !== "mobile") return;
           const q = sensor.quaternion;
           if (q && q.length === 4) {
             const [x, y, z, w] = q;
@@ -380,7 +536,14 @@ export default function KiblatClient() {
             const cosy_cosp = 1 - 2 * (y * y + z * z);
             let yaw = Math.atan2(siny_cosp, cosy_cosp) * (180 / Math.PI);
             yaw = (360 - yaw) % 360;
+            hasSensorReadingRef.current = true;
+            if (sensorTimeoutRef.current) {
+              clearTimeout(sensorTimeoutRef.current);
+              sensorTimeoutRef.current = null;
+            }
             updateHeading(yaw);
+            setSensorUnavailable(false);
+            setIsSensorListening(false);
             setIsSensorActive(true);
           }
         });
@@ -406,14 +569,19 @@ export default function KiblatClient() {
       } else {
         win.addEventListener("deviceorientation", handleOrientation, true);
       }
+      orientListenerAttachedRef.current = true;
     }
 
     return () => {
+      if (sensorTimeoutRef.current) {
+        clearTimeout(sensorTimeoutRef.current);
+      }
       if (sensorInstance) {
         try {
           sensorInstance.stop();
         } catch (_) {}
       }
+      orientListenerAttachedRef.current = false;
       win.removeEventListener("deviceorientationabsolute", handleOrientation, true);
       win.removeEventListener("deviceorientation", handleOrientation, true);
     };
@@ -421,14 +589,17 @@ export default function KiblatClient() {
 
   // High-accuracy GPS Geolocation Handler
   const handleDetectGps = () => {
+    setGpsStatus(null);
     if (!navigator.geolocation) {
-      alert(
-        locale === "ar"
-          ? "متصفحك لا يدعم تحديد الموقع عبر GPS."
-          : locale === "en"
-          ? "Your browser does not support GPS geolocation."
-          : "Browser Anda tidak mendukung deteksi lokasi GPS."
-      );
+      setGpsStatus({
+        type: "error",
+        message:
+          locale === "ar"
+            ? "متصفحك لا يدعم تحديد الموقع عبر GPS. اختر مدينة من القائمة أعلاه."
+            : locale === "en"
+            ? "Your browser does not support GPS geolocation. Please select a city from the list."
+            : "Browser tidak mendukung GPS. Silakan pilih kota secara manual dari daftar.",
+      });
       return;
     }
 
@@ -449,6 +620,7 @@ export default function KiblatClient() {
         setCurrentLocation(newLoc);
         setSelectedCity(nearestCity);
         setIsGpsLoading(false);
+        setGpsStatus(null);
 
         if (typeof window !== "undefined") {
           localStorage.setItem("expedient_user_location", JSON.stringify(newLoc));
@@ -467,13 +639,15 @@ export default function KiblatClient() {
       (err) => {
         console.warn("GPS error:", err);
         setIsGpsLoading(false);
-        alert(
-          locale === "ar"
-            ? "تعذر الوصول إلى GPS. يرجى التأكد من تفعيل إذن الموقع."
-            : locale === "en"
-            ? "Unable to access GPS. Please ensure location permissions are enabled."
-            : "Tidak dapat mengakses GPS. Pastikan izin lokasi telah diaktifkan."
-        );
+        setGpsStatus({
+          type: "error",
+          message:
+            locale === "ar"
+              ? "تعذر الوصول إلى GPS. فعّل إذن الموقع في المتصفح ثم أعد المحاولة أو اختر مدينة يدوياً."
+              : locale === "en"
+              ? "Unable to access GPS. Enable location permission in your browser and retry, or select a city manually."
+              : "Gagal mengakses GPS. Aktifkan izin lokasi di browser lalu coba lagi, atau pilih kota secara manual.",
+        });
       },
       { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
@@ -481,6 +655,7 @@ export default function KiblatClient() {
 
   // City Dropdown Change with automatic Qibla auto-alignment on Desktop
   const handleCityChange = (cityName: string) => {
+    setGpsStatus(null);
     const city = POPULAR_CITIES.find((c) => c.name === cityName);
     if (city) {
       setSelectedCity(city);
@@ -583,99 +758,89 @@ export default function KiblatClient() {
     { deg: 315, code: locale === "ar" ? "ش.غ" : locale === "en" ? "NW" : "BL", isPrimary: false },
   ];
 
+  const handleTabListKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" && e.key !== "Home" && e.key !== "End") return;
+    const tabs = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    if (tabs.length < 2) return;
+    const idx = tabs.indexOf(document.activeElement as HTMLButtonElement);
+    if (idx < 0) return;
+    e.preventDefault();
+    const isRtl = locale === "ar";
+    let nextIdx = idx;
+    if (e.key === "Home") nextIdx = 0;
+    else if (e.key === "End") nextIdx = tabs.length - 1;
+    else if ((e.key === "ArrowRight" && !isRtl) || (e.key === "ArrowLeft" && isRtl)) {
+      nextIdx = (idx + 1) % tabs.length;
+    } else {
+      nextIdx = (idx - 1 + tabs.length) % tabs.length;
+    }
+    tabs[nextIdx]?.focus();
+  };
+
   return (
     <div className="kiblat-page-wrapper">
-      <div className="kiblat-bg-ambient"></div>
-
       <div className="kiblat-container">
-        {/* Title & Badge */}
-        <div className="kiblat-header-box">
-          <div className="kiblat-badge-sup">
-            <i className="fa-solid fa-compass"></i>{" "}
-            {locale === "ar"
-              ? "أداة الفلك والملاحة الإسلامية"
-              : locale === "en"
-              ? "Islamic Astronomical Instrument"
-              : "Instrumen Astronomi Islam"}
-          </div>
+        {/* Compact Header (No banned eyebrow pill) */}
+        <header className="kiblat-header-box">
           <h1 className="kiblat-title">{t.kiblat.title}</h1>
           <p className="kiblat-subtitle">{t.kiblat.subtitle}</p>
-        </div>
+        </header>
 
-        {/* Device Mode Switcher Bar: Mode Desktop vs Mode Mobile */}
-        <div className="device-mode-switcher-bar">
-          <div className="device-mode-pills">
-            <button
-              type="button"
-              className={`device-mode-pill ${deviceMode === "desktop" ? "active" : ""}`}
-              onClick={() => {
-                setDeviceMode("desktop");
-                setIsSensorActive(false);
-              }}
-            >
-              <i className="fa-solid fa-desktop"></i>
-              <span>{t.kiblat.mode_desktop}</span>
-              <span className="mode-sub-tag">Auto-Lock</span>
-            </button>
-            <button
-              type="button"
-              className={`device-mode-pill ${deviceMode === "mobile" ? "active" : ""}`}
-              onClick={() => {
-                setDeviceMode("mobile");
-                if (!isSensorActive) {
-                  activateCompassSensor();
-                }
-              }}
-            >
-              <i className="fa-solid fa-mobile-screen-button"></i>
-              <span>{t.kiblat.mode_mobile}</span>
-              <span className="mode-sub-tag">Sensor Fisik</span>
-            </button>
-          </div>
-        </div>
-
-        {/* View Mode Switcher: Compass vs Satellite Map */}
-        <div className="kiblat-view-tabs">
-          <button
-            type="button"
-            className={`kiblat-tab-btn ${viewMode === "compass" ? "active" : ""}`}
-            onClick={() => setViewMode("compass")}
-          >
-            <i className="fa-solid fa-compass"></i>
-            <span>{locale === "ar" ? "بوصلة الأسطرلاب" : locale === "en" ? "Astrolabe Compass" : "Kompas Astrolabe"}</span>
-          </button>
-          <button
-            type="button"
-            className={`kiblat-tab-btn ${viewMode === "map" ? "active" : ""}`}
-            onClick={() => setViewMode("map")}
-          >
-            <i className="fa-solid fa-satellite-dish"></i>
-            <span>{locale === "ar" ? "خريطة الأقمار الصناعية" : locale === "en" ? "Satellite Qibla Map" : "Peta Garis Kiblat Satelit"}</span>
-          </button>
-        </div>
-
-        {/* Location Selector Bar */}
-        <div className="kiblat-location-bar">
+        {/* Single Unified Toolbar: Location Controls + View Mode + Sensor Mode */}
+        <section
+          className="kiblat-location-bar"
+          aria-label={locale === "ar" ? "إعدادات الموقع والوضع" : locale === "en" ? "Location and mode controls" : "Kontrol lokasi dan mode"}
+        >
           <div className="location-current-info">
-            <div className="location-icon-badge">
+            <div className="location-icon-badge" aria-hidden="true">
               <i className="fa-solid fa-location-dot"></i>
             </div>
             <div className="location-text">
-              <h4>{currentLocation.isGps ? t.kiblat.gps_my_loc : currentLocation.name}</h4>
-              <p>
-                {currentLocation.lat.toFixed(4)}° S, {currentLocation.lng.toFixed(4)}° E • UTC+
-                {currentLocation.timezone}
+              <h2>{currentLocation.isGps ? t.kiblat.gps_my_loc : currentLocation.name}</h2>
+              <p className="location-coords-meta">
+                {Math.abs(currentLocation.lat).toFixed(4)}°{" "}
+                {currentLocation.lat >= 0
+                  ? locale === "ar"
+                    ? "ش"
+                    : locale === "id"
+                    ? "LU"
+                    : "N"
+                  : locale === "ar"
+                  ? "ج"
+                  : locale === "id"
+                  ? "LS"
+                  : "S"}
+                {", "}
+                {Math.abs(currentLocation.lng).toFixed(4)}°{" "}
+                {currentLocation.lng >= 0
+                  ? locale === "ar"
+                    ? "ق"
+                    : locale === "id"
+                    ? "BT"
+                    : "E"
+                  : locale === "ar"
+                  ? "غ"
+                  : locale === "id"
+                  ? "BB"
+                  : "W"}
+                {" · "}
+                {locationTzLabel} (UTC{currentLocation.timezone >= 0 ? `+${currentLocation.timezone}` : currentLocation.timezone})
               </p>
             </div>
           </div>
 
           <div className="location-controls">
+            <label htmlFor="kiblat-city-select" className="sr-only">
+              {locale === "ar" ? "اختر المدينة" : locale === "en" ? "Select city" : "Pilih kota"}
+            </label>
             <select
+              id="kiblat-city-select"
+              name="city"
               className="city-select"
               value={currentLocation.isGps ? "" : selectedCity.name}
               onChange={(e) => handleCityChange(e.target.value)}
             >
-              {currentLocation.isGps && <option value="">📍 {t.kiblat.gps_my_loc}</option>}
+              {currentLocation.isGps && <option value="">{t.kiblat.gps_my_loc}</option>}
               {POPULAR_CITIES.map((c) => (
                 <option key={c.name} value={c.name}>
                   {c.name} ({c.region})
@@ -689,276 +854,547 @@ export default function KiblatClient() {
               onClick={handleDetectGps}
               disabled={isGpsLoading}
             >
-              <i className={`fa-solid ${isGpsLoading ? "fa-spinner fa-spin" : "fa-crosshairs"}`}></i>
-              {isGpsLoading ? t.kiblat.gps_detecting : t.kiblat.gps_detect}
+              <i className={`fa-solid ${isGpsLoading ? "fa-spinner fa-spin" : "fa-crosshairs"}`} aria-hidden="true"></i>
+              <span>{isGpsLoading ? t.kiblat.gps_detecting : t.kiblat.gps_detect}</span>
+            </button>
+          </div>
+        </section>
+
+        <div className="kiblat-mode-toolbar">
+          <div
+            className="kiblat-view-tabs"
+            role="tablist"
+            onKeyDown={handleTabListKeyDown}
+            aria-label={locale === "ar" ? "وضع العرض" : locale === "en" ? "Display mode" : "Mode tampilan"}
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === "compass"}
+              className={`kiblat-tab-btn ${viewMode === "compass" ? "active" : ""}`}
+              onClick={() => setViewMode("compass")}
+            >
+              <i className="fa-solid fa-compass" aria-hidden="true"></i>
+              <span>{locale === "ar" ? "البوصلة" : locale === "en" ? "Compass" : "Kompas"}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === "map"}
+              className={`kiblat-tab-btn ${viewMode === "map" ? "active" : ""}`}
+              onClick={() => setViewMode("map")}
+            >
+              <i className="fa-solid fa-map-location-dot" aria-hidden="true"></i>
+              <span>{locale === "ar" ? "خريطة القبلة" : locale === "en" ? "Qibla Map" : "Peta Kiblat"}</span>
+            </button>
+          </div>
+
+          <div
+            className="device-mode-pills"
+            role="group"
+            aria-label={locale === "ar" ? "مصدر التوجيه" : locale === "en" ? "Orientation source" : "Sumber orientasi"}
+          >
+            <button
+              type="button"
+              className={`device-mode-pill ${deviceMode === "desktop" ? "active" : ""}`}
+              aria-pressed={deviceMode === "desktop"}
+              onClick={() => {
+                deviceModeRef.current = "desktop";
+                if (sensorTimeoutRef.current) {
+                  clearTimeout(sensorTimeoutRef.current);
+                  sensorTimeoutRef.current = null;
+                }
+                setDeviceMode("desktop");
+                setIsSensorActive(false);
+                setIsSensorListening(false);
+                setSensorUnavailable(false);
+              }}
+            >
+              <i className="fa-solid fa-desktop" aria-hidden="true"></i>
+              <span>{t.kiblat.mode_desktop}</span>
+            </button>
+            <button
+              type="button"
+              className={`device-mode-pill ${deviceMode === "mobile" ? "active" : ""}`}
+              aria-pressed={deviceMode === "mobile"}
+              onClick={() => {
+                deviceModeRef.current = "mobile";
+                setDeviceMode("mobile");
+                if (!isSensorActive) {
+                  activateCompassSensor();
+                }
+              }}
+            >
+              <i className="fa-solid fa-mobile-screen-button" aria-hidden="true"></i>
+              <span>{t.kiblat.mode_mobile}</span>
             </button>
           </div>
         </div>
 
+        {gpsStatus && (
+          <div className="kiblat-inline-alert" role="alert" aria-live="polite">
+            <span className="kiblat-inline-alert-text">
+              <i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+              <span>{gpsStatus.message}</span>
+            </span>
+            <button
+              type="button"
+              className="kiblat-inline-alert-close"
+              onClick={() => setGpsStatus(null)}
+              aria-label={locale === "ar" ? "إغلاق التنبيه" : locale === "en" ? "Dismiss notice" : "Tutup peringatan"}
+            >
+              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+          </div>
+        )}
+
         {/* =========================================================================
-            VIEW MODE 1: ASTROLABE COMPASS STAGE
+            VIEW MODE 1: ASTROLABE COMPASS STAGE (INSTRUMENT LEADS ABOVE THE FOLD)
             ========================================================================= */}
         {viewMode === "compass" && (
           <div className="astrolabe-stage">
-            {/* 1. Mode Desktop Panel */}
-            {deviceMode === "desktop" && (
-              <div className="desktop-mode-panel animate-fade-in">
-                <div className="desktop-mode-header">
-                  <div className="desktop-mode-icon-circle">
-                    <i className="fa-solid fa-desktop"></i>
-                  </div>
-                  <div className="desktop-mode-text">
-                    <div className="desktop-mode-badge-title">
-                      <strong>Mode Desktop (Auto-Aligned)</strong>
-                      <span className="desktop-sensor-note">Sensor magnetik fisik tidak tersedia di PC/Laptop</span>
-                    </div>
-                    <p className="desktop-mode-desc">
-                      Kompas otomatis diselaraskan secara akurat menghadap Ka&apos;bah (<strong>{qiblaInfo.bearing}° {currentDirection.name}</strong>). Anda dapat memutar kompas piringan 360° via drag mouse (kanan = kanan, kiri = kiri) atau menggunakan peta satelit.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="desktop-auto-actions">
-                  <button
-                    type="button"
-                    className={`btn-auto-align ${isAligned ? "is-locked" : ""}`}
-                    onClick={handleAutoAlignQibla}
-                  >
-                    <i className={`fa-solid ${isAligned ? "fa-circle-check" : "fa-crosshairs"}`}></i>
-                    <span>
-                      {isAligned
-                        ? `✓ Terkunci Tepat ke Arah Ka'bah (${qiblaInfo.bearing}° ${currentDirection.name})`
-                        : `🎯 Kunci Otomatis ke Kiblat (${qiblaInfo.bearing}°)`}
+            {compassStyle === "3d" ? (
+              <div className="astrolabe-3d-wrapper">
+                {/* Clean Heading Readout directly above 3D Instrument */}
+                <div className="astrolabe-3d-lubber-top">
+                  <div className={`lubber-hud-badge ${isAligned ? "aligned" : ""}`}>
+                    <span className="hud-deg">{displayHeading}°</span>
+                    <span className="hud-dir">
+                      {currentDirection.code} • {currentDirection.name}
                     </span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 2. Mode Mobile Panel */}
-            {deviceMode === "mobile" && (
-              <div className="mobile-mode-panel animate-fade-in">
-                <div className="mobile-sensor-status-card">
-                  <div className="mobile-status-indicator">
-                    <span className={`status-dot ${isSensorActive ? "active-pulse" : "idle"}`}></span>
-                    <div className="status-label-group">
-                      <strong>
-                        {isSensorActive
-                          ? "🟢 Sensor Kompas Ponsel Aktif (Real-Time)"
-                          : "🔴 Sensor Belum Aktif / Perlu Izin"}
-                      </strong>
-                      <small>
-                        {isSensorActive
-                          ? "Kompas bergerak real-time mengikuti orientasi fisik perangkat Anda."
-                          : "Ketuk tombol di samping untuk mengaktifkan sensor gerak ponsel Anda."}
-                      </small>
-                    </div>
                   </div>
+                </div>
 
-                  {!isSensorActive && (
+                <KiblatAstrolabe3D
+                  continuousHeading={continuousHeading}
+                  manualOffset={manualOffset}
+                  qiblaBearing={qiblaInfo.bearing}
+                  isAligned={isAligned}
+                  deviceMode={deviceMode}
+                  locale={locale}
+                  preset={cameraPreset}
+                  onOrbitChange={setHasCustomOrbit}
+                  resetOrbitSignal={resetOrbitSignal}
+                  onDragStart={handle3DDragStart}
+                  onHeadingDrag={handle3DHeadingDrag}
+                  onDragEnd={handle3DDragEnd}
+                />
+
+                {/* Single quiet horology control bar */}
+                <div className="astrolabe-quiet-bar">
+                  <div
+                    className="astrolabe-seg-group"
+                    role="tablist"
+                    onKeyDown={handleTabListKeyDown}
+                    aria-label={
+                      locale === "ar" ? "زاوية عرض الأسطرلاب" : locale === "en" ? "Astrolabe view options" : "Sudut pandang astrolabe"
+                    }
+                  >
                     <button
                       type="button"
-                      className="btn-activate-sensor"
-                      onClick={activateCompassSensor}
+                      role="tab"
+                      aria-selected={cameraPreset === "perspective"}
+                      className={`astrolabe-seg-btn ${cameraPreset === "perspective" ? "active" : ""}`}
+                      onClick={() => setCameraPreset("perspective")}
                     >
-                      <i className="fa-solid fa-compass"></i> Aktifkan Sensor HP
+                      {locale === "ar" ? "منظور" : locale === "en" ? "Perspective" : "Perspektif"}
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={cameraPreset === "kaaba"}
+                      className={`astrolabe-seg-btn ${cameraPreset === "kaaba" ? "active" : ""}`}
+                      onClick={() => setCameraPreset("kaaba")}
+                    >
+                      {locale === "ar" ? "الكعبة" : "Ka'bah"}
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={cameraPreset === "top"}
+                      className={`astrolabe-seg-btn ${cameraPreset === "top" ? "active" : ""}`}
+                      onClick={() => setCameraPreset("top")}
+                    >
+                      {locale === "ar" ? "أعلى" : locale === "en" ? "Top" : "Atas"}
+                    </button>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={false}
+                      className="astrolabe-seg-btn"
+                      onClick={() => setCompassStyle("2d")}
+                    >
+                      2D
+                    </button>
+                  </div>
+
+                  {hasCustomOrbit && (
+                    <button
+                      type="button"
+                      className="astrolabe-reset-link"
+                      onClick={() => setResetOrbitSignal((n) => n + 1)}
+                    >
+                      {locale === "ar" ? "إعادة الزاوية" : locale === "en" ? "Reset angle" : "Reset sudut"}
                     </button>
                   )}
                 </div>
 
-                <div className="mobile-guide-grid">
-                  <div className="mobile-guide-item">
-                    <i className="fa-solid fa-arrows-down-to-line"></i>
-                    <div>
-                      <strong>1. Pegang HP Mendatar</strong>
-                      <p>Posisikan ponsel sejajar lantai agar jarum kompas tidak terdistorsi gravitasi.</p>
-                    </div>
-                  </div>
-                  <div className="mobile-guide-item">
-                    <i className="fa-solid fa-arrows-rotate"></i>
-                    <div>
-                      <strong>2. Putar Tubuh Anda</strong>
-                      <p>Putar perlahan hingga jarum emas sejajar dengan puncak dan bergetar hijau.</p>
-                    </div>
-                  </div>
-                  <div className="mobile-guide-item">
-                    <i className="fa-solid fa-infinity"></i>
-                    <div>
-                      <strong>3. Kalibrasi Angka 8</strong>
-                      <p>Ayunkan ponsel membentuk pola angka 8 (∞) di udara jika kompas melenceng.</p>
-                    </div>
-                  </div>
-                </div>
+                {deviceMode === "desktop" && (
+                  <p className="astrolabe-quiet-caption">
+                    {locale === "ar"
+                      ? "اسحب لتدوير البوصلة، وبالزر الأيمن لتغيير زاوية الكاميرا"
+                      : locale === "en"
+                      ? "Drag to turn compass, right-drag to orbit camera"
+                      : "Geser untuk memutar arah, klik kanan untuk sudut kamera"}
+                  </p>
+                )}
               </div>
-            )}
-
-            {/* Bezel housing Forward Lubber Line and Compass */}
-            <div
-              className="astrolabe-bezel"
-              ref={stageRef}
-              onPointerDown={handlePointerDown}
-              title={
-                deviceMode === "desktop"
-                  ? "Klik & geser mouse untuk memutar kompas"
-                  : "Pegang ponsel mendatar sejajar lantai"
-              }
-            >
-              {/* Top Lubber Line / Forward Heading Hub (Device Axis) */}
-              <div className="astrolabe-lubber-container">
-                <div className={`lubber-hud-badge ${isAligned ? "aligned" : ""}`}>
-                  <span className="hud-deg">{Math.round(effectiveHeading)}°</span>
-                  <span className="hud-dir">
-                    {currentDirection.code} • {currentDirection.name}
-                  </span>
-                </div>
-                <div className={`lubber-pointer-triangle ${isAligned ? "aligned" : ""}`}></div>
-              </div>
-
-              {/* The Golden Astrolabe Outer Rim */}
-              <div className={`astrolabe-rim ${isAligned ? "aligned" : ""}`}>
-                {/* Rotating Astrolabe Rose Plate (Rotates by -continuousHeading) */}
+            ) : (
+              /* Bezel housing Forward Lubber Line and 2D Classic Compass */
+              <>
                 <div
-                  className={`astrolabe-dial-plate ${isDragging ? "no-transition" : ""}`}
-                  style={{
-                    transform: `rotate(${-continuousHeading - manualOffset}deg)`,
+                  className="astrolabe-bezel"
+                  ref={stageRef}
+                  role="slider"
+                  tabIndex={0}
+                  aria-label={
+                    locale === "ar"
+                      ? "بوصلة الأسطرلاب ثنائية الأبعاد، استخدم أسهم اليسار واليمين للتدوير"
+                      : locale === "en"
+                      ? "2D Qibla compass dial, use Left and Right arrow keys to rotate"
+                      : "Kompas Astrolabe 2D, gunakan panah Kiri/Kanan atau geser untuk memutar"
+                  }
+                  aria-valuemin={0}
+                  aria-valuemax={359.9}
+                  aria-valuenow={displayHeading}
+                  aria-valuetext={`${displayHeading}° ${currentDirection.name}`}
+                  onPointerDown={handlePointerDown}
+                  onKeyDown={(e) => {
+                    const step = e.shiftKey ? 15 : 5;
+                    if (e.key === "ArrowLeft") {
+                      e.preventDefault();
+                      setIsSensorActive(false);
+                      updateHeading(heading - step);
+                    } else if (e.key === "ArrowRight") {
+                      e.preventDefault();
+                      setIsSensorActive(false);
+                      updateHeading(heading + step);
+                    } else if (e.key === "Home") {
+                      e.preventDefault();
+                      handleAutoAlignQibla();
+                    }
                   }}
+                  title={
+                    deviceMode === "desktop"
+                      ? locale === "ar"
+                        ? "اسحب لتدوير البوصلة"
+                        : locale === "en"
+                        ? "Click and drag to rotate compass"
+                        : "Klik & geser mouse untuk memutar kompas"
+                      : locale === "ar"
+                      ? "أمسك الهاتف أفقياً"
+                      : locale === "en"
+                      ? "Hold device flat parallel to the ground"
+                      : "Pegang ponsel mendatar sejajar lantai"
+                  }
                 >
-                  {/* Concentric Islamic geometric rings */}
-                  <div className="astrolabe-ring-pattern"></div>
+                  {/* Top Lubber Line / Forward Heading Hub (Device Axis) */}
+                  <div className="astrolabe-lubber-container">
+                    <div className={`lubber-hud-badge ${isAligned ? "aligned" : ""}`}>
+                      <span className="hud-deg">{displayHeading}°</span>
+                      <span className="hud-dir">
+                        {currentDirection.code} • {currentDirection.name}
+                      </span>
+                    </div>
+                    <div className={`lubber-pointer-triangle ${isAligned ? "aligned" : ""}`}></div>
+                  </div>
 
-                  {/* Degree tick markers around perimeter */}
-                  {DEGREE_LABELS.map((d) => (
-                    <span
-                      key={d.deg}
-                      className="degree-tick-label"
+                  {/* The Golden Astrolabe Outer Rim */}
+                  <div className={`astrolabe-rim ${isAligned ? "aligned" : ""}`}>
+                    {/* Rotating Astrolabe Rose Plate (Rotates by -continuousHeading) */}
+                    <div
+                      className={`astrolabe-dial-plate ${isDragging ? "no-transition" : ""}`}
                       style={{
-                        transform: `translate(-50%, -50%) rotate(${d.deg}deg) translateY(-145px) rotate(${-d.deg}deg)`,
+                        transform: `rotate(${-continuousHeading - manualOffset}deg)`,
                       }}
                     >
-                      {d.text}
-                    </span>
-                  ))}
+                      {/* Concentric Islamic geometric rings */}
+                      <div className="astrolabe-ring-pattern"></div>
 
-                  {/* 8 Cardinal & Intercardinal Points on Rotating Dial */}
-                  {cardinalPoints.map((pt) => (
-                    <span
-                      key={pt.deg}
-                      className={`cardinal-point ${pt.isNorth ? "pt-n" : ""} ${!pt.isPrimary ? "pt-sub" : ""}`}
-                      style={{
-                        transform: `translate(-50%, -50%) rotate(${pt.deg}deg) translateY(-120px) rotate(${-pt.deg}deg)`,
-                      }}
-                    >
-                      {pt.code}
-                    </span>
-                  ))}
+                      {/* Degree tick markers around perimeter (scaled cleanly with --rim-size) */}
+                      {DEGREE_LABELS.map((d) => (
+                        <span
+                          key={d.deg}
+                          className="degree-tick-label"
+                          style={{ "--deg": `${d.deg}deg` } as React.CSSProperties}
+                        >
+                          {d.text}
+                        </span>
+                      ))}
 
-                  {/* Rotating Qibla Pointer attached to the dial plate at qiblaInfo.bearing */}
-                  <div
-                    className="astrolabe-qibla-pointer"
-                    style={{
-                      transform: `rotate(${qiblaInfo.bearing}deg)`,
-                    }}
-                  >
-                    <div className="qibla-ray-line"></div>
-                    <div className="qibla-target-head">
-                      <i className="fa-solid fa-kaaba qibla-kaaba-icon"></i>
-                      <div className="qibla-tag-pill">
-                        <span>{locale === "ar" ? "القبلة" : locale === "en" ? "Qibla" : "Kiblat"}</span>
-                        <strong>{qiblaInfo.bearing}°</strong>
+                      {/* 8 Cardinal & Intercardinal Points on Rotating Dial */}
+                      {cardinalPoints.map((pt) => (
+                        <span
+                          key={pt.deg}
+                          className={`cardinal-point ${pt.isNorth ? "pt-n" : ""} ${!pt.isPrimary ? "pt-sub" : ""}`}
+                          style={{ "--deg": `${pt.deg}deg` } as React.CSSProperties}
+                        >
+                          {pt.code}
+                        </span>
+                      ))}
+
+                      {/* Rotating Qibla Pointer attached to the dial plate at qiblaInfo.bearing */}
+                      <div
+                        className="astrolabe-qibla-pointer"
+                        style={{
+                          transform: `rotate(${qiblaInfo.bearing}deg)`,
+                        }}
+                      >
+                        <div className="qibla-ray-line"></div>
+                        <div className="qibla-target-head">
+                          <i className="fa-solid fa-kaaba qibla-kaaba-icon" aria-hidden="true"></i>
+                          <div className="qibla-tag-pill">
+                            <span>{locale === "ar" ? "القبلة" : locale === "en" ? "Qibla" : "Kiblat"}</span>
+                            <strong>{qiblaInfo.bearing}°</strong>
+                          </div>
+                        </div>
                       </div>
                     </div>
+
+                    {/* Center Core Brass Pin with Star and Crescent */}
+                    <div className="astrolabe-center-core" aria-hidden="true">
+                      <i className="fa-solid fa-star-and-crescent"></i>
+                    </div>
                   </div>
                 </div>
 
-                {/* Center Core Brass Pin with Star and Crescent */}
-                <div className="astrolabe-center-core">
-                  <i className="fa-solid fa-star-and-crescent"></i>
+                <div className="astrolabe-quiet-bar">
+                  <div
+                    className="astrolabe-seg-group"
+                    role="tablist"
+                    onKeyDown={handleTabListKeyDown}
+                    aria-label={locale === "ar" ? "نمط البوصلة" : locale === "en" ? "Compass mode" : "Gaya kompas"}
+                  >
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={false}
+                      className="astrolabe-seg-btn"
+                      onClick={() => setCompassStyle("3d")}
+                    >
+                      {locale === "ar" ? "عرض ثلاثي الأبعاد" : locale === "en" ? "3D Ka'bah" : "3D Ka'bah"}
+                    </button>
+                    <button type="button" role="tab" aria-selected={true} className="astrolabe-seg-btn active">
+                      2D
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
 
             {/* Alignment Status Banner with Dynamic Left/Right turn directions */}
-            <div className={`kiblat-aligned-badge ${isAligned ? "locked" : "searching"}`}>
+            <div className={`kiblat-aligned-badge ${isAligned ? "locked" : "searching"}`} aria-live="polite">
               {isAligned ? (
                 <>
-                  <i className="fa-solid fa-circle-check" style={{ color: "#2bb97c" }}></i>
+                  <i className="fa-solid fa-circle-check aligned-check-icon" aria-hidden="true"></i>
                   <span>
-                    {t.kiblat.aligned_success} ({qiblaInfo.bearing}° {currentDirection.name})
+                    {t.kiblat.aligned_success} ({qiblaDirection.name})
                   </span>
                 </>
               ) : turnDiff > 0 ? (
                 <>
-                  <i className="fa-solid fa-arrow-rotate-right turn-icon-pulse"></i>
+                  <i className="fa-solid fa-arrow-rotate-right turn-icon-pulse" aria-hidden="true"></i>
                   <span>
-                    {t.kiblat.turn_right} <strong>{absTurnDiff}°</strong> {t.kiblat.turn_degrees}
+                    {deviceMode === "mobile"
+                      ? t.kiblat.turn_right
+                      : locale === "ar"
+                      ? "اسحب لليمين"
+                      : locale === "en"
+                      ? "Turn right"
+                      : "Geser ke kanan"}{" "}
+                    <strong>{absTurnDiff}°</strong>
                   </span>
                 </>
               ) : (
                 <>
-                  <i className="fa-solid fa-arrow-rotate-left turn-icon-pulse"></i>
+                  <i className="fa-solid fa-arrow-rotate-left turn-icon-pulse" aria-hidden="true"></i>
                   <span>
-                    {t.kiblat.turn_left} <strong>{absTurnDiff}°</strong> {t.kiblat.turn_degrees}
+                    {deviceMode === "mobile"
+                      ? t.kiblat.turn_left
+                      : locale === "ar"
+                      ? "اسحب لليسار"
+                      : locale === "en"
+                      ? "Turn left"
+                      : "Geser ke kiri"}{" "}
+                    <strong>{absTurnDiff}°</strong>
                   </span>
                 </>
               )}
             </div>
 
-            {/* Calibration & Magnetic Offset Adjustment Bar */}
-            <div className="calibration-offset-bar">
-              <span>
-                <i className="fa-solid fa-magnet" style={{ color: "var(--gold-main)" }}></i> Kalibrasi Offset Magnetik:{" "}
-                <strong>{manualOffset > 0 ? `+${manualOffset}` : manualOffset}°</strong>
-              </span>
-              <div className="calibration-buttons">
-                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o - 5)}>
-                  -5°
-                </button>
-                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o - 1)}>
-                  -1°
-                </button>
-                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset(0)}>
-                  Reset (0°)
-                </button>
-                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o + 1)}>
-                  +1°
-                </button>
-                <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o + 5)}>
-                  +5°
-                </button>
-              </div>
-            </div>
+            {/* Mode Mobile Status & Guide (rendered directly under compass only in mobile sensor mode) */}
+            {deviceMode === "mobile" && (
+              <div className="mobile-mode-panel">
+                <div className="mobile-sensor-status-card" role="status" aria-live="polite">
+                  <div className="mobile-status-indicator">
+                    <span
+                      className={`status-dot ${isSensorActive ? "active" : sensorUnavailable ? "unavailable" : "idle"}`}
+                      aria-hidden="true"
+                    ></span>
+                    <div className="status-label-group">
+                      <strong>
+                        {isSensorActive
+                          ? locale === "ar"
+                            ? "مستشعر البوصلة نشط"
+                            : locale === "en"
+                            ? "Compass sensor active"
+                            : "Sensor kompas aktif"
+                          : isSensorListening
+                          ? locale === "ar"
+                            ? "جارٍ فحص المستشعر..."
+                            : locale === "en"
+                            ? "Checking sensor..."
+                            : "Memeriksa sensor..."
+                          : sensorUnavailable
+                          ? locale === "ar"
+                            ? "مستشعر البوصلة غير متوفر على هذا الجهاز"
+                            : locale === "en"
+                            ? "Compass sensor unavailable on this device"
+                            : "Sensor kompas tidak tersedia di perangkat ini"
+                          : locale === "ar"
+                          ? "المستشعر غير مفعل"
+                          : locale === "en"
+                          ? "Sensor awaiting activation"
+                          : "Sensor belum aktif"}
+                      </strong>
+                      <small>
+                        {isSensorActive
+                          ? locale === "ar"
+                            ? "تتحرك الإبرة تبعاً لاتجاه هاتفك."
+                            : locale === "en"
+                            ? "Dial follows your phone orientation."
+                            : "Jarum mengikuti arah ponsel secara langsung."
+                          : sensorUnavailable
+                          ? locale === "ar"
+                            ? "استخدم الوضع اليدوي أو افتح خريطة القبلة."
+                            : locale === "en"
+                            ? "Switch to Manual mode or open Qibla Map."
+                            : "Gunakan mode manual atau buka Peta Kiblat."
+                          : locale === "ar"
+                          ? "اضغط تفعيل لاستخدام مستشعر الهاتف."
+                          : locale === "en"
+                          ? "Tap activate to use your orientation sensor."
+                          : "Ketuk aktifkan untuk memakai sensor kompas."}
+                      </small>
+                    </div>
+                  </div>
 
-            {/* iOS Sensor Permission CTA */}
-            {needsIosPermission && !isSensorActive && (
-              <button
-                type="button"
-                className="btn-gps"
-                onClick={activateCompassSensor}
-                style={{
-                  padding: "12px 28px",
-                  fontSize: "0.9rem",
-                  marginTop: "6px",
-                  boxShadow: "0 0 20px rgba(43, 185, 124, 0.3)",
-                }}
-              >
-                <i className="fa-solid fa-mobile-screen"></i> {t.kiblat.activate_sensor_btn}
-              </button>
+                  {!isSensorActive && (
+                    <div className="mobile-sensor-actions">
+                      <button
+                        type="button"
+                        className="btn-activate-sensor"
+                        onClick={activateCompassSensor}
+                        disabled={isSensorListening}
+                      >
+                        <i className="fa-solid fa-compass" aria-hidden="true"></i>
+                        <span>
+                          {sensorUnavailable
+                            ? locale === "ar"
+                              ? "إعادة المحاولة"
+                              : locale === "en"
+                              ? "Retry sensor"
+                              : "Coba ulang sensor"
+                            : locale === "ar"
+                            ? "تفعيل المستشعر"
+                            : locale === "en"
+                            ? "Enable sensor"
+                            : "Aktifkan sensor"}
+                        </span>
+                      </button>
+                      {sensorUnavailable && (
+                        <button
+                          type="button"
+                          className="btn-fallback-desktop"
+                          onClick={() => {
+                            deviceModeRef.current = "desktop";
+                            setDeviceMode("desktop");
+                            setSensorUnavailable(false);
+                          }}
+                        >
+                          {t.kiblat.mode_desktop}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <p className="mobile-guide-note">
+                  {locale === "ar"
+                    ? "أمسك الهاتف أفقياً وأدر جسمك ببطء نحو المؤشر، أو حركه بشكل ٨ إذا انحرفت القراءة."
+                    : locale === "en"
+                    ? "Hold phone flat, turn slowly toward the marker, or move in a figure-8 if readings drift."
+                    : "Pegang ponsel mendatar, putar badan perlahan mengikuti panah, atau gerakkan pola angka 8 bila arah bergeser."}
+                </p>
+              </div>
             )}
 
-            {/* Desktop Simulation & Calibration Controls */}
+            {/* Calibration & Magnetic Offset Adjustment Bar (only relevant in mobile sensor mode) */}
+            {deviceMode === "mobile" && (
+              <div className="calibration-offset-bar">
+                <span>
+                  <i className="fa-solid fa-magnet" aria-hidden="true"></i>{" "}
+                  {locale === "ar"
+                    ? "معايرة البوصلة:"
+                    : locale === "en"
+                    ? "Compass offset:"
+                    : "Koreksi kompas:"}{" "}
+                  <strong>{manualOffset > 0 ? `+${manualOffset}` : manualOffset}°</strong>
+                </span>
+                <div className="calibration-buttons">
+                  <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o - 5)}>
+                    -5°
+                  </button>
+                  <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o - 1)}>
+                    -1°
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-calib-nudge"
+                    onClick={() => setManualOffset(0)}
+                    aria-label={locale === "ar" ? "إعادة الضبط إلى صفر" : locale === "en" ? "Reset offset to 0°" : "Reset koreksi ke 0°"}
+                  >
+                    0°
+                  </button>
+                  <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o + 1)}>
+                    +1°
+                  </button>
+                  <button type="button" className="btn-calib-nudge" onClick={() => setManualOffset((o) => o + 5)}>
+                    +5°
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Manual Rotation & Preset Controls */}
             <div className="desktop-sim-controls">
               <div className="desktop-sim-header">
-                <span>
-                  <i className="fa-solid fa-sliders"></i> {t.kiblat.sim_slider_label}
-                </span>
-                <strong style={{ color: "var(--gold-main)" }}>{heading}°</strong>
+                <label htmlFor="kiblat-heading-slider">
+                  <i className="fa-solid fa-sliders" aria-hidden="true"></i> {t.kiblat.sim_slider_label}
+                </label>
+                <strong className="sim-heading-val">{displayHeading}°</strong>
               </div>
 
               <input
+                id="kiblat-heading-slider"
+                name="heading"
                 type="range"
                 min="0"
-                max="359"
+                max="359.9"
+                step="0.1"
                 value={heading}
+                aria-label={t.kiblat.sim_slider_label}
+                aria-valuetext={`${displayHeading}° ${currentDirection.name}`}
                 onChange={(e) => {
                   setIsSensorActive(false);
                   updateHeading(Number(e.target.value));
@@ -972,7 +1408,7 @@ export default function KiblatClient() {
                   className={`btn-preset-snap ${isAligned ? "active" : ""}`}
                   onClick={handleAutoAlignQibla}
                 >
-                  <i className="fa-solid fa-kaaba"></i> {t.kiblat.snap_qibla} ({qiblaInfo.bearing}°)
+                  <i className="fa-solid fa-kaaba" aria-hidden="true"></i> {t.kiblat.snap_qibla} ({qiblaInfo.bearing}°)
                 </button>
 
                 <button
@@ -983,7 +1419,7 @@ export default function KiblatClient() {
                     updateHeading(0);
                   }}
                 >
-                  <i className="fa-solid fa-arrow-up"></i> {t.kiblat.snap_north}
+                  <i className="fa-solid fa-arrow-up" aria-hidden="true"></i> {t.kiblat.snap_north}
                 </button>
 
                 <button
@@ -994,7 +1430,7 @@ export default function KiblatClient() {
                     updateHeading(270);
                   }}
                 >
-                  <i className="fa-solid fa-arrow-left"></i>{" "}
+                  <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>{" "}
                   {locale === "ar" ? "الغرب (٢٧٠°)" : locale === "en" ? "West (270°)" : "Barat (270°)"}
                 </button>
 
@@ -1006,14 +1442,10 @@ export default function KiblatClient() {
                     updateHeading(90);
                   }}
                 >
-                  <i className="fa-solid fa-arrow-right"></i>{" "}
+                  <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>{" "}
                   {locale === "ar" ? "الشرق (٩٠°)" : locale === "en" ? "East (90°)" : "Timur (90°)"}
                 </button>
               </div>
-
-              <p className="desktop-notice-pill">
-                <i className="fa-solid fa-circle-info"></i> {t.kiblat.desktop_mode_note}
-              </p>
             </div>
           </div>
         )}
@@ -1034,36 +1466,56 @@ export default function KiblatClient() {
         )}
 
         {/* =========================================================================
-            FALAKIYAH DETAILS & GEODETIC DATA CARDS
+            FALAKIYAH DETAILS & QIBLA DATA CARDS
             ========================================================================= */}
         <div className="falak-details-grid">
-          <div className="falak-detail-box">
-            <span className="falak-detail-title">Azimuth Kiblat (Utara Sejati)</span>
+          <div className="falak-detail-box is-qibla-focal">
+            <span className="falak-detail-title">
+              {locale === "ar"
+                ? "اتجاه القبلة"
+                : locale === "en"
+                ? "Qibla bearing"
+                : "Arah Kiblat"}
+            </span>
             <div className="falak-detail-value">{qiblaInfo.bearing}°</div>
             <span className="falak-detail-sub">{qiblaInfo.dms}</span>
           </div>
 
           <div className="falak-detail-box">
-            <span className="falak-detail-title">Sudut dari Barat (Standar Falak)</span>
-            <div className="falak-detail-value">{qiblaInfo.angleFromWest}° U-B</div>
-            <span className="falak-detail-sub">Miring ke kanan (Utara) dari Barat</span>
-          </div>
-
-          <div className="falak-detail-box">
-            <span className="falak-detail-title">Arah Hadap Ponsel Saat Ini</span>
-            <div className="falak-detail-value">{effectiveHeading}°</div>
-            <span className="falak-detail-sub">
-              {currentDirection.code} • {currentDirection.name}
+            <span className="falak-detail-title">
+              {locale === "ar" ? "الانحراف" : locale === "en" ? "Angle offset" : "Selisih sudut"}
             </span>
+            <div className="falak-detail-value">{qiblaQuadrant.shortLabel}</div>
+            <span className="falak-detail-sub">{qiblaQuadrant.description}</span>
           </div>
 
           <div className="falak-detail-box">
-            <span className="falak-detail-title">Jarak Geodesik ke Ka&apos;bah</span>
+            <span className="falak-detail-title">
+              {locale === "ar"
+                ? "الاتجاه الحالي"
+                : locale === "en"
+                ? "Current heading"
+                : "Arah hadap"}
+            </span>
+            <div className="falak-detail-value">{displayHeading}°</div>
+            <span className="falak-detail-sub">{currentDirection.name}</span>
+          </div>
+
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">
+              {locale === "ar"
+                ? "المسافة إلى مكة"
+                : locale === "en"
+                ? "Distance to Makkah"
+                : "Jarak ke Makkah"}
+            </span>
             <div className="falak-detail-value">
               {qiblaInfo.distanceKm.toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")}{" "}
-              <small style={{ fontSize: "0.8rem" }}>KM</small>
+              <small>km</small>
             </div>
-            <span className="falak-detail-sub">Masjidil Haram, Makkah</span>
+            <span className="falak-detail-sub">
+              {locale === "ar" ? "المسجد الحرام" : locale === "en" ? "Masjid al-Haram" : "Masjidil Haram"}
+            </span>
           </div>
         </div>
 
@@ -1075,46 +1527,40 @@ export default function KiblatClient() {
           <div className="prayer-header-row">
             <div>
               <h2 className="prayer-section-title">{t.kiblat.prayer_schedule_title}</h2>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginTop: "4px" }}>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
-                  {prayerSchedule.dateStr}
-                </span>
-                {prayerSchedule.isKemenagOfficial ? (
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "5px",
-                      padding: "2px 8px",
-                      borderRadius: "12px",
-                      background: "rgba(43, 185, 124, 0.15)",
-                      border: "1px solid rgba(43, 185, 124, 0.4)",
-                      color: "#2bb97c",
-                      fontSize: "0.72rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    <i className="fa-solid fa-certificate"></i> Data Resmi Kemenag RI (Bimas Islam)
+              <div className="prayer-meta-row">
+                <span className="prayer-date-text">{prayerSchedule.dateStr}</span>
+                {isScheduleLoading ? (
+                  <span className="prayer-source-meta">
+                    {locale === "ar" ? "جارٍ التحديث..." : locale === "en" ? "Updating schedule..." : "Memuat jadwal..."}
+                  </span>
+                ) : prayerSchedule.isKemenagOfficial ? (
+                  <span className="kemenag-official-tag">
+                    <i className="fa-solid fa-check" aria-hidden="true"></i>
+                    <span>
+                      {locale === "ar"
+                        ? "المصدر: وزارة الشؤون الدينية الإندونيسية"
+                        : locale === "en"
+                        ? "Source: Kemenag RI (Bimas Islam)"
+                        : "Sumber: Bimas Islam Kemenag RI"}
+                    </span>
                   </span>
                 ) : (
-                  <span style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>
-                    • {t.kiblat.standard_kemenag}
-                  </span>
+                  <span className="prayer-source-meta">({t.kiblat.standard_kemenag})</span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Authentic Adzan Player Card */}
+          {/* Adzan Audio Card */}
           <div className="adzan-player-card">
             <div className="adzan-card-header">
               <div className="adzan-badge-title">
-                <div className="adzan-pulse-icon">
-                  <i className={`fa-solid ${isPlayingAdzan ? "fa-volume-high" : "fa-bell"}`}></i>
+                <div className="adzan-pulse-icon" aria-hidden="true">
+                  <i className={`fa-solid ${isPlayingAdzan ? "fa-volume-high" : "fa-volume-low"}`}></i>
                 </div>
                 <div>
                   <h3 className="adzan-card-title">
-                    {locale === "ar" ? "أذان الصلاة الشجي" : locale === "en" ? "Melodious Call to Prayer (Adhan)" : "Kumandang Adzan Merdu"}
+                    {locale === "ar" ? "تسجيل الأذان" : locale === "en" ? "Adhan audio" : "Rekaman adzan"}
                   </h3>
                   <span className="adzan-card-subtitle">
                     {adzanVersion === "makkah" ? t.kiblat.adzan_makkah : t.kiblat.adzan_madinah}
@@ -1127,6 +1573,7 @@ export default function KiblatClient() {
                 <button
                   type="button"
                   className={`adzan-pill-btn ${adzanVersion === "makkah" ? "active" : ""}`}
+                  aria-pressed={adzanVersion === "makkah"}
                   onClick={() => {
                     if (adzanVersion !== "makkah") {
                       setAdzanVersion("makkah");
@@ -1135,11 +1582,12 @@ export default function KiblatClient() {
                     }
                   }}
                 >
-                  🕋 Makkah
+                  {locale === "ar" ? "مكة المكرمة" : "Makkah"}
                 </button>
                 <button
                   type="button"
                   className={`adzan-pill-btn ${adzanVersion === "madinah" ? "active" : ""}`}
+                  aria-pressed={adzanVersion === "madinah"}
                   onClick={() => {
                     if (adzanVersion !== "madinah") {
                       setAdzanVersion("madinah");
@@ -1148,7 +1596,7 @@ export default function KiblatClient() {
                     }
                   }}
                 >
-                  🕌 Madinah
+                  {locale === "ar" ? "المدينة المنورة" : "Madinah"}
                 </button>
               </div>
             </div>
@@ -1170,16 +1618,17 @@ export default function KiblatClient() {
                   type="button"
                   className="adzan-stop-btn"
                   onClick={handleStopAudio}
-                  title="Stop / Reset"
+                  aria-label={locale === "ar" ? "إيقاف الأذان" : locale === "en" ? "Stop adhan audio" : "Hentikan audio adzan"}
+                  title={locale === "ar" ? "إيقاف" : locale === "en" ? "Stop / Reset" : "Hentikan / Reset"}
                 >
-                  <i className="fa-solid fa-stop"></i>
+                  <i className="fa-solid fa-stop" aria-hidden="true"></i>
                 </button>
 
                 <div className="adzan-track-container">
                   <div className="adzan-time-row">
                     <span className="adzan-time-current">{formatAudioTime(audioCurrentTime)}</span>
                     {isPlayingAdzan && (
-                      <div className="adzan-wave-bars">
+                      <div className="adzan-wave-bars" aria-hidden="true">
                         <span className="wave-bar"></span>
                         <span className="wave-bar"></span>
                         <span className="wave-bar"></span>
@@ -1193,10 +1642,14 @@ export default function KiblatClient() {
                   </div>
 
                   <input
+                    id="adzan-seek-slider"
+                    name="adzanSeek"
                     type="range"
                     min="0"
                     max={audioDuration || (adzanVersion === "makkah" ? 192 : 165)}
                     value={audioCurrentTime}
+                    aria-label={locale === "ar" ? "شريط تقدم الأذان" : locale === "en" ? "Adhan audio progress" : "Posisi pemutaran audio adzan"}
+                    aria-valuetext={`${formatAudioTime(audioCurrentTime)} / ${formatAudioTime(audioDuration || (adzanVersion === "makkah" ? 192 : 165))}`}
                     onChange={(e) => handleSeekAudio(Number(e.target.value))}
                     className="adzan-seek-bar"
                   />
@@ -1209,30 +1662,45 @@ export default function KiblatClient() {
                 <button
                   type="button"
                   className="btn-toggle-doa"
+                  aria-expanded={showDoaAdzan}
+                  aria-controls="doa-adzan-panel"
                   onClick={() => setShowDoaAdzan((v) => !v)}
                 >
-                  <i className="fa-solid fa-hands-praying"></i>
-                  <span>{showDoaAdzan ? "Tutup Doa Setelah Adzan" : t.kiblat.doa_after_adzan}</span>
-                  <i className={`fa-solid ${showDoaAdzan ? "fa-chevron-up" : "fa-chevron-down"}`}></i>
+                  <i className="fa-solid fa-hands-praying" aria-hidden="true"></i>
+                  <span>
+                    {showDoaAdzan
+                      ? locale === "ar"
+                        ? "إغلاق دعاء بعد الأذان"
+                        : locale === "en"
+                        ? "Hide supplication"
+                        : "Tutup doa setelah adzan"
+                      : t.kiblat.doa_after_adzan}
+                  </span>
+                  <i className={`fa-solid ${showDoaAdzan ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true"></i>
                 </button>
 
                 {showDoaAdzan && (
-                  <div className="doa-adzan-card animate-fade-in">
-                    <div className="doa-arabic" dir="rtl">
+                  <div id="doa-adzan-panel" className="doa-adzan-card">
+                    <div className="doa-arabic" dir="rtl" lang="ar">
                       اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ
                     </div>
                     <div className="doa-latin">
-                      &quot;Allaahumma rabba haadzihid-da&apos;watit-taammah, wash-shalaatil qaa-imah, aati muhammadanil wasiilata wal fadhiilah, wab&apos;atshu maqaamam mahmuudanil-ladzii wa&apos;adtah.&quot;
+                      &ldquo;Allaahumma rabba haadzihid-da&apos;watit-taammah, wash-shalaatil qaa-imah, aati muhammadanil wasiilata wal fadhiilah, wab&apos;atshu maqaamam mahmuudanil-ladzii wa&apos;adtah.&rdquo;
                     </div>
                     <div className="doa-translation">
-                      <strong>Artinya:</strong> &quot;Ya Allah, Tuhan Pemilik seruan yang sempurna ini dan shalat yang didirikan, berilah Nabi Muhammad wasilah dan keutamaan, serta tempatkanlah beliau pada kedudukan terpuji yang telah Engkau janjikan.&quot; (HR. Bukhari)
+                      <strong>
+                        {locale === "ar" ? "المعنى:" : locale === "en" ? "Meaning:" : "Artinya:"}
+                      </strong>{" "}
+                      {locale === "en"
+                        ? "O Allah, Lord of this perfect call and established prayer, grant Muhammad the intercession and eminence, and resurrect him to the praised station You have promised him. (Narrated by al-Bukhari)"
+                        : "Ya Allah, Tuhan Pemilik seruan yang sempurna ini dan shalat yang didirikan, berilah Nabi Muhammad wasilah dan keutamaan, serta tempatkanlah beliau pada kedudukan terpuji yang telah Engkau janjikan. (HR. Bukhari)"}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Uji Alarm Adzan di Layar Kunci (5 Detik) */}
-              <div style={{ marginTop: "16px", display: "flex", justifyContent: "center" }}>
+              {/* Uji Alarm Adzan */}
+              <div className="adzan-test-alarm-wrap">
                 <button
                   type="button"
                   className="btn-test-adzan-alarm"
@@ -1245,29 +1713,14 @@ export default function KiblatClient() {
                       }
                     }
                   }}
-                  style={{
-                    background: "linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.04))",
-                    border: "1px solid rgba(212, 175, 55, 0.45)",
-                    color: "var(--gold-main, #d4af37)",
-                    padding: "9px 18px",
-                    borderRadius: "999px",
-                    fontSize: "0.82rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    transition: "all 0.3s ease",
-                    boxShadow: "0 4px 15px rgba(0,0,0,0.25)",
-                  }}
                 >
-                  <i className="fa-solid fa-bell-concierge"></i>
+                  <i className="fa-solid fa-bell" aria-hidden="true"></i>
                   <span>
                     {locale === "ar"
-                      ? "تجربة منبه الأذان (خلال ٥ ثوانٍ)"
+                      ? "اختبار تنبيه الأذان"
                       : locale === "en"
-                      ? "Test Adhan Alarm (in 5s)"
-                      : "Uji Kumandang Adzan di HP (5 Detik)"}
+                      ? "Test adhan alert"
+                      : "Tes notifikasi adzan"}
                   </span>
                 </button>
               </div>
@@ -1279,7 +1732,7 @@ export default function KiblatClient() {
             <div className="next-prayer-info">
               <span className="next-prayer-lbl">{t.kiblat.countdown_towards}</span>
               <div className="next-prayer-name">
-                {nextPrayer.name} <small>({nextPrayer.time} WIB)</small>
+                {nextPrayerLocalizedName} <small>({nextPrayer.time} {locationTzLabel})</small>
               </div>
             </div>
 
@@ -1305,22 +1758,15 @@ export default function KiblatClient() {
               { id: "maghrib", name: t.kiblat.prayer_maghrib, arabic: "المغرب", time: prayerSchedule.maghrib },
               { id: "isya", name: t.kiblat.prayer_isya, arabic: "العشاء", time: prayerSchedule.isya },
             ].map((p) => {
-              const isActive = nextPrayer.name.toLowerCase() === p.id.toLowerCase();
+              const isActive = Boolean(now) && nextPrayer.id === p.id;
               return (
                 <div key={p.id} className={`prayer-card ${isActive ? "is-active-prayer" : ""}`}>
                   {isActive && (
-                    <div
-                      className="prayer-active-pill"
-                      title={
-                        locale === "ar"
-                          ? "الوقت القادم"
-                          : locale === "en"
-                          ? "Upcoming prayer"
-                          : "Menuju waktu ini"
-                      }
-                    ></div>
+                    <span className="prayer-active-pill">
+                      {locale === "ar" ? "القادم" : locale === "en" ? "Next" : "Berikutnya"}
+                    </span>
                   )}
-                  <div className="prayer-card-arabic">{p.arabic}</div>
+                  <div className="prayer-card-arabic" lang="ar" dir="rtl">{p.arabic}</div>
                   <div className="prayer-card-name">{p.name}</div>
                   <div className="prayer-card-time">{p.time}</div>
                 </div>

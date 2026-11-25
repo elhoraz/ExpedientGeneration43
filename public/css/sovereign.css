@@ -12,13 +12,13 @@
             transition: background-color 1s ease;
         }
 
-        /* TEMA SIANG (ROYAL PEARL GALLERY) */
-        body[data-theme='light'] { background-color: #f8fafc; }
-        body[data-theme='light'] .vault-vignette { background: radial-gradient(circle at center, transparent 10%, rgba(255,255,255,0.6) 100%); }
-        body[data-theme='light'] .tactical-hud, body[data-theme='light'] .ux-text { color: #222; text-shadow: 0 0 5px rgba(255,255,255,0.8); }
-        body[data-theme='light'] .ux-icon { filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)); color: #b48600; }
-        body[data-theme='light'] .btn-vault-back { background: rgba(255,255,255,0.9); color: #333; border-color: #d4af37; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        body[data-theme='light'] .theme-toggle { background: #fff; color: #b48600; border-color: #d4af37; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        /* TEMA SIANG (LIMESTONE) */
+        body[data-theme='light'] { background-color: #f6f5f1; }
+        body[data-theme='light'] .vault-vignette { background: radial-gradient(circle at center, transparent 10%, rgba(246, 245, 241, 0.65) 100%); }
+        body[data-theme='light'] .tactical-hud, body[data-theme='light'] .ux-text { color: #18181b; text-shadow: none; }
+        body[data-theme='light'] .ux-icon { filter: none; color: #7c520a; }
+        body[data-theme='light'] .btn-vault-back { background: #ffffff; color: #18181b; border-color: rgba(124, 82, 10, 0.35); box-shadow: 0 4px 12px rgba(24, 24, 27, 0.08); }
+        body[data-theme='light'] .theme-toggle { background: #ffffff; color: #7c520a; border-color: rgba(124, 82, 10, 0.35); box-shadow: 0 4px 12px rgba(24, 24, 27, 0.08); }
 
         #canvas-container {
             width: 100vw; height: 100vh; display: block;

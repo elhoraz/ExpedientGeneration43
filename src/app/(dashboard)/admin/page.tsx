@@ -114,7 +114,7 @@ export default async function AdminPage() {
             {logs?.map(log => (
               <div key={log.id} className="log-item">
                 <div className="log-time">{new Date(log.created_at).toLocaleString('id-ID')}</div>
-                <div className="log-action">{log.profiles?.nama_panggilan || "Unknown"} <span style={{ color: "var(--text-primary)", fontWeight: "normal" }}>— {log.action}</span></div>
+                <div className="log-action">{log.profiles?.nama_panggilan || "Unknown"} <span style={{ color: "var(--text-primary)", fontWeight: "normal" }}>· {log.action}</span></div>
                 <div className="log-desc">{log.details}</div>
               </div>
             ))}
@@ -128,7 +128,7 @@ export default async function AdminPage() {
           <h2 className="panel-title"><i className="fa-solid fa-shield-halved"></i> Protokol Keamanan</h2>
           <div style={{ padding: "10px 0" }}>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.6" }}>
-              Panel eksklusif ini diproteksi oleh lapisan *Server-Side Rendering* (SSR) dengan kebijakan *Role-Based Access Control* tingkat 'admin'. 
+              Panel ini diproteksi oleh lapisan *Server-Side Rendering* (SSR) dengan kebijakan *Role-Based Access Control* tingkat admin. 
               <br/><br/>
               Semua transaksi dan perubahan data di dalam panel ini secara otomatis dicatat dalam buku besar *Activity Logs* yang tidak dapat dihapus, menjamin akuntabilitas penuh bagi para admin pengurus angkatan.
             </p>

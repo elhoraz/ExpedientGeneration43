@@ -813,7 +813,7 @@ export default function PersonalChatClient({
                   disabled={submittingReport}
                   style={{
                     padding: "0.6rem 1.2rem",
-                    background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                    background: "#d4af37",
                     border: "none",
                     borderRadius: "8px",
                     color: "#060b14",

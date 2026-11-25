@@ -1,10 +1,10 @@
 /* ====================================================
-   WASIAT PAGE — SYNCED WITH TEMPLATE
+   WASIAT PAGE - SYNCED WITH TEMPLATE
    ==================================================== */
 .wasiat-page-wrapper {
   --gold-light: #f9f5e8;
   --gold-main: #d4af37;
-  --gold-dark: #aa771c;
+  --gold-dark: #7c520a;
   --wax-red: #9e1b1b;
 
   min-height: 100vh;
@@ -39,18 +39,17 @@
 .wasiat-page-wrapper .btn-back {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   color: var(--gold-main);
   text-decoration: none;
-  font-size: 0.9rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  font-weight: 500;
-  transition: all 0.4s;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  transition: color 0.25s ease, transform 0.25s ease;
 }
 .wasiat-page-wrapper .btn-back:hover {
   color: var(--text-primary);
-  transform: translateX(-5px);
+  transform: translateX(-3px);
 }
 
 .wasiat-page-wrapper .header-titles {
@@ -58,19 +57,19 @@
 }
 .wasiat-page-wrapper .page-title {
   font-family: 'Playfair Display', serif;
-  font-size: 2.2rem;
+  font-size: 2.15rem;
   color: var(--gold-main);
   margin: 0;
-  letter-spacing: 3px;
-  text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  letter-spacing: -0.01em;
 }
 :root[data-theme="light"] .wasiat-page-wrapper .page-title {
-  text-shadow: 0 5px 15px rgba(212,175,55,0.2);
+  color: #18181b;
+  text-shadow: none;
 }
 
 .wasiat-page-wrapper .status-badge {
   font-size: 0.8rem;
-  letter-spacing: 2px;
+  letter-spacing: 0.04em;
   color: var(--text-secondary);
   margin-top: 5px;
   display: inline-flex;
@@ -82,20 +81,18 @@
 .wasiat-page-wrapper .wasiat-list {
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 32px;
 }
 
 /* ---- LEGACY CARD ---- */
 .wasiat-page-wrapper .legacy-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--bg-card, var(--glass-bg));
   border: 1px solid var(--glass-border);
-  border-radius: 8px;
-  padding: 40px;
+  border-radius: 12px;
+  padding: 36px;
   position: relative;
   box-shadow: var(--glass-shadow);
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .wasiat-page-wrapper .legacy-card:hover {
   transform: translateY(-5px);

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import ProfilClient from "./ProfilClient";
 
 export const metadata = {
-  title: "Profil Eksklusif - Expedient",
+  title: "Profil Alumni - Expedient",
 };
 
 export default async function ProfilPage() {

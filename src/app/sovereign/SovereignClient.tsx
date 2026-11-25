@@ -199,26 +199,26 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       compCanvas.width = 2400;
       compCanvas.height = 1800;
 
-      // Background Luxury Obsidian / Light
+      // Background Dark / Light
       const bgGrad = ctx.createLinearGradient(0, 0, compCanvas.width, compCanvas.height);
       if (isLightMode) {
-        bgGrad.addColorStop(0, "#f8fafc");
-        bgGrad.addColorStop(1, "#f1f5f9");
+        bgGrad.addColorStop(0, "#f6f5f1");
+        bgGrad.addColorStop(1, "#ebe9e1");
       } else {
-        bgGrad.addColorStop(0, "#0c182b");
-        bgGrad.addColorStop(0.5, "#08101d");
+        bgGrad.addColorStop(0, "#0f141e");
+        bgGrad.addColorStop(0.5, "#060b14");
         bgGrad.addColorStop(1, "#060b14");
       }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
 
       // Watermark Header
-      ctx.fillStyle = isLightMode ? "rgba(180,134,0,0.08)" : "rgba(212,175,55,0.06)";
+      ctx.fillStyle = isLightMode ? "rgba(124,82,10,0.08)" : "rgba(212,175,55,0.06)";
       ctx.font = '900 130px "Playfair Display", serif';
       ctx.textAlign = "center";
-      ctx.fillText("THE SOVEREIGN ALUMNI REGISTRY", 1200, 240);
+      ctx.fillText("EXPEDIENT 43 ALUMNI REGISTRY", 1200, 240);
 
-      ctx.fillStyle = isLightMode ? "#8a6d1c" : "#d4af37";
+      ctx.fillStyle = isLightMode ? "#7c520a" : "#d4af37";
       ctx.font = '600 24px "Inter", sans-serif';
       ctx.letterSpacing = "6px";
       ctx.fillText("EXPEDIENT 43 • OFFICIAL COHORT IDENTIFICATION CREDENTIAL", 1200, 310);
@@ -478,14 +478,13 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         <span
           id="loadingText"
           style={{
-            color: "#ffd700",
-            fontFamily: "'Courier New', monospace",
-            letterSpacing: 4,
-            fontSize: 11,
-            textShadow: "0 0 10px rgba(212,175,55,0.5)",
+            color: "#d4af37",
+            fontWeight: 600,
+            letterSpacing: "0.08em",
+            fontSize: 13,
           }}
         >
-          DECRYPTING OMNIPRESENCE...
+          Memuat Kartu Alumni 3D...
         </span>
       </div>
 
@@ -1733,8 +1732,8 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           transition: all 0.2s ease;
         }
         :root[data-theme='light'] .sovereign-mode-pill-btn {
-          background: rgba(212, 175, 55, 0.2);
-          color: #996515;
+          background: rgba(124, 82, 10, 0.12);
+          color: #7c520a;
         }
 
         #btnThemeToggle, #btnExportId {
@@ -1744,22 +1743,20 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           display: flex;
           justify-content: center;
           align-items: center;
-          background: rgba(0, 0, 0, 0.65);
-          border: 1px solid rgba(212, 175, 55, 0.4);
+          background: rgba(15, 20, 30, 0.85);
+          border: 1px solid rgba(212, 175, 55, 0.35);
           color: #d4af37;
           font-size: 14px;
           cursor: pointer;
-          backdrop-filter: blur(10px);
-          box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-          transition: all 0.25s ease;
+          transition: transform 0.2s ease, border-color 0.2s ease;
         }
         :root[data-theme='light'] #btnThemeToggle,
         :root[data-theme='light'] #btnExportId {
           background: #ffffff;
-          color: #b48600;
+          color: #7c520a;
         }
-        #btnThemeToggle:hover { transform: scale(1.1) rotate(15deg); box-shadow: 0 0 20px rgba(212,175,55,0.5); }
-        #btnExportId:hover { transform: scale(1.1) translateY(2px); box-shadow: 0 0 20px rgba(212,175,55,0.5); }
+        #btnThemeToggle:hover { transform: scale(1.06); border-color: #d4af37; }
+        #btnExportId:hover { transform: scale(1.06); border-color: #d4af37; }
 
         .sovereign-mode-switcher-wrap {
           pointer-events: auto;
@@ -1771,12 +1768,11 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           display: inline-flex;
           align-items: center;
           gap: 3px;
-          background: rgba(10, 12, 16, 0.85);
+          background: rgba(15, 20, 30, 0.9);
           padding: 3px 5px;
           border-radius: 30px;
-          border: 1px solid rgba(212, 175, 55, 0.4);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 15px rgba(212, 175, 55, 0.15);
-          backdrop-filter: blur(14px);
+          border: 1px solid rgba(212, 175, 55, 0.35);
+          box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
         :root[data-theme='light'] .sovereign-mode-switcher {
           background: rgba(255, 255, 255, 0.92);
@@ -1827,11 +1823,11 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         }
         
         /* TEMA SIANG */
-        :root[data-theme='light'] body.page-sovereign { background-color: #f8f9fa !important; }
-        :root[data-theme='light'] body.page-sovereign .vault-vignette { background: radial-gradient(circle at center, transparent 10%, rgba(255,255,255,0.6) 100%) !important; }
+        :root[data-theme='light'] body.page-sovereign { background-color: #f6f5f1 !important; }
+        :root[data-theme='light'] body.page-sovereign .vault-vignette { background: radial-gradient(circle at center, transparent 10%, rgba(246,245,241,0.7) 100%) !important; }
         :root[data-theme='light'] body.page-sovereign .tactical-hud, 
-        :root[data-theme='light'] body.page-sovereign .ux-text { color: #222 !important; text-shadow: 0 0 5px rgba(255,255,255,0.8) !important; }
-        :root[data-theme='light'] body.page-sovereign .ux-icon { filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)) !important; color: #b48600 !important; }
+        :root[data-theme='light'] body.page-sovereign .ux-text { color: #18181b !important; text-shadow: none !important; }
+        :root[data-theme='light'] body.page-sovereign .ux-icon { filter: none !important; color: #7c520a !important; }
       `}</style>
     </div>
   );

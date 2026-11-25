@@ -18,15 +18,9 @@
     -webkit-user-select: none;
 }
 
-/* Ambient Background Glow */
+/* Subtle background hook */
 .mahfuzhat-bg-ambient {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background: radial-gradient(circle at 50% 12%, rgba(212, 175, 55, 0.09) 0%, transparent 60%),
-                radial-gradient(circle at 85% 65%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
-                radial-gradient(circle at 15% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 55%);
+    display: none;
 }
 
 .mahfuzhat-container {
@@ -52,26 +46,23 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(212, 175, 55, 0.08);
+    background: var(--surface-raised, rgba(255, 255, 255, 0.05));
     color: var(--gold-main, #d4af37);
-    border: 1px solid rgba(212, 175, 55, 0.28);
-    padding: 10px 20px;
+    border: 1px solid var(--border-subtle, rgba(212, 175, 55, 0.28));
+    padding: 9px 18px;
     border-radius: 9999px;
     font-size: 0.84rem;
     font-weight: 600;
     text-decoration: none;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
 }
 
 .btn-back:hover {
-    background: rgba(212, 175, 55, 0.2);
-    border-color: rgba(212, 175, 55, 0.55);
-    transform: translateX(-4px);
-    color: #ffd700;
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+    background: rgba(212, 175, 55, 0.14);
+    border-color: var(--gold-main, #d4af37);
+    transform: translateX(-3px);
+    color: var(--gold-main, #d4af37);
 }
 
 /* --------------------------------------------------------------------------
@@ -1056,64 +1047,67 @@
    Light Mode Theme Adaptation
    -------------------------------------------------------------------------- */
 :root[data-theme="light"] .mahfuzhat-page-wrapper {
-    color: #1e293b;
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --gold-main: #7c520a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .mahfuzhat-tabs-nav {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(170, 119, 28, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-color: rgba(24, 24, 27, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .mahfuzhat-tab-btn {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .mahfuzhat-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.25);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    border-color: rgba(24, 24, 27, 0.09);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .mahfuzhat-card:hover {
-    border-color: #aa771c;
-    box-shadow: 0 10px 25px rgba(170, 119, 28, 0.15);
+    border-color: rgba(124, 82, 10, 0.45);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
 }
 
 :root[data-theme="light"] .mahfuzhat-arabic-box {
-    background: #f8fafc;
-    border-color: rgba(170, 119, 28, 0.2);
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.08);
 }
 
 :root[data-theme="light"] .mahfuzhat-arabic-text {
-    color: #0f172a;
+    color: #18181b;
     text-shadow: none;
 }
 
 :root[data-theme="light"] .mahfuzhat-latin {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .mahfuzhat-translation {
-    color: #334155;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .library-search-input {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.3);
-    color: #0f172a;
+    border-color: rgba(24, 24, 27, 0.14);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .cat-chip {
-    background: #f1f5f9;
-    border-color: rgba(170, 119, 28, 0.2);
-    color: #475569;
+    background: #ebe9e1;
+    border-color: rgba(24, 24, 27, 0.1);
+    color: #52525b;
 }
 
 :root[data-theme="light"] .cat-chip.active {
-    background: rgba(170, 119, 28, 0.15);
-    color: #aa771c;
-    border-color: #aa771c;
+    background: rgba(124, 82, 10, 0.12);
+    color: #7c520a;
+    border-color: #7c520a;
 }
 
 :root[data-theme="light"] .quiz-welcome-card,
@@ -1121,74 +1115,74 @@
 :root[data-theme="light"] .quiz-result-card,
 :root[data-theme="light"] .daily-featured-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.35);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border-color: rgba(24, 24, 27, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .quiz-welcome-desc,
 :root[data-theme="light"] .quiz-prompt-hint,
 :root[data-theme="light"] .result-rank-desc,
 :root[data-theme="light"] .daily-trans {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .quiz-prompt-arabic,
 :root[data-theme="light"] .daily-arabic {
-    color: #0f172a;
+    color: #18181b;
     text-shadow: none;
 }
 
 :root[data-theme="light"] .quiz-prompt-box {
-    background: #f8fafc;
-    border-color: rgba(170, 119, 28, 0.2);
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.09);
 }
 
 :root[data-theme="light"] .quiz-opt-btn {
-    background: #f8fafc;
-    border-color: rgba(170, 119, 28, 0.2);
-    color: #0f172a;
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.1);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .quiz-opt-arabic {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .quiz-rules-list,
 :root[data-theme="light"] .quiz-feedback-box,
 :root[data-theme="light"] .daily-syarah-box {
-    background: #f8fafc;
-    border-color: rgba(170, 119, 28, 0.2);
-    color: #334155;
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.09);
+    color: #52525b;
 }
 
 :root[data-theme="light"] .card-action-btn {
-    background: #f1f5f9;
-    border-color: rgba(170, 119, 28, 0.2);
-    color: #334155;
+    background: #ebe9e1;
+    border-color: rgba(24, 24, 27, 0.1);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .mahfuzhat-syarah-toggle {
-    background: rgba(170, 119, 28, 0.08);
-    border-color: rgba(170, 119, 28, 0.2);
-    color: #aa771c;
+    background: rgba(124, 82, 10, 0.08);
+    border-color: rgba(124, 82, 10, 0.22);
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .mahfuzhat-syarah-body {
-    background: #f8fafc;
-    color: #334155;
+    background: #f6f5f1;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .btn-back {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.35);
-    color: #aa771c;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(124, 82, 10, 0.3);
+    color: #7c520a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .btn-back:hover {
-    background: #fdf8eb;
-    border-color: #aa771c;
-    color: #78350f;
+    background: #f0eee7;
+    border-color: #7c520a;
+    color: #5c3d07;
 }
 
 /* ==========================================================================

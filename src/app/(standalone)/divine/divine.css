@@ -1,6 +1,6 @@
 /* ==========================================================================
    divine.css - Kalam Ilahi (Ayat Suci & Refleksi Harian)
-   Expedient Generation 43 - Luxury Islamic Obsidian Gold & Royal Ivory
+   Expedient Generation 43
    ========================================================================== */
 
 .divine-wrapper {
@@ -580,214 +580,211 @@
 
 /* ==========================================================================
    LIGHT MODE ADAPTATION (:root[data-theme="light"] / [data-theme="light"])
-   Royal Ivory Porcelain & Polished Antique Brass
    ========================================================================== */
 :root[data-theme="light"] .divine-wrapper,
 [data-theme="light"] .divine-wrapper {
-    background-color: #f8fafc;
-    color: #0f172a;
-    scrollbar-color: rgba(170, 119, 28, 0.4) transparent;
+    background-color: var(--bg-main, #f6f5f1);
+    color: #18181b;
+    scrollbar-color: rgba(124, 82, 10, 0.35) transparent;
 }
 
 :root[data-theme="light"] .divine-wrapper::-webkit-scrollbar-thumb,
 [data-theme="light"] .divine-wrapper::-webkit-scrollbar-thumb {
-    background: rgba(170, 119, 28, 0.35);
+    background: rgba(124, 82, 10, 0.35);
 }
 
 :root[data-theme="light"] .divine-wrapper::-webkit-scrollbar-thumb:hover,
 [data-theme="light"] .divine-wrapper::-webkit-scrollbar-thumb:hover {
-    background: rgba(170, 119, 28, 0.6);
+    background: rgba(124, 82, 10, 0.55);
 }
 
 :root[data-theme="light"] .divine-top-nav,
 [data-theme="light"] .divine-top-nav {
-    background: rgba(255, 255, 255, 0.88);
-    border-bottom: 1px solid rgba(170, 119, 28, 0.2);
+    background: rgba(255, 255, 255, 0.94);
+    border-bottom: 1px solid rgba(24, 24, 27, 0.09);
 }
 
 :root[data-theme="light"] .btn-back,
 [data-theme="light"] .btn-back {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.3);
-    color: #aa771c;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border-color: rgba(124, 82, 10, 0.32);
+    color: #7c520a;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
 :root[data-theme="light"] .btn-back:hover,
 [data-theme="light"] .btn-back:hover {
-    border-color: #aa771c;
-    box-shadow: 0 4px 15px rgba(170, 119, 28, 0.2);
+    border-color: #7c520a;
+    background: #f0eee7;
 }
 
 :root[data-theme="light"] .page-title,
 [data-theme="light"] .page-title {
-    color: #aa771c;
-    text-shadow: 0 0 20px rgba(170, 119, 28, 0.15);
+    color: #18181b;
+    text-shadow: none;
 }
 
 :root[data-theme="light"] .page-sub,
 [data-theme="light"] .page-sub {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .divine-gateway-card,
 [data-theme="light"] .divine-gateway-card {
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(170, 119, 28, 0.3);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06),
-                inset 0 0 35px rgba(170, 119, 28, 0.05);
+    background: #ffffff;
+    border: 1px solid rgba(24, 24, 27, 0.09);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .gateway-rub-el-hizb,
 [data-theme="light"] .gateway-rub-el-hizb {
-    background: radial-gradient(circle, rgba(254, 243, 199, 0.8) 0%, rgba(209, 250, 229, 0.5) 100%);
-    border-color: #b8860b;
-    color: #aa771c;
-    box-shadow: 0 0 25px rgba(170, 119, 28, 0.2);
+    background: #f7f0df;
+    border-color: #7c520a;
+    color: #7c520a;
+    box-shadow: none;
 }
 
 :root[data-theme="light"] .gateway-bismillah,
 [data-theme="light"] .gateway-bismillah {
-    color: #aa771c;
-    filter: drop-shadow(0 0 8px rgba(170, 119, 28, 0.15));
+    color: #7c520a;
+    filter: none;
 }
 
 :root[data-theme="light"] .gateway-prompt,
 [data-theme="light"] .gateway-prompt {
-    color: #334155;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .verse-card,
 [data-theme="light"] .verse-card {
-    background: rgba(255, 255, 255, 0.94);
-    border: 1px solid rgba(170, 119, 28, 0.3);
-    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.07),
-                inset 0 0 40px rgba(170, 119, 28, 0.04);
+    background: #ffffff;
+    border: 1px solid rgba(24, 24, 27, 0.09);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .verse-surah-pill,
 [data-theme="light"] .verse-surah-pill {
-    background: #fef3c7;
-    border-color: rgba(217, 119, 6, 0.35);
-    color: #92400e;
+    background: rgba(124, 82, 10, 0.1);
+    border-color: rgba(124, 82, 10, 0.3);
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .bismillah,
 [data-theme="light"] .bismillah {
-    color: #aa771c;
-    filter: drop-shadow(0 0 6px rgba(170, 119, 28, 0.15));
+    color: #7c520a;
+    filter: none;
 }
 
 :root[data-theme="light"] .ayat-arabic,
 [data-theme="light"] .ayat-arabic {
-    color: #0f172a;
+    color: #18181b;
     text-shadow: none;
 }
 
 :root[data-theme="light"] .divider,
 [data-theme="light"] .divider {
-    background: linear-gradient(90deg, transparent, #aa771c, transparent);
+    background: linear-gradient(90deg, transparent, rgba(124, 82, 10, 0.55), transparent);
 }
 
 :root[data-theme="light"] .ayat-latin,
 [data-theme="light"] .ayat-latin {
-    color: #475569;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .ayat-meaning,
 [data-theme="light"] .ayat-meaning {
-    color: #1e293b;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .audio-player-bar,
 [data-theme="light"] .audio-player-bar {
-    background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.25);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.09);
+    box-shadow: none;
 }
 
 :root[data-theme="light"] .btn-audio-play,
 [data-theme="light"] .btn-audio-play {
-    background: rgba(170, 119, 28, 0.12);
-    border-color: #aa771c;
-    color: #aa771c;
+    background: rgba(124, 82, 10, 0.1);
+    border-color: #7c520a;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .btn-audio-play:hover,
 [data-theme="light"] .btn-audio-play:hover {
-    background: #aa771c;
+    background: #7c520a;
     color: #ffffff;
 }
 
 :root[data-theme="light"] .btn-audio-play.playing,
 [data-theme="light"] .btn-audio-play.playing {
-    background: #d97706;
+    background: #065f46;
     color: #ffffff;
-    border-color: #d97706;
+    border-color: #065f46;
 }
 
 :root[data-theme="light"] .audio-title-lbl,
 [data-theme="light"] .audio-title-lbl {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .audio-subtitle-lbl,
 [data-theme="light"] .audio-subtitle-lbl {
-    color: #64748b;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .equalizer-bar,
 [data-theme="light"] .equalizer-bar {
-    background: #aa771c;
+    background: #7c520a;
 }
 
 :root[data-theme="light"] .equalizer-wave.active .equalizer-bar,
 [data-theme="light"] .equalizer-wave.active .equalizer-bar {
-    background: #d97706;
+    background: #065f46;
 }
 
 :root[data-theme="light"] .btn-action-pill,
 [data-theme="light"] .btn-action-pill {
     background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    color: #475569;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(24, 24, 27, 0.12);
+    color: #18181b;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 :root[data-theme="light"] .btn-action-pill:hover,
 [data-theme="light"] .btn-action-pill:hover {
-    border-color: #aa771c;
-    color: #0f172a;
+    border-color: #7c520a;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .btn-reveal,
 [data-theme="light"] .btn-reveal {
-    background: linear-gradient(135deg, #aa771c 0%, #8c5d0f 100%);
-    border-color: #aa771c;
+    background: #7c520a;
+    border-color: #7c520a;
     color: #ffffff;
-    box-shadow: 0 10px 30px rgba(170, 119, 28, 0.35);
+    box-shadow: 0 6px 20px rgba(124, 82, 10, 0.25);
 }
 
 :root[data-theme="light"] .btn-reveal:hover,
 [data-theme="light"] .btn-reveal:hover {
-    background: linear-gradient(135deg, #8c5d0f 0%, #684206 100%);
+    background: #5c3d07;
     color: #ffffff;
-    box-shadow: 0 15px 40px rgba(170, 119, 28, 0.5);
+    box-shadow: 0 8px 24px rgba(124, 82, 10, 0.32);
 }
 
 :root[data-theme="light"] .btn-new,
 [data-theme="light"] .btn-new {
-    background: #fef3c7;
-    border-color: rgba(217, 119, 6, 0.35);
-    color: #92400e;
-    box-shadow: 0 3px 12px rgba(217, 119, 6, 0.1);
+    background: rgba(124, 82, 10, 0.1);
+    border-color: rgba(124, 82, 10, 0.35);
+    color: #7c520a;
+    box-shadow: 0 2px 8px rgba(124, 82, 10, 0.1);
 }
 
 :root[data-theme="light"] .btn-new:hover,
 [data-theme="light"] .btn-new:hover {
-    background: #aa771c;
+    background: #7c520a;
     color: #ffffff;
-    border-color: #aa771c;
+    border-color: #7c520a;
 }
 
 /* --------------------------------------------------------------------------

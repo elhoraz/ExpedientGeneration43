@@ -443,34 +443,34 @@
    ========================================================================== */
 :root[data-theme="light"] .onboarding-tooltip {
   background: #ffffff;
-  border-color: rgba(170, 119, 28, 0.35);
-  color: #0f172a;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), 0 0 25px rgba(170, 119, 28, 0.08);
+  border-color: rgba(124, 82, 10, 0.32);
+  color: #18181b;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
 }
 
 :root[data-theme="light"] .onboarding-tooltip-title {
-  color: #aa771c;
+  color: #7c520a;
 }
 
 :root[data-theme="light"] .onboarding-tooltip-desc {
-  color: #475569;
+  color: #52525b;
 }
 
 :root[data-theme="light"] .onboarding-step-badge {
-  color: #64748b;
+  color: #676770;
 }
 
 :root[data-theme="light"] .welcome-modal {
   background: #ffffff !important;
-  border-color: rgba(170, 119, 28, 0.35);
-  color: #0f172a;
+  border-color: rgba(124, 82, 10, 0.32);
+  color: #18181b;
 }
 
 :root[data-theme="light"] .welcome-title {
-  color: #aa771c;
+  color: #7c520a;
 }
 
 :root[data-theme="light"] .welcome-desc {
-  color: #475569;
+  color: #52525b;
 }
 

@@ -888,7 +888,7 @@ export default function TarbiyahClient({
                 >
                   {mentors.map(m => (
                     <option key={m.id} value={m.id}>
-                      {m.nama_panggilan || m.nama_lengkap} {m.pekerjaan ? `— ${m.pekerjaan}` : ""}
+                      {m.nama_panggilan || m.nama_lengkap} {m.pekerjaan ? `· ${m.pekerjaan}` : ""}
                     </option>
                   ))}
                 </select>
@@ -910,7 +910,7 @@ export default function TarbiyahClient({
                 >
                   {tenders.map(t => (
                     <option key={t.id} value={t.id}>
-                      {t.nama_bisnis} {t.kategori ? `— (${t.kategori})` : ""}
+                      {t.nama_bisnis} {t.kategori ? `(${t.kategori})` : ""}
                     </option>
                   ))}
                 </select>

@@ -18,15 +18,9 @@
     -webkit-user-select: none;
 }
 
-/* Ambient Radial Glow */
+/* Subtle background hook */
 .asma-bg-ambient {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background: radial-gradient(circle at 50% 10%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
-                radial-gradient(circle at 10% 45%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.06) 0%, transparent 55%);
+    display: none;
 }
 
 .asma-container {
@@ -52,26 +46,23 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(212, 175, 55, 0.08);
+    background: var(--surface-raised, rgba(255, 255, 255, 0.05));
     color: var(--gold-main, #d4af37);
-    border: 1px solid rgba(212, 175, 55, 0.28);
-    padding: 10px 20px;
+    border: 1px solid var(--border-subtle, rgba(212, 175, 55, 0.28));
+    padding: 9px 18px;
     border-radius: 9999px;
     font-size: 0.84rem;
     font-weight: 600;
     text-decoration: none;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
 }
 
 .btn-back:hover {
-    background: rgba(212, 175, 55, 0.2);
-    border-color: rgba(212, 175, 55, 0.55);
-    transform: translateX(-4px);
-    color: #ffd700;
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+    background: rgba(212, 175, 55, 0.14);
+    border-color: var(--gold-main, #d4af37);
+    transform: translateX(-3px);
+    color: var(--gold-main, #d4af37);
 }
 
 /* --------------------------------------------------------------------------
@@ -849,108 +840,111 @@
    Light Theme Support (:root[data-theme="light"])
    -------------------------------------------------------------------------- */
 :root[data-theme="light"] .asma-page-wrapper {
-    color: #1e293b;
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --gold-main: #7c520a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .asma-tabs-nav {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(170, 119, 28, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-color: rgba(24, 24, 27, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .asma-tab-btn {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .asma-search-input {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.3);
-    color: #0f172a;
+    border-color: rgba(24, 24, 27, 0.14);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .asma-cat-chip {
-    background: #f1f5f9;
-    border-color: rgba(170, 119, 28, 0.2);
-    color: #475569;
+    background: #ebe9e1;
+    border-color: rgba(24, 24, 27, 0.1);
+    color: #52525b;
 }
 
 :root[data-theme="light"] .asma-cat-chip.active {
-    background: rgba(170, 119, 28, 0.15);
-    color: #aa771c;
-    border-color: #aa771c;
+    background: rgba(124, 82, 10, 0.12);
+    color: #7c520a;
+    border-color: #7c520a;
 }
 
 :root[data-theme="light"] .asma-jewel-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.25);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    border-color: rgba(24, 24, 27, 0.09);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .asma-jewel-card:hover {
-    border-color: #aa771c;
-    box-shadow: 0 10px 25px rgba(170, 119, 28, 0.15);
+    border-color: rgba(124, 82, 10, 0.45);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
 }
 
 :root[data-theme="light"] .asma-arabic-display {
-    color: #0f172a;
+    color: #18181b;
     text-shadow: none;
 }
 
 :root[data-theme="light"] .asma-latin-title {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .asma-meaning-text {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .asma-modal-box,
 :root[data-theme="light"] .tasbih-card,
 :root[data-theme="light"] .murattal-player-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.35);
-    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+    border-color: rgba(24, 24, 27, 0.12);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.09);
 }
 
 :root[data-theme="light"] .asma-modal-arabic,
 :root[data-theme="light"] .player-big-arabic {
-    color: #0f172a;
+    color: #18181b;
     text-shadow: none;
 }
 
 :root[data-theme="light"] .asma-modal-trans {
-    color: #334155;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .asma-section-box {
-    background: #f8fafc;
-    border-color: rgba(170, 119, 28, 0.2);
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.09);
 }
 
 :root[data-theme="light"] .asma-section-desc {
-    color: #334155;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .tasbih-inner-button {
-    background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
-    border-color: rgba(170, 119, 28, 0.4);
+    background: #ffffff;
+    border-color: rgba(124, 82, 10, 0.35);
 }
 
 :root[data-theme="light"] .tasbih-counter-number {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .btn-back {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.35);
-    color: #aa771c;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(124, 82, 10, 0.3);
+    color: #7c520a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .btn-back:hover {
-    background: #fdf8eb;
-    border-color: #aa771c;
-    color: #78350f;
+    background: #f0eee7;
+    border-color: #7c520a;
+    color: #5c3d07;
 }
 
 /* ==========================================================================

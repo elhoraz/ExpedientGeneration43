@@ -55,9 +55,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     template: "%s - Expedient Generation 43",
-    default: "Expedient Generation — Angkatan Ke-43 Pondok Modern Arrisalah Slahung Ponorogo",
+    default: "Expedient Generation 43 · Pondok Modern Arrisalah Slahung Ponorogo",
   },
-  description: "Mahakarya digital & museum jejak langkah alumni angkatan ke-43 Pondok Modern Arrisalah Program Internasional, Slahung, Ponorogo, Jawa Timur.",
+  description: "Platform resmi dan arsip kenangan alumni angkatan ke-43 Pondok Modern Arrisalah Program Internasional, Slahung, Ponorogo, Jawa Timur.",
   keywords: [
     "Expedient Generation",
     "Expedient 43",
@@ -89,8 +89,8 @@ export const metadata: Metadata = {
     title: "Expedient 43",
   },
   openGraph: {
-    title: "Expedient Generation — Angkatan Ke-43 Pondok Modern Arrisalah Slahung Ponorogo",
-    description: "Mahakarya digital, museum kenangan, dan wadah persatuan alumni ke-43 Pondok Modern Arrisalah Program Internasional Slahung Ponorogo.",
+    title: "Expedient Generation 43 · Pondok Modern Arrisalah Slahung Ponorogo",
+    description: "Platform resmi, arsip kenangan, dan jaringan alumni ke-43 Pondok Modern Arrisalah Program Internasional Slahung Ponorogo.",
     url: siteUrl,
     siteName: "Expedient Generation 43",
     images: [
@@ -106,8 +106,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Expedient Generation — Angkatan 43 Arrisalah Slahung",
-    description: "Mahakarya digital, museum kenangan, dan wadah persatuan alumni ke-43 Pondok Modern Arrisalah Slahung Ponorogo.",
+    title: "Expedient Generation · Angkatan 43 Arrisalah Slahung",
+    description: "Platform resmi, arsip kenangan, dan jaringan alumni ke-43 Pondok Modern Arrisalah Slahung Ponorogo.",
     images: ["/images/logo-utuh.webp"],
   },
   verification: {
@@ -162,7 +162,7 @@ export default async function RootLayout({
                 "Pondok Modern Arrisalah Slahung"
               ],
               url: siteUrl,
-              description: "Mahakarya digital & museum jejak langkah alumni angkatan ke-43 Pondok Modern Arrisalah Slahung Ponorogo.",
+              description: "Platform resmi dan arsip kenangan alumni angkatan ke-43 Pondok Modern Arrisalah Slahung Ponorogo.",
               inLanguage: "id-ID",
             }),
           }}
@@ -211,8 +211,8 @@ export default async function RootLayout({
           <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px", gap: "20px" }}>
             <Image src="/images/logo-utuh.webp" width={120} height={120} style={{ opacity: 0.8 }} alt="Expedient" />
             <h2 style={{ fontSize: "1.5rem", margin: 0 }}>JavaScript Diperlukan</h2>
-            <p style={{ color: "#7b8e9b", maxWidth: "400px", lineHeight: 1.6 }}>Platform Expedient Generation memerlukan JavaScript untuk berjalan. Silakan aktifkan JavaScript di browser Anda.</p>
-            <a href="/login" style={{ color: "#d4af37", border: "1px solid #d4af37", padding: "10px 30px", borderRadius: "30px", textDecoration: "none", fontSize: "0.85rem", letterSpacing: "2px" }}>MASUK</a>
+            <p style={{ color: "#a1a8b5", maxWidth: "400px", lineHeight: 1.6 }}>Platform Expedient Generation memerlukan JavaScript untuk berjalan. Silakan aktifkan JavaScript di browser Anda.</p>
+            <a href="/login" style={{ color: "#d4af37", border: "1px solid #d4af37", padding: "10px 26px", borderRadius: "10px", textDecoration: "none", fontSize: "0.9rem", fontWeight: 600 }}>Masuk</a>
           </div>
         </noscript>
 
@@ -234,7 +234,7 @@ export default async function RootLayout({
             </ClientLayout>
           </LanguageProvider>
         </CmsProvider>
-        <Analytics />
+        {process.env.VERCEL === "1" && <Analytics />}
       </body>
     </html>
   );

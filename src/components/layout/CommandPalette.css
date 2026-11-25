@@ -5,8 +5,9 @@
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(6, 11, 20, 0.74);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 10050;
   display: flex;
   justify-content: center;
@@ -18,27 +19,27 @@
 .cmd-palette-box {
   width: 100%;
   max-width: 600px;
-  background: var(--bg-main);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(212, 175, 55, 0.2);
+  background: var(--bg-card, #0f141e);
+  border: 1px solid var(--border-strong, rgba(242, 239, 233, 0.19));
+  border-radius: 14px;
+  box-shadow: var(--glass-shadow, 0 20px 44px rgba(0, 0, 0, 0.55));
   overflow: hidden;
-  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   margin: 0 20px;
 }
 
 .cmd-search-bar {
   display: flex;
   align-items: center;
-  padding: 16px 20px;
+  padding: 15px 18px;
   border-bottom: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--surface-inset, #090d16);
 }
 
 .cmd-search-icon {
   color: var(--text-secondary);
-  font-size: 1.2rem;
-  margin-right: 15px;
+  font-size: 1.05rem;
+  margin-right: 12px;
 }
 
 .cmd-input {
@@ -46,37 +47,41 @@
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-size: 1.1rem;
-  outline: none;
+  font-size: 1rem;
   font-family: inherit;
 }
 
+.cmd-input:focus-visible {
+  outline: 2px solid var(--focus-ring, #e5c158);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
 .cmd-input::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.7;
+  color: var(--text-muted, #8890a0);
 }
 
 .cmd-esc-hint {
-  font-family: monospace;
-  font-size: 0.7rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
   padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface-raised, #171e2c);
   color: var(--text-secondary);
-  border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .cmd-esc-hint:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--gold-border);
   color: var(--text-primary);
 }
 
 .cmd-results {
   max-height: 400px;
   overflow-y: auto;
-  padding: 10px 0;
+  padding: 8px 0;
 }
 
 .cmd-results::-webkit-scrollbar {
@@ -84,61 +89,61 @@
 }
 
 .cmd-results::-webkit-scrollbar-thumb {
-  background: rgba(212, 175, 55, 0.3);
+  background: var(--gold-border);
   border-radius: 3px;
 }
 
 .cmd-section-label {
-  padding: 8px 20px;
-  font-size: 0.7rem;
+  padding: 8px 18px 4px;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-secondary);
-  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #8890a0);
+  font-weight: 700;
 }
 
 .cmd-item {
   display: flex;
   align-items: center;
-  padding: 12px 20px;
+  padding: 11px 18px;
   cursor: pointer;
   color: var(--text-primary);
-  transition: all 0.2s;
+  transition: background-color 0.15s ease, color 0.15s ease;
   position: relative;
 }
 
 .cmd-item.selected,
 .cmd-item:hover {
   background: rgba(212, 175, 55, 0.1);
-  color: #d4af37;
+  color: var(--gold-main, #d4af37);
 }
 
 .cmd-item-icon {
   width: 24px;
   text-align: center;
-  margin-right: 15px;
+  margin-right: 12px;
   color: inherit;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .cmd-enter-hint {
   position: absolute;
-  right: 20px;
-  font-family: monospace;
-  font-size: 0.8rem;
-  padding: 2px 6px;
-  background: rgba(212, 175, 55, 0.2);
-  color: #d4af37;
+  right: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.76rem;
+  padding: 2px 7px;
+  background: rgba(212, 175, 55, 0.14);
+  color: var(--gold-main, #d4af37);
   border-radius: 4px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  border: 1px solid var(--gold-border);
 }
 
 .cmd-footer {
-  padding: 12px 20px;
+  padding: 11px 18px;
   border-top: 1px solid var(--glass-border);
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--surface-inset, #090d16);
   display: flex;
-  gap: 20px;
+  gap: 18px;
   align-items: center;
 }
 
@@ -151,12 +156,13 @@
 }
 
 .cmd-footer kbd {
-  font-family: monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.7rem;
   padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-raised, #171e2c);
+  color: var(--text-primary);
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
 }
 
 @keyframes slideDown {
@@ -164,6 +170,7 @@
     opacity: 0;
     transform: translateY(-20px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -173,64 +180,68 @@
 /* ==========================================================================
    COMMAND PALETTE LIGHT THEME
    ========================================================================== */
+:root[data-theme="light"] .cmd-palette-overlay {
+  background: rgba(24, 24, 27, 0.48);
+}
+
 :root[data-theme="light"] .cmd-palette-box {
-  background: #ffffff;
-  border-color: rgba(170, 119, 28, 0.35);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 0 25px rgba(170, 119, 28, 0.08);
+  background: var(--bg-card, #ffffff);
+  border-color: var(--border-strong, rgba(24, 24, 27, 0.2));
+  box-shadow: var(--glass-shadow, 0 20px 44px rgba(24, 24, 27, 0.14));
 }
 
 :root[data-theme="light"] .cmd-search-bar {
-  background: rgba(0, 0, 0, 0.02);
-  border-bottom-color: rgba(0, 0, 0, 0.08);
+  background: var(--surface-inset, #f0eee7);
+  border-bottom-color: var(--glass-border);
 }
 
 :root[data-theme="light"] .cmd-input {
-  color: #0f172a;
+  color: var(--text-primary, #18181b);
 }
 
 :root[data-theme="light"] .cmd-input::placeholder {
-  color: #64748b;
+  color: var(--text-muted, #676770);
 }
 
 :root[data-theme="light"] .cmd-esc-hint {
-  background: rgba(0, 0, 0, 0.06);
-  color: #475569;
-  border-color: rgba(0, 0, 0, 0.12);
+  background: var(--surface-raised, #ebe9e1);
+  color: var(--text-secondary, #52525b);
+  border-color: var(--glass-border);
 }
 
 :root[data-theme="light"] .cmd-section-label {
-  color: #aa771c;
+  color: var(--gold-main, #7c520a);
 }
 
 :root[data-theme="light"] .cmd-item {
-  color: #0f172a;
+  color: var(--text-primary, #18181b);
 }
 
 :root[data-theme="light"] .cmd-item.selected,
 :root[data-theme="light"] .cmd-item:hover {
-  background: rgba(170, 119, 28, 0.12);
-  color: #aa771c;
+  background: rgba(124, 82, 10, 0.09);
+  color: var(--gold-main, #7c520a);
 }
 
 :root[data-theme="light"] .cmd-enter-hint {
-  background: rgba(170, 119, 28, 0.15);
-  color: #aa771c;
-  border-color: rgba(170, 119, 28, 0.3);
+  background: rgba(124, 82, 10, 0.12);
+  color: var(--gold-main, #7c520a);
+  border-color: var(--gold-border);
 }
 
 :root[data-theme="light"] .cmd-footer {
-  background: rgba(0, 0, 0, 0.03);
-  border-top-color: rgba(0, 0, 0, 0.08);
+  background: var(--surface-inset, #f0eee7);
+  border-top-color: var(--glass-border);
 }
 
 :root[data-theme="light"] .cmd-footer span {
-  color: #64748b;
+  color: var(--text-secondary, #52525b);
 }
 
 :root[data-theme="light"] .cmd-footer kbd {
-  background: rgba(0, 0, 0, 0.05);
-  color: #0f172a;
-  border-color: rgba(0, 0, 0, 0.12);
+  background: #ffffff;
+  color: var(--text-primary, #18181b);
+  border-color: var(--glass-border);
 }
 
 /* ==========================================================================
@@ -314,19 +325,19 @@
 }
 
 :root[data-theme="light"] .cmd-quick-strip {
-  background: rgba(0, 0, 0, 0.02);
-  border-bottom-color: rgba(0, 0, 0, 0.08);
+  background: var(--surface-inset, #f0eee7);
+  border-bottom-color: var(--glass-border);
 }
 
 :root[data-theme="light"] .cmd-quick-pill,
 :root[data-theme="light"] .cmd-quick-help {
-  color: #475569;
-  background: rgba(170, 119, 28, 0.06);
-  border-color: rgba(170, 119, 28, 0.25);
+  color: var(--text-secondary, #52525b);
+  background: rgba(124, 82, 10, 0.07);
+  border-color: var(--gold-border);
 }
 
 :root[data-theme="light"] .cmd-quick-pill.active {
-  background: #aa771c;
-  border-color: #aa771c;
+  background: var(--gold-main, #7c520a);
+  border-color: var(--gold-main, #7c520a);
   color: #ffffff;
 }

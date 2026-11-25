@@ -139,21 +139,23 @@
 }
 
 .tarbiyah-page-wrapper .btn-toolbar-action {
-  background: linear-gradient(135deg, var(--gold-main), #aa771c);
-  color: #000;
+  background: var(--gold-main, #d4af37);
+  color: var(--bg-main, #060b14);
   border: none;
   padding: 9px 18px;
   border-radius: 20px;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 12px var(--gold-glow);
+}
+:root[data-theme="light"] .tarbiyah-page-wrapper .btn-toolbar-action {
+  background: #7c520a;
+  color: #ffffff;
 }
 
 .tarbiyah-page-wrapper .btn-toolbar-action:hover {
@@ -259,14 +261,18 @@
   position: absolute;
   top: 18px;
   right: 18px;
-  font-size: 0.65rem;
-  letter-spacing: 1.5px;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #000;
-  background: linear-gradient(135deg, var(--gold-main), #aa771c);
+  color: var(--bg-main, #060b14);
+  background: var(--gold-main, #d4af37);
   padding: 4px 10px;
   border-radius: 20px;
   font-weight: 700;
+}
+:root[data-theme="light"] .tarbiyah-page-wrapper .card-badge {
+  background: #7c520a;
+  color: #ffffff;
 }
 
 .tarbiyah-page-wrapper .card-badge.b2b {
@@ -637,21 +643,24 @@
 }
 
 .tarbiyah-page-wrapper .btn-connect-chat {
-  background: linear-gradient(135deg, var(--gold-main), #aa771c);
-  color: #000;
+  background: var(--gold-main, #d4af37);
+  color: var(--bg-main, #060b14);
   text-decoration: none;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   padding: 10px 16px;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease;
   width: 100%;
+}
+:root[data-theme="light"] .tarbiyah-page-wrapper .btn-connect-chat {
+  background: #7c520a;
+  color: #ffffff;
 }
 
 .tarbiyah-page-wrapper .btn-connect-chat:hover {

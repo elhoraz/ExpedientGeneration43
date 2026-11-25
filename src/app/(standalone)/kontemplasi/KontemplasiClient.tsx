@@ -408,14 +408,14 @@ export default function KontemplasiClient({ initialJournals, userId }: { initial
       </div>
 
       <div className={`audio-menu ${audioMenuOpen ? 'show' : ''}`}>
-          <div style={{ width: '100%', textAlign: 'center', color: 'var(--gold-main)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '3px', margin: '5px 0', opacity: 0.7 }}>— AUDIO KLASIK (MP4 MEDIA) —</div>
+          <div style={{ width: '100%', textAlign: 'center', color: 'var(--gold-main)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', margin: '5px 0', opacity: 0.75 }}>AUDIO SUASANA (MP4)</div>
           <button className={`audio-track ${currentTrack === 'rain' ? 'active' : ''}`} onClick={() => handleSwitchTrack('rain')}>🌧️ Hujan Deras</button>
           <button className={`audio-track ${currentTrack === 'ocean' ? 'active' : ''}`} onClick={() => handleSwitchTrack('ocean')}>🌊 Ombak Samudra</button>
           <button className={`audio-track ${currentTrack === 'space' ? 'active' : ''}`} onClick={() => handleSwitchTrack('space')}>🌌 Ruang Angkasa</button>
           <button className={`audio-track ${currentTrack === 'zen' ? 'active' : ''}`} onClick={() => handleSwitchTrack('zen')}>🍃 Angin Gurun</button>
           <button className={`audio-track ${currentTrack === 'quran' ? 'active' : ''}`} onClick={() => handleSwitchTrack('quran')}>📖 Ar-Rahman</button>
           
-          <div style={{ width: '100%', textAlign: 'center', color: 'var(--gold-main)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '3px', marginTop: '10px', opacity: 0.7 }}>— SINTESIS AI (100% OFFLINE CPU) —</div>
+          <div style={{ width: '100%', textAlign: 'center', color: 'var(--gold-main)', fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.06em', marginTop: '10px', opacity: 0.75 }}>SINTESIS SUARA OFFLINE</div>
           <button className={`audio-track ${currentTrack === 'procedural-brownnoise' ? 'active' : ''}`} style={{ borderColor: 'var(--gold-main)', background: 'rgba(212,175,55,0.1)' }} onClick={() => handleSwitchTrack('procedural-brownnoise')}>💻 Hujan (Sintesis)</button>
           <button className={`audio-track ${currentTrack === 'procedural-ocean' ? 'active' : ''}`} style={{ borderColor: 'var(--gold-main)', background: 'rgba(212,175,55,0.1)' }} onClick={() => handleSwitchTrack('procedural-ocean')}>🌊 Ombak (Sintesis)</button>
           <button className={`audio-track ${currentTrack === 'procedural-space' ? 'active' : ''}`} style={{ borderColor: 'var(--gold-main)', background: 'rgba(212,175,55,0.1)' }} onClick={() => handleSwitchTrack('procedural-space')}>🌌 Angkasa (Sintesis)</button>

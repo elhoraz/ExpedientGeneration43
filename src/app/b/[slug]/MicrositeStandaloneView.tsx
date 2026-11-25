@@ -974,7 +974,7 @@ export default function MicrositeStandaloneView({
       );
     }
 
-    // Default 1: Gold — Royale Editorial Dossier
+    // Default 1: Gold - Royale Editorial Dossier
     return (
       <section className="tpl-gold-hero">
         <div className="tpl-gold-hero-copy">

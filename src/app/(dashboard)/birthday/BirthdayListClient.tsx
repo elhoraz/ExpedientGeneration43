@@ -75,14 +75,14 @@ export default function BirthdayListClient({
               display: "inline-block", 
               padding: "6px 18px", 
               borderRadius: "30px", 
-              background: "rgba(212, 175, 55, 0.2)", 
-              border: "1px solid var(--gold-premium, #d4af37)",
-              color: "var(--gold-premium, #d4af37)",
+              background: "rgba(124, 82, 10, 0.12)", 
+              border: "1px solid var(--gold-main, #d4af37)",
+              color: "var(--gold-main, #d4af37)",
               fontSize: "0.82rem",
               fontWeight: 700,
-              letterSpacing: "1px"
+              letterSpacing: "0.04em"
             }}>
-              {locale === "ar" ? "احتفال اليوم 🎉" : locale === "en" ? "Celebrating Today 🎉" : "Merayakan Hari Ini 🎉"}
+              {locale === "ar" ? "احتفال اليوم" : locale === "en" ? "Celebrating Today" : "Merayakan Hari Ini"}
             </span>
           </div>
           <div className="bday-grid">

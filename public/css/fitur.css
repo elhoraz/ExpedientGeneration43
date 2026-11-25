@@ -11,7 +11,7 @@
 .vault-wrapper {
     --gold-light: #fff2cd;
     --gold-main: #d4af37;
-    --gold-dark: #aa771c;
+    --gold-dark: #7c520a;
     --neon-green: #00c853;
     --neon-blue: #00d2ff;
     --hud-color: var(--gold-main);
@@ -127,23 +127,21 @@
 
 /* ================= MODE SIANG (LIGHT THEME) ================= */
 :root[data-theme="light"] .vault-wrapper {
-    background-color: #f8faf9;
-    background-image: 
-        radial-gradient(circle at 50% -20%, rgba(212,175,55,0.1) 0%, transparent 50%),
-        linear-gradient(180deg, #f8faf9 0%, #eef1ef 100%);
+    background-color: #f6f5f1;
+    background-image: none;
 }
 
-:root[data-theme="light"] .dashboard-title { color: #aa771c; text-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-:root[data-theme="light"] .dashboard-subtitle { color: #64748b; }
+:root[data-theme="light"] .dashboard-title { color: #18181b; text-shadow: none; }
+:root[data-theme="light"] .dashboard-subtitle { color: #52525b; }
 
-:root[data-theme="light"] .premium-card { background-color: #ffffff; box-shadow: 0 15px 40px rgba(0,20,40,0.1); border: 1px solid rgba(212,175,55,0.15); }
+:root[data-theme="light"] .premium-card { background-color: #ffffff; box-shadow: 0 10px 28px rgba(0,0,0,0.06); border: 1px solid rgba(24,24,27,0.09); }
 :root[data-theme="light"] .premium-card .card-bg { filter: grayscale(50%) brightness(0.6); }
 :root[data-theme="light"] .premium-card:hover .card-bg { filter: grayscale(0%) brightness(0.8); }
-:root[data-theme="light"] .card-title { color: #0f1714; }
-:root[data-theme="light"] .card-desc { color: #64748b; }
-:root[data-theme="light"] .launch-btn { color: #aa771c; }
-:root[data-theme="light"] .card-icon { color: rgba(0,0,0,0.15); }
-:root[data-theme="light"] .premium-card:hover .card-icon { color: #aa771c; }
+:root[data-theme="light"] .card-title { color: #18181b; }
+:root[data-theme="light"] .card-desc { color: #52525b; }
+:root[data-theme="light"] .launch-btn { color: #7c520a; }
+:root[data-theme="light"] .card-icon { color: rgba(24,24,27,0.14); }
+:root[data-theme="light"] .premium-card:hover .card-icon { color: #7c520a; }
 :root[data-theme="light"] .premium-card::before { background: radial-gradient(circle at 50% 100%, rgba(212,175,55,0.1) 0%, transparent 60%); }
 :root[data-theme="light"] .locked-card { filter: grayscale(100%); opacity: 0.35; }
 

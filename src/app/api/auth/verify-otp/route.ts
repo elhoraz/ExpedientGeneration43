@@ -174,7 +174,7 @@ export async function POST(request: Request) {
 
 *Assalamu'alaikum Warahmatullahi Wabarakatuh*
 
-Ahlan wa sahlan! Segala puji bagi Allah SWT, selamat bergabung dalam portal eksklusif *Expedient Generation — 43rd Arrisalah*, Sahabat *${namaLengkap}*${namaPanggilan ? ` (${namaPanggilan})` : ""}.
+Ahlan wa sahlan! Segala puji bagi Allah SWT, selamat bergabung dalam portal resmi *Expedient Generation · 43rd Arrisalah*, Sahabat *${namaLengkap}*${namaPanggilan ? ` (${namaPanggilan})` : ""}.
 
 🎉 *AKUN ANDA TELAH BERHASIL DIVERIFIKASI & AKTIF 100%!*
 
@@ -216,7 +216,7 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
           
           <!-- Top Golden Accent Bar -->
           <tr>
-            <td height="5" style="background: linear-gradient(90deg, #aa771c 0%, #ffd700 50%, #aa771c 100%);"></td>
+            <td height="5" style="background: linear-gradient(90deg, #9a7014 0%, #d4af37 50%, #9a7014 100%);"></td>
           </tr>
 
           <!-- Header Branding -->
@@ -254,7 +254,7 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
                   "Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat."
                 </p>
                 <div style="font-size: 11px; color: #d4af37; font-weight: 700; letter-spacing: 1px;">
-                  — QS. AL-HUJURAT: 10
+                  QS. AL-HUJURAT: 10
                 </div>
               </div>
 
@@ -271,7 +271,7 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
 
               <p style="font-size: 13px; line-height: 1.6; color: #94a3b8; margin: 0;">
                 Wassalamu'alaikum Warahmatullahi Wabarakatuh,<br />
-                <strong style="color: #cbd5e1;">Keluarga Besar Expedient Generation — 43rd Arrisalah</strong>
+                <strong style="color: #cbd5e1;">Keluarga Besar Expedient Generation · 43rd Arrisalah</strong>
               </p>
             </td>
           </tr>
@@ -296,7 +296,7 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
     sendEmail({
       to: email,
       subject: "✨ Ahlan Wa Sahlan! Akun Expedient Generation Anda Resmi Aktif",
-      body: `Assalamu'alaikum ${namaLengkap}, selamat bergabung dalam portal Expedient Generation — 43rd Arrisalah. Akun Anda telah aktif.`,
+      body: `Assalamu'alaikum ${namaLengkap}, selamat bergabung dalam portal Expedient Generation · 43rd Arrisalah. Akun Anda telah aktif.`,
       html: emailWelcomeHtml,
     }).catch((e) => console.error("Error sending Email welcome:", e));
 

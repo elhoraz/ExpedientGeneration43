@@ -6,23 +6,23 @@
  * -------------------------------------------------------------------------- */
 .syndicate-page {
   --biz-bg: transparent;
-  --biz-surface: #0b1424;
-  --biz-surface-2: #122038;
-  --biz-surface-hover: #182b4a;
-  --biz-text-primary: var(--text-primary, #ffffff);
-  --biz-text-secondary: var(--text-secondary, #94a3b8);
-  --biz-text-muted: #7c8ea6;
+  --biz-surface: var(--bg-card, #0f141e);
+  --biz-surface-2: var(--surface-raised, #171e2c);
+  --biz-surface-hover: #1d2638;
+  --biz-text-primary: var(--text-primary, #f2efe9);
+  --biz-text-secondary: var(--text-secondary, #a1a8b5);
+  --biz-text-muted: #8b94a5;
   --biz-accent: var(--gold-main, #d4af37);
   --biz-accent-hover: #e5c458;
   --biz-accent-ink: #060b14;
   --biz-accent-subtle: rgba(212, 175, 55, 0.14);
-  --biz-status-ok: #4ade80;
+  --biz-status-ok: #4cc38a;
   --biz-status-ok-bg: #103324;
   --biz-status-ok-ink: #d9fbe5;
   --biz-banner-ph: #08101e;
-  --biz-input-bg: #070d18;
+  --biz-input-bg: #080d17;
   --biz-input-border: rgba(212, 175, 55, 0.24);
-  --biz-input-text: #f8fafc;
+  --biz-input-text: #f2efe9;
 
   /* Backward-compatible aliases for dashboard modules */
   --biz-card-bg: var(--biz-surface);
@@ -58,24 +58,24 @@
 html[data-theme="light"] .syndicate-page {
   --biz-bg: transparent;
   --biz-surface: #ffffff;
-  --biz-surface-2: #eef2f6;
-  --biz-surface-hover: #e2e8f0;
-  --biz-text-primary: #0f172a;
-  --biz-text-secondary: #475569;
-  --biz-text-muted: #64748b;
-  --biz-accent: #aa771c;
-  --biz-accent-hover: #8f6215;
+  --biz-surface-2: #ebe9e1;
+  --biz-surface-hover: #e2dfd5;
+  --biz-text-primary: #18181b;
+  --biz-text-secondary: #52525b;
+  --biz-text-muted: #676770;
+  --biz-accent: #7c520a;
+  --biz-accent-hover: #5c3d07;
   --biz-accent-ink: #ffffff;
-  --biz-accent-subtle: rgba(170, 119, 28, 0.11);
-  --biz-status-ok: #059669;
-  --biz-status-ok-bg: #dcfce7;
+  --biz-accent-subtle: rgba(124, 82, 10, 0.11);
+  --biz-status-ok: #065f46;
+  --biz-status-ok-bg: #e4f3ec;
   --biz-status-ok-ink: #065f46;
-  --biz-banner-ph: #e2e8f0;
-  --biz-input-bg: #f8fafc;
-  --biz-input-border: #cbd5e1;
-  --biz-input-text: #0f172a;
-  --biz-badge-owner: #059669;
-  --biz-portal-outline: rgba(15, 23, 42, 0.09);
+  --biz-banner-ph: #e8e5dc;
+  --biz-input-bg: #f6f5f1;
+  --biz-input-border: rgba(24, 24, 27, 0.16);
+  --biz-input-text: #18181b;
+  --biz-badge-owner: #065f46;
+  --biz-portal-outline: rgba(24, 24, 27, 0.09);
 }
 
 /* Dashboard preview accents keep transparent portal background */

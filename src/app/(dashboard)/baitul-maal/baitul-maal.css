@@ -138,10 +138,10 @@
     pointer-events: none;
 }
 
-.maal-page-wrapper .text-in { color: #00c853 !important; }
-.maal-page-wrapper .text-out { color: #ff5555 !important; }
-:root[data-theme="light"] .maal-page-wrapper .text-in { color: #00aa55 !important; }
-:root[data-theme="light"] .maal-page-wrapper .text-out { color: #cc0000 !important; }
+.maal-page-wrapper .text-in { color: #4cc38a !important; }
+.maal-page-wrapper .text-out { color: #f87171 !important; }
+:root[data-theme="light"] .maal-page-wrapper .text-in { color: #065f46 !important; }
+:root[data-theme="light"] .maal-page-wrapper .text-out { color: #b91c1c !important; }
 
 /* ACTION DOCK */
 .maal-page-wrapper .action-dock-container {
@@ -152,26 +152,30 @@
 }
 
 .maal-page-wrapper .btn-action-hero {
-    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
-    color: #050505;
+    background: var(--gold-main, #d4af37);
+    color: var(--bg-main, #060b14);
     border: none;
-    padding: 14px 32px;
-    font-size: 0.95rem;
+    padding: 13px 28px;
+    font-size: 0.92rem;
     font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    letter-spacing: 0.03em;
     border-radius: 50px;
     cursor: pointer;
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
-    transition: all 0.3s ease;
+    box-shadow: 0 6px 18px rgba(212, 175, 55, 0.25);
+    transition: transform 0.2s ease, opacity 0.2s ease;
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .maal-page-wrapper .btn-action-hero:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 35px rgba(212, 175, 55, 0.5);
+    transform: translateY(-2px);
+    opacity: 0.92;
+}
+:root[data-theme="light"] .maal-page-wrapper .btn-action-hero {
+    background: #7c520a;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(124, 82, 10, 0.22);
 }
 
 .maal-page-wrapper .btn-action-secondary {
@@ -721,27 +725,30 @@
 }
 
 .btn-submit-donate {
-    background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
-    color: #000;
+    background: var(--gold-main, #d4af37);
+    color: var(--bg-main, #060b14);
     border: none;
     padding: 14px;
     border-radius: 10px;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.03em;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     margin-top: 5px;
 }
+:root[data-theme="light"] .btn-submit-donate {
+    background: #7c520a;
+    color: #ffffff;
+}
 
 .btn-submit-donate:hover {
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-    transform: translateY(-2px);
+    opacity: 0.92;
+    transform: translateY(-1px);
 }
 
 /* ZAKAT CALCULATOR */

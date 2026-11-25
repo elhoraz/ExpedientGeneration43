@@ -69,7 +69,7 @@ export default function MahfuzhatClient() {
       } catch {
         // ignore
       }
-      showToast(updated.includes(id) ? "Ditambahkan ke Favorit ✨" : "Dihapus dari Favorit");
+      showToast(updated.includes(id) ? "Ditambahkan ke Favorit" : "Dihapus dari Favorit");
       return updated;
     });
   };
@@ -218,7 +218,7 @@ export default function MahfuzhatClient() {
 
   // Copy to Clipboard
   const copyMahfuzhat = (item: MahfuzhatItem) => {
-    const text = `« ${item.arabic} »\n(${item.latin})\n\n"${item.translation}"\n\n📌 Hikmah:\n${item.syarah}\n\n— Expedient Generation 43 | Mahfuzhat Santri`;
+    const text = `« ${item.arabic} »\n(${item.latin})\n\n"${item.translation}"\n\nHikmah:\n${item.syarah}\n\nExpedient Generation 43 · Mahfuzhat Santri`;
     navigator.clipboard.writeText(text).then(() => {
       showToast("Kutipan berhasil disalin ke clipboard! 📋");
     });
@@ -342,7 +342,7 @@ export default function MahfuzhatClient() {
     // Corner Ornaments
     const drawCorner = (x: number, y: number) => {
       ctx.save();
-      ctx.strokeStyle = isLight ? "#aa771c" : "#d4af37";
+      ctx.strokeStyle = isLight ? "#7c520a" : "#d4af37";
       ctx.lineWidth = 3;
       ctx.strokeRect(x, y, 30, 30);
       ctx.restore();
@@ -355,23 +355,23 @@ export default function MahfuzhatClient() {
     // Header Emblem
     ctx.textAlign = "center";
     ctx.font = "bold 26px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.letterSpacing = "6px";
     ctx.fillText("EXPEDIENT GENERATION 43", w / 2, 170);
 
     ctx.font = "20px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#64748b" : "#94a3b8";
+    ctx.fillStyle = isLight ? "#52525b" : "#94a3b8";
     ctx.letterSpacing = "3px";
     ctx.fillText("MUTIARA MAHFUZHAT PESANTREN", w / 2, 210);
 
     // Decorative Floral / Bismillah divider
     ctx.font = "32px 'Amiri', serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
-    ctx.fillText("✦  —  ۞  —  ✦", w / 2, 280);
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
+    ctx.fillText("·  ۞  ·", w / 2, 280);
 
     // Arabic Quote (Large Calligraphic Display)
     ctx.font = "bold 64px 'Amiri', 'Traditional Arabic', serif";
-    ctx.fillStyle = isLight ? "#0f172a" : "#ffffff";
+    ctx.fillStyle = isLight ? "#18181b" : "#ffffff";
 
     // Text wrapping for long Arabic aphorisms
     const words = storyItem.arabic.split(" ");
@@ -398,11 +398,11 @@ export default function MahfuzhatClient() {
     // Latin Transliteration
     const latinY = startY + lines.length * 105 + 60;
     ctx.font = "italic 32px 'Inter', serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.fillText(`"${storyItem.latin}"`, w / 2, latinY);
 
     // Golden Divider Line
-    ctx.strokeStyle = isLight ? "rgba(170, 119, 28, 0.4)" : "rgba(212, 175, 55, 0.4)";
+    ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.35)" : "rgba(212, 175, 55, 0.4)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(w / 2 - 180, latinY + 50);
@@ -411,7 +411,7 @@ export default function MahfuzhatClient() {
 
     // Indonesian Translation
     ctx.font = "30px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#334155" : "#e2e8f0";
+    ctx.fillStyle = isLight ? "#18181b" : "#e2e8f0";
 
     const transWords = storyItem.translation.split(" ");
     let tLine = "";
@@ -438,8 +438,8 @@ export default function MahfuzhatClient() {
     const boxW = w - 240;
     const boxH = 260;
 
-    ctx.fillStyle = isLight ? "rgba(170, 119, 28, 0.08)" : "rgba(212, 175, 55, 0.08)";
-    ctx.strokeStyle = isLight ? "rgba(170, 119, 28, 0.25)" : "rgba(212, 175, 55, 0.25)";
+    ctx.fillStyle = isLight ? "rgba(124, 82, 10, 0.08)" : "rgba(212, 175, 55, 0.08)";
+    ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.25)" : "rgba(212, 175, 55, 0.25)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect((w - boxW) / 2, syarahBoxY, boxW, boxH, 20);
@@ -447,8 +447,8 @@ export default function MahfuzhatClient() {
     ctx.stroke();
 
     ctx.font = "bold 22px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
-    ctx.fillText("💡 HIKMAH & KONTEKS", w / 2, syarahBoxY + 50);
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
+    ctx.fillText("HIKMAH & KONTEKS", w / 2, syarahBoxY + 50);
 
     // Syarah wrapped text
     ctx.font = "22px 'Inter', sans-serif";
@@ -596,7 +596,6 @@ export default function MahfuzhatClient() {
         {/* Header */}
         <header className="mahfuzhat-header">
           <div className="mahfuzhat-badge">
-            <span>✨</span>
             <span>Khazanah Pesantren 43</span>
           </div>
           <h1 className="mahfuzhat-title">{t.mahfuzhat.title}</h1>
@@ -876,7 +875,7 @@ export default function MahfuzhatClient() {
                     <div className="quiz-feedback-box">
                       <div style={{ fontWeight: 700, color: "var(--gold-main)", marginBottom: "4px" }}>
                         {selectedAnswer === quizQuestions[currentQIndex].correctIndex
-                          ? (locale === "ar" ? "✨ ممتاز! إجابة صحيحة" : locale === "en" ? "✨ Excellent! Correct Answer" : "✨ Mumtaz! Jawaban Tepat")
+                          ? (locale === "ar" ? "ممتاز! إجابة صحيحة" : locale === "en" ? "Excellent! Correct Answer" : "Mumtaz! Jawaban Tepat")
                           : selectedAnswer === -1
                           ? (locale === "ar" ? "⏳ انتهى الوقت!" : locale === "en" ? "⏳ Time is Up!" : "⏳ Waktu Habis!")
                           : (locale === "ar" ? "❌ غير صحيح" : locale === "en" ? "❌ Not Quite" : "❌ Belum Tepat")}
@@ -1043,21 +1042,21 @@ export default function MahfuzhatClient() {
                   className={`theme-chip-btn ${storyTheme === "obsidian" ? "active" : ""}`}
                   onClick={() => setStoryTheme("obsidian")}
                 >
-                  Obsidian Gold
+                  Hitam Klasik
                 </button>
                 <button
                   type="button"
                   className={`theme-chip-btn ${storyTheme === "emerald" ? "active" : ""}`}
                   onClick={() => setStoryTheme("emerald")}
                 >
-                  Emerald Madinah
+                  Hijau Zamrud
                 </button>
                 <button
                   type="button"
                   className={`theme-chip-btn ${storyTheme === "ivory" ? "active" : ""}`}
                   onClick={() => setStoryTheme("ivory")}
                 >
-                  Royal Ivory
+                  Putih Gading
                 </button>
               </div>
 

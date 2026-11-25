@@ -5,7 +5,7 @@ import { getAvatarUrl } from "@/lib/avatar";
 import MajlisLoader from "./MajlisLoader";
 
 export const metadata = {
-  title: "Majlis Syura Eksklusif - Expedient",
+  title: "Majlis Syura - Expedient",
 };
 
 export default async function MajlisPage() {

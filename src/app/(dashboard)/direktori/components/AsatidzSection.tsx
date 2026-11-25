@@ -363,7 +363,7 @@ export function AsatidzSection({
             {selectedAsatidz.quote && (
               <div className="asatidz-modal-quote-box">
                 <p className="asatidz-modal-quote-text">&ldquo;{selectedAsatidz.quote}&rdquo;</p>
-                <div className="asatidz-modal-source">— Buku Tahunan Expedient 43</div>
+                <div className="asatidz-modal-source">Buku Tahunan Expedient 43</div>
               </div>
             )}
 

@@ -322,30 +322,30 @@
    KONTEMPLASI LIGHT THEME SUPPORT
    ========================================================================== */
 :root[data-theme="light"] .start-title {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .start-desc {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .btn-top-back {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.35);
-    color: #aa771c;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    border-color: rgba(124, 82, 10, 0.32);
+    color: #7c520a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .btn-top-back:hover {
-    background: #fdf8eb;
-    color: #78350f;
+    background: #f0eee7;
+    color: #5c3d07;
 }
 
 :root[data-theme="light"] .audio-menu,
 :root[data-theme="light"] .journal-panel {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.3);
-    color: #0f172a;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    border-color: rgba(24, 24, 27, 0.12);
+    color: #18181b;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.1);
 }
 

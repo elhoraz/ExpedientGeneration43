@@ -142,9 +142,9 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         const nose = resizedDets.landmarks.getNose()[0];
         const leftEye = resizedDets.landmarks.getLeftEye()[0];
         ctx.fillStyle = '#d4af37';
-        ctx.font = '12px Courier New';
-        ctx.fillText(`AXIS-N: ${Math.round(nose.x)}, ${Math.round(nose.y)}`, nose.x + 15, nose.y);
-        ctx.fillText(`OCULAR-L: LOCKED`, leftEye.x - 50, leftEye.y - 15);
+        ctx.font = '12px var(--font-jetbrains-mono), monospace';
+        ctx.fillText(`TITIK HIDUNG: ${Math.round(nose.x)}, ${Math.round(nose.y)}`, nose.x + 15, nose.y);
+        ctx.fillText(`MATA KIRI: TERKUNCI`, leftEye.x - 50, leftEye.y - 15);
       }
       requestAnimationFrame(drawFrame);
     };
@@ -361,7 +361,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         .time-capsule-panel.open { right: 0; }
         .capsule-form textarea {
             width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3);
-            color: #fff; padding: 15px; border-radius: 8px; font-family: 'Courier New'; resize: vertical; margin-bottom: 15px;
+            color: #fff; padding: 15px; border-radius: 8px; font-family: var(--font-manrope), sans-serif; resize: vertical; margin-bottom: 15px;
         }
         .capsule-form input[type=date] {
             width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3);
@@ -386,7 +386,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         }
         .logo-reticle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60%; opacity: 0.15; filter: grayscale(1); pointer-events: none; transition: 0.5s; }
         .scanner-laser { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--oracle-gold); box-shadow: 0 0 20px var(--oracle-gold); display: none; z-index: 10; }
-        .hud-text { position: absolute; bottom: 25px; left: 0; width: 100%; text-align: center; font-family: 'Courier New'; color: var(--oracle-gold); font-size: 0.78rem; letter-spacing: 2.5px; z-index: 10; padding: 0 15px; }
+        .hud-text { position: absolute; bottom: 25px; left: 0; width: 100%; text-align: center; font-family: var(--font-manrope), sans-serif; color: var(--oracle-gold); font-size: 0.84rem; letter-spacing: 0.06em; z-index: 10; padding: 0 15px; }
         
         .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px; opacity: 0; pointer-events: none; transition: 0.5s; }
         .result-overlay.show { opacity: 1; pointer-events: auto; }
@@ -502,12 +502,12 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
               <i className={`fa-solid fa-lock${v.is_unlocked ? '-open' : ''}`}></i> Terjadwal: {new Date(v.unlock_date).toLocaleDateString()}
             </div>
             {v.is_unlocked ? (
-              <div style={{fontFamily:'Courier New', fontSize:'0.9rem', color:'#fff', whiteSpace:'pre-wrap'}}>{v.vision_text}</div>
+              <div style={{fontSize:'0.92rem', color:'#f2efe9', whiteSpace:'pre-wrap'}}>{v.vision_text}</div>
             ) : (
               new Date(v.unlock_date) <= new Date() ? (
-                <button onClick={() => handleUnlock(v.id, v.vision_text)} style={{background:'transparent', border:'1px solid #d4af37', color:'#d4af37', padding:'5px 10px', cursor:'pointer', fontSize:'0.8rem', borderRadius:'3px'}}>BUKA SEGEL</button>
+                <button onClick={() => handleUnlock(v.id, v.vision_text)} style={{background:'transparent', border:'1px solid #d4af37', color:'#d4af37', padding:'5px 10px', cursor:'pointer', fontSize:'0.8rem', borderRadius:'3px'}}>Buka Segel</button>
               ) : (
-                <div style={{fontSize:'0.8rem', color:'#888'}}>Segel Waktu Aktif. Menunggu takdir.</div>
+                <div style={{fontSize:'0.8rem', color:'#888'}}>Segel Waktu Aktif. Menunggu waktu buka.</div>
               )
             )}
           </div>
@@ -519,12 +519,12 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       {unlockedVision && (
         <div className="unseal-modal">
           <div className="unseal-box">
-            <h2 style={{color:'var(--oracle-gold)', fontFamily:'Playfair Display', marginBottom:'20px'}}><i className="fa-solid fa-envelope-open-text"></i> PESAN TERBUKA</h2>
-            <div style={{fontFamily:'Courier New', color:'#fff', padding:'20px', background:'rgba(0,0,0,0.5)', border:'1px dashed rgba(212,175,55,0.3)', borderRadius:'5px'}}>
+            <h2 style={{color:'var(--oracle-gold)', fontFamily:'Playfair Display', marginBottom:'20px'}}><i className="fa-solid fa-envelope-open-text"></i> Pesan Terbuka</h2>
+            <div style={{color:'#f2efe9', padding:'20px', background:'rgba(0,0,0,0.5)', border:'1px dashed rgba(212,175,55,0.3)', borderRadius:'5px'}}>
               {unlockedVision}
             </div>
             <div style={{marginTop:'30px', textAlign:'right'}}>
-              <button onClick={() => setUnlockedVision(null)} style={{background:'transparent', color:'var(--oracle-gold)', border:'1px solid var(--oracle-gold)', padding:'10px 25px', cursor:'pointer'}}>TUTUP DOKUMEN</button>
+              <button onClick={() => setUnlockedVision(null)} style={{background:'transparent', color:'var(--oracle-gold)', border:'1px solid var(--oracle-gold)', padding:'10px 25px', cursor:'pointer'}}>Tutup Dokumen</button>
             </div>
           </div>
         </div>

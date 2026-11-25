@@ -11,16 +11,16 @@ body.page-fitur .vault-wrapper,
 .vault-wrapper {
   --gold-main: #d4af37;
   --gold-light: #e5c158;
-  --gold-glow: rgba(212, 175, 55, 0.25);
-  --card-bg-base: #0d151c;
-  --card-border: rgba(212, 175, 55, 0.18);
-  --card-border-hover: rgba(212, 175, 55, 0.55);
+  --gold-glow: rgba(212, 175, 55, 0.22);
+  --card-bg-base: #0f141e;
+  --card-border: rgba(242, 239, 233, 0.12);
+  --card-border-hover: rgba(212, 175, 55, 0.5);
   --card-shadow: none;
-  --card-shadow-hover: 0 16px 36px rgba(0, 0, 0, 0.6);
-  --card-title-color: #f1f5f9;
-  --card-desc-color: #94a3b8;
-  --title-color: #d4af37;
-  --subtitle-color: #8899a6;
+  --card-shadow-hover: 0 14px 32px rgba(0, 0, 0, 0.55);
+  --card-title-color: #f2efe9;
+  --card-desc-color: #a1a8b5;
+  --title-color: #f2efe9;
+  --subtitle-color: #a1a8b5;
 
   position: relative;
   width: 100%;
@@ -39,18 +39,18 @@ body.page-fitur .vault-wrapper,
 :root[data-theme="light"] .vault-wrapper,
 [data-theme="light"] .vault-wrapper,
 body.page-fitur[data-theme="light"] .vault-wrapper {
-  --gold-main: #aa771c;
-  --gold-light: #c89528;
-  --gold-glow: rgba(170, 119, 28, 0.15);
+  --gold-main: #7c520a;
+  --gold-light: #7c520a;
+  --gold-glow: rgba(124, 82, 10, 0.14);
   --card-bg-base: #ffffff;
-  --card-border: rgba(170, 119, 28, 0.2);
-  --card-border-hover: rgba(170, 119, 28, 0.55);
+  --card-border: rgba(24, 24, 27, 0.12);
+  --card-border-hover: rgba(124, 82, 10, 0.55);
   --card-shadow: none;
-  --card-shadow-hover: 0 12px 28px rgba(170, 119, 28, 0.15);
-  --card-title-color: #0f172a;
-  --card-desc-color: #475569;
-  --title-color: #aa771c;
-  --subtitle-color: #52606d;
+  --card-shadow-hover: 0 10px 24px rgba(24, 24, 27, 0.08);
+  --card-title-color: #18181b;
+  --card-desc-color: #52525b;
+  --title-color: #18181b;
+  --subtitle-color: #52525b;
 }
 
 /* ==========================================================================
@@ -90,19 +90,17 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 .desktop-title {
   font-family: var(--font-playfair), Georgia, serif;
   color: var(--title-color);
-  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  font-size: clamp(2.1rem, 4vw, 3.2rem);
   margin: 0;
-  letter-spacing: 4px;
-  text-transform: uppercase;
+  letter-spacing: -0.02em;
   font-weight: 700;
 }
 
 .desktop-subtitle {
   color: var(--subtitle-color);
-  font-size: 0.95rem;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  margin-top: 12px;
+  font-size: 0.96rem;
+  letter-spacing: 0.02em;
+  margin-top: 10px;
   font-weight: 500;
 }
 
@@ -112,16 +110,16 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 45px;
-  background: rgba(13, 21, 28, 0.92);
-  padding: 8px 12px;
-  border-radius: 50px;
+  gap: 8px;
+  margin-bottom: 40px;
+  background: var(--card-bg-base);
+  padding: 6px 10px;
+  border-radius: 999px;
   border: 1px solid var(--card-border);
 }
 
 :root[data-theme="light"] .desktop-category-bar {
-  background: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
 }
 
 .category-pill-btn {
@@ -588,8 +586,8 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 
   :root[data-theme="light"] .widget-card-icon,
   :root[data-theme="light"] .bubble-icon-wrap {
-    background: rgba(170, 119, 28, 0.08);
-    border-color: rgba(170, 119, 28, 0.2);
+    background: rgba(124, 82, 10, 0.08);
+    border-color: rgba(124, 82, 10, 0.24);
   }
 
   /* STATUS PILL (HANYA UNTUK STATUS FUNGSIONAL) */
@@ -604,16 +602,16 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 
   .widget-status-pill.paid,
   .widget-status-pill.bday-active {
-    background: rgba(43, 185, 124, 0.12);
-    color: #2bb97c;
-    border: 1px solid rgba(43, 185, 124, 0.3);
+    background: rgba(76, 195, 138, 0.14);
+    color: #4cc38a;
+    border: 1px solid rgba(76, 195, 138, 0.32);
   }
 
   :root[data-theme="light"] .widget-status-pill.paid,
   :root[data-theme="light"] .widget-status-pill.bday-active {
-    background: rgba(5, 150, 105, 0.08);
-    color: #059669;
-    border-color: rgba(5, 150, 105, 0.25);
+    background: rgba(6, 95, 70, 0.08);
+    color: #065f46;
+    border-color: rgba(6, 95, 70, 0.28);
   }
 
   .widget-status-pill.unpaid,
@@ -697,8 +695,8 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 
   :root[data-theme="light"] .widget-event-countdown,
   :root[data-theme="light"] .khatam-countdown {
-    background: rgba(170, 119, 28, 0.08);
-    border-color: rgba(170, 119, 28, 0.25);
+    background: rgba(124, 82, 10, 0.09);
+    border-color: rgba(124, 82, 10, 0.26);
   }
 
   .widget-event-tag,
@@ -1030,13 +1028,13 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
 
   :root[data-theme="light"] .mobile-app-icon-badge {
     color: var(--gold-main);
-    background: rgba(170, 119, 28, 0.07);
-    border-color: rgba(170, 119, 28, 0.2);
+    background: rgba(124, 82, 10, 0.08);
+    border-color: rgba(124, 82, 10, 0.24);
   }
 
   :root[data-theme="light"] .mobile-app-item:hover .mobile-app-icon-badge,
   :root[data-theme="light"] .mobile-app-item:active .mobile-app-icon-badge {
-    background: rgba(170, 119, 28, 0.14);
+    background: rgba(124, 82, 10, 0.14);
     border-color: var(--gold-main);
   }
 
@@ -1059,20 +1057,20 @@ body.page-fitur[data-theme="light"] .vault-wrapper {
   /* Mode Siang (Light Theme) Contrast Refinement */
   :root[data-theme="light"] .widget-action-btn.secondary,
   :root[data-theme="light"] .widget-action-btn.tertiary {
-    background: rgba(0, 0, 0, 0.04);
-    border-color: rgba(170, 119, 28, 0.25);
+    background: rgba(24, 24, 27, 0.04);
+    border-color: rgba(124, 82, 10, 0.26);
     color: var(--card-title-color);
   }
 
   :root[data-theme="light"] .widget-action-btn.secondary:hover,
   :root[data-theme="light"] .widget-action-btn.tertiary:hover {
-    background: rgba(170, 119, 28, 0.1);
+    background: rgba(124, 82, 10, 0.1);
     border-color: var(--gold-main);
   }
 
   :root[data-theme="light"] .widget-points-badge {
-    background: rgba(170, 119, 28, 0.08);
-    border-color: rgba(170, 119, 28, 0.25);
+    background: rgba(124, 82, 10, 0.08);
+    border-color: rgba(124, 82, 10, 0.26);
     color: var(--gold-main);
   }
 }

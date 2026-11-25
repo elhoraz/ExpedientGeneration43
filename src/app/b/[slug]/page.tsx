@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const title = `${biz.nama_bisnis} — ${biz.tagline || biz.kategori} | Expedient 43`;
+  const title = `${biz.nama_bisnis} · ${biz.tagline || biz.kategori} | Expedient 43`;
   const description =
     biz.tagline ||
     (biz.deskripsi

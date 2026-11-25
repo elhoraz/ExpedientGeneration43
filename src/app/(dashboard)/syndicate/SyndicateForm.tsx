@@ -429,7 +429,7 @@ export default function SyndicateForm({ initialData, userId, userWhatsapp = "" }
                   value={formData.nama_bisnis}
                   onChange={(e) => setFormData({ ...formData, nama_bisnis: e.target.value })}
                   className="syndicate-input"
-                  placeholder="Misal: Studio Kopi Berbek, PT Mahakarya Digital"
+                  placeholder="Misal: Studio Kopi Berbek, PT Amanah Digital"
                 />
                 <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.84rem", color: "var(--biz-text-secondary)", flexWrap: "wrap" }}>
                   <i className="fa-solid fa-link" style={{ color: "var(--biz-gold)" }}></i>

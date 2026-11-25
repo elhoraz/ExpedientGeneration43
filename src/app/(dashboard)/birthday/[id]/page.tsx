@@ -14,8 +14,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://expedientgeneration.vercel.app";
   const name = (userProfile?.nama_panggilan || userProfile?.nama_lengkap || "Sahabat").trim();
-  const title = `Selamat Ulang Tahun, ${name}! 🎉 | Expedient 43`;
-  const description = `Barakallahu fii umrik ${name}! Buka kartu ucapan spesial angkatan ke-43 Pondok Modern Arrisalah dan kirimkan doa terbaikmu.`;
+  const title = `Selamat Ulang Tahun, ${name} | Expedient 43`;
+  const description = `Barakallahu fii umrik ${name}. Buka kartu ucapan angkatan ke-43 Pondok Modern Arrisalah dan kirimkan doa terbaikmu.`;
 
   let imageUrl = `${siteUrl}/images/logo-utuh.webp`;
   if (userProfile?.foto_profil) {
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     title,
     description,
     openGraph: {
-      title: `Selamat Ulang Tahun, ${name}! 🎂🎉`,
+      title: `Selamat Ulang Tahun, ${name}`,
       description,
       siteName: "Expedient Generation 43",
       images: [
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     },
     twitter: {
       card: "summary_large_image",
-      title: `Selamat Ulang Tahun, ${name}! 🎂🎉`,
+      title: `Selamat Ulang Tahun, ${name}`,
       description,
       images: [imageUrl],
     },

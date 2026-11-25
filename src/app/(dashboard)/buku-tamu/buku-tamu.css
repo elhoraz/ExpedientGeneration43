@@ -1,20 +1,20 @@
 .buku-tamu-wrapper { padding: 90px 20px 100px; max-width: 800px; margin: 0 auto; position: relative; }
-.buku-tamu-wrapper .bt-title { font-family: 'Playfair Display', serif; color: #d4af37; font-size: clamp(1.8rem, 6vw, 2.5rem); margin-bottom: 8px; text-align: center; }
-.buku-tamu-wrapper .bt-subtitle { color: var(--text-secondary); font-size: 0.85rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; text-align: center; }
+.buku-tamu-wrapper .bt-title { font-family: 'Playfair Display', serif; color: var(--gold-main, #d4af37); font-size: clamp(1.8rem, 6vw, 2.5rem); margin-bottom: 8px; text-align: center; }
+.buku-tamu-wrapper .bt-subtitle { color: var(--text-secondary); font-size: 0.88rem; letter-spacing: 0.04em; margin-bottom: 30px; text-align: center; }
 
-.buku-tamu-wrapper .bt-form { background: var(--bg-secondary, rgba(15, 20, 18, 0.85)); padding: 22px; border-radius: 18px; border: 1px solid var(--glass-border); margin-bottom: 30px; box-shadow: var(--glass-shadow); backdrop-filter: var(--glass-blur); }
-.buku-tamu-wrapper .bt-textarea { width: 100%; min-height: 110px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 14px; border-radius: 12px; font-family: 'Manrope', sans-serif; resize: vertical; margin-bottom: 15px; font-size: 0.95rem; box-sizing: border-box; }
-.buku-tamu-wrapper .bt-textarea:focus { outline: none; border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
+.buku-tamu-wrapper .bt-form { background: var(--bg-card, #0f141e); padding: 22px; border-radius: 18px; border: 1px solid var(--glass-border); margin-bottom: 30px; box-shadow: var(--glass-shadow); }
+.buku-tamu-wrapper .bt-textarea { width: 100%; min-height: 110px; background: var(--surface-inset, rgba(255,255,255,0.04)); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 14px; border-radius: 12px; font-family: 'Manrope', sans-serif; resize: vertical; margin-bottom: 15px; font-size: 0.95rem; box-sizing: border-box; }
+.buku-tamu-wrapper .bt-textarea:focus { outline: none; border-color: var(--gold-main, #d4af37); box-shadow: 0 0 0 2px rgba(212,175,55,0.18); }
 .buku-tamu-wrapper .bt-actions { display: flex; justify-content: flex-end; }
-.buku-tamu-wrapper .bt-submit { background: linear-gradient(135deg, #d4af37, #aa771c); color: #000; border: none; padding: 12px 28px; font-weight: 700; border-radius: 30px; cursor: pointer; transition: 0.3s; font-family: 'Manrope', sans-serif; letter-spacing: 1.5px; text-transform: uppercase; font-size: 0.85rem; }
-.buku-tamu-wrapper .bt-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(212,175,55,0.4); }
+.buku-tamu-wrapper .bt-submit { background: #d4af37; color: #060b14; border: none; padding: 12px 28px; font-weight: 700; border-radius: 30px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease; font-family: 'Manrope', sans-serif; letter-spacing: 0.03em; font-size: 0.88rem; }
+.buku-tamu-wrapper .bt-submit:hover:not(:disabled) { transform: translateY(-2px); opacity: 0.92; }
 .buku-tamu-wrapper .bt-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.buku-tamu-wrapper .msg-card { background: var(--bg-secondary, rgba(15, 20, 18, 0.8)); border: 1px solid rgba(212, 175, 55, 0.25); padding: 20px; border-radius: 14px; margin-bottom: 18px; box-shadow: var(--glass-shadow); }
+.buku-tamu-wrapper .msg-card { background: var(--bg-card, #0f141e); border: 1px solid var(--glass-border); border-left: 3px solid var(--gold-main, #d4af37); padding: 20px; border-radius: 14px; margin-bottom: 18px; box-shadow: var(--glass-shadow); }
 .buku-tamu-wrapper .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; flex-wrap: wrap; gap: 6px; }
-.buku-tamu-wrapper .msg-author { color: #d4af37; font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: bold; }
-.buku-tamu-wrapper .msg-date { color: var(--text-secondary); font-size: 0.75rem; font-family: var(--font-manrope), sans-serif; }
-.buku-tamu-wrapper .msg-body { color: var(--text-primary); font-style: italic; line-height: 1.6; font-size: 0.92rem; }
+.buku-tamu-wrapper .msg-author { color: var(--gold-main, #d4af37); font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: bold; }
+.buku-tamu-wrapper .msg-date { color: var(--text-secondary); font-size: 0.78rem; font-family: var(--font-manrope), sans-serif; }
+.buku-tamu-wrapper .msg-body { color: var(--text-primary); line-height: 1.6; font-size: 0.94rem; }
 
 @media (max-width: 768px) {
     .buku-tamu-wrapper { padding: 80px 14px 120px; }
@@ -27,45 +27,50 @@
    BUKU TAMU LIGHT THEME SUPPORT
    ========================================================================== */
 :root[data-theme="light"] .buku-tamu-wrapper .bt-title {
-    color: #aa771c;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .bt-subtitle {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .bt-form {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.25);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    border-color: rgba(24, 24, 27, 0.09);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .bt-textarea {
-    background: #f8fafc;
-    border-color: rgba(0, 0, 0, 0.12);
-    color: #0f172a;
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.14);
+    color: #18181b;
+}
+
+:root[data-theme="light"] .buku-tamu-wrapper .bt-submit {
+    background: #7c520a;
+    color: #ffffff;
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .msg-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.2);
-    border-left-color: #aa771c;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    border-color: rgba(24, 24, 27, 0.09);
+    border-left-color: #7c520a;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .msg-author {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .msg-header {
-    border-bottom-color: rgba(0, 0, 0, 0.06);
+    border-bottom-color: rgba(24, 24, 27, 0.07);
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .msg-date {
-    color: #64748b;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .buku-tamu-wrapper .msg-body {
-    color: #334155;
+    color: #18181b;
 }
 

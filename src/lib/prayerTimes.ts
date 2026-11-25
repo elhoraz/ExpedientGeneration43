@@ -197,13 +197,15 @@ export function calculatePrayerTimes(
     return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   };
 
+  // Format Arabic/Latin localized calendar date
+  const localeTag = "id-ID";
   const options: Intl.DateTimeFormatOptions = {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   };
-  const dateStr = date.toLocaleDateString("id-ID", options);
+  const dateStr = date.toLocaleDateString(localeTag, options);
 
   return {
     imsak: formatHours(imsakHours),
@@ -217,7 +219,100 @@ export function calculatePrayerTimes(
   };
 }
 
+export interface QuadrantOffsetInfo {
+  angle: number;
+  shortLabel: string;
+  description: string;
+}
+
+/**
+ * Menghitung penyimpangan sudut kiblat sesuai kuadran kompas sebenarnya (N/E/S/W)
+ */
+export function formatQiblaQuadrant(
+  bearing: number,
+  distanceKm: number,
+  locale: string = "id"
+): QuadrantOffsetInfo {
+  const b = ((bearing % 360) + 360) % 360;
+  if (distanceKm < 2) {
+    return {
+      angle: 0,
+      shortLabel: locale === "ar" ? "الحرم المكي" : locale === "en" ? "Masjid al-Haram" : "Area Masjidil Haram",
+      description:
+        locale === "ar"
+          ? "بجوار الكعبة، مكة"
+          : locale === "en"
+          ? "Near the Kaaba, Makkah"
+          : "Di sekitar Ka'bah, Makkah",
+    };
+  }
+
+  // Quad IV: West -> North (270..360, e.g. Indonesia 294.5°)
+  if (b >= 270) {
+    const deg = Math.round((b - 270) * 10) / 10;
+    return {
+      angle: deg,
+      shortLabel: locale === "ar" ? `${deg}° ش.غ` : locale === "en" ? `${deg}° N of W` : `${deg}° U dari Barat`,
+      description:
+        locale === "ar"
+          ? "شمالاً عن جهة الغرب"
+          : locale === "en"
+          ? "North of due west"
+          : "Dari Barat ke arah Utara",
+    };
+  }
+  // Quad III: South -> West (180..270)
+  if (b >= 180) {
+    const deg = Math.round((270 - b) * 10) / 10;
+    return {
+      angle: deg,
+      shortLabel: locale === "ar" ? `${deg}° ج.غ` : locale === "en" ? `${deg}° S of W` : `${deg}° S dari Barat`,
+      description:
+        locale === "ar"
+          ? "جنوباً عن جهة الغرب"
+          : locale === "en"
+          ? "South of due west"
+          : "Dari Barat ke arah Selatan",
+    };
+  }
+  // Quad II: East -> South (90..180)
+  if (b >= 90) {
+    const deg = Math.round((180 - b) * 10) / 10;
+    return {
+      angle: deg,
+      shortLabel: locale === "ar" ? `${deg}° ج.ش` : locale === "en" ? `${deg}° E of S` : `${deg}° T dari Selatan`,
+      description:
+        locale === "ar"
+          ? "شرقاً عن جهة الجنوب"
+          : locale === "en"
+          ? "East of due south"
+          : "Dari Selatan ke arah Timur",
+    };
+  }
+  // Quad I: North -> East (0..90)
+  const deg = Math.round(b * 10) / 10;
+  return {
+    angle: deg,
+    shortLabel: locale === "ar" ? `${deg}° ش.ش` : locale === "en" ? `${deg}° E of N` : `${deg}° T dari Utara`,
+    description:
+      locale === "ar"
+        ? "شرقاً عن جهة الشمال"
+        : locale === "en"
+        ? "East of due north"
+        : "Dari Utara ke arah Timur",
+  };
+}
+
+export function formatTimezoneLabel(tzOffsetHours: number): string {
+  if (tzOffsetHours === 7) return "WIB";
+  if (tzOffsetHours === 8) return "WITA";
+  if (tzOffsetHours === 9) return "WIT";
+  if (tzOffsetHours === 3) return "AST";
+  return `UTC${tzOffsetHours >= 0 ? `+${tzOffsetHours}` : tzOffsetHours}`;
+}
+
 export interface NextPrayerInfo {
+  id: "subuh" | "dzuhur" | "ashar" | "maghrib" | "isya";
   name: string;
   arabicName: string;
   time: string;
@@ -226,40 +321,55 @@ export interface NextPrayerInfo {
 }
 
 /**
- * Menentukan waktu sholat berikutnya dan waktu hitung mundur (countdown)
+ * Menentukan waktu sholat berikutnya dan waktu hitung mundur (countdown) sesuai zona waktu lokasi
  */
-export function getNextPrayer(schedule: PrayerSchedule, now: Date = new Date()): NextPrayerInfo {
-  const parseTime = (timeStr: string): Date => {
-    const [h, m] = timeStr.split(":").map(Number);
-    const d = new Date(now);
-    d.setHours(h, m, 0, 0);
-    return d;
+export function getNextPrayer(
+  schedule: PrayerSchedule,
+  now: Date = new Date(),
+  targetTimezoneHours?: number
+): NextPrayerInfo {
+  const tzHours =
+    typeof targetTimezoneHours === "number"
+      ? targetTimezoneHours
+      : -now.getTimezoneOffset() / 60;
+
+  // Shift epoch by target timezone offset so UTC getters reflect wall-clock time at target location
+  const targetClock = new Date(now.getTime() + tzHours * 3600000);
+  const nowSecOfDay =
+    targetClock.getUTCHours() * 3600 +
+    targetClock.getUTCMinutes() * 60 +
+    targetClock.getUTCSeconds();
+
+  const parseToSec = (timeStr: string): number => {
+    const parts = timeStr.split(":").map(Number);
+    if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return 0;
+    return parts[0] * 3600 + parts[1] * 60;
   };
 
-  const prayers = [
-    { name: "Subuh", arabic: "الفجر", time: schedule.subuh, date: parseTime(schedule.subuh) },
-    { name: "Dzuhur", arabic: "الظهر", time: schedule.dzuhur, date: parseTime(schedule.dzuhur) },
-    { name: "Ashar", arabic: "العصر", time: schedule.ashar, date: parseTime(schedule.ashar) },
-    { name: "Maghrib", arabic: "المغرب", time: schedule.maghrib, date: parseTime(schedule.maghrib) },
-    { name: "Isya", arabic: "العشاء", time: schedule.isya, date: parseTime(schedule.isya) },
+  const prayers: Array<{
+    id: NextPrayerInfo["id"];
+    name: string;
+    arabic: string;
+    time: string;
+    secOfDay: number;
+  }> = [
+    { id: "subuh", name: "Subuh", arabic: "الفجر", time: schedule.subuh, secOfDay: parseToSec(schedule.subuh) },
+    { id: "dzuhur", name: "Dzuhur", arabic: "الظهر", time: schedule.dzuhur, secOfDay: parseToSec(schedule.dzuhur) },
+    { id: "ashar", name: "Ashar", arabic: "العصر", time: schedule.ashar, secOfDay: parseToSec(schedule.ashar) },
+    { id: "maghrib", name: "Maghrib", arabic: "المغرب", time: schedule.maghrib, secOfDay: parseToSec(schedule.maghrib) },
+    { id: "isya", name: "Isya", arabic: "العشاء", time: schedule.isya, secOfDay: parseToSec(schedule.isya) },
   ];
 
-  let next = prayers.find((p) => p.date.getTime() > now.getTime());
+  let next = prayers.find((p) => p.secOfDay > nowSecOfDay);
+  let diffSec = 0;
 
-  if (!next) {
-    // If all prayers today have passed, next is tomorrow's Subuh
-    const tomorrowSubuh = parseTime(schedule.subuh);
-    tomorrowSubuh.setDate(tomorrowSubuh.getDate() + 1);
-    next = {
-      name: "Subuh",
-      arabic: "الفجر",
-      time: schedule.subuh,
-      date: tomorrowSubuh,
-    };
+  if (next) {
+    diffSec = Math.max(0, next.secOfDay - nowSecOfDay);
+  } else {
+    next = prayers[0];
+    diffSec = Math.max(0, 86400 - nowSecOfDay + next.secOfDay);
   }
 
-  const diffMs = Math.max(0, next.date.getTime() - now.getTime());
-  const diffSec = Math.floor(diffMs / 1000);
   const hrs = Math.floor(diffSec / 3600);
   const mins = Math.floor((diffSec % 3600) / 60);
   const secs = diffSec % 60;
@@ -268,6 +378,7 @@ export function getNextPrayer(schedule: PrayerSchedule, now: Date = new Date()):
   const isImminent = diffSec <= 900; // <= 15 minutes
 
   return {
+    id: next.id,
     name: next.name,
     arabicName: next.arabic,
     time: next.time,

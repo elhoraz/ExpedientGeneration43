@@ -7,24 +7,24 @@
     --glass-shadow: 0 50px 100px rgba(0, 0, 0, 0.95); --glass-edge: rgba(255, 255, 255, 0.08);
     
     --text-primary: #ffffff; --text-secondary: #94a3b8;
-    --gold-liquid: linear-gradient(110deg, #d4af37 0%, #fff2cd 30%, #aa771c 70%, #d4af37 100%);
+    --gold-liquid: linear-gradient(110deg, #d4af37 0%, #f3e5ab 50%, #c8a232 100%);
     --border-glow: rgba(0, 210, 255, 0.6);
     
     --input-bg: rgba(6, 11, 20, 0.5); --input-line: rgba(255, 255, 255, 0.1); --input-focus: rgba(0, 210, 255, 0.1);
 }
 
 [data-theme="light"] .register-page {
-    --bg-main: #f8fafc; --bg-radial: #ffffff;
-    --aurora-1: rgba(212, 175, 55, 0.12); --aurora-2: rgba(0, 180, 255, 0.08); --aurora-3: rgba(148, 163, 184, 0.15);
+    --bg-main: #f6f5f1; --bg-radial: #ffffff;
+    --aurora-1: rgba(124, 82, 10, 0.06); --aurora-2: rgba(3, 105, 161, 0.05); --aurora-3: rgba(148, 163, 184, 0.1);
     
-    --glass-bg: rgba(255, 255, 255, 0.75); --glass-blur: blur(40px);
-    --glass-shadow: 0 40px 80px rgba(15, 23, 42, 0.08); --glass-edge: rgba(255, 255, 255, 0.8);
+    --glass-bg: #ffffff; --glass-blur: none;
+    --glass-shadow: 0 20px 45px rgba(24, 24, 27, 0.08); --glass-edge: rgba(24, 24, 27, 0.09);
     
-    --text-primary: #0f172a; --text-secondary: #475569;
-    --gold-liquid: linear-gradient(110deg, #b38728 0%, #d4af37 30%, #ffd700 70%, #b38728 100%);
-    --border-glow: rgba(0, 120, 255, 0.3);
+    --text-primary: #18181b; --text-secondary: #52525b;
+    --gold-liquid: linear-gradient(110deg, #7c520a 0%, #9b6b16 50%, #7c520a 100%);
+    --border-glow: rgba(124, 82, 10, 0.35);
     
-    --input-bg: rgba(255, 255, 255, 0.7); --input-line: rgba(0, 0, 0, 0.1); --input-focus: rgba(0, 120, 255, 0.05);
+    --input-bg: #f6f5f1; --input-line: rgba(24, 24, 27, 0.14); --input-focus: rgba(124, 82, 10, 0.08);
 }
 
 .register-page { 

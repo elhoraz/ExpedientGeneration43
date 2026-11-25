@@ -226,7 +226,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
         #canvas1 { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; touch-action: none; }
 
         .hud-overlay { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 20px; pointer-events: none; transition: opacity 0.5s; }
-        .hud-text { font-family: 'Courier New', monospace; color: rgba(212,175,55,0.7); font-size: 0.8rem; letter-spacing: 4px; text-transform: uppercase; text-align: center; text-shadow: 0 0 10px rgba(0,0,0,0.8); animation: pulseText 2s infinite alternate; }
+        .hud-text { font-family: var(--font-manrope), sans-serif; color: rgba(212,175,55,0.85); font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; text-shadow: 0 0 10px rgba(0,0,0,0.8); animation: pulseText 2s infinite alternate; }
         @keyframes pulseText { 0% { opacity: 0.5; } 100% { opacity: 1; } }
 
         .btn-singularity { pointer-events: auto; background: rgba(212, 175, 55, 0.1); backdrop-filter: blur(10px); border: 1px solid var(--genesis-gold); color: var(--genesis-gold); padding: 15px 40px; border-radius: 50px; font-family: var(--font-sans, inherit); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 4px; cursor: pointer; transition: all 0.4s ease; box-shadow: 0 0 20px rgba(0,0,0,0.8); }
@@ -235,8 +235,8 @@ export default function GenesisClient({ userId }: { userId: string }) {
         .revelation-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 100; text-align: center; opacity: 0; pointer-events: none; transition: opacity 2s ease; }
         .revelation-box.show { opacity: 1; pointer-events: auto; }
 
-        .rev-title { font-family: 'Playfair Display', serif; color: #fff; font-size: clamp(2.5rem, 6vw, 5rem); text-shadow: 0 0 30px var(--genesis-gold); margin: 0; letter-spacing: 8px; text-transform: uppercase; }
-        .rev-subtitle { font-family: 'Courier New', monospace; color: #d4af37; font-size: 1rem; letter-spacing: 5px; margin-top: 15px; }
+        .rev-title { font-family: 'Playfair Display', serif; color: #fff; font-size: clamp(2.5rem, 6vw, 5rem); text-shadow: 0 0 30px var(--genesis-gold); margin: 0; letter-spacing: 0.08em; text-transform: uppercase; }
+        .rev-subtitle { font-family: var(--font-manrope), sans-serif; color: #d4af37; font-size: 1rem; letter-spacing: 0.12em; margin-top: 15px; }
 
         .btn-return { display: inline-block; margin-top: 40px; padding: 12px 30px; border: 1px solid rgba(255,255,255,0.3); color: #fff; text-decoration: none; font-family: var(--font-sans, inherit); text-transform: uppercase; letter-spacing: 2px; border-radius: 30px; transition: 0.3s; }
         .btn-return:hover { background: #fff; color: #060b14; }

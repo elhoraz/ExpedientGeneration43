@@ -1,6 +1,6 @@
 /* ==========================================================================
    download.css - Pusat Unduh Aplikasi Resmi Expedient Generation 43
-   Dual-Theme Luxury System (Obsidian Gold & Royal Pearl Ivory)
+   Dual-Theme Design System (Dark Slate & Warm Limestone)
    ========================================================================== */
 
 .download-page-scroll-container {
@@ -160,25 +160,25 @@
 }
 
 [data-theme="light"] .download-code-tag-gold {
-  background: rgba(212, 175, 55, 0.12);
-  color: #aa771c;
-  border-color: rgba(212, 175, 55, 0.3);
+  background: rgba(124, 82, 10, 0.1);
+  color: #7c520a;
+  border-color: rgba(124, 82, 10, 0.3);
 }
 
 /* Guide Section */
 .download-guide-container {
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--bg-card, #0f141e);
   border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 20px;
   padding: 2rem 1.75rem;
   margin-bottom: 2.5rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.2s ease;
 }
 
 [data-theme="light"] .download-guide-container {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  border: 1px solid rgba(24, 24, 27, 0.09);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
 .download-guide-banner-ios {
@@ -187,90 +187,88 @@
 }
 
 [data-theme="light"] .download-guide-banner-ios {
-  background: rgba(2, 132, 199, 0.08);
-  border: 1px solid rgba(2, 132, 199, 0.25);
+  background: rgba(3, 105, 161, 0.08);
+  border: 1px solid rgba(3, 105, 161, 0.25);
 }
 
 .download-step-title {
-  color: #f8fafc;
+  color: #f2efe9;
 }
 [data-theme="light"] .download-step-title {
-  color: #0f172a;
+  color: #18181b;
 }
 
 .download-step-desc {
-  color: #94a3b8;
+  color: #a1a8b5;
 }
 [data-theme="light"] .download-step-desc {
-  color: #475569;
+  color: #52525b;
 }
 
 /* FAQ Box */
 .download-faq-container {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 14px;
   padding: 1.5rem;
   margin-bottom: 2.25rem;
-  transition: all 0.3s ease;
 }
 
 [data-theme="light"] .download-faq-container {
-  background: rgba(254, 243, 199, 0.55);
-  border: 1px solid rgba(217, 119, 6, 0.3);
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.08);
+  background: #f6f5f1;
+  border: 1px solid rgba(124, 82, 10, 0.28);
 }
 
 .download-faq-q {
-  color: #f8fafc;
+  color: #f2efe9;
 }
 [data-theme="light"] .download-faq-q {
-  color: #0f172a;
+  color: #18181b;
 }
 
 .download-faq-a {
   color: #cbd5e1;
 }
 [data-theme="light"] .download-faq-a {
-  color: #475569;
+  color: #52525b;
 }
 
 /* Top bar navigation */
 .download-top-link {
-  color: #94a3b8;
+  color: #a1a8b5;
   transition: color 0.2s ease;
 }
 .download-top-link:hover {
   color: var(--gold-main, #d4af37);
 }
 [data-theme="light"] .download-top-link {
-  color: #64748b;
+  color: #52525b;
 }
 [data-theme="light"] .download-top-link:hover {
-  color: #aa771c;
+  color: #7c520a;
 }
 
 /* Button styles */
 .download-btn-ghost-ios {
   background: transparent;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  border: 1px solid rgba(56, 189, 248, 0.35);
   color: #38bdf8;
 }
 [data-theme="light"] .download-btn-ghost-ios {
-  background: rgba(2, 132, 199, 0.08);
-  border-color: rgba(2, 132, 199, 0.3);
-  color: #0284c7;
+  background: rgba(3, 105, 161, 0.08);
+  border-color: rgba(3, 105, 161, 0.3);
+  color: #0369a1;
 }
 
 .download-btn-ghost-apk {
   background: transparent;
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  color: #f3ba2f;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: #d4af37;
 }
 [data-theme="light"] .download-btn-ghost-apk {
-  background: rgba(212, 175, 55, 0.1);
-  border-color: rgba(212, 175, 55, 0.4);
-  color: #aa771c;
+  background: rgba(124, 82, 10, 0.1);
+  border-color: rgba(124, 82, 10, 0.35);
+  color: #7c520a;
 }
 
 .download-btn-ghost-pwa {

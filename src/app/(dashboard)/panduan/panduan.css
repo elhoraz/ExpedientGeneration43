@@ -199,15 +199,18 @@
   gap: 8px;
   padding: 10px 22px;
   border-radius: 30px;
-  background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
-  color: #060b14;
+  background: var(--gold-main, #d4af37);
+  color: var(--bg-main, #060b14);
   font-size: 0.85rem;
   font-weight: 700;
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.25s;
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+:root[data-theme="light"] .btn-restart-tour {
+  background: #7c520a;
+  color: #ffffff;
 }
 
 .btn-restart-tour:hover {
@@ -523,21 +526,21 @@
 
 :root[data-theme="light"] .panduan-search-input {
   background: #ffffff;
-  border-color: rgba(170, 119, 28, 0.3);
-  color: #171717;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  border-color: rgba(24, 24, 27, 0.14);
+  color: #18181b;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .category-chip {
   background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #4b5563;
+  border-color: rgba(24, 24, 27, 0.1);
+  color: #52525b;
 }
 
 :root[data-theme="light"] .category-chip.active {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: #aa771c;
-  color: #aa771c;
+  background: rgba(124, 82, 10, 0.12);
+  border-color: #7c520a;
+  color: #7c520a;
 }
 
 :root[data-theme="light"] .guide-card {

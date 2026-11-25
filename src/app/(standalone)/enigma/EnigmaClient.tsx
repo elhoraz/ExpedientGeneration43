@@ -247,16 +247,16 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
 
         .riddle-box { margin-top: 40px; text-align: center; width: 85%; max-width: 600px; z-index: 100; }
         .riddle-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: 1.4rem; letter-spacing: 4px; margin-bottom: 10px; text-transform: uppercase; }
-        .riddle-text { font-family: 'Courier New', monospace; color: #8b9ba8; font-size: 0.85rem; line-height: 1.6; letter-spacing: 1.5px; }
+        .riddle-text { font-family: var(--font-manrope), sans-serif; color: #a1a8b5; font-size: 0.9rem; line-height: 1.6; letter-spacing: 0.03em; }
 
         .vault-container.unlocked .ring { filter: brightness(1.5) drop-shadow(0 0 20px var(--enigma-gold)); pointer-events: none; }
-        .vault-container.unlocked .vault-core { background: radial-gradient(circle at center, #d4af37 0%, #aa771c 100%); box-shadow: 0 0 100px var(--enigma-gold); transform: scale(1.1); }
+        .vault-container.unlocked .vault-core { background: radial-gradient(circle at center, #d4af37 0%, #8c6a12 100%); box-shadow: 0 0 100px var(--enigma-gold); transform: scale(1.1); }
         .vault-container.unlocked .core-logo { opacity: 1; filter: grayscale(0) drop-shadow(0 0 15px #fff); }
 
         .success-overlay { position: absolute; inset: 0; background: rgba(6,11,20,0.95); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 1.5s ease; }
         .success-overlay.show { opacity: 1; pointer-events: auto; }
-        .clearance-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(1.8rem, 6vw, 3.5rem); letter-spacing: 5px; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
-        .secret-quote { font-family: 'Courier New', monospace; color: #fff; font-size: 0.95rem; text-align: center; max-width: 85%; line-height: 1.8; letter-spacing: 2px; transform: translateY(20px); opacity: 0; }
+        .clearance-title { font-family: 'Playfair Display', serif; color: var(--enigma-gold); font-size: clamp(1.8rem, 6vw, 3.5rem); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 20px; text-align: center; transform: translateY(30px); opacity: 0; }
+        .secret-quote { font-family: var(--font-manrope), sans-serif; color: #f2efe9; font-size: 1rem; text-align: center; max-width: 85%; line-height: 1.75; letter-spacing: 0.02em; transform: translateY(20px); opacity: 0; }
         .btn-return { margin-top: 30px; padding: 12px 30px; border: 1px solid var(--enigma-gold); background: rgba(212,175,55,0.1); color: var(--enigma-gold); font-family: var(--font-sans, inherit); text-transform: uppercase; letter-spacing: 3px; border-radius: 30px; cursor: pointer; transition: 0.3s; text-decoration: none; transform: translateY(20px); opacity: 0; }
         .btn-return:hover { background: var(--enigma-gold); color: #060b14; }
 

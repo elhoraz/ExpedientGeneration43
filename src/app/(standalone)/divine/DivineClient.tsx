@@ -252,7 +252,7 @@ export default function DivineClient() {
 
   const handleCopy = () => {
     if (!activeVerse) return;
-    const text = `${activeVerse.arabic}\n\n"${activeVerse.latin}"\n\nArtinya:\n"${activeVerse.meaning}"\n\n(${activeVerse.source})\n— Kalam Ilahi Expedient 43`;
+    const text = `${activeVerse.arabic}\n\n"${activeVerse.latin}"\n\nArtinya:\n"${activeVerse.meaning}"\n\n(${activeVerse.source})\nKalam Ilahi · Expedient 43`;
     navigator.clipboard.writeText(text);
     if (navigator.vibrate) navigator.vibrate(25);
     setCopiedToast(true);

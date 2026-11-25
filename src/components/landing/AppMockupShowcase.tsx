@@ -114,9 +114,6 @@ export default function AppMockupShowcase() {
         {/* Right / Luxury 3D Smartphone Mockup */}
         <div className="app-mockup-col">
           <div className="phone-mockup-wrapper">
-            {/* Ambient Gold Glow Behind Device */}
-            <div className="phone-ambient-glow"></div>
-
             {/* Smartphone Chassis */}
             <div className="phone-chassis">
               {/* Speaker / Dynamic Island */}

@@ -1,8 +1,8 @@
 import AsmaulHusnaClient from "./AsmaulHusnaClient";
 
 export const metadata = {
-  title: "99 Asmaul Husna Interaktif & Tadabbur - Expedient Generation 43",
-  description: "Eksplorasi spiritual 99 Nama Agung Allah SWT dengan Galeri Permata Emas, lembar tadabbur & dalil Al-Qur'an, mode tasbih dzikir haptic interaktif, pemutar murattal audio sekuensial, dan generator story WhatsApp.",
+  title: "99 Asmaul Husna & Tadabbur - Expedient Generation 43",
+  description: "Mengenal 99 Nama Allah SWT lengkap dengan tadabbur, dalil Al-Qur'an, penghitung dzikir, pemutar audio murattal, dan kartu kutipan Islami.",
 };
 
 export default function AsmaulHusnaPage() {

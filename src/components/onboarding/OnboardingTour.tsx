@@ -25,7 +25,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/beranda"]',
         icon: "fa-solid fa-landmark",
-        title: "الرئيسية — متحف الذكريات",
+        title: "الرئيسية: متحف الذكريات",
         description: "الصفحة الرئيسية للمنصة، تحتوي على الشعار ثلاثي الأبعاد، ممر الصور التاريخية، والجدول الزمني لأحداث الدفعة.",
         position: "right",
         requireSidebar: true,
@@ -33,7 +33,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/direktori"]',
         icon: "fa-solid fa-address-book",
-        title: "دليل الخريجين — سجل جهات الاتصال",
+        title: "دليل الخريجين: سجل جهات الاتصال",
         description: "ابحث عن زملاء الدفعة حسب القنصلية، المنطقة، أو المهنة. تواصل مع أصدقائك القدامى بسهولة!",
         position: "right",
         requireSidebar: true,
@@ -41,7 +41,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/galeri"]',
         icon: "fa-solid fa-film",
-        title: "المعرض — أرشيف الصور والفيديو",
+        title: "المعرض: أرشيف الصور والفيديو",
         description: "مجموعة صور ومقاطع فيديو توثق أيام الدراسة، ويمكنك أيضاً مشاركة ورفع ذكرياتك الخاصة.",
         position: "right",
         requireSidebar: true,
@@ -49,7 +49,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/radar"]',
         icon: "fa-solid fa-earth-asia",
-        title: "الرادار — خريطة انتشار الخريجين",
+        title: "الرادار: خريطة انتشار الخريجين",
         description: "خريطة تفاعلية توضح المدن التي يقيم فيها زملاء الدفعة. حدّث موقعك ليتمكن رفقاؤك من التواصل معك!",
         position: "right",
         requireSidebar: true,
@@ -57,7 +57,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/syndicate"]',
         icon: "fa-solid fa-briefcase",
-        title: "دليل الأعمال — مشاريع الخريجين",
+        title: "دليل الأعمال: مشاريع الخريجين",
         description: "دليل للشركات والمنتجات والخدمات التي يملكها الزملاء. ادعم واشترِ من مشاريع إخوانك الخريجين!",
         position: "right",
         requireSidebar: true,
@@ -65,7 +65,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/fitur"]',
         icon: "fa-solid fa-gem",
-        title: "الميزات — جميع خدمات المنصة",
+        title: "الميزات: جميع خدمات المنصة",
         description: "باقة كاملة من الخدمات: بطاقة الهوية الرقمية 3D، القرآن الكريم، بيت المال، جداول اللقاءات، والمزيد.",
         position: "right",
         requireSidebar: true,
@@ -94,7 +94,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/profil"]',
         icon: "fa-solid fa-circle-user",
-        title: "الملف الشخصي — بياناتك",
+        title: "الملف الشخصي: بياناتك",
         description: "إدارة بياناتك الشخصية: الصورة، النبذة، جهات الاتصال، وبطاقة هويتك الرقمية.",
         position: "right",
         requireSidebar: true,
@@ -107,7 +107,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/beranda"]',
         icon: "fa-solid fa-landmark",
-        title: "Home — Memory Museum",
+        title: "Home: Memory Museum",
         description: "The portal's main hub featuring an interactive 3D cohort emblem, photo gallery of pondok days, timeline history, and guestbook.",
         position: "right",
         requireSidebar: true,
@@ -115,7 +115,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/direktori"]',
         icon: "fa-solid fa-address-book",
-        title: "Directory — Alumni Contacts",
+        title: "Directory: Alumni Contacts",
         description: "Search for old classmates by consulate, regional origin, or profession. Reconnect with friends you haven't seen in years!",
         position: "right",
         requireSidebar: true,
@@ -123,7 +123,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/galeri"]',
         icon: "fa-solid fa-film",
-        title: "Gallery — Photo & Video Archive",
+        title: "Gallery: Photo & Video Archive",
         description: "Collection of photos and videos from pondok days. You can also upload and share your own cherished moments.",
         position: "right",
         requireSidebar: true,
@@ -131,7 +131,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/radar"]',
         icon: "fa-solid fa-earth-asia",
-        title: "Radar — Alumni Distribution Map",
+        title: "Radar: Alumni Distribution Map",
         description: "Interactive map showing cities where our cohort members live. Update your location so friends know where to find you!",
         position: "right",
         requireSidebar: true,
@@ -139,7 +139,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/syndicate"]',
         icon: "fa-solid fa-briefcase",
-        title: "Business — Alumni Venture Catalog",
+        title: "Business: Alumni Venture Catalog",
         description: "Catalog of businesses, products, and services owned by alumni. Support and trade within our cohort community!",
         position: "right",
         requireSidebar: true,
@@ -147,7 +147,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/fitur"]',
         icon: "fa-solid fa-gem",
-        title: "Features — All Portal Services",
+        title: "Features: All Portal Services",
         description: "Full suite of alumni services: 3D digital ID card, Quran mushaf, cohort treasury, reunion agendas, and more.",
         position: "right",
         requireSidebar: true,
@@ -176,7 +176,7 @@ function getTourSteps(locale: string): TourStep[] {
       {
         selector: '#sidebarNav a[href="/profil"]',
         icon: "fa-solid fa-circle-user",
-        title: "Profile — Your Personal Data",
+        title: "Profile: Your Personal Data",
         description: "Manage your alumni info: photo, bio, contact numbers, social media, and digital ID card.",
         position: "right",
         requireSidebar: true,
@@ -188,7 +188,7 @@ function getTourSteps(locale: string): TourStep[] {
     {
       selector: '#sidebarNav a[href="/beranda"]',
       icon: "fa-solid fa-landmark",
-      title: "Beranda — Museum Kenangan",
+      title: "Beranda: Museum Kenangan",
       description:
         "Halaman utama portal. Di sini kamu bisa lihat logo angkatan interaktif 3D, lorong kenangan foto masa pondok, timeline sejarah angkatan, dan buku tamu alumni.",
       position: "right",
@@ -197,7 +197,7 @@ function getTourSteps(locale: string): TourStep[] {
     {
       selector: '#sidebarNav a[href="/direktori"]',
       icon: "fa-solid fa-address-book",
-      title: "Direktori — Buku Kontak Alumni",
+      title: "Direktori: Buku Kontak Alumni",
       description:
         "Cari nama kawan lama berdasarkan konsulat, asal daerah, atau profesi. Temukan sahabat yang sudah lama tidak bertemu!",
       position: "right",
@@ -206,7 +206,7 @@ function getTourSteps(locale: string): TourStep[] {
     {
       selector: '#sidebarNav a[href="/galeri"]',
       icon: "fa-solid fa-film",
-      title: "Galeri — Arsip Foto & Video",
+      title: "Galeri: Arsip Foto & Video",
       description:
         "Kumpulan foto dan video kenangan masa pondok. Kamu juga bisa upload dan berbagi momen kenanganmu sendiri.",
       position: "right",
@@ -215,7 +215,7 @@ function getTourSteps(locale: string): TourStep[] {
     {
       selector: '#sidebarNav a[href="/radar"]',
       icon: "fa-solid fa-earth-asia",
-      title: "Peta — Persebaran Lokasi Alumni",
+      title: "Peta: Persebaran Lokasi Alumni",
       description:
         "Peta interaktif yang menunjukkan di kota mana saja kawan-kawan seangkatan kita tinggal. Perbarui lokasimu agar teman-teman tahu!",
       position: "right",
@@ -224,7 +224,7 @@ function getTourSteps(locale: string): TourStep[] {
     {
       selector: '#sidebarNav a[href="/syndicate"]',
       icon: "fa-solid fa-briefcase",
-      title: "Bisnis — Katalog Usaha Alumni",
+      title: "Bisnis: Katalog Usaha Alumni",
       description:
         "Katalog usaha, produk, dan jasa yang dimiliki oleh rekan-rekan alumni. Dukung dan belanja di bisnis sahabat seangkatan!",
       position: "right",
@@ -233,7 +233,7 @@ function getTourSteps(locale: string): TourStep[] {
     {
       selector: '#sidebarNav a[href="/fitur"]',
       icon: "fa-solid fa-gem",
-      title: "Fitur — Semua Layanan Alumni",
+      title: "Fitur: Semua Layanan Alumni",
       description:
         "Kumpulan fitur lengkap: KTA digital 3D, jejaring bisnis & karir alumni, kas donasi, jadwal reuni, dan masih banyak lagi.",
       position: "right",
@@ -266,7 +266,7 @@ function getTourSteps(locale: string): TourStep[] {
     {
       selector: '#sidebarNav a[href="/profil"]',
       icon: "fa-solid fa-circle-user",
-      title: "Profil — Data Pribadimu",
+      title: "Profil: Data Pribadimu",
       description:
         "Kelola data alumni: foto, bio, nomor kontak, media sosial, dan KTA digitalmu. Pastikan datamu selalu terbaru supaya teman-teman mudah menghubungimu!",
       position: "right",

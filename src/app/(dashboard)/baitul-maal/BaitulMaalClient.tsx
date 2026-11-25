@@ -466,7 +466,7 @@ export default function BaitulMaalClient({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>${locale === "ar" ? "إيصال التبرع — بيت المال دفعة 43" : locale === "en" ? "Donation Receipt — Baitul Maal Expedient 43" : "Tanda Terima Infaq — Baitul Maal Expedient 43"}</title>
+        <title>${locale === "ar" ? "إيصال التبرع · بيت المال دفعة 43" : locale === "en" ? "Donation Receipt · Baitul Maal Expedient 43" : "Tanda Terima Infaq · Baitul Maal Expedient 43"}</title>
         <style>
           body { font-family: 'Times New Roman', serif; padding: 40px; color: #111; max-width: 620px; margin: 0 auto; line-height: 1.6; border: 2px solid #b8860b; }
           .header { text-align: center; border-bottom: 2px solid #b8860b; padding-bottom: 15px; margin-bottom: 20px; }
@@ -484,7 +484,7 @@ export default function BaitulMaalClient({
       <body>
         <div class="header">
           <h1 class="title">${locale === "ar" ? "بيت المال دفعة إكسبيديانت 43" : "Baitul Maal Expedient Generation"}</h1>
-          <p class="subtitle">Pondok Modern Arrisalah — Angkatan 43</p>
+          <p class="subtitle">Pondok Modern Arrisalah · Angkatan 43</p>
           <p class="subtitle" style="font-size: 11px; margin-top: 2px;">No. Registrasi: EXP43-BM-${tx.id.slice(0, 8).toUpperCase()}</p>
         </div>
         <div class="row"><span class="label">${locale === "ar" ? "اسم المتبرع:" : locale === "en" ? "Donor Name:" : "Nama Donatur / Penyalur:"}</span><span class="value">${tx.donor_name || (locale === "ar" ? "فاعل خير" : locale === "en" ? "Servant of Allah" : "Hamba Allah")}</span></div>
@@ -523,7 +523,7 @@ export default function BaitulMaalClient({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Piagam Penghargaan Donatur — ${tx.donor_name || "Hamba Allah"}</title>
+        <title>Piagam Penghargaan Donatur · ${tx.donor_name || "Hamba Allah"}</title>
         <style>
           @page { size: landscape; margin: 12mm; }
           body {
@@ -546,10 +546,10 @@ export default function BaitulMaalClient({
           }
           .cert-header {
             font-size: 13px;
-            letter-spacing: 4px;
+            letter-spacing: 3px;
             text-transform: uppercase;
-            color: #855800;
-            font-family: 'Courier New', monospace;
+            color: #7c520a;
+            font-family: Georgia, serif;
             margin-bottom: 8px;
             font-weight: bold;
           }
@@ -1542,7 +1542,7 @@ export default function BaitulMaalClient({
                       >
                         <div>
                           <div style={{ fontWeight: "bold", fontSize: "0.9rem", color: "var(--text-primary, #fff)" }}>
-                            {acc.bank} — <span style={{ fontFamily: "monospace" }}>{acc.account_number}</span>
+                            {acc.bank} · <span style={{ fontFamily: "monospace" }}>{acc.account_number}</span>
                           </div>
                           <div style={{ fontSize: "0.75rem", color: "var(--text-secondary, #8b9ba8)" }}>
                             a.n. {acc.account_name}

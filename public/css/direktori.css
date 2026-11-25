@@ -89,27 +89,27 @@
 /* Light Theme Overrides */
 [data-theme="light"] .luminary-card {
     background: #ffffff;
-    border: 1px solid rgba(212, 175, 55, 0.35);
-    box-shadow: 0 15px 35px rgba(212, 175, 55, 0.12);
-    color: #0f172a;
+    border: 1px solid rgba(24, 24, 27, 0.09);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+    color: #18181b;
 }
 [data-theme="light"] .swiper-slide-active .luminary-card { 
-    box-shadow: 0 25px 50px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05); 
-    border-color: #aa771c;
+    box-shadow: 0 18px 40px rgba(124, 82, 10, 0.14); 
+    border-color: #7c520a;
 }
 [data-theme="light"] .search-input {
     background: #ffffff;
-    border-color: rgba(212, 175, 55, 0.4);
-    color: #0f172a;
-    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.1);
+    border-color: rgba(124, 82, 10, 0.32);
+    color: #18181b;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
-[data-theme="light"] .card-name { color: #0f172a; }
-[data-theme="light"] .swiper-slide-active .card-name { color: #aa771c; }
-[data-theme="light"] .card-full-name { color: #475569; }
-[data-theme="light"] .d-label { color: #aa771c; }
-[data-theme="light"] .d-value { color: #0f172a; }
-[data-theme="light"] .card-quote { color: #334155; }
-[data-theme="light"] .agent-serial { color: #64748b; }
+[data-theme="light"] .card-name { color: #18181b; }
+[data-theme="light"] .swiper-slide-active .card-name { color: #7c520a; }
+[data-theme="light"] .card-full-name { color: #52525b; }
+[data-theme="light"] .d-label { color: #7c520a; }
+[data-theme="light"] .d-value { color: #18181b; }
+[data-theme="light"] .card-quote { color: #52525b; }
+[data-theme="light"] .agent-serial { color: #52525b; }
 
 /* Serial Number */
 .agent-serial { position: absolute; top: 18px; right: 20px; font-family: 'Courier New', monospace; font-size: 0.68rem; color: #a8b8c5; letter-spacing: 2px; opacity: 0; font-weight: 600; transition: opacity 0.5s ease; }

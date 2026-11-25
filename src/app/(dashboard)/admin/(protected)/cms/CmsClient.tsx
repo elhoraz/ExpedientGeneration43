@@ -922,7 +922,7 @@ export default function CmsClient({
                 <label style={{ display: 'block', border: '2px dashed rgba(0,200,83,0.3)', borderRadius: '12px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: 'rgba(0,200,83,0.03)', marginBottom: '12px' }}>
                   <i className="fa-solid fa-image" style={{ fontSize: '2rem', marginBottom: '8px', display: 'block', color: '#00c853' }}></i>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'block' }}>Klik untuk pilih file foto dari perangkat Anda</span>
-                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>JPG, PNG, WEBP — Maks. 5MB</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>JPG, PNG, WEBP · Maks. 5MB</span>
                   <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleGaleriFileChange} />
                 </label>
                 {galeriFilePreview && (

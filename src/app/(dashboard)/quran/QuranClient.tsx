@@ -1730,7 +1730,7 @@ export default function QuranClient({
                                                   e.stopPropagation();
                                                   playSingleAyahAudio(w.verseNumber, w.surahNumber, segment.blockId);
                                                 }}
-                                                title={w.tajweedType ? `Ayat ${w.verseNumber} (${w.tajweedType.toUpperCase()}) — Klik untuk dengar audio` : `Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
+                                                title={w.tajweedType ? `Ayat ${w.verseNumber} (${w.tajweedType.toUpperCase()}) · Klik untuk dengar audio` : `Ayat ${w.verseNumber} (Klik untuk dengar audio)`}
                                               >
                                                 {w.tajweedHtml ? (
                                                   <span
@@ -2514,11 +2514,11 @@ export default function QuranClient({
             {/* Header Box */}
             <div className="khatam-header-box">
               <div className="khatam-badge-sup">
-                <i className="fa-solid fa-kaaba"></i> Protokol Spiritual Angkatan
+                <i className="fa-solid fa-kaaba"></i> Khatam Bersama Angkatan
               </div>
               <h1 className="khatam-title">Khatam Bersama Real-Time</h1>
               <p className="khatam-subtitle">
-                One Member One Juz — Sinergi 30 Juz Al-Qur&apos;an secara serentak terintegrasi langsung dengan Mushaf Al-Hufaz untuk keberkahan keluarga besar Expedient Generation 43.
+                One Member One Juz: pembagian 30 Juz Al-Qur&apos;an secara serentak yang terhubung dengan Mushaf Al-Hufaz untuk keluarga besar Expedient Generation 43.
               </p>
             </div>
 
@@ -2555,7 +2555,7 @@ export default function QuranClient({
                 <div className="khatam-progress-meta">
                   <span>
                     {khatamCompletedCount === 30
-                      ? "🎉 30/30 Juz Selesai — Khatam Bersama Berhasil!"
+                      ? "30/30 Juz Selesai - Khatam Bersama Berhasil!"
                       : `${30 - khatamCompletedCount} Juz Menuju Khatam`}
                   </span>
                   <span style={{ fontWeight: 700, color: "var(--gold-main)" }}>{khatamProgressPercent}%</span>

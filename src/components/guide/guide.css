@@ -8,35 +8,38 @@
    -------------------------------------------------------------------------- */
 .floating-help-btn {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
+  bottom: 24px;
+  right: 24px;
   z-index: 9998;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--glass-bg, rgba(8, 14, 11, 0.88));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.35));
-  border-radius: 40px;
-  padding: 6px 14px 6px 6px;
+  background: var(--glass-bg, rgba(12, 17, 27, 0.92));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-strong, rgba(242, 239, 233, 0.19));
+  border-radius: 999px;
+  padding: 5px 12px 5px 5px;
   color: var(--gold-main, #d4af37);
   font-family: var(--font-sans, inherit);
   cursor: pointer;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.15);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  outline: none;
+  box-shadow: var(--glass-shadow, 0 10px 28px rgba(0, 0, 0, 0.4));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .floating-help-btn:hover {
-  transform: translateY(-3px) scale(1.04);
+  transform: translateY(-2px);
   border-color: var(--gold-main, #d4af37);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(212, 175, 55, 0.35);
+}
+
+.floating-help-btn:focus-visible {
+  outline: 2px solid var(--focus-ring, #e5c158);
+  outline-offset: 2px;
 }
 
 .floating-help-btn:active {
-  transform: translateY(0) scale(0.97);
+  transform: translateY(0) scale(0.98);
 }
 
 /* Sembunyikan tombol bantuan saat navbar / panel disembunyikan (Desktop & Mobile) */
@@ -45,17 +48,17 @@ body.sidebar-closed .floating-help-btn {
   transform: translateY(25px) scale(0.92) !important;
   pointer-events: none !important;
   visibility: hidden !important;
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.35s !important;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.3s !important;
 }
 
 .help-btn-icon {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.08));
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(212, 175, 55, 0.14);
+  border: 1px solid var(--gold-border, rgba(212, 175, 55, 0.35));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,11 +69,10 @@ body.sidebar-closed .floating-help-btn {
 
 .help-btn-label {
   font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-primary, #ffffff);
-  transition: color 0.3s;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-primary, #f2efe9);
+  transition: color 0.2s ease;
 }
 
 .floating-help-btn:hover .help-btn-label {
@@ -80,7 +82,7 @@ body.sidebar-closed .floating-help-btn {
 .help-btn-divider {
   width: 1px;
   height: 16px;
-  background: var(--glass-border, rgba(212, 175, 55, 0.35));
+  background: var(--glass-border);
   margin: 0 4px;
 }
 
@@ -89,41 +91,41 @@ body.sidebar-closed .floating-help-btn {
   align-items: center;
   gap: 3px;
   padding: 3px 8px;
-  border-radius: 20px;
-  background: rgba(212, 175, 55, 0.15);
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid var(--gold-border);
   color: var(--gold-main, #d4af37);
   font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .help-btn-lang:hover {
-  background: rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.24);
   border-color: var(--gold-main, #d4af37);
-  transform: scale(1.06);
 }
 
 /* Light Mode Styles for Floating Help */
 :root[data-theme="light"] .floating-help-btn {
-  background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(170, 119, 28, 0.3);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 0 12px rgba(212, 175, 55, 0.15);
+  background: var(--glass-bg, rgba(255, 255, 255, 0.94));
+  border-color: var(--border-strong, rgba(24, 24, 27, 0.2));
+  color: var(--gold-main, #7c520a);
+  box-shadow: var(--glass-shadow);
 }
 :root[data-theme="light"] .floating-help-btn .help-btn-label {
-  color: #171717;
+  color: var(--text-primary, #18181b);
 }
 :root[data-theme="light"] .help-btn-divider {
-  background: rgba(170, 119, 28, 0.25);
+  background: var(--glass-border);
 }
 :root[data-theme="light"] .help-btn-lang {
-  background: rgba(212, 175, 55, 0.15);
-  border-color: rgba(170, 119, 28, 0.35);
-  color: #aa771c;
+  background: rgba(124, 82, 10, 0.09);
+  border-color: var(--gold-border);
+  color: var(--gold-main, #7c520a);
 }
 :root[data-theme="light"] .floating-help-btn .help-btn-icon {
-  background: linear-gradient(135deg, #d4af37, #aa771c);
+  background: var(--gold-main, #7c520a);
   color: #ffffff;
   border: none;
 }
@@ -157,20 +159,18 @@ body.sidebar-closed .floating-help-btn {
   max-height: 88dvh;
   display: flex;
   flex-direction: column;
-  background: var(--glass-bg, rgba(12, 18, 14, 0.96));
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.25));
-  border-radius: 24px;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.15);
+  background: var(--bg-card, #0f141e);
+  border: 1px solid var(--border-strong, rgba(242, 239, 233, 0.19));
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow, 0 24px 56px rgba(0, 0, 0, 0.65));
   overflow: hidden;
-  animation: guideCardEnter 0.3s var(--awwwards-ease, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
+  animation: guideCardEnter 0.25s var(--awwwards-ease, cubic-bezier(0.16, 1, 0.3, 1)) forwards;
 }
 
 @keyframes guideCardEnter {
   from {
     opacity: 0;
-    transform: translateY(25px) scale(0.95);
+    transform: translateY(20px) scale(0.97);
   }
   to {
     opacity: 1;
@@ -179,9 +179,9 @@ body.sidebar-closed .floating-help-btn {
 }
 
 :root[data-theme="light"] .guide-modal-card {
-  background: rgba(255, 255, 255, 0.98);
-  border-color: rgba(212, 175, 55, 0.35);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12), 0 0 25px rgba(212, 175, 55, 0.15);
+  background: var(--bg-card, #ffffff);
+  border-color: var(--border-strong, rgba(24, 24, 27, 0.2));
+  box-shadow: var(--glass-shadow, 0 20px 50px rgba(24, 24, 27, 0.14));
 }
 
 /* --------------------------------------------------------------------------
@@ -232,14 +232,14 @@ body.sidebar-closed .floating-help-btn {
 }
 
 .guide-modal-badge {
-  font-size: 0.6rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 700;
   padding: 2px 8px;
   border-radius: 10px;
-  background: rgba(0, 200, 83, 0.12);
-  border: 1px solid rgba(0, 200, 83, 0.3);
-  color: #00c853;
-  letter-spacing: 0.5px;
+  background: rgba(76, 195, 138, 0.14);
+  border: 1px solid rgba(76, 195, 138, 0.32);
+  color: var(--emerald-gem, #4cc38a);
+  letter-spacing: 0.03em;
 }
 
 .guide-modal-title {
@@ -485,16 +485,16 @@ body.sidebar-closed .floating-help-btn {
   align-items: flex-start;
   gap: 10px;
   padding: 12px 14px;
-  background: rgba(0, 200, 83, 0.05);
-  border: 1px solid rgba(0, 200, 83, 0.18);
+  background: rgba(76, 195, 138, 0.08);
+  border: 1px solid rgba(76, 195, 138, 0.24);
   border-radius: 14px;
   font-size: 0.86rem;
   line-height: 1.5;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary, #f2efe9);
 }
 
 .tip-icon {
-  color: #00c853;
+  color: var(--emerald-gem, #4cc38a);
   font-size: 0.95rem;
   margin-top: 2px;
   flex-shrink: 0;
@@ -526,27 +526,32 @@ body.sidebar-closed .floating-help-btn {
 }
 
 .btn-all-guides:hover {
-  color: #ffd700;
+  color: var(--text-primary);
   transform: translateX(3px);
 }
 
 .btn-close-guide {
   padding: 9px 20px;
-  border-radius: 25px;
+  min-height: 44px;
+  border-radius: 12px;
   border: none;
-  background: linear-gradient(135deg, #d4af37 0%, #aa771c 100%);
+  background: var(--gold-main, #d4af37);
   color: #060b14;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: 0.25s;
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
 .btn-close-guide:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+:root[data-theme="light"] .btn-close-guide {
+  background: var(--gold-main, #7c520a);
+  color: #ffffff;
 }
 
 /* --------------------------------------------------------------------------
@@ -606,89 +611,89 @@ body.page-radar .floating-help-btn {
    GUIDE MODAL & FLOATING BUTTON LIGHT THEME
    ========================================================================== */
 :root[data-theme="light"] .floating-help-btn {
-  background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(170, 119, 28, 0.4);
-  color: #aa771c;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1), 0 0 15px rgba(170, 119, 28, 0.1);
+  background: var(--glass-bg, #ffffff);
+  border-color: var(--border-strong);
+  color: var(--gold-main, #7c520a);
+  box-shadow: var(--glass-shadow);
 }
 
 :root[data-theme="light"] .help-btn-icon {
-  background: linear-gradient(135deg, rgba(170, 119, 28, 0.2), rgba(170, 119, 28, 0.06));
-  border-color: rgba(170, 119, 28, 0.4);
-  color: #aa771c;
+  background: var(--gold-main, #7c520a);
+  border-color: var(--gold-main, #7c520a);
+  color: #ffffff;
 }
 
 :root[data-theme="light"] .help-btn-divider {
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--glass-border);
 }
 
 :root[data-theme="light"] .help-btn-lang {
-  background: rgba(170, 119, 28, 0.1);
-  border-color: rgba(170, 119, 28, 0.25);
-  color: #aa771c;
+  background: rgba(124, 82, 10, 0.08);
+  border-color: var(--gold-border);
+  color: var(--gold-main, #7c520a);
 }
 
 :root[data-theme="light"] .guide-modal-card {
   background: #ffffff;
-  border-color: rgba(170, 119, 28, 0.35);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15), 0 0 30px rgba(170, 119, 28, 0.08);
+  border-color: var(--border-strong);
+  box-shadow: var(--glass-shadow);
 }
 
 :root[data-theme="light"] .guide-modal-header {
-  background: rgba(0, 0, 0, 0.02);
-  border-bottom-color: rgba(0, 0, 0, 0.08);
+  background: var(--surface-inset, #f0eee7);
+  border-bottom-color: var(--glass-border);
 }
 
 :root[data-theme="light"] .guide-title {
-  color: #0f172a;
+  color: var(--text-primary, #18181b);
 }
 
 :root[data-theme="light"] .guide-subtitle {
-  color: #475569;
+  color: var(--text-secondary, #52525b);
 }
 
 :root[data-theme="light"] .guide-summary-box {
-  background: rgba(170, 119, 28, 0.08);
-  border-color: rgba(170, 119, 28, 0.25);
-  color: #0f172a;
+  background: rgba(124, 82, 10, 0.07);
+  border-color: var(--gold-border);
+  color: var(--text-primary, #18181b);
 }
 
 :root[data-theme="light"] .guide-section-title {
-  color: #aa771c;
+  color: var(--gold-main, #7c520a);
 }
 
 :root[data-theme="light"] .guide-step-item {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.06);
-  color: #0f172a;
+  background: var(--surface-inset, #f0eee7);
+  border-color: var(--glass-border);
+  color: var(--text-primary, #18181b);
 }
 
 :root[data-theme="light"] .guide-step-num {
-  background: #aa771c;
+  background: var(--gold-main, #7c520a);
   color: #ffffff;
 }
 
 :root[data-theme="light"] .guide-control-item {
-  background: rgba(0, 0, 0, 0.02);
-  border-color: rgba(0, 0, 0, 0.06);
+  background: var(--surface-inset, #f0eee7);
+  border-color: var(--glass-border);
 }
 
 :root[data-theme="light"] .control-name {
-  color: #0f172a;
+  color: var(--text-primary, #18181b);
 }
 
 :root[data-theme="light"] .control-desc {
-  color: #475569;
+  color: var(--text-secondary, #52525b);
 }
 
 :root[data-theme="light"] .guide-tip-item {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.25);
+  background: rgba(6, 95, 70, 0.07);
+  border-color: rgba(6, 95, 70, 0.25);
   color: #065f46;
 }
 
 :root[data-theme="light"] .guide-modal-footer {
-  background: rgba(0, 0, 0, 0.02);
-  border-top-color: rgba(0, 0, 0, 0.08);
+  background: var(--surface-inset, #f0eee7);
+  border-top-color: var(--glass-border);
 }
 

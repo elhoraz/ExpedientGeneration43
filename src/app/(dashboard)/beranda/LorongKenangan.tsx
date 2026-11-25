@@ -761,7 +761,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               marginBottom: "14px", flexWrap: "wrap"
             }}>
               <i className="fa-solid fa-landmark" style={{ color: "#ffd700" }}></i>
-              <span>{locale === "ar" ? "أرشيف الذكريات — معهد الرسالة الحديث" : locale === "en" ? "ARSIP KENANGAN — PONDOK MODERN ARRISALAH" : "SOVEREIGN ARCHIVE — MEMORI ARRISALAH"}</span>
+              <span>{locale === "ar" ? "أرشيف الذكريات · معهد الرسالة الحديث" : locale === "en" ? "MEMORY ARCHIVE · PONDOK MODERN ARRISALAH" : "Arsip Kenangan · Pondok Modern Arrisalah"}</span>
             </div>
 
             {/* Photo */}

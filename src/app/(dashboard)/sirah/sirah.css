@@ -18,15 +18,9 @@
     -webkit-user-select: none;
 }
 
-/* Ambient Islamic Cartography Glow */
+/* Subtle background hook */
 .sirah-bg-ambient {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background: radial-gradient(circle at 50% 12%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
-                radial-gradient(circle at 15% 55%, rgba(180, 83, 9, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 85% 75%, rgba(16, 185, 129, 0.07) 0%, transparent 55%);
+    display: none;
 }
 
 .sirah-container {
@@ -52,26 +46,23 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(212, 175, 55, 0.08);
+    background: var(--surface-raised, rgba(255, 255, 255, 0.05));
     color: var(--gold-main, #d4af37);
-    border: 1px solid rgba(212, 175, 55, 0.28);
-    padding: 10px 20px;
+    border: 1px solid var(--border-subtle, rgba(212, 175, 55, 0.28));
+    padding: 9px 18px;
     border-radius: 9999px;
     font-size: 0.84rem;
     font-weight: 600;
     text-decoration: none;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
 }
 
 .btn-back:hover {
-    background: rgba(212, 175, 55, 0.2);
-    border-color: rgba(212, 175, 55, 0.55);
-    transform: translateX(-4px);
-    color: #ffd700;
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.25);
+    background: rgba(212, 175, 55, 0.14);
+    border-color: var(--gold-main, #d4af37);
+    transform: translateX(-3px);
+    color: var(--gold-main, #d4af37);
 }
 
 /* --------------------------------------------------------------------------
@@ -720,89 +711,92 @@
    Light Mode Theme (:root[data-theme="light"])
    -------------------------------------------------------------------------- */
 :root[data-theme="light"] .sirah-page-wrapper {
-    color: #1e293b;
+    --text-primary: #18181b;
+    --text-secondary: #52525b;
+    --gold-main: #7c520a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .sirah-tabs-nav {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(170, 119, 28, 0.3);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-color: rgba(24, 24, 27, 0.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .sirah-tab-btn {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .sirah-map-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.3);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border-color: rgba(24, 24, 27, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .sirah-canvas-wrapper {
-    background: #f8fafc;
-    border-color: rgba(170, 119, 28, 0.25);
-    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.06);
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.12);
+    box-shadow: none;
 }
 
 :root[data-theme="light"] .sirah-event-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.25);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+    border-color: rgba(24, 24, 27, 0.09);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .event-card-title {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .event-card-arabic {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .event-card-summary {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .sirah-modal-box {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.35);
-    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.15);
+    border-color: rgba(24, 24, 27, 0.12);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
 
 :root[data-theme="light"] .sirah-modal-title {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .sirah-story-box {
-    background: #f8fafc;
-    border-color: rgba(170, 119, 28, 0.2);
-    color: #334155;
+    background: #f6f5f1;
+    border-color: rgba(24, 24, 27, 0.09);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .sirah-leadership-card {
-    background: #fffbeb;
-    border-color: rgba(170, 119, 28, 0.3);
+    background: #fdf8eb;
+    border-color: rgba(124, 82, 10, 0.25);
 }
 
 :root[data-theme="light"] .leadership-lesson {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .leadership-modern-box {
-    background: #fef3c7;
-    color: #78350f;
+    background: rgba(124, 82, 10, 0.1);
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .btn-back {
-    background: rgba(170, 119, 28, 0.08);
-    color: #854d0e;
-    border-color: rgba(170, 119, 28, 0.35);
+    background: #ffffff;
+    color: #7c520a;
+    border-color: rgba(124, 82, 10, 0.3);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .btn-back:hover {
-    background: rgba(170, 119, 28, 0.16);
-    color: #713f12;
+    background: #f0eee7;
+    color: #5c3d07;
 }
 
 /* ==========================================================================

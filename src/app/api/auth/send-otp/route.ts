@@ -151,7 +151,7 @@ export async function POST(request: Request) {
           
           <!-- Top Golden Accent Bar -->
           <tr>
-            <td height="4" style="background: linear-gradient(90deg, #aa771c 0%, #ffd700 50%, #aa771c 100%);"></td>
+            <td height="4" style="background: linear-gradient(90deg, #9a7014 0%, #d4af37 50%, #9a7014 100%);"></td>
           </tr>
 
           <!-- Header Branding -->
@@ -213,7 +213,7 @@ export async function POST(request: Request) {
                   "Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat."
                 </p>
                 <div style="font-size: 11px; color: #d4af37; font-weight: 600;">
-                  — QS. Al-Hujurat: 10
+                  QS. Al-Hujurat: 10
                 </div>
               </div>
 

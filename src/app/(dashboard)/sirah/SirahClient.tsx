@@ -349,7 +349,7 @@ export default function SirahClient() {
 
     setTimeout(() => {
       setIsTouring(false);
-      showToast("Tur Ekspedisi Hijrah selesai ✨");
+      showToast("Tur Ekspedisi Hijrah selesai");
     }, 13500);
   };
 
@@ -505,39 +505,39 @@ export default function SirahClient() {
     // Header Emblem
     ctx.textAlign = "center";
     ctx.font = "bold 26px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#b45309" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.letterSpacing = "6px";
     ctx.fillText("EXPEDIENT GENERATION 43", w / 2, 170);
 
     ctx.font = "20px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#78350f" : "#94a3b8";
+    ctx.fillStyle = isLight ? "#52525b" : "#94a3b8";
     ctx.letterSpacing = "3px";
     ctx.fillText("SIRAH NABAWIYAH & JEJAK KEPEMIMPINAN", w / 2, 210);
 
     ctx.font = "32px 'Amiri', serif";
-    ctx.fillStyle = isLight ? "#b45309" : "#d4af37";
-    ctx.fillText("✦  —  ۞  —  ✦", w / 2, 280);
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
+    ctx.fillText("·  ۞  ·", w / 2, 280);
 
     // Chronology Date Badge
     ctx.font = "bold 24px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#b45309" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.fillText(storyEvent.dateString.toUpperCase(), w / 2, 380);
 
     // Arabic Event Title
     ctx.font = "bold 64px 'Amiri', 'Traditional Arabic', serif";
-    ctx.fillStyle = isLight ? "#0f172a" : "#ffffff";
+    ctx.fillStyle = isLight ? "#18181b" : "#ffffff";
     ctx.fillText(storyEvent.arabicTitle, w / 2, 490);
 
     // Latin Event Title
     ctx.font = "bold 42px 'Playfair Display', serif";
-    ctx.fillStyle = isLight ? "#b45309" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.fillText(storyEvent.title, w / 2, 570);
 
     // Quran Reference
     if (storyEvent.quranRef) {
       ctx.font = "bold 22px 'Inter', sans-serif";
-      ctx.fillStyle = isLight ? "#059669" : "#34d399";
-      ctx.fillText(`📖 Dalil: ${storyEvent.quranRef}`, w / 2, 630);
+      ctx.fillStyle = isLight ? "#065f46" : "#4cc38a";
+      ctx.fillText(`Dalil: ${storyEvent.quranRef}`, w / 2, 630);
     }
 
     // Divider
@@ -1090,7 +1090,7 @@ export default function SirahClient() {
                     className={`timeline-filter-chip ${storyTheme === t ? "active" : ""}`}
                     onClick={() => setStoryTheme(t)}
                   >
-                    {t === "obsidian" ? "Obsidian Gold" : t === "parchment" ? "Ancient Parchment" : "Royal Ivory"}
+                    {t === "obsidian" ? "Hitam Klasik" : t === "parchment" ? "Coklat Manuskrip" : "Putih Gading"}
                   </button>
                 ))}
               </div>

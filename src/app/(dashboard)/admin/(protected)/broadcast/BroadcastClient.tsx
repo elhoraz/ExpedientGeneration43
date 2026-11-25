@@ -356,7 +356,7 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
                                           </span>
                                       </td>
                                       <td style={{ padding: "10px 12px", color: "var(--text-primary)" }}>
-                                          <div style={{ fontWeight: 600 }}>{log.to_name || '—'}</div>
+                                          <div style={{ fontWeight: 600 }}>{log.to_name || '-'}</div>
                                           <div style={{ color: "var(--text-secondary)", fontSize: "0.7rem" }}>{log.to_number}</div>
                                       </td>
                                       <td style={{ padding: "10px 12px", color: "var(--text-secondary)", maxWidth: "300px" }}>
@@ -368,7 +368,7 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
                                           )}
                                       </td>
                                       <td style={{ padding: "10px 12px", color: "var(--text-secondary)", whiteSpace: "nowrap", fontSize: "0.75rem" }}>
-                                          {log.sent_at ? new Date(log.sent_at).toLocaleString("id-ID", { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
+                                          {log.sent_at ? new Date(log.sent_at).toLocaleString("id-ID", { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'}
                                       </td>
                                       <td style={{ padding: "10px 12px", textAlign: "center", color: "var(--text-secondary)" }}>
                                           {log.attempts || 0}/{log.max_attempts || 3}

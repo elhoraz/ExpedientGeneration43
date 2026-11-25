@@ -225,7 +225,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
           {/* Almamater Dignified Tag */}
           <div className="tuku-heritage-badge">
             <span className="badge-bullet">•</span>
-            <span>{locale === "ar" ? "معهد الرسالة الحديث • دفعة ٢٠٢٥" : locale === "en" ? "ARRISALAH MODERN BOARDING SCHOOL • CLASS OF 2025" : "PONDOK MODERN ARRISALAH • ALUMNI 2025"}</span>
+            <span>{locale === "ar" ? "معهد الرسالة الحديث · دفعة ٢٠٢٥" : locale === "en" ? "ARRISALAH MODERN BOARDING SCHOOL · CLASS OF 2025" : "PONDOK MODERN ARRISALAH · ALUMNI 2025"}</span>
           </div>
 
           {/* Clean Logo with Interactive Embossed Pesantren Stamp */}
@@ -594,7 +594,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               <div className="bento-badge">
                 <i className="fa-solid fa-hand-holding-dollar"></i>
                 <span>{t?.ecosystem?.b4_badge}</span>
-                <span className="bento-live-pulse-badge">Aktif</span>
               </div>
               <div className="bento-content">
                 <h3 className="bento-title">{t?.ecosystem?.b4_title}</h3>
@@ -629,7 +628,6 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         {/* ====== SECTION 7: CALL TO ACTION ====== */}
         <section className="cta-banner-section">
           <div className="cta-banner-box reveal-on-scroll">
-            <div className="cta-glow-circle"></div>
             <h2 className="cta-banner-title">
               {t?.cta?.title}
             </h2>

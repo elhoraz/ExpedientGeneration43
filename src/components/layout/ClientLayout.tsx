@@ -170,11 +170,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute("content", savedTheme === "light" ? "#f8fafc" : "#060b14");
+      metaThemeColor.setAttribute("content", savedTheme === "light" ? "#f6f5f1" : "#060b14");
     }
   }, []);
 
-  // 2. Custom Cursor (Hanya Desktop / Non-touch)
+  // 2. Custom Cursor (Hanya Desktop & Showcase Routes)
   useEffect(() => {
     if (typeof window === "undefined") return;
     const isCoarseOnly = window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches;
@@ -193,8 +193,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     let mouseY = 0;
 
     const moveCursor = (e: MouseEvent) => {
-      // Lewati update DOM jika di halaman radar atau sovereign agar drag 100% responsif tanpa layout thrashing
-      if (document.body.classList.contains("page-radar") || document.body.classList.contains("page-sovereign")) return;
+      const isShowcase = document.body.classList.contains("page-landing") || document.body.classList.contains("page-beranda");
+      if (!isShowcase) return;
 
       mouseX = e.clientX;
       mouseY = e.clientY;
@@ -277,8 +277,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     let animId: number;
     const animate = () => {
-      // Lewati render jika di halaman radar atau sovereign agar GPU fokus pada peta/globe
-      if (document.body.classList.contains("page-radar") || document.body.classList.contains("page-sovereign")) {
+      // Hanya render partikel pada showcase routes desktop agar halaman utilitas tetap tenang dan ringan
+      const isShowcase = document.body.classList.contains("page-landing") || document.body.classList.contains("page-beranda");
+      if (!isShowcase) {
         animId = requestAnimationFrame(animate);
         return;
       }
@@ -343,7 +344,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             }}
           >
             <i className="fa-solid fa-triangle-exclamation" style={{ color: "#e6a100" }}></i>
-            <span>Koneksi internet terputus — Sinkronisasi real-time dijeda</span>
+            <span>Koneksi internet terputus · Sinkronisasi real-time dijeda</span>
           </div>
         )}
         {!isPublicMicrosite && <LoadingScreen />}

@@ -140,7 +140,7 @@ export default async function ModerationPage() {
             <div key={b.id} className="mod-card">
               <div className="mod-info">
                 <div className="mod-author">{(b.owner as any)?.nama_panggilan || "Unknown"}</div>
-                <div className="mod-text">{b.nama_bisnis} <span style={{ color: "var(--text-secondary)" }}>— {b.kategori}</span></div>
+                <div className="mod-text">{b.nama_bisnis} <span style={{ color: "var(--text-secondary)" }}>· {b.kategori}</span></div>
                 <div className="mod-date">{new Date(b.created_at).toLocaleString('id-ID')}</div>
               </div>
               <form action={deleteAdminContent}>

@@ -36,7 +36,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
   {
     id: "showcase-1",
     image_url: "/assets/foto_putra/Cover Depan.webp",
-    caption: "Sampul Emas Mahakarya Angkatan 43 — The Syndicate & Omega",
+    caption: "Sampul Buku Angkatan 43: The Syndicate & Omega",
     likes_count: 43,
     year: 2025,
     album_id: "galeri_ekspi",
@@ -56,7 +56,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
   {
     id: "showcase-3",
     image_url: "/assets/foto_putri/Cover Depan.webp",
-    caption: "Arsip Keagungan Omega Dynasty — Generasi Putri 43",
+    caption: "Arsip Omega Dynasty: Generasi Putri 43",
     likes_count: 39,
     year: 2025,
     album_id: "galeri_ekspi",
@@ -360,15 +360,15 @@ export default function GaleriClient({
     const title =
       dim === "putra"
         ? locale === "ar"
-          ? "كتاب الذكريات (بنين) — إكسبيدينت ٤٣"
+          ? "كتاب الذكريات (بنين) · إكسبيدينت ٤٣"
           : locale === "en"
-          ? "Brothers Yearbook — Expedient 43"
-          : "Buku Kenangan Putra — Expedient 43"
+          ? "Brothers Yearbook · Expedient 43"
+          : "Buku Kenangan Putra · Expedient 43"
         : locale === "ar"
-        ? "كتاب الذكريات (بنات) — إكسبيدينت ٤٣"
+        ? "كتاب الذكريات (بنات) · إكسبيدينت ٤٣"
         : locale === "en"
-        ? "Sisters Yearbook — Expedient 43"
-        : "Buku Kenangan Putri — Expedient 43";
+        ? "Sisters Yearbook · Expedient 43"
+        : "Buku Kenangan Putri · Expedient 43";
     const totalPages = dim === "putra" ? 75 : 41;
     const folder = dim === "putra" ? "foto_putra" : "foto_putri";
 
@@ -960,7 +960,7 @@ export default function GaleriClient({
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                   <div>
-                    <span style={{ fontFamily: "Courier New, monospace", color: "var(--gold-main, #d4af37)", fontSize: "0.75rem", letterSpacing: "2px", textTransform: "uppercase" }}>
+                    <span style={{ color: "var(--gold-main, #d4af37)", fontSize: "0.78rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
                       {t.galeri_extra.album_yearbook}
                     </span>
                     <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.4rem", color: "var(--text-primary)", margin: "4px 0 0 0" }}>

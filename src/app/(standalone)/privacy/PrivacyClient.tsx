@@ -153,7 +153,7 @@ export default function PrivacyClient() {
             {isAr
               ? "التزامنا الراسخ بحماية خصوصية وأمان بيانات خريجي الدفعة 43 - معهد الرسالة الحديث الإسلامي"
               : isEn
-              ? "Our commitment to protecting the privacy and personal data of the 43rd Cohort Alumni — Pondok Modern Arrisalah."
+              ? "Our commitment to protecting the privacy and personal data of the 43rd Cohort Alumni, Pondok Modern Arrisalah."
               : "Komitmen perlindungan privasi & data pribadi alumni angkatan ke-43 Pondok Modern Arrisalah Slahung Ponorogo."}
           </p>
 
@@ -488,29 +488,29 @@ export default function PrivacyClient() {
               }}
             >
               <li>
-                <strong>Supabase Inc.</strong> — Database PostgreSQL, otentikasi, dan
+                <strong>Supabase Inc.:</strong> Database PostgreSQL, otentikasi, dan
                 penyimpanan file (foto profil, galeri, media chat).
               </li>
               <li>
-                <strong>Vercel Inc.</strong> — Hosting aplikasi web dan Vercel Analytics
+                <strong>Vercel Inc.:</strong> Hosting aplikasi web dan Vercel Analytics
                 (statistik kunjungan halaman).
               </li>
               <li>
-                <strong>Google LLC (Firebase Cloud Messaging)</strong> — Pengiriman push
+                <strong>Google LLC (Firebase Cloud Messaging):</strong> Pengiriman push
                 notification Android &amp; iOS.
               </li>
               <li>
-                <strong>Google LLC (Gemini API)</strong> — Pemrosesan AI: isi pesan yang
+                <strong>Google LLC (Gemini API):</strong> Pemrosesan AI: isi pesan yang
                 antum kirim ke bot WhatsApp angkatan, fitur Oracle, dan moderasi titip
                 salam dikirim ke Gemini untuk menghasilkan jawaban.
               </li>
               <li>
-                <strong>WhatsApp (Meta)</strong> — Bot angkatan mengirim OTP, pengumuman,
+                <strong>WhatsApp (Meta):</strong> Bot angkatan mengirim OTP, pengumuman,
                 dan ucapan ulang tahun ke nomor WhatsApp yang terdaftar, serta membaca
                 pesan di grup angkatan tempat bot menjadi anggota.
               </li>
               <li>
-                <strong>Agora.io</strong> — Transmisi audio/video untuk fitur panggilan
+                <strong>Agora.io:</strong> Transmisi audio/video untuk fitur panggilan
                 antar alumni.
               </li>
             </ul>
@@ -729,7 +729,7 @@ export default function PrivacyClient() {
                 marginBottom: 0,
               }}
             >
-              © {new Date().getFullYear()} Expedient Generation 43 — Pondok Modern
+              © {new Date().getFullYear()} Expedient Generation 43 · Pondok Modern
               Arrisalah Slahung Ponorogo. All rights reserved.
             </p>
           </section>

@@ -1294,21 +1294,20 @@ export default function SovereignThreeScene({
           bottom: "max(14px, env(safe-area-inset-bottom, 14px))",
           left: "max(14px, env(safe-area-inset-left, 14px))",
           zIndex: 15,
-          color: isLightMode ? "#333" : "rgba(212,175,55,0.7)",
-          fontFamily: "'Courier New', monospace",
-          fontSize: 9,
-          letterSpacing: 0.8,
-          lineHeight: 1.4,
+          color: isLightMode ? "#52525b" : "rgba(212,175,55,0.75)",
+          fontFamily: "var(--font-jetbrains-mono), monospace",
+          fontSize: 10,
+          letterSpacing: "0.04em",
+          lineHeight: 1.45,
           pointerEvents: "none",
-          textShadow: isLightMode ? "none" : "0 0 10px #000",
           maxWidth: 200,
         }}
       >
-        EXPEDIENT 43 • 3D STUDIO
+        EXPEDIENT 43 · KTA 3D
         <br />
-        STATUS: [SOVEREIGN VERIFIED]
+        STATUS: TERVERIFIKASI
         <br />
-        ANGGOTA: [{(user.nama_panggilan || user.nama_lengkap).toUpperCase()}]
+        {(user.nama_panggilan || user.nama_lengkap).toUpperCase()}
       </div>
 
       {/* UX Interaction Overlay (Positioned Above HUD, Auto-fades on action) */}

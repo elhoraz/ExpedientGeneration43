@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { formatQiblaQuadrant } from "@/lib/prayerTimes";
 
 interface QiblaMapProps {
   userLat: number;
@@ -74,9 +75,9 @@ export default function QiblaMap({
       const userIcon = L.divIcon({
         className: "qibla-map-user-pin",
         html: `
-          <div class="user-pulse-ring"></div>
-          <div class="user-center-dot">
-            <i class="fa-solid fa-person-praying"></i>
+          <div class="user-pulse-ring" aria-hidden="true"></div>
+          <div class="user-center-dot" aria-hidden="true">
+            <i class="fa-solid fa-person-praying" aria-hidden="true"></i>
           </div>
         `,
         iconSize: [40, 40],
@@ -87,9 +88,9 @@ export default function QiblaMap({
       const kaabaIcon = L.divIcon({
         className: "qibla-map-kaaba-pin",
         html: `
-          <div class="kaaba-pin-glow"></div>
-          <div class="kaaba-pin-box">
-            <i class="fa-solid fa-kaaba"></i>
+          <div class="kaaba-pin-glow" aria-hidden="true"></div>
+          <div class="kaaba-pin-box" aria-hidden="true">
+            <i class="fa-solid fa-kaaba" aria-hidden="true"></i>
           </div>
         `,
         iconSize: [44, 44],
@@ -97,12 +98,28 @@ export default function QiblaMap({
       });
 
       // Add user marker
-      const userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
-      userMarker.bindPopup(`<strong>${userName}</strong><br/>${userLat.toFixed(5)}°, ${userLng.toFixed(5)}°`);
+      const userMarker = L.marker([userLat, userLng], {
+        icon: userIcon,
+        title: userName,
+        alt: locale === "ar" ? "موقعك الحالي" : locale === "en" ? "Your location" : "Lokasi Anda",
+      }).addTo(map);
+      userMarker.bindPopup(
+        `<strong>${userName}</strong><br/>${Math.abs(userLat).toFixed(5)}° ${userLat >= 0 ? "N" : "S"}, ${Math.abs(userLng).toFixed(5)}° ${userLng >= 0 ? "E" : "W"}`
+      );
 
       // Add Kaaba marker
-      const kaabaMarker = L.marker([KAABA_LAT, KAABA_LNG], { icon: kaabaIcon }).addTo(map);
-      kaabaMarker.bindPopup(`<strong>Ka'bah Al-Mukarramah</strong><br/>Masjidil Haram, Makkah`);
+      const kaabaMarker = L.marker([KAABA_LAT, KAABA_LNG], {
+        icon: kaabaIcon,
+        title: locale === "ar" ? "الكعبة المشرفة" : locale === "en" ? "Holy Kaaba" : "Ka'bah, Makkah",
+        alt: locale === "ar" ? "الكعبة المشرفة" : locale === "en" ? "Holy Kaaba" : "Ka'bah, Makkah",
+      }).addTo(map);
+      kaabaMarker.bindPopup(
+        locale === "ar"
+          ? "<strong>الكعبة المشرفة</strong><br/>المسجد الحرام، مكة"
+          : locale === "en"
+            ? "<strong>Holy Kaaba</strong><br/>Masjid al-Haram, Makkah"
+            : "<strong>Ka'bah Al-Mukarramah</strong><br/>Masjidil Haram, Makkah"
+      );
 
       // Calculate forward direction ray vector (extended 2 km forward from user along bearing)
       // 1 deg latitude is approx 111 km. 2 km is approx 0.018 deg
@@ -114,7 +131,7 @@ export default function QiblaMap({
 
       const lat2 = Math.asin(
         Math.sin(lat1) * Math.cos(rayDistanceKm / earthRadius) +
-          Math.cos(lat1) * Math.sin(rayDistanceKm / earthRadius) * Math.cos(brngRad)
+        Math.cos(lat1) * Math.sin(rayDistanceKm / earthRadius) * Math.cos(brngRad)
       );
       const lon2 =
         lon1 +
@@ -176,21 +193,23 @@ export default function QiblaMap({
     }
   };
 
+  const quadrantInfo = formatQiblaQuadrant(bearing, distanceKm, locale);
+
   return (
     <div className="qibla-map-wrapper">
       {/* Map Control Bar */}
       <div className="qibla-map-header">
         <div className="qibla-map-info-badge">
-          <i className="fa-solid fa-satellite-dish" style={{ color: "var(--gold-main)" }}></i>
+          <i className="fa-solid fa-satellite-dish qibla-map-header-icon" aria-hidden="true"></i>
           <span>
             {locale === "ar"
               ? "خط القبلة المباشر نحو الكعبة"
               : locale === "en"
-              ? "Direct Geodesic Line to Kaaba"
-              : "Garis Geodesik Kiblat ke Ka'bah"}
+                ? "Direct Geodesic Line to Kaaba"
+                : "Garis Geodesik Kiblat ke Ka'bah"}
           </span>
-          <strong style={{ color: "#ffd700" }}>{bearing}°</strong>
-          <span style={{ fontSize: "0.75rem", opacity: 0.85 }}>({angleFromWest}° U-B)</span>
+          <strong className="qibla-map-bearing-val">{bearing}°</strong>
+          <span className="qibla-map-quadrant-val">({quadrantInfo.shortLabel})</span>
         </div>
 
         <div className="qibla-map-actions">
@@ -198,30 +217,64 @@ export default function QiblaMap({
             type="button"
             className="btn-map-control"
             onClick={() => setMapType(mapType === "satellite" ? "streets" : "satellite")}
-            title="Ganti Tampilan Peta Satelit / Jalan"
+            title={
+              locale === "ar"
+                ? "تبديل عرض القمر الصناعي أو الخريطة"
+                : locale === "en"
+                  ? "Switch between Satellite and Street view"
+                  : "Ganti tampilan peta satelit atau jalan"
+            }
           >
-            <i className={`fa-solid ${mapType === "satellite" ? "fa-map" : "fa-satellite"}`}></i>
-            <span>{mapType === "satellite" ? "Peta Jalan" : "Satelit"}</span>
+            <i className={`fa-solid ${mapType === "satellite" ? "fa-map" : "fa-satellite"}`} aria-hidden="true"></i>
+            <span>
+              {mapType === "satellite"
+                ? locale === "ar"
+                  ? "خريطة الطرق"
+                  : locale === "en"
+                    ? "Street map"
+                    : "Peta jalan"
+                : locale === "ar"
+                  ? "قمر صناعي"
+                  : locale === "en"
+                    ? "Satellite"
+                    : "Satelit"}
+            </span>
           </button>
 
           <button
             type="button"
             className="btn-map-control"
             onClick={handleCenterUser}
-            title="Pusatkan ke Rumah / Lokasi Anda"
+            title={
+              locale === "ar"
+                ? "توسيط الخريطة على موقعك"
+                : locale === "en"
+                  ? "Center map on your location"
+                  : "Pusatkan ke lokasi Anda"
+            }
           >
-            <i className="fa-solid fa-crosshairs"></i>
-            <span>Lokasi Saya (Zoom)</span>
+            <i className="fa-solid fa-crosshairs" aria-hidden="true"></i>
+            <span>
+              {locale === "ar" ? "موقعي (تكبير)" : locale === "en" ? "My location" : "Lokasi saya"}
+            </span>
           </button>
 
           <button
             type="button"
             className="btn-map-control"
             onClick={handleFitAll}
-            title="Lihat Garis Penuh ke Makkah"
+            title={
+              locale === "ar"
+                ? "عرض المسار الكامل نحو مكة"
+                : locale === "en"
+                  ? "View full geodesic path to Makkah"
+                  : "Lihat garis penuh ke Makkah"
+            }
           >
-            <i className="fa-solid fa-earth-asia"></i>
-            <span>Jalur ke Makkah</span>
+            <i className="fa-solid fa-earth-asia" aria-hidden="true"></i>
+            <span>
+              {locale === "ar" ? "المسار لمكة" : locale === "en" ? "Path to Makkah" : "Jalur ke Makkah"}
+            </span>
           </button>
         </div>
       </div>
@@ -236,8 +289,8 @@ export default function QiblaMap({
           {locale === "ar"
             ? "يقدم خط القمر الصناعي الأصفر اتجاهاً ثابتاً لا يتأثر بالتشويش المغناطيسي الداخلي. وجه سجادتك بمحاذاة هذا الخط بالنسبة لمبنى غرفتك أو شارعك."
             : locale === "en"
-            ? "The yellow satellite line provides an absolute reference immune to indoor magnetic interference. Align your prayer rug with this line relative to your room walls or street."
-            : "Garis kuning satelit adalah acuan visual mutlak yang 100% bebas dari gangguan magnetik dalam ruangan. Sejajarkan sajadah Anda dengan garis kuning ini terhadap dinding kamar atau jalan di depan rumah Anda."}
+              ? "The yellow satellite line provides an absolute reference immune to indoor magnetic interference. Align your prayer rug with this line relative to your room walls or street."
+              : "Garis kuning satelit adalah acuan visual mutlak yang 100% bebas dari gangguan magnetik dalam ruangan. Sejajarkan sajadah Anda dengan garis kuning ini terhadap dinding kamar atau jalan di depan rumah Anda."}
         </span>
       </div>
     </div>

@@ -554,7 +554,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
           </div>
         )}
 
-        {/* PROFIL EKSKLUSIF */}
+        {/* PROFIL ALUMNI */}
         <div className="control-panel" id="controlPanel">
             
             <div className="nav-actions stagger-item">

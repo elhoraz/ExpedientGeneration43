@@ -78,7 +78,7 @@ export default function DailyWisdomWidget() {
   const copyWisdom = () => {
     if (typeof navigator !== "undefined") {
       if (navigator.vibrate) navigator.vibrate(10);
-      const textToCopy = `*Secarik Mahfuzhat Santri Arrisalah*\n\n${current.arabic}\n"${current.latin}"\n\n_Artinya:_ ${current.arti}\n\n— Expedient Generation 43`;
+      const textToCopy = `*Secarik Mahfuzhat Santri Arrisalah*\n\n${current.arabic}\n"${current.latin}"\n\n_Artinya:_ ${current.arti}\n\nExpedient Generation 43`;
       navigator.clipboard.writeText(textToCopy).then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2200);
@@ -208,7 +208,7 @@ export default function DailyWisdomWidget() {
 
           <div className="wisdom-translation-row">
             <span className="wisdom-latin">&ldquo;{current.latin}&rdquo;</span>
-            <span className="wisdom-divider">—</span>
+            <span className="wisdom-divider">·</span>
             <span className="wisdom-meaning">{current.arti}</span>
           </div>
         </div>

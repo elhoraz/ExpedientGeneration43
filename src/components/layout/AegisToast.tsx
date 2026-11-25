@@ -47,27 +47,25 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             transform: `translateX(-50%) translateY(${toast.visible ? '0' : '150px'})`,
             width: "90%",
             maxWidth: "420px",
-            background: "var(--glass-bg, rgba(255,255,255,0.02))",
-            backdropFilter: "blur(30px)",
-            WebkitBackdropFilter: "blur(30px)",
-            border: "1px solid rgba(212,175,55,0.4)",
-            borderLeft: `4px solid ${toast.type === "error" ? "#8b0000" : "#d4af37"}`,
-            borderRadius: "16px",
-            padding: "18px 20px",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+            background: "var(--bg-card, #0f141e)",
+            border: "1px solid var(--glass-border, rgba(242, 239, 233, 0.14))",
+            borderLeft: `4px solid ${toast.type === "error" ? "var(--ruby-gem, #f87171)" : "var(--gold-main, #d4af37)"}`,
+            borderRadius: "14px",
+            padding: "16px 20px",
+            boxShadow: "var(--glass-shadow, 0 16px 36px rgba(0, 0, 0, 0.45))",
             zIndex: 99999,
             display: "flex",
             alignItems: "center",
-            gap: "15px",
-            transition: "all 0.8s cubic-bezier(0.16,1,0.3,1)",
+            gap: "14px",
+            transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease",
             opacity: toast.visible ? 1 : 0,
           }}
         >
           <i
             className="fa-solid fa-compass-drafting"
             style={{
-              fontSize: "1.5rem",
-              color: toast.type === "error" ? "#8b0000" : "#d4af37",
+              fontSize: "1.35rem",
+              color: toast.type === "error" ? "var(--ruby-gem, #f87171)" : "var(--gold-main, #d4af37)",
               flexShrink: 0,
             }}
           ></i>
@@ -75,12 +73,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <span
               style={{
                 display: "block",
-                fontFamily: "'Courier New', monospace",
-                fontSize: "0.65rem",
-                letterSpacing: "3px",
+                fontFamily: "var(--font-sans, inherit)",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                letterSpacing: "0.04em",
                 textTransform: "uppercase",
-                color: toast.type === "error" ? "#8b0000" : "var(--text-secondary, #7b8e9b)",
-                marginBottom: "4px",
+                color: toast.type === "error" ? "var(--ruby-gem, #f87171)" : "var(--text-secondary, #a1a8b5)",
+                marginBottom: "3px",
               }}
             >
               {toast.title}
@@ -88,9 +87,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <strong
               style={{
                 display: "block",
-                fontFamily: "'Playfair Display', serif",
-                fontSize: "0.95rem",
-                color: "var(--text-primary, #fff)",
+                fontFamily: "var(--font-sans, inherit)",
+                fontSize: "0.94rem",
+                fontWeight: 600,
+                color: "var(--text-primary, #f2efe9)",
               }}
             >
               {toast.message}

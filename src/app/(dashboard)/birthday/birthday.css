@@ -4,26 +4,26 @@ body.page-birthday .bday-wrapper,
 body.page-birthday .bday-header,
 .bday-wrapper .bday-header { text-align: center; margin-bottom: 50px; }
 body.page-birthday .bday-header h1,
-.bday-wrapper .bday-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 5vw, 3rem); color: #d4af37; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 10px; }
+.bday-wrapper .bday-header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.9rem, 4.5vw, 2.8rem); color: var(--gold-main, #d4af37); letter-spacing: -0.02em; margin-bottom: 10px; }
 body.page-birthday .bday-header p,
-.bday-wrapper .bday-header p { color: var(--text-secondary, #8899a6); font-size: 0.9rem; letter-spacing: 2px; }
+.bday-wrapper .bday-header p { color: var(--text-secondary, #a1a8b5); font-size: 0.95rem; letter-spacing: 0.02em; }
 body.page-birthday .bday-date-badge,
-.bday-wrapper .bday-date-badge { display: inline-block; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); padding: 8px 24px; border-radius: 50px; color: #d4af37; font-family: 'Courier New', monospace; font-size: 0.9rem; margin-top: 15px; letter-spacing: 2px; }
+.bday-wrapper .bday-date-badge { display: inline-block; background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3); padding: 8px 22px; border-radius: 50px; color: var(--gold-main, #d4af37); font-family: var(--font-manrope), sans-serif; font-weight: 600; font-size: 0.88rem; margin-top: 14px; letter-spacing: 0.03em; }
 
 body.page-birthday .bday-grid,
 .bday-wrapper .bday-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
 
 body.page-birthday .bday-card,
-.bday-wrapper .bday-card { background: rgba(10,10,12,0.6); backdrop-filter: blur(20px); border: 1px solid rgba(212,175,55,0.2); border-radius: 20px; padding: 30px; text-align: center; transition: all 0.4s cubic-bezier(0.16,1,0.3,1); position: relative; overflow: hidden; }
+.bday-wrapper .bday-card { background: var(--bg-card, #0f141e); border: 1px solid var(--border-subtle, rgba(255,255,255,0.08)); border-radius: 20px; padding: 30px; text-align: center; transition: transform 0.25s ease, border-color 0.25s ease; position: relative; overflow: hidden; }
 body.page-birthday .bday-card:hover,
-.bday-wrapper .bday-card:hover { transform: translateY(-8px); border-color: rgba(212,175,55,0.5); box-shadow: 0 20px 50px rgba(212,175,55,0.1); }
+.bday-wrapper .bday-card:hover { transform: translateY(-4px); border-color: rgba(212,175,55,0.45); }
 
 body.page-birthday .bday-avatar,
-.bday-wrapper .bday-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid #d4af37; margin-bottom: 15px; box-shadow: 0 0 30px rgba(212,175,55,0.2); }
+.bday-wrapper .bday-avatar { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold-main, #d4af37); margin-bottom: 15px; }
 body.page-birthday .bday-name,
-.bday-wrapper .bday-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: #d4af37; margin-bottom: 5px; }
+.bday-wrapper .bday-name { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--gold-main, #d4af37); margin-bottom: 5px; }
 body.page-birthday .bday-fullname,
-.bday-wrapper .bday-fullname { font-size: 0.85rem; color: #8899a6; margin-bottom: 15px; }
+.bday-wrapper .bday-fullname { font-size: 0.85rem; color: var(--text-secondary, #a1a8b5); margin-bottom: 15px; }
 
 body.page-birthday .bday-confetti,
 .bday-wrapper .bday-confetti { font-size: 2rem; margin-bottom: 10px; animation: confettiFloat 2.4s ease-in-out infinite; }
@@ -426,57 +426,57 @@ body.page-birthday .bday-watermark,
    BIRTHDAY PAGE LIGHT THEME SUPPORT
    ========================================================================== */
 :root[data-theme="light"] .bday-wrapper .bday-header h1 {
-    color: #aa771c;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-header p {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-date-badge {
-    background: rgba(170, 119, 28, 0.1);
-    border-color: rgba(170, 119, 28, 0.35);
-    color: #aa771c;
+    background: rgba(124, 82, 10, 0.1);
+    border-color: rgba(124, 82, 10, 0.3);
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-card {
     background: #ffffff;
-    border-color: rgba(170, 119, 28, 0.25);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    border-color: rgba(24, 24, 27, 0.09);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-card:hover {
-    border-color: #aa771c;
-    box-shadow: 0 20px 40px rgba(170, 119, 28, 0.15);
+    border-color: rgba(124, 82, 10, 0.45);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-name {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-fullname {
-    color: #64748b;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-btn {
-    border-color: #aa771c;
-    color: #aa771c;
+    border-color: #7c520a;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-btn:hover {
-    background: #aa771c;
+    background: #7c520a;
     color: #ffffff;
 }
 
 :root[data-theme="light"] .bday-wrapper .bday-empty {
-    color: #64748b;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .bday-back {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: rgba(170, 119, 28, 0.35);
-    color: #aa771c;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-color: rgba(124, 82, 10, 0.32);
+    color: #7c520a;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 /* Birthday List Card Animation */

@@ -32,19 +32,19 @@ export default function WelcomeModal({
           {locale === "ar" ? (
             <>
               مرحباً بك في البوابة الرسمية لخريجي دفعة{" "}
-              <strong>Expedient Generation</strong> — معهد الرسالة الحديث
+              <strong>Expedient Generation</strong> · معهد الرسالة الحديث
               الدفعة ٤٣. تم تصميم هذه المنصة لتوطيد أواصر الأخوة وحفظ الذكريات المشتركة.
             </>
           ) : locale === "en" ? (
             <>
               Welcome to the official alumni portal of{" "}
-              <strong>Expedient Generation</strong> — Pondok Modern Arrisalah
+              <strong>Expedient Generation</strong> · Pondok Modern Arrisalah
               Cohort 43. Built to strengthen our ties and preserve our shared memories.
             </>
           ) : (
             <>
               Selamat datang di portal resmi alumni angkatan{" "}
-              <strong>Expedient Generation</strong> — Pondok Modern Arrisalah
+              <strong>Expedient Generation</strong> · Pondok Modern Arrisalah
               ke-43. Portal ini dibuat untuk mempermudah silaturahmi dan
               mendokumentasikan kenangan bersama.
             </>

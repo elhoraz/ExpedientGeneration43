@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 
 *Assalamu'alaikum Warahmatullahi Wabarakatuh*
 
-Ahlan wa sahlan! Segala puji bagi Allah SWT, selamat bergabung dalam portal resmi *Expedient Generation — 43rd Arrisalah*, Sahabat *${namaLengkap}*${namaPanggilan ? ` (${namaPanggilan})` : ""}.
+Ahlan wa sahlan! Segala puji bagi Allah SWT, selamat bergabung dalam portal resmi *Expedient Generation · 43rd Arrisalah*, Sahabat *${namaLengkap}*${namaPanggilan ? ` (${namaPanggilan})` : ""}.
 
 🎉 *AKUN ANDA TELAH RESMI DIAKTIFKAN & 100% SIAP DIGUNAKAN!*
 

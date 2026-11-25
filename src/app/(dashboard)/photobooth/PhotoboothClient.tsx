@@ -2939,7 +2939,7 @@ export default function PhotoboothClient() {
                 <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Warna Dasar Bingkai (Kustom):</span>
                 <div className="color-swatches-row">
                   {[
-                    { color: "#0d0d10", label: "Obsidian" },
+                    { color: "#0d0d10", label: "Hitam" },
                     { color: "#ffffff", label: "White" },
                     { color: "#fbf7ee", label: "Cream" },
                     { color: "#0d1b2a", label: "Navy" },

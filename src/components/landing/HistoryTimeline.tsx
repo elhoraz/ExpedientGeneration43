@@ -59,7 +59,6 @@ export default function HistoryTimeline() {
           >
             <span className="tab-year-pill">{era.year}</span>
             <span className="tab-title-text">{era.badge.split("&")[0]}</span>
-            <span className="tab-active-glow"></span>
           </button>
         ))}
       </div>

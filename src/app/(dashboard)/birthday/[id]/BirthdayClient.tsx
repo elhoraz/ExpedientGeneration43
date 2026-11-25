@@ -224,22 +224,22 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
   const wishMessage = useMemo(() => {
     if (locale === "ar") {
-      return `السلام عليكم ورحمة الله وبركاته ${displayName}! 🎉\nبارك الله في عمرك! أبارك لك بذكرى ميلادك المبارك، نسأل الله تعالى أن يملأ أيامك خيراً وبركة وصحة وسعادة دائمة. آمين يا رب العالمين! 🤲\n\nشاهد بطاقة تهنئة الدفعة لك من هنا:\n${currentUrl}`;
+      return `السلام عليكم ورحمة الله وبركاته ${displayName}\nبارك الله في عمرك! أبارك لك بذكرى ميلادك المبارك، نسأل الله تعالى أن يملأ أيامك خيراً وبركة وصحة وسعادة دائمة. آمين يا رب العالمين.\n\nشاهد بطاقة تهنئة الدفعة لك من هنا:\n${currentUrl}`;
     }
     if (locale === "en") {
-      return `Assalamu'alaikum ${displayName}! 🎉\nBarakallahu fee umrik! Wishing you a very blessed birthday, may Allah bestow continuous happiness, health, barakah, and success in all your endeavors. Aamiin! 🤲\n\nView your cohort birthday card here:\n${currentUrl}`;
+      return `Assalamu'alaikum ${displayName},\nBarakallahu fee umrik! Wishing you a very blessed birthday, may Allah bestow continuous happiness, health, barakah, and success in all your endeavors. Aamiin.\n\nView your cohort birthday card here:\n${currentUrl}`;
     }
-    return `Assalamu'alaikum ${displayName}! 🎉\nBarakallahu fii umrik! Selamat ulang tahun ya, semoga senantiasa diberikan keberkahan umur, kesehatan, rezeki yang melimpah, dan kemudahan dalam setiap urusan. Aamiin ya Rabbal 'Alamiin! 🤲\n\nLihat kartu ucapan angkatan untukmu di sini:\n${currentUrl}`;
+    return `Assalamu'alaikum ${displayName},\nBarakallahu fii umrik! Selamat ulang tahun, semoga senantiasa diberikan keberkahan umur, kesehatan, rezeki yang berkah, dan kemudahan dalam setiap urusan. Aamiin ya Rabbal 'Alamiin.\n\nLihat kartu ucapan angkatan untukmu di sini:\n${currentUrl}`;
   }, [displayName, currentUrl, locale]);
 
   const shareMessage = useMemo(() => {
     if (locale === "ar") {
-      return `🎂 اليوم نحتفل بذكرى ميلاد رفيقنا العزيز *${displayName}*! شاركونا الدعاء والتهنئة له بمناسبة ميلاده المبارك:\n${currentUrl}`;
+      return `اليوم نحتفل بذكرى ميلاد رفيقنا العزيز *${displayName}*! شاركونا الدعاء والتهنئة له بمناسبة ميلاده:\n${currentUrl}`;
     }
     if (locale === "en") {
-      return `🎂 Today our friend *${displayName}* is celebrating their birthday! Let's send our warmest prayers and congratulations:\n${currentUrl}`;
+      return `Today our friend *${displayName}* is celebrating their birthday! Send your warmest prayers and congratulations:\n${currentUrl}`;
     }
-    return `🎂 Hari ini sahabat kita *${displayName}* sedang berulang tahun! Mari kirimkan doa dan ucapan terbaik untuknya:\n${currentUrl}`;
+    return `Hari ini sahabat kita *${displayName}* sedang berulang tahun! Mari kirimkan doa dan ucapan terbaik untuknya:\n${currentUrl}`;
   }, [displayName, currentUrl, locale]);
 
   const directWishUrl = isValidWa
@@ -253,7 +253,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: `Selamat Ulang Tahun ${displayName}! 🎉`,
+          title: `Selamat Ulang Tahun ${displayName}`,
           text: shareMessage,
           url: currentUrl,
         });
@@ -403,10 +403,10 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
 
           <p className="bday-wishes bday-body bday-sub bday-anim-el">
               {locale === "ar"
-                ? "نسأل الله تعالى أن يبارك في عمرك، وأن يديم عليك نعمة الصحة والعافية والتوفيق في كل خطواتك. بارك الله فيك! 🤲"
+                ? "نسأل الله تعالى أن يبارك في عمرك، وأن يديم عليك نعمة الصحة والعافية والتوفيق في كل خطواتك. بارك الله فيك."
                 : locale === "en"
-                ? "May Allah SWT continuously bestow barakah, health, and happiness upon every step of your journey. Barakallahu feek! 🤲"
-                : "Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, dan kebahagiaan di setiap langkahmu. Barakallahu fiik! 🤲"}
+                ? "May Allah SWT continuously bestow barakah, health, and happiness upon every step of your journey. Barakallahu feek."
+                : "Semoga Allah SWT senantiasa melimpahkan keberkahan, kesehatan, dan kebahagiaan di setiap langkahmu. Barakallahu fiik."}
           </p>
 
           <div className="bday-anim-el" style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center", width: "100%", maxWidth: "340px", margin: "0 auto" }}>
@@ -444,7 +444,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
           </div>
         </div>
 
-        <div className="bday-watermark bday-body bday-text">Expedient Generation — 43rd Arrisalah</div>
+        <div className="bday-watermark bday-body bday-text">Expedient Generation · 43rd Arrisalah</div>
       </div>
     </>
   );

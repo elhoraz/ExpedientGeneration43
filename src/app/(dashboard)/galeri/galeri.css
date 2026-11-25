@@ -1441,30 +1441,30 @@ body.mode-yearbook .dimension-shift-btn,
 
 /* Light Theme Overrides for Visual Vault */
 [data-theme="light"] .switcher-pill-glass {
-    background: rgba(255, 255, 255, 0.95);
-    border-color: rgba(212, 175, 55, 0.4);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-color: rgba(24, 24, 27, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 [data-theme="light"] .mode-tab-btn {
-    color: #475569;
+    color: #52525b;
 }
 [data-theme="light"] .vault-search-input {
-    background: rgba(255, 255, 255, 0.9);
-    color: #0f172a;
-    border-color: rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    color: #18181b;
+    border-color: rgba(24, 24, 27, 0.12);
 }
 [data-theme="light"] .year-chip {
-    background: rgba(255, 255, 255, 0.85);
-    color: #334155;
-    border-color: rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    color: #52525b;
+    border-color: rgba(24, 24, 27, 0.1);
 }
 [data-theme="light"] .masonry-card {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(212, 175, 55, 0.35);
-    box-shadow: 0 10px 25px rgba(212, 175, 55, 0.1);
+    background: #ffffff;
+    border-color: rgba(24, 24, 27, 0.09);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
 }
 [data-theme="light"] .card-caption {
-    color: #0f172a;
+    color: #18181b;
 }
 
 /* Zero-Lag Progressive Batching Load More */
@@ -1482,24 +1482,21 @@ body.mode-yearbook .dimension-shift-btn,
     gap: 10px;
     padding: 14px 32px;
     border-radius: 50px;
-    background: rgba(18, 22, 28, 0.85);
-    border: 1px solid rgba(212, 175, 55, 0.4);
-    color: #e2e8f0;
+    background: var(--bg-card, #0f141e);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    color: #f2efe9;
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px rgba(212, 175, 55, 0.15);
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 .btn-vault-load-more:hover {
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(184, 134, 11, 0.25));
+    background: rgba(212, 175, 55, 0.16);
     border-color: #d4af37;
-    color: #ffd700;
+    color: #d4af37;
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 25px rgba(212, 175, 55, 0.3);
 }
 
 .btn-vault-load-more i {
@@ -1512,158 +1509,158 @@ body.mode-yearbook .dimension-shift-btn,
 }
 
 [data-theme="light"] .btn-vault-load-more {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(212, 175, 55, 0.5);
-    color: #1e293b;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    border-color: rgba(124, 82, 10, 0.35);
+    color: #7c520a;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
 /* Light Theme Overrides for Visual Vault Lightbox, Zoom & Modals */
 :root[data-theme="light"] .vault-lightbox-overlay,
 [data-theme="light"] .vault-lightbox-overlay {
-    background: rgba(248, 250, 252, 0.94);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: rgba(246, 245, 241, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 :root[data-theme="light"] .lightbox-counter,
 [data-theme="light"] .lightbox-counter {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .lightbox-counter span,
 [data-theme="light"] .lightbox-counter span {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .lightbox-action-btn,
 [data-theme="light"] .lightbox-action-btn {
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    color: #1e293b;
+    background: rgba(24, 24, 27, 0.05);
+    border: 1px solid rgba(24, 24, 27, 0.12);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .lightbox-action-btn:hover,
 [data-theme="light"] .lightbox-action-btn:hover {
-    background: rgba(212, 175, 55, 0.2);
-    color: #aa771c;
-    border-color: #d4af37;
+    background: rgba(124, 82, 10, 0.14);
+    color: #7c520a;
+    border-color: #7c520a;
 }
 
 :root[data-theme="light"] .lightbox-action-btn.close-btn:hover,
 [data-theme="light"] .lightbox-action-btn.close-btn:hover {
-    background: rgba(239, 68, 68, 0.15);
-    color: #dc2626;
-    border-color: #ef4444;
+    background: rgba(185, 28, 28, 0.12);
+    color: #b91c1c;
+    border-color: #b91c1c;
 }
 
 :root[data-theme="light"] .lightbox-nav-btn,
 [data-theme="light"] .lightbox-nav-btn {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    color: #0f172a;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    border: 1px solid rgba(24, 24, 27, 0.12);
+    color: #18181b;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.09);
 }
 
 :root[data-theme="light"] .lightbox-nav-btn:hover,
 [data-theme="light"] .lightbox-nav-btn:hover {
-    background: #d4af37;
-    color: #0b120e;
-    border-color: #b8860b;
+    background: #7c520a;
+    color: #ffffff;
+    border-color: #7c520a;
 }
 
 :root[data-theme="light"] .lightbox-img-wrapper,
 [data-theme="light"] .lightbox-img-wrapper {
     background: #ffffff;
-    border: 1px solid rgba(212, 175, 55, 0.4);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 0 25px rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(124, 82, 10, 0.35);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.12);
 }
 
 :root[data-theme="light"] .lightbox-caption-text,
 [data-theme="light"] .lightbox-caption-text {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .lightbox-meta-uploader,
 [data-theme="light"] .lightbox-meta-uploader {
-    color: #64748b;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .lightbox-meta-uploader strong,
 [data-theme="light"] .lightbox-meta-uploader strong {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .lightbox-heart-btn,
 [data-theme="light"] .lightbox-heart-btn {
-    background: rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    color: #334155;
+    background: rgba(24, 24, 27, 0.05);
+    border: 1px solid rgba(24, 24, 27, 0.12);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .lightbox-heart-btn.liked,
 [data-theme="light"] .lightbox-heart-btn.liked {
-    background: rgba(239, 68, 68, 0.12);
-    border-color: #ef4444;
-    color: #dc2626;
+    background: rgba(185, 28, 28, 0.12);
+    border-color: #b91c1c;
+    color: #b91c1c;
 }
 
 :root[data-theme="light"] .card-media-wrapper,
 [data-theme="light"] .card-media-wrapper {
-    background: #f1f5f9;
+    background: #ebe9e1;
 }
 
 :root[data-theme="light"] .media-year-badge,
 [data-theme="light"] .media-year-badge {
-    background: rgba(255, 255, 255, 0.88);
-    color: #0f172a;
-    border: 1px solid rgba(212, 175, 55, 0.35);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.94);
+    color: #18181b;
+    border: 1px solid rgba(124, 82, 10, 0.32);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 :root[data-theme="light"] .story-avatar-box,
 [data-theme="light"] .story-avatar-box {
     background: #ffffff;
-    border-color: #f8fafc;
+    border-color: #f6f5f1;
 }
 
 :root[data-theme="light"] .story-title,
 [data-theme="light"] .story-title {
-    color: #475569;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .story-capsule.active-story .story-title,
 [data-theme="light"] .story-capsule.active-story .story-title {
-    color: #aa771c;
+    color: #7c520a;
 }
 
 /* Upload Bottom Sheet in Light Mode */
 :root[data-theme="light"] .upload-sheet-card,
 [data-theme="light"] .upload-sheet-card {
     background: #ffffff;
-    border: 1px solid rgba(212, 175, 55, 0.35);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(24, 24, 27, 0.12);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.14);
 }
 
 :root[data-theme="light"] .upload-dropzone,
 [data-theme="light"] .upload-dropzone {
-    background: rgba(0, 0, 0, 0.02);
-    border-color: rgba(212, 175, 55, 0.4);
+    background: #f6f5f1;
+    border-color: rgba(124, 82, 10, 0.35);
 }
 
 :root[data-theme="light"] .upload-dropzone:hover,
 [data-theme="light"] .upload-dropzone:hover {
-    background: rgba(212, 175, 55, 0.08);
+    background: rgba(124, 82, 10, 0.08);
 }
 
 :root[data-theme="light"] .dropzone-placeholder h4,
 [data-theme="light"] .dropzone-placeholder h4 {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .dropzone-placeholder p,
 [data-theme="light"] .dropzone-placeholder p {
-    color: #64748b;
+    color: #52525b;
 }
 
 :root[data-theme="light"] .upload-select-input,
@@ -1672,15 +1669,15 @@ body.mode-yearbook .dimension-shift-btn,
 [data-theme="light"] .upload-select-input,
 [data-theme="light"] .upload-text-input,
 [data-theme="light"] .upload-textarea {
-    background: rgba(0, 0, 0, 0.03);
-    border-color: rgba(0, 0, 0, 0.15);
-    color: #0f172a;
+    background: #ffffff;
+    border-color: rgba(24, 24, 27, 0.16);
+    color: #18181b;
 }
 
 :root[data-theme="light"] .btn-cancel-upload,
 [data-theme="light"] .btn-cancel-upload {
-    border-color: rgba(0, 0, 0, 0.2);
-    color: #475569;
+    border-color: rgba(24, 24, 27, 0.2);
+    color: #52525b;
 }
 
 /* Yearbook Export Modal Styles */
@@ -1688,9 +1685,9 @@ body.mode-yearbook .dimension-shift-btn,
     position: fixed;
     inset: 0;
     z-index: 999999;
-    background: rgba(0, 0, 0, 0.88);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
+    background: rgba(6, 11, 20, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1698,13 +1695,13 @@ body.mode-yearbook .dimension-shift-btn,
 }
 
 .yearbook-export-modal-card {
-    background: var(--bg-secondary, #0c120f);
-    border: 1px solid rgba(212, 175, 55, 0.4);
+    background: var(--bg-card, #0f141e);
+    border: 1px solid rgba(212, 175, 55, 0.35);
     border-radius: 24px;
     padding: 32px 28px;
     max-width: 460px;
     width: 100%;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
 }
 
 .export-edition-box {
@@ -1720,11 +1717,11 @@ body.mode-yearbook .dimension-shift-btn,
 .export-edition-title {
     font-weight: bold;
     font-size: 0.95rem;
-    color: #f3e5ab;
+    color: #f2efe9;
 }
 
 .export-edition-btn {
-    background: rgba(212, 175, 55, 0.2);
+    background: rgba(212, 175, 55, 0.16);
     border: 1px solid #d4af37;
     color: #d4af37;
     padding: 8px 16px;
@@ -1735,47 +1732,47 @@ body.mode-yearbook .dimension-shift-btn,
     display: flex;
     align-items: center;
     gap: 6px;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .export-edition-btn:hover {
     background: var(--gold-main, #d4af37);
-    color: #0b120e;
+    color: #060b14;
 }
 
 :root[data-theme="light"] .yearbook-export-modal-backdrop,
 [data-theme="light"] .yearbook-export-modal-backdrop {
-    background: rgba(248, 250, 252, 0.94);
+    background: rgba(246, 245, 241, 0.94);
 }
 
 :root[data-theme="light"] .yearbook-export-modal-card,
 [data-theme="light"] .yearbook-export-modal-card {
     background: #ffffff;
-    border-color: rgba(212, 175, 55, 0.35);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.12);
+    border-color: rgba(24, 24, 27, 0.12);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
 }
 
 :root[data-theme="light"] .export-edition-box,
 [data-theme="light"] .export-edition-box {
-    background: rgba(212, 175, 55, 0.06);
-    border-color: rgba(212, 175, 55, 0.25);
+    background: #f6f5f1;
+    border-color: rgba(124, 82, 10, 0.25);
 }
 
 :root[data-theme="light"] .export-edition-title,
 [data-theme="light"] .export-edition-title {
-    color: #0f172a;
+    color: #18181b;
 }
 
 :root[data-theme="light"] .export-edition-btn,
 [data-theme="light"] .export-edition-btn {
-    background: rgba(212, 175, 55, 0.15);
-    border-color: #d4af37;
-    color: #aa771c;
+    background: rgba(124, 82, 10, 0.1);
+    border-color: #7c520a;
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .export-edition-btn:hover,
 [data-theme="light"] .export-edition-btn:hover {
-    background: #d4af37;
-    color: #0b120e;
+    background: #7c520a;
+    color: #ffffff;
 }
 

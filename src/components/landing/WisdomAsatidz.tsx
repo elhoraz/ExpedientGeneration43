@@ -66,8 +66,6 @@ export default function WisdomAsatidz() {
       <div className="wisdom-grid reveal-stagger">
         {filtered.map((item) => (
           <TiltCard key={item.id} className="wisdom-card">
-            <div className="wisdom-card-glow"></div>
-            
             <div className="wisdom-card-top">
               <span className="wisdom-tag-pill">
                 <i className="fa-solid fa-star-and-crescent"></i> {item.tag}

@@ -576,7 +576,7 @@ export default function MatsuratClient() {
 
             <div className="dial-hint-text">
               {isCurrentComplete
-                ? "✨ Target Doa Ini Tuntas"
+                ? "Target Doa Ini Tuntas"
                 : "Ketuk lingkaran atau tekan SPASI"}
             </div>
 

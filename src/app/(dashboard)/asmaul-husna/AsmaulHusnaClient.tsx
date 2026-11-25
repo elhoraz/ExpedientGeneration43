@@ -223,7 +223,7 @@ export default function AsmaulHusnaClient() {
     if (tasbihTarget > 0 && nextVal === tasbihTarget) {
       playFinishFanfare();
       if ("vibrate" in navigator) navigator.vibrate([60, 40, 80]);
-      showToast(locale === "ar" ? `الحمد لله! تم إنجاز الهدف ${tasbihTarget} مرة ✨` : locale === "en" ? `Alhamdulillah! Target ${tasbihTarget}x reached ✨` : `Alhamdulillah! Target ${tasbihTarget}x tercapai ✨`);
+      showToast(locale === "ar" ? `الحمد لله! تم إنجاز الهدف ${tasbihTarget} مرة` : locale === "en" ? `Alhamdulillah! Target ${tasbihTarget}x reached` : `Alhamdulillah! Target ${tasbihTarget}x tercapai`);
     }
   };
 
@@ -238,7 +238,7 @@ export default function AsmaulHusnaClient() {
     setTasbihCount(0);
     setActiveTab("tasbih");
     setSelectedAsma(null);
-    showToast(locale === "ar" ? `وضع التسبيح: يا ${item.arabic} ✨` : locale === "en" ? `Tasbih Mode: Ya ${item.latin} ✨` : `Mode Tasbih: Ya ${item.latin} ✨`);
+    showToast(locale === "ar" ? `وضع التسبيح: يا ${item.arabic}` : locale === "en" ? `Tasbih Mode: Ya ${item.latin}` : `Mode Tasbih: Ya ${item.latin}`);
   };
 
   // Sequential Murattal Player Engine
@@ -396,57 +396,57 @@ export default function AsmaulHusnaClient() {
     }
 
     // Outer & Inner Borders
-    ctx.strokeStyle = isLight ? "rgba(170, 119, 28, 0.45)" : "rgba(212, 175, 55, 0.45)";
+    ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.42)" : "rgba(212, 175, 55, 0.45)";
     ctx.lineWidth = 4;
     ctx.strokeRect(50, 50, w - 100, h - 100);
 
-    ctx.strokeStyle = isLight ? "rgba(170, 119, 28, 0.25)" : "rgba(212, 175, 55, 0.25)";
+    ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.24)" : "rgba(212, 175, 55, 0.25)";
     ctx.lineWidth = 2;
     ctx.strokeRect(70, 70, w - 140, h - 140);
 
     // Header Emblem
     ctx.textAlign = "center";
     ctx.font = "bold 26px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.letterSpacing = "6px";
     ctx.fillText("EXPEDIENT GENERATION 43", w / 2, 170);
 
     ctx.font = "20px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#64748b" : "#94a3b8";
+    ctx.fillStyle = isLight ? "#52525b" : "#94a3b8";
     ctx.letterSpacing = "3px";
-    ctx.fillText("99 ASMAUL HUSNA • TADABBUR & DZIKIR", w / 2, 210);
+    ctx.fillText("99 ASMAUL HUSNA · TADABBUR & DZIKIR", w / 2, 210);
 
     ctx.font = "32px 'Amiri', serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
-    ctx.fillText("✦  —  ۞  —  ✦", w / 2, 280);
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
+    ctx.fillText("·  ۞  ·", w / 2, 280);
 
     // Asma Number Pill
     ctx.font = "bold 22px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.fillText(`ASMA KE-${storyItem.number} DARI 99`, w / 2, 380);
 
     // Big Calligraphy
     ctx.font = "bold 110px 'Amiri', 'Traditional Arabic', serif";
-    ctx.fillStyle = isLight ? "#0f172a" : "#ffffff";
+    ctx.fillStyle = isLight ? "#18181b" : "#ffffff";
     ctx.fillText(storyItem.arabic, w / 2, 590);
 
     // Latin Title
     ctx.font = "bold 44px 'Playfair Display', serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
     ctx.fillText(storyItem.latin, w / 2, 690);
 
     // Translation
     ctx.font = "32px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#334155" : "#e2e8f0";
+    ctx.fillStyle = isLight ? "#18181b" : "#e2e8f0";
     ctx.fillText(`"${storyItem.translation}"`, w / 2, 755);
 
     // Quran Reference Badge
     ctx.font = "bold 24px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#059669" : "#34d399";
-    ctx.fillText(`📖 Dalil: ${storyItem.quranRef}`, w / 2, 830);
+    ctx.fillStyle = isLight ? "#065f46" : "#4cc38a";
+    ctx.fillText(`Dalil: ${storyItem.quranRef}`, w / 2, 830);
 
     // Golden Divider
-    ctx.strokeStyle = isLight ? "rgba(170, 119, 28, 0.35)" : "rgba(212, 175, 55, 0.35)";
+    ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.35)" : "rgba(212, 175, 55, 0.35)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(w / 2 - 200, 880);
@@ -458,8 +458,8 @@ export default function AsmaulHusnaClient() {
     const boxH = 340;
     const boxY = 940;
 
-    ctx.fillStyle = isLight ? "rgba(170, 119, 28, 0.08)" : "rgba(212, 175, 55, 0.08)";
-    ctx.strokeStyle = isLight ? "rgba(170, 119, 28, 0.25)" : "rgba(212, 175, 55, 0.25)";
+    ctx.fillStyle = isLight ? "rgba(124, 82, 10, 0.08)" : "rgba(212, 175, 55, 0.08)";
+    ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.25)" : "rgba(212, 175, 55, 0.25)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.roundRect((w - boxW) / 2, boxY, boxW, boxH, 20);
@@ -467,12 +467,12 @@ export default function AsmaulHusnaClient() {
     ctx.stroke();
 
     ctx.font = "bold 24px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#aa771c" : "#d4af37";
-    ctx.fillText("💡 MAKNA & TADABBUR", w / 2, boxY + 55);
+    ctx.fillStyle = isLight ? "#7c520a" : "#d4af37";
+    ctx.fillText("MAKNA & TADABBUR", w / 2, boxY + 55);
 
     // Wrap meaning text
     ctx.font = "24px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#475569" : "#cbd5e1";
+    ctx.fillStyle = isLight ? "#52525b" : "#cbd5e1";
     const words = storyItem.meaning.split(" ");
     let line = "";
     const lines = [];
@@ -496,16 +496,16 @@ export default function AsmaulHusnaClient() {
     const fadhilahY = boxY + boxH + 40;
     const fadhilahH = 260;
 
-    ctx.fillStyle = isLight ? "rgba(16, 185, 129, 0.08)" : "rgba(16, 185, 129, 0.1)";
-    ctx.strokeStyle = isLight ? "rgba(16, 185, 129, 0.25)" : "rgba(16, 185, 129, 0.3)";
+    ctx.fillStyle = isLight ? "rgba(6, 95, 70, 0.08)" : "rgba(16, 185, 129, 0.1)";
+    ctx.strokeStyle = isLight ? "rgba(6, 95, 70, 0.25)" : "rgba(16, 185, 129, 0.3)";
     ctx.beginPath();
     ctx.roundRect((w - boxW) / 2, fadhilahY, boxW, fadhilahH, 20);
     ctx.fill();
     ctx.stroke();
 
     ctx.font = "bold 24px 'Inter', sans-serif";
-    ctx.fillStyle = isLight ? "#059669" : "#34d399";
-    ctx.fillText("📿 KHASIAT & AMALAN DZIKIR", w / 2, fadhilahY + 55);
+    ctx.fillStyle = isLight ? "#065f46" : "#4cc38a";
+    ctx.fillText("KHASIAT & AMALAN DZIKIR", w / 2, fadhilahY + 55);
 
     ctx.font = "22px 'Inter', sans-serif";
     ctx.fillStyle = isLight ? "#475569" : "#cbd5e1";
@@ -568,9 +568,9 @@ export default function AsmaulHusnaClient() {
       <svg width="0" height="0" style={{ position: "absolute" }}>
         <defs>
           <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#ffd700" />
+            <stop offset="0%" stopColor="#d4af37" />
             <stop offset="50%" stopColor="#d4af37" />
-            <stop offset="100%" stopColor="#aa771c" />
+            <stop offset="100%" stopColor="#7c520a" />
           </linearGradient>
         </defs>
       </svg>
@@ -580,8 +580,7 @@ export default function AsmaulHusnaClient() {
         {/* Header */}
         <header className="asma-header">
           <div className="asma-badge">
-            <span>✨</span>
-            <span>{locale === "ar" ? "خزائن الأسماء الحسنى" : locale === "en" ? "Divine Names Sanctuary" : "Khazanah Asma Agung"}</span>
+            <span>{locale === "ar" ? "أسماء الله الحسنى" : locale === "en" ? "99 Names of Allah" : "99 Asmaul Husna"}</span>
           </div>
           <h1 className="asma-title">{t.asmaul_husna.title}</h1>
           <p className="asma-subtitle">
@@ -1045,7 +1044,7 @@ export default function AsmaulHusnaClient() {
                     className={`preset-chip ${storyTheme === t ? "active" : ""}`}
                     onClick={() => setStoryTheme(t)}
                   >
-                    {t === "obsidian" ? "Obsidian Gold" : t === "emerald" ? "Emerald Madinah" : "Royal Ivory"}
+                    {t === "obsidian" ? "Hitam Klasik" : t === "emerald" ? "Hijau Zamrud" : "Putih Gading"}
                   </button>
                 ))}
               </div>

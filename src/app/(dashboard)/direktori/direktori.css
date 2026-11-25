@@ -1,25 +1,25 @@
 /* ============================================================================
-   DIREKTORI ANGKATAN 43 — MOBILE-FIRST DESIGN SYSTEM
-   Theme-aware tokens for dark & light modes, zero AI-slop chrome, 60fps scroll
+   DIREKTORI ANGKATAN 43 - MOBILE-FIRST DESIGN SYSTEM
+   Theme-aware tokens for dark & light modes
    ============================================================================ */
 
 .direktori-container {
   --dir-bg: transparent;
-  --dir-deck-bg: rgba(10, 15, 28, 0.96);
-  --dir-surface: #0f1624;
-  --dir-surface-2: #151f33;
-  --dir-surface-hover: #1a263e;
+  --dir-deck-bg: rgba(15, 20, 30, 0.96);
+  --dir-surface: var(--bg-card, #0f141e);
+  --dir-surface-2: var(--surface-raised, #171e2c);
+  --dir-surface-hover: #1d2638;
   --dir-border: rgba(212, 175, 55, 0.2);
-  --dir-border-subtle: rgba(148, 163, 184, 0.16);
-  --dir-text: #f8fafc;
-  --dir-muted: #94a3b8;
+  --dir-border-subtle: rgba(255, 255, 255, 0.08);
+  --dir-text: var(--text-primary, #f2efe9);
+  --dir-muted: var(--text-secondary, #a1a8b5);
   --dir-gold: #e4c158;
   --dir-gold-strong: #d4af37;
   --dir-gold-soft: rgba(212, 175, 55, 0.14);
   --dir-gold-ink: #0f172a;
   --dir-wa: #16a34a;
   --dir-wa-soft: rgba(22, 163, 74, 0.16);
-  --dir-wa-text: #4ade80;
+  --dir-wa-text: #4cc38a;
   --dir-chat-soft: rgba(56, 189, 248, 0.14);
   --dir-chat-text: #38bdf8;
   --dir-quote-bg: rgba(148, 163, 184, 0.08);
@@ -37,26 +37,26 @@
 
 :root[data-theme="light"] .direktori-container {
   --dir-bg: transparent;
-  --dir-deck-bg: rgba(248, 250, 252, 0.97);
+  --dir-deck-bg: rgba(246, 245, 241, 0.97);
   --dir-surface: #ffffff;
-  --dir-surface-2: #f1f5f9;
-  --dir-surface-hover: #e2e8f0;
-  --dir-border: rgba(138, 100, 14, 0.24);
-  --dir-border-subtle: rgba(15, 23, 42, 0.11);
-  --dir-text: #0f172a;
-  --dir-muted: #475569;
-  --dir-gold: #8a640e;
-  --dir-gold-strong: #735208;
-  --dir-gold-soft: rgba(138, 100, 14, 0.11);
+  --dir-surface-2: #ebe9e1;
+  --dir-surface-hover: #e2dfd5;
+  --dir-border: rgba(124, 82, 10, 0.24);
+  --dir-border-subtle: rgba(24, 24, 27, 0.09);
+  --dir-text: #18181b;
+  --dir-muted: #52525b;
+  --dir-gold: #7c520a;
+  --dir-gold-strong: #684408;
+  --dir-gold-soft: rgba(124, 82, 10, 0.11);
   --dir-gold-ink: #ffffff;
-  --dir-wa: #15803d;
-  --dir-wa-soft: rgba(21, 128, 61, 0.12);
-  --dir-wa-text: #15803d;
-  --dir-chat-soft: rgba(2, 132, 199, 0.12);
+  --dir-wa: #065f46;
+  --dir-wa-soft: rgba(6, 95, 70, 0.12);
+  --dir-wa-text: #065f46;
+  --dir-chat-soft: rgba(3, 105, 161, 0.12);
   --dir-chat-text: #0369a1;
-  --dir-quote-bg: #f1f5f9;
-  --dir-shadow: 0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 20px rgba(15, 23, 42, 0.05);
-  --dir-sheet-shadow: 0 -10px 36px rgba(15, 23, 42, 0.16);
+  --dir-quote-bg: #f0eee7;
+  --dir-shadow: 0 1px 3px rgba(24, 24, 27, 0.06), 0 6px 18px rgba(24, 24, 27, 0.05);
+  --dir-sheet-shadow: 0 -10px 32px rgba(24, 24, 27, 0.14);
 }
 
 /* ============================================================================
