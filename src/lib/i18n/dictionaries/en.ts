@@ -315,7 +315,7 @@ export const enDictionary: Dictionary = {
     subtitle: "Global geographic distribution map of Cohort 43 alumni.",
     stat_points: "Pinpoints",
     stat_cities: "Cities",
-    stat_countries: "Countries",
+    stat_countries: "Max Dist (km)",
     layer_satellite: "Satellite",
     layer_street: "Street Map",
     layer_dark: "Dark Mode",

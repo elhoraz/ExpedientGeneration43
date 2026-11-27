@@ -315,7 +315,7 @@ export const idDictionary: Dictionary = {
     subtitle: "Peta persebaran geografis alumni Angkatan ke-43 di seluruh dunia.",
     stat_points: "Titik Lokasi",
     stat_cities: "Kota / Daerah",
-    stat_countries: "Negara",
+    stat_countries: "KM Terjauh",
     layer_satellite: "Satelit",
     layer_street: "Peta Jalan",
     layer_dark: "Mode Gelap",

@@ -117,9 +117,10 @@ export default function EventClient({ initialEvents }: { initialEvents: EventIte
         <div
           style={{
             position: "fixed",
-            top: "30px",
+            top: "88px",
             left: "50%",
             transform: "translateX(-50%)",
+            maxWidth: "calc(100vw - 32px)",
             zIndex: 99999,
             background: "var(--bg-card, #0f141e)",
             border: `1px solid ${toastMsg.isError ? "rgba(185,28,28,0.45)" : "rgba(212,175,55,0.4)"}`,

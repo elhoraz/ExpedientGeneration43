@@ -166,19 +166,23 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                 </>
             )}
 
-            <div className="search-pill" style={{ zIndex: 60 }}>
-                <i className="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="searchInput" placeholder={t.common.search} autoComplete="off" />
-            </div>
-            <div className="search-results" id="searchResults" style={{ zIndex: 60 }}></div>
+            <div className="radar-top-bar">
+                <div className="radar-hud" style={{ zIndex: 50 }}>
+                    <div className="hud-title">{t.radar.title} <span className="status-dot"></span></div>
+                    <div className="hud-subtitle">{t.radar.subtitle}</div>
+                    <div className="stats-panel">
+                        <div className="stat-box"><div className="stat-num" id="sTotal">0</div><div className="stat-label">{t.radar.stat_points}</div></div>
+                        <div className="stat-box"><div className="stat-num" id="sArea">0</div><div className="stat-label">{t.radar.stat_cities}</div></div>
+                        <div className="stat-box"><div className="stat-num" id="sFar">0</div><div className="stat-label">{t.radar.stat_countries}</div></div>
+                    </div>
+                </div>
 
-            <div className="radar-hud" style={{ zIndex: 50 }}>
-                <div className="hud-title">{t.radar.title} <span className="status-dot"></span></div>
-                <div className="hud-subtitle">{t.radar.subtitle}</div>
-                <div className="stats-panel">
-                    <div className="stat-box"><div className="stat-num" id="sTotal">0</div><div className="stat-label">{t.radar.stat_points}</div></div>
-                    <div className="stat-box"><div className="stat-num" id="sArea">0</div><div className="stat-label">{t.radar.stat_cities}</div></div>
-                    <div className="stat-box"><div className="stat-num" id="sFar">0</div><div className="stat-label">{t.radar.stat_countries}</div></div>
+                <div className="radar-search-wrap">
+                    <div className="search-pill" style={{ zIndex: 60 }}>
+                        <i className="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder={t.common.search} autoComplete="off" />
+                    </div>
+                    <div className="search-results" id="searchResults" style={{ zIndex: 60 }}></div>
                 </div>
             </div>
 
@@ -236,34 +240,34 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                         <span className="btn-radar-text">{t.radar.change_map}</span>
                     </button>
                     <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown" role="menu">
-                    <button type="button" onClick={() => selectMapStyle('globe')}><i className="fa-solid fa-earth-asia" aria-hidden="true"></i> {t.radar_layers?.globe || "Globe 3D"}</button>
-                    <button type="button" onClick={() => selectMapStyle('minimalist')}><i className="fa-solid fa-map" aria-hidden="true"></i> {t.radar_layers?.minimalist || "Peta Datar"}</button>
-                    <button type="button" onClick={() => selectMapStyle('satellite')}><i className="fa-solid fa-satellite" aria-hidden="true"></i> {t.radar_layers?.satellite || "Peta Satelit"}</button>
-                    <button type="button" onClick={() => selectMapStyle('terrain')}><i className="fa-solid fa-mountain-sun" aria-hidden="true"></i> {t.radar_layers?.terrain || "Peta Terrain"}</button>
-                    <button type="button" onClick={() => selectMapStyle('dark')}><i className="fa-solid fa-moon" aria-hidden="true"></i> {t.radar_layers?.dark || "Peta Gelap"}</button>
-                    <button type="button" onClick={() => selectMapStyle('google')}><i className="fa-solid fa-map-location-dot" aria-hidden="true"></i> {t.radar_layers?.google || "Peta Google"}</button>
-                    <button type="button" onClick={() => selectMapStyle('classic')}><i className="fa-solid fa-signs-post" aria-hidden="true"></i> {t.radar_layers?.classic || "Peta Klasik"}</button>
-                    <button type="button" onClick={() => selectMapStyle('natgeo')}><i className="fa-solid fa-compass" aria-hidden="true"></i> {t.radar_layers?.natgeo || "Peta NatGeo"}</button>
-                    <button type="button" onClick={() => selectMapStyle('voyager')}><i className="fa-solid fa-paper-plane" aria-hidden="true"></i> {t.radar_layers?.voyager || "Peta Voyager"}</button>
-                    <button type="button" onClick={() => selectMapStyle('hybrid')}><i className="fa-solid fa-satellite-dish" aria-hidden="true"></i> {t.radar_layers?.hybrid || "Peta Hybrid"}</button>
-                    <button type="button" onClick={() => selectMapStyle('graycanvas')}><i className="fa-solid fa-palette" aria-hidden="true"></i> {t.radar_layers?.graycanvas || "Peta Kanvas"}</button>
-                    <button type="button" onClick={() => selectMapStyle('hot')}><i className="fa-solid fa-train-subway" aria-hidden="true"></i> {t.radar_layers?.hot || "Peta HOT"}</button>
-                    <button type="button" onClick={() => selectMapStyle('googleterrain')}><i className="fa-solid fa-mountain" aria-hidden="true"></i> {t.radar_layers?.googleterrain || "Peta Rupa Bumi"}</button>
-                    <button type="button" onClick={() => selectMapStyle('esriclarity')}><i className="fa-solid fa-cloud-sun" aria-hidden="true"></i> {t.radar_layers?.esriclarity || "Peta Satelit Bersih"}</button>
-                    <button type="button" onClick={() => selectMapStyle('nightnav')}><i className="fa-solid fa-car-tunnel" aria-hidden="true"></i> {t.radar_layers?.nightnav || "Peta Navigasi Malam"}</button>
-                    <button type="button" onClick={() => selectMapStyle('googletransit')}><i className="fa-solid fa-car" aria-hidden="true"></i> {t.radar_layers?.googletransit || "Peta Google Standar"}</button>
-                    <button type="button" onClick={() => selectMapStyle('physical')}><i className="fa-solid fa-mound" aria-hidden="true"></i> {t.radar_layers?.physical || "Peta Relief"}</button>
-                    <button type="button" onClick={() => selectMapStyle('nasamarble')}><i className="fa-solid fa-star" aria-hidden="true"></i> {t.radar_layers?.nasamarble || "Peta NASA Malam"}</button>
-                    <button type="button" onClick={() => selectMapStyle('googletraffic')}><i className="fa-solid fa-traffic-light" aria-hidden="true"></i> {t.radar_layers?.googletraffic || "Peta Lalu Lintas"}</button>
-                    <button type="button" onClick={() => selectMapStyle('navigation')}><i className="fa-solid fa-anchor" aria-hidden="true"></i> {t.radar_layers?.navigation || "Peta Navigasi Laut"}</button>
-                    <button type="button" onClick={() => selectMapStyle('esristreet')}><i className="fa-solid fa-city" aria-hidden="true"></i> {t.radar_layers?.esristreet || "Peta Tata Kota"}</button>
-                    <button type="button" onClick={() => selectMapStyle('toner')}><i className="fa-solid fa-microchip" aria-hidden="true"></i> {t.radar_layers?.toner || "Peta Kontras Tinggi (Toner)"}</button>
+                        <button type="button" onClick={() => selectMapStyle('globe')}><i className="fa-solid fa-earth-asia" aria-hidden="true"></i> {t.radar_layers?.globe || "Globe 3D"}</button>
+                        <button type="button" onClick={() => selectMapStyle('minimalist')}><i className="fa-solid fa-map" aria-hidden="true"></i> {t.radar_layers?.minimalist || "Peta Datar"}</button>
+                        <button type="button" onClick={() => selectMapStyle('satellite')}><i className="fa-solid fa-satellite" aria-hidden="true"></i> {t.radar_layers?.satellite || "Peta Satelit"}</button>
+                        <button type="button" onClick={() => selectMapStyle('terrain')}><i className="fa-solid fa-mountain-sun" aria-hidden="true"></i> {t.radar_layers?.terrain || "Peta Terrain"}</button>
+                        <button type="button" onClick={() => selectMapStyle('dark')}><i className="fa-solid fa-moon" aria-hidden="true"></i> {t.radar_layers?.dark || "Peta Gelap"}</button>
+                        <button type="button" onClick={() => selectMapStyle('google')}><i className="fa-solid fa-map-location-dot" aria-hidden="true"></i> {t.radar_layers?.google || "Peta Google"}</button>
+                        <button type="button" onClick={() => selectMapStyle('classic')}><i className="fa-solid fa-signs-post" aria-hidden="true"></i> {t.radar_layers?.classic || "Peta Klasik"}</button>
+                        <button type="button" onClick={() => selectMapStyle('natgeo')}><i className="fa-solid fa-compass" aria-hidden="true"></i> {t.radar_layers?.natgeo || "Peta NatGeo"}</button>
+                        <button type="button" onClick={() => selectMapStyle('voyager')}><i className="fa-solid fa-paper-plane" aria-hidden="true"></i> {t.radar_layers?.voyager || "Peta Voyager"}</button>
+                        <button type="button" onClick={() => selectMapStyle('hybrid')}><i className="fa-solid fa-satellite-dish" aria-hidden="true"></i> {t.radar_layers?.hybrid || "Peta Hybrid"}</button>
+                        <button type="button" onClick={() => selectMapStyle('graycanvas')}><i className="fa-solid fa-palette" aria-hidden="true"></i> {t.radar_layers?.graycanvas || "Peta Kanvas"}</button>
+                        <button type="button" onClick={() => selectMapStyle('hot')}><i className="fa-solid fa-train-subway" aria-hidden="true"></i> {t.radar_layers?.hot || "Peta HOT"}</button>
+                        <button type="button" onClick={() => selectMapStyle('googleterrain')}><i className="fa-solid fa-mountain" aria-hidden="true"></i> {t.radar_layers?.googleterrain || "Peta Rupa Bumi"}</button>
+                        <button type="button" onClick={() => selectMapStyle('esriclarity')}><i className="fa-solid fa-cloud-sun" aria-hidden="true"></i> {t.radar_layers?.esriclarity || "Peta Satelit Bersih"}</button>
+                        <button type="button" onClick={() => selectMapStyle('nightnav')}><i className="fa-solid fa-car-tunnel" aria-hidden="true"></i> {t.radar_layers?.nightnav || "Peta Navigasi Malam"}</button>
+                        <button type="button" onClick={() => selectMapStyle('googletransit')}><i className="fa-solid fa-car" aria-hidden="true"></i> {t.radar_layers?.googletransit || "Peta Google Standar"}</button>
+                        <button type="button" onClick={() => selectMapStyle('physical')}><i className="fa-solid fa-mound" aria-hidden="true"></i> {t.radar_layers?.physical || "Peta Relief"}</button>
+                        <button type="button" onClick={() => selectMapStyle('nasamarble')}><i className="fa-solid fa-star" aria-hidden="true"></i> {t.radar_layers?.nasamarble || "Peta NASA Malam"}</button>
+                        <button type="button" onClick={() => selectMapStyle('googletraffic')}><i className="fa-solid fa-traffic-light" aria-hidden="true"></i> {t.radar_layers?.googletraffic || "Peta Lalu Lintas"}</button>
+                        <button type="button" onClick={() => selectMapStyle('navigation')}><i className="fa-solid fa-anchor" aria-hidden="true"></i> {t.radar_layers?.navigation || "Peta Navigasi Laut"}</button>
+                        <button type="button" onClick={() => selectMapStyle('esristreet')}><i className="fa-solid fa-city" aria-hidden="true"></i> {t.radar_layers?.esristreet || "Peta Tata Kota"}</button>
+                        <button type="button" onClick={() => selectMapStyle('toner')}><i className="fa-solid fa-microchip" aria-hidden="true"></i> {t.radar_layers?.toner || "Peta Kontras Tinggi (Toner)"}</button>
                     </div>
                 </div>
             </div>
 
-            <div className="id-overlay" id="idOverlay" style={{ zIndex: 199 }}></div>
-            <div className="info-drawer" id="infoDrawer" role="dialog" aria-modal="true" aria-label={t.radar.view_profile} style={{ zIndex: 200 }}>
+            <div className="id-overlay" id="idOverlay" style={{ zIndex: 10005 }}></div>
+            <div className="info-drawer" id="infoDrawer" role="dialog" aria-modal="true" aria-label={t.radar.view_profile} style={{ zIndex: 10010 }}>
                 <button type="button" className="id-close" id="idClose" aria-label={t.common.close}><i className="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 <div className="id-header">
                     <img id="idAvatar" className="id-avatar" src="/images/default-avatar.webp" alt="" />

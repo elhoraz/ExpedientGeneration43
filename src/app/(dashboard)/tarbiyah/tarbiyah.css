@@ -25,7 +25,7 @@
   width: 100%;
   max-width: 1150px;
   margin: 0 auto;
-  padding: 40px 20px 80px 20px;
+  padding: max(86px, calc(env(safe-area-inset-top, 16px) + 70px)) 20px 80px 20px;
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -153,6 +153,7 @@
   align-items: center;
   gap: 8px;
 }
+
 :root[data-theme="light"] .tarbiyah-page-wrapper .btn-toolbar-action {
   background: #7c520a;
   color: #ffffff;
@@ -271,6 +272,7 @@
   border-radius: 20px;
   font-weight: 700;
 }
+
 :root[data-theme="light"] .tarbiyah-page-wrapper .card-badge {
   background: #7c520a;
   color: #ffffff;
@@ -658,6 +660,7 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
   width: 100%;
 }
+
 :root[data-theme="light"] .tarbiyah-page-wrapper .btn-connect-chat {
   background: #7c520a;
   color: #ffffff;
@@ -1024,23 +1027,75 @@
 
 /* ================= MOBILE RESPONSIVENESS ================= */
 @media (max-width: 768px) {
-  .tarbiyah-page-wrapper .tarbiyah-wrapper { padding: 80px 14px 120px 14px; }
-  .tarbiyah-page-wrapper .tarbiyah-title { font-size: 1.8rem; }
-  .tarbiyah-page-wrapper .tarbiyah-subtitle { font-size: 0.78rem; letter-spacing: 0.04em; }
-  .tarbiyah-page-wrapper .nexus-tabs-bar { gap: 6px; }
-  .tarbiyah-page-wrapper .tab-btn { font-size: 0.78rem; min-height: 44px; padding: 8px 12px; }
-  .tarbiyah-page-wrapper .tab-toolbar { flex-direction: column; align-items: stretch; }
-  .tarbiyah-page-wrapper .toolbar-right-actions { width: 100%; justify-content: space-between; }
-  .tarbiyah-page-wrapper .nexus-search-box { width: 100%; }
-  .tarbiyah-page-wrapper .btn-toolbar-action { width: 100%; justify-content: center; }
-  .tarbiyah-page-wrapper .card-grid { grid-template-columns: 1fr; gap: 16px; }
-  .tarbiyah-page-wrapper .requests-grid { grid-template-columns: 1fr; }
-  .tarbiyah-page-wrapper .materi-card { flex-direction: column; align-items: flex-start; gap: 14px; }
-  .tarbiyah-page-wrapper .btn-materi-link { width: 100%; justify-content: center; }
-  .tarbiyah-modal-card { padding: 20px; }
+  .tarbiyah-page-wrapper .tarbiyah-wrapper {
+    padding: 80px 14px 120px 14px;
+  }
+
+  .tarbiyah-page-wrapper .tarbiyah-title {
+    font-size: 1.8rem;
+  }
+
+  .tarbiyah-page-wrapper .tarbiyah-subtitle {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+  }
+
+  .tarbiyah-page-wrapper .nexus-tabs-bar {
+    gap: 6px;
+  }
+
+  .tarbiyah-page-wrapper .tab-btn {
+    font-size: 0.78rem;
+    min-height: 44px;
+    padding: 8px 12px;
+  }
+
+  .tarbiyah-page-wrapper .tab-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tarbiyah-page-wrapper .toolbar-right-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .tarbiyah-page-wrapper .nexus-search-box {
+    width: 100%;
+  }
+
+  .tarbiyah-page-wrapper .btn-toolbar-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tarbiyah-page-wrapper .card-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .tarbiyah-page-wrapper .requests-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tarbiyah-page-wrapper .materi-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .tarbiyah-page-wrapper .btn-materi-link {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tarbiyah-modal-card {
+    padding: 20px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .tarbiyah-page-wrapper .item-card,
   .tarbiyah-page-wrapper .materi-card,
   .btn-submit-materi,

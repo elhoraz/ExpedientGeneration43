@@ -33,17 +33,17 @@ html[data-theme="light"] body.page-kiblat {
     background-color: var(--bg-main, #f6f5f1);
 }
 
-/* Give bottom-right floating helpers a calmer footprint on /kiblat scroll */
-body.page-kiblat .floating-help-btn {
-    bottom: 20px;
-    right: 20px;
+/* Give bottom-right floating helpers a calmer footprint without overlapping each other */
+body.page-kiblat .floating-help-pill {
+    bottom: 24px;
+    inset-inline-end: 24px;
 }
 
 body.page-kiblat .scroll-top-btn {
-    right: 20px;
-    bottom: 72px;
-    width: 42px;
-    height: 42px;
+    inset-inline-end: 24px;
+    bottom: 92px;
+    width: 44px;
+    height: 44px;
 }
 
 .kiblat-page-wrapper {

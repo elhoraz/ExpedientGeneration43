@@ -13,7 +13,7 @@
   position: relative;
 }
 
-.multazam-page-wrapper .multazam-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; z-index: 10; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; }
+.multazam-page-wrapper .multazam-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding: max(88px, calc(env(safe-area-inset-top, 16px) + 72px)) 20px 60px; z-index: 10; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; }
 
 .multazam-page-wrapper .multazam-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; }
 .multazam-page-wrapper .btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--gold-main); text-decoration: none; font-size: 0.85rem; letter-spacing: 0.02em; font-weight: 600; transition: transform 0.2s ease, background-color 0.2s ease; min-height: 44px; padding: 10px 18px; border-radius: 30px; border: 1px solid rgba(212,175,55,0.28); background: var(--surface-raised, rgba(255,255,255,0.05)); }
@@ -71,7 +71,7 @@
 .multazam-page-wrapper .btn-close-panel:focus-visible,
 .multazam-page-wrapper .btn-submit-prayer:focus-visible { outline: 2px solid var(--focus-ring, #d4af37); outline-offset: 2px; }
 
-.multazam-page-wrapper .prayer-panel { position: fixed; top: 0; inset-inline-end: -450px; width: 100%; max-width: 450px; height: 100dvh; background: var(--bg-main); border-inline-start: 1px solid var(--glass-border); z-index: 1000; transition: inset-inline-end 0.45s cubic-bezier(0.16, 1, 0.3, 1); padding: 40px 28px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; color: var(--text-primary); box-shadow: -16px 0 40px rgba(0,0,0,0.3); }
+.multazam-page-wrapper .prayer-panel { position: fixed; top: 0; inset-inline-end: -450px; width: 100%; max-width: 450px; height: 100dvh; background: var(--bg-main); border-inline-start: 1px solid var(--glass-border); z-index: 10010; transition: inset-inline-end 0.45s cubic-bezier(0.16, 1, 0.3, 1); padding: 40px 28px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; color: var(--text-primary); box-shadow: -16px 0 40px rgba(0,0,0,0.3); }
 .multazam-page-wrapper .prayer-panel.open { inset-inline-end: 0; }
 .multazam-page-wrapper .btn-close-panel { position: absolute; top: 16px; inset-inline-end: 16px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-primary); font-size: 1.2rem; cursor: pointer; z-index: 10; transition: color 0.2s ease, border-color 0.2s ease; }
 .multazam-page-wrapper .panel-title { font-family: var(--font-playfair, 'Playfair Display', serif); color: var(--gold-main); font-size: 1.35rem; letter-spacing: 0.02em; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 8px; padding-inline-end: 48px; }

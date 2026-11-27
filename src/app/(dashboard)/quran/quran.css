@@ -2873,10 +2873,11 @@
 .quran-floating-audio-bar {
   position: fixed;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
-  max-width: 600px;
+  inset-inline-start: 130px;
+  inset-inline-end: 230px;
+  margin-inline: auto;
+  width: auto;
+  max-width: 580px;
   background: rgba(10, 18, 14, 0.98);
   border: 1px solid rgba(212, 175, 55, 0.5);
   border-radius: 50px;
@@ -2886,15 +2887,20 @@
   animation: audioBarSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+body.sidebar-closed .quran-floating-audio-bar {
+  inset-inline-start: 24px;
+  inset-inline-end: 24px;
+}
+
 @keyframes audioBarSlideUp {
   from {
     opacity: 0;
-    transform: translate(-50%, 20px);
+    transform: translateY(20px);
   }
 
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 
@@ -5463,13 +5469,17 @@
 
   .quran-floating-audio-bar {
     bottom: max(118px, calc(env(safe-area-inset-bottom, 16px) + 102px));
-    width: calc(100% - 24px);
+    inset-inline-start: 12px;
+    inset-inline-end: 12px;
+    width: auto;
     z-index: 9970;
     transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s ease, background 0.3s ease;
   }
 
   body.sidebar-closed .quran-floating-audio-bar {
     bottom: max(16px, calc(env(safe-area-inset-bottom, 16px) + 8px));
+    inset-inline-start: 12px;
+    inset-inline-end: 12px;
   }
 
   /* Micro Touch Targets Enlargement on Mobile (Fitts's Law) */

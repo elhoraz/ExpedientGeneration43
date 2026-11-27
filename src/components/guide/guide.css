@@ -595,15 +595,19 @@ body.sidebar-closed .floating-help-pill {
    -------------------------------------------------------------------------- */
 @media (min-width: 769px) and (max-width: 1024px) {
   .floating-help-pill {
-    bottom: 28px !important;
-    inset-inline-end: 24px !important;
+    bottom: 24px;
+    inset-inline-end: 24px;
   }
 }
 
-/* Page-specific avoidance on desktop */
-body.page-radar .floating-help-pill {
-  bottom: 245px;
-  inset-inline-end: 35px;
+/* Page-specific avoidance on desktop: keep help pill clear of bottom-right radar controls */
+@media (min-width: 769px) {
+  body.page-radar .floating-help-pill {
+    top: 86px;
+    bottom: auto;
+    inset-inline-end: 32px;
+    z-index: 90;
+  }
 }
 
 @media (max-width: 768px) and (orientation: portrait), (max-width: 768px) and (pointer: coarse) {

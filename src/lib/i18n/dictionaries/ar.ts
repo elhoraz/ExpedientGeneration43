@@ -315,7 +315,7 @@ export const arDictionary: Dictionary = {
     subtitle: "خريطة جغرافية عالمية توضح توزيع خريجي الدفعة 43 حول العالم.",
     stat_points: "نقاط الانتشار",
     stat_cities: "المدن والمحافظات",
-    stat_countries: "الدول",
+    stat_countries: "أبعد مسافة (كم)",
     layer_satellite: "قمر صناعي",
     layer_street: "خريطة الشوارع",
     layer_dark: "النمط الليلي",

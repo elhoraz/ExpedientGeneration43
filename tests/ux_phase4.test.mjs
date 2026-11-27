@@ -196,4 +196,36 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
       );
     });
   });
+
+  describe("UX-04: Non-overlapping Fixed HUDs & Accurate Radar Metric Labels", () => {
+    const radarCss = fs.readFileSync(path.join(ROOT_DIR, "src/app/(dashboard)/radar/radar.css"), "utf8");
+    const guideCss = fs.readFileSync(path.join(ROOT_DIR, "src/components/guide/guide.css"), "utf8");
+    const kiblatCss = fs.readFileSync(path.join(ROOT_DIR, "src/app/(dashboard)/kiblat/kiblat.css"), "utf8");
+    const quranCss = fs.readFileSync(path.join(ROOT_DIR, "src/app/(dashboard)/quran/quran.css"), "utf8");
+    const galeriCss = fs.readFileSync(path.join(ROOT_DIR, "src/app/(dashboard)/galeri/galeri.css"), "utf8");
+    const birthdayCss = fs.readFileSync(path.join(ROOT_DIR, "src/app/(dashboard)/birthday/birthday.css"), "utf8");
+    const idDict = fs.readFileSync(path.join(ROOT_DIR, "src/lib/i18n/dictionaries/id.ts"), "utf8");
+    const enDict = fs.readFileSync(path.join(ROOT_DIR, "src/lib/i18n/dictionaries/en.ts"), "utf8");
+    const arDict = fs.readFileSync(path.join(ROOT_DIR, "src/lib/i18n/dictionaries/ar.ts"), "utf8");
+
+    test("/radar uses flex .radar-top-bar clear of .top-utility-dock and docks help pill below top dock", () => {
+      assert.ok(radarCss.includes(".radar-top-bar"), "radar.css must define .radar-top-bar");
+      assert.ok(guideCss.includes("top: 86px;"), "guide.css must anchor desktop radar help pill below top dock");
+      assert.ok(!guideCss.includes("bottom: 245px;"), "guide.css must not overlap radar Update Lokasi button");
+      assert.ok(radarCss.includes("z-index:10010;"), "info-drawer must sit above global top dock");
+    });
+
+    test("/radar maxDist stat label reflects kilometers rather than country count", () => {
+      assert.ok(!idDict.includes('stat_countries: "Negara"'), "ID stat_countries must not mislabel km as Negara");
+      assert.ok(!enDict.includes('stat_countries: "Countries"'), "EN stat_countries must not mislabel km as Countries");
+      assert.ok(!arDict.includes('stat_countries: "الدول"'), "AR stat_countries must not mislabel km as Countries");
+    });
+
+    test("Similar floating controls avoid collisions across kiblat, quran, galeri, and birthday", () => {
+      assert.ok(birthdayCss.includes("body.page-birthday .floating-help-pill"), "Birthday mode must hide floating-help-pill");
+      assert.ok(kiblatCss.includes("bottom: 92px;"), "Kiblat scroll-top button must sit cleanly above help pill");
+      assert.ok(quranCss.includes("inset-inline-end: 230px;"), "Quran audio bar must stay clear of desktop help pill");
+      assert.ok(!galeriCss.includes("@media (max-width: 1024px)"), "Galeri mobile FAB must not overlap tablet left sidebar");
+    });
+  });
 });

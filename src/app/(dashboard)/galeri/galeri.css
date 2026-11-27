@@ -1045,11 +1045,11 @@ body.mode-yearbook .dimension-shift-btn,
     transform: translateY(-2px);
 }
 
-/* 4. MOBILE FLOATING ACTION BUTTON (FAB) `+ UNGGAH FOTO` */
+/* 4. FLOATING ACTION BUTTON (FAB) `+ UNGGAH FOTO` */
 .vault-fab-upload {
     position: fixed;
-    bottom: 28px;
-    right: 260px;
+    bottom: 24px;
+    inset-inline-end: 245px;
     z-index: 9990;
     background: linear-gradient(135deg, #d4af37, #b8860b);
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -1065,17 +1065,22 @@ body.mode-yearbook .dimension-shift-btn,
     user-select: none;
 }
 
-@media (max-width: 1024px), (pointer: coarse) and (orientation: portrait) {
+body.sidebar-closed .vault-fab-upload {
+    inset-inline-end: 24px;
+}
+
+@media (max-width: 768px) {
     .vault-fab-upload {
         bottom: max(116px, calc(100px + env(safe-area-inset-bottom, 16px)));
-        left: 16px;
-        right: auto;
+        inset-inline-start: 16px;
+        inset-inline-end: auto;
         padding: 10px 16px;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     body.sidebar-closed .vault-fab-upload {
         bottom: max(20px, calc(14px + env(safe-area-inset-bottom, 14px))) !important;
+        inset-inline-end: auto;
     }
 }
 
