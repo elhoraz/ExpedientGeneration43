@@ -1,22 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isAndroidNativeApp, isIosNativeApp } from "@/lib/notificationHelper";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
-
-interface AppVersionData {
-  latestVersionCode: number;
-  latestVersionName: string;
-  releaseDate: string;
-  apkUrl: string;
-  ipaUrl?: string;
-  title: string;
-  releaseNotes: string[];
-  forceUpdate?: boolean;
-  minSupportedVersionCode?: number;
-}
+import { evaluateAppUpdate, type AppVersionData } from "@/lib/appUpdateLogic";
 
 export default function AppUpdateChecker() {
   const pathname = usePathname();
@@ -27,70 +17,135 @@ export default function AppUpdateChecker() {
   const [currentVersion, setCurrentVersion] = useState({ code: 1, name: "1.0.0" });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const lastCheckAtRef = useRef(0);
+  const retryResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    const isApk =
+      isAndroidNativeApp() ||
+      Boolean((window as any).ExpedientNativeBridge) ||
+      Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
+      /wv|Capacitor|Expedient/i.test(navigator.userAgent);
+
+    // Only prompt native app shells with an out-of-date build; never interrupt web visitors with an update wall.
+    if (!isApk) return;
+
+    setIsNativeApp(true);
+
+    let active = true;
+
+    const readInstalledVersion = () => {
+      let installedCode = 1;
+      let installedName = "1.0.0";
+
+      if ((window as any).ExpedientNativeBridge?.getAppVersionCode) {
+        try {
+          installedCode = Number((window as any).ExpedientNativeBridge.getAppVersionCode()) || 1;
+          installedName = String((window as any).ExpedientNativeBridge.getAppVersionName?.() || "1.0.0");
+        } catch (e) {
+          console.warn("Could not read native app version code:", e);
+        }
+      } else {
+        const uaMatch = navigator.userAgent.match(/ExpedientNativeApp\/([\d.]+)/i);
+        if (uaMatch?.[1]) {
+          installedName = uaMatch[1];
+        }
+      }
+
+      return { installedCode, installedName };
+    };
+
     const checkUpdate = async () => {
       try {
-        const isApk =
-          isAndroidNativeApp() ||
-          Boolean((window as any).ExpedientNativeBridge) ||
-          Boolean((window as any).Capacitor?.isNativePlatform?.()) ||
-          /wv|Capacitor|Expedient/i.test(navigator.userAgent);
-
-        // Only prompt native app shells with an out-of-date build; never interrupt web visitors with an update wall.
-        if (!isApk) return;
-
-        setIsNativeApp(true);
-
-        let installedCode = 1;
-        let installedName = "1.0.0";
-
-        if ((window as any).ExpedientNativeBridge?.getAppVersionCode) {
-          try {
-            installedCode = Number((window as any).ExpedientNativeBridge.getAppVersionCode()) || 1;
-            installedName = String((window as any).ExpedientNativeBridge.getAppVersionName?.() || "1.0.0");
-          } catch (e) {
-            console.warn("Could not read native app version code:", e);
-          }
-        }
+        lastCheckAtRef.current = Date.now();
+        const { installedCode, installedName } = readInstalledVersion();
+        if (!active) return;
 
         setCurrentVersion({ code: installedCode, name: installedName });
 
         const res = await fetch("/api/app-version", { cache: "no-store" });
-        if (!res.ok) return;
+        if (!res.ok || !active) return;
         const data: AppVersionData = await res.json();
+        if (!active) return;
 
-        if (data.latestVersionCode > installedCode) {
-          const dismissedSession = sessionStorage.getItem(`dismissed_update_session_v${data.latestVersionCode}`);
-          if (dismissedSession === "1" && !data.forceUpdate) {
-            return;
-          }
+        let dismissedSession = false;
+        try {
+          dismissedSession =
+            sessionStorage.getItem(`dismissed_update_session_v${data.latestVersionCode}`) === "1";
+        } catch {}
+
+        const evaluation = evaluateAppUpdate(data, installedCode, dismissedSession);
+
+        if (evaluation.shouldShowPrompt) {
           setVersionData(data);
           setUpdateAvailable(true);
+          setIsDismissed(false);
+        } else if (!evaluation.needsUpdate) {
+          setVersionData(null);
+          setUpdateAvailable(false);
         }
       } catch (err) {
         console.warn("Update check error:", err);
       }
     };
 
-    const timer = setTimeout(checkUpdate, 800);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => {
+      void checkUpdate();
+    }, 800);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && Date.now() - lastCheckAtRef.current >= 60_000) {
+        void checkUpdate();
+      }
+    };
+
+    const handleOnline = () => {
+      void checkUpdate();
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("online", handleOnline);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      if (retryResetTimerRef.current) {
+        clearTimeout(retryResetTimerRef.current);
+      }
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("online", handleOnline);
+    };
   }, []);
+
+  const isMandatoryUpdate = Boolean(
+    versionData && evaluateAppUpdate(versionData, currentVersion.code).isMandatory
+  );
 
   const handleUpdate = () => {
     if (!versionData) return;
     setIsUpdating(true);
 
-    try {
-      sessionStorage.setItem(`dismissed_update_session_v${versionData.latestVersionCode}`, "1");
-      localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
-    } catch {}
+    if (retryResetTimerRef.current) {
+      clearTimeout(retryResetTimerRef.current);
+      retryResetTimerRef.current = null;
+    }
+
+    if (!isMandatoryUpdate) {
+      try {
+        sessionStorage.setItem(`dismissed_update_session_v${versionData.latestVersionCode}`, "1");
+        localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
+      } catch {}
+    }
 
     if (isNativeApp && (window as any).ExpedientNativeBridge?.installApk) {
       try {
         (window as any).ExpedientNativeBridge.installApk(versionData.apkUrl);
+        // Reset spinner so user can retry or use /download if system installer is cancelled
+        retryResetTimerRef.current = setTimeout(() => {
+          setIsUpdating(false);
+        }, 6000);
         return;
       } catch (e) {
         console.error("Native installApk error:", e);
@@ -99,8 +154,10 @@ export default function AppUpdateChecker() {
 
     if (isIosNativeApp() || /iPhone|iPad|iPod/i.test(navigator.userAgent)) {
       window.location.href = versionData.ipaUrl || "/download";
-      setTimeout(() => {
-        setUpdateAvailable(false);
+      retryResetTimerRef.current = setTimeout(() => {
+        if (!isMandatoryUpdate) {
+          setUpdateAvailable(false);
+        }
         setIsUpdating(false);
       }, 2500);
       return;
@@ -108,13 +165,16 @@ export default function AppUpdateChecker() {
 
     window.location.href = versionData.apkUrl;
 
-    setTimeout(() => {
-      setUpdateAvailable(false);
+    retryResetTimerRef.current = setTimeout(() => {
+      if (!isMandatoryUpdate) {
+        setUpdateAvailable(false);
+      }
       setIsUpdating(false);
     }, 2500);
   };
 
   const handleDismiss = useCallback(() => {
+    if (isMandatoryUpdate) return;
     setIsDismissed(true);
     setUpdateAvailable(false);
     try {
@@ -123,7 +183,7 @@ export default function AppUpdateChecker() {
         localStorage.setItem("dismissed_update_version", String(versionData.latestVersionCode));
       }
     } catch {}
-  }, [versionData]);
+  }, [isMandatoryUpdate, versionData]);
 
   const shouldRender =
     isNativeApp &&
@@ -133,7 +193,7 @@ export default function AppUpdateChecker() {
     !isDismissed &&
     Boolean(versionData);
 
-  useDialogEscape(shouldRender, handleDismiss, Boolean(versionData?.forceUpdate));
+  useDialogEscape(shouldRender, handleDismiss, isMandatoryUpdate);
 
   if (!shouldRender || !versionData) {
     return null;
@@ -195,7 +255,7 @@ export default function AppUpdateChecker() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
               <h3 id="app-update-title" style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700, color: "var(--text-primary, #f2efe9)" }}>
-                {versionData.forceUpdate
+                {isMandatoryUpdate
                   ? (locale === "ar" ? "تحديث إلزامي للتطبيق" : locale === "en" ? "Required App Update" : "Pembaruan Wajib Aplikasi")
                   : (locale === "ar" ? "يتوفر تحديث للتطبيق" : locale === "en" ? "App Update Available" : "Pembaruan Aplikasi Tersedia")}
               </h3>
@@ -237,13 +297,19 @@ export default function AppUpdateChecker() {
             gap: "10px",
           }}
         >
-          <i className="fa-solid fa-bell-slash" aria-hidden="true" style={{ color: "var(--gold-main, #d4af37)", marginTop: "3px", flexShrink: 0 }} />
+          <i
+            className={`fa-solid ${isMandatoryUpdate ? "fa-triangle-exclamation" : "fa-circle-info"}`}
+            aria-hidden="true"
+            style={{ color: isMandatoryUpdate ? "var(--ruby-gem, #f87171)" : "var(--gold-main, #d4af37)", marginTop: "3px", flexShrink: 0 }}
+          />
           <span>
-            {locale === "ar"
-              ? "يعمل هذا التحديث على استقرار تنبيهات الأذان واحترام وضع عدم الإزعاج على جهازك."
-              : locale === "en"
-              ? "This update stabilizes adhan alerts and respects silent or Do Not Disturb mode on your device."
-              : "Pembaruan ini menstabilkan pengingat adzan agar tetap mengikuti mode hening atau Jangan Ganggu perangkat."}
+            {isMandatoryUpdate
+              ? (locale === "ar"
+                  ? `لم يعد هذا الإصدار مدعوماً. يجب التحديث إلى v${versionData.latestVersionName} لمواصلة استخدام التطبيق ومزامنة البيانات بأمان.`
+                  : locale === "en"
+                  ? `Your installed version is no longer supported. Updating to v${versionData.latestVersionName} is required to keep using all features and cloud sync.`
+                  : `Versi aplikasi Anda sudah usang dan wajib diperbarui ke v${versionData.latestVersionName} agar seluruh fitur, sinkronisasi cloud, dan keamanan berjalan normal.`)
+              : versionData.title}
           </span>
         </div>
 
@@ -306,9 +372,13 @@ export default function AppUpdateChecker() {
                 ? "If the download does not start automatically, open the download page below."
                 : "Jika pengunduhan tidak mulai otomatis, buka halaman unduhan di bawah."}
             </div>
-            <a
+            <Link
               href="/download"
-              onClick={() => setUpdateAvailable(false)}
+              onClick={() => {
+                if (!isMandatoryUpdate) {
+                  setUpdateAvailable(false);
+                }
+              }}
               className="btn-gold"
               style={{
                 display: "inline-flex",
@@ -323,56 +393,76 @@ export default function AppUpdateChecker() {
             >
               <i className="fa-solid fa-download" aria-hidden="true" />
               <span>{locale === "ar" ? "فتح مركز التنزيل" : locale === "en" ? "Open Download Page" : "Buka Pusat Unduhan"}</span>
-            </a>
+            </Link>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
-            {!versionData.forceUpdate && (
+          <div>
+            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+              {!isMandatoryUpdate && (
+                <button
+                  type="button"
+                  onClick={handleDismiss}
+                  style={{
+                    flex: "1",
+                    minHeight: "44px",
+                    padding: "0.75rem 0.9rem",
+                    borderRadius: "12px",
+                    background: "var(--surface-raised, #171e2c)",
+                    border: "1px solid var(--border-strong, rgba(242, 239, 233, 0.19))",
+                    color: "var(--text-secondary, #a1a8b5)",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "background-color 0.2s ease, color 0.2s ease",
+                  }}
+                >
+                  {locale === "ar" ? "لاحقاً" : locale === "en" ? "Later" : "Nanti Saja"}
+                </button>
+              )}
               <button
                 type="button"
-                onClick={handleDismiss}
+                onClick={handleUpdate}
+                className="btn-gold"
                 style={{
-                  flex: "1",
+                  flex: "2",
                   minHeight: "44px",
-                  padding: "0.75rem 0.9rem",
+                  padding: "0.75rem 1.25rem",
                   borderRadius: "12px",
-                  background: "var(--surface-raised, #171e2c)",
-                  border: "1px solid var(--border-strong, rgba(242, 239, 233, 0.19))",
-                  color: "var(--text-secondary, #a1a8b5)",
-                  fontSize: "0.85rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "background-color 0.2s ease, color 0.2s ease",
+                  fontSize: "0.9rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
                 }}
               >
-                {locale === "ar" ? "لاحقاً" : locale === "en" ? "Later" : "Nanti Saja"}
+                <i className="fa-solid fa-cloud-arrow-down" aria-hidden="true" />
+                <span>
+                  {locale === "ar"
+                    ? `تحديث الآن (v${versionData.latestVersionName})`
+                    : locale === "en"
+                    ? `Update Now (v${versionData.latestVersionName})`
+                    : `Perbarui Sekarang (v${versionData.latestVersionName})`}
+                </span>
               </button>
+            </div>
+            {isMandatoryUpdate && (
+              <div style={{ marginTop: "0.75rem", textAlign: "center" }}>
+                <Link
+                  href="/download"
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--text-secondary, #a1a8b5)",
+                    textDecoration: "underline",
+                  }}
+                >
+                  {locale === "ar"
+                    ? "أو افتح صفحة التنزيل اليدوي (/download)"
+                    : locale === "en"
+                    ? "Or open manual download page (/download)"
+                    : "Atau unduh manual lewat halaman (/download)"}
+                </Link>
+              </div>
             )}
-            <button
-              type="button"
-              onClick={handleUpdate}
-              className="btn-gold"
-              style={{
-                flex: "2",
-                minHeight: "44px",
-                padding: "0.75rem 1.25rem",
-                borderRadius: "12px",
-                fontSize: "0.9rem",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-              }}
-            >
-              <i className="fa-solid fa-cloud-arrow-down" aria-hidden="true" />
-              <span>
-                {locale === "ar"
-                  ? `تحديث الآن (v${versionData.latestVersionName})`
-                  : locale === "en"
-                  ? `Update Now (v${versionData.latestVersionName})`
-                  : `Perbarui Sekarang (v${versionData.latestVersionName})`}
-              </span>
-            </button>
           </div>
         )}
       </div>
