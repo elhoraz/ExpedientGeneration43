@@ -107,9 +107,7 @@
    Hero Progress Card
    -------------------------------------------------------------------------- */
 .khatam-hero-card {
-    background: var(--glass-bg, rgba(10, 15, 25, 0.7));
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    background: var(--glass-bg, rgba(10, 15, 25, 0.94));
     border: 1px solid rgba(212, 175, 55, 0.3);
     border-radius: 24px;
     padding: clamp(24px, 4vw, 36px);
@@ -138,7 +136,7 @@
 .khatam-stat-label {
     font-size: 0.75rem;
     color: var(--text-secondary);
-    letter-spacing: 1.5px;
+    letter-spacing: 1px;
     text-transform: uppercase;
 }
 
@@ -150,6 +148,7 @@
     display: flex;
     align-items: baseline;
     gap: 6px;
+    font-variant-numeric: tabular-nums;
 }
 
 .khatam-stat-value span {
@@ -189,7 +188,7 @@
 
 .khatam-progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, #1b5e20, #d4af37, #ffd700);
+    background: linear-gradient(90deg, #1b5e20, #d4af37, #e5c158);
     border-radius: 20px;
     transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
@@ -300,9 +299,7 @@
 }
 
 .juz-card {
-    background: var(--glass-bg, rgba(12, 18, 30, 0.65));
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    background: var(--glass-bg, rgba(12, 18, 30, 0.94));
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 18px;
     padding: 20px 16px;
@@ -315,19 +312,21 @@
     overflow: hidden;
 }
 
-.juz-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+@media (hover: hover) and (pointer: fine) {
+    .juz-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .juz-card.status-available:hover {
+        border-color: var(--gold-main, #d4af37);
+        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15);
+    }
 }
 
 /* Card Status Themes */
 .juz-card.status-available {
     border: 1px dashed rgba(212, 175, 55, 0.35);
-}
-
-.juz-card.status-available:hover {
-    border-color: var(--gold-main, #d4af37);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15);
 }
 
 .juz-card.status-reading {
@@ -539,9 +538,7 @@
 .khatam-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.88);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -556,7 +553,7 @@
     border-radius: 24px;
     width: 100%;
     max-width: 620px;
-    max-height: 85vh;
+    max-height: 90dvh;
     overflow-y: auto;
     padding: clamp(24px, 5vw, 40px);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.3);
@@ -569,13 +566,13 @@
 
 .btn-modal-close {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 12px;
+    inset-inline-end: 12px;
     background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -584,8 +581,10 @@
     transition: 0.2s;
 }
 
-.btn-modal-close:hover {
-    background: rgba(255, 255, 255, 0.2);
+@media (hover: hover) and (pointer: fine) {
+    .btn-modal-close:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
 }
 
 .modal-header-text {
@@ -809,20 +808,24 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 
-:root[data-theme="light"] .juz-card:hover,
-[data-theme="light"] .juz-card:hover {
-    border-color: rgba(124, 82, 10, 0.45);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+@media (hover: hover) and (pointer: fine) {
+    :root[data-theme="light"] .juz-card:hover,
+    [data-theme="light"] .juz-card:hover {
+        border-color: rgba(124, 82, 10, 0.45);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
+    }
 }
 
 :root[data-theme="light"] .juz-arabic-num,
 [data-theme="light"] .juz-arabic-num {
     color: #7c520a;
+    font-variant-numeric: tabular-nums;
 }
 
 :root[data-theme="light"] .juz-latin-num,
 [data-theme="light"] .juz-latin-num {
     color: #18181b;
+    font-variant-numeric: tabular-nums;
 }
 
 :root[data-theme="light"] .juz-surah-range,
@@ -856,15 +859,18 @@
 
 :root[data-theme="light"] .btn-juz-claim,
 [data-theme="light"] .btn-juz-claim {
+    min-height: 44px;
     background: rgba(124, 82, 10, 0.1);
     border-color: rgba(124, 82, 10, 0.32);
     color: #7c520a;
 }
 
-:root[data-theme="light"] .btn-juz-claim:hover,
-[data-theme="light"] .btn-juz-claim:hover {
-    background: #7c520a;
-    color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+    :root[data-theme="light"] .btn-juz-claim:hover,
+    [data-theme="light"] .btn-juz-claim:hover {
+        background: #7c520a;
+        color: #ffffff;
+    }
 }
 
 :root[data-theme="light"] .doa-modal-card,
@@ -877,6 +883,7 @@
 :root[data-theme="light"] .doa-arabic,
 [data-theme="light"] .doa-arabic {
     color: #7c520a;
+    letter-spacing: 0;
 }
 
 :root[data-theme="light"] .doa-latin,
@@ -887,5 +894,15 @@
 :root[data-theme="light"] .doa-meaning,
 [data-theme="light"] .doa-meaning {
     color: #18181b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .khatam-page-wrapper *,
+    .khatam-page-wrapper *::before,
+    .khatam-page-wrapper *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 

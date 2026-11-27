@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import {
   CordobaSpreadSkeleton,
   QuranSurahReaderSkeleton,
@@ -201,6 +202,9 @@ export default function QuranClient({
   const [tafsirData, setTafsirData] = useState<any | null>(null);
   const [loadingTafsir, setLoadingTafsir] = useState(false);
   const [selectedAyahTafsir, setSelectedAyahTafsir] = useState<number | null>(null);
+
+  useDialogEscape(showBookmarksModal, () => setShowBookmarksModal(false));
+  useDialogEscape(showTafsirModal, () => setShowTafsirModal(false));
 
   // Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -625,7 +629,7 @@ export default function QuranClient({
       if (nextIdx < q.length) {
         playQueueItemAtIndex(nextIdx);
       } else if (isLoopingRef.current && q.length > 0) {
-        showToast("🔁 Mengulang murottal blok...");
+        showToast("Mengulang murottal blok...");
         playQueueItemAtIndex(0);
       } else {
         setIsPlaying(false);
@@ -1073,16 +1077,36 @@ export default function QuranClient({
           {currentJuzAllocation && (
             <div className={`mushaf-khatam-ribbon ${currentJuzAllocation.status === "completed" ? "status-completed" : ""}`}>
               <div className="ribbon-info">
-                <i className={`fa-solid ${currentJuzAllocation.status === "completed" ? "fa-circle-check" : "fa-kaaba"}`}></i>
+                <i className={`fa-solid ${currentJuzAllocation.status === "completed" ? "fa-circle-check" : "fa-kaaba"}`} aria-hidden="true"></i>
                 <span>
                   {currentJuzAllocation.user_id === currentUser.id ? (
                     currentJuzAllocation.status === "completed" ? (
-                      <>Masya Allah! Anda telah mengkhatamkan <strong>Juz {pageData?.juzNumber}</strong> pada sesi khataman angkatan ini (+25 Prestise).</>
+                      locale === "ar" ? (
+                        <>ما شاء الله! لقد أتممت قراءة <strong>الجزء {pageData?.juzNumber}</strong> في ختمة الدفعة (+25 نقطة).</>
+                      ) : locale === "en" ? (
+                        <>Masha Allah! You completed <strong>Juz {pageData?.juzNumber}</strong> in this cohort khatam session (+25 Prestige).</>
+                      ) : (
+                        <>Masya Allah! Anda telah mengkhatamkan <strong>Juz {pageData?.juzNumber}</strong> pada sesi khataman angkatan ini (+25 Prestise).</>
+                      )
+                    ) : locale === "ar" ? (
+                      <>أنت تقرأ حالياً <strong>الجزء {pageData?.juzNumber}</strong> ضمن الختمة الجماعية للدفعة 43.</>
+                    ) : locale === "en" ? (
+                      <>You are currently reading <strong>Juz {pageData?.juzNumber}</strong> for Cohort 43 Collective Khatam.</>
                     ) : (
-                      <>Anda sedang membaca <strong>Juz {pageData?.juzNumber}</strong> untuk Khataman Bersama Angkatan 43!</>
+                      <>Anda sedang membaca <strong>Juz {pageData?.juzNumber}</strong> untuk Khataman Bersama Angkatan 43.</>
                     )
                   ) : currentJuzAllocation.status === "available" ? (
-                    <><strong>Juz {pageData?.juzNumber}</strong> masih kosong di Khataman Angkatan. Ingin membaca dan mengklaimnya?</>
+                    locale === "ar" ? (
+                      <><strong>الجزء {pageData?.juzNumber}</strong> ما زال متاحاً في ختمة الدفعة. هل تود قراءته وحجزه؟</>
+                    ) : locale === "en" ? (
+                      <><strong>Juz {pageData?.juzNumber}</strong> is still available in Cohort Khatam. Want to read and claim it?</>
+                    ) : (
+                      <><strong>Juz {pageData?.juzNumber}</strong> masih kosong di Khataman Angkatan. Ingin membaca dan mengklaimnya?</>
+                    )
+                  ) : locale === "ar" ? (
+                    <><strong>الجزء {pageData?.juzNumber}</strong> مخصص لـ <strong>{currentJuzAllocation.user_name || "عضو الدفعة 43"}</strong> ({currentJuzAllocation.status === "completed" ? "مُتم" : "قيد القراءة"}).</>
+                  ) : locale === "en" ? (
+                    <><strong>Juz {pageData?.juzNumber}</strong> is assigned to <strong>{currentJuzAllocation.user_name || "Cohort 43 Member"}</strong> ({currentJuzAllocation.status === "completed" ? "Completed" : "Reading"}).</>
                   ) : (
                     <><strong>Juz {pageData?.juzNumber}</strong> dialokasikan untuk <strong>{currentJuzAllocation.user_name || "Sahabat 43"}</strong> ({currentJuzAllocation.status === "completed" ? "Sudah Khatam" : "Sedang Ditadarus"}).</>
                   )}
@@ -1096,8 +1120,14 @@ export default function QuranClient({
                   disabled={khatamLoadingJuz === currentJuzAllocation.juz_number}
                   onClick={() => handleKhatamAction("complete", currentJuzAllocation.juz_number)}
                 >
-                  <i className="fa-solid fa-check"></i>
-                  {khatamLoadingJuz === currentJuzAllocation.juz_number ? "Menyimpan..." : "Tandai Juz Selesai (+25 Poin)"}
+                  <i className="fa-solid fa-check" aria-hidden="true"></i>
+                  {khatamLoadingJuz === currentJuzAllocation.juz_number
+                    ? t.common.loading
+                    : locale === "ar"
+                    ? "تحديد الجزء كمكتمل (+25 نقطة)"
+                    : locale === "en"
+                    ? "Mark Juz Complete (+25 Pts)"
+                    : "Tandai Juz Selesai (+25 Poin)"}
                 </button>
               )}
 
@@ -1109,8 +1139,14 @@ export default function QuranClient({
                   disabled={khatamLoadingJuz === currentJuzAllocation.juz_number}
                   onClick={() => handleKhatamAction("claim", currentJuzAllocation.juz_number)}
                 >
-                  <i className="fa-solid fa-hand-holding-heart"></i>
-                  {khatamLoadingJuz === currentJuzAllocation.juz_number ? "Memproses..." : "Klaim Juz Ini"}
+                  <i className="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>
+                  {khatamLoadingJuz === currentJuzAllocation.juz_number
+                    ? t.common.loading
+                    : locale === "ar"
+                    ? "حجز هذا الجزء"
+                    : locale === "en"
+                    ? "Claim This Juz"
+                    : "Klaim Juz Ini"}
                 </button>
               )}
             </div>
@@ -2885,7 +2921,7 @@ export default function QuranClient({
                   const next = !isLoopingQueue;
                   isLoopingRef.current = next;
                   setIsLoopingQueue(next);
-                  showToast(next ? (locale === "ar" ? "🔁 تم تفعيل تكرار التلاوة" : locale === "en" ? "🔁 Continuous Repeat Active" : "🔁 Loop Murottal Aktif") : (locale === "ar" ? "➡️ تم إيقاف تكرار التلاوة" : locale === "en" ? "➡️ Continuous Repeat Inactive" : "➡️ Loop Murottal Nonaktif"));
+                  showToast(next ? (locale === "ar" ? "تم تفعيل تكرار التلاوة" : locale === "en" ? "Continuous Repeat Active" : "Loop Murottal Aktif") : (locale === "ar" ? "تم إيقاف تكرار التلاوة" : locale === "en" ? "Continuous Repeat Inactive" : "Loop Murottal Nonaktif"));
                 }}
                 title={isLoopingQueue ? (locale === "ar" ? "تكرار مستمر (مفعل)" : locale === "en" ? "Continuous Repeat (Active)" : "Ulangi Terus (Aktif)") : (locale === "ar" ? "تكرار مستمر (معطل)" : locale === "en" ? "Continuous Repeat (Inactive)" : "Ulangi Terus (Nonaktif)")}
               >
@@ -2907,20 +2943,27 @@ export default function QuranClient({
 
       {/* TAFSIR MODAL */}
       {showTafsirModal && (
-        <div className="quran-modal-overlay" onClick={() => setShowTafsirModal(false)}>
+        <div
+          className="quran-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={locale === "ar" ? "تفسير الآيات الكريمة" : locale === "en" ? "Quranic Tafsir Analysis" : "Tafsir Ringkas Kemenag RI"}
+          onClick={() => setShowTafsirModal(false)}
+        >
           <div className="quran-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="quran-modal-header">
               <div className="modal-title-group">
-                <i className="fa-solid fa-book-open-reader"></i>
+                <i className="fa-solid fa-book-open-reader" aria-hidden="true"></i>
                 <h3>{locale === "ar" ? "تفسير الآيات الكريمة" : locale === "en" ? "Quranic Tafsir Analysis" : "Tafsir Ringkas Kemenag RI"}</h3>
               </div>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setShowTafsirModal(false)}
+                aria-label={t.common.close}
                 title={t.common.close}
               >
-                <i className="fa-solid fa-xmark"></i>
+                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
               </button>
             </div>
             <div className="quran-modal-body">
@@ -2955,20 +2998,27 @@ export default function QuranClient({
 
       {/* BOOKMARKS MODAL */}
       {showBookmarksModal && (
-        <div className="quran-modal-overlay" onClick={() => setShowBookmarksModal(false)}>
+        <div
+          className="quran-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={locale === "ar" ? "الإشارات المرجعية والآيات المفضلة" : locale === "en" ? "Bookmarks & Favorite Verses" : "Bookmark & Ayat Favorit"}
+          onClick={() => setShowBookmarksModal(false)}
+        >
           <div className="quran-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="quran-modal-header">
               <div className="modal-title-group">
-                <i className="fa-solid fa-star gold-icon"></i>
+                <i className="fa-solid fa-star gold-icon" aria-hidden="true"></i>
                 <h3>{locale === "ar" ? "الإشارات المرجعية والآيات المفضلة" : locale === "en" ? "Bookmarks & Favorite Verses" : "Bookmark & Ayat Favorit"}</h3>
               </div>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setShowBookmarksModal(false)}
+                aria-label={t.common.close}
                 title={t.common.close}
               >
-                <i className="fa-solid fa-xmark"></i>
+                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
               </button>
             </div>
             <div className="quran-modal-body">

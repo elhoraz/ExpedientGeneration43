@@ -378,12 +378,15 @@ export default function VoiceNotePlayer({ audioUrl, isMine = false, initialDurat
             alignItems: "center",
             fontSize: "0.72rem",
             color: "var(--text-secondary, rgba(255, 255, 255, 0.6))",
-            fontFamily: "monospace",
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           <span>
             {errorMsg ? (
-              <span style={{ color: "#ff5555", fontSize: "0.65rem" }}>⚠ {errorMsg}</span>
+              <span style={{ color: "#ff5555", fontSize: "0.65rem" }}>
+                <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" style={{ marginRight: "4px" }}></i>
+                {errorMsg}
+              </span>
             ) : isPlaying || currentTime > 0 ? (
               formatTime(currentTime)
             ) : (

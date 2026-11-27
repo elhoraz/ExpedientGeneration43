@@ -64,9 +64,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
         const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
         if (targetEl && wrapper) {
           e.preventDefault();
+          const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
           wrapper.scrollTo({
             top: targetEl.offsetTop - 70,
-            behavior: "smooth",
+            behavior: reduceMotion ? "auto" : "smooth",
           });
         }
       }
@@ -165,10 +166,10 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(8);
               window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
             }}
-            title="Pencarian Instan (Ctrl+K)"
-            aria-label="Cari Cepat"
+            title={locale === "ar" ? "بحث سريع (Ctrl+K)" : locale === "en" ? "Quick Search (Ctrl+K)" : "Pencarian Instan (Ctrl+K)"}
+            aria-label={locale === "ar" ? "بحث سريع" : locale === "en" ? "Quick Search" : "Cari Cepat"}
           >
-            <i className="fa-solid fa-magnifying-glass"></i>
+            <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
           </button>
 
           {/* Desktop Language Switcher */}
@@ -184,14 +185,14 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
 
           {/* Secondary Action: Login */}
           <Link href="/login" className="nav-login-link" title={t?.hero?.cta_login}>
-            <i className="fa-solid fa-circle-user"></i>
+            <i className="fa-solid fa-circle-user" aria-hidden="true"></i>
             <span>{t?.nav?.login}</span>
           </Link>
 
           {/* Primary Action Button: Fitts's Law Distinct Golden CTA */}
           <Link href="/beranda" className="nav-btn-portal" id="navCtaExplore">
             <span>{t?.nav?.explore_museum}</span>
-            <i className="fa-solid fa-arrow-right"></i>
+            <i className={`fa-solid ${isRTL ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
           </Link>
 
           {/* Mobile Hamburger Button */}
@@ -204,7 +205,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             }}
             aria-label={t?.nav?.open_nav}
           >
-            <i className="fa-solid fa-bars-staggered"></i>
+            <i className="fa-solid fa-bars-staggered" aria-hidden="true"></i>
           </button>
         </div>
       </header>
@@ -241,7 +242,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             />
             {/* Interactive Stamp - Cap Resmi Pesantren Arrisalah */}
             <div className="tuku-interactive-stamp" title={t?.ticker?.stamp_title}>
-              <svg viewBox="0 0 100 100" className="stamp-svg-ring">
+              <svg style={{ direction: "ltr" }} viewBox="0 0 100 100" className="stamp-svg-ring" aria-hidden="true">
                 <path
                   id="stampCurvePath"
                   d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0"
@@ -274,9 +275,9 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               className="tuku-ig-link"
               title="Instagram Resmi Angkatan 43: @expedientgeneration_"
             >
-              <i className="fa-brands fa-instagram"></i>
-              <span className="tuku-ig-handle">@expedientgeneration_</span>
-              <span className="tuku-ig-sep">•</span>
+              <i className="fa-brands fa-instagram" aria-hidden="true"></i>
+              <span className="tuku-ig-handle" dir="ltr" style={{ unicodeBidi: "isolate" }}>@expedientgeneration_</span>
+              <span className="tuku-ig-sep" aria-hidden="true">•</span>
               <span className="tuku-ig-tag">Instagram</span>
             </a>
 
@@ -287,9 +288,9 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               className="tuku-ig-link tuku-yt-link"
               title="Kanal YouTube Resmi PG 643: @JiilulHashiif"
             >
-              <i className="fa-brands fa-youtube" style={{ color: "#ff3333" }}></i>
-              <span className="tuku-ig-handle">@JiilulHashiif</span>
-              <span className="tuku-ig-sep">•</span>
+              <i className="fa-brands fa-youtube" aria-hidden="true"></i>
+              <span className="tuku-ig-handle" dir="ltr" style={{ unicodeBidi: "isolate" }}>@JiilulHashiif</span>
+              <span className="tuku-ig-sep" aria-hidden="true">•</span>
               <span className="tuku-ig-tag">YouTube PG 643</span>
             </a>
           </div>
@@ -543,13 +544,13 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                 <h3 className="bento-title">{t?.ecosystem?.b1_title}</h3>
                 <p className="bento-desc">{t?.ecosystem?.b1_desc}</p>
                 <div className="bento-meta-strip">
-                  <span><i className="fa-solid fa-location-dot"></i> Slahung, Ponorogo</span>
-                  <span><i className="fa-solid fa-earth-asia"></i> 240+ Alumni Global</span>
+                  <span><i className="fa-solid fa-location-dot" aria-hidden="true"></i> Slahung, Ponorogo</span>
+                  <span><i className="fa-solid fa-earth-asia" aria-hidden="true"></i> {totalAlumni > 0 ? `${totalAlumni}+ ` : ""}{locale === "ar" ? "خريج حول العالم" : locale === "en" ? "Global Alumni" : "Alumni Global"}</span>
                 </div>
               </div>
               <div className="bento-action">
                 <Link href="/radar" className="bento-link">
-                  {t?.ecosystem?.b1_action} <i className="fa-solid fa-arrow-right"></i>
+                  {t?.ecosystem?.b1_action} <i className={`fa-solid ${isRTL ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
                 </Link>
               </div>
             </div>
@@ -558,7 +559,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             <TiltCard className="bento-card bento-kta-card">
               <div className="bento-foil-sheen" aria-hidden="true"></div>
               <div className="bento-badge">
-                <i className="fa-solid fa-id-card"></i>
+                <i className="fa-solid fa-id-card" aria-hidden="true"></i>
                 <span>{t?.ecosystem?.b2_badge}</span>
               </div>
               <div className="bento-content">
@@ -567,7 +568,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               </div>
               <div className="bento-action">
                 <Link href="/sovereign" className="bento-link">
-                  {t?.ecosystem?.b2_action} <i className="fa-solid fa-arrow-right"></i>
+                  {t?.ecosystem?.b2_action} <i className={`fa-solid ${isRTL ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
                 </Link>
               </div>
             </TiltCard>
@@ -575,7 +576,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             {/* Bento 3: Museum Digital */}
             <TiltCard className="bento-card">
               <div className="bento-badge">
-                <i className="fa-solid fa-landmark"></i>
+                <i className="fa-solid fa-landmark" aria-hidden="true"></i>
                 <span>{t?.ecosystem?.b3_badge}</span>
               </div>
               <div className="bento-content">
@@ -584,7 +585,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               </div>
               <div className="bento-action">
                 <Link href="/beranda" className="bento-link">
-                  {t?.ecosystem?.b3_action} <i className="fa-solid fa-arrow-right"></i>
+                  {t?.ecosystem?.b3_action} <i className={`fa-solid ${isRTL ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
                 </Link>
               </div>
             </TiltCard>
@@ -592,7 +593,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             {/* Bento 4: Baitul Maal & Sinergi */}
             <TiltCard className="bento-card bento-amal-card">
               <div className="bento-badge">
-                <i className="fa-solid fa-hand-holding-dollar"></i>
+                <i className="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i>
                 <span>{t?.ecosystem?.b4_badge}</span>
               </div>
               <div className="bento-content">
@@ -601,7 +602,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               </div>
               <div className="bento-action">
                 <Link href="/baitul-maal" className="bento-link">
-                  {t?.ecosystem?.b4_action} <i className="fa-solid fa-arrow-right"></i>
+                  {t?.ecosystem?.b4_action} <i className={`fa-solid ${isRTL ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
                 </Link>
               </div>
             </TiltCard>
@@ -609,7 +610,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             {/* Bento 5: Audio Lounge & Realtime */}
             <TiltCard className="bento-card">
               <div className="bento-badge">
-                <i className="fa-solid fa-headphones"></i>
+                <i className="fa-solid fa-headphones" aria-hidden="true"></i>
                 <span>{t?.ecosystem?.b5_badge}</span>
               </div>
               <div className="bento-content">
@@ -618,7 +619,7 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
               </div>
               <div className="bento-action">
                 <Link href="/chat/lounge" className="bento-link">
-                  {t?.ecosystem?.b5_action} <i className="fa-solid fa-arrow-right"></i>
+                  {t?.ecosystem?.b5_action} <i className={`fa-solid ${isRTL ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
                 </Link>
               </div>
             </TiltCard>
@@ -691,8 +692,8 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                   className="footer-ig-link"
                   title="Akun Instagram Resmi Angkatan 43: @expedientgeneration_"
                 >
-                  <i className="fa-brands fa-instagram"></i>
-                  <span>@expedientgeneration_</span>
+                  <i className="fa-brands fa-instagram" aria-hidden="true"></i>
+                  <span dir="ltr" style={{ unicodeBidi: "isolate" }}>@expedientgeneration_</span>
                   <span className="footer-ig-badge">Instagram</span>
                 </a>
 
@@ -703,8 +704,8 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
                   className="footer-ig-link footer-yt-link"
                   title="Kanal YouTube Resmi PG 643: @JiilulHashiif"
                 >
-                  <i className="fa-brands fa-youtube" style={{ color: "#ff3333" }}></i>
-                  <span>@JiilulHashiif</span>
+                  <i className="fa-brands fa-youtube" style={{ color: "#ff3333" }} aria-hidden="true"></i>
+                  <span dir="ltr" style={{ unicodeBidi: "isolate" }}>@JiilulHashiif</span>
                   <span className="footer-ig-badge footer-yt-badge">YouTube</span>
                 </a>
               </div>
@@ -743,11 +744,11 @@ export default function LandingContent({ totalAlumni, cms = [] }: LandingContent
             </div>
             <div className="footer-meta-links">
               <LanguageSwitcher variant="pill" />
-              <span>•</span>
+              <span aria-hidden="true">•</span>
               <Link href="/download">{locale === "ar" ? "تحميل التطبيق (Android & iOS)" : locale === "en" ? "Download App (Android & iOS)" : "Unduh Aplikasi (Android & iOS)"}</Link>
-              <span>•</span>
-              <Link href="/privacy">{t?.footer?.link_privacy || "Kebijakan Privasi"}</Link>
-              <span>•</span>
+              <span aria-hidden="true">•</span>
+              <Link href="/privacy">{t?.footer?.link_privacy || (locale === "ar" ? "سياسة الخصوصية" : locale === "en" ? "Privacy Policy" : "Kebijakan Privasi")}</Link>
+              <span aria-hidden="true">•</span>
               <Link href="/delete-account">{t?.footer?.link_delete_account || (locale === "ar" ? "حذف الحساب" : locale === "en" ? "Delete Account" : "Hapus Akun")}</Link>
             </div>
           </div>

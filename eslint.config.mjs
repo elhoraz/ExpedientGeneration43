@@ -21,12 +21,22 @@ const eslintConfig = [
     },
   },
   {
+    files: ["scripts/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
       "out/**",
       "build/**",
       "android/**",
+      "ios/**",
+      "public/**",
+      ".gemini/**",
+      "scratch/**",
       "next-env.d.ts",
     ],
   },

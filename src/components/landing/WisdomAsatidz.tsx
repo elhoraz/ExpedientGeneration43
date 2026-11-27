@@ -46,18 +46,20 @@ export default function WisdomAsatidz() {
       </div>
 
       {/* Interactive Category Filter Pills (Desktop & Mobile Swipeable) */}
-      <div className="wisdom-filter-track reveal-on-scroll">
+      <div className="wisdom-filter-track reveal-on-scroll" role="tablist" aria-label={t.wisdom_section.title}>
         {categories.map((cat) => (
           <button
             key={cat.id}
             type="button"
+            role="tab"
+            aria-selected={activeTab === cat.id}
             className={`wisdom-filter-btn ${activeTab === cat.id ? "active" : ""}`}
             onClick={() => {
               if (navigator.vibrate) navigator.vibrate(8);
               setActiveTab(cat.id);
             }}
           >
-            <i className={cat.icon}></i>
+            <i className={cat.icon} aria-hidden="true"></i>
             <span>{cat.label}</span>
           </button>
         ))}

@@ -156,15 +156,14 @@ export default function GlobalCallReceiver({ userId }: GlobalCallReceiverProps) 
   return (
     <div
       className="global-call-notification-banner"
+      role="alertdialog"
       style={{
         position: "fixed",
         top: "20px",
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 99999999,
-        background: "rgba(10, 17, 14, 0.96)",
-        backdropFilter: "blur(25px)",
-        WebkitBackdropFilter: "blur(25px)",
+        background: "rgba(10, 17, 14, 0.98)",
         border: "1.5px solid var(--gold-main, #d4af37)",
         borderRadius: "24px",
         padding: "14px 20px",

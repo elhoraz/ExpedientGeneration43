@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface VideoOption {
   id: string;
@@ -126,6 +127,7 @@ const VIDEO_PLAYLIST: VideoOption[] = [
 ];
 
 export default function HeritageVideoPlayer() {
+  const { locale } = useLanguage();
   const [activeCategory, setActiveCategory] = useState<"pg643" | "arrisalah">("pg643");
   const filteredPlaylist = VIDEO_PLAYLIST.filter((v) => v.category === activeCategory);
   
@@ -142,25 +144,56 @@ export default function HeritageVideoPlayer() {
     }
   };
 
+  const labels = {
+    categoryAria:
+      locale === "ar" ? "تصنيف الفيديو" : locale === "en" ? "Video Category" : "Kategori Video",
+    pgLabel:
+      locale === "ar" ? "إبداع PG 643" : locale === "en" ? "PG 643 Masterpiece" : "Mahakarya PG 643",
+    almaLabel:
+      locale === "ar" ? "معهد الرسالة" : locale === "en" ? "Arrisalah Alma Mater" : "Almamater Arrisalah",
+    playlistAria:
+      locale === "ar"
+        ? "قائمة مقاطع العروض والملف التعريفي"
+        : locale === "en"
+        ? "Performance and Profile Video Selection"
+        : "Pilihan Video Pagelaran & Profil",
+    channelPrefix: locale === "ar" ? "القناة:" : locale === "en" ? "Channel:" : "Kanal:",
+    watchYt:
+      locale === "ar" ? "افتح في يوتيوب" : locale === "en" ? "Open on YouTube" : "Buka di YouTube",
+    watchYtTitle:
+      locale === "ar"
+        ? "شاهد مباشرة على يوتيوب"
+        : locale === "en"
+        ? "Watch directly on YouTube"
+        : "Tonton langsung di YouTube",
+    officialPg:
+      locale === "ar"
+        ? "القناة الرسمية PG 643 (@JiilulHashiif)"
+        : locale === "en"
+        ? "Official PG 643 Channel (@JiilulHashiif)"
+        : "Kanal Resmi PG 643 (@JiilulHashiif)",
+    officialAlma:
+      locale === "ar" ? "قناة الرسالة TV" : locale === "en" ? "Arrisalah TV Channel" : "Kanal Arrisalah TV",
+  };
+
   return (
     <div className="heritage-video-card">
       {/* Header Card */}
       <div className="heritage-video-header">
         <div className="video-badge">
-          <span className="live-pulse-dot"></span>
-          <i className="fa-solid fa-play"></i>
+          <i className="fa-solid fa-play" aria-hidden="true"></i>
           <span>{active.badge}</span>
         </div>
 
         {/* Category Switcher Pill */}
-        <div className="heritage-category-switch" role="group" aria-label="Kategori Video">
+        <div className="heritage-category-switch" role="group" aria-label={labels.categoryAria}>
           <button
             type="button"
             className={`heritage-cat-btn ${activeCategory === "pg643" ? "active" : ""}`}
             onClick={() => handleCategoryChange("pg643")}
           >
-            <i className="fa-brands fa-youtube" style={{ color: "#ff3333" }}></i>
-            <span>Mahakarya PG 643</span>
+            <i className="fa-brands fa-youtube" aria-hidden="true"></i>
+            <span>{labels.pgLabel}</span>
             <span className="cat-counter">7</span>
           </button>
           <button
@@ -168,19 +201,19 @@ export default function HeritageVideoPlayer() {
             className={`heritage-cat-btn ${activeCategory === "arrisalah" ? "active" : ""}`}
             onClick={() => handleCategoryChange("arrisalah")}
           >
-            <i className="fa-solid fa-mosque"></i>
-            <span>Almamater Arrisalah</span>
+            <i className="fa-solid fa-mosque" aria-hidden="true"></i>
+            <span>{labels.almaLabel}</span>
             <span className="cat-counter">3</span>
           </button>
         </div>
 
         <span className="video-loc">
-          <i className="fa-solid fa-location-dot"></i> Desa Gundik, Slahung, Ponorogo
+          <i className="fa-solid fa-location-dot" aria-hidden="true"></i> Desa Gundik, Slahung, Ponorogo
         </span>
       </div>
 
       {/* Video Selector Tabs */}
-      <div className="heritage-video-tabs" role="tablist" aria-label="Pilihan Video Pagelaran & Profil">
+      <div className="heritage-video-tabs" role="tablist" aria-label={labels.playlistAria}>
         {filteredPlaylist.map((vid) => {
           const isActive = vid.id === active.id;
           return (
@@ -192,7 +225,7 @@ export default function HeritageVideoPlayer() {
               className={`heritage-tab-btn ${isActive ? "active" : ""}`}
               onClick={() => setSelectedId(vid.id)}
             >
-              <i className={vid.icon}></i>
+              <i className={vid.icon} aria-hidden="true"></i>
               <span>{vid.tabLabel}</span>
             </button>
           );
@@ -215,8 +248,8 @@ export default function HeritageVideoPlayer() {
       <div className="heritage-video-footer">
         <div className="video-meta-block">
           <div className="video-source-pill">
-            <i className="fa-solid fa-circle-check"></i>
-            <span>Kanal: {active.sourceLabel}</span>
+            <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <span>{labels.channelPrefix} {active.sourceLabel}</span>
           </div>
           <h4 className="video-meta-title">{active.title}</h4>
           <p className="video-desc">
@@ -230,10 +263,10 @@ export default function HeritageVideoPlayer() {
             target="_blank"
             rel="noopener noreferrer"
             className="video-action-btn btn-watch-yt"
-            title="Tonton langsung di YouTube"
+            title={labels.watchYtTitle}
           >
-            <i className="fa-solid fa-arrow-up-right-from-square"></i>
-            <span>Buka di YouTube</span>
+            <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            <span>{labels.watchYt}</span>
           </a>
 
           {/* Kanal Resmi Angkatan 43 (@JiilulHashiif) */}
@@ -242,10 +275,10 @@ export default function HeritageVideoPlayer() {
             target="_blank"
             rel="noopener noreferrer"
             className="video-action-btn btn-channel btn-channel-pg"
-            title="Kunjungi Kanal YouTube Resmi PG 643: @JiilulHashiif"
+            title={labels.officialPg}
           >
-            <i className="fa-brands fa-youtube"></i>
-            <span>Kanal Resmi PG 643 (@JiilulHashiif)</span>
+            <i className="fa-brands fa-youtube" aria-hidden="true"></i>
+            <span>{labels.officialPg}</span>
           </a>
 
           {/* Kanal Resmi Almamater */}
@@ -254,10 +287,10 @@ export default function HeritageVideoPlayer() {
             target="_blank"
             rel="noopener noreferrer"
             className="video-action-btn btn-channel"
-            title="Kunjungi Kanal YouTube Resmi Pondok Modern Arrisalah"
+            title={labels.officialAlma}
           >
-            <i className="fa-brands fa-youtube"></i>
-            <span>Kanal Arrisalah TV</span>
+            <i className="fa-brands fa-youtube" aria-hidden="true"></i>
+            <span>{labels.officialAlma}</span>
           </a>
         </div>
       </div>

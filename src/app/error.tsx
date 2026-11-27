@@ -37,7 +37,7 @@ export default function GlobalError({
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -50,15 +50,13 @@ export default function GlobalError({
     >
       <div
         style={{
-          background: "rgba(18, 10, 12, 0.8)",
-          border: "1px solid rgba(255, 51, 102, 0.3)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderRadius: "24px",
-          padding: "48px 36px",
+          background: "var(--bg-card, #0f141e)",
+          border: "1px solid var(--border-strong, rgba(220, 38, 38, 0.35))",
+          borderRadius: "20px",
+          padding: "44px 32px",
           maxWidth: "520px",
           width: "100%",
-          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 51, 102, 0.15)",
+          boxShadow: "var(--glass-shadow, 0 20px 50px rgba(0, 0, 0, 0.45))",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -67,37 +65,38 @@ export default function GlobalError({
       >
         <div
           style={{
-            width: "64px",
-            height: "64px",
-            borderRadius: "50%",
-            background: "rgba(255, 51, 102, 0.12)",
-            border: "1px solid rgba(255, 51, 102, 0.4)",
+            width: "60px",
+            height: "60px",
+            borderRadius: "16px",
+            background: "rgba(220, 38, 38, 0.12)",
+            border: "1px solid rgba(220, 38, 38, 0.35)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#ff3366",
-            fontSize: "1.8rem",
+            color: "#dc2626",
+            fontSize: "1.65rem",
           }}
+          aria-hidden="true"
         >
           <i className="fa-solid fa-triangle-exclamation"></i>
         </div>
 
-        <h2
+        <h1
           style={{
-            fontSize: "1.4rem",
-            color: "#ffffff",
+            fontSize: "1.45rem",
+            color: "var(--text-primary, #f8fafc)",
             fontWeight: 700,
             margin: 0,
-            fontFamily: "'Playfair Display', serif",
+            fontFamily: "var(--font-playfair, 'Playfair Display', serif)",
           }}
         >
           {locale === "ar" ? "حدث خطأ في النظام" : locale === "en" ? "System Encountered an Issue" : "Sistem Menemui Kendala"}
-        </h2>
+        </h1>
 
         <p
           style={{
-            color: "#8b9ba8",
-            fontSize: "0.88rem",
+            color: "var(--text-secondary, #94a3b8)",
+            fontSize: "0.9rem",
             lineHeight: 1.6,
             margin: 0,
             maxWidth: "400px",
@@ -123,38 +122,43 @@ export default function GlobalError({
           }}
         >
           <button
+            type="button"
             onClick={() => reset()}
             style={{
-              padding: "12px 24px",
-              borderRadius: "30px",
-              border: "1px solid rgba(255, 51, 102, 0.4)",
-              background: "rgba(255, 51, 102, 0.15)",
-              color: "#ff3366",
-              fontSize: "0.85rem",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "10px 22px",
+              borderRadius: "12px",
+              border: "1px solid rgba(220, 38, 38, 0.4)",
+              background: "rgba(220, 38, 38, 0.14)",
+              color: "#dc2626",
+              fontSize: "0.88rem",
               fontWeight: 700,
               cursor: "pointer",
-              transition: "all 0.3s ease",
             }}
           >
-            <i className="fa-solid fa-rotate-right" style={{ marginInlineEnd: "8px" }}></i>
+            <i className="fa-solid fa-rotate-right" aria-hidden="true" style={{ marginInlineEnd: "8px" }}></i>
             {locale === "ar" ? "إعادة تحميل الوحدة" : locale === "en" ? "Reload Module" : "Muat Ulang Modul"}
           </button>
 
           <Link
             href="/beranda"
             style={{
-              padding: "12px 28px",
-              borderRadius: "30px",
-              border: "1px solid rgba(212, 175, 55, 0.4)",
-              background: "rgba(212, 175, 55, 0.1)",
-              color: "#d4af37",
-              fontSize: "0.85rem",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "10px 24px",
+              borderRadius: "12px",
+              border: "1px solid var(--gold-main, #d4af37)",
+              background: "var(--gold-main, #d4af37)",
+              color: "#060b14",
+              fontSize: "0.88rem",
               fontWeight: 700,
               textDecoration: "none",
-              transition: "all 0.3s ease",
             }}
           >
-            <i className="fa-solid fa-landmark" style={{ marginInlineEnd: "8px" }}></i>
+            <i className="fa-solid fa-landmark" aria-hidden="true" style={{ marginInlineEnd: "8px" }}></i>
             {locale === "ar" ? "الصفحة الرئيسية" : locale === "en" ? "Home Page" : "Beranda Utama"}
           </Link>
         </div>

@@ -95,7 +95,13 @@ export default function NexusClient({ currentUser, otherProfiles }: { currentUse
                 const jaccard = intersection.length / union.size;
                 score += Math.round(jaccard * 60);
             } else {
-                score += Math.floor(Math.random() * 11) + 5; // 5 to 15
+                const targetDom = (target?.domisili || '').toLowerCase().trim();
+                const candDom = (candidate?.domisili || '').toLowerCase().trim();
+                if (targetDom && candDom && targetDom === candDom) {
+                    score += 12;
+                } else if (target?.divisi && candidate?.divisi && target.divisi === candidate.divisi) {
+                    score += 8;
+                }
             }
             
             return Math.min(score, 99);

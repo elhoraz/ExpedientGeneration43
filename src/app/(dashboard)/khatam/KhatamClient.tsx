@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import "./khatam.css";
 
 const ARABIC_NUMS = ["", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "١٠",
@@ -33,6 +34,7 @@ export default function KhatamClient({
   const [loadingJuz, setLoadingJuz] = useState<number | null>(null);
   const [showDoaModal, setShowDoaModal] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  useDialogEscape(showDoaModal, () => setShowDoaModal(false));
 
   // Statistics
   const completedCount = allocations.filter((a) => a.status === "completed").length;
@@ -380,15 +382,15 @@ export default function KhatamClient({
                   )}
 
                   {item.status === "reading" && !isMyJuz && (
-                    <div style={{ textAlign: "center", fontSize: "0.72rem", color: "#ffb300", padding: "6px 0" }}>
-                      <i className="fa-solid fa-hourglass-half" style={{ marginRight: "4px" }}></i>
+                    <div style={{ textAlign: "center", fontSize: "0.75rem", color: "var(--gold-main, #d4af37)", fontWeight: 600, padding: "6px 0" }}>
+                      <i className="fa-solid fa-hourglass-half" aria-hidden="true" style={{ marginInlineEnd: "4px" }}></i>
                       {t.khatam.under_reading}
                     </div>
                   )}
 
                   {item.status === "completed" && (
                     <div className="juz-completed-stamp">
-                      <i className="fa-solid fa-circle-check"></i>
+                      <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
                       {t.khatam.khatam_badge}
                     </div>
                   )}
@@ -401,14 +403,21 @@ export default function KhatamClient({
 
       {/* Doa Khatam Al-Qur'an Modal */}
       {showDoaModal && (
-        <div className="khatam-modal-backdrop" onClick={() => setShowDoaModal(false)}>
+        <div
+          className="khatam-modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.khatam.doa_title}
+          onClick={() => setShowDoaModal(false)}
+        >
           <div className="khatam-modal-box" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="btn-modal-close"
               onClick={() => setShowDoaModal(false)}
+              aria-label={t.common.close}
             >
-              <i className="fa-solid fa-xmark"></i>
+              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
             </button>
 
             <div className="modal-header-text">

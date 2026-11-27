@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { broadcastWhatsAppMessage } from "@/lib/whatsapp";
 import Link from "next/link";
 import AdminLockBtn from "../../AdminLockBtn";
+import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
 import "../admin.css";
 
 export const metadata = {
@@ -41,7 +42,7 @@ async function addEvent(formData: FormData) {
 
       const waTargets = profiles.map(p => p.no_whatsapp).filter(Boolean);
       if (waTargets.length > 0) {
-        const waMessage = `📅 *Undangan Acara Baru*\n\n*${title}*\nTanggal: ${new Date(event_date).toLocaleString("id-ID")}\n\n${description ? `Detail: ${description}\n\n` : ''}Jangan lewatkan acara ini. Silakan cek detailnya di Sovereign Nexus.`;
+        const waMessage = `Undangan Acara Baru\n\n*${title}*\nTanggal: ${new Date(event_date).toLocaleString("id-ID")}\n\n${description ? `Detail: ${description}\n\n` : ''}Jangan lewatkan acara ini. Silakan cek detailnya di Expedient Generation 43.`;
         await broadcastWhatsAppMessage(waTargets as string[], waMessage);
       }
     }
@@ -82,8 +83,8 @@ export default async function EventsPage() {
           <AdminLockBtn />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(106, 90, 205, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", color: "#8a2be2" }}>
-                <i className="fa-solid fa-calendar-star"></i>
+            <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(212, 175, 55, 0.14)", border: "1px solid rgba(212, 175, 55, 0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", color: "#d4af37" }}>
+                <i className="fa-solid fa-calendar-days"></i>
             </div>
             <div>
                 <h1 className="admin-title" style={{ marginBottom: "0", fontSize: "1.4rem" }}>Event Manager</h1>
@@ -100,7 +101,7 @@ export default async function EventsPage() {
 
       <div className="form-panel" style={{ marginBottom: "35px" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", margin: "0 0 16px 0", display: "flex", alignItems: "center", gap: "10px" }}>
-          <i className="fa-solid fa-calendar-plus" style={{ color: "#8a2be2" }}></i> Tambah Acara Baru
+          <i className="fa-solid fa-calendar-plus" style={{ color: "#d4af37" }}></i> Tambah Acara Baru
         </h2>
         <form action={addEvent} style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 200px" }}>
@@ -116,7 +117,7 @@ export default async function EventsPage() {
             <input type="text" name="description" placeholder="Deskripsi atau lokasi acara..." style={{ width: "100%", padding: "10px 14px", background: "var(--bg-secondary)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }} />
           </div>
           <div style={{ flex: "1 1 140px" }}>
-            <button type="submit" style={{ width: "100%", padding: "10px 16px", background: "linear-gradient(135deg, #8a2be2, #4b0082)", border: "none", color: "#fff", borderRadius: "10px", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", letterSpacing: "1px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }} className="hover-trigger">
+            <button type="submit" style={{ width: "100%", minHeight: "44px", padding: "10px 16px", background: "linear-gradient(135deg, #d4af37, #aa8529)", border: "none", color: "#0b1410", borderRadius: "10px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", letterSpacing: "0.5px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }} className="hover-trigger">
                <i className="fa-solid fa-paper-plane"></i> Publikasikan
             </button>
           </div>
@@ -131,7 +132,7 @@ export default async function EventsPage() {
           <h2 style={{ fontSize: "1rem", margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "10px" }}>
             <i className="fa-solid fa-list-ul" style={{ color: "var(--text-secondary)" }}></i> Daftar Agenda Acara
           </h2>
-          <span style={{ background: "rgba(138,43,226,0.15)", color: "#8a2be2", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700 }}>
+          <span style={{ background: "rgba(212,175,55,0.14)", color: "#d4af37", border: "1px solid rgba(212,175,55,0.28)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700 }}>
             {events?.length || 0} Total
           </span>
         </div>
@@ -157,7 +158,7 @@ export default async function EventsPage() {
                     <tr key={e.id} style={{ opacity: isPast ? 0.6 : 1 }}>
                       <td>
                         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                           <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: isPast ? "rgba(255,255,255,0.05)" : "rgba(138,43,226,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: isPast ? "#666" : "#8a2be2" }}>
+                           <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: isPast ? "rgba(255,255,255,0.05)" : "rgba(212,175,55,0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: isPast ? "var(--text-muted)" : "#d4af37" }}>
                              <i className="fa-regular fa-calendar"></i>
                            </div>
                            <div>
@@ -179,14 +180,20 @@ export default async function EventsPage() {
                       </td>
                       <td>
                         <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
-                          <Link href={`/admin/events/${e.id}/manage`} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-primary)", width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.2s" }} className="hover-trigger" title="Kehadiran / Tiket">
+                          <Link href={`/admin/events/${e.id}/manage`} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-primary)", width: "44px", height: "44px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.2s" }} className="hover-trigger" title="Kehadiran / Tiket" aria-label={`Kelola tiket ${e.title}`}>
                             <i className="fa-solid fa-users-viewfinder"></i>
                           </Link>
                           <form action={deleteEvent}>
                             <input type="hidden" name="id" value={e.id} />
-                            <button type="submit" style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", color: "#ff3366", width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} className="hover-trigger" title="Hapus Acara">
+                            <ConfirmSubmitButton
+                              title="Hapus Acara"
+                              message={`Yakin ingin menghapus acara "${e.title}" beserta seluruh tiketnya?`}
+                              style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", color: "#ff3366", width: "44px", height: "44px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }}
+                              className="hover-trigger"
+                              buttonTitle={`Hapus acara ${e.title}`}
+                            >
                               <i className="fa-solid fa-trash-can"></i>
-                            </button>
+                            </ConfirmSubmitButton>
                           </form>
                         </div>
                       </td>
@@ -205,7 +212,7 @@ export default async function EventsPage() {
                   <div key={e.id} className="ann-mobile-card" style={{ opacity: isPast ? 0.65 : 1 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "10px" }}>
                       <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>{e.title}</div>
-                      <span style={{ fontSize: "0.65rem", padding: "2px 8px", borderRadius: "10px", background: isPast ? "rgba(255,255,255,0.05)" : "rgba(138,43,226,0.15)", color: isPast ? "#888" : "#8a2be2", fontWeight: 700 }}>
+                      <span style={{ fontSize: "0.65rem", padding: "2px 8px", borderRadius: "10px", background: isPast ? "rgba(255,255,255,0.05)" : "rgba(212,175,55,0.15)", color: isPast ? "var(--text-muted)" : "#d4af37", fontWeight: 700 }}>
                         {isPast ? "Selesai" : "Akan Datang"}
                       </span>
                     </div>
@@ -227,9 +234,15 @@ export default async function EventsPage() {
                       </Link>
                       <form action={deleteEvent}>
                         <input type="hidden" name="id" value={e.id} />
-                        <button type="submit" className="btn-action btn-delete-action hover-trigger" style={{ padding: "8px 12px" }}>
+                        <ConfirmSubmitButton
+                          title="Hapus Acara"
+                          message={`Yakin ingin menghapus acara "${e.title}"?`}
+                          className="btn-action btn-delete-action hover-trigger"
+                          style={{ padding: "8px 12px", minWidth: "44px", minHeight: "44px" }}
+                          buttonTitle={`Hapus acara ${e.title}`}
+                        >
                           <i className="fa-solid fa-trash-can"></i>
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
                     </div>
                   </div>

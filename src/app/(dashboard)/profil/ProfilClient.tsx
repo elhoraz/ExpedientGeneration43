@@ -10,6 +10,7 @@ import { getGelar, getBadgeColor, getGelarIcon } from "@/lib/gamification";
 import { getAvatarUrl } from "@/lib/avatar";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { useCms } from "@/components/layout/CmsProvider";
+import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import "./profil.css";
@@ -63,6 +64,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const router = useRouter();
   const supabase = createClient();
   const { t } = useCms();
+  const { showConfirm } = useConfirm();
   const { t: tLang, locale } = useLanguage();
 
   // UX-02: Progressive disclosure completeness percentage calculation
@@ -290,7 +292,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       }
       setCroppedAvatarFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      
+
       // Log activity safely
       try {
         await supabase.from("activity_logs").insert([{
@@ -419,7 +421,9 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   };
 
   const handleDeleteBiometric = async (id: string) => {
-    if (!confirm(tLang.profil.confirm_delete_biometric || (locale === 'ar' ? 'هل أنت متأكد من حذف هذه البصمة البيومترية؟' : locale === 'en' ? 'Are you sure you want to remove this biometric credential?' : 'Apakah Anda yakin ingin menghapus kredensial biometrik ini?'))) return;
+    const confirmTitle = locale === 'ar' ? 'حذف البصمة' : locale === 'en' ? 'Remove Biometric' : 'Hapus Biometrik';
+    const confirmBody = tLang.profil.confirm_delete_biometric || (locale === 'ar' ? 'هل أنت متأكد من حذف هذه البصمة البيومترية؟' : locale === 'en' ? 'Are you sure you want to remove this biometric credential?' : 'Apakah Anda yakin ingin menghapus kredensial biometrik ini?');
+    if (!(await showConfirm(confirmTitle, confirmBody))) return;
     try {
       setDeletingBioId(id);
       const { error } = await supabase
@@ -446,7 +450,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       showToast(locale === 'ar' ? 'يرجى إدخال كلمة المرور للتأكيد' : locale === 'en' ? 'Confirmation password required' : 'Sandi konfirmasi harus diisi.', "error");
       return;
     }
-    
+
     setDeletingAccount(true);
 
     try {
@@ -537,530 +541,530 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
 
   return (
     <main className="profil-wrapper">
-        {/* TOAST NOTIFICATION */}
-        {toast && (
-          <div style={{
-            position: "fixed", top: "30px", left: "50%", transform: "translateX(-50%)", zIndex: 99999,
-            background: "var(--glass-bg)",
-            backdropFilter: "blur(20px)", border: `1px solid ${toast.type === "error" ? "rgba(255,50,50,0.4)" : "rgba(212,175,55,0.4)"}`,
-            borderRadius: "16px", padding: "15px 30px", color: "var(--text-primary)", fontSize: "0.85rem",
-            boxShadow: "0 20px 50px rgba(0,0,0,0.5)", display: "flex", alignItems: "center", gap: "10px",
-            animation: "fadeInUp 0.5s ease-out",
-            maxWidth: "calc(100vw - 32px)",
-            boxSizing: "border-box"
-          }}>
-            <i className={`fa-solid ${toast.type === "error" ? "fa-circle-exclamation" : "fa-circle-check"}`} style={{ color: toast.type === "error" ? "#ff5555" : "var(--gold-premium, #d4af37)" }}></i>
-            {toast.msg}
-          </div>
-        )}
+      {/* TOAST NOTIFICATION */}
+      {toast && (
+        <div style={{
+          position: "fixed", top: "30px", left: "50%", transform: "translateX(-50%)", zIndex: 99999,
+          background: "var(--bg-card, #101622)",
+          border: `1px solid ${toast.type === "error" ? "rgba(255,50,50,0.4)" : "rgba(212,175,55,0.4)"}`,
+          borderRadius: "16px", padding: "15px 30px", color: "var(--text-primary)", fontSize: "0.85rem",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.5)", display: "flex", alignItems: "center", gap: "10px",
+          animation: "fadeInUp 0.5s ease-out",
+          maxWidth: "calc(100vw - 32px)",
+          boxSizing: "border-box"
+        }}>
+          <i className={`fa-solid ${toast.type === "error" ? "fa-circle-exclamation" : "fa-circle-check"}`} style={{ color: toast.type === "error" ? "#ff5555" : "var(--gold-premium, #d4af37)" }}></i>
+          {toast.msg}
+        </div>
+      )}
 
-        {/* PROFIL ALUMNI */}
-        <div className="control-panel" id="controlPanel">
-            
-            <div className="nav-actions stagger-item">
-                <Link href="/fitur" className="action-btn cursor-bind"><i className="fa-solid fa-arrow-left-long"></i> {locale === 'id' ? t('profil_btn_back', tLang.profil.btn_back) : tLang.profil.btn_back}</Link>
-                <Link href="/chat" className="action-btn cursor-bind" style={{ background: "rgba(212,175,55,0.1)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)" }}><i className="fa-solid fa-envelope"></i> {locale === 'id' ? t('profil_btn_chat', tLang.profil.btn_chat) : tLang.profil.btn_chat}</Link>
-                <button className="action-btn btn-danger cursor-bind" onClick={handleLogout}><i className="fa-solid fa-power-off"></i> {locale === 'id' ? t('profil_btn_logout', tLang.profil.btn_logout) : tLang.profil.btn_logout}</button>
-            </div>
+      {/* PROFIL ALUMNI */}
+      <div className="control-panel" id="controlPanel">
 
-            <div className="dashboard-header stagger-item">
-                <h1 className="dashboard-title">{locale === 'id' ? t('profil_title', tLang.profil.title) : tLang.profil.title}</h1>
-                <p className="dashboard-subtitle">{locale === 'id' ? t('profil_subtitle', tLang.profil.subtitle) : tLang.profil.subtitle}</p>
-                
-                <div className="profil-prestise-badge">
-                    <div style={{ background: badgeColor, padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold", color: "#fff", textTransform: "uppercase", letterSpacing: "1px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" }}>
-                        <i className={badgeIcon} style={{ marginRight: "5px" }}></i> {gelar}
-                    </div>
-                    <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: "var(--gold-premium, #d4af37)", fontWeight: "bold", whiteSpace: "nowrap" }}>
-                        {points.toLocaleString()} <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "1px", marginLeft: "3px" }}>PRESTISE</span>
-                    </span>
-                </div>
-            </div>
-
-            {/* TAB SWITCHER (KHUSUS MOBILE SCREEN < 900PX, HILANG DI DESKTOP) */}
-            <div className="profil-tabs-nav">
-              <button
-                type="button"
-                className={`action-btn ${profileTab === "identitas" ? "active-tab" : ""}`}
-                onClick={() => handleTabChange("identitas")}
-                style={{
-                  background: profileTab === "identitas" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
-                  color: profileTab === "identitas" ? "#000" : "var(--text-primary)",
-                  borderColor: profileTab === "identitas" ? "var(--gold-premium, #d4af37)" : "var(--glass-border)",
-                }}
-              >
-                <i className="fa-regular fa-id-card"></i> {tLang.profil.tab_identity}
-              </button>
-              <button
-                type="button"
-                className={`action-btn ${profileTab === "keamanan" ? "active-tab" : ""}`}
-                onClick={() => handleTabChange("keamanan")}
-                style={{
-                  background: profileTab === "keamanan" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
-                  color: profileTab === "keamanan" ? "#000" : "var(--text-primary)",
-                  borderColor: profileTab === "keamanan" ? "var(--gold-premium, #d4af37)" : "var(--glass-border)",
-                }}
-              >
-                <i className="fa-solid fa-sliders"></i> {tLang.profil.tab_security_lang}
-              </button>
-            </div>
-
-            <div className="profil-grid tilt-container" data-tab={profileTab}>
-                
-                {/* KOLOM KIRI: EDIT PROFIL */}
-                <div className="premium-panel stagger-item parallax-card">
-                    <h2 className="panel-title"><i className="fa-regular fa-id-card"></i> {tLang.profil.step1}</h2>
-                    
-                    <form onSubmit={handleProfileSubmit} id="formUpdateProfile" noValidate>
-
-                        {/* WIZARD PROGRESS & STEPPERS (UX-02) */}
-                        <div className="wizard-stepper-container">
-                            <div className="wizard-progress-track">
-                                <div 
-                                    className="wizard-progress-fill" 
-                                    style={{ width: `${profileCompleteness}%` }}
-                                ></div>
-                            </div>
-                            <div className="wizard-progress-header">
-                                <span className="wizard-progress-label">
-                                    <i className="fa-solid fa-chart-pie" style={{ marginRight: "6px", color: "var(--gold-premium, #d4af37)" }}></i>
-                                    {tLang.profil.completeness}
-                                </span>
-                                <span className="wizard-progress-badge">
-                                    {profileCompleteness}% • {profileCompleteness === 100 ? tLang.profil.completeness_perfect : profileCompleteness >= 75 ? tLang.profil.completeness_great : profileCompleteness >= 50 ? tLang.profil.completeness_good : tLang.profil.completeness_needs_work}
-                                </span>
-                            </div>
-
-                            <div className="wizard-tabs">
-                                <button
-                                    type="button"
-                                    className={`wizard-tab-btn cursor-bind ${wizardStep === 1 ? "active" : ""} ${profileCompleteness >= 33 ? "completed" : ""}`}
-                                    onClick={() => setWizardStep(1)}
-                                    aria-label="Identitas Personal"
-                                >
-                                    <span className="step-num">1</span>
-                                    <span className="step-title">{tLang.profil.step1}</span>
-                                </button>
-                                <div className="wizard-tab-line"></div>
-                                <button
-                                    type="button"
-                                    className={`wizard-tab-btn cursor-bind ${wizardStep === 2 ? "active" : ""} ${profileCompleteness >= 66 ? "completed" : ""}`}
-                                    onClick={() => setWizardStep(2)}
-                                    aria-label="Kontak & Domisili"
-                                >
-                                    <span className="step-num">2</span>
-                                    <span className="step-title">{tLang.profil.step2}</span>
-                                </button>
-                                <div className="wizard-tab-line"></div>
-                                <button
-                                    type="button"
-                                    className={`wizard-tab-btn cursor-bind ${wizardStep === 3 ? "active" : ""} ${profileCompleteness === 100 ? "completed" : ""}`}
-                                    onClick={() => setWizardStep(3)}
-                                    aria-label="Visi & Sosial"
-                                >
-                                    <span className="step-num">3</span>
-                                    <span className="step-title">{tLang.profil.step3}</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* STEP 1: Identitas Personal */}
-                        <div className="wizard-step-section" style={{ display: wizardStep === 1 ? "block" : "none" }}>
-                            <div className="photo-upload-wrapper">
-                                <div className="magnetic-avatar cursor-bind" id="magAvatar">
-                                    <img src={avatarPreviewSrc} className="avatar-preview" id="avatarPreview" alt="Profil" />
-                                </div>
-                                <div>
-                                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "15px" }}>{tLang.profil.photo_official_label}</div>
-                                    <div className="magnetic-btn-wrap" id="magBtnWrap">
-                                        <label className="upload-btn-ui cursor-bind" id="magBtn" htmlFor="inputFileImg">
-                                            {tLang.profil.photo_choose_btn}
-                                        </label>
-                                    </div>
-                                    <input type="file" id="inputFileImg" ref={fileInputRef} accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
-                                    <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginTop: "5px" }}>{tLang.profil.photo_hd_hint}</div>
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <input type="text" name="nama_panggilan" className="form-input" id="inp_panggilan" placeholder=" " defaultValue={user.nama_panggilan || ""} />
-                                <label className="form-label" htmlFor="inp_panggilan">{tLang.profil.nickname_field_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-
-                            <div className="form-group">
-                                <input type="text" name="nama_lengkap" className="form-input" id="inp_lengkap" placeholder=" " defaultValue={user.nama_lengkap || ""} />
-                                <label className="form-label" htmlFor="inp_lengkap">{tLang.profil.fullname_field_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-
-                            <div className="form-group">
-                                <input type="email" name="email" className="form-input" id="inp_email" placeholder=" " defaultValue={user.email || ""} />
-                                <label className="form-label" htmlFor="inp_email">{tLang.profil.email_field_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-                        </div>
-
-                        {/* STEP 2: KONTAK & DOMISILI */}
-                        <div className="wizard-step-section" style={{ display: wizardStep === 2 ? "block" : "none" }}>
-                            <div className="form-group">
-                                <input type="tel" name="no_whatsapp" className="form-input" id="inp_wa" placeholder=" " defaultValue={user.no_whatsapp || ""} />
-                                <label className="form-label" htmlFor="inp_wa">{tLang.profil.wa_field_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.2)", borderRadius: "16px", padding: "16px 20px", marginBottom: "24px" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
-                                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(37,211,102,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#25d366", fontSize: "1rem", flexShrink: 0 }}>
-                                        <i className="fa-brands fa-whatsapp"></i>
-                                    </div>
-                                    <div>
-                                        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "0.5px" }}>{tLang.profil.wa_notif_title}</div>
-                                        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "2px" }}>{tLang.profil.wa_notif_desc}</div>
-                                    </div>
-                                </div>
-                                <label className="wa-toggle-switch" style={{ position: "relative", display: "inline-block", width: "48px", height: "26px", flexShrink: 0, cursor: "pointer" }}>
-                                    <input type="checkbox" name="wa_notif_opt_in" id="waToggle" value="1" style={{ opacity: 0, width: 0, height: 0 }} checked={waOptIn} onChange={(e) => setWaOptIn(e.target.checked)} />
-                                    <span style={{ position: "absolute", inset: 0, background: waOptIn ? "#25d366" : "var(--glass-border)", borderRadius: "26px", transition: "0.3s", border: "1px solid var(--glass-border)" }} id="waToggleTrack">
-                                        <span style={{ position: "absolute", height: "20px", width: "20px", left: "3px", bottom: "2px", background: "var(--bg-main)", borderRadius: "50%", transition: "0.3s", transform: waOptIn ? "translateX(22px)" : "translateX(0)", boxShadow: "0 2px 5px rgba(0,0,0,0.2)" }} id="waToggleThumb"></span>
-                                    </span>
-                                </label>
-                            </div>
-
-                            <div className="form-group">
-                                <textarea name="alamat_lengkap" className="form-input" id="inp_alamat" placeholder=" " defaultValue={user.alamat_lengkap || ""}></textarea>
-                                <label className="form-label" htmlFor="inp_alamat">{tLang.profil.address_field_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-                        </div>
-
-                        {/* STEP 3: VISI & SOSIAL */}
-                        <div className="wizard-step-section" style={{ display: wizardStep === 3 ? "block" : "none" }}>
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <input type="text" name="akun_ig" className="form-input" id="inp_ig" placeholder=" " defaultValue={user.akun_ig || ""} />
-                                    <label className="form-label" htmlFor="inp_ig">{tLang.profil.ig_field_label}</label>
-                                    <div className="liquid-line"></div>
-                                </div>
-                                <div className="form-group">
-                                    <input type="text" name="akun_tiktok" className="form-input" id="inp_tt" placeholder=" " defaultValue={user.akun_tiktok || ""} />
-                                    <label className="form-label" htmlFor="inp_tt">{tLang.profil.tiktok_field_label}</label>
-                                    <div className="liquid-line"></div>
-                                </div>
-                            </div>
-
-                            <div className="form-group">
-                                <textarea name="motivasi_hidup" className="form-input" id="inp_motivasi" placeholder=" " defaultValue={user.motivasi_hidup || ""}></textarea>
-                                <label className="form-label" htmlFor="inp_motivasi">{tLang.profil.vision_field_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-                            
-                            <div className="form-group">
-                                <input type="text" name="cita_cita" className="form-input" id="inp_cita" placeholder=" " defaultValue={user.cita_cita || ""} />
-                                <label className="form-label" htmlFor="inp_cita">{tLang.profil.aspiration_field_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-                        </div>
-
-                        {/* WIZARD NAVIGATION FOOTER */}
-                        <div className="wizard-nav-footer">
-                            {wizardStep > 1 ? (
-                                <button
-                                    type="button"
-                                    onClick={() => setWizardStep((prev) => (prev - 1) as any)}
-                                    className="action-btn cursor-bind"
-                                    style={{ gap: "8px" }}
-                                >
-                                    <i className="fa-solid fa-arrow-left"></i> {tLang.common.back}
-                                </button>
-                            ) : <div></div>}
-
-                            <div className="wizard-nav-btn-group">
-                                {wizardStep < 3 && (
-                                    <button
-                                        type="button"
-                                        onClick={handleNextStep}
-                                        className="action-btn cursor-bind"
-                                        style={{ background: "rgba(212,175,55,0.15)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)", gap: "8px" }}
-                                    >
-                                        {tLang.common.next} <i className="fa-solid fa-arrow-right"></i>
-                                    </button>
-                                )}
-                                <button type="submit" className="btn-submit cursor-bind" disabled={saving}>
-                                    {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.profil.saving_btn}</> : tLang.profil.save_btn}
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-
-                {/* KOLOM KANAN: PROTOKOL KEAMANAN & PREFERENSI */}
-                <div className="premium-panel stagger-item parallax-card">
-                    {/* PREFERENSI BAHASA / LANGUAGE PREFERENCE */}
-                    <div style={{ marginBottom: "35px", paddingBottom: "25px", borderBottom: "1px solid var(--glass-border)" }}>
-                        <h2 className="panel-title" style={{ marginBottom: "8px" }}>
-                            <i className="fa-solid fa-language"></i> {tLang.profil.lang_preference_title}
-                        </h2>
-                        <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
-                            {tLang.profil.lang_preference_desc}
-                        </p>
-                        <LanguageSwitcher variant="cards" />
-                        <div className="profil-utility-links">
-                            <button
-                                type="button"
-                                className="profil-guide-trigger cursor-bind"
-                                onClick={() => window.dispatchEvent(new CustomEvent("expedient-open-guide"))}
-                            >
-                                <i className="fa-solid fa-circle-question"></i>
-                                <span>{tLang.command_palette.commands.help_guide}</span>
-                            </button>
-                            <Link href="/panduan" className="profil-guide-trigger cursor-bind">
-                                <i className="fa-solid fa-book-open"></i>
-                                <span>{tLang.command_palette.commands.panduan}</span>
-                            </Link>
-                        </div>
-                    </div>
-
-                    <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> {tLang.profil.biometric_title}</h2>
-                    
-                    <div className="bio-status-box" style={{
-                      borderColor: biometricsList.length > 0 ? "rgba(0, 200, 83, 0.3)" : "rgba(212, 175, 55, 0.3)",
-                      background: biometricsList.length > 0 ? "rgba(0, 200, 83, 0.04)" : "rgba(212, 175, 55, 0.04)"
-                    }}>
-                        <i className={`fa-solid ${biometricsList.length > 0 ? "fa-shield-halved" : "fa-fingerprint"}`} style={{
-                          color: biometricsList.length > 0 ? "#00c853" : "var(--gold-premium, #d4af37)"
-                        }}></i>
-                        <div className="bio-status-title" style={{ color: biometricsList.length > 0 ? "#00c853" : "var(--gold-premium, #d4af37)" }}>
-                          {biometricsList.length > 0 ? tLang.profil.biometric_active : tLang.profil.biometric_inactive}
-                        </div>
-                        <div className="bio-status-desc">
-                          {biometricsList.length > 0 
-                            ? `${biometricsList.length} ${tLang.profil.biometric_active}` 
-                            : tLang.profil.biometric_desc}
-                        </div>
-                    </div>
-
-                    <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", margin: "35px 0 18px 0" }}>{tLang.profil.biometric_title}</div>
-                    
-                    {biometricsList.length > 0 ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-                        <div style={{ 
-                          background: "rgba(0, 200, 83, 0.06)", 
-                          border: "1px solid rgba(0, 200, 83, 0.25)", 
-                          borderRadius: "16px", 
-                          padding: "18px 20px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "15px"
-                        }}>
-                          <div style={{ 
-                            width: "42px", 
-                            height: "42px", 
-                            borderRadius: "12px", 
-                            background: "rgba(0, 200, 83, 0.15)", 
-                            display: "flex", 
-                            alignItems: "center", 
-                            justifyContent: "center",
-                            fontSize: "1.2rem",
-                            color: "#00c853",
-                            flexShrink: 0
-                          }}>
-                            <i className="fa-solid fa-circle-check"></i>
-                          </div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ color: "#00c853", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.5px" }}>
-                              {tLang.profil.biometric_active}
-                            </div>
-                            <div style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginTop: "2px" }}>
-                              {biometricsList.length} perangkat terdaftar
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* List of devices */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                          {biometricsList.map((bio, index) => (
-                            <div key={bio.id || index} style={{ 
-                              background: "rgba(255, 255, 255, 0.03)", 
-                              border: "1px solid var(--glass-border)", 
-                              borderRadius: "12px", 
-                              padding: "12px 16px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              gap: "12px"
-                            }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                                <i className="fa-solid fa-fingerprint" style={{ color: "var(--gold-premium, #d4af37)", fontSize: "1.1rem" }}></i>
-                                <div>
-                                  <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)" }}>
-                                    Passkey #{index + 1}
-                                  </div>
-                                  <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
-                                    {bio.created_at ? new Date(bio.created_at).toLocaleDateString() : "Aktif"}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <button 
-                                type="button"
-                                onClick={() => handleDeleteBiometric(bio.id)}
-                                disabled={deletingBioId === bio.id}
-                                title="Hapus perangkat"
-                                style={{
-                                  background: "rgba(255, 51, 102, 0.1)",
-                                  border: "1px solid rgba(255, 51, 102, 0.3)",
-                                  color: "#ff3366",
-                                  padding: "6px 12px",
-                                  borderRadius: "8px",
-                                  fontSize: "0.7rem",
-                                  cursor: "pointer",
-                                  transition: "0.2s"
-                                }}
-                              >
-                                {deletingBioId === bio.id ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <><i className="fa-solid fa-trash-can" style={{ marginRight: "4px" }}></i> {tLang.common.delete || "Hapus"}</>}
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-
-                        <button 
-                          className="btn-passkey cursor-bind" 
-                          onClick={handleRegisterBiometric} 
-                          disabled={registeringBio}
-                          style={{ marginTop: "10px" }}
-                        >
-                          {registeringBio ? (
-                            <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</>
-                          ) : (
-                            <><i className="fa-solid fa-plus" style={{ marginRight: "5px" }}></i> {tLang.profil.biometric_btn_add}</>
-                          )}
-                        </button>
-                      </div>
-                    ) : (
-                      <div id="bioOptionsBox">
-                        <button 
-                          className="btn-passkey cursor-bind" 
-                          onClick={handleRegisterBiometric} 
-                          disabled={registeringBio}
-                        >
-                          {registeringBio ? (
-                            <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</>
-                          ) : (
-                            <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> {tLang.profil.biometric_btn_auth}</>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                    
-                    <div id="bioStatus" style={{ marginTop: "20px", fontSize: "0.75rem", color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.6 }}>
-                        {tLang.profil.biometric_desc}
-                    </div>
-                    
-                    <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid var(--glass-border)", textAlign: "center" }}>
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px" }}>{tLang.profil.kta_link}</div>
-                        <Link href="/sovereign" className="cursor-bind" style={{ color: "var(--gold-premium)", textDecoration: "none", fontSize: "0.85rem", display: "inline-block", marginTop: "15px", fontWeight: 600, letterSpacing: "2px" }}><i className="fa-solid fa-id-card" style={{ marginRight: "8px" }}></i> {tLang.profil.kta_link}</Link>
-                    </div>
-
-                    {/* ========= CHANGE PASSWORD SECTION ========= */}
-                    <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid var(--glass-border)" }}>
-                        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "var(--text-primary)", marginBottom: "20px" }}>
-                            <i className="fa-solid fa-lock" style={{ marginRight: "8px", color: "var(--gold-premium, #d4af37)" }}></i>
-                            {tLang.profil.change_pw_title}
-                        </h3>
-                        <form onSubmit={handleChangePassword}>
-                            <div className="form-group">
-                                <input type="password" name="new_password" className="form-input" id="inp_new_pw" placeholder=" " required minLength={8} />
-                                <label className="form-label" htmlFor="inp_new_pw">{tLang.profil.new_pw_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-                            <div className="form-group">
-                                <input type="password" name="confirm_password" className="form-input" id="inp_confirm_pw" placeholder=" " required minLength={8} />
-                                <label className="form-label" htmlFor="inp_confirm_pw">{tLang.profil.confirm_pw_label}</label>
-                                <div className="liquid-line"></div>
-                            </div>
-                            <button type="submit" className="btn-submit cursor-bind" disabled={changingPw} style={{ background: "rgba(212,175,55,0.1)", border: "1px solid var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)" }}>
-                                {changingPw ? <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</> : <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> {tLang.profil.update_pw_btn}</>}
-                            </button>
-                        </form>
-                    </div>
-
-                    {/* ========= DELETE ACCOUNT SECTION ========= */}
-                    <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid rgba(239,68,68,0.3)" }}>
-                        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "#ef4444", marginBottom: "10px" }}>
-                            <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "8px" }}></i>
-                            {tLang.profil.danger_zone_title}
-                        </h3>
-                        <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
-                            {tLang.profil.danger_zone_desc}
-                        </p>
-                        <p style={{ fontSize: "0.75rem", marginBottom: "20px" }}>
-                          <Link href="/delete-account" target="_blank" style={{ color: "#f3ba2f", textDecoration: "underline" }}>
-                            {locale === 'ar' ? 'اطلع على سياسة حذف البيانات الكاملة ←' : locale === 'en' ? 'Learn Full Data Deletion Policy →' : 'Pelajari Kebijakan Penghapusan Data Lengkap →'}
-                          </Link>
-                        </p>
-                        {!showDeleteConfirm ? (
-                          <button 
-                            className="cursor-bind"
-                            onClick={() => setShowDeleteConfirm(true)}
-                            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.5)", color: "#ef4444", padding: "12px 25px", borderRadius: "10px", cursor: "pointer", fontSize: "0.85rem", fontWeight: 600, letterSpacing: "0.5px", width: "100%", transition: "0.3s" }}
-                          >
-                            <i className="fa-solid fa-trash-can" style={{ marginRight: "8px" }}></i> {tLang.profil.delete_acc_btn}
-                          </button>
-                        ) : (
-                          <form onSubmit={handleDeleteAccount} style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "16px", padding: "20px", textAlign: "center" }}>
-                            <p style={{ color: "#ef4444", fontSize: "0.9rem", fontWeight: 600, marginBottom: "15px" }}>
-                              <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "6px" }}></i>
-                              {tLang.profil.delete_modal_title}
-                            </p>
-                            <div className="form-group" style={{ marginBottom: "15px", textAlign: "left" }}>
-                              <input type="password" name="password_delete" className="form-input" id="inp_delpass" placeholder=" " required style={{ borderColor: "rgba(239, 68, 68, 0.4)" }} value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
-                              <label className="form-label" htmlFor="inp_delpass" style={{ color: "#ef4444" }}>{tLang.profil.delete_modal_pass_label}</label>
-                              <div className="liquid-line" style={{ background: "linear-gradient(90deg, transparent, #ef4444, transparent)" }}></div>
-                            </div>
-                            <div style={{ display: "flex", gap: "10px" }}>
-                              <button
-                                type="button"
-                                onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); }}
-                                style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem" }}
-                              >
-                                {tLang.common.cancel}
-                              </button>
-                              <button
-                                type="submit"
-                                disabled={deletingAccount}
-                                style={{ flex: 1, background: "#ef4444", border: "none", color: "#fff", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}
-                              >
-                                {deletingAccount ? <i className="fa-solid fa-circle-notch fa-spin"></i> : tLang.profil.delete_modal_submit}
-                              </button>
-                            </div>
-                          </form>
-                        )}
-                    </div>
-
-                    {/* Easter Egg / Hidden Admin Access */}
-                    <div style={{ marginTop: "60px", fontSize: "0.6rem", color: "var(--glass-border)", textAlign: "justify", lineHeight: 1.8, fontFamily: "'Inter', sans-serif" }}>
-                        Expedient bermakna kepraktisan dan ketepatan dalam bertindak. Ia adalah filosofi tentang bagaimana mencapai tujuan dengan cara yang paling efisien dan bijaksana. Generasi yang membawa nama ini tidak terjebak pada hal-hal yang rumit tanpa alasan; mereka berfokus pada apa yang benar-benar bermakna dan membawa kebaikan bersama. Kemampuan untuk menempatkan segala sesuatu pada proporsi yang tepat adalah bentuk kedewasaan. Pada akhirnya, keindahan dari sebuah perjalanan terletak pada kesederhanaan niat dan keyakinan <Link href="/admin" style={{ color: "inherit", textDecoration: "none", cursor: "default", outline: "none" }} className="cursor-bind">utuh</Link> untuk saling melengkapi di setiap langkah.
-                    </div>
-
-                </div>
-
-            </div>
+        <div className="nav-actions stagger-item">
+          <Link href="/fitur" className="action-btn cursor-bind"><i className="fa-solid fa-arrow-left-long"></i> {locale === 'id' ? t('profil_btn_back', tLang.profil.btn_back) : tLang.profil.btn_back}</Link>
+          <Link href="/chat" className="action-btn cursor-bind" style={{ background: "rgba(212,175,55,0.1)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)" }}><i className="fa-solid fa-envelope"></i> {locale === 'id' ? t('profil_btn_chat', tLang.profil.btn_chat) : tLang.profil.btn_chat}</Link>
+          <button className="action-btn btn-danger cursor-bind" onClick={handleLogout}><i className="fa-solid fa-power-off"></i> {locale === 'id' ? t('profil_btn_logout', tLang.profil.btn_logout) : tLang.profil.btn_logout}</button>
         </div>
 
-        {/* CROPPER MODAL UNTUK ATUR POSISI & ZOOM FOTO PROFIL */}
-        <ImageCropperModal
-          isOpen={isCropperOpen}
-          imageSrc={rawCropImage || ""}
-          title={tLang.profil.crop_modal_title}
-          aspectRatio={1}
-          outputWidth={600}
-          outputHeight={600}
-          onApply={handleCropApply}
-          onCancel={handleCropCancel}
-        />
+        <div className="dashboard-header stagger-item">
+          <h1 className="dashboard-title">{locale === 'id' ? t('profil_title', tLang.profil.title) : tLang.profil.title}</h1>
+          <p className="dashboard-subtitle">{locale === 'id' ? t('profil_subtitle', tLang.profil.subtitle) : tLang.profil.subtitle}</p>
 
-        <Script src="/vendor/gsap/gsap.min.js" strategy="beforeInteractive" />
+          <div className="profil-prestise-badge">
+            <div style={{ background: badgeColor, padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold", color: "#fff", textTransform: "uppercase", letterSpacing: "1px", boxShadow: "0 4px 15px rgba(0,0,0,0.1)" }}>
+              <i className={badgeIcon} style={{ marginRight: "5px" }}></i> {gelar}
+            </div>
+            <span style={{ fontFamily: "monospace", fontSize: "1.1rem", color: "var(--gold-premium, #d4af37)", fontWeight: "bold", whiteSpace: "nowrap" }}>
+              {points.toLocaleString()} <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", letterSpacing: "1px", marginLeft: "3px" }}>PRESTISE</span>
+            </span>
+          </div>
+        </div>
+
+        {/* TAB SWITCHER (KHUSUS MOBILE SCREEN < 900PX, HILANG DI DESKTOP) */}
+        <div className="profil-tabs-nav">
+          <button
+            type="button"
+            className={`action-btn ${profileTab === "identitas" ? "active-tab" : ""}`}
+            onClick={() => handleTabChange("identitas")}
+            style={{
+              background: profileTab === "identitas" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
+              color: profileTab === "identitas" ? "#000" : "var(--text-primary)",
+              borderColor: profileTab === "identitas" ? "var(--gold-premium, #d4af37)" : "var(--glass-border)",
+            }}
+          >
+            <i className="fa-regular fa-id-card"></i> {tLang.profil.tab_identity}
+          </button>
+          <button
+            type="button"
+            className={`action-btn ${profileTab === "keamanan" ? "active-tab" : ""}`}
+            onClick={() => handleTabChange("keamanan")}
+            style={{
+              background: profileTab === "keamanan" ? "var(--gold-premium, #d4af37)" : "var(--glass-bg)",
+              color: profileTab === "keamanan" ? "#000" : "var(--text-primary)",
+              borderColor: profileTab === "keamanan" ? "var(--gold-premium, #d4af37)" : "var(--glass-border)",
+            }}
+          >
+            <i className="fa-solid fa-sliders"></i> {tLang.profil.tab_security_lang}
+          </button>
+        </div>
+
+        <div className="profil-grid tilt-container" data-tab={profileTab}>
+
+          {/* KOLOM KIRI: EDIT PROFIL */}
+          <div className="premium-panel stagger-item parallax-card">
+            <h2 className="panel-title"><i className="fa-regular fa-id-card"></i> {tLang.profil.step1}</h2>
+
+            <form onSubmit={handleProfileSubmit} id="formUpdateProfile" noValidate>
+
+              {/* WIZARD PROGRESS & STEPPERS (UX-02) */}
+              <div className="wizard-stepper-container">
+                <div className="wizard-progress-track">
+                  <div
+                    className="wizard-progress-fill"
+                    style={{ width: `${profileCompleteness}%` }}
+                  ></div>
+                </div>
+                <div className="wizard-progress-header">
+                  <span className="wizard-progress-label">
+                    <i className="fa-solid fa-chart-pie" style={{ marginRight: "6px", color: "var(--gold-premium, #d4af37)" }}></i>
+                    {tLang.profil.completeness}
+                  </span>
+                  <span className="wizard-progress-badge">
+                    {profileCompleteness}% • {profileCompleteness === 100 ? tLang.profil.completeness_perfect : profileCompleteness >= 75 ? tLang.profil.completeness_great : profileCompleteness >= 50 ? tLang.profil.completeness_good : tLang.profil.completeness_needs_work}
+                  </span>
+                </div>
+
+                <div className="wizard-tabs">
+                  <button
+                    type="button"
+                    className={`wizard-tab-btn cursor-bind ${wizardStep === 1 ? "active" : ""} ${profileCompleteness >= 33 ? "completed" : ""}`}
+                    onClick={() => setWizardStep(1)}
+                    aria-label="Identitas Personal"
+                  >
+                    <span className="step-num">1</span>
+                    <span className="step-title">{tLang.profil.step1}</span>
+                  </button>
+                  <div className="wizard-tab-line"></div>
+                  <button
+                    type="button"
+                    className={`wizard-tab-btn cursor-bind ${wizardStep === 2 ? "active" : ""} ${profileCompleteness >= 66 ? "completed" : ""}`}
+                    onClick={() => setWizardStep(2)}
+                    aria-label="Kontak & Domisili"
+                  >
+                    <span className="step-num">2</span>
+                    <span className="step-title">{tLang.profil.step2}</span>
+                  </button>
+                  <div className="wizard-tab-line"></div>
+                  <button
+                    type="button"
+                    className={`wizard-tab-btn cursor-bind ${wizardStep === 3 ? "active" : ""} ${profileCompleteness === 100 ? "completed" : ""}`}
+                    onClick={() => setWizardStep(3)}
+                    aria-label="Visi & Sosial"
+                  >
+                    <span className="step-num">3</span>
+                    <span className="step-title">{tLang.profil.step3}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* STEP 1: Identitas Personal */}
+              <div className="wizard-step-section" style={{ display: wizardStep === 1 ? "block" : "none" }}>
+                <div className="photo-upload-wrapper">
+                  <div className="magnetic-avatar cursor-bind" id="magAvatar">
+                    <img src={avatarPreviewSrc} className="avatar-preview" id="avatarPreview" alt="Profil" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "15px" }}>{tLang.profil.photo_official_label}</div>
+                    <div className="magnetic-btn-wrap" id="magBtnWrap">
+                      <label className="upload-btn-ui cursor-bind" id="magBtn" htmlFor="inputFileImg">
+                        {tLang.profil.photo_choose_btn}
+                      </label>
+                    </div>
+                    <input type="file" id="inputFileImg" ref={fileInputRef} accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
+                    <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginTop: "5px" }}>{tLang.profil.photo_hd_hint}</div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <input type="text" name="nama_panggilan" className="form-input" id="inp_panggilan" placeholder=" " defaultValue={user.nama_panggilan || ""} />
+                  <label className="form-label" htmlFor="inp_panggilan">{tLang.profil.nickname_field_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+
+                <div className="form-group">
+                  <input type="text" name="nama_lengkap" className="form-input" id="inp_lengkap" placeholder=" " defaultValue={user.nama_lengkap || ""} />
+                  <label className="form-label" htmlFor="inp_lengkap">{tLang.profil.fullname_field_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+
+                <div className="form-group">
+                  <input type="email" name="email" className="form-input" id="inp_email" placeholder=" " defaultValue={user.email || ""} />
+                  <label className="form-label" htmlFor="inp_email">{tLang.profil.email_field_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+              </div>
+
+              {/* STEP 2: KONTAK & DOMISILI */}
+              <div className="wizard-step-section" style={{ display: wizardStep === 2 ? "block" : "none" }}>
+                <div className="form-group">
+                  <input type="tel" name="no_whatsapp" className="form-input" id="inp_wa" placeholder=" " defaultValue={user.no_whatsapp || ""} />
+                  <label className="form-label" htmlFor="inp_wa">{tLang.profil.wa_field_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(37,211,102,0.05)", border: "1px solid rgba(37,211,102,0.2)", borderRadius: "16px", padding: "16px 20px", marginBottom: "24px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(37,211,102,0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#25d366", fontSize: "1rem", flexShrink: 0 }}>
+                      <i className="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "0.5px" }}>{tLang.profil.wa_notif_title}</div>
+                      <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "2px" }}>{tLang.profil.wa_notif_desc}</div>
+                    </div>
+                  </div>
+                  <label className="wa-toggle-switch" style={{ position: "relative", display: "inline-block", width: "48px", height: "26px", flexShrink: 0, cursor: "pointer" }}>
+                    <input type="checkbox" name="wa_notif_opt_in" id="waToggle" value="1" style={{ opacity: 0, width: 0, height: 0 }} checked={waOptIn} onChange={(e) => setWaOptIn(e.target.checked)} />
+                    <span style={{ position: "absolute", inset: 0, background: waOptIn ? "#25d366" : "var(--glass-border)", borderRadius: "26px", transition: "0.3s", border: "1px solid var(--glass-border)" }} id="waToggleTrack">
+                      <span style={{ position: "absolute", height: "20px", width: "20px", left: "3px", bottom: "2px", background: "var(--bg-main)", borderRadius: "50%", transition: "0.3s", transform: waOptIn ? "translateX(22px)" : "translateX(0)", boxShadow: "0 2px 5px rgba(0,0,0,0.2)" }} id="waToggleThumb"></span>
+                    </span>
+                  </label>
+                </div>
+
+                <div className="form-group">
+                  <textarea name="alamat_lengkap" className="form-input" id="inp_alamat" placeholder=" " defaultValue={user.alamat_lengkap || ""}></textarea>
+                  <label className="form-label" htmlFor="inp_alamat">{tLang.profil.address_field_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+              </div>
+
+              {/* STEP 3: VISI & SOSIAL */}
+              <div className="wizard-step-section" style={{ display: wizardStep === 3 ? "block" : "none" }}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <input type="text" name="akun_ig" className="form-input" id="inp_ig" placeholder=" " defaultValue={user.akun_ig || ""} />
+                    <label className="form-label" htmlFor="inp_ig">{tLang.profil.ig_field_label}</label>
+                    <div className="liquid-line"></div>
+                  </div>
+                  <div className="form-group">
+                    <input type="text" name="akun_tiktok" className="form-input" id="inp_tt" placeholder=" " defaultValue={user.akun_tiktok || ""} />
+                    <label className="form-label" htmlFor="inp_tt">{tLang.profil.tiktok_field_label}</label>
+                    <div className="liquid-line"></div>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <textarea name="motivasi_hidup" className="form-input" id="inp_motivasi" placeholder=" " defaultValue={user.motivasi_hidup || ""}></textarea>
+                  <label className="form-label" htmlFor="inp_motivasi">{tLang.profil.vision_field_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+
+                <div className="form-group">
+                  <input type="text" name="cita_cita" className="form-input" id="inp_cita" placeholder=" " defaultValue={user.cita_cita || ""} />
+                  <label className="form-label" htmlFor="inp_cita">{tLang.profil.aspiration_field_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+              </div>
+
+              {/* WIZARD NAVIGATION FOOTER */}
+              <div className="wizard-nav-footer">
+                {wizardStep > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => setWizardStep((prev) => (prev - 1) as any)}
+                    className="action-btn cursor-bind"
+                    style={{ gap: "8px" }}
+                  >
+                    <i className="fa-solid fa-arrow-left"></i> {tLang.common.back}
+                  </button>
+                ) : <div></div>}
+
+                <div className="wizard-nav-btn-group">
+                  {wizardStep < 3 && (
+                    <button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="action-btn cursor-bind"
+                      style={{ background: "rgba(212,175,55,0.15)", borderColor: "var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)", gap: "8px" }}
+                    >
+                      {tLang.common.next} <i className="fa-solid fa-arrow-right"></i>
+                    </button>
+                  )}
+                  <button type="submit" className="btn-submit cursor-bind" disabled={saving}>
+                    {saving ? <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.profil.saving_btn}</> : tLang.profil.save_btn}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          {/* KOLOM KANAN: PROTOKOL KEAMANAN & PREFERENSI */}
+          <div className="premium-panel stagger-item parallax-card">
+            {/* PREFERENSI BAHASA / LANGUAGE PREFERENCE */}
+            <div style={{ marginBottom: "35px", paddingBottom: "25px", borderBottom: "1px solid var(--glass-border)" }}>
+              <h2 className="panel-title" style={{ marginBottom: "8px" }}>
+                <i className="fa-solid fa-language"></i> {tLang.profil.lang_preference_title}
+              </h2>
+              <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "16px", lineHeight: 1.6 }}>
+                {tLang.profil.lang_preference_desc}
+              </p>
+              <LanguageSwitcher variant="cards" />
+              <div className="profil-utility-links">
+                <button
+                  type="button"
+                  className="profil-guide-trigger cursor-bind"
+                  onClick={() => window.dispatchEvent(new CustomEvent("expedient-open-guide"))}
+                >
+                  <i className="fa-solid fa-circle-question"></i>
+                  <span>{tLang.command_palette.commands.help_guide}</span>
+                </button>
+                <Link href="/panduan" className="profil-guide-trigger cursor-bind">
+                  <i className="fa-solid fa-book-open"></i>
+                  <span>{tLang.command_palette.commands.panduan}</span>
+                </Link>
+              </div>
+            </div>
+
+            <h2 className="panel-title"><i className="fa-solid fa-fingerprint"></i> {tLang.profil.biometric_title}</h2>
+
+            <div className="bio-status-box" style={{
+              borderColor: biometricsList.length > 0 ? "rgba(0, 200, 83, 0.3)" : "rgba(212, 175, 55, 0.3)",
+              background: biometricsList.length > 0 ? "rgba(0, 200, 83, 0.04)" : "rgba(212, 175, 55, 0.04)"
+            }}>
+              <i className={`fa-solid ${biometricsList.length > 0 ? "fa-shield-halved" : "fa-fingerprint"}`} style={{
+                color: biometricsList.length > 0 ? "#00c853" : "var(--gold-premium, #d4af37)"
+              }}></i>
+              <div className="bio-status-title" style={{ color: biometricsList.length > 0 ? "#00c853" : "var(--gold-premium, #d4af37)" }}>
+                {biometricsList.length > 0 ? tLang.profil.biometric_active : tLang.profil.biometric_inactive}
+              </div>
+              <div className="bio-status-desc">
+                {biometricsList.length > 0
+                  ? `${biometricsList.length} ${tLang.profil.biometric_active}`
+                  : tLang.profil.biometric_desc}
+              </div>
+            </div>
+
+            <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px", margin: "35px 0 18px 0" }}>{tLang.profil.biometric_title}</div>
+
+            {biometricsList.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+                <div style={{
+                  background: "rgba(0, 200, 83, 0.06)",
+                  border: "1px solid rgba(0, 200, 83, 0.25)",
+                  borderRadius: "16px",
+                  padding: "18px 20px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "15px"
+                }}>
+                  <div style={{
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "12px",
+                    background: "rgba(0, 200, 83, 0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.2rem",
+                    color: "#00c853",
+                    flexShrink: 0
+                  }}>
+                    <i className="fa-solid fa-circle-check"></i>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#00c853", fontWeight: 700, fontSize: "0.9rem", letterSpacing: "0.5px" }}>
+                      {tLang.profil.biometric_active}
+                    </div>
+                    <div style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginTop: "2px" }}>
+                      {biometricsList.length} perangkat terdaftar
+                    </div>
+                  </div>
+                </div>
+
+                {/* List of devices */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {biometricsList.map((bio, index) => (
+                    <div key={bio.id || index} style={{
+                      background: "rgba(255, 255, 255, 0.03)",
+                      border: "1px solid var(--glass-border)",
+                      borderRadius: "12px",
+                      padding: "12px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px"
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <i className="fa-solid fa-fingerprint" style={{ color: "var(--gold-premium, #d4af37)", fontSize: "1.1rem" }}></i>
+                        <div>
+                          <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-primary)" }}>
+                            Passkey #{index + 1}
+                          </div>
+                          <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)" }}>
+                            {bio.created_at ? new Date(bio.created_at).toLocaleDateString() : "Aktif"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBiometric(bio.id)}
+                        disabled={deletingBioId === bio.id}
+                        title="Hapus perangkat"
+                        style={{
+                          background: "rgba(255, 51, 102, 0.1)",
+                          border: "1px solid rgba(255, 51, 102, 0.3)",
+                          color: "#ff3366",
+                          padding: "6px 12px",
+                          borderRadius: "8px",
+                          fontSize: "0.7rem",
+                          cursor: "pointer",
+                          transition: "0.2s"
+                        }}
+                      >
+                        {deletingBioId === bio.id ? <i className="fa-solid fa-circle-notch fa-spin"></i> : <><i className="fa-solid fa-trash-can" style={{ marginRight: "4px" }}></i> {tLang.common.delete || "Hapus"}</>}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  className="btn-passkey cursor-bind"
+                  onClick={handleRegisterBiometric}
+                  disabled={registeringBio}
+                  style={{ marginTop: "10px" }}
+                >
+                  {registeringBio ? (
+                    <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</>
+                  ) : (
+                    <><i className="fa-solid fa-plus" style={{ marginRight: "5px" }}></i> {tLang.profil.biometric_btn_add}</>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div id="bioOptionsBox">
+                <button
+                  className="btn-passkey cursor-bind"
+                  onClick={handleRegisterBiometric}
+                  disabled={registeringBio}
+                >
+                  {registeringBio ? (
+                    <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</>
+                  ) : (
+                    <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> {tLang.profil.biometric_btn_auth}</>
+                  )}
+                </button>
+              </div>
+            )}
+
+            <div id="bioStatus" style={{ marginTop: "20px", fontSize: "0.75rem", color: "var(--text-secondary)", textAlign: "center", lineHeight: 1.6 }}>
+              {tLang.profil.biometric_desc}
+            </div>
+
+            <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid var(--glass-border)", textAlign: "center" }}>
+              <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "2px" }}>{tLang.profil.kta_link}</div>
+              <Link href="/sovereign" className="cursor-bind" style={{ color: "var(--gold-premium)", textDecoration: "none", fontSize: "0.85rem", display: "inline-block", marginTop: "15px", fontWeight: 600, letterSpacing: "2px" }}><i className="fa-solid fa-id-card" style={{ marginRight: "8px" }}></i> {tLang.profil.kta_link}</Link>
+            </div>
+
+            {/* ========= CHANGE PASSWORD SECTION ========= */}
+            <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid var(--glass-border)" }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "var(--text-primary)", marginBottom: "20px" }}>
+                <i className="fa-solid fa-lock" style={{ marginRight: "8px", color: "var(--gold-premium, #d4af37)" }}></i>
+                {tLang.profil.change_pw_title}
+              </h3>
+              <form onSubmit={handleChangePassword}>
+                <div className="form-group">
+                  <input type="password" name="new_password" className="form-input" id="inp_new_pw" placeholder=" " required minLength={8} />
+                  <label className="form-label" htmlFor="inp_new_pw">{tLang.profil.new_pw_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+                <div className="form-group">
+                  <input type="password" name="confirm_password" className="form-input" id="inp_confirm_pw" placeholder=" " required minLength={8} />
+                  <label className="form-label" htmlFor="inp_confirm_pw">{tLang.profil.confirm_pw_label}</label>
+                  <div className="liquid-line"></div>
+                </div>
+                <button type="submit" className="btn-submit cursor-bind" disabled={changingPw} style={{ background: "rgba(212,175,55,0.1)", border: "1px solid var(--gold-premium, #d4af37)", color: "var(--gold-premium, #d4af37)" }}>
+                  {changingPw ? <><i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}</> : <><i className="fa-solid fa-key" style={{ marginRight: "5px" }}></i> {tLang.profil.update_pw_btn}</>}
+                </button>
+              </form>
+            </div>
+
+            {/* ========= DELETE ACCOUNT SECTION ========= */}
+            <div style={{ marginTop: "50px", paddingTop: "30px", borderTop: "1px solid rgba(239,68,68,0.3)" }}>
+              <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.1rem", color: "#ef4444", marginBottom: "10px" }}>
+                <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "8px" }}></i>
+                {tLang.profil.danger_zone_title}
+              </h3>
+              <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "12px", lineHeight: 1.6 }}>
+                {tLang.profil.danger_zone_desc}
+              </p>
+              <p style={{ fontSize: "0.75rem", marginBottom: "20px" }}>
+                <Link href="/delete-account" target="_blank" style={{ color: "#f3ba2f", textDecoration: "underline" }}>
+                  {locale === 'ar' ? 'اطلع على سياسة حذف البيانات الكاملة ←' : locale === 'en' ? 'Learn Full Data Deletion Policy →' : 'Pelajari Kebijakan Penghapusan Data Lengkap →'}
+                </Link>
+              </p>
+              {!showDeleteConfirm ? (
+                <button
+                  className="cursor-bind"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.5)", color: "#ef4444", padding: "12px 25px", borderRadius: "10px", cursor: "pointer", fontSize: "0.85rem", fontWeight: 600, letterSpacing: "0.5px", width: "100%", transition: "0.3s" }}
+                >
+                  <i className="fa-solid fa-trash-can" style={{ marginRight: "8px" }}></i> {tLang.profil.delete_acc_btn}
+                </button>
+              ) : (
+                <form onSubmit={handleDeleteAccount} style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "16px", padding: "20px", textAlign: "center" }}>
+                  <p style={{ color: "#ef4444", fontSize: "0.9rem", fontWeight: 600, marginBottom: "15px" }}>
+                    <i className="fa-solid fa-triangle-exclamation" style={{ marginRight: "6px" }}></i>
+                    {tLang.profil.delete_modal_title}
+                  </p>
+                  <div className="form-group" style={{ marginBottom: "15px", textAlign: "left" }}>
+                    <input type="password" name="password_delete" className="form-input" id="inp_delpass" placeholder=" " required style={{ borderColor: "rgba(239, 68, 68, 0.4)" }} value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} />
+                    <label className="form-label" htmlFor="inp_delpass" style={{ color: "#ef4444" }}>{tLang.profil.delete_modal_pass_label}</label>
+                    <div className="liquid-line" style={{ background: "linear-gradient(90deg, transparent, #ef4444, transparent)" }}></div>
+                  </div>
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      type="button"
+                      onClick={() => { setShowDeleteConfirm(false); setDeletePassword(""); }}
+                      style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem" }}
+                    >
+                      {tLang.common.cancel}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={deletingAccount}
+                      style={{ flex: 1, background: "#ef4444", border: "none", color: "#fff", padding: "10px", borderRadius: "8px", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}
+                    >
+                      {deletingAccount ? <i className="fa-solid fa-circle-notch fa-spin"></i> : tLang.profil.delete_modal_submit}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+
+            {/* Easter Egg / Hidden Admin Access */}
+            <div style={{ marginTop: "60px", fontSize: "0.6rem", color: "var(--glass-border)", textAlign: "justify", lineHeight: 1.8, fontFamily: "'Inter', sans-serif" }}>
+              Expedient bermakna kepraktisan dan ketepatan dalam bertindak. Ia adalah filosofi tentang bagaimana mencapai tujuan dengan cara yang paling efisien dan bijaksana. Generasi yang membawa nama ini tidak terjebak pada hal-hal yang rumit tanpa alasan; mereka berfokus pada apa yang benar-benar bermakna dan membawa kebaikan bersama. Kemampuan untuk menempatkan segala sesuatu pada proporsi yang tepat adalah bentuk kedewasaan. Pada akhirnya, keindahan dari sebuah perjalanan terletak pada kesederhanaan niat dan keyakinan <Link href="/admin" style={{ color: "inherit", textDecoration: "none", cursor: "default", outline: "none" }} className="cursor-bind">utuh</Link> untuk saling melengkapi di setiap langkah.
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      {/* CROPPER MODAL UNTUK ATUR POSISI & ZOOM FOTO PROFIL */}
+      <ImageCropperModal
+        isOpen={isCropperOpen}
+        imageSrc={rawCropImage || ""}
+        title={tLang.profil.crop_modal_title}
+        aspectRatio={1}
+        outputWidth={600}
+        outputHeight={600}
+        onApply={handleCropApply}
+        onCancel={handleCropCancel}
+      />
+
+      <Script src="/vendor/gsap/gsap.min.js" strategy="beforeInteractive" />
     </main>
   );
 }

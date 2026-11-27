@@ -114,7 +114,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
       const frame = el.querySelector('.echo-frame') as HTMLElement | null;
       if (frame) {
         if (isCenter) {
-          frame.style.borderColor = "#ffd700";
+          frame.style.borderColor = "#d4af37";
           frame.style.boxShadow = "0 25px 60px rgba(0,0,0,0.9), 0 0 50px rgba(212,175,55,0.45)";
           frame.style.filter = "grayscale(0%)";
         } else {
@@ -329,12 +329,13 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
       }}>
         {(
           [
-            { key: 'monolith', icon: 'fa-landmark', emoji: '🏛️', label: isMobile ? 'Monolit' : 'Monolit Emas Imperial' },
-            { key: 'ring',     icon: 'fa-circle-notch', emoji: '💫', label: isMobile ? 'Kubah 360°' : 'Kubah Melingkar 360°' },
-            { key: 'mosaic',   icon: 'fa-border-all',   emoji: '👑', label: isMobile ? 'Polaroid' : 'Dinding Polaroid Royal' },
+            { key: 'monolith', icon: 'fa-landmark', label: isMobile ? 'Monolit' : 'Monolit Emas Imperial' },
+            { key: 'ring',     icon: 'fa-circle-notch', label: isMobile ? 'Kubah 360°' : 'Kubah Melingkar 360°' },
+            { key: 'mosaic',   icon: 'fa-border-all',   label: isMobile ? 'Polaroid' : 'Dinding Polaroid Royal' },
           ] as const
-        ).map(({ key, icon, emoji, label }) => (
+        ).map(({ key, icon, label }) => (
           <button
+            type="button"
             key={key}
             onClick={() => {
               setActiveStyle(key);
@@ -343,25 +344,26 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               }
             }}
             className="hover-trigger"
+            aria-pressed={activeStyle === key}
             style={{
-              background: activeStyle === key ? "var(--gold-premium, #d4af37)" : "rgba(3,5,4,0.85)",
-              color: activeStyle === key ? "#000" : "var(--gold-premium, #d4af37)",
-              border: "1px solid var(--gold-premium, #d4af37)",
-              padding: isMobile ? "7px 12px" : "8px 18px",
-              borderRadius: "20px",
-              fontSize: isMobile ? "0.72rem" : "0.78rem",
+              background: activeStyle === key ? "var(--gold-premium, #d4af37)" : "var(--bg-card, #0f141e)",
+              color: activeStyle === key ? "#060b14" : "var(--gold-main, #d4af37)",
+              border: "1px solid var(--gold-main, #d4af37)",
+              minHeight: "44px",
+              padding: isMobile ? "10px 14px" : "10px 18px",
+              borderRadius: "22px",
+              fontSize: isMobile ? "0.76rem" : "0.8rem",
               fontWeight: 700,
               cursor: "pointer",
-              letterSpacing: isMobile ? "0.5px" : "1px",
-              display: "flex",
+              letterSpacing: "0.03em",
+              display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              boxShadow: activeStyle === key ? "0 0 20px rgba(212,175,55,0.5)" : "none",
-              transition: "all 0.3s ease",
+              transition: "all 0.25s ease",
               whiteSpace: "nowrap"
             }}
           >
-            <i className={`fa-solid ${icon}`}></i> {emoji} {label}
+            <i className={`fa-solid ${icon}`} aria-hidden="true"></i> {label}
           </button>
         ))}
       </div>
@@ -457,11 +459,11 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                       {/* MEMORI Badge */}
                       <div style={{
                         position: "absolute", top: "10px", left: "10px",
-                        background: "rgba(3,5,4,0.85)", color: "#ffd700",
-                        fontSize: isMobile ? "0.6rem" : "0.68rem",
+                        background: "rgba(3,5,4,0.9)", color: "var(--gold-main, #d4af37)",
+                        fontSize: isMobile ? "0.7rem" : "0.75rem",
                         fontFamily: "'Playfair Display', serif", fontWeight: 700,
                         padding: "3px 8px", borderRadius: "6px",
-                        border: "1px solid rgba(212,175,55,0.5)", letterSpacing: "1px"
+                        border: "1px solid rgba(212,175,55,0.5)", letterSpacing: "0.04em"
                       }}>
                         MEMORI {toRoman(idx + 1)}
                       </div>
@@ -471,11 +473,11 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                         position: "absolute", bottom: "8px", right: "8px",
                         width: isMobile ? "28px" : "36px", height: isMobile ? "28px" : "36px",
                         borderRadius: "50%", border: "1px solid rgba(212,175,55,0.6)",
-                        background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center",
-                        justifyContent: "center", color: "#ffd700",
-                        fontSize: isMobile ? "0.65rem" : "0.75rem"
+                        background: "rgba(0,0,0,0.65)", display: "flex", alignItems: "center",
+                        justifyContent: "center", color: "var(--gold-main, #d4af37)",
+                        fontSize: isMobile ? "0.7rem" : "0.78rem"
                       }}>
-                        <i className="fa-solid fa-stamp"></i>
+                        <i className="fa-solid fa-stamp" aria-hidden="true"></i>
                       </div>
                     </div>
 
@@ -528,57 +530,43 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               disabled={activeIndex === 0}
               aria-label="Sebelumnya"
               style={{
-                background: "rgba(3,5,4,0.88)",
-                border: "1px solid rgba(212,175,55,0.4)",
-                color: activeIndex === 0 ? "rgba(255,255,255,0.2)" : "#ffd700",
-                width: isMobile ? "36px" : "44px",
-                height: isMobile ? "36px" : "44px",
+                background: "rgba(3,5,4,0.92)",
+                border: "1px solid rgba(212,175,55,0.45)",
+                color: activeIndex === 0 ? "rgba(255,255,255,0.25)" : "var(--gold-main, #d4af37)",
+                width: "44px",
+                height: "44px",
                 borderRadius: "50%",
                 cursor: activeIndex === 0 ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: isMobile ? "0.8rem" : "0.95rem",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.8)",
-                backdropFilter: "blur(12px)",
-                transition: "all 0.25s ease",
-                opacity: activeIndex === 0 ? 0.35 : 1
-              }}
-              onMouseEnter={(e) => {
-                if (activeIndex > 0) {
-                  e.currentTarget.style.borderColor = "var(--gold-premium, #ffd700)";
-                  e.currentTarget.style.boxShadow = "0 0 16px rgba(212,175,55,0.6)";
-                  e.currentTarget.style.transform = "scale(1.08)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)";
-                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.8)";
-                e.currentTarget.style.transform = "scale(1)";
+                fontSize: isMobile ? "0.85rem" : "0.95rem",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.65)",
+                transition: "transform 0.2s ease, border-color 0.2s ease",
+                opacity: activeIndex === 0 ? 0.4 : 1
               }}
             >
-              <i className="fa-solid fa-chevron-left" style={{ pointerEvents: "none" }}></i>
+              <i className="fa-solid fa-chevron-left" aria-hidden="true" style={{ pointerEvents: "none" }}></i>
             </button>
 
             <div style={{
-              background: "rgba(3,5,4,0.88)",
+              background: "rgba(3,5,4,0.92)",
               border: "1px solid rgba(212,175,55,0.5)",
-              padding: isMobile ? "7px 14px" : "9px 26px",
+              minHeight: "44px",
+              padding: isMobile ? "8px 16px" : "9px 26px",
               borderRadius: "30px",
-              fontSize: isMobile ? "0.72rem" : "0.82rem",
-              color: "var(--gold-premium, #d4af37)",
-              fontFamily: "monospace",
-              letterSpacing: isMobile ? "1.5px" : "3px",
+              fontSize: isMobile ? "0.75rem" : "0.82rem",
+              color: "var(--gold-main, #d4af37)",
+              letterSpacing: isMobile ? "0.06em" : "0.1em",
               fontWeight: 700,
-              boxShadow: "0 12px 30px rgba(0,0,0,0.9)",
-              backdropFilter: "blur(12px)",
+              fontVariantNumeric: "tabular-nums",
+              boxShadow: "0 12px 30px rgba(0,0,0,0.65)",
               display: "flex",
               alignItems: "center",
               gap: "8px",
-              whiteSpace: "nowrap",
-              userSelect: "none"
+              whiteSpace: "nowrap"
             }}>
-              <i className="fa-solid fa-gem" style={{ color: "#ffd700", fontSize: "0.85rem" }}></i>
+              <i className="fa-solid fa-gem" aria-hidden="true" style={{ color: "var(--gold-main, #d4af37)", fontSize: "0.85rem" }}></i>
               <span>{locale === "ar" ? `ذكرى ${toRoman(activeIndex + 1)} / ${toRoman(total)}` : locale === "en" ? `MEMORY ${toRoman(activeIndex + 1)} / ${toRoman(total)}` : `MEMORI ${toRoman(activeIndex + 1)} / ${toRoman(total)}`}</span>
             </div>
 
@@ -593,36 +581,23 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
               disabled={activeIndex === total - 1}
               aria-label="Selanjutnya"
               style={{
-                background: "rgba(3,5,4,0.88)",
-                border: "1px solid rgba(212,175,55,0.4)",
-                color: activeIndex === total - 1 ? "rgba(255,255,255,0.2)" : "#ffd700",
-                width: isMobile ? "36px" : "44px",
-                height: isMobile ? "36px" : "44px",
+                background: "rgba(3,5,4,0.92)",
+                border: "1px solid rgba(212,175,55,0.45)",
+                color: activeIndex === total - 1 ? "rgba(255,255,255,0.25)" : "var(--gold-main, #d4af37)",
+                width: "44px",
+                height: "44px",
                 borderRadius: "50%",
                 cursor: activeIndex === total - 1 ? "not-allowed" : "pointer",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: isMobile ? "0.8rem" : "0.95rem",
-                boxShadow: "0 10px 25px rgba(0,0,0,0.8)",
-                backdropFilter: "blur(12px)",
-                transition: "all 0.25s ease",
-                opacity: activeIndex === total - 1 ? 0.35 : 1
-              }}
-              onMouseEnter={(e) => {
-                if (activeIndex < total - 1) {
-                  e.currentTarget.style.borderColor = "var(--gold-premium, #ffd700)";
-                  e.currentTarget.style.boxShadow = "0 0 16px rgba(212,175,55,0.6)";
-                  e.currentTarget.style.transform = "scale(1.08)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(212,175,55,0.4)";
-                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.8)";
-                e.currentTarget.style.transform = "scale(1)";
+                fontSize: isMobile ? "0.85rem" : "0.95rem",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.65)",
+                transition: "transform 0.2s ease, border-color 0.2s ease",
+                opacity: activeIndex === total - 1 ? 0.4 : 1
               }}
             >
-              <i className="fa-solid fa-chevron-right" style={{ pointerEvents: "none" }}></i>
+              <i className="fa-solid fa-chevron-right" aria-hidden="true" style={{ pointerEvents: "none" }}></i>
             </button>
           </div>
 
@@ -691,10 +666,10 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
                     />
                     <div style={{
                       position: "absolute", top: "8px", left: "8px",
-                      background: "rgba(3,5,4,0.85)", color: "#ffd700",
-                      fontSize: "0.6rem", fontFamily: "monospace",
-                      padding: "2px 8px", borderRadius: "6px",
-                      border: "1px solid rgba(212,175,55,0.4)"
+                      background: "rgba(3,5,4,0.9)", color: "var(--gold-main, #d4af37)",
+                      fontSize: "0.7rem", fontWeight: 700, fontVariantNumeric: "tabular-nums",
+                      padding: "3px 8px", borderRadius: "6px",
+                      border: "1px solid rgba(212,175,55,0.45)"
                     }}>
                       {locale === "ar" ? "ذكرى" : locale === "en" ? "MEMORY" : "MEMORI"} {toRoman(idx + 1)}
                     </div>
@@ -756,11 +731,11 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
             {/* Header */}
             <div style={{
               display: "flex", alignItems: "center", gap: "8px",
-              color: "var(--gold-premium, #d4af37)", fontFamily: "monospace",
-              fontSize: isMobile ? "0.65rem" : "0.82rem", letterSpacing: isMobile ? "1.5px" : "3px",
-              marginBottom: "14px", flexWrap: "wrap"
+              color: "var(--gold-main, #d4af37)",
+              fontSize: isMobile ? "0.72rem" : "0.82rem", letterSpacing: isMobile ? "0.06em" : "0.1em",
+              marginBottom: "14px", flexWrap: "wrap", fontWeight: 600
             }}>
-              <i className="fa-solid fa-landmark" style={{ color: "#ffd700" }}></i>
+              <i className="fa-solid fa-landmark" aria-hidden="true" style={{ color: "var(--gold-main, #d4af37)" }}></i>
               <span>{locale === "ar" ? "أرشيف الذكريات · معهد الرسالة الحديث" : locale === "en" ? "MEMORY ARCHIVE · PONDOK MODERN ARRISALAH" : "Arsip Kenangan · Pondok Modern Arrisalah"}</span>
             </div>
 

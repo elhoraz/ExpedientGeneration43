@@ -295,9 +295,7 @@
     }
 
     .premium-panel {
-        background: var(--glass-bg); 
-        backdrop-filter: var(--glass-blur); 
-        -webkit-backdrop-filter: var(--glass-blur);
+        background: var(--bg-card, var(--glass-bg)); 
         border: 1px solid var(--glass-border);
         border-radius: 30px; 
         padding: 50px; 
@@ -542,13 +540,12 @@
         border-radius: 16px;
         margin-bottom: 50px;
         font-size: 0.85rem;
-        letter-spacing: 1px;
+        letter-spacing: 0.04em;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 15px;
-        background: var(--glass-bg);
-        backdrop-filter: var(--glass-blur);
+        background: var(--bg-card, var(--glass-bg));
         border: 1px solid var(--glass-border);
         box-shadow: var(--glass-shadow);
     }
@@ -556,7 +553,7 @@
     .sys-msg.success { border-color: rgba(43, 185, 124, 0.45); background: rgba(43, 185, 124, 0.08); color: var(--text-primary); }
     .sys-msg.error { border-color: rgba(217, 69, 95, 0.45); background: rgba(217, 69, 95, 0.08); color: var(--text-primary); }
 
-    textarea.form-input { resize: none; overflow: hidden; min-height: 40px; }
+    textarea.form-input { resize: none; overflow: hidden; min-height: 44px; }
 
     /* ========================================================
        PROGRESSIVE DISCLOSURE 3-STEP WIZARD (UX-02)
@@ -580,10 +577,9 @@
 
     .wizard-progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, #d4af37, #ffd700);
+        background: linear-gradient(90deg, var(--gold-main, #d4af37), var(--gold-light, #f3e5ab));
         border-radius: 6px;
-        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .wizard-progress-header {
@@ -809,7 +805,7 @@
         }
         .wizard-tab-btn { 
             padding: 8px 4px; 
-            min-height: 38px;
+            min-height: 44px;
             gap: 4px;
         }
         .wizard-tab-btn .step-title { display: none; }
@@ -911,7 +907,19 @@
         flex-shrink: 0;
     }
 
-    .profil-guide-trigger:hover {
-        border-color: var(--gold-premium, #d4af37);
-        background: rgba(212, 175, 55, 0.08);
+    @media (hover: hover) and (pointer: fine) {
+        .profil-guide-trigger:hover {
+            border-color: var(--gold-premium, #d4af37);
+            background: rgba(212, 175, 55, 0.08);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .control-panel,
+        .premium-panel,
+        .wizard-progress-fill,
+        .action-btn {
+            animation: none !important;
+            transition: none !important;
+        }
     }

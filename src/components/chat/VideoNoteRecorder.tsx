@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useConfirm } from "@/components/layout/AegisConfirm";
 
 interface VideoNoteRecorderProps {
   onCancel: () => void;
@@ -8,6 +9,7 @@ interface VideoNoteRecorderProps {
 }
 
 export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorderProps) {
+  const { showAlert } = useConfirm();
   const [recordingTime, setRecordingTime] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
@@ -52,7 +54,7 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
       }
     } catch (err) {
       console.error("Gagal mengakses kamera/mikrofon:", err);
-      alert("Tidak dapat mengakses kamera. Pastikan izin kamera & mikrofon telah diberikan.");
+      await showAlert("Akses Kamera Ditolak", "Tidak dapat mengakses kamera. Pastikan izin kamera & mikrofon telah diberikan.");
       onCancel();
     }
   };
@@ -149,13 +151,13 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
   return (
     <div
       className="video-note-recorder-overlay"
+      role="dialog"
+      aria-modal="true"
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 999999,
-        background: "rgba(3, 5, 4, 0.92)",
-        backdropFilter: "blur(25px)",
-        WebkitBackdropFilter: "blur(25px)",
+        background: "rgba(3, 5, 4, 0.96)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

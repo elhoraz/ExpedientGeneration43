@@ -25,7 +25,7 @@ const MEMORY_ASSETS: Record<string, { imgSrc: string; rotation: string }> = {
 };
 
 export default function PolaroidMemories() {
-  const { t, locale } = useLanguage();
+  const { t, locale, isRTL } = useLanguage();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -49,13 +49,18 @@ export default function PolaroidMemories() {
     alt: snap.caption,
   }));
 
-  const scrollReel = (direction: "left" | "right") => {
+  const scrollReel = (direction: "prev" | "next") => {
     if (!trackRef.current) return;
     if (navigator.vibrate) navigator.vibrate(10);
     const scrollAmount = 340;
+    const step = direction === "prev" ? -scrollAmount : scrollAmount;
+    const adjustedStep = isRTL ? -step : step;
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     trackRef.current.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
+      left: adjustedStep,
+      behavior: prefersReduced ? "auto" : "smooth",
     });
   };
 
@@ -124,17 +129,21 @@ export default function PolaroidMemories() {
             type="button"
             className={`tuku-audio-btn ${isPlaying ? "playing" : ""}`}
             onClick={toggleAudio}
-            title={isPlaying ? "Jeda Musik Memori" : "Putar Musik Kenangan Slahung"}
+            title={
+              isPlaying
+                ? (locale === "ar" ? "إيقاف الموسيقى" : locale === "en" ? "Pause Audio" : "Jeda Musik Memori")
+                : (locale === "ar" ? "تشغيل نغمة الذكريات" : locale === "en" ? "Play Nostalgia Audio" : "Putar Musik Kenangan Slahung")
+            }
           >
             <span className="audio-icon-disc">
-              <i className={`fa-solid ${isLoadingAudio ? "fa-spinner fa-spin" : isPlaying ? "fa-pause" : "fa-play"}`}></i>
+              <i className={`fa-solid ${isLoadingAudio ? "fa-spinner fa-spin" : isPlaying ? "fa-pause" : "fa-play"}`} aria-hidden="true"></i>
             </span>
             <div className="audio-btn-labels">
               <strong>{isLoadingAudio ? (locale === "ar" ? "جارٍ التحميل..." : locale === "en" ? "Loading Audio..." : "Memuat Suara...") : isPlaying ? t.memories_section.audio_playing : t.memories_section.audio_idle}</strong>
               <span>{t.memories_section.audio_sub}</span>
             </div>
             {isPlaying && (
-              <div className="audio-mini-bars">
+              <div className="audio-mini-bars" aria-hidden="true">
                 <span className="bar b1"></span>
                 <span className="bar b2"></span>
                 <span className="bar b3"></span>
@@ -149,10 +158,10 @@ export default function PolaroidMemories() {
         <button
           type="button"
           className="polaroid-nav-btn prev"
-          onClick={() => scrollReel("left")}
-          aria-label="Foto Sebelumnya"
+          onClick={() => scrollReel("prev")}
+          aria-label={locale === "ar" ? "الصورة السابقة" : locale === "en" ? "Previous Photo" : "Foto Sebelumnya"}
         >
-          <i className="fa-solid fa-chevron-left"></i>
+          <i className={`fa-solid ${isRTL ? "fa-chevron-right" : "fa-chevron-left"}`} aria-hidden="true"></i>
         </button>
 
         <div className="polaroid-scroll-container" ref={trackRef}>
@@ -191,31 +200,31 @@ export default function PolaroidMemories() {
         <button
           type="button"
           className="polaroid-nav-btn next"
-          onClick={() => scrollReel("right")}
-          aria-label="Foto Berikutnya"
+          onClick={() => scrollReel("next")}
+          aria-label={locale === "ar" ? "الصورة التالية" : locale === "en" ? "Next Photo" : "Foto Berikutnya"}
         >
-          <i className="fa-solid fa-chevron-right"></i>
+          <i className={`fa-solid ${isRTL ? "fa-chevron-left" : "fa-chevron-right"}`} aria-hidden="true"></i>
         </button>
       </div>
 
       {/* Mobile Swipe Guidance Hint */}
       <div className="polaroid-mobile-hint">
-        <i className="fa-solid fa-arrows-left-right"></i>
+        <i className="fa-solid fa-arrows-left-right" aria-hidden="true"></i>
         <span>{locale === "ar" ? "اسحب لمشاهدة الذكريات" : locale === "en" ? "Swipe horizontally to explore" : "Geser layar untuk menelusuri kenangan"}</span>
       </div>
 
       {/* Footer Callout to Full Digital Museum */}
       <div className="polaroid-footer-cta">
         <Link href="/beranda" className="btn-tuku-album-link">
-          <i className="fa-solid fa-book-journal-whills"></i>
+          <i className="fa-solid fa-book-journal-whills" aria-hidden="true"></i>
           <span>
             {locale === "ar"
-              ? "افتح أكثر من 150 صفحة في المتحف الرقمي"
+              ? "افتح ألبوم الذكريات الكامل في المتحف الرقمي"
               : locale === "en"
-              ? "Open 150+ Full Album Pages in Museum"
-              : "Buka 150+ Halaman Album Lengkap di Museum"}
+              ? "Open Full Memory Archive in Museum"
+              : "Buka Album Kenangan Lengkap di Museum"}
           </span>
-          <i className="fa-solid fa-arrow-right" style={{ marginInlineStart: "8px" }}></i>
+          <i className={`fa-solid ${isRTL ? "fa-arrow-left" : "fa-arrow-right"}`} style={{ marginInlineStart: "8px" }} aria-hidden="true"></i>
         </Link>
       </div>
     </section>

@@ -48,42 +48,52 @@
 .btn-top-back { 
     position: absolute; 
     top: max(16px, calc(env(safe-area-inset-top, 16px) + 8px)); 
-    left: max(16px, env(safe-area-inset-left, 16px)); 
-    background: rgba(212, 175, 55, 0.1); 
-    color: #d4af37; 
+    inset-inline-start: max(16px, env(safe-area-inset-left, 16px)); 
+    background: var(--surface-raised, rgba(15, 23, 34, 0.9)); 
+    color: var(--gold-main, #d4af37); 
     border: 1px solid rgba(212, 175, 55, 0.3); 
+    min-height: 44px;
     padding: 10px 20px; 
     border-radius: 30px; 
     font-family: var(--font-sans, inherit); 
     font-size: 0.85rem; 
     font-weight: 600; 
     text-transform: uppercase; 
-    letter-spacing: 2px; 
+    letter-spacing: 0.08em; 
     text-decoration: none; 
-    backdrop-filter: blur(10px); 
     z-index: 100; 
-    display: flex; 
+    display: inline-flex; 
     align-items: center; 
     gap: 8px; 
 }
+.btn-top-back:focus-visible,
+.btn-start:focus-visible,
+.stealth-btn:focus-visible,
+.audio-track:focus-visible {
+    outline: 2px solid var(--gold-main, #d4af37);
+    outline-offset: 2px;
+}
 .btn-start { 
     background: transparent; 
-    color: #d4af37; 
-    border: 1px solid #d4af37; 
-    padding: 15px 50px; 
+    color: var(--gold-main, #d4af37); 
+    border: 1px solid var(--gold-main, #d4af37); 
+    min-height: 48px;
+    padding: 14px 44px; 
     font-family: var(--font-sans, inherit); 
-    font-size: clamp(0.78rem, 2vw, 0.85rem); 
-    letter-spacing: clamp(2.5px, 0.8vw, 5px); 
+    font-size: clamp(0.82rem, 2vw, 0.9rem); 
+    letter-spacing: clamp(0.08em, 0.4vw, 0.14em); 
     text-transform: uppercase; 
     border-radius: 40px; 
     cursor: pointer; 
-    transition: 0.5s; 
+    transition: background 0.35s ease, box-shadow 0.35s ease, transform 0.35s ease; 
     max-width: 90vw;
 }
-.btn-start:hover { 
-    background: rgba(212,175,55,0.15); 
-    box-shadow: 0 0 30px rgba(212,175,55,0.4); 
-    transform: translateY(-2px); 
+@media (hover: hover) and (pointer: fine) {
+    .btn-start:hover { 
+        background: rgba(212,175,55,0.15); 
+        box-shadow: 0 0 24px rgba(212,175,55,0.32); 
+        transform: translateY(-2px); 
+    }
 }
 
 .orb-container { 
@@ -207,8 +217,7 @@
     bottom: max(100px, calc(env(safe-area-inset-bottom, 20px) + 80px)); 
     left: 50%; 
     transform: translateX(-50%); 
-    background: var(--glass-bg); 
-    backdrop-filter: blur(20px); 
+    background: var(--bg-card, var(--glass-bg)); 
     border: 1px solid rgba(212,175,55,0.3); 
     padding: 20px 16px; 
     border-radius: 20px; 

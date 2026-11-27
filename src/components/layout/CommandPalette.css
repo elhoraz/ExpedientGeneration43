@@ -5,14 +5,12 @@
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background: rgba(6, 11, 20, 0.74);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--surface-scrim, rgba(6, 11, 20, 0.74));
   z-index: 10050;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 15vh;
+  padding-top: 15dvh;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -39,7 +37,7 @@
 .cmd-search-icon {
   color: var(--text-secondary);
   font-size: 1.05rem;
-  margin-right: 12px;
+  margin-inline-end: 12px;
 }
 
 .cmd-input {
@@ -62,20 +60,28 @@
 }
 
 .cmd-esc-hint {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
-  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
   background: var(--surface-raised, #171e2c);
   color: var(--text-secondary);
-  border-radius: 6px;
+  border-radius: 10px;
   border: 1px solid var(--glass-border);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.cmd-esc-hint:hover {
-  background: var(--gold-border);
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .cmd-esc-hint:hover {
+    background: var(--gold-border);
+    color: var(--text-primary);
+  }
 }
 
 .cmd-results {
@@ -103,8 +109,15 @@
 }
 
 .cmd-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.94rem;
+  text-align: start;
   display: flex;
   align-items: center;
+  min-height: 44px;
   padding: 11px 18px;
   cursor: pointer;
   color: var(--text-primary);
@@ -112,25 +125,32 @@
   position: relative;
 }
 
-.cmd-item.selected,
-.cmd-item:hover {
+.cmd-item.selected {
   background: rgba(212, 175, 55, 0.1);
   color: var(--gold-main, #d4af37);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmd-item:hover {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--gold-main, #d4af37);
+  }
 }
 
 .cmd-item-icon {
   width: 24px;
   text-align: center;
-  margin-right: 12px;
+  margin-inline-end: 12px;
   color: inherit;
   opacity: 0.85;
 }
 
 .cmd-enter-hint {
   position: absolute;
-  right: 18px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  inset-inline-end: 18px;
+  font-family: inherit;
   font-size: 0.76rem;
+  font-weight: 700;
   padding: 2px 7px;
   background: rgba(212, 175, 55, 0.14);
   color: var(--gold-main, #d4af37);
@@ -156,8 +176,9 @@
 }
 
 .cmd-footer kbd {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.7rem;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
   padding: 2px 6px;
   background: var(--surface-raised, #171e2c);
   color: var(--text-primary);
@@ -181,7 +202,7 @@
    COMMAND PALETTE LIGHT THEME
    ========================================================================== */
 :root[data-theme="light"] .cmd-palette-overlay {
-  background: rgba(24, 24, 27, 0.48);
+  background: var(--surface-scrim, rgba(24, 24, 27, 0.48));
 }
 
 :root[data-theme="light"] .cmd-palette-box {
@@ -217,10 +238,16 @@
   color: var(--text-primary, #18181b);
 }
 
-:root[data-theme="light"] .cmd-item.selected,
-:root[data-theme="light"] .cmd-item:hover {
+:root[data-theme="light"] .cmd-item.selected {
   background: rgba(124, 82, 10, 0.09);
   color: var(--gold-main, #7c520a);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-theme="light"] .cmd-item:hover {
+    background: rgba(124, 82, 10, 0.09);
+    color: var(--gold-main, #7c520a);
+  }
 }
 
 :root[data-theme="light"] .cmd-enter-hint {
@@ -287,7 +314,7 @@
   gap: 10px;
   padding: 10px 20px;
   border-bottom: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-inset, rgba(255, 255, 255, 0.02));
 }
 
 .cmd-quick-langs {
@@ -300,22 +327,27 @@
 .cmd-quick-help {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 5px 11px;
-  border-radius: 999px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 14px;
+  border-radius: 12px;
   border: 1px solid rgba(212, 175, 55, 0.28);
   background: rgba(212, 175, 55, 0.06);
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.cmd-quick-pill:hover,
-.cmd-quick-help:hover {
-  border-color: var(--gold-main, #d4af37);
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .cmd-quick-pill:hover,
+  .cmd-quick-help:hover {
+    border-color: var(--gold-main, #d4af37);
+    color: var(--text-primary);
+  }
 }
 
 .cmd-quick-pill.active {
@@ -340,4 +372,16 @@
   background: var(--gold-main, #7c520a);
   border-color: var(--gold-main, #7c520a);
   color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmd-palette-overlay,
+  .cmd-palette-box,
+  .cmd-esc-hint,
+  .cmd-item,
+  .cmd-quick-pill,
+  .cmd-quick-help {
+    animation: none !important;
+    transition: none !important;
+  }
 }

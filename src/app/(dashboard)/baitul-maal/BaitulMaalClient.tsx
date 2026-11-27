@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { escapeHtml } from "@/lib/sanitize";
 import "./baitul-maal.css";
 
 export interface BankAccount {
@@ -485,12 +486,12 @@ export default function BaitulMaalClient({
         <div class="header">
           <h1 class="title">${locale === "ar" ? "بيت المال دفعة إكسبيديانت 43" : "Baitul Maal Expedient Generation"}</h1>
           <p class="subtitle">Pondok Modern Arrisalah · Angkatan 43</p>
-          <p class="subtitle" style="font-size: 11px; margin-top: 2px;">No. Registrasi: EXP43-BM-${tx.id.slice(0, 8).toUpperCase()}</p>
+          <p class="subtitle" style="font-size: 11px; margin-top: 2px;">No. Registrasi: EXP43-BM-${escapeHtml(tx.id.slice(0, 8).toUpperCase())}</p>
         </div>
-        <div class="row"><span class="label">${locale === "ar" ? "اسم المتبرع:" : locale === "en" ? "Donor Name:" : "Nama Donatur / Penyalur:"}</span><span class="value">${tx.donor_name || (locale === "ar" ? "فاعل خير" : locale === "en" ? "Servant of Allah" : "Hamba Allah")}</span></div>
-        <div class="row"><span class="label">${locale === "ar" ? "تاريخ الاستلام:" : locale === "en" ? "Date Received:" : "Tanggal Diterima:"}</span><span class="value">${new Date(tx.created_at).toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")}</span></div>
-        <div class="row"><span class="label">${locale === "ar" ? "تخصيص البرنامج:" : locale === "en" ? "Program Allocation:" : "Alokasi Program:"}</span><span class="value">${tx.description || (locale === "ar" ? "إنفاق وتعاون صندوق الدفعة" : locale === "en" ? "Alumni Mutual Infaq & Fund" : "Infaq & Ta'awun Kas Angkatan")}</span></div>
-        <div class="amount-box">${formatRupiah(Number(tx.amount))}</div>
+        <div class="row"><span class="label">${locale === "ar" ? "اسم المتبرع:" : locale === "en" ? "Donor Name:" : "Nama Donatur / Penyalur:"}</span><span class="value">${escapeHtml(tx.donor_name || (locale === "ar" ? "فاعل خير" : locale === "en" ? "Servant of Allah" : "Hamba Allah"))}</span></div>
+        <div class="row"><span class="label">${locale === "ar" ? "تاريخ الاستلام:" : locale === "en" ? "Date Received:" : "Tanggal Diterima:"}</span><span class="value">${escapeHtml(new Date(tx.created_at).toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID"))}</span></div>
+        <div class="row"><span class="label">${locale === "ar" ? "تخصيص البرنامج:" : locale === "en" ? "Program Allocation:" : "Alokasi Program:"}</span><span class="value">${escapeHtml(tx.description || (locale === "ar" ? "إنفاق وتعاون صندوق الدفعة" : locale === "en" ? "Alumni Mutual Infaq & Fund" : "Infaq & Ta'awun Kas Angkatan"))}</span></div>
+        <div class="amount-box">${escapeHtml(formatRupiah(Number(tx.amount)))}</div>
         <div style="text-align: center;">
           <div class="stamp">${locale === "ar" ? "✓ معتمد من أمين الصندوق الرسمي" : locale === "en" ? "✓ VERIFIED BY OFFICIAL TREASURER" : "✓ TERVERIFIKASI BENDAHARA RESMI"}</div>
         </div>
@@ -523,7 +524,7 @@ export default function BaitulMaalClient({
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Piagam Penghargaan Donatur · ${tx.donor_name || "Hamba Allah"}</title>
+        <title>Piagam Penghargaan Donatur · ${escapeHtml(tx.donor_name || "Hamba Allah")}</title>
         <style>
           @page { size: landscape; margin: 12mm; }
           body {
@@ -649,17 +650,17 @@ export default function BaitulMaalClient({
         <div class="cert-frame">
           <div class="cert-header">BAITUL MAAL EXPEDIENT GENERATION 43</div>
           <h1 class="cert-title">${locale === "ar" ? "شهادة تقدير للمتبرع" : locale === "en" ? "Donor Appreciation Certificate" : "Piagam Apresiasi Donatur"}</h1>
-          <p class="cert-subtitle">${locale === "ar" ? "رقم التسجيل:" : locale === "en" ? "Registration No:" : "Nomor Registrasi:"} CERT/BM43/${tx.id.slice(0, 8).toUpperCase()}/${new Date().getFullYear()}</p>
+          <p class="cert-subtitle">${locale === "ar" ? "رقم التسجيل:" : locale === "en" ? "Registration No:" : "Nomor Registrasi:"} CERT/BM43/${escapeHtml(tx.id.slice(0, 8).toUpperCase())}/${new Date().getFullYear()}</p>
           
           <div style="font-size: 13px; color: #666; text-transform: uppercase; letter-spacing: 2px;">${locale === "ar" ? "تُمنح بكل إجلال وتقدير إلى:" : locale === "en" ? "Bestowed with highest gratitude upon:" : "Dianugerahkan Dengan Penuh Takzim Kepada:"}</div>
-          <div class="recipient-name">${tx.donor_name || (locale === "ar" ? "فاعل خير" : locale === "en" ? "Servant of Allah" : "Hamba Allah")}</div>
+          <div class="recipient-name">${escapeHtml(tx.donor_name || (locale === "ar" ? "فاعل خير" : locale === "en" ? "Servant of Allah" : "Hamba Allah"))}</div>
           
           <p class="cert-desc">
             ${locale === "ar"
-              ? `تقديراً لصدق العطاء والإخلاص في المساهمة بإنفاق وتكافل بقيمة<br/><span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>لصالح برنامج <strong>${tx.description || "صندوق الدفعة والعمل الخيري"}</strong>.<br/>نسأل الله سبحانه وتعالى أن يضاعف لكم الأجر، ويوسع في أرزاقكم، ويجعله صدقة جارية تفيض بالخيرات والبركات. آمين.`
+              ? `تقديراً لصدق العطاء والإخلاص في المساهمة بإنفاق وتكافل بقيمة<br/><span class="amount-highlight">${escapeHtml(formatRupiah(Number(tx.amount)))}</span><br/>لصالح برنامج <strong>${escapeHtml(tx.description || "صندوق الدفعة والعمل الخيري")}</strong>.<br/>نسأل الله سبحانه وتعالى أن يضاعف لكم الأجر، ويوسع في أرزاقكم، ويجعله صدقة جارية تفيض بالخيرات والبركات. آمين.`
               : locale === "en"
-              ? `In recognition of genuine sincerity and devotion in contributing infaq and solidarity valued at<br/><span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>allocated to <strong>${tx.description || "Routine Class & Solidarity Fund"}</strong>.<br/>May Allah Subhanahu Wa Ta'ala multiply your rewards, expand your provisions, and make it an enduring charitable legacy for you and your family. Aameen.`
-              : `Atas ketulusan, keikhlasan, dan komitmen ta'awun infaq senilai<br/><span class="amount-highlight">${formatRupiah(Number(tx.amount))}</span><br/>untuk dialokasikan pada program <strong>${tx.description || "Kas Rutin & Operasional Ukhuwah"}</strong>.<br/>Semoga Allah Subhanahu Wa Ta'ala melipatgandakan pahala kebaikan, memperluas pintu rezeki, dan menjadikannya amal jariyah abadi bagi antum sekeluarga. Aamiin.`
+              ? `In recognition of genuine sincerity and devotion in contributing infaq and solidarity valued at<br/><span class="amount-highlight">${escapeHtml(formatRupiah(Number(tx.amount)))}</span><br/>allocated to <strong>${escapeHtml(tx.description || "Routine Class & Solidarity Fund")}</strong>.<br/>May Allah Subhanahu Wa Ta'ala multiply your rewards, expand your provisions, and make it an enduring charitable legacy for you and your family. Aameen.`
+              : `Atas ketulusan, keikhlasan, dan komitmen ta'awun infaq senilai<br/><span class="amount-highlight">${escapeHtml(formatRupiah(Number(tx.amount)))}</span><br/>untuk dialokasikan pada program <strong>${escapeHtml(tx.description || "Kas Rutin & Operasional Ukhuwah")}</strong>.<br/>Semoga Allah Subhanahu Wa Ta'ala melipatgandakan pahala kebaikan, memperluas pintu rezeki, dan menjadikannya amal jariyah abadi bagi antum sekeluarga. Aamiin.`
             }
           </p>
 

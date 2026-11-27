@@ -151,8 +151,8 @@ export function AsatidzSection({
               locale === "ar"
                 ? "ابحث عن اسم الأستاذ أو المادة..."
                 : locale === "en"
-                ? "Search teacher name, role, or subject..."
-                : "Cari nama guru, amanah, atau mata pelajaran..."
+                  ? "Search teacher name, role, or subject..."
+                  : "Cari nama guru, amanah, atau mata pelajaran..."
             }
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -234,14 +234,30 @@ export function AsatidzSection({
               return (
                 <article
                   key={item.id}
-                  className={`asatidz-card ${item.isFounder ? "founder-card" : ""} ${
-                    item.isSuccessor ? "successor-card" : ""
-                  } ${item.isMotherHeadmaster ? "mother-card" : ""}`}
-                  onClick={() => {
-                    onSelectAsatidz(item);
-                    triggerHaptic(12);
-                  }}
+                  className={`asatidz-card ${item.isFounder ? "founder-card" : ""} ${item.isSuccessor ? "successor-card" : ""
+                    } ${item.isMotherHeadmaster ? "mother-card" : ""}`}
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onSelectAsatidz(item);
+                      triggerHaptic(12);
+                    }}
+                    aria-label={item.name}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      padding: 0,
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "inherit",
+                      color: "inherit",
+                      cursor: "pointer",
+                      font: "inherit",
+                    }}
+                  >
                   <div className="asatidz-frame-outer">
                     <div className="asatidz-frame-inner">
                       {item.photoUrl ? (
@@ -294,6 +310,7 @@ export function AsatidzSection({
                       </div>
                     )}
                   </div>
+                  </button>
                 </article>
               );
             })}

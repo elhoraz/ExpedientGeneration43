@@ -19,7 +19,7 @@
 .btn-back-vault {
     position: absolute;
     top: 28px;
-    left: 28px;
+    inset-inline-start: 28px;
     z-index: 100;
     display: inline-flex;
     align-items: center;
@@ -28,7 +28,7 @@
     min-height: 44px;
     background: var(--bg-card, #0f141e);
     border: 1px solid var(--gold-border, rgba(212, 175, 55, 0.35));
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--gold-main, #d4af37);
     font-size: 0.84rem;
     font-weight: 600;
@@ -38,11 +38,17 @@
     cursor: pointer;
 }
 
-.btn-back-vault:hover {
-    transform: translateX(-2px);
-    border-color: var(--gold-main, #d4af37);
-    background: var(--surface-raised, #171e2c);
-    color: var(--text-primary, #f2efe9);
+@media (hover: hover) and (pointer: fine) {
+    .btn-back-vault:hover {
+        transform: translateX(-2px);
+        border-color: var(--gold-main, #d4af37);
+        background: var(--surface-raised, #171e2c);
+        color: var(--text-primary, #f2efe9);
+    }
+
+    [dir="rtl"] .btn-back-vault:hover {
+        transform: translateX(2px);
+    }
 }
 
 .btn-back-vault:focus-visible {
@@ -53,7 +59,7 @@
 @media (max-width: 768px) {
     .btn-back-vault {
         top: max(16px, env(safe-area-inset-top, 16px));
-        left: 16px;
+        inset-inline-start: 16px;
         padding: 8px 14px;
         font-size: 0.8rem;
     }
@@ -79,10 +85,12 @@
     color: #ffffff;
 }
 
-.btn-gold:hover {
-    opacity: 0.94;
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+@media (hover: hover) and (pointer: fine) {
+    .btn-gold:hover {
+        opacity: 0.94;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    }
 }
 
 .btn-gold:focus-visible {

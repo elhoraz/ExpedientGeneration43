@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import NotificationBell from "./NotificationBell";
@@ -10,9 +11,11 @@ import GlobalCallReceiver from "@/components/chat/GlobalCallReceiver";
 import "@/app/(dashboard)/chat/chat.css";
 
 export default function Navbar() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const [notifOpen, setNotifOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+
+  useDialogEscape(chatOpen, () => setChatOpen(false));
   
   const [recentChats, setRecentChats] = useState<any[]>([]);
   const [inputChat, setInputChat] = useState("");
@@ -156,7 +159,7 @@ function urlBase64ToUint8Array(base64String: string) {
           }}
         >
           <div className="icon-orb">
-            <i className="fa-solid fa-magnifying-glass"></i>
+            <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
           </div>
         </button>
 
@@ -168,6 +171,8 @@ function urlBase64ToUint8Array(base64String: string) {
             id="btnChatWidget"
             title={t.navbar.chat_title}
             aria-label={t.navbar.chat_title}
+            aria-expanded={chatOpen}
+            aria-controls="chatDropdownPanel"
             onClick={() => {
               setChatOpen(!chatOpen);
               setNotifOpen(false);
@@ -175,14 +180,19 @@ function urlBase64ToUint8Array(base64String: string) {
             }}
           >
             <div className="icon-orb">
-              <i className="fa-solid fa-comment-dots"></i>
+              <i className="fa-solid fa-comment-dots" aria-hidden="true"></i>
             </div>
             {hasNewNotif && (
-              <span id="chatBadge" className="chat-badge" style={{
-                display: "block", position: "absolute", top: "2px", right: "2px",
-                width: "11px", height: "11px", background: "#dc2626", borderRadius: "50%",
-                border: "2px solid var(--bg-card)"
-              }}></span>
+              <span
+                id="chatBadge"
+                className="chat-badge"
+                aria-hidden="true"
+                style={{
+                  display: "block", position: "absolute", top: "4px", insetInlineEnd: "4px",
+                  width: "10px", height: "10px", background: "var(--ruby-gem, #dc2626)", borderRadius: "50%",
+                  border: "2px solid var(--bg-card)"
+                }}
+              ></span>
             )}
           </button>
         )}
@@ -198,7 +208,12 @@ function urlBase64ToUint8Array(base64String: string) {
       {userId && <GlobalCallReceiver userId={userId} />}
 
       {userId && chatOpen && (
-        <div className="chat-dropdown">
+        <div
+          id="chatDropdownPanel"
+          className="chat-dropdown"
+          role="dialog"
+          aria-label={t.navbar.chat_title}
+        >
           <div className="chat-dropdown-header">
             <div className="chat-dropdown-title">
               {t.navbar.chat_title}
@@ -208,17 +223,19 @@ function urlBase64ToUint8Array(base64String: string) {
                 href="/chat/lounge"
                 onClick={() => setChatOpen(false)}
                 title={t.navbar.chat_open_full}
+                aria-label={t.navbar.chat_open_full}
                 className="chat-dropdown-btn-action"
               >
-                <i className="fa-solid fa-expand"></i>
+                <i className="fa-solid fa-expand" aria-hidden="true"></i>
               </Link>
-              <button 
+              <button
                 type="button"
                 onClick={() => setChatOpen(false)}
                 className="chat-dropdown-btn-action"
                 title={t.navbar.chat_close}
+                aria-label={t.navbar.chat_close}
               >
-                <i className="fa-solid fa-xmark"></i>
+                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
               </button>
             </div>
           </div>
@@ -228,7 +245,7 @@ function urlBase64ToUint8Array(base64String: string) {
             ) : (
               recentChats.map((c) => (
                 <div key={c.id} className="chat-dropdown-item">
-                  <strong className="chat-dropdown-sender">{c.profiles?.nama_panggilan || "Unknown"}: </strong>
+                  <strong className="chat-dropdown-sender">{c.profiles?.nama_panggilan || (locale === "ar" ? "عضو" : locale === "en" ? "Member" : "Anggota")}: </strong>
                   <span className="chat-dropdown-text">{c.message}</span>
                 </div>
               ))
@@ -241,6 +258,7 @@ function urlBase64ToUint8Array(base64String: string) {
                 value={inputChat}
                 onChange={(e) => setInputChat(e.target.value)}
                 placeholder={t.navbar.chat_input_placeholder}
+                aria-label={t.navbar.chat_input_placeholder}
                 className="chat-dropdown-input"
                 required
               />
@@ -248,8 +266,9 @@ function urlBase64ToUint8Array(base64String: string) {
                 type="submit"
                 className="chat-dropdown-send-btn"
                 title={t.navbar.chat_send}
+                aria-label={t.navbar.chat_send}
               >
-                <i className="fa-solid fa-paper-plane"></i>
+                <i className="fa-solid fa-paper-plane" aria-hidden="true"></i>
               </button>
             </form>
           </div>

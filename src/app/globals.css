@@ -1,8 +1,7 @@
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
-@import url("https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css");
-@import url("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
-@import url("https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css");
-@import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import "cropperjs/dist/cropper.min.css";
+@import "leaflet/dist/leaflet.css";
+@import "swiper/css/bundle";
 
 :root {
   --background: #ffffff;
@@ -79,10 +78,47 @@ html[data-theme="dark"] {
   outline-offset: 2px;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+a[href],
+button:not(:disabled),
+summary,
+select:not(:disabled),
+label[for],
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.28);
+  color: #f2efe9;
+}
+
+html[data-theme="light"] ::selection {
+  background: rgba(124, 82, 10, 0.2);
+  color: #18181b;
+}
+
 html,
 body {
   transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Sembunyikan widget navbar & tombol bantuan saat panel disembunyikan (Desktop & Mobile) */
@@ -96,8 +132,8 @@ body.sidebar-closed .notif-dropdown {
   pointer-events: none !important;
   visibility: hidden !important;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.35s !important;
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.35s !important;
 }
 
 body.sidebar-closed .floating-help-btn {
@@ -106,8 +142,8 @@ body.sidebar-closed .floating-help-btn {
   pointer-events: none !important;
   visibility: hidden !important;
   transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.35s !important;
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.35s !important;
 }
 
 /* ========================================================
@@ -143,7 +179,9 @@ body.sidebar-closed .floating-help-btn {
 }
 
 /* Kurangi beban GPU dan matikan elemen desktop di HP / Layar Sentuh */
-@media (max-width: 768px), (pointer: coarse) {
+@media (max-width: 768px),
+(pointer: coarse) {
+
   .film-grain,
   #particles-js,
   .cursor-dot,
@@ -162,6 +200,7 @@ body.sidebar-closed .floating-help-btn {
    ======================================================== */
 /* Mencegah auto-zoom paksa di iOS Safari pada semua input teks saat diklik (ambang batas iOS < 16px) */
 @media screen and (max-width: 768px) {
+
   input,
   select,
   textarea,
@@ -174,7 +213,9 @@ body.sidebar-closed .floating-help-btn {
 }
 
 /* Hilangkan highlight abu-abu default saat tap di WebKit iOS & Android */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -186,7 +227,9 @@ body.sidebar-closed .floating-help-btn {
 /* ========================================================
    MOBILE & TOUCH EXPERIENCE: ALWAYS ALIVE & ACCELERATED
    ======================================================== */
-@media (hover: none), (pointer: coarse) {
+@media (hover: none),
+(pointer: coarse) {
+
   /* Hilangkan grayscale bawaan hover di HP agar semua visual langsung menyala full color */
   .echo-frame,
   .premium-card .card-bg,
@@ -196,7 +239,10 @@ body.sidebar-closed .floating-help-btn {
   }
 
   /* Momentum smooth scrolling di iOS & Android */
-  html, body, .main-wrapper, .dashboard-container {
+  html,
+  body,
+  .main-wrapper,
+  .dashboard-container {
     -webkit-overflow-scrolling: touch;
   }
 
@@ -277,12 +323,12 @@ html[lang="ar"] body {
    LANGUAGE PREFERENCE WIDGET (FLEXIBLE / COMPACT)
    ========================================================================== */
 .lang-widget {
-  background: var(--glass-bg, #0f141e);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--bg-card, #0f141e);
   border: 1px solid var(--glass-border);
-  border-radius: 40px;
-  padding: 6px 14px 6px 6px;
+  border-radius: 14px;
+  padding-block: 6px;
+  padding-inline: 6px 14px;
+  min-height: 44px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -293,9 +339,20 @@ html[lang="ar"] body {
   font-family: var(--font-sans, inherit);
 }
 
-.lang-widget:hover {
-  transform: translateY(-2px);
-  border-color: var(--gold-main);
+@media (hover: hover) and (pointer: fine) {
+  .lang-widget:hover {
+    transform: translateY(-2px);
+    border-color: var(--gold-main);
+  }
+
+  .lang-widget:hover .icon-orb {
+    background: var(--text-primary);
+    color: var(--bg-main);
+  }
+
+  :root[data-theme="light"] .lang-widget:hover {
+    border-color: var(--gold-main);
+  }
 }
 
 .lang-widget .icon-orb {
@@ -315,11 +372,6 @@ html[lang="ar"] body {
   background: var(--surface-raised);
 }
 
-.lang-widget:hover .icon-orb {
-  background: var(--text-primary);
-  color: var(--bg-main);
-}
-
 .lang-widget .widget-text {
   font-size: 0.74rem;
   font-weight: 700;
@@ -335,17 +387,13 @@ html[lang="ar"] body {
   color: var(--text-primary);
 }
 
-:root[data-theme="light"] .lang-widget:hover {
-  border-color: var(--gold-main);
-}
-
 .lang-switcher-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  min-height: 40px;
-  border-radius: 999px;
+  min-height: 44px;
+  border-radius: 12px;
   background: var(--bg-card, #0f141e);
   border: 1px solid var(--glass-border);
   color: var(--text-primary);
@@ -361,15 +409,17 @@ html[lang="ar"] body {
   color: var(--text-primary);
 }
 
-.lang-switcher-btn:hover {
-  border-color: var(--gold-main);
-  background: var(--surface-raised);
-  transform: translateY(-1px);
-}
+@media (hover: hover) and (pointer: fine) {
+  .lang-switcher-btn:hover {
+    border-color: var(--gold-main);
+    background: var(--surface-raised);
+    transform: translateY(-1px);
+  }
 
-:root[data-theme="light"] .lang-switcher-btn:hover {
-  background: var(--surface-raised);
-  border-color: var(--gold-main);
+  :root[data-theme="light"] .lang-switcher-btn:hover {
+    background: var(--surface-raised);
+    border-color: var(--gold-main);
+  }
 }
 
 .lang-flag-current {
@@ -379,7 +429,6 @@ html[lang="ar"] body {
 
 .lang-code-current {
   letter-spacing: 0.04em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-weight: 700;
   color: var(--gold-main);
 }
@@ -421,8 +470,15 @@ html[lang="ar"] body {
 }
 
 @keyframes langFadeIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .lang-dropdown-item {
@@ -430,6 +486,7 @@ html[lang="ar"] body {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
+  min-height: 44px;
   border-radius: 9px;
   border: none;
   background: transparent;
@@ -437,18 +494,21 @@ html[lang="ar"] body {
   font-size: 0.84rem;
   font-weight: 500;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   transition: background-color 0.2s ease, color 0.2s ease;
   width: 100%;
 }
 
-[dir="rtl"] .lang-dropdown-item {
-  text-align: right;
-}
+@media (hover: hover) and (pointer: fine) {
+  .lang-dropdown-item:hover {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--text-primary);
+  }
 
-.lang-dropdown-item:hover {
-  background: rgba(212, 175, 55, 0.12);
-  color: var(--text-primary);
+  :root[data-theme="light"] .lang-dropdown-item:hover {
+    background: var(--surface-raised);
+    color: var(--text-primary);
+  }
 }
 
 .lang-dropdown-item.active {
@@ -465,11 +525,6 @@ html[lang="ar"] body {
 
 :root[data-theme="light"] .lang-dropdown-item {
   color: var(--text-secondary);
-}
-
-:root[data-theme="light"] .lang-dropdown-item:hover {
-  background: var(--surface-raised);
-  color: var(--text-primary);
 }
 
 :root[data-theme="light"] .lang-dropdown-item.active {
@@ -520,6 +575,7 @@ html[lang="ar"] body {
   justify-content: center;
   gap: 4px;
   padding: 6px 8px;
+  min-height: 44px;
   border-radius: 8px;
   border: 1px solid var(--glass-border);
   background: var(--surface-raised);
@@ -530,10 +586,18 @@ html[lang="ar"] body {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.lang-sidebar-pill:hover {
-  background: rgba(212, 175, 55, 0.12);
-  color: var(--gold-main);
-  border-color: var(--gold-border);
+@media (hover: hover) and (pointer: fine) {
+  .lang-sidebar-pill:hover {
+    background: rgba(212, 175, 55, 0.12);
+    color: var(--gold-main);
+    border-color: var(--gold-border);
+  }
+
+  :root[data-theme="light"] .lang-sidebar-pill:hover {
+    background: rgba(124, 82, 10, 0.11);
+    color: var(--gold-main, #7c520a);
+    border-color: var(--gold-main, #7c520a);
+  }
 }
 
 .lang-sidebar-pill.active {
@@ -542,7 +606,6 @@ html[lang="ar"] body {
   border-color: var(--gold-main);
 }
 
-:root[data-theme="light"] .lang-sidebar-pill:hover,
 :root[data-theme="light"] .lang-sidebar-pill.active {
   background: rgba(124, 82, 10, 0.11);
   color: var(--gold-main, #7c520a);
@@ -592,14 +655,12 @@ html[dir="rtl"] .fa-chevron-left:not(.no-rtl-flip) {
    SMOOTH & FLUID LANGUAGE TRANSITIONS (APPLE-GRADE DISSOLVE)
    ========================================================================== */
 html.lang-switching body {
-  opacity: 0.72 !important;
-  filter: blur(0.4px);
-  transition: opacity 0.14s ease, filter 0.14s ease;
+  opacity: 0.78 !important;
+  transition: opacity 0.14s ease;
 }
 
 body {
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              filter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 ::view-transition-old(root),
@@ -660,6 +721,7 @@ body {
 
 /* Prevent iOS Safari from forced auto-zooming inputs on focus when font-size < 16px */
 @media screen and (max-width: 768px) {
+
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   select,
   textarea {

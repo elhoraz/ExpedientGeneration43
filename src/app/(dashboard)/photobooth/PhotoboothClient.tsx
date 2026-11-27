@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import html2canvas from "html2canvas";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useConfirm } from "@/components/layout/AegisConfirm";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import "./photobooth.css";
 
 type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
@@ -115,6 +117,7 @@ function LivePhotoCellVideo({
 
 export default function PhotoboothClient() {
   const { t, locale } = useLanguage();
+  const { showAlert } = useConfirm();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -191,6 +194,8 @@ export default function PhotoboothClient() {
     type: "image" | "video";
   } | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
+
+  useDialogEscape(showExportModal, () => setShowExportModal(false));
 
   // Stickers
   const [stickers, setStickers] = useState<PlacedSticker[]>([]);
@@ -301,7 +306,13 @@ export default function PhotoboothClient() {
       }
     } catch (err: any) {
       console.warn("Camera access error:", err);
-      setCameraError(err.message || "Izin akses kamera tidak diberikan.");
+      setCameraError(
+        locale === "ar"
+          ? "تعذر الوصول إلى الكاميرا. يرجى السماح بإذن الكاميرا من إعدادات المتصفح أو رفع الصور من المعرض."
+          : locale === "en"
+          ? "Camera access unavailable. Please enable camera permission in your browser settings or upload photos from your gallery."
+          : "Kamera belum dapat diakses. Izinkan akses kamera di browser atau unggah foto langsung dari galeri."
+      );
       setIsCameraReady(false);
     }
   }, [stopCamera]);
@@ -1263,7 +1274,7 @@ export default function PhotoboothClient() {
         ctx.beginPath();
         ctx.arc(ringX, ringY, ringR - 2 * scale, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#ffd700";
+        ctx.fillStyle = "#d4af37";
         ctx.font = `bold ${7 * scale}px sans-serif`;
         ctx.fillText("43", ringX, ringY + 1);
 
@@ -1341,7 +1352,7 @@ export default function PhotoboothClient() {
         ctx.fillText("MEMORIES OF ARRISALAH 43", canvasWidth / 2, 22 * scale);
       } else {
         const headerTitle = "EXPEDIENT GENERATION";
-        let textCol = "#ffd700";
+        let textCol = "#d4af37";
         if (theme === "white") textCol = "#111111";
         else if (theme === "cyber") textCol = "#10b981";
         else if (theme === "sakura") textCol = "#c71f66";
@@ -1375,12 +1386,12 @@ export default function PhotoboothClient() {
         ctx.textAlign = "left";
         ctx.fillStyle = "#262626";
         ctx.font = `bold ${8 * scale}px sans-serif`;
-        ctx.fillText("4,343 likes", 16 * scale, igY + 16 * scale);
+        ctx.fillText("expedientgeneration_ · Arrisalah 43", 16 * scale, igY + 16 * scale);
         ctx.font = `${8 * scale}px sans-serif`;
-        ctx.fillText(`expedientgeneration_ ${captionTitle || "Momen Kenangan"}`, 16 * scale, igY + 28 * scale);
+        ctx.fillText(captionTitle || "Momen Kenangan", 16 * scale, igY + 28 * scale);
         ctx.fillStyle = "#8e8e8e";
         ctx.font = `${7 * scale}px sans-serif`;
-        ctx.fillText(`${captionDate || "2026"} • 2 HOURS AGO`, 16 * scale, igY + 40 * scale);
+        ctx.fillText(`${captionDate || "2026"} • ARRISALAH`, 16 * scale, igY + 40 * scale);
       } else if (theme === "portra") {
         ctx.strokeStyle = "#333333";
         ctx.beginPath();
@@ -1474,7 +1485,7 @@ export default function PhotoboothClient() {
         ctx.fillText(captionDate || "2026", canvasWidth / 2, footerY + 14 * scale);
       } else {
         ctx.textAlign = "center";
-        let textCol = "#ffd700";
+        let textCol = "#d4af37";
         let subCol = "rgba(255,255,255,0.7)";
         let borderCol = "#d4af37";
 
@@ -1886,7 +1897,8 @@ export default function PhotoboothClient() {
       .filter(({ p }) => p && p.image);
 
     if (filled.length === 0) {
-      alert(
+      void showAlert(
+        locale === "ar" ? "تنبيه" : locale === "en" ? "Notice" : "Peringatan",
         locale === "ar"
           ? "لم يتم التقاط أي صور بعد."
           : locale === "en"
@@ -2085,7 +2097,8 @@ export default function PhotoboothClient() {
       }
     } catch (error: any) {
       console.error("Export error:", error);
-      alert(
+      void showAlert(
+        locale === "ar" ? "تنبيه" : locale === "en" ? "Notice" : "Peringatan",
         locale === "ar"
           ? "فشل تصدير شريط الصور مباشرة. جاري تجربة التنزيل الاحتياطي..."
           : locale === "en"
@@ -2207,7 +2220,8 @@ export default function PhotoboothClient() {
         (exportCanvas as any).captureStream || (exportCanvas as any).mozCaptureStream;
       if (!captureStreamFn || typeof MediaRecorder === "undefined") {
         cleanup();
-        alert(
+        void showAlert(
+          locale === "ar" ? "تنبيه" : locale === "en" ? "Notice" : "Peringatan",
           locale === "ar"
             ? "متصفحك لا يدعم تصدير الفيديو حالياً. سيتم تنزيل صورة PNG بدلاً من ذلك."
             : locale === "en"
@@ -2584,7 +2598,8 @@ export default function PhotoboothClient() {
       console.error("Live video export error:", err);
       cleanup();
       setIsExporting(false);
-      alert(
+      void showAlert(
+        locale === "ar" ? "تنبيه" : locale === "en" ? "Notice" : "Peringatan",
         locale === "ar"
           ? "جهازك لا يدعم تصيير هذا الفيديو المتحرك. سيتم تنزيل شريط الصور عالي الدقة (PNG) بدلاً من ذلك."
           : locale === "en"
@@ -2609,7 +2624,7 @@ export default function PhotoboothClient() {
       {/* Studio Header */}
       <div className="studio-header">
         <div className="studio-badge">
-          <i className="fa-solid fa-camera-retro"></i> Studio Foto Kenangan Expedient
+          <i className="fa-solid fa-camera-retro" aria-hidden="true"></i> Studio Foto Kenangan Expedient
         </div>
         <h1 className="studio-title">
           {t.photobooth.title}
@@ -2621,16 +2636,18 @@ export default function PhotoboothClient() {
         {/* Live Photo Mode Switcher */}
         <div className="live-mode-toggle-bar">
           <button
+            type="button"
             className={`live-mode-btn ${!isLiveMode ? "active" : ""}`}
             onClick={() => { triggerHaptic(15); setIsLiveMode(false); }}
           >
-            <i className="fa-solid fa-camera"></i> Foto Diam (Standard)
+            <i className="fa-solid fa-camera" aria-hidden="true"></i> Foto Diam (Standard)
           </button>
           <button
+            type="button"
             className={`live-mode-btn ${isLiveMode ? "active" : ""}`}
             onClick={() => { triggerHaptic(15); setIsLiveMode(true); }}
           >
-            <i className="fa-solid fa-video"></i> 📹 Foto Live (Bergerak)
+            <i className="fa-solid fa-video" aria-hidden="true"></i> Foto Live (Bergerak)
           </button>
         </div>
       </div>
@@ -2644,31 +2661,27 @@ export default function PhotoboothClient() {
           {/* Live Viewfinder */}
           <div className={`viewfinder-wrapper aspect-${layout === "polaroid" ? "square" : photoAspect}`}>
             {cameraError ? (
-              <div
-                style={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "24px",
-                  textAlign: "center",
-                  background: "#111116",
-                }}
-              >
-                <i className="fa-solid fa-camera-slash" style={{ fontSize: "2.5rem", color: "#e63946", marginBottom: "12px" }}></i>
-                <div style={{ fontWeight: 700, fontSize: "1rem", color: "#fff", marginBottom: "6px" }}>
-                  Kamera Tidak Dapat Diakses
+              <div className="camera-error-panel">
+                <i className="fa-solid fa-camera-slash" aria-hidden="true" style={{ fontSize: "2.5rem", color: "#dc2626", marginBottom: "12px" }}></i>
+                <div className="camera-error-title">
+                  {locale === "ar" ? "تعذر الوصول إلى الكاميرا" : locale === "en" ? "Camera Unavailable" : "Kamera Tidak Dapat Diakses"}
                 </div>
-                <p style={{ fontSize: "0.85rem", color: "#888", maxWidth: "340px", marginBottom: "16px" }}>
-                  {cameraError}. Jangan khawatir, Anda tetap bisa memasukkan foto langsung dari galeri ponsel/laptop.
+                <p className="camera-error-desc">
+                  {cameraError}{" "}
+                  {locale === "ar"
+                    ? "يمكنك رفع الصور مباشرة من معرض جهازك."
+                    : locale === "en"
+                      ? "You can still upload photos directly from your device gallery."
+                      : "Jangan khawatir, Anda tetap bisa memilih foto langsung dari galeri perangkat."}
                 </p>
                 <button
+                  type="button"
                   className="chip-btn active"
                   onClick={() => fileInputRef.current?.click()}
                   style={{ padding: "10px 20px" }}
                 >
-                  <i className="fa-solid fa-folder-open"></i> Unggah Foto dari Galeri
+                  <i className="fa-solid fa-folder-open" aria-hidden="true"></i>{" "}
+                  {locale === "ar" ? "رفع صورة من المعرض" : locale === "en" ? "Upload from Gallery" : "Unggah Foto dari Galeri"}
                 </button>
               </div>
             ) : (
@@ -2723,7 +2736,7 @@ export default function PhotoboothClient() {
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div className="hud-pill" style={{ textTransform: "capitalize" }}>
-                  <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#ffd700" }}></i> {filter}
+                  <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#d4af37" }}></i> {filter}
                 </div>
                 {cameraFacing === "user" && (
                   <div className="hud-pill">
@@ -2766,30 +2779,34 @@ export default function PhotoboothClient() {
           <div className="camera-controls-bar">
             {/* Flip Camera Button */}
             <button
+              type="button"
               className="btn-icon-tool"
-              title="Putar Kamera (Depan/Belakang)"
+              title={locale === "ar" ? "تبديل الكاميرا (أمامية/خلفية)" : locale === "en" ? "Flip Camera (Front/Back)" : "Putar Kamera (Depan/Belakang)"}
+              aria-label={locale === "ar" ? "تبديل الكاميرا" : locale === "en" ? "Flip Camera" : "Putar Kamera"}
               onClick={handleToggleFacing}
             >
-              <i className="fa-solid fa-camera-rotate"></i>
+              <i className="fa-solid fa-camera-rotate" aria-hidden="true"></i>
             </button>
 
             {/* Main Shutter Button / Completion Action */}
             {isAllFilled && activeSlot === -1 ? (
               <button
+                type="button"
                 className="btn-shutter btn-shutter-success"
                 onClick={scrollToPreview}
                 title={locale === "ar" ? "اكتملت جميع الصور، انقر لعرض شريط الصور" : locale === "en" ? "All poses complete, click to view photostrip" : "Semua pose lengkap, klik untuk melihat photostrip Anda"}
               >
-                <i className="fa-solid fa-sparkles"></i>
+                <i className="fa-solid fa-sparkles" aria-hidden="true"></i>
                 <span>{locale === "ar" ? `عرض النتيجة (${totalSlots}/${totalSlots})` : locale === "en" ? `View Results (${totalSlots}/${totalSlots})` : `Lihat Hasil (${totalSlots}/${totalSlots})`}</span>
               </button>
             ) : (
               <button
+                type="button"
                 className="btn-shutter"
                 onClick={triggerShutter}
                 disabled={isCountingDown || isLiveRecording}
               >
-                <i className={isLiveMode ? "fa-solid fa-video" : "fa-solid fa-camera"}></i>
+                <i className={isLiveMode ? "fa-solid fa-video" : "fa-solid fa-camera"} aria-hidden="true"></i>
                 <span>
                   {isCountingDown
                     ? (locale === "ar" ? "استعد..." : locale === "en" ? "Get ready..." : "Bersiap...")
@@ -2804,41 +2821,53 @@ export default function PhotoboothClient() {
 
             {/* Upload Fallback Button */}
             <button
+              type="button"
               className="btn-icon-tool"
-              title="Unggah dari Galeri"
+              title={locale === "ar" ? "رفع من المعرض" : locale === "en" ? "Upload from Gallery" : "Unggah dari Galeri"}
+              aria-label={locale === "ar" ? "رفع من المعرض" : locale === "en" ? "Upload from Gallery" : "Unggah dari Galeri"}
               onClick={() => fileInputRef.current?.click()}
             >
-              <i className="fa-solid fa-upload"></i>
+              <i className="fa-solid fa-upload" aria-hidden="true"></i>
             </button>
           </div>
 
           {/* All Slots Completed Interactive Notice */}
           {isAllFilled && (
-            <div
+            <button
+              type="button"
               className="all-captured-banner"
               onClick={scrollToPreview}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "1.4rem" }}>🎉</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", textAlign: "start" }}>
+                <i className="fa-solid fa-circle-check" aria-hidden="true" style={{ fontSize: "1.35rem", color: "var(--gold-main, #d4af37)" }}></i>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: "0.85rem", color: "#ffd700" }}>
-                    Semua Pose Terisi ({totalSlots}/{totalSlots})!
+                  <div className="all-captured-title">
+                    {locale === "ar"
+                      ? `اكتملت جميع اللقطات (${totalSlots}/${totalSlots})`
+                      : locale === "en"
+                        ? `All Poses Captured (${totalSlots}/${totalSlots})`
+                        : `Semua Pose Terisi (${totalSlots}/${totalSlots})`}
                   </div>
-                  <div style={{ fontSize: "0.72rem", color: "#d0d0d8" }}>
-                    Ketuk di sini untuk melihat & mengunduh photostrip di <span className="mobile-only">bawah 👇</span><span className="desktop-only">samping 👉</span>
+                  <div className="all-captured-desc">
+                    {locale === "ar" ? (
+                      <>اضغط هنا لمعاينة وتنزيل الشريط</>
+                    ) : locale === "en" ? (
+                      <>
+                        Tap here to view &amp; download photostrip <span className="mobile-only">below</span><span className="desktop-only">on the side</span>
+                      </>
+                    ) : (
+                      <>
+                        Ketuk untuk melihat &amp; mengunduh photostrip di <span className="mobile-only">bawah</span><span className="desktop-only">samping</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
-              <button
-                className="banner-view-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  scrollToPreview();
-                }}
-              >
-                Lihat <i className="fa-solid fa-arrow-right"></i>
-              </button>
-            </div>
+              <span className="banner-view-btn">
+                {locale === "ar" ? "عرض" : locale === "en" ? "View" : "Lihat"}{" "}
+                <i className={`fa-solid ${locale === "ar" ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
+              </span>
+            </button>
           )}
 
           {/* Studio Customizer Controls */}
@@ -2850,55 +2879,62 @@ export default function PhotoboothClient() {
               </div>
               <div className="chips-scroll-row">
                 <button
+                  type="button"
                   className={`chip-btn ${layout === "korean-4cut" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setLayout("korean-4cut"); }}
                 >
-                  <i className="fa-solid fa-grip-vertical"></i> 4-Cut Strip
+                  <i className="fa-solid fa-grip-vertical" aria-hidden="true"></i> 4-Cut Strip
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${layout === "grid-2x2" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setLayout("grid-2x2"); }}
                 >
-                  <i className="fa-solid fa-border-all"></i> 2×2 Grid
+                  <i className="fa-solid fa-border-all" aria-hidden="true"></i> 2×2 Grid
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${layout === "retro-3cut" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setLayout("retro-3cut"); }}
                 >
-                  <i className="fa-solid fa-ellipsis-vertical"></i> 3-Cut Retro
+                  <i className="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i> 3-Cut Retro
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${layout === "polaroid" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setLayout("polaroid"); }}
                 >
-                  <i className="fa-solid fa-square"></i> Polaroid
+                  <i className="fa-solid fa-square" aria-hidden="true"></i> Polaroid
                 </button>
               </div>
             </div>
 
             {/* 2. Frame Layout Editor (Jarak, Sudut, Rasio, & Warna) */}
-            <div style={{ background: "rgba(255,255,255,0.03)", padding: "14px", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <div className="frame-customizer-card">
               <div className="tool-group-label">
-                <i className="fa-solid fa-sliders"></i> 2. Edit Tata Letak & Desain Frame
+                <i className="fa-solid fa-sliders" aria-hidden="true"></i> 2. Edit Tata Letak &amp; Desain Frame
               </div>
 
               {/* Aspect Ratio */}
               <div style={{ marginBottom: "12px" }}>
-                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Bentuk Bidang Foto:</span>
-                <div style={{ display: "flex", gap: "8px" }}>
+                <span className="tool-sub-label">Bentuk Bidang Foto:</span>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   <button
+                    type="button"
                     className={`toggle-element-btn ${photoAspect === "classic" ? "active" : ""}`}
                     onClick={() => { triggerHaptic(10); setPhotoAspect("classic"); }}
                   >
                     4:3 (Klasik)
                   </button>
                   <button
+                    type="button"
                     className={`toggle-element-btn ${photoAspect === "square" ? "active" : ""}`}
                     onClick={() => { triggerHaptic(10); setPhotoAspect("square"); }}
                   >
                     1:1 (Kotak)
                   </button>
                   <button
+                    type="button"
                     className={`toggle-element-btn ${photoAspect === "portrait" ? "active" : ""}`}
                     onClick={() => { triggerHaptic(10); setPhotoAspect("portrait"); }}
                   >
@@ -2909,8 +2945,9 @@ export default function PhotoboothClient() {
 
               {/* Sliders: Gap & Radius */}
               <div className="layout-slider-row">
-                <span className="layout-slider-label">Jarak Foto:</span>
+                <label htmlFor="pb-gap-slider" className="layout-slider-label">Jarak Foto:</label>
                 <input
+                  id="pb-gap-slider"
                   type="range"
                   min="0"
                   max="24"
@@ -2918,12 +2955,13 @@ export default function PhotoboothClient() {
                   onChange={(e) => setFrameGap(Number(e.target.value))}
                   className="custom-range-slider"
                 />
-                <span style={{ fontSize: "0.75rem", color: "#ffd700", width: "35px" }}>{frameGap}px</span>
+                <span className="slider-value-readout">{frameGap}px</span>
               </div>
 
               <div className="layout-slider-row">
-                <span className="layout-slider-label">Sudut Lengkung:</span>
+                <label htmlFor="pb-radius-slider" className="layout-slider-label">Sudut Lengkung:</label>
                 <input
+                  id="pb-radius-slider"
                   type="range"
                   min="0"
                   max="24"
@@ -2931,12 +2969,12 @@ export default function PhotoboothClient() {
                   onChange={(e) => setFrameRadius(Number(e.target.value))}
                   className="custom-range-slider"
                 />
-                <span style={{ fontSize: "0.75rem", color: "#ffd700", width: "35px" }}>{frameRadius}px</span>
+                <span className="slider-value-readout">{frameRadius}px</span>
               </div>
 
               {/* Color Swatches */}
               <div style={{ marginTop: "10px" }}>
-                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Warna Dasar Bingkai (Kustom):</span>
+                <span className="tool-sub-label">Warna Dasar Bingkai (Kustom):</span>
                 <div className="color-swatches-row">
                   {[
                     { color: "#0d0d10", label: "Hitam" },
@@ -2946,8 +2984,9 @@ export default function PhotoboothClient() {
                     { color: "#061a10", label: "Emerald" },
                     { color: "#1a080d", label: "Velvet" },
                   ].map((sw) => (
-                    <div
+                    <button
                       key={sw.color}
+                      type="button"
                       className={`color-swatch-circle ${theme === "custom" && customBgColor === sw.color ? "active" : ""}`}
                       style={{ background: sw.color }}
                       onClick={() => {
@@ -2956,13 +2995,15 @@ export default function PhotoboothClient() {
                         setCustomBgColor(sw.color);
                       }}
                       title={sw.label}
+                      aria-label={`Warna bingkai ${sw.label}`}
                     />
                   ))}
                   {/* Custom Color Input */}
                   <label className="color-picker-input-btn" title="Pilih Warna Kustom Bebas">
-                    <i className="fa-solid fa-palette"></i>
+                    <i className="fa-solid fa-palette" aria-hidden="true"></i>
                     <input
                       type="color"
+                      aria-label="Pilih warna kustom bingkai"
                       value={customBgColor}
                       onChange={(e) => {
                         setTheme("custom");
@@ -2975,74 +3016,67 @@ export default function PhotoboothClient() {
               </div>
 
               {/* 17 Frame Themes Picker */}
-              <div style={{ marginTop: "14px", paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                <span style={{ fontSize: "0.75rem", color: "#ffd700", display: "block", marginBottom: "8px", fontWeight: 700 }}>
-                  <i className="fa-solid fa-fire"></i> Edisi Viral Pinterest (Khas Santri & Expedient):
+              <div className="themes-section-divider">
+                <span className="themes-group-heading highlight">
+                  <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Edisi Kurasi (Khas Santri &amp; Expedient):
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
                   {[
-                    { id: "gingham", label: "🧺 Beige Gingham & Washi Tape" },
-                    { id: "cobalt", label: "⚡ Cobalt Y2K Every Moment" },
-                    { id: "doily", label: "🌺 Korduroi & Renda Doily" },
-                    { id: "portra", label: "🎞️ Kodak Portra 400" },
-                    { id: "instagram", label: "📱 Instagram Feed UI" },
-                    { id: "luggage", label: "🧳 Vintage Luggage Tag" },
-                    { id: "spiral", label: "📒 Spiral Notebook" },
-                    { id: "ticket", label: "🎟️ Boarding Pass Ticket" },
-                    { id: "receipt", label: "🧾 Struk Kopontren Mart" },
-                    { id: "scrapbook", label: "📌 Scrapbook Santri" },
-                    { id: "doodle", label: "⚡ Y2K Doodle Pop" },
-                    { id: "mihrab", label: "🕌 Mihrab Kubah Emas" },
-                  ].map((t) => (
+                    { id: "gingham", label: "Beige Gingham & Washi Tape" },
+                    { id: "cobalt", label: "Cobalt Y2K Every Moment" },
+                    { id: "doily", label: "Korduroi & Renda Doily" },
+                    { id: "portra", label: "Kodak Portra 400" },
+                    { id: "instagram", label: "Instagram Feed UI" },
+                    { id: "luggage", label: "Vintage Luggage Tag" },
+                    { id: "spiral", label: "Spiral Notebook" },
+                    { id: "ticket", label: "Boarding Pass Ticket" },
+                    { id: "receipt", label: "Struk Kopontren Mart" },
+                    { id: "scrapbook", label: "Scrapbook Santri" },
+                    { id: "doodle", label: "Y2K Doodle Pop" },
+                    { id: "mihrab", label: "Mihrab Kubah Emas" },
+                  ].map((item) => (
                     <button
-                      key={t.id}
+                      key={item.id}
                       type="button"
-                      className={`toggle-element-btn ${theme === t.id ? "active" : ""}`}
+                      className={`toggle-element-btn ${theme === item.id ? "active" : ""}`}
                       onClick={() => {
                         triggerHaptic(10);
-                        setTheme(t.id as FrameTheme);
-                      }}
-                      style={{
-                        fontSize: "0.76rem",
-                        padding: "6px 11px",
-                        fontWeight: 700,
-                        borderColor: theme === t.id ? "#ffd700" : "rgba(255,215,0,0.3)",
+                        setTheme(item.id as FrameTheme);
                       }}
                     >
-                      {t.label}
+                      {item.label}
                     </button>
                   ))}
                 </div>
 
-                <span style={{ fontSize: "0.75rem", color: "#a0a0a8", display: "block", marginBottom: "6px", fontWeight: 600 }}>
-                  <i className="fa-solid fa-crown"></i> Edisi Studio & Luxury:
+                <span className="themes-group-heading">
+                  <i className="fa-solid fa-crown" aria-hidden="true"></i> Edisi Studio &amp; Klasik:
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                   {[
-                    { id: "sovereign", label: "👑 Emas Kehormatan" },
-                    { id: "white", label: "🤍 Minimalist White" },
-                    { id: "film", label: "🎞️ 35mm Analog" },
-                    { id: "santri", label: "🕌 Nostalgia Santri" },
-                    { id: "sakura", label: "🌸 Sakura Pastel" },
-                    { id: "cyber", label: "🌿 Emerald Arrisalah" },
-                    { id: "parchment", label: "📜 Vintage Parchment" },
-                    { id: "ocean", label: "🌊 Deep Ocean" },
-                    { id: "velvet", label: "💜 Royal Velvet" },
-                    { id: "y2k", label: "⚡ Y2K Chrome" },
-                    { id: "botanical", label: "🍃 Sage Botanical" },
-                    { id: "monolith", label: "🖤 Dark Monolith" },
-                  ].map((t) => (
+                    { id: "sovereign", label: "Emas Kehormatan" },
+                    { id: "white", label: "Minimalist White" },
+                    { id: "film", label: "35mm Analog" },
+                    { id: "santri", label: "Nostalgia Santri" },
+                    { id: "sakura", label: "Sakura Pastel" },
+                    { id: "cyber", label: "Emerald Arrisalah" },
+                    { id: "parchment", label: "Vintage Parchment" },
+                    { id: "ocean", label: "Deep Ocean" },
+                    { id: "velvet", label: "Royal Velvet" },
+                    { id: "y2k", label: "Y2K Chrome" },
+                    { id: "botanical", label: "Sage Botanical" },
+                    { id: "monolith", label: "Dark Monolith" },
+                  ].map((item) => (
                     <button
-                      key={t.id}
+                      key={item.id}
                       type="button"
-                      className={`toggle-element-btn ${theme === t.id ? "active" : ""}`}
+                      className={`toggle-element-btn ${theme === item.id ? "active" : ""}`}
                       onClick={() => {
                         triggerHaptic(10);
-                        setTheme(t.id as FrameTheme);
+                        setTheme(item.id as FrameTheme);
                       }}
-                      style={{ fontSize: "0.74rem", padding: "5px 10px" }}
                     >
-                      {t.label}
+                      {item.label}
                     </button>
                   ))}
                 </div>
@@ -3050,31 +3084,35 @@ export default function PhotoboothClient() {
 
               {/* Frame Elements Toggles */}
               <div style={{ marginTop: "12px" }}>
-                <span style={{ fontSize: "0.75rem", color: "#888", display: "block", marginBottom: "6px" }}>Tampilkan / Sembunyikan Bagian:</span>
+                <span className="tool-sub-label">Tampilkan / Sembunyikan Bagian:</span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                   <button
+                    type="button"
                     className={`toggle-element-btn ${showHeader ? "active" : ""}`}
                     onClick={() => { triggerHaptic(10); setShowHeader(!showHeader); }}
                   >
-                    <i className={showHeader ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Header
+                    <i className={showHeader ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"} aria-hidden="true"></i> Header
                   </button>
                   <button
+                    type="button"
                     className={`toggle-element-btn ${showDivider ? "active" : ""}`}
                     onClick={() => { triggerHaptic(10); setShowDivider(!showDivider); }}
                   >
-                    <i className={showDivider ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Garis
+                    <i className={showDivider ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"} aria-hidden="true"></i> Garis
                   </button>
                   <button
+                    type="button"
                     className={`toggle-element-btn ${showFooter ? "active" : ""}`}
                     onClick={() => { triggerHaptic(10); setShowFooter(!showFooter); }}
                   >
-                    <i className={showFooter ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Teks Bawah
+                    <i className={showFooter ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"} aria-hidden="true"></i> Teks Bawah
                   </button>
                   <button
+                    type="button"
                     className={`toggle-element-btn ${showCrest ? "active" : ""}`}
                     onClick={() => { triggerHaptic(10); setShowCrest(!showCrest); }}
                   >
-                    <i className={showCrest ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"}></i> Cap Angkatan
+                    <i className={showCrest ? "fa-solid fa-eye" : "fa-solid fa-eye-slash"} aria-hidden="true"></i> Cap Angkatan
                   </button>
                 </div>
               </div>
@@ -3083,74 +3121,83 @@ export default function PhotoboothClient() {
             {/* 3. Filter Selector */}
             <div>
               <div className="tool-group-label">
-                <i className="fa-solid fa-wand-magic-sparkles"></i> 3. Filter Tone Warna (Bisa Diubah Kapan Saja)
+                <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> 3. Filter Tone Warna (Bisa Diubah Kapan Saja)
               </div>
               <div className="chips-scroll-row">
                 <button
+                  type="button"
                   className={`chip-btn ${filter === "normal" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("normal"); }}
                 >
                   Asli
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${filter === "golden" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("golden"); }}
                 >
-                  ✨ Golden Hour
+                  Golden Hour
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${filter === "noir" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("noir"); }}
                 >
-                  🎬 Noir B&W
+                  Noir B&amp;W
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${filter === "vintage" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("vintage"); }}
                 >
-                  🎞️ 90s Film
+                  90s Film
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${filter === "emerald" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("emerald"); }}
                 >
-                  🌿 Emerald
+                  Emerald
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${filter === "cyber" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("cyber"); }}
                 >
-                  ✨ Cahaya Pesantren
+                  Cahaya Pesantren
                 </button>
                 <button
+                  type="button"
                   className={`chip-btn ${filter === "pastel" ? "active" : ""}`}
                   onClick={() => { triggerHaptic(10); setFilter("pastel"); }}
                 >
-                  🌸 Soft Pastel
+                  Soft Pastel
                 </button>
               </div>
 
               {/* Sliders for Brightness and Contrast */}
               <div style={{ marginTop: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <span style={{ fontSize: "0.72rem", color: "#888" }}>Kecerahan ({brightness}%):</span>
+                  <span className="tool-sub-label">Kecerahan ({brightness}%):</span>
                   <input
                     type="range"
                     min="75"
                     max="140"
                     value={brightness}
                     onChange={(e) => setBrightness(Number(e.target.value))}
+                    aria-label="Kecerahan"
                     className="custom-range-slider"
                   />
                 </div>
                 <div>
-                  <span style={{ fontSize: "0.72rem", color: "#888" }}>Kontras ({contrast}%):</span>
+                  <span className="tool-sub-label">Kontras ({contrast}%):</span>
                   <input
                     type="range"
                     min="75"
                     max="140"
                     value={contrast}
                     onChange={(e) => setContrast(Number(e.target.value))}
+                    aria-label="Kontras"
                     className="custom-range-slider"
                   />
                 </div>
@@ -3161,21 +3208,24 @@ export default function PhotoboothClient() {
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div className="tool-group-label" style={{ marginBottom: 0 }}>
-                  <i className="fa-solid fa-icons"></i> 4. Tempel Simbol & Stiker
+                  <i className="fa-solid fa-icons" aria-hidden="true"></i> 4. Tempel Simbol &amp; Stiker
                 </div>
                 {stickers.length > 0 && (
                   <button
+                    type="button"
                     onClick={handleClearAllStickers}
                     style={{
                       background: "transparent",
                       border: "none",
-                      color: "#ff4d4d",
-                      fontSize: "0.75rem",
+                      color: "#ef4444",
+                      fontSize: "0.78rem",
                       fontWeight: 700,
                       cursor: "pointer",
+                      minHeight: "44px",
+                      padding: "0 8px",
                     }}
                   >
-                    <i className="fa-solid fa-trash-can"></i> Hapus Semua Stiker
+                    <i className="fa-solid fa-trash-can" aria-hidden="true"></i> Hapus Semua Stiker
                   </button>
                 )}
               </div>
@@ -3184,52 +3234,43 @@ export default function PhotoboothClient() {
                 {["👑", "🎓", "✨", "🌙", "📸", "🤍", "🕶️", "🕌", "🤝", "⚡", "⭐", "🌺"].map((emoji) => (
                   <button
                     key={emoji}
+                    type="button"
                     className="sticker-item-btn"
                     onClick={() => handleAddSticker(emoji)}
                     title={`Tempel ${emoji}`}
+                    aria-label={`Tempel stiker ${emoji}`}
                   >
                     {emoji}
                   </button>
                 ))}
               </div>
-              <p style={{ fontSize: "0.72rem", color: "#888", marginTop: "4px" }}>
-                💡 <em>Sentuh stiker di pratinjau untuk memunculkan tanda silang (×) dan menghapusnya.</em>
+              <p className="tool-sub-label" style={{ marginTop: "4px" }}>
+                <i className="fa-regular fa-lightbulb" aria-hidden="true" style={{ marginInlineEnd: "4px" }}></i>
+                <em>Sentuh stiker di pratinjau untuk memunculkan tombol perkecil/perbesar atau hapus.</em>
               </p>
             </div>
 
             {/* 5. Custom Text */}
             <div>
               <div className="tool-group-label">
-                <i className="fa-solid fa-pen-nib"></i> {locale === "ar" ? "5. عنوان وتاريخ الذكرى" : locale === "en" ? "5. Memory Title & Date" : "5. Judul & Tanggal Kenangan"}
+                <i className="fa-solid fa-pen-nib" aria-hidden="true"></i> {locale === "ar" ? "5. عنوان وتاريخ الذكرى" : locale === "en" ? "5. Memory Title & Date" : "5. Judul & Tanggal Kenangan"}
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                 <input
                   type="text"
+                  className="caption-text-input"
                   value={captionTitle}
                   onChange={(e) => setCaptionTitle(e.target.value)}
+                  aria-label={locale === "ar" ? "عنوان اللحظة" : locale === "en" ? "Moment Title" : "Judul Momen"}
                   placeholder={locale === "ar" ? "عنوان اللحظة" : locale === "en" ? "Moment Title" : "Judul Momen"}
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: "10px",
-                    background: "rgba(255, 255, 255, 0.06)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#fff",
-                    fontSize: "0.85rem",
-                  }}
                 />
                 <input
                   type="text"
+                  className="caption-text-input"
                   value={captionDate}
                   onChange={(e) => setCaptionDate(e.target.value)}
+                  aria-label={locale === "ar" ? "التاريخ" : locale === "en" ? "Date" : "Tanggal"}
                   placeholder={locale === "ar" ? "التاريخ" : locale === "en" ? "Date" : "Tanggal"}
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: "10px",
-                    background: "rgba(255, 255, 255, 0.06)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#fff",
-                    fontSize: "0.85rem",
-                  }}
                 />
               </div>
             </div>
@@ -3244,38 +3285,44 @@ export default function PhotoboothClient() {
             <div className="preview-heading">
               <i className="fa-solid fa-eye"></i> Pratinjau Photostrip
             </div>
-            <div style={{ display: "flex", gap: "10px" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
               {isLiveMode && (
                 <button
+                  type="button"
                   onClick={() => { triggerHaptic(15); setIsLivePlaying(!isLivePlaying); }}
                   style={{
                     background: "rgba(212,175,55,0.15)",
                     border: "1px solid #d4af37",
-                    color: "#ffd700",
-                    padding: "3px 8px",
-                    borderRadius: "8px",
-                    fontSize: "0.75rem",
+                    color: "#d4af37",
+                    minHeight: "44px",
+                    padding: "6px 12px",
+                    borderRadius: "10px",
+                    fontSize: "0.78rem",
+                    fontWeight: 600,
                     cursor: "pointer",
                   }}
                 >
-                  <i className={isLivePlaying ? "fa-solid fa-pause" : "fa-solid fa-play"}></i> {isLivePlaying ? "Jeda" : "Putar"}
+                  <i className={isLivePlaying ? "fa-solid fa-pause" : "fa-solid fa-play"} aria-hidden="true"></i> {isLivePlaying ? "Jeda" : "Putar"}
                 </button>
               )}
               <button
+                type="button"
                 onClick={handleResetAll}
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#ff4d4d",
-                  fontSize: "0.78rem",
+                  color: "#dc2626",
+                  fontSize: "0.8rem",
                   fontWeight: 600,
                   cursor: "pointer",
-                  display: "flex",
+                  minHeight: "44px",
+                  padding: "6px 10px",
+                  display: "inline-flex",
                   alignItems: "center",
-                  gap: "4px",
+                  gap: "6px",
                 }}
               >
-                <i className="fa-solid fa-rotate-left"></i> {t.photobooth.reset_btn}
+                <i className="fa-solid fa-rotate-left" aria-hidden="true"></i> {t.photobooth.reset_btn}
               </button>
             </div>
           </div>
@@ -3398,8 +3445,10 @@ export default function PhotoboothClient() {
                   </div>
                 ) : theme === "mihrab" ? (
                   <div style={{ textAlign: "center", paddingBottom: "4px" }}>
-                    <div style={{ fontSize: "1.2rem", color: "#ffd700", marginBottom: "1px" }}>🕌</div>
-                    <div style={{ fontFamily: "serif", fontSize: "0.92rem", color: "#ffd700", fontWeight: 700 }}>
+                    <div style={{ fontSize: "1.2rem", color: "#d4af37", marginBottom: "1px" }}>
+                      <i className="fa-solid fa-mosque" aria-hidden="true"></i>
+                    </div>
+                    <div style={{ fontFamily: "serif", fontSize: "0.92rem", color: "#d4af37", fontWeight: 700 }}>
                       بِسْمِ اللهِ الرَّحْمَنِ الرَّحِيمِ
                     </div>
                   </div>
@@ -3462,23 +3511,27 @@ export default function PhotoboothClient() {
 
                         {/* Download Single Still Photo Button */}
                         <button
+                          type="button"
                           className="cell-download-btn"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDownloadSinglePhoto(idx);
                           }}
-                          title="Unduh Foto Biasa Ini (Satuan)"
+                          aria-label={locale === "ar" ? "تحميل هذه الصورة" : locale === "en" ? "Download this photo" : "Unduh Foto Ini (Satuan)"}
+                          title={locale === "ar" ? "تحميل هذه الصورة" : locale === "en" ? "Download this photo" : "Unduh Foto Biasa Ini (Satuan)"}
                         >
-                          <i className="fa-solid fa-download"></i>
+                          <i className="fa-solid fa-download" aria-hidden="true"></i>
                         </button>
 
                         {/* Retake Button */}
                         <button
+                          type="button"
                           className="cell-retake-btn"
                           onClick={() => handleRetakeSlot(idx)}
-                          title="Foto Ulang Slot Ini"
+                          aria-label={locale === "ar" ? "إعادة التقاط هذا الإطار" : locale === "en" ? "Retake this slot" : "Foto Ulang Slot Ini"}
+                          title={locale === "ar" ? "إعادة التقاط هذا الإطار" : locale === "en" ? "Retake this slot" : "Foto Ulang Slot Ini"}
                         >
-                          <i className="fa-solid fa-arrow-rotate-right"></i>
+                          <i className="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i>
                         </button>
                       </>
                     ) : (
@@ -3640,12 +3693,12 @@ export default function PhotoboothClient() {
                       </div>
                       <i className="fa-regular fa-bookmark" style={{ color: "#262626" }}></i>
                     </div>
-                    <div className="ig-likes-text">4,343 likes</div>
+                    <div className="ig-likes-text">expedientgeneration_ · Arrisalah 43</div>
                     <div className="ig-caption-text">
                       <span className="ig-caption-bold">expedientgeneration_</span>
                       {captionTitle} • Nostalgia ukhuwah santri takkan pernah pudar.
                     </div>
-                    <div className="ig-timestamp-text">{captionDate} • 2 HOURS AGO</div>
+                    <div className="ig-timestamp-text">{captionDate} • ARRISALAH</div>
                   </div>
                 ) : theme === "luggage" ? (
                   <div>
@@ -3721,7 +3774,7 @@ export default function PhotoboothClient() {
                 ) : theme === "mihrab" ? (
                   <div style={{ width: "100%", textAlign: "center" }}>
                     {showDivider && <div className="strip-divider" />}
-                    <div style={{ fontFamily: "serif", fontSize: "0.85rem", color: "#ffd700", marginBottom: "2px" }}>
+                    <div style={{ fontFamily: "serif", fontSize: "0.85rem", color: "#d4af37", marginBottom: "2px" }}>
                       أُخُوَّةٌ فِي سَبِيلِ اللهِ حَتَّى الْجَنَّةِ
                     </div>
                     <div className="strip-caption-title">{captionTitle}</div>
@@ -3744,52 +3797,57 @@ export default function PhotoboothClient() {
           <div className="strip-export-actions">
             {isLiveMode && (
               <button
+                type="button"
                 className="btn-export-primary"
                 onClick={handleExportLiveVideo}
                 disabled={isExporting}
-                style={{ background: "linear-gradient(135deg, #00c9ff, #92fe9d)", color: "#05131a" }}
+                style={{ background: "linear-gradient(135deg, #059669, #047857)", color: "#ffffff" }}
               >
-                <i className="fa-solid fa-video"></i>
+                <i className="fa-solid fa-video" aria-hidden="true"></i>
                 <span>{isExporting ? t.common.loading : t.photobooth.download_live}</span>
               </button>
             )}
 
             <button
+              type="button"
               className={isLiveMode ? "btn-export-secondary" : "btn-export-primary"}
               onClick={() => handleDownloadStrip("strip")}
               disabled={isExporting}
             >
-              <i className="fa-solid fa-download"></i>
-              <span>{isExporting ? t.common.loading : (isLiveMode ? "Unduh Foto Biasa (PNG)" : t.photobooth.download_strip)}</span>
+              <i className="fa-solid fa-download" aria-hidden="true"></i>
+              <span>{isExporting ? t.common.loading : (isLiveMode ? (locale === "ar" ? "تنزيل صورة ثابتة (PNG)" : locale === "en" ? "Download Static Photo (PNG)" : "Unduh Foto Biasa (PNG)") : t.photobooth.download_strip)}</span>
             </button>
 
             <button
+              type="button"
               className="btn-export-secondary"
               onClick={() => handleDownloadStrip("story")}
               disabled={isExporting}
             >
-              <i className="fa-brands fa-instagram"></i>
+              <i className="fa-brands fa-instagram" aria-hidden="true"></i>
               <span>{t.photobooth.download_story}</span>
             </button>
 
             <button
+              type="button"
               className="btn-export-secondary"
               onClick={handleDownloadAllSinglePhotos}
               disabled={isExporting}
-              title="Unduh semua file foto asli per pose tanpa bingkai"
+              title={locale === "ar" ? "تنزيل جميع الصور الفردية الأصلية دون إطار" : locale === "en" ? "Download all original individual photos without frame" : "Unduh semua file foto asli per pose tanpa bingkai"}
             >
-              <i className="fa-solid fa-images"></i>
-              <span>Unduh Foto Biasa Satuan (Semua Pose)</span>
+              <i className="fa-solid fa-images" aria-hidden="true"></i>
+              <span>{locale === "ar" ? "تنزيل الصور الفردية (كل اللقطات)" : locale === "en" ? "Download Individual Photos (All Poses)" : "Unduh Foto Biasa Satuan (Semua Pose)"}</span>
             </button>
 
             <button
+              type="button"
               className="btn-export-secondary"
               onClick={handleShareStrip}
               disabled={isExporting}
-              title="Bagikan foto strip ke WhatsApp, Instagram, dll"
+              title={locale === "ar" ? "مشاركة الشريط عبر واتساب أو إنستغرام" : locale === "en" ? "Share strip to WhatsApp, Instagram, etc." : "Bagikan foto strip ke WhatsApp, Instagram, dll"}
             >
-              <i className="fa-solid fa-share-nodes"></i>
-              <span>Bagikan (Share)</span>
+              <i className="fa-solid fa-share-nodes" aria-hidden="true"></i>
+              <span>{t.common.share}</span>
             </button>
           </div>
         </div>
@@ -3797,20 +3855,23 @@ export default function PhotoboothClient() {
 
       {/* Exporting Fullscreen Modal Overlay */}
       {isExporting && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(5, 5, 8, 0.88)",
-          backdropFilter: "blur(12px)",
-          zIndex: 99999,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          padding: "24px",
-          textAlign: "center",
-        }}>
+        <div
+          role="status"
+          aria-live="polite"
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(5, 5, 8, 0.94)",
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+            padding: "24px",
+            textAlign: "center",
+          }}
+        >
           <div style={{
             width: "56px",
             height: "56px",
@@ -3839,12 +3900,15 @@ export default function PhotoboothClient() {
         >
           <div
             className="export-result-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={exportedResult.type === "video" ? "Preview Video" : "Preview Photostrip"}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="export-modal-header">
               <div className="export-modal-title-group">
                 <div className="export-modal-icon">
-                  <i className="fa-solid fa-circle-check"></i>
+                  <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
                 </div>
                 <div>
                   <h3 className="export-modal-title">Foto Siap Disimpan!</h3>
@@ -3857,9 +3921,9 @@ export default function PhotoboothClient() {
                 type="button"
                 className="export-modal-close-btn"
                 onClick={() => setShowExportModal(false)}
-                aria-label="Tutup"
+                aria-label={t.common.close}
               >
-                <i className="fa-solid fa-xmark"></i>
+                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
               </button>
             </div>
 

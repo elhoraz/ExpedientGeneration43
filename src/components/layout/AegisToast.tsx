@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import { useState, useRef, useCallback, createContext, useContext } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 // Toast context for global access
 type ToastType = "success" | "error" | "info";
@@ -13,22 +14,28 @@ const ToastContext = createContext<{
 export const useToast = () => useContext(ToastContext);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const { isRTL } = useLanguage();
   const [toast, setToast] = useState<{
     title: string;
     message: string;
     type: ToastType;
     visible: boolean;
   } | null>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((title: string, message: string, type: ToastType = "success") => {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+
     setToast({ title, message, type, visible: true });
     if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
-    
-    setTimeout(() => {
-      setToast(prev => prev ? { ...prev, visible: false } : null);
+
+    hideTimerRef.current = setTimeout(() => {
+      setToast((prev) => (prev ? { ...prev, visible: false } : null));
     }, 5500);
 
-    setTimeout(() => {
+    clearTimerRef.current = setTimeout(() => {
       setToast(null);
     }, 6200);
   }, []);
@@ -39,17 +46,21 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {toast && (
         <div
           id="aegisToast"
-          className={`aegis-toast ${toast.visible ? 'show' : ''}`}
+          role={toast.type === "error" ? "alert" : "status"}
+          aria-live="polite"
+          aria-atomic="true"
+          dir={isRTL ? "rtl" : "ltr"}
+          className={`aegis-toast ${toast.visible ? "show" : ""}`}
           style={{
             position: "fixed",
-            bottom: "40px",
+            bottom: "max(28px, env(safe-area-inset-bottom, 28px))",
             left: "50%",
-            transform: `translateX(-50%) translateY(${toast.visible ? '0' : '150px'})`,
+            transform: `translateX(-50%) translateY(${toast.visible ? "0" : "150px"})`,
             width: "90%",
             maxWidth: "420px",
             background: "var(--bg-card, #0f141e)",
             border: "1px solid var(--glass-border, rgba(242, 239, 233, 0.14))",
-            borderLeft: `4px solid ${toast.type === "error" ? "var(--ruby-gem, #f87171)" : "var(--gold-main, #d4af37)"}`,
+            borderInlineStart: `4px solid ${toast.type === "error" ? "var(--ruby-gem, #f87171)" : "var(--gold-main, #d4af37)"}`,
             borderRadius: "14px",
             padding: "16px 20px",
             boxShadow: "var(--glass-shadow, 0 16px 36px rgba(0, 0, 0, 0.45))",
@@ -62,7 +73,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           }}
         >
           <i
-            className="fa-solid fa-compass-drafting"
+            className={`fa-solid ${toast.type === "error" ? "fa-circle-exclamation" : "fa-compass-drafting"}`}
+            aria-hidden="true"
             style={{
               fontSize: "1.35rem",
               color: toast.type === "error" ? "var(--ruby-gem, #f87171)" : "var(--gold-main, #d4af37)",
@@ -74,10 +86,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               style={{
                 display: "block",
                 fontFamily: "var(--font-sans, inherit)",
-                fontSize: "0.75rem",
+                fontSize: "0.78rem",
                 fontWeight: 700,
-                letterSpacing: "0.04em",
-                textTransform: "uppercase",
                 color: toast.type === "error" ? "var(--ruby-gem, #f87171)" : "var(--text-secondary, #a1a8b5)",
                 marginBottom: "3px",
               }}

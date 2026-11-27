@@ -75,7 +75,6 @@ const SKIP_SELECTOR = [
   ".lang-compact-group",
   ".lang-cards-grid",
   ".lang-sidebar-wrapper",
-  "#btnLang",
 ].join(", ");
 
 function shouldSkipElement(el: Element | null): boolean {

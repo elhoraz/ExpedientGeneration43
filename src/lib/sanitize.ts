@@ -108,3 +108,14 @@ export function sanitizeHtml(html: string): string {
 
   return clean;
 }
+
+/** Escape plain text before interpolating into HTML strings or map popups. */
+export function escapeHtml(value: unknown): string {
+  const str = String(value ?? "");
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}

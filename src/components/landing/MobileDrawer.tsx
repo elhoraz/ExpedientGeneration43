@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -14,7 +15,10 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda" }: MobileDrawerProps) {
-  const { t, locale } = useLanguage();
+  const { t, locale, dir } = useLanguage();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useDialogEscape(isOpen, onClose);
 
   // Lock body and landing-wrapper scroll when drawer is open
   useEffect(() => {
@@ -41,7 +45,15 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
 
   return (
     <div className="mobile-drawer-overlay" onClick={onClose}>
-      <div className="mobile-drawer-panel" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={panelRef}
+        className="mobile-drawer-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t.nav.open_nav || "Navigasi Portal"}
+        dir={dir}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Drawer Header */}
         <div className="drawer-header">
           <div className="drawer-brand">
@@ -67,7 +79,7 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
             }}
             aria-label={t.drawer.close_aria}
           >
-            <i className="fa-solid fa-xmark"></i>
+            <i className="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         </div>
 
@@ -88,11 +100,11 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
               onClose();
               window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
             }}
-            title="Buka Pencarian Instan"
+            title={locale === "ar" ? "فتح البحث السريع" : locale === "en" ? "Open Quick Search" : "Buka Pencarian Instan"}
           >
-            <i className="fa-solid fa-magnifying-glass"></i>
+            <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
             <span>{locale === "ar" ? "ابحث عن الأعضاء أو المحتوى..." : locale === "en" ? "Search alumni, features, content..." : "Cari alumni, fitur, atau khazanah..."}</span>
-            <span className="drawer-search-badge">CARI</span>
+            <span className="drawer-search-badge">{locale === "ar" ? "بحث" : locale === "en" ? "FIND" : "CARI"}</span>
           </button>
 
           {/* Section 1: Halaman Landing Anchor Links */}
@@ -280,7 +292,7 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
               >
                 <i className="fa-brands fa-instagram"></i>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: "0.82rem" }}>@expedientgeneration_</div>
+                  <div style={{ fontWeight: 800, fontSize: "0.82rem", unicodeBidi: "isolate" }} dir="ltr">@expedientgeneration_</div>
                   <div style={{ fontSize: "0.68rem", opacity: 0.85, fontWeight: 500 }}>
                     The Successor of Islamic Glory
                   </div>
@@ -294,11 +306,11 @@ export default function MobileDrawer({ isOpen, onClose, activeSection = "beranda
                 className="drawer-btn-yt"
                 onClick={onClose}
               >
-                <i className="fa-brands fa-youtube"></i>
+                <i className="fa-brands fa-youtube" aria-hidden="true"></i>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: "0.82rem" }}>@JiilulHashiif</div>
-                  <div style={{ fontSize: "0.68rem", opacity: 0.85, fontWeight: 500 }}>
-                    Kanal Resmi PG 643 (Arsip Video)
+                  <div style={{ fontWeight: 800, fontSize: "0.82rem", unicodeBidi: "isolate" }} dir="ltr">@JiilulHashiif</div>
+                  <div style={{ fontSize: "0.75rem", opacity: 0.9, fontWeight: 500 }}>
+                    {locale === "ar" ? "قناة الدفعة الرسمية (أرشيف الفيديو)" : locale === "en" ? "Official PG 643 Video Archive" : "Kanal Resmi PG 643 (Arsip Video)"}
                   </div>
                 </div>
               </a>

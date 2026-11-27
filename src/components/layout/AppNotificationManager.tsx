@@ -14,12 +14,19 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { calculatePrayerTimes, PrayerSchedule } from "@/lib/prayerTimes";
 import { getOfficialKemenagSchedule, DEFAULT_KEMENAG_CITY_ID } from "@/lib/kemenagPrayerTimes";
 import { useToast } from "./AegisToast";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 import { createClient } from "@/lib/supabase/client";
 
 export default function AppNotificationManager() {
   const { showToast } = useToast();
+  const { locale } = useLanguage();
+  const localeRef = useRef(locale);
   const initRef = useRef(false);
+
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
 
   useEffect(() => {
     if (typeof window === "undefined" || initRef.current) return;
@@ -82,45 +89,58 @@ export default function AppNotificationManager() {
           tzOffset
         );
 
-        const prayerList: Array<{ name: string; time: string; icon: string }> = [
-          { name: "Subuh", time: schedule.subuh, icon: "🌅" },
-          { name: "Dzuhur", time: schedule.dzuhur, icon: "☀️" },
-          { name: "Ashar", time: schedule.ashar, icon: "🌤️" },
-          { name: "Maghrib", time: schedule.maghrib, icon: "🌇" },
-          { name: "Isya", time: schedule.isya, icon: "🌙" },
+        const activeLocale = localeRef.current;
+
+        const prayerList: Array<{ name: string; label: string; time: string }> = [
+          { name: "Subuh", label: activeLocale === "ar" ? "الفجر" : activeLocale === "en" ? "Fajr" : "Subuh", time: schedule.subuh },
+          { name: "Dzuhur", label: activeLocale === "ar" ? "الظهر" : activeLocale === "en" ? "Dhuhr" : "Dzuhur", time: schedule.dzuhur },
+          { name: "Ashar", label: activeLocale === "ar" ? "العصر" : activeLocale === "en" ? "Asr" : "Ashar", time: schedule.ashar },
+          { name: "Maghrib", label: activeLocale === "ar" ? "المغرب" : activeLocale === "en" ? "Maghrib" : "Maghrib", time: schedule.maghrib },
+          { name: "Isya", label: activeLocale === "ar" ? "العشاء" : activeLocale === "en" ? "Isha" : "Isya", time: schedule.isya },
         ];
+
+        const formatPrayerTitle = (label: string, time: string) =>
+          activeLocale === "ar"
+            ? `حان وقت صلاة ${label} (${time})`
+            : activeLocale === "en"
+            ? `${label} Prayer Time (${time})`
+            : `Waktu Shalat ${label} (${time})`;
+
+        const formatPrayerBody = (label: string) =>
+          activeLocale === "ar"
+            ? `قد دخل وقت صلاة ${label} حسب التوقيت المحلي.`
+            : activeLocale === "en"
+            ? `It is now time for ${label} prayer in your local area.`
+            : `Telah masuk waktu shalat ${label} sesuai jadwal wilayah Anda.`;
 
         // Register native Android alarms if running inside APK Native Bridge
         if ((window as any).ExpedientNativeBridge?.schedulePrayerAlarm) {
           try {
-            // 1. Simpan jadwal 5 waktu shalat ke memori permanen SharedPreferences HP
             if ((window as any).ExpedientNativeBridge?.savePrayerSchedule) {
               (window as any).ExpedientNativeBridge.savePrayerSchedule(JSON.stringify(prayerList));
             }
 
-            // 2. Daftarkan alarm exact ke Android AlarmManager
             for (const prayer of prayerList) {
               const [pHours, pMins] = prayer.time.split(":").map(Number);
               (window as any).ExpedientNativeBridge.schedulePrayerAlarm(
                 prayer.name,
                 pHours,
                 pMins,
-                `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
-                `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`
+                formatPrayerTitle(prayer.label, prayer.time),
+                formatPrayerBody(prayer.label)
               );
             }
           } catch (bridgeErr) {
             console.warn("Native prayer alarm registration notice:", bridgeErr);
           }
         } else if (Capacitor.isNativePlatform()) {
-          // Register native alarms via Capacitor LocalNotifications on iOS
           try {
             const notifs = prayerList.map((prayer, idx) => {
               const [pHours, pMins] = prayer.time.split(":").map(Number);
               return {
                 id: 7000 + idx,
-                title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time})`,
-                body: `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`,
+                title: formatPrayerTitle(prayer.label, prayer.time),
+                body: formatPrayerBody(prayer.label),
                 schedule: {
                   on: { hour: pHours, minute: pMins },
                   allowWhileIdle: true,
@@ -142,45 +162,42 @@ export default function AppNotificationManager() {
         const prayerWindows = [
           {
             name: "Subuh",
+            label: prayerList[0].label,
             time: schedule.subuh,
             startMinutes: parseMinutes(schedule.subuh),
             endMinutes: parseMinutes(schedule.syuruq) + 20,
-            icon: "🌅",
           },
           {
             name: "Dzuhur",
+            label: prayerList[1].label,
             time: schedule.dzuhur,
             startMinutes: parseMinutes(schedule.dzuhur),
             endMinutes: parseMinutes(schedule.ashar),
-            icon: "☀️",
           },
           {
             name: "Ashar",
+            label: prayerList[2].label,
             time: schedule.ashar,
             startMinutes: parseMinutes(schedule.ashar),
             endMinutes: parseMinutes(schedule.maghrib),
-            icon: "🌤️",
           },
           {
             name: "Maghrib",
+            label: prayerList[3].label,
             time: schedule.maghrib,
             startMinutes: parseMinutes(schedule.maghrib),
             endMinutes: parseMinutes(schedule.isya),
-            icon: "🌇",
           },
           {
             name: "Isya",
+            label: prayerList[4].label,
             time: schedule.isya,
             startMinutes: parseMinutes(schedule.isya),
-            endMinutes: 24 * 60 - 1, // hingga 23:59
-            icon: "🌙",
+            endMinutes: 24 * 60 - 1,
           },
         ];
 
-        // Active notification check: apakah sekarang berada di dalam waktu shalat aktif
         for (const prayer of prayerWindows) {
-          // Trigger ONLY within 3 minutes of prayer time entrance (e.g. 11:21 to 11:24)
-          // NEVER trigger when opening the app 10-60 minutes late!
           const isEnteringPrayerTime =
             currentTotalMinutes >= prayer.startMinutes &&
             currentTotalMinutes <= prayer.startMinutes + 3;
@@ -192,16 +209,11 @@ export default function AppNotificationManager() {
 
               const isApk = isAndroidNativeApp();
               const isSilent = Boolean((window as any).ExpedientNativeBridge?.isDeviceSilent?.());
+              const notifTitle = formatPrayerTitle(prayer.label, prayer.time);
+              const notifBody = formatPrayerBody(prayer.label);
 
-              // 1. Tampilkan Visual Aegis Toast di layar aplikasi
-              showToast(
-                `🕌 Waktu Shalat ${prayer.name} (${prayer.time})`,
-                `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} resmi Kemenag RI. Mari tunaikan shalat tepat waktu.`,
-                "success"
-              );
+              showToast(notifTitle, notifBody, "success");
 
-              // 2. Play web audio ONLY if explicitly enabled on web and NOT in APK
-              // (Native APK handles audio exclusively via PrayerAlarmReceiver with hardware silent detection)
               const webAutoAudio = typeof window !== "undefined" && localStorage.getItem("expedient_web_adzan_audio") === "true";
               if (!isApk && webAutoAudio && !isSilent) {
                 try {
@@ -211,12 +223,10 @@ export default function AppNotificationManager() {
                 } catch {}
               }
 
-              // 3. Send system notification ONLY if not native APK (native AlarmManager handles notification 777)
-              // This completely avoids double notifications on Android!
               if (!isApk) {
                 await sendSystemNotification({
-                  title: `🕌 Waktu Shalat ${prayer.name} (${prayer.time} WIB)`,
-                  message: `Allahu Akbar, Allahu Akbar... Telah masuk waktu shalat ${prayer.name} untuk wilayah Anda. Mari tunaikan shalat tepat waktu.`,
+                  title: notifTitle,
+                  message: notifBody,
                   url: "/kiblat",
                 });
               }
@@ -229,13 +239,9 @@ export default function AppNotificationManager() {
       }
     };
 
-    // Run immediately on app load
     checkPrayerSchedule();
-
-    // Re-check every 30 seconds
     const prayerInterval = setInterval(checkPrayerSchedule, 30000);
 
-    // Re-check immediately when phone screen turns on or user switches back to app
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         checkPrayerSchedule();
@@ -244,35 +250,59 @@ export default function AppNotificationManager() {
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // 4. Global Test Notification Trigger (Custom event & Window helper)
     const handleTriggerTest = async (e?: Event) => {
       const customDetail = (e as CustomEvent)?.detail;
-      const title = customDetail?.title || "🔔 Uji Notifikasi Melayang";
+      const activeLocale = localeRef.current;
+      const title =
+        customDetail?.title ||
+        (activeLocale === "ar"
+          ? "اختبار إشعارات الجهاز"
+          : activeLocale === "en"
+          ? "Notification Test"
+          : "Uji Notifikasi Sistem");
       const message =
         customDetail?.message ||
-        "Notifikasi sistem resmi dengan suara, getaran, dan heads-up banner berfungsi sempurna di HP Anda!";
+        (activeLocale === "ar"
+          ? "تم إرسال إشعار تجريبي للتحقق من تنبيهات الجهاز."
+          : activeLocale === "en"
+          ? "A sample alert has been sent to verify device notification delivery."
+          : "Notifikasi percobaan dikirim untuk memastikan izin pemberitahuan aktif.");
       const url = customDetail?.url || "/beranda";
 
       await requestSystemNotificationPermission();
       const success = await sendSystemNotification({ title, message, url });
 
       showToast(
-        success ? "Notifikasi Terkirim" : "Pemberitahuan Sistem",
         success
-          ? "Notifikasi melayang telah dikirim ke status bar HP Anda!"
-          : "Notifikasi telah dikirim. Pastikan izin notifikasi aktif di pengaturan HP.",
+          ? (activeLocale === "ar" ? "تم إرسال الإشعار" : activeLocale === "en" ? "Notification Sent" : "Notifikasi Terkirim")
+          : (activeLocale === "ar" ? "تنبيه النظام" : activeLocale === "en" ? "System Notice" : "Pemberitahuan Sistem"),
+        success
+          ? (activeLocale === "ar"
+              ? "تحقق من شريط الإشعارات على جهازك."
+              : activeLocale === "en"
+              ? "Check the notification bar on your device."
+              : "Periksa bilah notifikasi pada perangkat Anda.")
+          : (activeLocale === "ar"
+              ? "تأكد من تفعيل إذن الإشعارات في إعدادات الجهاز."
+              : activeLocale === "en"
+              ? "Ensure notifications are allowed in device settings."
+              : "Pastikan izin notifikasi aktif pada pengaturan perangkat."),
         success ? "success" : "info"
       );
     };
 
-    // 5. Global Adzan Lockscreen Alarm Test Trigger
     const handleTestAdzanAlarm = (seconds: number = 5) => {
+      const activeLocale = localeRef.current;
       if ((window as any).ExpedientNativeBridge?.testPrayerAlarm) {
         try {
           (window as any).ExpedientNativeBridge.testPrayerAlarm(seconds);
           showToast(
-            "Alarm Adzan Diuji",
-            `Alarm adzan disetel dalam ${seconds} detik. Anda bisa langsung kunci layar HP sekarang untuk mencoba kumandang adzan di layar kunci!`,
+            activeLocale === "ar" ? "جدولة اختبار الأذان" : activeLocale === "en" ? "Adzan Alarm Scheduled" : "Alarm Adzan Dijadwalkan",
+            activeLocale === "ar"
+              ? `سينطلق تنبيه الأذان التجريبي خلال ${seconds} ثوانٍ حتى عند قفل الشاشة.`
+              : activeLocale === "en"
+              ? `Test alarm scheduled in ${seconds} seconds and can alert while the screen is locked.`
+              : `Alarm uji dijadwalkan dalam ${seconds} detik dan dapat berbunyi saat layar terkunci.`,
             "success"
           );
           return;
@@ -281,16 +311,28 @@ export default function AppNotificationManager() {
         }
       }
 
-      // Web Fallback: Browser Web TIDAK memiliki akses ke switch hardware Silent/DND HP!
-      // Oleh karena itu JANGAN pernah memutar audio MP3 secara otomatis di web untuk pengujian hening!
       sendSystemNotification({
-        title: "🕌 Uji Pengingat Shalat (Mode Web)",
-        message: "Notifikasi shalat aktif. Untuk fitur kumandang adzan otomatis yang patuh Mode Hening & Jangan Ganggu, gunakan aplikasi APK resmi.",
+        title:
+          activeLocale === "ar"
+            ? "اختبار تنبيه الصلاة (وضع الويب)"
+            : activeLocale === "en"
+            ? "Prayer Alert Test (Web Mode)"
+            : "Uji Pengingat Shalat (Mode Web)",
+        message:
+          activeLocale === "ar"
+            ? "تنبيهات الصلاة نشطة في المتصفح. يتطلب التحكم التلقائي في الوضع الصامت تطبيق أندرويد."
+            : activeLocale === "en"
+            ? "Browser prayer alerts are active. Automatic silent-switch detection requires the native Android app."
+            : "Notifikasi shalat aktif di peramban. Deteksi mode hening perangkat tersedia di aplikasi Android.",
         url: "/kiblat",
       });
       showToast(
-        "Pengujian Mode Hening/DND",
-        "Deteksi sakelar hardware Mode Hening & Jangan Ganggu (DND) terintegrasi pada aplikasi APK Android. Pada browser web, sistem operasi melarang website membaca status hening fisik HP.",
+        activeLocale === "ar" ? "وضع المتصفح" : activeLocale === "en" ? "Silent Mode Notice" : "Informasi Mode Hening",
+        activeLocale === "ar"
+          ? "المتصفحات لا تسمح بقراءة حالة الصامت للهاتف؛ هذه الخاصية تعمل داخل تطبيق أندرويد."
+          : activeLocale === "en"
+          ? "Web browsers cannot read your phone hardware silent switch; full DND sync works in the Android app."
+          : "Peramban web tidak dapat membaca status tombol hening perangkat; fitur tersebut bekerja di aplikasi Android.",
         "info"
       );
     };

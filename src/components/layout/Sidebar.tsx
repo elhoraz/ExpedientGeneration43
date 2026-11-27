@@ -120,23 +120,50 @@ export default function Sidebar() {
 
   return (
     <>
-      <button className={`menu-toggle hover-trigger ${isOpen ? 'active' : ''}`} id="btnMenuOpen" title={t.sidebar.open_panel_title} onClick={toggleSidebar}>
+      <button
+        type="button"
+        className={`menu-toggle hover-trigger ${isOpen ? 'active' : ''}`}
+        id="btnMenuOpen"
+        title={t.sidebar.open_panel_title}
+        aria-label={t.sidebar.open_panel_title}
+        aria-expanded={isOpen}
+        aria-controls="sidebarNav"
+        onClick={toggleSidebar}
+      >
         <span className="line"></span>
         <span className="line short"></span>
       </button>
 
       <nav className={`sidebar no-select ${isOpen ? 'active' : ''}`} id="sidebarNav" role="navigation" aria-label="Main Navigation">
-        <a href="#" className="nav-item hover-trigger" id="btnMenuClose" onClick={(e) => { e.preventDefault(); toggleSidebar(); }} data-tooltip={t.sidebar.tooltip_hide}>
+        <button
+          type="button"
+          className="nav-item hover-trigger"
+          id="btnMenuClose"
+          aria-label={t.sidebar.tooltip_hide || t.sidebar.close}
+          aria-expanded={isOpen}
+          aria-controls="sidebarNav"
+          onClick={toggleSidebar}
+          data-tooltip={t.sidebar.tooltip_hide}
+        >
           <span className="nav-icon-pill">
-            <i className="fa-solid fa-compress"></i>
+            <i className="fa-solid fa-compress" aria-hidden="true"></i>
           </span>
           <span className="nav-label">{t.sidebar.close}</span>
-        </a>
+        </button>
 
         {/* Public navigation items */}
         {publicNavItems.map((item) => (
-          <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
-            <i className={`fa-solid ${item.icon}`}></i>
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`}
+            data-tooltip={item.tooltip}
+            aria-current={isActive(item.href) ? "page" : undefined}
+            onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}
+          >
+            <span className="nav-icon-pill">
+              <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
+            </span>
             <span className="nav-label">{item.label}</span>
           </Link>
         ))}
@@ -145,9 +172,16 @@ export default function Sidebar() {
         {authNavItems
           .filter((item) => !item.authOnly || isLoggedIn)
           .map((item) => (
-            <Link key={item.href} href={item.href} className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`} data-tooltip={item.tooltip} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`nav-item hover-trigger ${isActive(item.href) ? 'active' : ''} ${item.extraClass || ''}`}
+              data-tooltip={item.tooltip}
+              aria-current={isActive(item.href) ? "page" : undefined}
+              onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}
+            >
               <span className="nav-icon-pill">
-                <i className={`fa-solid ${item.icon}`}></i>
+                <i className={`fa-solid ${item.icon}`} aria-hidden="true"></i>
               </span>
               <span className="nav-label">{item.label}</span>
             </Link>
@@ -157,16 +191,28 @@ export default function Sidebar() {
 
         {/* Bottom: Profil (logged in) or Masuk (guest) */}
         {isLoggedIn ? (
-          <Link href="/profil" className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`} data-tooltip={t.sidebar.profile} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+          <Link
+            href="/profil"
+            className={`nav-item hover-trigger ${pathname?.startsWith("/profil") ? 'active' : ''}`}
+            data-tooltip={t.sidebar.profile}
+            aria-current={pathname?.startsWith("/profil") ? "page" : undefined}
+            onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}
+          >
             <span className="nav-icon-pill">
-              <i className="fa-solid fa-circle-user"></i>
+              <i className="fa-solid fa-circle-user" aria-hidden="true"></i>
             </span>
             <span className="nav-label">{t.sidebar.profile}</span>
           </Link>
         ) : (
-          <Link href="/login" className={`nav-item hover-trigger ${pathname?.startsWith("/login") ? 'active' : ''}`} data-tooltip={t.sidebar.login} onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}>
+          <Link
+            href="/login"
+            className={`nav-item hover-trigger ${pathname?.startsWith("/login") ? 'active' : ''}`}
+            data-tooltip={t.sidebar.login}
+            aria-current={pathname?.startsWith("/login") ? "page" : undefined}
+            onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}
+          >
             <span className="nav-icon-pill">
-              <i className="fa-solid fa-door-open"></i>
+              <i className="fa-solid fa-door-open" aria-hidden="true"></i>
             </span>
             <span className="nav-label">{t.sidebar.login}</span>
           </Link>

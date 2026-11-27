@@ -67,7 +67,45 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ status: "success", data });
-  } catch (error: any) {
+  } catch {
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const cookieStore = await cookies();
+    const adminToken = cookieStore.get("expedient_admin_session")?.value;
+    const isValidAdmin = await verifySignedAdminSession(adminToken);
+    if (!isValidAdmin) {
+      return NextResponse.json({ message: "Unauthorized: Sesi admin tidak valid atau telah kedaluwarsa" }, { status: 401 });
+    }
+
+    const { id, title, content, category, isPinned } = await request.json();
+
+    if (!id || !title || !content) {
+      return NextResponse.json({ message: "ID, judul, dan konten wajib diisi." }, { status: 400 });
+    }
+
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("announcements")
+      .update({
+        title,
+        content,
+        category: category || "Berita",
+        is_pinned: Boolean(isPinned),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ status: "success", data });
+  } catch {
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }

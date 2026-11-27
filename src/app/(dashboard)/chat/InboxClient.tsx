@@ -44,7 +44,7 @@ export default function InboxClient({
             
             if (existingIdx >= 0) {
               const updatedItem = { ...prev[existingIdx] };
-              updatedItem.lastMessage = msg.message || (msg.image_url ? "📷" : "✉️");
+              updatedItem.lastMessage = msg.message || (msg.image_url ? "Lampiran gambar" : "Pesan baru");
               updatedItem.lastTime = msg.created_at;
               if (!isSender && !msg.is_read) {
                 updatedItem.unreadCount += 1;
@@ -106,7 +106,7 @@ export default function InboxClient({
         if (prev.some(item => item.contact?.id === contactId)) return prev;
         const newItem = {
           contact,
-          lastMessage: msg.message || (msg.image_url ? "📷" : "✉️"),
+          lastMessage: msg.message || (msg.image_url ? "Lampiran gambar" : "Pesan baru"),
           lastTime: msg.created_at,
           unreadCount: !isSender && !msg.is_read ? 1 : 0
         };
@@ -162,14 +162,14 @@ export default function InboxClient({
                       </span>
                     </div>
                   </div>
-                  <p className="inbox-preview">{item.lastMessage || "📷"}</p>
+                  <p className="inbox-preview">{item.lastMessage || "Lampiran gambar"}</p>
                 </div>
               </Link>
             );
           })
         ) : (
           <div className="inbox-empty-state">
-            <i className="fa-solid fa-ghost" style={{ fontSize: "2.8rem", color: "rgba(212,175,55,0.25)", marginBottom: "1rem", display: "block" }}></i>
+            <i className="fa-regular fa-comments" aria-hidden="true" style={{ fontSize: "2.8rem", color: "rgba(212,175,55,0.28)", marginBottom: "1rem", display: "block" }}></i>
             {t.chat.no_chats}{" "}
             <Link href="/direktori" style={{ color: "var(--gold-main, #d4af37)", fontWeight: 600 }}>
               {t.sidebar.directory}

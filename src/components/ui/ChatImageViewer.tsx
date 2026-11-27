@@ -64,14 +64,14 @@ export default function ChatImageViewer({
   return (
     <div
       className="chat-image-viewer-overlay"
+      role="dialog"
+      aria-modal="true"
       onClick={onClose}
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 9999999,
-        background: "rgba(3, 5, 4, 0.95)",
-        backdropFilter: "blur(25px)",
-        WebkitBackdropFilter: "blur(25px)",
+        background: "rgba(3, 5, 4, 0.96)",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -97,12 +97,13 @@ export default function ChatImageViewer({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Kembali"
             style={{
               background: "rgba(255, 255, 255, 0.1)",
               border: "1px solid rgba(255, 255, 255, 0.2)",
               color: "#ffffff",
-              width: "40px",
-              height: "40px",
+              width: "44px",
+              height: "44px",
               borderRadius: "50%",
               cursor: "pointer",
               display: "flex",
@@ -113,14 +114,14 @@ export default function ChatImageViewer({
             }}
             title="Kembali (ESC)"
           >
-            <i className="fa-solid fa-arrow-left"></i>
+            <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>
           </button>
           <div>
             <div style={{ fontWeight: 600, fontSize: "0.95rem", color: "#d4af37" }}>
               {senderName || "Gambar Obrolan"}
             </div>
             {timestamp && (
-              <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.6)", fontFamily: "monospace" }}>
+              <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.6)", fontVariantNumeric: "tabular-nums" }}>
                 {timestamp}
               </div>
             )}
@@ -145,18 +146,18 @@ export default function ChatImageViewer({
               display: "flex",
               alignItems: "center",
               gap: "8px",
+              minHeight: "44px",
               transition: "0.2s",
-              backdropFilter: "blur(10px)",
             }}
             title="Unduh Gambar"
           >
             {isDownloading ? (
               <>
-                <i className="fa-solid fa-spinner fa-spin"></i> Mengunduh...
+                <i className="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Mengunduh...
               </>
             ) : (
               <>
-                <i className="fa-solid fa-download"></i> Unduh
+                <i className="fa-solid fa-download" aria-hidden="true"></i> Unduh
               </>
             )}
           </button>
@@ -166,12 +167,13 @@ export default function ChatImageViewer({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
+            aria-label="Buka di tab baru"
             style={{
               background: "rgba(255, 255, 255, 0.1)",
               border: "1px solid rgba(255, 255, 255, 0.2)",
               color: "#ffffff",
-              width: "40px",
-              height: "40px",
+              width: "44px",
+              height: "44px",
               borderRadius: "50%",
               display: "flex",
               alignItems: "center",

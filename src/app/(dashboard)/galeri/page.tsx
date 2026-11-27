@@ -43,7 +43,7 @@ export default async function GaleriPage() {
         thumbnail_url: p.image_url,
         caption: p.caption || "Dokumentasi Alumni Expedient 43",
         created_at: p.created_at,
-        likes_count: 24,
+        likes_count: 0,
         year: 2025,
         album_id: "galeri_ekspi",
         uploader_name: "Alumni Expedient",

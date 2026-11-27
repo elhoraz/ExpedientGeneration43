@@ -74,7 +74,7 @@ export const BUSINESS_THEMES: Record<string, BusinessThemeConfig> = {
     categoryFit: "Teknologi, Desain, Jasa & Konsultansi",
     description:
       "Struktur studio presisi bergaya Swiss grid dengan tipografi modern tegas, daftar kapabilitas, dan alur konsultasi cepat.",
-    color: "#38bdf8",
+    color: "#60a5fa",
     lightColor: "#0369a1",
     icon: "fa-laptop-code",
     productsTitle: "Kapabilitas & Solusi Layanan",

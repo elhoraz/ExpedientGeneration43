@@ -10,12 +10,13 @@ import "./download.css";
 export default function DownloadClient() {
   const { t, isRTL: isRtl, dir, locale } = useLanguage();
   const [activeGuideTab, setActiveGuideTab] = useState<"android" | "ios" | "pwa">("android");
-  const [activeIosMethod, setActiveIosMethod] = useState<"sideloadly" | "direct">("sideloadly");
+  const [activeIosMethod, setActiveIosMethod] = useState<"safari" | "ipa">("safari");
 
   const apkDownloadUrl =
     process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ||
     "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.2.3/Expedient43-v1.2.3.apk";
-  const ipaDownloadUrl = process.env.NEXT_PUBLIC_IPA_DOWNLOAD_URL || "/Expedient43.ipa";
+  const ipaDownloadUrl = (process.env.NEXT_PUBLIC_IPA_DOWNLOAD_URL || "").trim();
+  const hasConfiguredIpa = Boolean(ipaDownloadUrl);
 
   const scrollToGuide = (tab: "android" | "ios" | "pwa") => {
     setActiveGuideTab(tab);
@@ -72,22 +73,20 @@ export default function DownloadClient() {
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
           <div
+            className="download-platform-emblem"
             style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               gap: "14px",
-              padding: "12px 24px",
+              padding: "10px 22px",
               borderRadius: "50px",
-              background: "radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, rgba(3, 5, 4, 0.7) 90%)",
-              border: "1px solid rgba(212, 175, 55, 0.4)",
               marginBottom: "1.25rem",
-              boxShadow: "0 0 30px rgba(212, 175, 55, 0.2)",
             }}
           >
-            <i className="fa-brands fa-android" style={{ fontSize: "28px", color: "#10b981" }} />
-            <span style={{ color: "rgba(212, 175, 55, 0.6)", fontSize: "18px" }}>•</span>
-            <i className="fa-brands fa-apple" style={{ fontSize: "28px", color: "var(--text-primary)" }} />
+            <i className="fa-brands fa-android" style={{ fontSize: "26px", color: "#10b981" }} aria-hidden="true" />
+            <span style={{ color: "var(--gold-main, #d4af37)", opacity: 0.7, fontSize: "18px" }} aria-hidden="true">•</span>
+            <i className="fa-brands fa-apple" style={{ fontSize: "26px", color: "var(--text-primary)" }} aria-hidden="true" />
           </div>
 
           <h1
@@ -109,22 +108,8 @@ export default function DownloadClient() {
             {t.download_center.subtitle}
           </p>
 
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              marginTop: "14px",
-              padding: "6px 16px",
-              borderRadius: "999px",
-              background: "rgba(16, 185, 129, 0.12)",
-              border: "1px solid rgba(16, 185, 129, 0.3)",
-              color: "#10b981",
-              fontSize: "0.82rem",
-              fontWeight: 600,
-            }}
-          >
-            <i className="fa-solid fa-shield-check" /> {t.download_center.apk_badge}
+          <div className="download-status-pill">
+            <i className="fa-solid fa-shield-halved" aria-hidden="true" /> {t.download_center.apk_badge}
           </div>
         </div>
 
@@ -150,67 +135,52 @@ export default function DownloadClient() {
               overflow: "hidden",
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                top: "12px",
-                [isRtl ? "left" : "right"]: "12px",
-                background: "rgba(212, 175, 55, 0.2)",
-                color: "var(--gold-main, #d4af37)",
-                padding: "3px 10px",
-                borderRadius: "6px",
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                border: "1px solid rgba(212, 175, 55, 0.3)",
-              }}
-            >
-              {t.download_center.recommended_badge}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "10px" }}>
+              <span className="download-android-badge">
+                {t.download_center.recommended_badge}
+              </span>
             </div>
 
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "0.75rem" }}>
-                <div
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "10px",
-                    background: "rgba(16, 185, 129, 0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <i className="fa-brands fa-android" style={{ fontSize: "1.5rem", color: "#10b981" }} />
+                <div className="download-android-icon-box">
+                  <i className="fa-brands fa-android" aria-hidden="true" />
                 </div>
                 <div>
                   <h2 className="download-card-title" style={{ fontSize: "1.15rem", margin: 0 }}>
                     {t.download_center.tab_apk}
                   </h2>
-                  <span style={{ fontSize: "0.75rem", color: "#10b981", fontWeight: 600 }}>
-                    Smartphone Android
+                  <span className="download-android-sub">
+                    {locale === "ar" ? "أجهزة أندرويد" : locale === "en" ? "Android Smartphones" : "Smartphone Android"}
                   </span>
                 </div>
               </div>
 
-              <p className="download-card-desc" style={{ fontSize: "0.84rem", lineHeight: 1.5, margin: "0 0 1rem 0" }}>
+              <p className="download-card-desc" style={{ fontSize: "0.85rem", lineHeight: 1.5, margin: "0 0 1rem 0" }}>
                 {t.download_center.apk_desc}
               </p>
 
               <ul
                 className="download-card-list"
                 style={{
-                  fontSize: "0.8rem",
+                  fontSize: "0.82rem",
                   paddingInlineStart: "1.2rem",
                   margin: "0 0 1.25rem 0",
                   lineHeight: 1.6,
                 }}
               >
                 <li>
-                  <code className="download-code-tag-gold">Expedient43-v1.2.3.apk</code> (v1.2.3 Build 5)
+                  <code className="download-code-tag-gold">Expedient43-v1.2.3.apk</code> (v1.2.3)
                 </li>
                 <li>{t.download_center.apk_size_label}</li>
                 <li>{t.download_center.apk_support_label}</li>
-                <li>Alarm Adzan Offline & Push Notification</li>
+                <li>
+                  {locale === "ar"
+                    ? "منبه الأذان دون اتصال والإشعارات"
+                    : locale === "en"
+                    ? "Offline Adzan Alarm & Push Notifications"
+                    : "Alarm Adzan Offline & Notifikasi Push"}
+                </li>
               </ul>
             </div>
 
@@ -219,6 +189,7 @@ export default function DownloadClient() {
                 href={apkDownloadUrl}
                 download="Expedient43-v1.2.3.apk"
                 id="btnDownloadApk"
+                className="download-action-primary"
                 onClick={(e) => {
                   if (typeof window !== "undefined" && (window as any).ExpedientNativeBridge?.installApk) {
                     e.preventDefault();
@@ -232,19 +203,18 @@ export default function DownloadClient() {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "8px",
-                  padding: "0.85rem 1rem",
+                  padding: "0.75rem 1rem",
                   borderRadius: "10px",
                   background: "linear-gradient(135deg, #d4af37, #aa820a)",
                   color: "#060b14",
                   fontWeight: 700,
                   fontSize: "0.95rem",
                   textDecoration: "none",
-                  boxShadow: "0 8px 20px rgba(212, 175, 55, 0.3)",
-                  transition: "all 0.2s ease",
+                  boxShadow: "0 8px 20px rgba(212, 175, 55, 0.25)",
                   cursor: "pointer",
                 }}
               >
-                <i className="fa-solid fa-download" /> {t.download_center.apk_btn_download}
+                <i className="fa-solid fa-download" aria-hidden="true" /> {t.download_center.apk_btn_download}
               </a>
 
               <button
@@ -252,25 +222,24 @@ export default function DownloadClient() {
                 className="download-btn-ghost-apk"
                 onClick={() => scrollToGuide("android")}
                 style={{
-                  padding: "0.6rem 1rem",
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
+                  padding: "0.65rem 1rem",
+                  borderRadius: "10px",
+                  fontSize: "0.84rem",
                   fontWeight: 600,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "6px",
-                  transition: "all 0.2s ease",
                 }}
               >
-                <i className="fa-solid fa-circle-info" />{" "}
+                <i className="fa-solid fa-circle-info" aria-hidden="true" />{" "}
                 {locale === "ar" ? "دليل تثبيت APK" : locale === "en" ? "APK Install Guide" : "Lihat Cara Pasang APK"}
               </button>
             </div>
           </div>
 
-          {/* Card 2: Apple iOS (IPA) */}
+          {/* Card 2: Apple iOS / Safari */}
           <div
             className="download-card-ios"
             style={{
@@ -283,21 +252,10 @@ export default function DownloadClient() {
               overflow: "hidden",
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                top: "12px",
-                [isRtl ? "left" : "right"]: "12px",
-                background: "rgba(14, 165, 233, 0.2)",
-                color: "#0284c7",
-                padding: "3px 10px",
-                borderRadius: "6px",
-                fontSize: "0.72rem",
-                fontWeight: 700,
-                border: "1px solid rgba(56, 189, 248, 0.3)",
-              }}
-            >
-              {t.download_center.ios_badge}
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "10px" }}>
+              <div className="download-ios-badge">
+                {t.download_center.ios_badge}
+              </div>
             </div>
 
             <div>
@@ -307,87 +265,122 @@ export default function DownloadClient() {
                     width: "40px",
                     height: "40px",
                     borderRadius: "10px",
-                    background: "rgba(2, 132, 199, 0.15)",
+                    background: "rgba(3, 105, 161, 0.14)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <i className="fa-brands fa-apple" style={{ fontSize: "1.6rem", color: "var(--text-primary)" }} />
+                  <i className="fa-brands fa-apple" style={{ fontSize: "1.6rem", color: "var(--text-primary)" }} aria-hidden="true" />
                 </div>
                 <div>
                   <h2 className="download-card-title" style={{ fontSize: "1.15rem", margin: 0 }}>
                     {t.download_center.tab_ios}
                   </h2>
-                  <span style={{ fontSize: "0.75rem", color: "#0284c7", fontWeight: 600 }}>iPhone & iPad Native</span>
+                  <span className="download-ios-sub" style={{ fontSize: "0.78rem", fontWeight: 600 }}>
+                    iPhone & iPad (Safari / iOS)
+                  </span>
                 </div>
               </div>
 
-              <p className="download-card-desc" style={{ fontSize: "0.84rem", lineHeight: 1.5, margin: "0 0 1rem 0" }}>
+              <p className="download-card-desc" style={{ fontSize: "0.85rem", lineHeight: 1.5, margin: "0 0 1rem 0" }}>
                 {t.download_center.ios_desc}
               </p>
 
               <ul
                 className="download-card-list"
                 style={{
-                  fontSize: "0.8rem",
+                  fontSize: "0.82rem",
                   paddingInlineStart: "1.2rem",
                   margin: "0 0 1.25rem 0",
                   lineHeight: 1.6,
                 }}
               >
                 <li>
-                  <code className="download-code-tag">Expedient43.ipa</code> (v1.2.3 Native)
+                  <code className="download-code-tag">
+                    {hasConfiguredIpa ? "Expedient43.ipa" : "Safari Web App (PWA)"}
+                  </code>
                 </li>
                 <li>{t.download_center.ios_size_label}</li>
                 <li>{t.download_center.ios_support_label}</li>
-                <li>APNs Push Notification & Adzan</li>
+                <li>
+                  {locale === "ar"
+                    ? "تثبيت فوري بملء الشاشة عبر سفاري"
+                    : locale === "en"
+                    ? "Full-screen Safari Home Screen shortcut"
+                    : "Tampilan layar penuh langsung dari Safari"}
+                </li>
               </ul>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <a
-                href={ipaDownloadUrl}
-                download="Expedient43.ipa"
-                id="btnDownloadIpa"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  padding: "0.85rem 1rem",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #0284c7, #2563eb)",
-                  color: "#ffffff",
-                  fontWeight: 700,
-                  fontSize: "0.95rem",
-                  textDecoration: "none",
-                  boxShadow: "0 8px 20px rgba(14, 165, 233, 0.3)",
-                  transition: "all 0.2s ease",
-                  cursor: "pointer",
-                }}
-              >
-                <i className="fa-solid fa-download" /> {t.download_center.ios_btn_download}
-              </a>
+              {hasConfiguredIpa ? (
+                <a
+                  href={ipaDownloadUrl}
+                  download="Expedient43.ipa"
+                  id="btnDownloadIpa"
+                  className="download-action-primary"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "10px",
+                    background: "#0369a1",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    fontSize: "0.95rem",
+                    textDecoration: "none",
+                    boxShadow: "0 8px 20px rgba(3, 105, 161, 0.25)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <i className="fa-solid fa-download" aria-hidden="true" /> {t.download_center.ios_btn_download}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  id="btnDownloadIpa"
+                  className="download-action-primary"
+                  onClick={() => scrollToGuide("ios")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "10px",
+                    border: "none",
+                    background: "#0369a1",
+                    color: "#ffffff",
+                    fontWeight: 700,
+                    fontSize: "0.95rem",
+                    boxShadow: "0 8px 20px rgba(3, 105, 161, 0.25)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <i className="fa-brands fa-safari" aria-hidden="true" /> {t.download_center.ios_btn_download}
+                </button>
+              )}
 
               <button
                 type="button"
                 className="download-btn-ghost-ios"
                 onClick={() => scrollToGuide("ios")}
                 style={{
-                  padding: "0.6rem 1rem",
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
+                  padding: "0.65rem 1rem",
+                  borderRadius: "10px",
+                  fontSize: "0.84rem",
                   fontWeight: 600,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "6px",
-                  transition: "all 0.2s ease",
                 }}
               >
-                <i className="fa-solid fa-circle-info" />{" "}
+                <i className="fa-solid fa-circle-info" aria-hidden="true" />{" "}
                 {locale === "ar"
                   ? "كيفية التثبيت على الآيفون"
                   : locale === "en"
@@ -421,26 +414,26 @@ export default function DownloadClient() {
                     justifyContent: "center",
                   }}
                 >
-                  <i className="fa-solid fa-globe" style={{ fontSize: "1.4rem", color: "var(--text-primary)" }} />
+                  <i className="fa-solid fa-globe" style={{ fontSize: "1.4rem", color: "var(--text-primary)" }} aria-hidden="true" />
                 </div>
                 <div>
                   <h2 className="download-card-title" style={{ fontSize: "1.15rem", margin: 0 }}>
                     {t.download_center.tab_pwa}
                   </h2>
-                  <span className="download-card-desc" style={{ fontSize: "0.75rem" }}>
-                    Browser Mobile
+                  <span className="download-card-desc" style={{ fontSize: "0.78rem" }}>
+                    {locale === "ar" ? "متصفح الهاتف" : locale === "en" ? "Mobile Browser" : "Browser Mobile"}
                   </span>
                 </div>
               </div>
 
-              <p className="download-card-desc" style={{ fontSize: "0.84rem", lineHeight: 1.5, margin: "0 0 1rem 0" }}>
+              <p className="download-card-desc" style={{ fontSize: "0.85rem", lineHeight: 1.5, margin: "0 0 1rem 0" }}>
                 {t.download_center.pwa_desc}
               </p>
 
               <ul
                 className="download-card-list"
                 style={{
-                  fontSize: "0.8rem",
+                  fontSize: "0.82rem",
                   paddingInlineStart: "1.2rem",
                   margin: "0 0 1.25rem 0",
                   lineHeight: 1.6,
@@ -449,7 +442,13 @@ export default function DownloadClient() {
                 <li>{t.download_center.pwa_feature_1}</li>
                 <li>{t.download_center.pwa_feature_2}</li>
                 <li>{t.download_center.pwa_feature_3}</li>
-                <li>Ukuran: 0 MB (Instan)</li>
+                <li>
+                  {locale === "ar"
+                    ? "الحجم: ٠ ميجابايت (فوري)"
+                    : locale === "en"
+                    ? "Size: 0 MB (Instant Web App)"
+                    : "Ukuran: 0 MB (Instan)"}
+                </li>
               </ul>
             </div>
 
@@ -462,15 +461,14 @@ export default function DownloadClient() {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "8px",
-                  padding: "0.85rem 1rem",
+                  padding: "0.75rem 1rem",
                   borderRadius: "10px",
                   fontWeight: 600,
                   fontSize: "0.95rem",
                   textDecoration: "none",
-                  transition: "all 0.2s ease",
                 }}
               >
-                <i className="fa-solid fa-mobile-screen" /> {t.download_center.pwa_btn_open}
+                <i className="fa-solid fa-mobile-screen" aria-hidden="true" /> {t.download_center.pwa_btn_open}
               </Link>
 
               <button
@@ -478,19 +476,18 @@ export default function DownloadClient() {
                 className="download-btn-ghost-pwa"
                 onClick={() => scrollToGuide("pwa")}
                 style={{
-                  padding: "0.6rem 1rem",
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
+                  padding: "0.65rem 1rem",
+                  borderRadius: "10px",
+                  fontSize: "0.84rem",
                   fontWeight: 600,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "6px",
-                  transition: "all 0.2s ease",
                 }}
               >
-                <i className="fa-solid fa-circle-info" />{" "}
+                <i className="fa-solid fa-circle-info" aria-hidden="true" />{" "}
                 {locale === "ar" ? "دليل PWA" : locale === "en" ? "PWA Guide" : "Cara Pasang PWA"}
               </button>
             </div>
@@ -522,7 +519,7 @@ export default function DownloadClient() {
                 gap: "10px",
               }}
             >
-              <i className="fa-solid fa-list-check" />
+              <i className="fa-solid fa-list-check" aria-hidden="true" />
               <span>
                 {activeGuideTab === "ios"
                   ? t.download_center.ios_install_guide_title
@@ -534,8 +531,11 @@ export default function DownloadClient() {
 
             {/* Tab Buttons */}
             <div
+              role="tablist"
+              aria-label={t.download_center.title}
               style={{
                 display: "flex",
+                flexWrap: "wrap",
                 background: "rgba(100, 116, 139, 0.12)",
                 padding: "4px",
                 borderRadius: "12px",
@@ -544,6 +544,9 @@ export default function DownloadClient() {
             >
               <button
                 type="button"
+                role="tab"
+                aria-selected={activeGuideTab === "android"}
+                className="download-tab-btn"
                 onClick={() => setActiveGuideTab("android")}
                 style={{
                   display: "flex",
@@ -557,15 +560,17 @@ export default function DownloadClient() {
                   fontWeight: activeGuideTab === "android" ? 700 : 500,
                   background: activeGuideTab === "android" ? "#d4af37" : "transparent",
                   color: activeGuideTab === "android" ? "#060b14" : "var(--text-secondary)",
-                  transition: "all 0.2s ease",
                 }}
               >
-                <i className="fa-brands fa-android" />
+                <i className="fa-brands fa-android" aria-hidden="true" />
                 <span>Android (.APK)</span>
               </button>
 
               <button
                 type="button"
+                role="tab"
+                aria-selected={activeGuideTab === "ios"}
+                className="download-tab-btn"
                 onClick={() => setActiveGuideTab("ios")}
                 style={{
                   display: "flex",
@@ -577,17 +582,19 @@ export default function DownloadClient() {
                   cursor: "pointer",
                   fontSize: "0.85rem",
                   fontWeight: activeGuideTab === "ios" ? 700 : 500,
-                  background: activeGuideTab === "ios" ? "#0284c7" : "transparent",
+                  background: activeGuideTab === "ios" ? "#0369a1" : "transparent",
                   color: activeGuideTab === "ios" ? "#ffffff" : "var(--text-secondary)",
-                  transition: "all 0.2s ease",
                 }}
               >
-                <i className="fa-brands fa-apple" />
-                <span>iPhone (.IPA)</span>
+                <i className="fa-brands fa-apple" aria-hidden="true" />
+                <span>iPhone (iOS)</span>
               </button>
 
               <button
                 type="button"
+                role="tab"
+                aria-selected={activeGuideTab === "pwa"}
+                className="download-tab-btn"
                 onClick={() => setActiveGuideTab("pwa")}
                 style={{
                   display: "flex",
@@ -601,11 +608,10 @@ export default function DownloadClient() {
                   fontWeight: activeGuideTab === "pwa" ? 700 : 500,
                   background: activeGuideTab === "pwa" ? "rgba(100, 116, 139, 0.3)" : "transparent",
                   color: activeGuideTab === "pwa" ? "var(--text-primary)" : "var(--text-secondary)",
-                  transition: "all 0.2s ease",
                 }}
               >
-                <i className="fa-solid fa-globe" />
-                <span>PWA</span>
+                <i className="fa-solid fa-globe" aria-hidden="true" />
+                <span>Web App (PWA)</span>
               </button>
             </div>
           </div>
@@ -731,76 +737,77 @@ export default function DownloadClient() {
             </div>
           )}
 
-          {/* TAB CONTENT: iOS IPA GUIDE */}
+          {/* TAB CONTENT: iOS GUIDE */}
           {activeGuideTab === "ios" && (
             <div>
               {/* Method Switcher Banner */}
               <div className="download-guide-banner-ios" style={{ borderRadius: "14px", padding: "1.25rem", marginBottom: "1.75rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <i className="fa-solid fa-circle-question" style={{ color: "#0284c7", fontSize: "1.2rem" }} />
-                  <strong style={{ color: "#0284c7", fontSize: "0.95rem" }}>
+                  <i className="fa-solid fa-circle-question download-ios-heading" style={{ fontSize: "1.2rem" }} aria-hidden="true" />
+                  <strong className="download-ios-heading" style={{ fontSize: "0.95rem" }}>
                     {locale === "ar"
-                      ? "لماذا نستخدم طريقة التثبيت الذاتي (.IPA) على الآيفون؟"
+                      ? "طريقة الاستخدام الرسمية على هواتف آيفون"
                       : locale === "en"
-                      ? "Why do we use standalone (.IPA) sideloading on iPhone?"
-                      : "Mengapa menggunakan instalasi mandiri (.IPA) di iPhone?"}
+                      ? "Recommended Setup on iPhone & iPad"
+                      : "Panduan Resmi Pemasangan di iPhone"}
                   </strong>
                 </div>
-                <p className="download-step-desc" style={{ margin: 0, fontSize: "0.85rem", lineHeight: 1.6 }}>
+                <p className="download-step-desc" style={{ margin: 0, fontSize: "0.86rem", lineHeight: 1.6 }}>
                   {locale === "ar"
-                    ? "تطبيق إكسبيدينت ٤٣ هو تطبيق خاص وحصري للدفعة ولا يُنشر في متجر App Store العام. التثبيت عبر Sideloadly مجاني وآمن ١٠٠٪ دون جلبريك ويمنحك جميع مزايا التطبيق الأصلي كالإشعارات الفورية ومنبه الأذان."
+                    ? "يمكن تشغيل البوابة الكاملة على آيفون وآيباد بملء الشاشة مباشرة عبر متصفح سفاري دون متجر تطبيقات أو إعدادات معقدة."
                     : locale === "en"
-                    ? "The Expedient 43 app is a private alumni application and is not published on the public App Store. Sideloading via Sideloadly is 100% free, official, safe without jailbreak, and delivers full native push notifications & offline adzan alarms."
-                    : "Aplikasi Expedient 43 merupakan aplikasi internal alumni tanpa dipublikasikan ke App Store publik Apple. Pemasangan via Sideloadly 100% aman, gratis, tanpa jailbreak, dan memberikan fitur aplikasi native penuh seperti Push Notification APNs & Alarm Adzan."}
+                    ? "Run the complete portal on iPhone and iPad full-screen through Safari Add to Home Screen with no computer or App Store download required."
+                    : "Portal lengkap Expedient 43 berjalan di iPhone dan iPad dalam tampilan layar penuh langsung melalui Safari tanpa komputer atau instalasi App Store."}
                 </p>
 
-                {/* Sub-method toggle buttons */}
-                <div style={{ display: "flex", gap: "10px", marginTop: "14px", flexWrap: "wrap" }}>
-                  <button
-                    type="button"
-                    onClick={() => setActiveIosMethod("sideloadly")}
-                    style={{
-                      background: activeIosMethod === "sideloadly" ? "#0284c7" : "rgba(100, 116, 139, 0.2)",
-                      color: activeIosMethod === "sideloadly" ? "#ffffff" : "var(--text-primary)",
-                      border: "none",
-                      padding: "6px 14px",
-                      borderRadius: "8px",
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <i className="fa-solid fa-laptop" /> {t.download_center.ios_method1_title}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveIosMethod("direct")}
-                    style={{
-                      background: activeIosMethod === "direct" ? "#0284c7" : "rgba(100, 116, 139, 0.2)",
-                      color: activeIosMethod === "direct" ? "#ffffff" : "var(--text-primary)",
-                      border: "none",
-                      padding: "6px 14px",
-                      borderRadius: "8px",
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    <i className="fa-solid fa-mobile-screen-button" /> {t.download_center.ios_method2_title}
-                  </button>
-                </div>
+                {hasConfiguredIpa && (
+                  <div style={{ display: "flex", gap: "10px", marginTop: "14px", flexWrap: "wrap" }}>
+                    <button
+                      type="button"
+                      className="download-submethod-btn"
+                      onClick={() => setActiveIosMethod("safari")}
+                      style={{
+                        background: activeIosMethod === "safari" ? "#0369a1" : "rgba(100, 116, 139, 0.2)",
+                        color: activeIosMethod === "safari" ? "#ffffff" : "var(--text-primary)",
+                        border: "none",
+                        padding: "8px 14px",
+                        borderRadius: "8px",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <i className="fa-brands fa-safari" aria-hidden="true" /> {t.download_center.ios_method1_title}
+                    </button>
+                    <button
+                      type="button"
+                      className="download-submethod-btn"
+                      onClick={() => setActiveIosMethod("ipa")}
+                      style={{
+                        background: activeIosMethod === "ipa" ? "#0369a1" : "rgba(100, 116, 139, 0.2)",
+                        color: activeIosMethod === "ipa" ? "#ffffff" : "var(--text-primary)",
+                        border: "none",
+                        padding: "8px 14px",
+                        borderRadius: "8px",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <i className="fa-solid fa-laptop" aria-hidden="true" /> {t.download_center.ios_method2_title}
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Steps for Method 1: Sideloadly */}
-              {activeIosMethod === "sideloadly" && (
+              {/* Steps for Safari Home Screen */}
+              {activeIosMethod === "safari" && (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
                   <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
                     <div
@@ -808,7 +815,7 @@ export default function DownloadClient() {
                         width: "36px",
                         height: "36px",
                         borderRadius: "50%",
-                        background: "#0284c7",
+                        background: "#0369a1",
                         color: "#ffffff",
                         display: "flex",
                         alignItems: "center",
@@ -824,25 +831,9 @@ export default function DownloadClient() {
                       <h3 className="download-step-title" style={{ fontSize: "1rem", margin: "0 0 6px 0" }}>
                         {t.download_center.ios_step1_title}
                       </h3>
-                      <p className="download-step-desc" style={{ fontSize: "0.88rem", margin: "0 0 8px 0", lineHeight: 1.5 }}>
+                      <p className="download-step-desc" style={{ fontSize: "0.88rem", margin: 0, lineHeight: 1.5 }}>
                         {t.download_center.ios_step1_desc}
                       </p>
-                      <a
-                        href="https://sideloadly.io"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          fontSize: "0.82rem",
-                          color: "#0284c7",
-                          textDecoration: "underline",
-                          fontWeight: 600,
-                        }}
-                      >
-                        <i className="fa-solid fa-arrow-up-right-from-square" /> Kunjungi Situs Resmi Sideloadly (sideloadly.io)
-                      </a>
                     </div>
                   </div>
 
@@ -852,7 +843,7 @@ export default function DownloadClient() {
                         width: "36px",
                         height: "36px",
                         borderRadius: "50%",
-                        background: "#0284c7",
+                        background: "#0369a1",
                         color: "#ffffff",
                         display: "flex",
                         alignItems: "center",
@@ -880,7 +871,7 @@ export default function DownloadClient() {
                         width: "36px",
                         height: "36px",
                         borderRadius: "50%",
-                        background: "#0284c7",
+                        background: "#0369a1",
                         color: "#ffffff",
                         display: "flex",
                         alignItems: "center",
@@ -908,7 +899,7 @@ export default function DownloadClient() {
                         width: "36px",
                         height: "36px",
                         borderRadius: "50%",
-                        background: "#0284c7",
+                        background: "#0369a1",
                         color: "#ffffff",
                         display: "flex",
                         alignItems: "center",
@@ -932,92 +923,33 @@ export default function DownloadClient() {
                 </div>
               )}
 
-              {/* Steps for Method 2: Direct Scarlet / TrollStore */}
-              {activeIosMethod === "direct" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "50%",
-                        background: "#0284c7",
-                        color: "#ffffff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 700,
-                        fontSize: "1rem",
-                        flexShrink: 0,
-                      }}
-                    >
-                      1
-                    </div>
-                    <div>
-                      <h3 className="download-step-title" style={{ fontSize: "1rem", margin: "0 0 6px 0" }}>
-                        Unduh File Expedient43.ipa ke iPhone
-                      </h3>
-                      <p className="download-step-desc" style={{ fontSize: "0.88rem", margin: 0, lineHeight: 1.5 }}>
-                        Klik tombol biru <strong>Unduh Expedient43.ipa</strong> di atas menggunakan browser Safari. Simpan file ke aplikasi <em>Files (File Saya)</em> di iPhone Anda.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "50%",
-                        background: "#0284c7",
-                        color: "#ffffff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 700,
-                        fontSize: "1rem",
-                        flexShrink: 0,
-                      }}
-                    >
-                      2
-                    </div>
-                    <div>
-                      <h3 className="download-step-title" style={{ fontSize: "1rem", margin: "0 0 6px 0" }}>
-                        Buka Aplikasi Scarlet / TrollStore
-                      </h3>
-                      <p className="download-step-desc" style={{ fontSize: "0.88rem", margin: 0, lineHeight: 1.5 }}>
-                        Buka aplikasi Scarlet (usescarlet.com) atau TrollStore yang terpasang di iPhone Anda.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                    <div
-                      style={{
-                        width: "36px",
-                        height: "36px",
-                        borderRadius: "50%",
-                        background: "#0284c7",
-                        color: "#ffffff",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 700,
-                        fontSize: "1rem",
-                        flexShrink: 0,
-                      }}
-                    >
-                      3
-                    </div>
-                    <div>
-                      <h3 className="download-step-title" style={{ fontSize: "1rem", margin: "0 0 6px 0" }}>
-                        Import File IPA & Pasang Otomatis
-                      </h3>
-                      <p className="download-step-desc" style={{ fontSize: "0.88rem", margin: 0, lineHeight: 1.5 }}>
-                        Ketuk tombol Sideload (ikon panah atas di kanan atas aplikasi), lalu pilih file <code className="download-code-tag">Expedient43.ipa</code>. Scarlet akan menandatangani dan memasang aplikasi secara otomatis ke layar utama iPhone Anda!
-                      </p>
-                    </div>
-                  </div>
+              {/* Optional IPA Sideload Guidance when configured */}
+              {hasConfiguredIpa && activeIosMethod === "ipa" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  <p className="download-step-desc" style={{ fontSize: "0.9rem", margin: 0, lineHeight: 1.6 }}>
+                    {t.download_center.ios_method2_desc}
+                  </p>
+                  <a
+                    href="https://sideloadly.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="download-ios-heading"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      fontSize: "0.88rem",
+                      textDecoration: "underline",
+                      fontWeight: 600,
+                    }}
+                  >
+                    <i className="fa-solid fa-arrow-up-right-from-square" aria-hidden="true" />{" "}
+                    {locale === "ar"
+                      ? "الموقع الرسمي لبرنامج Sideloadly (sideloadly.io)"
+                      : locale === "en"
+                      ? "Open Sideloadly Official Website (sideloadly.io)"
+                      : "Kunjungi Situs Resmi Sideloadly (sideloadly.io)"}
+                  </a>
                 </div>
               )}
             </div>
@@ -1042,11 +974,15 @@ export default function DownloadClient() {
                     flexShrink: 0,
                   }}
                 >
-                  <i className="fa-brands fa-apple" />
+                  <i className="fa-brands fa-apple" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="download-step-title" style={{ fontSize: "0.95rem", margin: "0 0 4px 0" }}>
-                    Di Browser Safari (iPhone / iPad)
+                    {locale === "ar"
+                      ? "في متصفح سفاري (iPhone / iPad)"
+                      : locale === "en"
+                      ? "In Safari Browser (iPhone / iPad)"
+                      : "Di Browser Safari (iPhone / iPad)"}
                   </h3>
                   <p className="download-step-desc" style={{ fontSize: "0.85rem", margin: 0, lineHeight: 1.5 }}>
                     {t.download_center.pwa_ios_desc}
@@ -1070,11 +1006,15 @@ export default function DownloadClient() {
                     flexShrink: 0,
                   }}
                 >
-                  <i className="fa-brands fa-chrome" />
+                  <i className="fa-brands fa-chrome" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="download-step-title" style={{ fontSize: "0.95rem", margin: "0 0 4px 0" }}>
-                    Di Browser Google Chrome (Android)
+                    {locale === "ar"
+                      ? "في متصفح جوجل كروم (أندرويد)"
+                      : locale === "en"
+                      ? "In Google Chrome Browser (Android)"
+                      : "Di Browser Google Chrome (Android)"}
                   </h3>
                   <p className="download-step-desc" style={{ fontSize: "0.85rem", margin: 0, lineHeight: 1.5 }}>
                     {t.download_center.pwa_android_desc}
@@ -1164,6 +1104,8 @@ export default function DownloadClient() {
                 fontWeight: 600,
                 display: "inline-flex",
                 alignItems: "center",
+                minHeight: "44px",
+                padding: "0 8px",
                 gap: "6px",
               }}
             >

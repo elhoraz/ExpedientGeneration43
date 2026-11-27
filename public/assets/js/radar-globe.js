@@ -180,7 +180,15 @@
         const waEl = document.getElementById('idWa');
         if (d.wa) { waEl.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); waEl.style.display = 'flex'; }
         else { waEl.style.display = 'none'; }
-        document.getElementById('idProfile').href = '/syndicate';
+        const profEl = document.getElementById('idProfile');
+        if (profEl) {
+            if (d.id && d.id !== 'center') {
+                profEl.href = '/dossier/' + d.id;
+                profEl.style.display = 'flex';
+            } else {
+                profEl.style.display = 'none';
+            }
+        }
         drawer.classList.add('open');
         overlay.classList.add('open');
         // 9. FLY + ARC HIGHLIGHT

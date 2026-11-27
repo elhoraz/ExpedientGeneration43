@@ -6,6 +6,8 @@ import Image from "next/image";
 import Script from "next/script";
 import { createClient } from "@/lib/supabase/client";
 import { getAvatarUrl } from "@/lib/avatar";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 
 // @ts-ignore
 // Let faceapi be accessible globally after script loads
@@ -16,6 +18,7 @@ declare global {
 }
 
 export default function OracleClient({ userId, initialVisions, userProfile }: { userId: string, initialVisions: any[], userProfile: any }) {
+  const { locale, dir, isRTL } = useLanguage();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
@@ -31,6 +34,10 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
   const [isFetchingAi, setIsFetchingAi] = useState(false);
   const [referenceDescriptor, setReferenceDescriptor] = useState<Float32Array | null>(null);
   const [isMatch, setIsMatch] = useState<boolean | null>(null);
+
+  useDialogEscape(capsuleOpen, () => setCapsuleOpen(false));
+  useDialogEscape(Boolean(unlockedVision), () => setUnlockedVision(null));
+  useDialogEscape(Boolean(aiInsight), () => setAiInsight(null));
 
   const supabase = createClient();
 
@@ -191,7 +198,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
       let maqam = "Tawakkul (Berserah Diri)";
-      let symmetryIndex = (90 + Math.random() * 8).toFixed(1);
+      let symmetryIndex = "95.0";
       let dominantEmotion = "neutral";
       let filterStr = matchFound ? "sepia(0.6) hue-rotate(-10deg) brightness(0.8) contrast(1.2)" : "grayscale(0.8) sepia(0.3) hue-rotate(180deg) brightness(0.7) contrast(1.4)";
       let tintColor = matchFound ? "rgba(212, 175, 55, 0.4)" : "rgba(100, 150, 200, 0.4)"; 
@@ -329,202 +336,247 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       <style>{`
         :root {
             --oracle-gold: #d4af37;
-            --oracle-dark: #060b14;
-            --text-secondary: #8b9ba8;
+            --oracle-dark: var(--bg-main, #060b14);
+            --text-secondary: var(--text-secondary, #8b9ba8);
         }
-        body.page-oracle { background: var(--oracle-dark); color: #fff; margin: 0; font-family: var(--font-sans, inherit); overflow: hidden; }
+        body.page-oracle { background: var(--bg-main, #060b14); color: var(--text-primary, #fff); margin: 0; font-family: var(--font-sans, inherit); overflow: hidden; }
         .btn-back-vault {
-            position: absolute; top: 30px; left: 30px; z-index: 100;
-            display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px; background: rgba(6,11,20,0.75);
-            border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
-            color: #d4af37; font-size: 11px; font-weight: 600; 
-            letter-spacing: 2px; text-decoration: none; text-transform: uppercase;
-            backdrop-filter: blur(10px); transition: all 0.3s ease;
+            position: absolute; top: max(20px, calc(env(safe-area-inset-top, 16px) + 6px)); inset-inline-start: max(16px, env(safe-area-inset-left, 16px)); z-index: 100;
+            display: inline-flex; align-items: center; gap: 8px;
+            min-height: 44px;
+            padding: 10px 18px; background: var(--surface-raised, rgba(12, 18, 28, 0.92));
+            border: 1px solid rgba(212,175,55,0.35); border-radius: 10px;
+            color: var(--gold-main, #d4af37); font-size: 0.78rem; font-weight: 600; 
+            letter-spacing: 0.06em; text-decoration: none; text-transform: uppercase;
+            transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
         }
-        .btn-back-vault:hover { transform: translateX(-3px); box-shadow: 0 0 20px rgba(212,175,55,0.5); border-color: #ffd700; color: #fff; }
         .btn-time-capsule {
-            position: absolute; top: 30px; right: 30px; z-index: 100;
-            display: flex; align-items: center; gap: 8px;
-            padding: 10px 18px; background: rgba(6,11,20,0.75);
-            border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
-            color: #d4af37; font-size: 11px; font-weight: 600; 
-            letter-spacing: 2px; cursor: pointer; text-transform: uppercase;
-            backdrop-filter: blur(10px); transition: all 0.3s ease;
+            position: absolute; top: max(20px, calc(env(safe-area-inset-top, 16px) + 6px)); inset-inline-end: max(16px, env(safe-area-inset-right, 16px)); z-index: 100;
+            display: inline-flex; align-items: center; gap: 8px;
+            min-height: 44px;
+            padding: 10px 18px; background: var(--surface-raised, rgba(12, 18, 28, 0.92));
+            border: 1px solid rgba(212,175,55,0.35); border-radius: 10px;
+            color: var(--gold-main, #d4af37); font-size: 0.78rem; font-weight: 600; 
+            letter-spacing: 0.06em; cursor: pointer; text-transform: uppercase;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .btn-back-vault:focus-visible,
+        .btn-time-capsule:focus-visible,
+        .btn-initiate:focus-visible,
+        .oi-close:focus-visible,
+        .capsule-btn:focus-visible {
+            outline: 2px solid var(--gold-main, #d4af37);
+            outline-offset: 2px;
+        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-back-vault:hover { transform: translateX(-2px); border-color: #d4af37; color: var(--text-primary, #fff); }
+            .btn-time-capsule:hover { border-color: #d4af37; color: var(--text-primary, #fff); }
+            .btn-initiate:hover { background: var(--gold-main, #d4af37); color: #060b14; }
+            .oi-close:hover { background: var(--gold-main, #d4af37); color: #060b14; box-shadow: 0 0 20px rgba(212,175,55,0.4); transform: translateY(-2px); }
         }
         .time-capsule-panel {
-            position: absolute; top: 0; right: -420px; width: min(400px, 92vw); height: 100dvh;
-            background: rgba(6,11,20,0.96); border-left: 1px solid var(--oracle-gold);
-            z-index: 90; padding: 100px 24px 24px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            position: fixed; top: 0; inset-inline-end: -420px; width: min(400px, 92vw); height: 100dvh;
+            background: var(--bg-card, #0a111d); border-inline-start: 1px solid rgba(212, 175, 55, 0.35);
+            z-index: 90; padding: 90px 24px 24px; transition: inset-inline-end 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto; -webkit-overflow-scrolling: touch; color: var(--text-primary, #f2efe9);
         }
-        .time-capsule-panel.open { right: 0; }
+        .time-capsule-panel.open { inset-inline-end: 0; }
         .capsule-form textarea {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3);
-            color: #fff; padding: 15px; border-radius: 8px; font-family: var(--font-manrope), sans-serif; resize: vertical; margin-bottom: 15px;
+            width: 100%; background: var(--surface-raised, rgba(255,255,255,0.05)); border: 1px solid rgba(212,175,55,0.3);
+            color: var(--text-primary, #fff); padding: 14px; border-radius: 8px; font-family: inherit; resize: vertical; margin-bottom: 15px;
         }
         .capsule-form input[type=date] {
-            width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(212,175,55,0.3);
-            color: #fff; padding: 10px; border-radius: 8px; margin-bottom: 20px;
+            width: 100%; min-height: 44px; background: var(--surface-raised, rgba(255,255,255,0.05)); border: 1px solid rgba(212,175,55,0.3);
+            color: var(--text-primary, #fff); padding: 10px; border-radius: 8px; margin-bottom: 20px;
         }
         .capsule-btn {
-            width: 100%; padding: 12px; background: var(--oracle-gold); color: #060b14;
-            border: none; border-radius: 8px; font-weight: bold; letter-spacing: 2px; cursor: pointer;
+            width: 100%; min-height: 44px; padding: 12px; background: var(--gold-main, #d4af37); color: #060b14;
+            border: none; border-radius: 8px; font-weight: 700; letter-spacing: 0.06em; cursor: pointer;
         }
         .oracle-wrapper {
             position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100vw;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            overflow: hidden; background: var(--oracle-dark);
+            overflow: hidden; background: var(--bg-main, #060b14);
         }
         .vision-container {
-            position: relative; width: clamp(280px, 86vw, 440px); max-height: 52vh; aspect-ratio: 3/4;
+            position: relative; width: clamp(280px, 86vw, 440px); max-height: 52dvh; aspect-ratio: 3/4;
             border: 2px solid rgba(212,175,55,0.3); border-radius: 20px; overflow: hidden;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); background: #0c182b;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.55); background: #0c182b;
         }
         .vision-container video, .vision-container canvas {
             width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;
         }
         .logo-reticle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60%; opacity: 0.15; filter: grayscale(1); pointer-events: none; transition: 0.5s; }
-        .scanner-laser { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--oracle-gold); box-shadow: 0 0 20px var(--oracle-gold); display: none; z-index: 10; }
-        .hud-text { position: absolute; bottom: 25px; left: 0; width: 100%; text-align: center; font-family: var(--font-manrope), sans-serif; color: var(--oracle-gold); font-size: 0.84rem; letter-spacing: 0.06em; z-index: 10; padding: 0 15px; }
+        .scanner-laser { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--gold-main, #d4af37); box-shadow: 0 0 20px var(--gold-main, #d4af37); display: none; z-index: 10; }
+        .hud-text { position: absolute; bottom: 25px; left: 0; width: 100%; text-align: center; font-family: inherit; color: #f3d267; font-size: 0.84rem; font-weight: 600; letter-spacing: 0.04em; z-index: 10; padding: 0 15px; }
         
-        .result-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px; opacity: 0; pointer-events: none; transition: 0.5s; }
+        .result-overlay { position: absolute; inset: 0; background: rgba(6, 11, 20, 0.82); z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
         .result-overlay.show { opacity: 1; pointer-events: auto; }
         
-        .controls-panel { margin-top: 30px; display: flex; gap: 15px; }
-        .btn-initiate { padding: 14px 36px; background: rgba(212,175,55,0.1); border: 1px solid var(--oracle-gold); color: var(--oracle-gold); font-family: var(--font-sans, inherit); text-transform: uppercase; letter-spacing: 3px; border-radius: 50px; cursor: pointer; transition: 0.3s; font-size: 0.85rem; }
-        .btn-initiate:hover { background: var(--oracle-gold); color: #060b14; }
+        .controls-panel { margin-top: 28px; display: flex; gap: 15px; }
+        .btn-initiate { min-height: 46px; padding: 12px 32px; background: rgba(212,175,55,0.12); border: 1px solid var(--gold-main, #d4af37); color: var(--gold-main, #d4af37); font-family: inherit; text-transform: uppercase; letter-spacing: 0.08em; border-radius: 50px; cursor: pointer; transition: background 0.25s ease, color 0.25s ease; font-size: 0.85rem; font-weight: 700; }
         .btn-initiate:disabled { opacity: 0.5; pointer-events: none; }
         
-        .capsule-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-        .unseal-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .unseal-box { background: var(--oracle-dark); border: 1px solid var(--oracle-gold); padding: 30px; border-radius: 10px; max-width: 600px; width: 90%; }
+        .capsule-card { background: var(--surface-raised, rgba(255,255,255,0.04)); border: 1px solid var(--border-subtle, rgba(255,255,255,0.12)); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .unseal-modal { position: fixed; inset: 0; background: var(--surface-scrim, rgba(6,11,20,0.88)); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 16px; }
+        .unseal-box { background: var(--bg-card, #0a111d); border: 1px solid rgba(212, 175, 55, 0.45); padding: 28px; border-radius: 14px; max-width: 600px; width: 100%; color: var(--text-primary, #f2efe9); }
         
-        /* Premium AI Insight Modal */
         .oracle-insight-modal {
-          position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
+          position: fixed; inset: 0; background: var(--surface-scrim, rgba(6,11,20,0.88)); z-index: 9999;
           display: flex; justify-content: center; align-items: center; padding: 20px;
-          backdrop-filter: blur(10px); animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+          animation: fadeIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .oracle-insight-paper {
-          background: linear-gradient(145deg, #0c182b, #060b14);
+          background: var(--bg-card, #0c182b);
           border: 1px solid rgba(212,175,55,0.4); border-radius: 16px;
-          padding: 40px; max-width: 650px; width: 100%; max-height: 85vh; overflow-y: auto;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 40px rgba(212,175,55,0.05);
-          color: #dcdcdc; font-family: var(--font-sans, inherit); line-height: 1.8;
-          position: relative; animation: slideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+          padding: 36px; max-width: 650px; width: 100%; max-height: 85dvh; overflow-y: auto;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          color: var(--text-primary, #e2e8f0); font-family: inherit; line-height: 1.8;
+          position: relative; animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .oracle-insight-paper::-webkit-scrollbar { width: 4px; }
-        .oracle-insight-paper::-webkit-scrollbar-thumb { background: var(--oracle-gold); border-radius: 10px; }
-        .oi-header { text-align: center; margin-bottom: 30px; border-bottom: 1px dashed rgba(212,175,55,0.2); padding-bottom: 25px; }
-        .oi-title { color: var(--oracle-gold); font-family: 'Playfair Display', serif; font-size: 2rem; letter-spacing: 5px; margin: 0; text-transform: uppercase; }
-        .oi-subtitle { color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 2px; margin-top: 10px; text-transform: uppercase; }
+        .oracle-insight-paper::-webkit-scrollbar-thumb { background: var(--gold-main, #d4af37); border-radius: 10px; }
+        .oi-header { text-align: center; margin-bottom: 26px; border-bottom: 1px dashed rgba(212,175,55,0.25); padding-bottom: 22px; }
+        .oi-title { color: var(--gold-main, #d4af37); font-family: 'Playfair Display', serif; font-size: clamp(1.4rem, 4vw, 1.9rem); letter-spacing: 0.04em; margin: 0; text-transform: uppercase; }
+        .oi-subtitle { color: var(--text-secondary); font-size: 0.85rem; letter-spacing: 0.04em; margin-top: 8px; text-transform: uppercase; }
         .oi-quote-box {
-          margin-top: 35px; padding: 30px; background: rgba(212,175,55,0.03);
-          border: 1px solid rgba(212,175,55,0.25); border-radius: 12px;
-          font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--oracle-gold);
+          margin-top: 30px; padding: 26px; background: rgba(212,175,55,0.06);
+          border: 1px solid rgba(212,175,55,0.28); border-radius: 12px;
+          font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold-main, #d4af37);
           position: relative; line-height: 1.7; text-align: center;
         }
-        .oi-quote-icon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); color: var(--oracle-gold); background: #060b14; padding: 0 15px; font-size: 1.5rem; }
+        .oi-quote-icon { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); color: var(--gold-main, #d4af37); background: var(--bg-card, #0c182b); padding: 0 15px; font-size: 1.4rem; }
         .oi-close {
-          display: block; margin: 40px auto 0; padding: 12px 40px; background: transparent;
-          border: 1px solid var(--oracle-gold); color: var(--oracle-gold);
-          border-radius: 30px; font-family: var(--font-sans, inherit); letter-spacing: 3px; font-size: 0.85rem; text-transform: uppercase;
-          cursor: pointer; transition: 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+          display: block; margin: 32px auto 0; min-height: 44px; padding: 10px 34px; background: transparent;
+          border: 1px solid var(--gold-main, #d4af37); color: var(--gold-main, #d4af37);
+          border-radius: 30px; font-family: inherit; letter-spacing: 0.06em; font-size: 0.85rem; font-weight: 700; text-transform: uppercase;
+          cursor: pointer; transition: background 0.25s ease, color 0.25s ease;
         }
-        .oi-close:hover { background: var(--oracle-gold); color: #060b14; box-shadow: 0 0 20px rgba(212,175,55,0.4); transform: translateY(-3px); }
-        
+
+        :root[data-theme="light"] .btn-back-vault,
+        :root[data-theme="light"] .btn-time-capsule {
+          background: #ffffff;
+          border-color: rgba(124, 82, 10, 0.35);
+          color: #7c520a;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        :root[data-theme="light"] .btn-initiate,
+        :root[data-theme="light"] .oi-close,
+        :root[data-theme="light"] .oi-title,
+        :root[data-theme="light"] .oi-quote-box,
+        :root[data-theme="light"] .oi-quote-icon {
+          color: #7c520a;
+          border-color: rgba(124, 82, 10, 0.45);
+        }
+        :root[data-theme="light"] .vision-container {
+          border-color: rgba(124, 82, 10, 0.35);
+          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+        }
+        :root[data-theme="light"] .capsule-card {
+          background: #f8fafc;
+          border-color: rgba(24, 24, 27, 0.12);
+        }
+
         @media (max-width: 640px) {
-          .btn-back-vault {
-            top: max(14px, calc(env(safe-area-inset-top, 14px) + 6px));
-            left: max(12px, env(safe-area-inset-left, 12px));
-            padding: 8px 12px;
-            font-size: 9px;
-            letter-spacing: 1px;
-          }
+          .btn-back-vault,
           .btn-time-capsule {
             top: max(14px, calc(env(safe-area-inset-top, 14px) + 6px));
-            right: max(12px, env(safe-area-inset-right, 12px));
-            padding: 8px 12px;
-            font-size: 9px;
-            letter-spacing: 1px;
+            padding: 8px 14px;
+            font-size: 0.75rem;
+            letter-spacing: 0.02em;
           }
           .vision-container {
             width: clamp(240px, 84vw, 340px);
-            max-height: 48vh;
+            max-height: 48dvh;
           }
           .controls-panel {
             margin-top: 18px;
           }
           .btn-initiate {
             padding: 12px 26px;
-            font-size: 0.78rem;
-            letter-spacing: 2px;
+            font-size: 0.8rem;
           }
           .time-capsule-panel {
             padding: 75px 18px 18px;
           }
           .oracle-insight-paper {
             padding: 24px 16px;
-            max-height: 80vh;
+            max-height: 82dvh;
           }
-          .oi-title {
-            font-size: 1.4rem;
-            letter-spacing: 3px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .scanner-laser,
+          .oracle-insight-modal,
+          .oracle-insight-paper {
+            animation: none !important;
+          }
+          .time-capsule-panel,
+          .result-overlay,
+          .btn-back-vault,
+          .btn-time-capsule,
+          .btn-initiate,
+          .oi-close {
+            transition: none !important;
           }
         }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
       `}</style>
 
       <Link href="/fitur" className="btn-back-vault">
-        <i className="fa-solid fa-chevron-left"></i> Exit Vision
+        <i className="fa-solid fa-chevron-left" aria-hidden="true"></i> Kembali ke Fitur
       </Link>
 
-      <button className="btn-time-capsule" onClick={() => setCapsuleOpen(!capsuleOpen)}>
-        <i className="fa-solid fa-hourglass-half"></i> Pesan Masa Depan
+      <button type="button" className="btn-time-capsule" onClick={() => setCapsuleOpen(!capsuleOpen)} aria-expanded={capsuleOpen}>
+        <i className="fa-solid fa-hourglass-half" aria-hidden="true"></i> Pesan Masa Depan
       </button>
 
       <div className={`time-capsule-panel ${capsuleOpen ? 'open' : ''}`}>
-        <div style={{color:'var(--oracle-gold)', marginBottom:'20px', fontWeight:'bold', letterSpacing:'2px'}}>TULIS PESAN MASA DEPAN</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <div style={{ color: 'var(--gold-main, #d4af37)', fontWeight: 700, letterSpacing: '0.04em' }}>TULIS PESAN MASA DEPAN</div>
+          <button type="button" onClick={() => setCapsuleOpen(false)} aria-label="Tutup panel" style={{ minWidth: 44, minHeight: 44, background: 'transparent', border: '1px solid rgba(212,175,55,0.35)', borderRadius: 8, color: 'var(--text-primary)', cursor: 'pointer' }}>
+            <i className="fa-solid fa-xmark" aria-hidden="true" />
+          </button>
+        </div>
         <form className="capsule-form" onSubmit={handleSealMessage}>
-          <textarea name="vision_text" rows={4} placeholder="Tuliskan visi atau pesan rahasia untuk diri Anda di masa depan..." required></textarea>
-          <label style={{fontSize:'0.8rem', color:'#888', marginBottom:'5px', display:'block'}}>Tanggal Dibuka:</label>
-          <input type="date" name="unlock_date" required min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} />
+          <textarea name="vision_text" rows={4} placeholder="Tuliskan visi atau pesan untuk diri Anda di masa depan..." required></textarea>
+          <label htmlFor="oracle-unlock-date" style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>Tanggal Dibuka:</label>
+          <input id="oracle-unlock-date" type="date" name="unlock_date" required min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} />
           <button type="submit" className="capsule-btn">SEGEL PESAN</button>
         </form>
 
-        <div style={{color:'var(--oracle-gold)', marginTop:'40px', marginBottom:'20px', fontWeight:'bold', letterSpacing:'2px'}}>ARSIP PESAN ANDA</div>
+        <div style={{ color: 'var(--gold-main, #d4af37)', marginTop: '36px', marginBottom: '16px', fontWeight: 700, letterSpacing: '0.04em' }}>ARSIP PESAN ANDA</div>
         {visions.length > 0 ? visions.map(v => (
           <div key={v.id} className="capsule-card">
-            <div style={{fontSize:'0.8rem', color:'var(--oracle-gold)', marginBottom:'10px'}}>
-              <i className={`fa-solid fa-lock${v.is_unlocked ? '-open' : ''}`}></i> Terjadwal: {new Date(v.unlock_date).toLocaleDateString()}
+            <div style={{ fontSize: '0.82rem', color: 'var(--gold-main, #d4af37)', marginBottom: '10px' }}>
+              <i className={`fa-solid fa-lock${v.is_unlocked ? '-open' : ''}`} aria-hidden="true"></i> Terjadwal: {new Date(v.unlock_date).toLocaleDateString('id-ID')}
             </div>
             {v.is_unlocked ? (
-              <div style={{fontSize:'0.92rem', color:'#f2efe9', whiteSpace:'pre-wrap'}}>{v.vision_text}</div>
+              <div style={{ fontSize: '0.92rem', color: 'var(--text-primary, #f2efe9)', whiteSpace: 'pre-wrap' }}>{v.vision_text}</div>
             ) : (
               new Date(v.unlock_date) <= new Date() ? (
-                <button onClick={() => handleUnlock(v.id, v.vision_text)} style={{background:'transparent', border:'1px solid #d4af37', color:'#d4af37', padding:'5px 10px', cursor:'pointer', fontSize:'0.8rem', borderRadius:'3px'}}>Buka Segel</button>
+                <button type="button" onClick={() => handleUnlock(v.id, v.vision_text)} style={{ minHeight: 44, background: 'transparent', border: '1px solid var(--gold-main, #d4af37)', color: 'var(--gold-main, #d4af37)', padding: '8px 16px', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, borderRadius: '8px' }}>Buka Segel</button>
               ) : (
-                <div style={{fontSize:'0.8rem', color:'#888'}}>Segel Waktu Aktif. Menunggu waktu buka.</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>Segel Waktu Aktif. Menunggu waktu buka.</div>
               )
             )}
           </div>
         )) : (
-          <div style={{fontSize:'0.8rem', color:'#777', fontStyle:'italic'}}>Belum ada pesan yang tersegel.</div>
+          <div style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>Belum ada pesan yang tersegel.</div>
         )}
       </div>
 
       {unlockedVision && (
-        <div className="unseal-modal">
-          <div className="unseal-box">
-            <h2 style={{color:'var(--oracle-gold)', fontFamily:'Playfair Display', marginBottom:'20px'}}><i className="fa-solid fa-envelope-open-text"></i> Pesan Terbuka</h2>
-            <div style={{color:'#f2efe9', padding:'20px', background:'rgba(0,0,0,0.5)', border:'1px dashed rgba(212,175,55,0.3)', borderRadius:'5px'}}>
+        <div className="unseal-modal" role="dialog" aria-modal="true" aria-labelledby="oracleUnsealTitle" onClick={() => setUnlockedVision(null)}>
+          <div className="unseal-box" onClick={(e) => e.stopPropagation()}>
+            <h2 id="oracleUnsealTitle" style={{ color: 'var(--gold-main, #d4af37)', fontFamily: 'Playfair Display, serif', marginBottom: '20px' }}><i className="fa-solid fa-envelope-open-text" aria-hidden="true"></i> Pesan Terbuka</h2>
+            <div style={{ color: 'var(--text-primary, #f2efe9)', padding: '20px', background: 'var(--surface-raised, rgba(0,0,0,0.35))', border: '1px dashed rgba(212,175,55,0.35)', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>
               {unlockedVision}
             </div>
-            <div style={{marginTop:'30px', textAlign:'right'}}>
-              <button onClick={() => setUnlockedVision(null)} style={{background:'transparent', color:'var(--oracle-gold)', border:'1px solid var(--oracle-gold)', padding:'10px 25px', cursor:'pointer'}}>Tutup Dokumen</button>
+            <div style={{ marginTop: '24px', textAlign: 'end' }}>
+              <button type="button" onClick={() => setUnlockedVision(null)} style={{ minHeight: 44, background: 'transparent', color: 'var(--gold-main, #d4af37)', border: '1px solid var(--gold-main, #d4af37)', borderRadius: '8px', padding: '10px 25px', cursor: 'pointer', fontWeight: 600 }}>Tutup Dokumen</button>
             </div>
           </div>
         </div>
@@ -535,63 +587,64 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           <video ref={videoRef} autoPlay playsInline style={{ opacity: showResult ? 0 : 1 }}></video>
           <canvas ref={canvasRef} style={{ display: showResult ? 'block' : 'none' }}></canvas>
           
-          <Image src="/images/logo-utuh.webp" className="logo-reticle" width={180} height={180} priority style={{ opacity: showResult ? 0 : 0.15, width: "60%", height: "auto" }} alt="Scanner" />
+          <Image src="/images/logo-utuh.webp" className="logo-reticle" width={180} height={180} priority style={{ opacity: showResult ? 0 : 0.15, width: "60%", height: "auto" }} alt="" aria-hidden="true" />
           
           {isScanning && (
             <div className="scanner-laser" style={{ display: 'block', animation: 'scan 1.2s linear infinite alternate' }}></div>
           )}
           
-          {!showResult && <div style={{position:'absolute', top:'20px', left:'20px', color:'rgba(212,175,55,0.7)', fontFamily:'serif', fontSize:'1.2rem', direction:'rtl'}}>وُجُوهٌ يَوْمَئِذٍ مُّسْفِرَةٌ</div>}
+          {!showResult && <div style={{ position: 'absolute', top: '20px', insetInlineStart: '20px', color: 'rgba(212,175,55,0.85)', fontFamily: 'var(--font-amiri, serif)', fontSize: '1.2rem', direction: 'rtl' }}>وُجُوهٌ يَوْمَئِذٍ مُّسْفِرَةٌ</div>}
           
           <div className="hud-text">{statusText}</div>
 
           <div className={`result-overlay ${showResult ? 'show' : ''}`}>
-            <h2 style={{fontFamily:'Playfair Display', color:'var(--oracle-gold)', fontSize:'2rem', marginBottom:'10px'}}>{myTitle}</h2>
-            <div style={{color:'#fff', marginBottom:'20px'}}>{myDesc}</div>
+            <h2 style={{ fontFamily: 'Playfair Display, serif', color: '#f3d267', fontSize: '1.75rem', marginBottom: '10px' }}>{myTitle}</h2>
+            <div style={{ color: '#f8fafc', marginBottom: '18px', fontSize: '0.92rem' }}>{myDesc}</div>
             {resultData && (
-              <div style={{fontFamily:'monospace', fontSize:'0.85rem', color:'#8b9ba8', background:'rgba(0,0,0,0.5)', padding:'15px', borderRadius:'8px', textAlign:'left', marginBottom: '15px'}}>
-                  <span style={{color:'#d4af37'}}>&gt;</span> RESONANCE STABILITY : {resultData.symmetryIndex}%<br/>
-                  <span style={{color:'#d4af37'}}>&gt;</span> DOMINANT EMOTION  : {resultData.dominantEmotion.toUpperCase()}<br/>
-                  <span style={{color:'#d4af37'}}>&gt;</span> CURRENT MAQAM     : <b style={{color:'#fff'}}>{resultData.maqam}</b>
+              <div style={{ fontSize: '0.86rem', color: '#cbd5e1', background: 'rgba(6, 11, 20, 0.72)', border: '1px solid rgba(212, 175, 55, 0.25)', padding: '14px 16px', borderRadius: '10px', textAlign: 'start', marginBottom: '15px', width: '100%' }}>
+                  <div><strong style={{ color: '#d4af37' }}>Stabilitas Resonansi:</strong> {resultData.symmetryIndex}%</div>
+                  <div><strong style={{ color: '#d4af37' }}>Ekspresi Dominan:</strong> {resultData.dominantEmotion}</div>
+                  <div><strong style={{ color: '#d4af37' }}>Maqam Saat Ini:</strong> <b style={{ color: '#ffffff' }}>{resultData.maqam}</b></div>
               </div>
             )}
             
             {showResult && !aiInsight && (
               <button 
+                type="button"
                 onClick={handleAskGemini}
                 disabled={isFetchingAi}
-                style={{ width: "100%", background: "linear-gradient(45deg, #d4af37, #b8860b)", border: "none", color: "#000", padding: "10px", borderRadius: "8px", cursor: "pointer", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "2px" }}
+                style={{ width: "100%", minHeight: 44, background: "linear-gradient(45deg, #d4af37, #b8860b)", border: "none", color: "#060b14", padding: "10px 16px", borderRadius: "10px", cursor: "pointer", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}
               >
-                {isFetchingAi ? <><i className="fa-solid fa-circle-notch fa-spin"></i> MEMPROSES NASIHAT AI...</> : <><i className="fa-solid fa-bolt"></i> BACA NASIHAT MASA DEPAN</>}
+                {isFetchingAi ? <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> MEMPROSES NASIHAT...</> : <><i className="fa-solid fa-bolt" aria-hidden="true"></i> BACA NASIHAT MASA DEPAN</>}
               </button>
             )}
           </div>
         </div>
 
-        {/* AI Insight Modal (Moved outside vision-container) */}
+        {/* AI Insight Modal */}
         {aiInsight && (
-          <div className="oracle-insight-modal">
-            <div className="oracle-insight-paper">
+          <div className="oracle-insight-modal" role="dialog" aria-modal="true" aria-labelledby="oracleInsightTitle" onClick={() => setAiInsight(null)}>
+            <div className="oracle-insight-paper" onClick={(e) => e.stopPropagation()}>
                 <div className="oi-header">
-                    <h2 className="oi-title"><i className="fa-solid fa-sparkles" style={{ fontSize: '1.2rem', verticalAlign: 'middle', marginRight: '10px' }}></i> Pesan Masa Depan</h2>
+                    <h2 id="oracleInsightTitle" className="oi-title"><i className="fa-solid fa-sparkles" style={{ fontSize: '1.15rem', verticalAlign: 'middle', marginInlineEnd: '10px' }} aria-hidden="true"></i> Pesan Masa Depan</h2>
                     <div className="oi-subtitle">{myTitle}</div>
                 </div>
                 
                 {aiInsight.includes('---') ? (
                   <>
-                    <div style={{ textAlign: "justify", fontSize: "1rem" }}>
+                    <div style={{ textAlign: "start", fontSize: "1rem" }}>
                       {aiInsight.split('---')[0].trim()}
                     </div>
                     <div className="oi-quote-box">
-                      <i className="fa-solid fa-quote-left oi-quote-icon"></i>
+                      <i className="fa-solid fa-quote-left oi-quote-icon" aria-hidden="true"></i>
                       {aiInsight.split('---')[1].trim()}
                     </div>
                   </>
                 ) : (
-                  <div style={{ textAlign: "justify", fontSize: "1rem" }}>{aiInsight}</div>
+                  <div style={{ textAlign: "start", fontSize: "1rem" }}>{aiInsight}</div>
                 )}
                 
-                <button className="oi-close" onClick={() => setAiInsight(null)}>
+                <button type="button" className="oi-close" onClick={() => setAiInsight(null)}>
                   Tutup Dokumen
                 </button>
             </div>
@@ -600,11 +653,11 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
 
         <div className="controls-panel">
           {!showResult ? (
-            <button className="btn-initiate" onClick={handleScan} disabled={!modelsLoaded || isScanning}>
-              <i className="fa-solid fa-eye"></i> Mulai Pemindaian
+            <button type="button" className="btn-initiate" onClick={handleScan} disabled={!modelsLoaded || isScanning}>
+              <i className="fa-solid fa-eye" aria-hidden="true"></i> Mulai Pemindaian
             </button>
           ) : (
-            <button className="btn-initiate" onClick={handleReset}>
+            <button type="button" className="btn-initiate" onClick={handleReset}>
               Pindai Ulang
             </button>
           )}

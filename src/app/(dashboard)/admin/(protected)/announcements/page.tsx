@@ -3,6 +3,7 @@ import { deleteAnnouncement } from "./actions";
 import Link from "next/link";
 import "../admin.css";
 import AdminLockBtn from "../../AdminLockBtn";
+import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
 
 export const metadata = {
   title: "Pengumuman | Admin",
@@ -74,9 +75,14 @@ export default async function AnnouncementsPage() {
                         </Link>
                         <form action={deleteAnnouncement} style={{ display: "inline" }}>
                           <input type="hidden" name="id" value={a.id} />
-                          <button type="submit" className="btn-action btn-delete-action hover-trigger">
+                          <ConfirmSubmitButton
+                            title="Hapus Pengumuman"
+                            message={`Yakin ingin menghapus pengumuman "${a.title}"? Tindakan ini tidak dapat dibatalkan.`}
+                            className="btn-action btn-delete-action hover-trigger"
+                            buttonTitle={`Hapus ${a.title}`}
+                          >
                             <i className="fa-solid fa-trash"></i> Hapus
-                          </button>
+                          </ConfirmSubmitButton>
                         </form>
                       </td>
                     </tr>
@@ -99,7 +105,7 @@ export default async function AnnouncementsPage() {
                     </span>
                   </div>
 
-                  <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", fontFamily: "monospace" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontVariantNumeric: "tabular-nums" }}>
                     <i className="fa-regular fa-calendar" style={{ marginRight: "5px" }}></i>
                     {new Date(a.published_at).toLocaleDateString("id-ID", { day: '2-digit', month: 'short', year: 'numeric' })}
                   </div>
@@ -110,9 +116,15 @@ export default async function AnnouncementsPage() {
                     </Link>
                     <form action={deleteAnnouncement} style={{ width: "100%" }}>
                       <input type="hidden" name="id" value={a.id} />
-                      <button type="submit" className="btn-action btn-delete-action hover-trigger" style={{ width: "100%", textAlign: "center", justifyContent: "center", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <ConfirmSubmitButton
+                        title="Hapus Pengumuman"
+                        message={`Yakin ingin menghapus pengumuman "${a.title}"? Tindakan ini tidak dapat dibatalkan.`}
+                        className="btn-action btn-delete-action hover-trigger"
+                        style={{ width: "100%", textAlign: "center", justifyContent: "center", display: "flex", alignItems: "center", gap: "6px" }}
+                        buttonTitle={`Hapus ${a.title}`}
+                      >
                         <i className="fa-solid fa-trash"></i> Hapus
-                      </button>
+                      </ConfirmSubmitButton>
                     </form>
                   </div>
                 </div>

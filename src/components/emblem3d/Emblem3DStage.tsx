@@ -165,7 +165,7 @@ export default function Emblem3DStage({
   } = useMechaAudio(soundEnabledRef);
 
   const emitShockwave = useCallback(
-    (maxRadius: number, duration = 0.9, startRadius = 18, lineWidth = 4.5, color = "#ffd700") => {
+    (maxRadius: number, duration = 0.9, startRadius = 18, lineWidth = 4.5, color = "#d4af37") => {
       const constel = constelCanvasRef.current;
       const cx = (constel?.width || window.innerWidth) / 2;
       const cy = (constel?.height || window.innerHeight) / 2;
@@ -199,7 +199,7 @@ export default function Emblem3DStage({
     const constel = constelCanvasRef.current;
     const cx = (constel?.width || window.innerWidth) / 2;
     const cy = (constel?.height || window.innerHeight) / 2;
-    const colors = ["#ffd700", "#fff4b8", "#38bdf8", "#f59e0b"];
+    const colors = ["#d4af37", "#fff4b8", "#60a5fa", "#f59e0b"];
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
       const spd = speedMin + Math.random() * (speedMax - speedMin);
@@ -303,7 +303,7 @@ export default function Emblem3DStage({
         playMechaClick(1.22, 0, 0.22);
         playPneumaticHiss(0.02, 0.55, 0.14, 3000, 620);
         playServoGlide(195, 115, 1.15, 0.04, 0.048);
-        emitShockwave(isMobile ? 230 : 400, 0.95, 16, 3.8, "#ffd700");
+        emitShockwave(isMobile ? 230 : 400, 0.95, 16, 3.8, "#d4af37");
         emitSparks(isMobile ? 18 : 28, 2.5, 7.5);
         triggerMicroJolt(0.038, 0.18);
       }, 1.08);
@@ -458,8 +458,8 @@ export default function Emblem3DStage({
           if (idx === 4) {
             playBassDrop();
             playPneumaticHiss(0.04, 0.72, 0.17, 2200, 380);
-            emitShockwave(isMobile ? 360 : 720, 1.15, 20, 5.2, "#ffd700");
-            emitShockwave(isMobile ? 230 : 460, 0.85, 12, 2.8, "#38bdf8");
+            emitShockwave(isMobile ? 360 : 720, 1.15, 20, 5.2, "#d4af37");
+            emitShockwave(isMobile ? 230 : 460, 0.85, 12, 2.8, "#60a5fa");
             emitSparks(isMobile ? 28 : 48, 3.2, 11.5);
             if (navigator.vibrate) navigator.vibrate([90, 40, 150]);
             if (flashRef.current) {
@@ -1494,7 +1494,7 @@ export default function Emblem3DStage({
           transform: scale(0.97);
         }
         #stage .hud-hint.active {
-          color: #ffd700;
+          color: #d4af37;
         }
         :root[data-theme="light"] #stage .hud-hint.active {
           color: #9a7409;
@@ -1513,8 +1513,7 @@ export default function Emblem3DStage({
           width: 44px;
           height: 44px;
           border-radius: 5px;
-          background: var(--glass-bg, rgba(10, 17, 32, 0.72));
-          backdrop-filter: var(--glass-blur, blur(14px));
+          background: var(--bg-card, rgba(10, 17, 32, 0.9));
           border: 1px solid rgba(212, 175, 55, 0.38);
           color: #d4af37;
           display: inline-flex;
@@ -1559,7 +1558,7 @@ export default function Emblem3DStage({
           margin-bottom: 10px;
         }
         :root[data-theme="light"] .phil-kicker {
-          color: #9a7409;
+          color: #7c520a;
         }
         .phil-rule {
           width: 48px;
@@ -1598,9 +1597,9 @@ export default function Emblem3DStage({
             text-align: center;
           }
           .btn-mecha-util {
-            width: 40px;
-            height: 40px;
-            font-size: 0.82rem;
+            width: 44px;
+            height: 44px;
+            font-size: 0.85rem;
           }
           .beranda-scroll-cue {
             left: auto;

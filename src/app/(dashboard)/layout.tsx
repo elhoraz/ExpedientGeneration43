@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import ScrollTopButton from "@/components/ui/ScrollTopButton";
 import GlobalCallListener from "@/components/chat/GlobalCallListener";
 import OnboardingProvider from "@/components/onboarding/OnboardingProvider";
-import CommandPalette from "@/components/layout/CommandPalette";
 import HelpButtonTrigger from "@/components/guide/HelpButtonTrigger";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -30,9 +29,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Guided onboarding tour for new alumni */}
       <OnboardingProvider />
-
-      {/* Global Command Palette (Ctrl+K / Cmd+K) */}
-      <CommandPalette />
     </>
   );
 }

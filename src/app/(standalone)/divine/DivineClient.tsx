@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import ThemeToggle from "@/components/layout/ThemeToggle";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./divine.css";
 
 interface VerseItem {
@@ -206,6 +207,7 @@ const surahMap: Record<string, number> = {
 };
 
 export default function DivineClient() {
+  const { locale, isRTL, dir } = useLanguage();
   const [activeVerse, setActiveVerse] = useState<VerseItem | null>(null);
   const [showResult, setShowResult] = useState<boolean>(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
@@ -213,9 +215,10 @@ export default function DivineClient() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const pf = document.getElementById("particleField");
-    if (pf && pf.children.length === 0) {
-      for (let i = 0; i < 25; i++) {
+    if (pf && pf.children.length === 0 && !reducedMotion) {
+      for (let i = 0; i < 20; i++) {
         const p = document.createElement("div");
         p.className = "particle";
         p.style.left = Math.random() * 100 + "vw";
@@ -246,7 +249,7 @@ export default function DivineClient() {
   const replayAudio = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().then(() => setIsPlayingAudio(true)).catch(() => {});
+      audioRef.current.play().then(() => setIsPlayingAudio(true)).catch(() => { });
     }
   };
 
@@ -269,7 +272,7 @@ export default function DivineClient() {
           text: text,
           url: window.location.href,
         })
-        .catch(() => {});
+        .catch(() => { });
     } else {
       const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
       window.open(waUrl, "_blank");
@@ -316,7 +319,7 @@ export default function DivineClient() {
         audio.onerror = () => {
           if (audio.src !== fallbackUrl) {
             audio.src = fallbackUrl;
-            audio.play().catch(() => {});
+            audio.play().catch(() => { });
           } else {
             setIsPlayingAudio(false);
           }
@@ -375,18 +378,56 @@ export default function DivineClient() {
     });
   };
 
+  const copy = {
+    back: locale === "ar" ? "الميزات" : locale === "en" ? "Features" : "Fitur",
+    title: locale === "ar" ? "كلام الله" : locale === "en" ? "Kalam Ilahi" : "Kalam Ilahi",
+    sub:
+      locale === "ar"
+        ? "تأمل في آيات القرآن الكريم التي تمنح القلب سكينة وهداية ليومك"
+        : locale === "en"
+        ? "Contemplate verses of the Holy Qur'an chosen to bring calm and guidance today"
+        : "Tadabbur ayat-ayat suci Al-Qur'an penentram jiwa untuk menguatkan hari Anda",
+    gatewayPrompt:
+      locale === "ar"
+        ? "افتح قلبك وانوِ الخير لتلقي آية قرآنية تضيء يومك بالسكينة واليقين."
+        : locale === "en"
+        ? "Open your heart with a sincere intention to receive a sacred verse guiding your day."
+        : "Buka hati dan niatkan kebaikan untuk menerima pesan suci Kalam Ilahi yang menenangkan hari Anda.",
+    btnReveal: locale === "ar" ? "افتح آية اليوم" : locale === "en" ? "Reveal Today's Verse" : "Buka Kalam Hari Ini",
+    playing: locale === "ar" ? "جاري تشغيل التلاوة" : locale === "en" ? "Playing Recitation" : "Memutar Murottal",
+    listen: locale === "ar" ? "استمع للتلاوة" : locale === "en" ? "Listen to Recitation" : "Dengarkan Tilawah",
+    qari:
+      locale === "ar"
+        ? "القارئ: الشيخ مشاري راشد العفاسي"
+        : locale === "en"
+        ? "Reciter: Sheikh Mishary Rashid Alafasy"
+        : "Qari: Syaikh Misyari Rasyid Al-Afasy",
+    pauseTitle: locale === "ar" ? "إيقاف التلاوة" : locale === "en" ? "Pause recitation" : "Jeda Murottal",
+    playTitle: locale === "ar" ? "تشغيل التلاوة" : locale === "en" ? "Play recitation" : "Putar Murottal",
+    replayTitle: locale === "ar" ? "إعادة من البداية" : locale === "en" ? "Replay from start" : "Ulangi dari awal",
+    copyBtn: locale === "ar" ? "نسخ الآية" : locale === "en" ? "Copy Verse" : "Salin Ayat",
+    shareBtn: locale === "ar" ? "مشاركة" : locale === "en" ? "Share" : "Bagikan",
+    nextBtn: locale === "ar" ? "آية أخرى" : locale === "en" ? "Another Verse" : "Terima Kalam Lain",
+    copiedMsg:
+      locale === "ar"
+        ? "تم نسخ الآية والترجمة"
+        : locale === "en"
+        ? "Verse and translation copied"
+        : "Ayat dan terjemahan berhasil disalin",
+  };
+
   return (
-    <div className="divine-wrapper">
+    <div className="divine-wrapper" dir={dir}>
       {/* Fixed Sticky Top Navigation Bar */}
       <div className="divine-top-nav">
         <Link href="/fitur" className="btn-back">
-          <i className="fa-solid fa-chevron-left"></i> Fitur
+          <i className={`fa-solid ${isRTL ? "fa-chevron-right" : "fa-chevron-left"}`} aria-hidden="true"></i> {copy.back}
         </Link>
         <ThemeToggle />
       </div>
 
       {/* Ambient background decoration */}
-      <div className="geo-bg">
+      <div className="geo-bg" aria-hidden="true">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
             <pattern id="isl" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -402,16 +443,16 @@ export default function DivineClient() {
           <rect width="100" height="100" fill="url(#isl)" />
         </svg>
       </div>
-      <div className="ambient"></div>
-      <div id="particleField"></div>
+      <div className="ambient" aria-hidden="true"></div>
+      <div id="particleField" aria-hidden="true"></div>
 
       {/* Main Content Area */}
       <div className="divine-content">
         <h1 className="page-title" id="pageTitle">
-          Kalam Ilahi
+          {copy.title}
         </h1>
         <p className="page-sub" id="pageSub">
-          Tadabbur ayat-ayat suci Al-Qur&apos;an penentram jiwa yang ditakdirkan untuk Anda hari ini
+          {copy.sub}
         </p>
 
         {/* ---------------------------------------------------------------
@@ -419,15 +460,15 @@ export default function DivineClient() {
             --------------------------------------------------------------- */}
         {!showResult && (
           <div className="divine-gateway-card">
-            <div className="gateway-rub-el-hizb">
+            <div className="gateway-rub-el-hizb" aria-hidden="true">
               <i className="fa-solid fa-star-and-crescent"></i>
             </div>
-            <div className="gateway-bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+            <div className="gateway-bismillah" lang="ar">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
             <p className="gateway-prompt">
-              Buka hati dan niatkan kebaikan untuk menerima pesan suci Kalam Ilahi yang ditakdirkan membimbing hari Anda.
+              {copy.gatewayPrompt}
             </p>
             <button type="button" className="btn-reveal" onClick={revealVerse}>
-              <i className="fa-solid fa-book-quran"></i>&nbsp; Buka Kalam Hari Ini
+              <i className="fa-solid fa-book-quran" aria-hidden="true"></i>&nbsp; {copy.btnReveal}
             </button>
           </div>
         )}
@@ -439,16 +480,16 @@ export default function DivineClient() {
           <div className="verse-card" id="verseCard">
             {/* Surah Reference Pill Badge */}
             <div className="verse-surah-pill">
-              <i className="fa-solid fa-book-open"></i> {activeVerse.source}
+              <i className="fa-solid fa-book-open" aria-hidden="true"></i> {activeVerse.source}
             </div>
 
             {/* Bismillah Header */}
-            <div className="bismillah" id="bismillah">
+            <div className="bismillah" id="bismillah" lang="ar">
               بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
             </div>
 
             {/* Arabic Verse */}
-            <div className="ayat-arabic" id="ayatArabic">
+            <div className="ayat-arabic" id="ayatArabic" lang="ar">
               {activeVerse.arabic}
             </div>
 
@@ -471,21 +512,21 @@ export default function DivineClient() {
                   type="button"
                   className={`btn-audio-play ${isPlayingAudio ? "playing" : ""}`}
                   onClick={toggleAudio}
-                  title={isPlayingAudio ? "Jeda Murottal" : "Putar Murottal"}
-                  aria-label={isPlayingAudio ? "Jeda Tilawah" : "Putar Tilawah"}
+                  title={isPlayingAudio ? copy.pauseTitle : copy.playTitle}
+                  aria-label={isPlayingAudio ? copy.pauseTitle : copy.playTitle}
                 >
-                  <i className={`fa-solid ${isPlayingAudio ? "fa-pause" : "fa-play"}`}></i>
+                  <i className={`fa-solid ${isPlayingAudio ? "fa-pause" : "fa-play"}`} aria-hidden="true"></i>
                 </button>
                 <div className="audio-meta-text">
                   <span className="audio-title-lbl">
-                    {isPlayingAudio ? "Memutar Murottal" : "Dengarkan Tilawah"}
+                    {isPlayingAudio ? copy.playing : copy.listen}
                   </span>
-                  <span className="audio-subtitle-lbl">Qari: Syaikh Misyari Rasyid Al-Afasy</span>
+                  <span className="audio-subtitle-lbl">{copy.qari}</span>
                 </div>
               </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div className={`equalizer-wave ${isPlayingAudio ? "active" : ""}`}>
+                <div className={`equalizer-wave ${isPlayingAudio ? "active" : ""}`} aria-hidden="true">
                   <div className="equalizer-bar"></div>
                   <div className="equalizer-bar"></div>
                   <div className="equalizer-bar"></div>
@@ -497,10 +538,11 @@ export default function DivineClient() {
                     type="button"
                     onClick={replayAudio}
                     className="btn-action-pill"
-                    style={{ padding: "6px 10px", fontSize: "0.72rem" }}
-                    title="Ulangi dari awal"
+                    style={{ minWidth: 44, minHeight: 44, padding: "8px 12px" }}
+                    title={copy.replayTitle}
+                    aria-label={copy.replayTitle}
                   >
-                    <i className="fa-solid fa-rotate-left"></i>
+                    <i className="fa-solid fa-rotate-left" aria-hidden="true"></i>
                   </button>
                 )}
               </div>
@@ -509,13 +551,13 @@ export default function DivineClient() {
             {/* Action Buttons: Copy, Share, Next */}
             <div className="verse-actions-row">
               <button type="button" className="btn-action-pill" onClick={handleCopy}>
-                <i className="fa-solid fa-copy"></i> Salin Ayat
+                <i className="fa-solid fa-copy" aria-hidden="true"></i> {copy.copyBtn}
               </button>
               <button type="button" className="btn-action-pill" onClick={handleShare}>
-                <i className="fa-brands fa-whatsapp"></i> Bagikan
+                <i className="fa-brands fa-whatsapp" aria-hidden="true"></i> {copy.shareBtn}
               </button>
               <button type="button" className="btn-new" onClick={resetVerse}>
-                <i className="fa-solid fa-shuffle"></i> Terima Kalam Lain
+                <i className="fa-solid fa-shuffle" aria-hidden="true"></i> {copy.nextBtn}
               </button>
             </div>
           </div>
@@ -524,8 +566,8 @@ export default function DivineClient() {
 
       {/* Copy Toast Feedback */}
       {copiedToast && (
-        <div className="divine-toast">
-          <i className="fa-solid fa-check"></i> Ayat & terjemahan berhasil disalin!
+        <div className="divine-toast" role="status" aria-live="polite">
+          <i className="fa-solid fa-check" aria-hidden="true"></i> {copy.copiedMsg}
         </div>
       )}
     </div>

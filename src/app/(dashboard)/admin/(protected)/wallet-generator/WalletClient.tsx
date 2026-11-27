@@ -170,7 +170,7 @@ export default function WalletClient({ users }: { users: any[] }) {
                       <div style={{ textAlign: 'center', marginBottom: "30px" }}>
                           <div style={{ color: '#666', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '8px' }}>Diterbitkan Untuk</div>
                           <div style={{ fontSize: '1.4rem', color: ticketClass === 'VVIP' ? '#d4af37' : '#fff', fontWeight: 800, letterSpacing: "0.5px" }}>{selectedUser ? (selectedUser.nama_panggilan || selectedUser.nama_lengkap) : 'Nama Anggota'}</div>
-                          <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '6px', fontFamily: 'monospace', letterSpacing: "1px" }}>ID: {selectedUser ? selectedUser.id.split('-')[0].toUpperCase() : 'XXXX-XXXX'}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#888', marginTop: '6px', fontVariantNumeric: 'tabular-nums', letterSpacing: "1px" }}>ID: {selectedUser ? selectedUser.id.split('-')[0].toUpperCase() : 'XXXX-XXXX'}</div>
                       </div>
                       
                       <div style={{ width: '160px', height: '160px', margin: '0 auto 24px auto', background: '#fff', borderRadius: '12px', padding: '10px', boxShadow: "0 10px 20px rgba(0,0,0,0.5)" }}>

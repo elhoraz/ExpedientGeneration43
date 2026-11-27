@@ -43,14 +43,25 @@ export default function ScrollRevealInit() {
 
     const observeElements = () => {
       const targets = document.querySelectorAll(".reveal-on-scroll, .reveal-stagger");
-      targets.forEach((el) => observer.observe(el));
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      targets.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < vh * 1.1) {
+          el.classList.add("is-visible");
+        }
+        observer.observe(el);
+      });
     };
 
     observeElements();
 
-    // Re-check after dynamic client hydration
+    // Re-check after dynamic client hydration and prevent permanently hidden scroll sections
     const timer1 = setTimeout(observeElements, 250);
-    const timer2 = setTimeout(observeElements, 750);
+    const timer2 = setTimeout(() => {
+      document.querySelectorAll(".reveal-on-scroll, .reveal-stagger").forEach((el) => {
+        el.classList.add("is-visible");
+      });
+    }, 1200);
 
     return () => {
       clearTimeout(timer1);

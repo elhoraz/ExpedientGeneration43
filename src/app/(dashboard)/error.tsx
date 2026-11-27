@@ -27,7 +27,7 @@ export default function DashboardError({
   return (
     <div style={{
       width: "100%",
-      minHeight: "calc(100vh - 80px)",
+      minHeight: "calc(100dvh - 80px)",
       display: "flex",
       flexDirection: "column",
       justifyContent: "center",
@@ -37,10 +37,10 @@ export default function DashboardError({
       padding: "20px",
       textAlign: "center"
     }}>
-      <i className="fa-solid fa-triangle-exclamation" style={{ fontSize: "3rem", color: "#ff3366", marginBottom: "20px" }}></i>
-      <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#ff3366", marginBottom: "10px" }}>
+      <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" style={{ fontSize: "2.8rem", color: "#dc2626", marginBottom: "20px" }}></i>
+      <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "1.5rem", color: "var(--text-primary)", marginBottom: "10px" }}>
         {locale === "ar" ? "حدث خطأ في النظام" : locale === "en" ? "System Error Occurred" : "Terjadi Kesalahan Sistem"}
-      </h2>
+      </h1>
       <p style={{ color: "var(--text-secondary)", maxWidth: "500px", marginBottom: "30px", fontSize: "0.9rem" }}>
         {error.message || (locale === "ar"
           ? "تعذر عرض المكون أو انقطع الاتصال بقاعدة البيانات. يرجى محاولة إعادة تحميل الصفحة."
@@ -48,31 +48,38 @@ export default function DashboardError({
           ? "Component could not be rendered or database connection was lost. Please try reloading the page."
           : "Komponen tidak dapat dirender atau koneksi database terputus. Silakan coba muat ulang halaman.")}
       </p>
-      <div style={{ display: "flex", gap: "15px" }}>
-        <button 
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+        <button
+          type="button"
           onClick={() => reset()}
           style={{
-            background: "rgba(255, 51, 102, 0.1)",
-            border: "1px solid rgba(255, 51, 102, 0.3)",
-            color: "#ff3366",
+            minHeight: "44px",
+            display: "inline-flex",
+            alignItems: "center",
+            background: "rgba(220, 38, 38, 0.12)",
+            border: "1px solid rgba(220, 38, 38, 0.35)",
+            color: "#dc2626",
             padding: "10px 20px",
-            borderRadius: "8px",
+            borderRadius: "10px",
             cursor: "pointer",
             fontWeight: 600
           }}
         >
-          <i className="fa-solid fa-rotate-right" style={{ marginInlineEnd: "8px" }}></i> {locale === "ar" ? "حاول مرة أخرى" : locale === "en" ? "Try Again" : "Coba Lagi"}
+          <i className="fa-solid fa-rotate-right" aria-hidden="true" style={{ marginInlineEnd: "8px" }}></i> {locale === "ar" ? "حاول مرة أخرى" : locale === "en" ? "Try Again" : "Coba Lagi"}
         </button>
         <Link href="/beranda" style={{
-            background: "rgba(212, 175, 55, 0.1)",
-            border: "1px solid rgba(212, 175, 55, 0.3)",
-            color: "#d4af37",
+            minHeight: "44px",
+            display: "inline-flex",
+            alignItems: "center",
+            background: "var(--gold-main, #d4af37)",
+            border: "1px solid var(--gold-main, #d4af37)",
+            color: "#060b14",
             padding: "10px 20px",
-            borderRadius: "8px",
+            borderRadius: "10px",
             textDecoration: "none",
-            fontWeight: 600
+            fontWeight: 700
           }}>
-          <i className="fa-solid fa-house" style={{ marginInlineEnd: "8px" }}></i> {locale === "ar" ? "العودة إلى الصفحة الرئيسية" : locale === "en" ? "Return to Home" : "Kembali ke Beranda"}
+          <i className="fa-solid fa-house" aria-hidden="true" style={{ marginInlineEnd: "8px" }}></i> {locale === "ar" ? "العودة إلى الصفحة الرئيسية" : locale === "en" ? "Return to Home" : "Kembali ke Beranda"}
         </Link>
       </div>
     </div>

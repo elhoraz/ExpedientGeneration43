@@ -13,30 +13,72 @@ export default function PrivacyClient() {
   return (
     <div
       dir={dir}
+      className="privacy-page"
       style={{
         minHeight: "100dvh",
-        backgroundColor: "#060b14",
-        color: "#e6edf3",
+        backgroundColor: "var(--bg-main, #060b14)",
+        color: "var(--text-primary, #e6edf3)",
         padding: "2.5rem 1rem",
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
         fontFamily: isRtl
           ? "var(--font-amiri, serif), var(--font-inter, sans-serif)"
-          : "var(--font-inter, sans-serif)",
+          : "var(--font-sans, sans-serif)",
       }}
     >
+      <style>{`
+        .privacy-page .privacy-back-link,
+        .privacy-page .privacy-action-link {
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          border-radius: 10px;
+          transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+        }
+        .privacy-page .privacy-back-link:focus-visible,
+        .privacy-page .privacy-action-link:focus-visible {
+          outline: 2px solid var(--gold-main, #d4af37);
+          outline-offset: 2px;
+        }
+        :root[data-theme="light"] .privacy-page {
+          background-color: #f6f5f1 !important;
+          color: #18181b !important;
+        }
+        :root[data-theme="light"] .privacy-page .privacy-article {
+          background: #ffffff !important;
+          border-color: rgba(24, 24, 27, 0.14) !important;
+          box-shadow: 0 16px 40px rgba(24, 24, 27, 0.08) !important;
+          color: #18181b !important;
+        }
+        :root[data-theme="light"] .privacy-page .privacy-badge-emerald {
+          color: #065f46 !important;
+          background: #ecfdf5 !important;
+          border-color: rgba(6, 95, 70, 0.3) !important;
+        }
+        :root[data-theme="light"] .privacy-page .privacy-badge-blue {
+          color: #1d4ed8 !important;
+          background: #eff6ff !important;
+          border-color: rgba(29, 78, 216, 0.3) !important;
+        }
+        :root[data-theme="light"] .privacy-page .privacy-delete-pill {
+          color: #991b1b !important;
+          background: #fef2f2 !important;
+          border-color: rgba(153, 27, 27, 0.3) !important;
+        }
+      `}</style>
       <article
+        className="privacy-article"
         style={{
           maxWidth: "840px",
           width: "100%",
-          background: "rgba(12, 21, 38, 0.85)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: "1px solid rgba(212, 175, 55, 0.28)",
+          background: "var(--bg-card, #0c1526)",
+          border: "1px solid var(--border-strong, rgba(212, 175, 55, 0.28))",
           borderRadius: "20px",
           padding: "2.5rem 2rem",
-          boxShadow: "0 24px 60px rgba(0, 0, 0, 0.65)",
+          boxShadow: "0 24px 60px rgba(0, 0, 0, 0.45)",
           position: "relative",
         }}
       >
@@ -49,24 +91,21 @@ export default function PrivacyClient() {
             marginBottom: "2rem",
             flexWrap: "wrap",
             gap: "1rem",
-            borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+            borderBottom: "1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))",
             paddingBottom: "1.25rem",
           }}
         >
           <Link
             href="/"
+            className="privacy-back-link"
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              color: "#94a3b8",
-              textDecoration: "none",
+              color: "var(--text-secondary, #94a3b8)",
               fontSize: "0.9rem",
               fontWeight: 500,
-              transition: "color 0.2s ease",
+              padding: "0 6px",
             }}
           >
-            <i className={`fa-solid ${isRtl ? "fa-arrow-right" : "fa-arrow-left"}`} />
+            <i className={`fa-solid ${isRtl ? "fa-arrow-right" : "fa-arrow-left"}`} aria-hidden="true" />
             <span>
               {isAr
                 ? "العودة إلى الصفحة الرئيسية"
@@ -79,20 +118,16 @@ export default function PrivacyClient() {
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <Link
               href="/delete-account"
+              className="privacy-action-link privacy-delete-pill"
               style={{
-                fontSize: "0.82rem",
+                fontSize: "0.84rem",
                 color: "#f87171",
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "6px 12px",
-                borderRadius: "8px",
+                padding: "8px 14px",
                 background: "rgba(239, 68, 68, 0.1)",
-                border: "1px solid rgba(239, 68, 68, 0.25)",
+                border: "1px solid rgba(239, 68, 68, 0.28)",
               }}
             >
-              <i className="fa-solid fa-user-xmark" />
+              <i className="fa-solid fa-user-xmark" aria-hidden="true" />
               <span>
                 {isAr
                   ? "طلب حذف الحساب"
@@ -115,12 +150,13 @@ export default function PrivacyClient() {
               width: "64px",
               height: "64px",
               borderRadius: "50%",
-              background: "rgba(212, 175, 55, 0.15)",
+              background: "rgba(212, 175, 55, 0.14)",
               border: "1px solid rgba(212, 175, 55, 0.35)",
-              color: "#f3ba2f",
+              color: "var(--gold-main, #f3ba2f)",
               fontSize: "26px",
               marginBottom: "1.25rem",
             }}
+            aria-hidden="true"
           >
             <i className="fa-solid fa-shield-halved" />
           </div>
@@ -128,7 +164,7 @@ export default function PrivacyClient() {
             style={{
               fontFamily: isRtl ? "inherit" : "var(--font-playfair, serif)",
               fontSize: "2rem",
-              color: "#f3ba2f",
+              color: "var(--gold-main, #f3ba2f)",
               margin: "0 0 0.5rem 0",
               lineHeight: 1.25,
             }}
@@ -141,7 +177,7 @@ export default function PrivacyClient() {
           </h1>
           <p
             style={{
-              color: "#9ca3af",
+              color: "var(--text-secondary, #9ca3af)",
               fontSize: "0.95rem",
               margin: "0 0 1rem 0",
               maxWidth: "600px",
@@ -167,12 +203,13 @@ export default function PrivacyClient() {
             }}
           >
             <span
+              className="privacy-badge-emerald"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
                 padding: "4px 12px",
-                borderRadius: "999px",
+                borderRadius: "10px",
                 background: "rgba(16, 185, 129, 0.12)",
                 border: "1px solid rgba(16, 185, 129, 0.3)",
                 color: "#34d399",
@@ -180,16 +217,17 @@ export default function PrivacyClient() {
                 fontWeight: 600,
               }}
             >
-              <i className="fa-solid fa-scale-balanced" />
+              <i className="fa-solid fa-scale-balanced" aria-hidden="true" />
               UU PDP No. 27/2022
             </span>
             <span
+              className="privacy-badge-blue"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "6px",
                 padding: "4px 12px",
-                borderRadius: "999px",
+                borderRadius: "10px",
                 background: "rgba(59, 130, 246, 0.12)",
                 border: "1px solid rgba(59, 130, 246, 0.3)",
                 color: "#60a5fa",
@@ -197,27 +235,27 @@ export default function PrivacyClient() {
                 fontWeight: 600,
               }}
             >
-              <i className="fa-brands fa-google-play" />
+              <i className="fa-brands fa-google-play" aria-hidden="true" />
               Google Play Data Safety
             </span>
           </div>
         </header>
 
         {/* Content Body */}
-        <div style={{ fontSize: "0.95rem", lineHeight: 1.7, color: "#cbd5e1" }}>
+        <div style={{ fontSize: "0.95rem", lineHeight: 1.7, color: "var(--text-primary, #cbd5e1)" }}>
           {/* Section 1: Pendahuluan */}
           <section style={{ marginBottom: "2rem" }}>
             <h2
               style={{
                 fontSize: "1.25rem",
-                color: "#f3ba2f",
+                color: "var(--gold-main, #f3ba2f)",
                 marginBottom: "0.75rem",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
               }}
             >
-              <i className="fa-solid fa-landmark" />
+              <i className="fa-solid fa-landmark" aria-hidden="true" />
               {isAr
                 ? "١. مقدمة وهوية الجهة المسؤولة"
                 : isEn
@@ -238,14 +276,14 @@ export default function PrivacyClient() {
             <h2
               style={{
                 fontSize: "1.25rem",
-                color: "#f3ba2f",
+                color: "var(--gold-main, #f3ba2f)",
                 marginBottom: "0.75rem",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
               }}
             >
-              <i className="fa-solid fa-database" />
+              <i className="fa-solid fa-database" aria-hidden="true" />
               {isAr
                 ? "٢. فئات البيانات الشخصية التي نجمعها"
                 : isEn
@@ -264,15 +302,15 @@ export default function PrivacyClient() {
               {/* Card 2.1: Identitas & Profil */}
               <div
                 style={{
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  background: "var(--surface-raised, rgba(255, 255, 255, 0.03))",
+                  border: "1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))",
                   borderRadius: "12px",
                   padding: "1.25rem",
                 }}
               >
                 <h3
                   style={{
-                    color: "#f8fafc",
+                    color: "var(--text-primary, #f8fafc)",
                     fontSize: "1.05rem",
                     margin: "0 0 0.5rem 0",
                     display: "flex",
@@ -280,14 +318,14 @@ export default function PrivacyClient() {
                     gap: "8px",
                   }}
                 >
-                  <i className="fa-solid fa-id-card" style={{ color: "#f3ba2f" }} />
+                  <i className="fa-solid fa-id-card" style={{ color: "var(--gold-main, #f3ba2f)" }} aria-hidden="true" />
                   {isAr
                     ? "أ. بيانات الملف الشخصي والاتصال"
                     : isEn
                     ? "a. Profile & Contact Information"
                     : "a. Data Profil & Kontak"}
                 </h3>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#94a3b8" }}>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-secondary, #94a3b8)" }}>
                   {isAr
                     ? "الاسم الكامل، اسم الشهرة (الكنية)، البريد الإلكتروني، رقم الواتساب، عنوان الإقامة/المدينة، السيرة الذاتية، الصورة الشخصية، ومجال التخصص أو المهنة الحالية."
                     : isEn
@@ -298,6 +336,7 @@ export default function PrivacyClient() {
 
               {/* Card 2.2: Data Biometrik */}
               <div
+                className="privacy-delete-pill"
                 style={{
                   background: "rgba(239, 68, 68, 0.05)",
                   border: "1px solid rgba(239, 68, 68, 0.25)",
@@ -307,7 +346,7 @@ export default function PrivacyClient() {
               >
                 <h3
                   style={{
-                    color: "#fca5a5",
+                    color: "var(--text-primary, #fca5a5)",
                     fontSize: "1.05rem",
                     margin: "0 0 0.5rem 0",
                     display: "flex",
@@ -315,14 +354,14 @@ export default function PrivacyClient() {
                     gap: "8px",
                   }}
                 >
-                  <i className="fa-solid fa-fingerprint" style={{ color: "#ef4444" }} />
+                  <i className="fa-solid fa-fingerprint" style={{ color: "#ef4444" }} aria-hidden="true" />
                   {isAr
                     ? "ب. البيانات الحيوية (التعرف على الوجه و Passkey)"
                     : isEn
                     ? "b. Biometric Data (Face Recognition & WebAuthn / Passkeys)"
                     : "b. Data Biometrik Khusus (Face Recognition & Passkey/WebAuthn)"}
                 </h3>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#cbd5e1" }}>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-secondary, #cbd5e1)" }}>
                   {isAr
                     ? "ميزة التعرف على الوجه و Passkey اختيارية لتسجيل الدخول السريع، وتُعد بيانات حيوية حساسة بموجب قانون UU PDP. لا نخزّن صورة الوجه لهذا الغرض؛ يُحوَّل الوجه على جهازك إلى متجه رقمي (128 قيمة) ويُحفظ هذا المتجه في ملفك الشخصي في قاعدة البيانات. لا نشارك هذه البيانات مع أي طرف ثالث، ويمكنك حذفها بحذف حسابك."
                     : isEn
@@ -334,15 +373,15 @@ export default function PrivacyClient() {
               {/* Card 2.3: Data Lokasi */}
               <div
                 style={{
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  background: "var(--surface-raised, rgba(255, 255, 255, 0.03))",
+                  border: "1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))",
                   borderRadius: "12px",
                   padding: "1.25rem",
                 }}
               >
                 <h3
                   style={{
-                    color: "#f8fafc",
+                    color: "var(--text-primary, #f8fafc)",
                     fontSize: "1.05rem",
                     margin: "0 0 0.5rem 0",
                     display: "flex",
@@ -350,14 +389,14 @@ export default function PrivacyClient() {
                     gap: "8px",
                   }}
                 >
-                  <i className="fa-solid fa-location-dot" style={{ color: "#38bdf8" }} />
+                  <i className="fa-solid fa-location-dot" style={{ color: "#0284c7" }} aria-hidden="true" />
                   {isAr
                     ? "ج. بيانات الموقع الجغرافي (رادار الخريجين)"
                     : isEn
                     ? "c. Geolocation Data (Alumni Radar)"
                     : "c. Data Lokasi Geografis (Fitur Radar Alumni)"}
                 </h3>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#94a3b8" }}>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-secondary, #94a3b8)" }}>
                   {isAr
                     ? "تُجمع إحداثيات الموقع (خط العرض وخط الطول) فقط عندما تفتح ميزة رادار الخريجين وتمنح إذن الموقع، وذلك لإظهار الخريجين القريبين. يمكنك رفض إذن الموقع في جهازك في أي وقت، ولحذف الإحداثيات المحفوظة تواصل مع المشرف أو احذف حسابك."
                     : isEn
@@ -369,15 +408,15 @@ export default function PrivacyClient() {
               {/* Card 2.4: Perangkat & Push Token */}
               <div
                 style={{
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  background: "var(--surface-raised, rgba(255, 255, 255, 0.03))",
+                  border: "1px solid var(--border-subtle, rgba(255, 255, 255, 0.08))",
                   borderRadius: "12px",
                   padding: "1.25rem",
                 }}
               >
                 <h3
                   style={{
-                    color: "#f8fafc",
+                    color: "var(--text-primary, #f8fafc)",
                     fontSize: "1.05rem",
                     margin: "0 0 0.5rem 0",
                     display: "flex",
@@ -385,14 +424,14 @@ export default function PrivacyClient() {
                     gap: "8px",
                   }}
                 >
-                  <i className="fa-solid fa-bell" style={{ color: "#a855f7" }} />
+                  <i className="fa-solid fa-bell" style={{ color: "#7c3aed" }} aria-hidden="true" />
                   {isAr
                     ? "د. رمز الإشعارات ومعلومات الجهاز"
                     : isEn
                     ? "d. Push Notification Tokens & Technical Telemetry"
                     : "d. Token Notifikasi & Informasi Teknis Perangkat"}
                 </h3>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "#94a3b8" }}>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-secondary, #94a3b8)" }}>
                   {isAr
                     ? "رمز جهاز Firebase Cloud Messaging (FCM)، نوع نظام التشغيل (Android / iOS / Web)، ونوع المتصفح لإرسال تنبيهات الأذان، تحديثات الفعاليات، ورسائل المحادثات."
                     : isEn
@@ -408,14 +447,14 @@ export default function PrivacyClient() {
             <h2
               style={{
                 fontSize: "1.25rem",
-                color: "#f3ba2f",
+                color: "var(--gold-main, #f3ba2f)",
                 marginBottom: "0.75rem",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
               }}
             >
-              <i className="fa-solid fa-bullseye" />
+              <i className="fa-solid fa-bullseye" aria-hidden="true" />
               {isAr
                 ? "٣. أغراض معالجة البيانات الشخصية"
                 : isEn
@@ -431,15 +470,15 @@ export default function PrivacyClient() {
               }}
             >
               <li>
-                <strong>Silaturahmi & Direktori:</strong> Menghubungkan sesama alumni
+                <strong>Silaturahmi &amp; Direktori:</strong> Menghubungkan sesama alumni
                 angkatan 43 dan mempermudah komunikasi keluarga besar pondok.
               </li>
               <li>
-                <strong>Otentikasi & Keamanan:</strong> Mencegah akses oleh pihak luar
+                <strong>Otentikasi &amp; Keamanan:</strong> Mencegah akses oleh pihak luar
                 yang tidak berhak serta melindungi privasi internal alumni.
               </li>
               <li>
-                <strong>Sosial & Filantropi (Baitul Maal):</strong> Pencatatan donasi
+                <strong>Sosial &amp; Filantropi (Baitul Maal):</strong> Pencatatan donasi
                 sosial angkatan secara transparan dan akuntabel.
               </li>
               <li>
@@ -447,7 +486,7 @@ export default function PrivacyClient() {
                 sesuai koordinat lokasi berdasarkan kriteria hisab Kementerian Agama RI.
               </li>
               <li>
-                <strong>Pencegahan Spam & Keamanan Sistem:</strong> Melindungi API
+                <strong>Pencegahan Spam &amp; Keamanan Sistem:</strong> Melindungi API
                 dari serangan brute-force, abusive spam, dan eksploitasi data.
               </li>
             </ul>
@@ -458,14 +497,14 @@ export default function PrivacyClient() {
             <h2
               style={{
                 fontSize: "1.25rem",
-                color: "#f3ba2f",
+                color: "var(--gold-main, #f3ba2f)",
                 marginBottom: "0.75rem",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
               }}
             >
-              <i className="fa-solid fa-network-wired" />
+              <i className="fa-solid fa-network-wired" aria-hidden="true" />
               {isAr
                 ? "٤. مقدمو الخدمات السحابية ومشاركة البيانات"
                 : isEn
@@ -529,14 +568,14 @@ export default function PrivacyClient() {
             <h2
               style={{
                 fontSize: "1.25rem",
-                color: "#f3ba2f",
+                color: "var(--gold-main, #f3ba2f)",
                 margin: "0 0 0.75rem 0",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
               }}
             >
-              <i className="fa-solid fa-user-shield" />
+              <i className="fa-solid fa-user-shield" aria-hidden="true" />
               {isAr
                 ? "٥. حقوق المستخدم وحذف الحساب بالكامل"
                 : isEn
@@ -561,28 +600,24 @@ export default function PrivacyClient() {
             >
               <Link
                 href="/delete-account"
+                className="privacy-action-link"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
                   padding: "10px 20px",
-                  borderRadius: "10px",
-                  background: "#ef4444",
+                  background: "#dc2626",
                   color: "#ffffff",
-                  textDecoration: "none",
                   fontWeight: 600,
                   fontSize: "0.9rem",
-                  boxShadow: "0 4px 14px rgba(239, 68, 68, 0.35)",
+                  boxShadow: "0 4px 14px rgba(220, 38, 38, 0.3)",
                 }}
               >
-                <i className="fa-solid fa-trash-can" />
+                <i className="fa-solid fa-trash-can" aria-hidden="true" />
                 {isAr
                   ? "الانتقال إلى صفحة حذف الحساب"
                   : isEn
                   ? "Go to Account Deletion Page"
                   : "Buka Halaman Hapus Akun"}
               </Link>
-              <span style={{ fontSize: "0.85rem", color: "#94a3b8" }}>
+              <span style={{ fontSize: "0.85rem", color: "var(--text-secondary, #94a3b8)" }}>
                 {isAr
                   ? "يتم حذف كافة بيانات الحساب، الصور، وكلمات المرور نهائياً خلال ٧ أيام عمل."
                   : isEn
@@ -597,14 +632,14 @@ export default function PrivacyClient() {
             <h2
               style={{
                 fontSize: "1.25rem",
-                color: "#f3ba2f",
+                color: "var(--gold-main, #f3ba2f)",
                 marginBottom: "0.75rem",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
               }}
             >
-              <i className="fa-solid fa-lock" />
+              <i className="fa-solid fa-lock" aria-hidden="true" />
               {isAr
                 ? "٦. الإجراءات الأمنية والتشفير"
                 : isEn
@@ -637,7 +672,7 @@ export default function PrivacyClient() {
                 tanda tangan kriptografis waktu terbatas dan tahan terhadap timing attacks.
               </li>
               <li>
-                <strong>Rate Limiting & Sanitasi:</strong> Proteksi terhadap brute force,
+                <strong>Rate Limiting &amp; Sanitasi:</strong> Proteksi terhadap brute force,
                 HTML injection (XSS), dan SSRF pada seluruh rute API.
               </li>
             </ul>
@@ -646,7 +681,7 @@ export default function PrivacyClient() {
           {/* Section 7: Narahubung & Kontak DPO */}
           <section
             style={{
-              borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+              borderTop: "1px solid var(--border-subtle, rgba(255, 255, 255, 0.1))",
               paddingTop: "1.75rem",
               marginTop: "2.5rem",
               textAlign: "center",
@@ -655,7 +690,7 @@ export default function PrivacyClient() {
             <h2
               style={{
                 fontSize: "1.15rem",
-                color: "#f3ba2f",
+                color: "var(--gold-main, #f3ba2f)",
                 margin: "0 0 0.5rem 0",
               }}
             >
@@ -668,7 +703,7 @@ export default function PrivacyClient() {
             <p
               style={{
                 fontSize: "0.9rem",
-                color: "#94a3b8",
+                color: "var(--text-secondary, #94a3b8)",
                 maxWidth: "600px",
                 margin: "0 auto 1.25rem auto",
               }}
@@ -686,50 +721,42 @@ export default function PrivacyClient() {
             >
               <a
                 href="mailto:admin@expedientgeneration.com"
+                className="privacy-action-link"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
                   padding: "8px 16px",
-                  borderRadius: "8px",
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#e2e8f0",
-                  textDecoration: "none",
+                  background: "var(--surface-raised, rgba(255, 255, 255, 0.05))",
+                  border: "1px solid var(--border-strong, rgba(255, 255, 255, 0.15))",
+                  color: "var(--text-primary, #e2e8f0)",
                   fontSize: "0.88rem",
                 }}
               >
-                <i className="fa-solid fa-envelope" style={{ color: "#f3ba2f" }} />
+                <i className="fa-solid fa-envelope" style={{ color: "var(--gold-main, #f3ba2f)" }} aria-hidden="true" />
                 admin@expedientgeneration.com
               </a>
               <Link
                 href="/panduan"
+                className="privacy-action-link"
                 style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
                   padding: "8px 16px",
-                  borderRadius: "8px",
-                  background: "rgba(255, 255, 255, 0.05)",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  color: "#e2e8f0",
-                  textDecoration: "none",
+                  background: "var(--surface-raised, rgba(255, 255, 255, 0.05))",
+                  border: "1px solid var(--border-strong, rgba(255, 255, 255, 0.15))",
+                  color: "var(--text-primary, #e2e8f0)",
                   fontSize: "0.88rem",
                 }}
               >
-                <i className="fa-solid fa-book-open" style={{ color: "#f3ba2f" }} />
-                Pusat Bantuan & Panduan
+                <i className="fa-solid fa-book-open" style={{ color: "var(--gold-main, #f3ba2f)" }} aria-hidden="true" />
+                {isAr ? "مركز المساعدة والدليل" : isEn ? "Help & User Guide" : "Pusat Bantuan & Panduan"}
               </Link>
             </div>
             <p
               style={{
                 fontSize: "0.8rem",
-                color: "#64748b",
+                color: "var(--text-secondary, #64748b)",
                 marginTop: "1.5rem",
                 marginBottom: 0,
               }}
             >
-              © {new Date().getFullYear()} Expedient Generation 43 · Pondok Modern
+              &copy; {new Date().getFullYear()} Expedient Generation 43 · Pondok Modern
               Arrisalah Slahung Ponorogo. All rights reserved.
             </p>
           </section>

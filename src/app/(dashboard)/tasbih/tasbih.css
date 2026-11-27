@@ -6,7 +6,7 @@
 .tasbih-page-wrapper {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    min-height: 100dvh;
     padding: max(90px, calc(env(safe-area-inset-top, 20px) + 70px)) 20px 80px 20px;
     color: var(--text-primary);
     box-sizing: border-box;
@@ -14,8 +14,6 @@
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 .tasbih-bg-ambient {
@@ -47,6 +45,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    min-height: 44px;
     padding: 8px 16px;
     background: var(--surface-raised, rgba(255, 255, 255, 0.05));
     border: 1px solid var(--border-subtle, rgba(212, 175, 55, 0.25));
@@ -59,10 +58,12 @@
     transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.btn-tasbih-back:hover {
-    transform: translateX(-3px);
-    border-color: var(--gold-main, #d4af37);
-    background: rgba(212, 175, 55, 0.1);
+@media (hover: hover) and (pointer: fine) {
+    .btn-tasbih-back:hover {
+        transform: translateX(-3px);
+        border-color: var(--gold-main, #d4af37);
+        background: rgba(212, 175, 55, 0.1);
+    }
 }
 
 .tasbih-header-box {
@@ -127,9 +128,11 @@
     transition: all 0.25s ease;
 }
 
-.dzikir-pill:hover {
-    color: var(--text-primary);
-    border-color: rgba(212, 175, 55, 0.3);
+@media (hover: hover) and (pointer: fine) {
+    .dzikir-pill:hover {
+        color: var(--text-primary);
+        border-color: rgba(212, 175, 55, 0.3);
+    }
 }
 
 .dzikir-pill.active {
@@ -143,9 +146,7 @@
    Active Dzikir Showcase Card
    -------------------------------------------------------------------------- */
 .tasbih-recite-card {
-    background: var(--glass-bg, rgba(12, 18, 30, 0.65));
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--glass-bg, rgba(12, 18, 30, 0.94));
     border: 1px solid rgba(212, 175, 55, 0.25);
     border-radius: 20px;
     padding: 22px 24px;
@@ -164,20 +165,26 @@
     color: var(--gold-main, #d4af37);
     direction: rtl;
     line-height: 1.8;
-    filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.3));
+    letter-spacing: 0;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .recite-latin {
     font-style: italic;
-    font-size: clamp(0.8rem, 2vw, 0.95rem);
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
     color: var(--text-secondary);
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .recite-meaning {
-    font-size: clamp(0.78rem, 1.8vw, 0.88rem);
+    font-size: clamp(0.8rem, 1.8vw, 0.88rem);
     color: var(--text-primary);
     opacity: 0.9;
     line-height: 1.5;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 /* --------------------------------------------------------------------------
@@ -196,18 +203,22 @@
     display: flex;
     gap: 6px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .target-pill {
-    padding: 6px 14px;
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 14px;
     border-radius: 20px;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 700;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s ease;
+    font-variant-numeric: tabular-nums;
 }
 
 .target-pill.active {
@@ -222,8 +233,8 @@
 }
 
 .btn-toggle-round {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -231,7 +242,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -272,7 +283,7 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #fff 0%, #ffd700 40%, #8d6e15 100%);
+    background: radial-gradient(circle at 35% 35%, #fff 0%, #d4af37 40%, #8d6e15 100%);
     box-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
     transform: translate(-50%, -50%);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -314,7 +325,7 @@
 }
 
 @keyframes flashGold {
-    0% { border-color: #ffd700; box-shadow: 0 0 28px rgba(212, 175, 55, 0.5); }
+    0% { border-color: #d4af37; box-shadow: 0 0 28px rgba(212, 175, 55, 0.5); }
     100% { border-color: var(--gold-main, #d4af37); }
 }
 
@@ -369,6 +380,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    min-height: 44px;
     padding: 10px 22px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -376,20 +388,22 @@
     color: var(--text-secondary);
     font-size: 0.8rem;
     font-weight: 600;
-    letter-spacing: 1px;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
-.btn-tasbih-action:hover {
-    color: var(--text-primary);
-    border-color: rgba(212, 175, 55, 0.4);
-}
+@media (hover: hover) and (pointer: fine) {
+    .btn-tasbih-action:hover {
+        color: var(--text-primary);
+        border-color: rgba(212, 175, 55, 0.4);
+    }
 
-.btn-tasbih-action.danger:hover {
-    color: #ff5252;
-    border-color: #ff5252;
+    .btn-tasbih-action.danger:hover {
+        color: #ff5252;
+        border-color: #ff5252;
+    }
 }
 
 /* Total Stats Readout */
@@ -633,16 +647,18 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-:root[data-theme="light"] .btn-tasbih-action:hover,
-[data-theme="light"] .btn-tasbih-action:hover {
-    border-color: #7c520a;
-    color: #18181b;
-}
+@media (hover: hover) and (pointer: fine) {
+    :root[data-theme="light"] .btn-tasbih-action:hover,
+    [data-theme="light"] .btn-tasbih-action:hover {
+        border-color: #7c520a;
+        color: #18181b;
+    }
 
-:root[data-theme="light"] .btn-tasbih-action.danger:hover,
-[data-theme="light"] .btn-tasbih-action.danger:hover {
-    border-color: #b91c1c;
-    color: #b91c1c;
+    :root[data-theme="light"] .btn-tasbih-action.danger:hover,
+    [data-theme="light"] .btn-tasbih-action.danger:hover {
+        border-color: #b91c1c;
+        color: #b91c1c;
+    }
 }
 
 :root[data-theme="light"] .tasbih-total-badge,
@@ -652,5 +668,17 @@
     color: #7c520a;
     font-weight: 600;
     box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tasbih-dial-card,
+    .btn-tasbih-back,
+    .btn-tasbih-action,
+    .target-pill,
+    .btn-toggle-round,
+    .dzikir-pill {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 

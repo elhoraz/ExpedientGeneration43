@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatQiblaQuadrant } from "@/lib/prayerTimes";
+import { escapeHtml } from "@/lib/sanitize";
 
 interface QiblaMapProps {
   userLat: number;
@@ -98,13 +99,14 @@ export default function QiblaMap({
       });
 
       // Add user marker
+      const safeUserName = escapeHtml(userName);
       const userMarker = L.marker([userLat, userLng], {
         icon: userIcon,
         title: userName,
         alt: locale === "ar" ? "موقعك الحالي" : locale === "en" ? "Your location" : "Lokasi Anda",
       }).addTo(map);
       userMarker.bindPopup(
-        `<strong>${userName}</strong><br/>${Math.abs(userLat).toFixed(5)}° ${userLat >= 0 ? "N" : "S"}, ${Math.abs(userLng).toFixed(5)}° ${userLng >= 0 ? "E" : "W"}`
+        `<strong>${safeUserName}</strong><br/>${Math.abs(userLat).toFixed(5)}° ${userLat >= 0 ? "N" : "S"}, ${Math.abs(userLng).toFixed(5)}° ${userLng >= 0 ? "E" : "W"}`
       );
 
       // Add Kaaba marker
@@ -145,7 +147,7 @@ export default function QiblaMap({
 
       // 1. Local direction beam (Thick high-contrast ray for local orientation relative to streets/houses)
       L.polyline([[userLat, userLng], [rayEndLat, rayEndLng]], {
-        color: "#ffd700",
+        color: "#d4af37",
         weight: 5,
         opacity: 0.95,
         dashArray: "10, 8",

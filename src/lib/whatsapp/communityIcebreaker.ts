@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCommunityGroupId, sendWhatsAppGroupMessage } from "@/lib/whatsapp";
 import { callGeminiResilient } from "@/lib/sentinel/conversationalAgent";
@@ -352,8 +354,6 @@ export function getAuthenticNostalgiaPhoto(): {
   caption: string;
 } | null {
   try {
-    const fs = require("fs");
-    const path = require("path");
     const assetsDir = path.join(process.cwd(), "public", "assets", "foto_putra");
     if (!fs.existsSync(assetsDir)) return null;
 

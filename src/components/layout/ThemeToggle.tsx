@@ -24,7 +24,8 @@ export default function ThemeToggle() {
   };
 
   return (
-    <button 
+    <button
+      type="button"
       className={`theme-widget hover-trigger ${isSpinning ? "theme-spinning" : ""}`}
       id="btnTheme" 
       title={t.common.theme_toggle} 
@@ -33,7 +34,7 @@ export default function ThemeToggle() {
       suppressHydrationWarning
     >
       <div className="icon-orb">
-        <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
+        <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon" aria-hidden="true"></i>
       </div>
       <span className="widget-text" id="themeText">
         {theme === "dark" ? t.common.theme_dark : t.common.theme_light}

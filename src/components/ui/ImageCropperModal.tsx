@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Cropper from "cropperjs";
 import "cropperjs/dist/cropper.css";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 
 interface ImageCropperModalProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ export default function ImageCropperModal({
   const imageRef = useRef<HTMLImageElement>(null);
   const cropperRef = useRef<Cropper | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  useDialogEscape(isOpen, onCancel);
 
   useEffect(() => {
     if (!isOpen || !imageSrc) {
@@ -112,13 +115,13 @@ export default function ImageCropperModal({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 99999,
-        background: "rgba(0, 0, 0, 0.85)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        background: "rgba(0, 0, 0, 0.92)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -176,19 +179,22 @@ export default function ImageCropperModal({
           <button
             type="button"
             onClick={onCancel}
+            aria-label="Tutup dialog potong foto"
             style={{
               background: "transparent",
               border: "none",
               color: "var(--text-secondary, #aaa)",
               fontSize: "1.2rem",
               cursor: "pointer",
-              padding: "6px",
+              minWidth: "44px",
+              minHeight: "44px",
+              padding: "8px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <i className="fa-solid fa-times"></i>
+            <i className="fa-solid fa-times" aria-hidden="true"></i>
           </button>
         </div>
 
@@ -242,7 +248,8 @@ export default function ImageCropperModal({
               border: "1px solid var(--glass-border, rgba(255,255,255,0.15))",
               color: "var(--text-primary, #fff)",
               borderRadius: "8px",
-              padding: "7px 12px",
+              padding: "8px 14px",
+              minHeight: "44px",
               fontSize: "0.82rem",
               cursor: "pointer",
               display: "flex",
@@ -262,7 +269,8 @@ export default function ImageCropperModal({
               border: "1px solid var(--glass-border, rgba(255,255,255,0.15))",
               color: "var(--text-primary, #fff)",
               borderRadius: "8px",
-              padding: "7px 12px",
+              padding: "8px 14px",
+              minHeight: "44px",
               fontSize: "0.82rem",
               cursor: "pointer",
               display: "flex",
@@ -282,7 +290,8 @@ export default function ImageCropperModal({
               border: "1px solid var(--glass-border, rgba(255,255,255,0.15))",
               color: "var(--text-primary, #fff)",
               borderRadius: "8px",
-              padding: "7px 12px",
+              padding: "8px 14px",
+              minHeight: "44px",
               fontSize: "0.82rem",
               cursor: "pointer",
               display: "flex",
@@ -302,7 +311,8 @@ export default function ImageCropperModal({
               border: "1px solid var(--glass-border, rgba(255,255,255,0.15))",
               color: "var(--text-primary, #fff)",
               borderRadius: "8px",
-              padding: "7px 12px",
+              padding: "8px 14px",
+              minHeight: "44px",
               fontSize: "0.82rem",
               cursor: "pointer",
               display: "flex",
@@ -363,7 +373,7 @@ export default function ImageCropperModal({
               padding: "13px",
               background: "linear-gradient(135deg, #d4af37, #aa8529)",
               border: "none",
-              color: "#000",
+              color: "#0b1410",
               borderRadius: "14px",
               fontSize: "0.88rem",
               fontWeight: 700,

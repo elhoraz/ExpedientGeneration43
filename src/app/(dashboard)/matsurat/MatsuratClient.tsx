@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useConfirm } from "@/components/layout/AegisConfirm";
 import {
   MATSURAT_ITEMS,
   MatsuratItem,
@@ -12,6 +13,7 @@ import "./matsurat.css";
 
 export default function MatsuratClient() {
   const { t, locale } = useLanguage();
+  const { showConfirm } = useConfirm();
   // 1. Inisialisasi waktu otomatis (Pagi: 04.00 - 15.00, Petang: 15.00 - 04.00)
   const [time, setTime] = useState<MatsuratTime>(() => {
     if (typeof window !== "undefined") {
@@ -302,14 +304,16 @@ export default function MatsuratClient() {
     triggerHaptic(30);
   };
 
-  const handleResetAll = () => {
+  const handleResetAll = async () => {
+    const confirmTitle =
+      locale === "ar" ? "إعادة ضبط" : locale === "en" ? "Reset Dhikr" : "Reset Hitungan";
     const confirmMsg =
       locale === "ar"
         ? "هل أنت متأكد من إعادة ضبط جميع أذكار هذه الجلسة؟"
         : locale === "en"
-        ? "Reset all dhikr counts for this session?"
-        : "Reset seluruh hitungan dzikir untuk sesi ini?";
-    if (confirm(confirmMsg)) {
+          ? "Reset all dhikr counts for this session?"
+          : "Reset seluruh hitungan dzikir untuk sesi ini?";
+    if (await showConfirm(confirmTitle, confirmMsg)) {
       saveCounts({});
       setCurrentIndex(0);
       triggerHaptic([50, 50]);
@@ -385,14 +389,14 @@ export default function MatsuratClient() {
                 className={`btn-pill-toggle ${time === "pagi" ? "active" : ""}`}
                 onClick={() => setTime("pagi")}
               >
-                <i className="fa-solid fa-sun" style={{ color: "#f59e0b" }}></i> {t.matsurat.morning}
+                <i className="fa-solid fa-sun" aria-hidden="true" style={{ color: "#f59e0b" }}></i> {t.matsurat.morning}
               </button>
               <button
                 type="button"
                 className={`btn-pill-toggle ${time === "petang" ? "active" : ""}`}
                 onClick={() => setTime("petang")}
               >
-                <i className="fa-solid fa-moon" style={{ color: "#38bdf8" }}></i> {t.matsurat.evening}
+                <i className="fa-solid fa-moon" aria-hidden="true" style={{ color: "#60a5fa" }}></i> {t.matsurat.evening}
               </button>
             </div>
 
@@ -484,24 +488,22 @@ export default function MatsuratClient() {
             ------------------------------------------------------------------ */}
         {viewMode === "focus" && currentItem && (
           <div
-            className={`matsurat-focus-card ${
-              currentItem.category === "rabithah" ? "is-rabithah" : ""
-            }`}
+            className={`matsurat-focus-card ${currentItem.category === "rabithah" ? "is-rabithah" : ""
+              }`}
             style={{ "--arabic-size": currentFontSize } as React.CSSProperties}
           >
             {/* Top Badges */}
             <div className="card-badges-row">
               <div className="badge-doa-category">
                 <i
-                  className={`fa-solid ${
-                    currentItem.category === "ayat"
-                      ? "fa-book-quran"
-                      : currentItem.category === "tasbih"
+                  className={`fa-solid ${currentItem.category === "ayat"
+                    ? "fa-book-quran"
+                    : currentItem.category === "tasbih"
                       ? "fa-gem"
                       : currentItem.category === "rabithah"
-                      ? "fa-heart"
-                      : "fa-hands-praying"
-                  }`}
+                        ? "fa-heart"
+                        : "fa-hands-praying"
+                    }`}
                 ></i>
                 &nbsp;{currentItem.category}
               </div>
@@ -636,9 +638,8 @@ export default function MatsuratClient() {
 
               <button
                 type="button"
-                className={`btn-card-nav ${
-                  isCurrentComplete ? "btn-primary-next" : ""
-                }`}
+                className={`btn-card-nav ${isCurrentComplete ? "btn-primary-next" : ""
+                  }`}
                 onClick={() =>
                   setCurrentIndex((prev) =>
                     Math.min(prev + 1, activeItems.length - 1)
@@ -707,21 +708,23 @@ export default function MatsuratClient() {
                       <button
                         type="button"
                         className="btn-pref-icon"
-                        style={{ width: "30px", height: "30px", fontSize: "0.75rem" }}
+                        style={{ minWidth: "44px", minHeight: "44px", fontSize: "0.85rem" }}
                         onClick={() => speakDzikir(item)}
-                        title="Lafalkan Doa (Audio)"
+                        aria-label={locale === "ar" ? "استمع للدعاء" : locale === "en" ? "Recite prayer audio" : "Lafalkan Doa (Audio)"}
+                        title={locale === "ar" ? "استمع للدعاء" : locale === "en" ? "Recite prayer audio" : "Lafalkan Doa (Audio)"}
                       >
-                        <i className="fa-solid fa-volume-high"></i>
+                        <i className="fa-solid fa-volume-high" aria-hidden="true"></i>
                       </button>
 
                       <button
                         type="button"
                         className="btn-pref-icon"
-                        style={{ width: "30px", height: "30px", fontSize: "0.75rem" }}
+                        style={{ minWidth: "44px", minHeight: "44px", fontSize: "0.85rem" }}
                         onClick={() => handleCopyDoa(item)}
-                        title="Salin Doa"
+                        aria-label={locale === "ar" ? "نسخ الدعاء" : locale === "en" ? "Copy prayer" : "Salin Doa"}
+                        title={locale === "ar" ? "نسخ الدعاء" : locale === "en" ? "Copy prayer" : "Salin Doa"}
                       >
-                        <i className="fa-solid fa-copy"></i>
+                        <i className="fa-solid fa-copy" aria-hidden="true"></i>
                       </button>
                     </div>
                   </div>
@@ -733,7 +736,7 @@ export default function MatsuratClient() {
 
                   <div className="card-virtue-box">
                     <div className="virtue-header">
-                      <i className="fa-solid fa-book-open"></i> {item.source}
+                      <i className="fa-solid fa-book-open" aria-hidden="true"></i> {item.source}
                     </div>
                     <div>{item.fadhilah}</div>
                   </div>
@@ -747,37 +750,47 @@ export default function MatsuratClient() {
         {progressPercent === 100 && (
           <div className="matsurat-complete-banner">
             <i
-              className="fa-solid fa-crown"
-              style={{ fontSize: "2rem", color: "#d4af37" }}
+              className="fa-solid fa-award"
+              aria-hidden="true"
+              style={{ fontSize: "2rem", color: "var(--gold-main, #d4af37)" }}
             ></i>
             <h3
               style={{
                 fontFamily: "'Playfair Display', serif",
                 fontSize: "1.4rem",
-                color: "#10b981",
+                color: "#059669",
                 margin: 0,
               }}
             >
-              Alhamdulillah, Selesai Membaca Al-Ma’tsurat {time.toUpperCase()}
+              {locale === "ar"
+                ? `الحمد لله، أتممت قراءة المأثورات (${time === "pagi" ? "الصباح" : "المساء"})`
+                : locale === "en"
+                  ? `Alhamdulillah, Completed ${time === "pagi" ? "Morning" : "Evening"} Al-Ma'tsurat`
+                  : `Alhamdulillah, Selesai Membaca Al-Ma’tsurat ${time === "pagi" ? "Pagi" : "Petang"}`}
             </h3>
             <p
               style={{
-                fontSize: "0.88rem",
-                color: "#e2e8f0",
+                fontSize: "0.9rem",
+                color: "var(--text-secondary)",
                 maxWidth: "480px",
                 lineHeight: 1.6,
                 margin: 0,
               }}
             >
-              Semoga Allah SWT senantiasa memelihara iman, kesehatan, melapangkan rezeki, dan meneguhkan ukhuwah persaudaraan seluruh alumni Expedient Generation 43.
+              {locale === "ar"
+                ? "نسأل الله أن يحفظ إيماننا وصحتنا ويبارك في أرزاقنا ويثبت أخوّة خريجي الدفعة 43."
+                : locale === "en"
+                  ? "May Allah preserve our faith and health, expand our provision, and strengthen the brotherhood of Expedient Generation 43."
+                  : "Semoga Allah SWT senantiasa memelihara iman, kesehatan, melapangkan rezeki, dan meneguhkan ukhuwah persaudaraan seluruh alumni Expedient Generation 43."}
             </p>
             <button
               type="button"
               className="btn-card-nav btn-primary-next"
               onClick={handleResetAll}
-              style={{ marginTop: "8px" }}
+              style={{ marginTop: "8px", minHeight: "44px" }}
             >
-              <i className="fa-solid fa-rotate-left"></i> Mulai Ulang Dzikir
+              <i className="fa-solid fa-rotate-left" aria-hidden="true"></i>{" "}
+              {locale === "ar" ? "إعادة الذكر" : locale === "en" ? "Restart Dhikr" : "Mulai Ulang Dzikir"}
             </button>
           </div>
         )}

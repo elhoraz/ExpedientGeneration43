@@ -78,39 +78,23 @@ function getZodiak(dateStr: string, locale: string = "id") {
       }
     }
 
-    let key = "pisces";
-    let icon = "♓";
-
-    if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) { key = "aries"; icon = "♈"; }
-    else if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) { key = "taurus"; icon = "♉"; }
-    else if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) { key = "gemini"; icon = "♊"; }
-    else if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) { key = "cancer"; icon = "♋"; }
-    else if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) { key = "leo"; icon = "♌"; }
-    else if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) { key = "virgo"; icon = "♍"; }
-    else if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) { key = "libra"; icon = "♎"; }
-    else if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) { key = "scorpio"; icon = "♏"; }
-    else if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) { key = "sagittarius"; icon = "♐"; }
-    else if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) { key = "capricorn"; icon = "♑"; }
-    else if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) { key = "aquarius"; icon = "♒"; }
-
-    const names: Record<string, { id: string; en: string; ar: string }> = {
-      aries: { id: "Aries", en: "Aries", ar: "برج الحمل" },
-      taurus: { id: "Taurus", en: "Taurus", ar: "برج الثور" },
-      gemini: { id: "Gemini", en: "Gemini", ar: "برج الجوزاء" },
-      cancer: { id: "Cancer", en: "Cancer", ar: "برج السرطان" },
-      leo: { id: "Leo", en: "Leo", ar: "برج الأسد" },
-      virgo: { id: "Virgo", en: "Virgo", ar: "برج العذراء" },
-      libra: { id: "Libra", en: "Libra", ar: "برج الميزان" },
-      scorpio: { id: "Scorpio", en: "Scorpio", ar: "برج العقرب" },
-      sagittarius: { id: "Sagittarius", en: "Sagittarius", ar: "برج القوس" },
-      capricorn: { id: "Capricorn", en: "Capricorn", ar: "برج الجدي" },
-      aquarius: { id: "Aquarius", en: "Aquarius", ar: "برج الدلو" },
-      pisces: { id: "Pisces", en: "Pisces", ar: "برج الحوت" },
-    };
-
-    const trans = names[key] || names.pisces;
-    const nama = locale === "ar" ? trans.ar : locale === "en" ? trans.en : trans.id;
-    return { nama, icon };
+    const milestones: Array<{ id: string; en: string; ar: string; icon: string }> = [
+      { id: "Awal Tahun · Resolusi Baru", en: "New Year Chapter", ar: "بداية العام · عزم جديد", icon: "fa-compass" },
+      { id: "Bulan Ketekunan", en: "Month of Perseverance", ar: "شهر المثابرة", icon: "fa-seedling" },
+      { id: "Semangat Pembaruan", en: "Season of Renewal", ar: "موسم التجديد", icon: "fa-leaf" },
+      { id: "Keteguhan Langkah", en: "Steadfast Stride", ar: "ثبات الخطى", icon: "fa-shoe-prints" },
+      { id: "Mekar Karya", en: "Season of Growth", ar: "نماء وعطاء", icon: "fa-sun" },
+      { id: "Pertengahan Perjalanan", en: "Mid-Year Reflection", ar: "وقفة منتصف العام", icon: "fa-hourglass-half" },
+      { id: "Cahaya Ukhuwah", en: "Light of Brotherhood", ar: "نور الأخوة", icon: "fa-handshake" },
+      { id: "Semangat Kemerdekaan", en: "Spirit of Endeavor", ar: "روح الكفاح", icon: "fa-flag" },
+      { id: "Menuai Hikmah", en: "Harvest of Wisdom", ar: "قطاف الحكمة", icon: "fa-book-open" },
+      { id: "Langkah Mantap", en: "Steady Horizon", ar: "أفق راسخ", icon: "fa-mountain" },
+      { id: "Refleksi Mendalam", en: "Deep Gratitude", ar: "شكر وتأمل", icon: "fa-heart" },
+      { id: "Penutup Penuh Syukur", en: "Year-End Gratitude", ar: "ختام مليء بالشكر", icon: "fa-star" },
+    ];
+    const item = milestones[(Math.max(1, Math.min(12, month)) - 1)] || milestones[0];
+    const nama = locale === "ar" ? item.ar : locale === "en" ? item.en : item.id;
+    return { nama, iconClass: item.icon };
 }
 
 function formatBirthDate(dateStr: string, locale: string = "id") {
@@ -159,7 +143,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
   const zodiak = getZodiak(userProfile.tanggal_lahir, locale);
 
   useEffect(() => {
-    const colors = [p[0], p[1], p[2], '#fff', '#ffd700', '#ff6b6b', '#48dbfb', '#55efc4'];
+    const colors = [p[0], p[1], p[2], '#fff', '#d4af37', '#ff6b6b', '#60a5fa', '#55efc4'];
     const count = deco === 'stars' ? 50 : deco === 'sparkles' ? 35 : 25;
     const newParticles = [];
 
@@ -392,7 +376,7 @@ export default function BirthdayClient({ userProfile, age, seed }: { userProfile
           )}
 
           <div className="bday-zodiak bday-body bday-text bday-anim-el">
-              <span style={{ fontSize: "1.3em" }}>{zodiak.icon}</span> {zodiak.nama}
+              <i className={`fa-solid ${zodiak.iconClass}`} aria-hidden="true"></i> {zodiak.nama}
           </div>
 
           <div className="bday-anim-el">

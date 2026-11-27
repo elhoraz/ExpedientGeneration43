@@ -223,7 +223,7 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
           <tr>
             <td style="padding: 40px 35px 25px; text-align: center;">
               <div style="font-size: 40px; line-height: 1; margin-bottom: 12px;">👑</div>
-              <h1 style="margin: 0 0 6px; font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; letter-spacing: 2px; color: #ffd700; text-transform: uppercase;">
+              <h1 style="margin: 0 0 6px; font-family: Georgia, 'Times New Roman', serif; font-size: 26px; font-weight: 700; letter-spacing: 2px; color: #d4af37; text-transform: uppercase;">
                 Ahlan Wa Sahlan!
               </h1>
               <div style="font-size: 11px; font-weight: 600; letter-spacing: 4px; color: #8fa397; text-transform: uppercase; margin-bottom: 18px;">
@@ -249,7 +249,7 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
               </p>
 
               <!-- Quran Quote Card -->
-              <div style="border-left: 3px solid #d4af37; background: rgba(212, 175, 55, 0.06); padding: 16px 20px; border-radius: 0 10px 10px 0; margin-bottom: 25px;">
+              <div style="border: 1px solid rgba(212, 175, 55, 0.28); border-top: 2px solid #d4af37; background: rgba(212, 175, 55, 0.06); padding: 16px 20px; border-radius: 10px; margin-bottom: 25px;">
                 <p style="margin: 0 0 8px; font-size: 13px; font-style: italic; color: #f1f5f9; line-height: 1.7;">
                   "Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat."
                 </p>
@@ -262,7 +262,7 @@ Silakan masuk menggunakan surel resmi dan kata sandi Anda.
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 30px 0 35px;">
                 <tr>
                   <td align="center">
-                    <a href="https://expedientgeneration.vercel.app/login" style="display: inline-block; padding: 15px 36px; background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%); color: #0b1410; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45);">
+                    <a href="https://expedientgeneration.vercel.app/login" style="display: inline-block; padding: 15px 36px; background: linear-gradient(135deg, #d4af37 0%, #c59b27 100%); color: #0b1410; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);">
                       Buka Portal Utama &rarr;
                     </a>
                   </td>

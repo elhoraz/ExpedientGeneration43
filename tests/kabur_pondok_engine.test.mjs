@@ -162,8 +162,8 @@ describe('Kabur dari Pondok RPG Engine & Onboarding Lobby Test Suite', () => {
     const checkStatus = getKaburGameStatus(TEST_GROUP_ID);
     assert.match(checkStatus, /Tidak ada operasi kabur/);
 
-    // Coba langsung restart seketika: harus kena resting cooldown
-    const restartImmediate = await startKaburGame(TEST_GROUP_ID, SENDER_NAME, SENDER_PHONE);
+    // Coba langsung restart seketika dengan peserta berbeda: harus kena resting cooldown grup (bukan spam throttle pribadi)
+    const restartImmediate = await startKaburGame(TEST_GROUP_ID, 'Santri Kedua', '6281199887766');
     assert.strictEqual(restartImmediate.success, false);
     assert.match(restartImmediate.message, /Santri lagi atur napas/);
   });

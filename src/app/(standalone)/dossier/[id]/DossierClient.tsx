@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -8,410 +8,326 @@ import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function DossierClient({ targetUser, age }: { targetUser: any, age: string | number }) {
-  const { t, locale } = useLanguage();
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const [decryptText, setDecryptText] = useState("INITIALIZING...");
-  const contentRef = useRef<HTMLDivElement>(null);
-  const nameRef = useRef<HTMLDivElement>(null);
+  const { t, locale, dir, isRTL } = useLanguage();
   const router = useRouter();
 
   useEffect(() => {
-    const strings = ["DECRYPTING DATA...", "BYPASSING FIREWALL...", "ACCESS GRANTED."];
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*";
-    
-    let progressValue = 0;
-    let strIndex = 0;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const card = document.getElementById("tilt-card");
+    if (!card || reducedMotion || window.innerWidth <= 768) return;
 
-    const loadInterval = setInterval(() => {
-        progressValue += Math.random() * 15;
-        if(progressValue > 100) progressValue = 100;
-        setProgress(progressValue);
-        
-        if (progressValue > 30 && strIndex === 0) { strIndex++; setDecryptText(strings[strIndex]); }
-        if (progressValue > 70 && strIndex === 1) { strIndex++; setDecryptText(strings[strIndex]); }
-        
-        if (progressValue === 100) {
-            clearInterval(loadInterval);
-            setTimeout(() => {
-                setLoading(false);
-                setTimeout(() => {
-                    if (contentRef.current) {
-                        contentRef.current.classList.add('visible');
-                    }
-                    decryptName();
-                }, 500);
-            }, 400);
-        }
-    }, 80);
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - (rect.left + rect.width / 2);
+      const y = e.clientY - (rect.top + rect.height / 2);
+      const rotateY = (x / rect.width) * 6;
+      const rotateX = -(y / rect.height) * 6;
+      card.style.transform = `perspective(1000px) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+    };
 
-    return () => clearInterval(loadInterval);
+    const handleMouseLeave = () => {
+      card.style.transition = "transform 0.4s ease";
+      card.style.transform = "perspective(1000px) rotateY(0deg) rotateX(0deg)";
+    };
+
+    card.addEventListener("mousemove", handleMouseMove);
+    card.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      card.removeEventListener("mousemove", handleMouseMove);
+      card.removeEventListener("mouseleave", handleMouseLeave);
+    };
   }, []);
 
-  const decryptName = () => {
-    if (!nameRef.current) return;
-    const targetText = nameRef.current.getAttribute('data-value') || "";
-    let iterations = 0;
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*";
-    
-    const interval = setInterval(() => {
-        if (!nameRef.current) {
-            clearInterval(interval);
-            return;
-        }
-        nameRef.current.innerText = targetText.split("").map((letter, index) => {
-            if(index < iterations) return targetText[index];
-            return letters[Math.floor(Math.random() * letters.length)];
-        }).join("");
-        
-        if(iterations >= targetText.length){
-            clearInterval(interval);
-        }
-        iterations += 1 / 3;
-    }, 30);
-  };
-
-  useEffect(() => {
-      // Simple 3D Tilt Effect on mousemove (desktop only)
-      if (!loading) {
-        const card = document.getElementById('tilt-card');
-        if(card && window.innerWidth > 768) {
-            const handleMouseMove = (e: MouseEvent) => {
-                const xAxis = (window.innerWidth / 2 - e.pageX) / 40;
-                const yAxis = (window.innerHeight / 2 - e.pageY) / 40;
-                card.style.transform = `perspective(1000px) rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-            };
-            
-            const handleMouseEnter = () => {
-                card.style.transition = 'none';
-            };
-            
-            const handleMouseLeave = () => {
-                card.style.transition = 'transform 0.5s ease';
-                card.style.transform = `perspective(1000px) rotateY(0deg) rotateX(0deg)`;
-            };
-
-            document.addEventListener('mousemove', handleMouseMove);
-            card.addEventListener('mouseenter', handleMouseEnter);
-            card.addEventListener('mouseleave', handleMouseLeave);
-
-            return () => {
-                document.removeEventListener('mousemove', handleMouseMove);
-                card.removeEventListener('mouseenter', handleMouseEnter);
-                card.removeEventListener('mouseleave', handleMouseLeave);
-            }
-        }
-      }
-  }, [loading]);
-
-  const [avatarSrc, setAvatarSrc] = useState(() => 
-    getAvatarUrl(targetUser.foto_profil, targetUser.nama_panggilan || targetUser.nama_lengkap || 'U')
+  const [avatarSrc, setAvatarSrc] = useState(() =>
+    getAvatarUrl(targetUser.foto_profil, targetUser.nama_panggilan || targetUser.nama_lengkap || "U")
   );
 
+  const displayName = targetUser.nama_lengkap || targetUser.nama_panggilan || "Alumni Arrisalah";
+  const instagramHandle = typeof targetUser.akun_ig === "string" ? targetUser.akun_ig.replace(/^@/, "").trim() : "";
+
   return (
-    <>
+    <main className="dossier-page" dir={dir}>
       <style>{`
-        :root { 
-            --pure-gold: #ffd700; 
-            --dark-gold: #d4af37; 
-            --bg-noir: #060b14; 
-            --glass-bg: rgba(12, 21, 38, 0.7); 
-            --glass-border: rgba(212, 175, 55, 0.3); 
+        .dossier-page {
+          min-height: 100dvh;
+          background: var(--bg-main, #060b14);
+          color: var(--text-primary, #f2efe9);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 28px 16px;
+          font-family: ${isRTL ? "var(--font-amiri, serif), var(--font-sans, sans-serif)" : "var(--font-sans, 'Inter', sans-serif)"};
         }
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            background-color: var(--bg-noir); 
-            color: #fff; 
-            font-family: var(--font-sans, inherit); 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            overflow-x: hidden; 
-            background-image: radial-gradient(circle at 50% 50%, #0c182b 0%, #060b14 100%);
+        .dossier-shell {
+          width: 100%;
+          max-width: 520px;
         }
-
-        #hacker-loader {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-noir);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
+        .dossier-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
         }
-        .loader-text {
-            font-family: 'Space Mono', monospace;
-            color: var(--dark-gold);
-            font-size: 1.2rem;
-            letter-spacing: 5px;
-            margin-bottom: 20px;
-            text-transform: uppercase;
+        .dossier-back-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          min-height: 44px;
+          padding: 8px 14px;
+          border-radius: 10px;
+          background: var(--bg-card, #0f141e);
+          border: 1px solid var(--border-strong, rgba(212, 175, 55, 0.28));
+          color: var(--gold-main, #d4af37);
+          font-size: 0.88rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.2s ease, border-color 0.2s ease;
         }
-        .progress-bar {
-            width: 250px;
-            height: 2px;
-            background: rgba(255,255,255,0.1);
-            position: relative;
-            overflow: hidden;
+        .dossier-back-btn:hover {
+          background: var(--surface-raised, #171e2c);
+          border-color: var(--gold-main, #d4af37);
         }
-        .progress-fill {
-            position: absolute;
-            top: 0; left: 0; height: 100%;
-            background: var(--dark-gold);
-            box-shadow: 0 0 10px var(--dark-gold);
-            transition: width 0.1s linear;
+        .dossier-verified {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 12px;
+          border-radius: 8px;
+          background: rgba(76, 195, 138, 0.12);
+          border: 1px solid rgba(76, 195, 138, 0.3);
+          color: #4cc38a;
+          font-size: 0.78rem;
+          font-weight: 600;
         }
-
-        .mobile-container {
-            width: 100%;
-            max-width: 480px;
-            min-height: 100vh;
-            padding: 30px 20px;
-            position: relative;
-            opacity: 0;
-            transform: scale(0.95);
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-        .mobile-container.visible {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-        .btn-exit {
-            color: var(--dark-gold);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.3s;
-            cursor: pointer;
-            background: none;
-            border: none;
-        }
-        .btn-exit:hover { color: #fff; text-shadow: 0 0 10px var(--dark-gold); }
-
         .dossier-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 40px 30px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 40px rgba(212,175,55,0.05);
-            position: relative;
-            overflow: hidden;
+          background: var(--bg-card, #0f141e);
+          border: 1px solid var(--border-strong, rgba(212, 175, 55, 0.26));
+          border-radius: 20px;
+          padding: 36px 28px 30px;
+          text-align: center;
+          box-shadow: var(--glass-shadow, 0 20px 44px rgba(0, 0, 0, 0.45));
+          transition: transform 0.25s ease;
         }
-        
-        .dossier-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at top right, rgba(212,175,55,0.06), transparent 60%);
-            opacity: 0.7;
-            z-index: 0;
-            pointer-events: none;
+        .dossier-avatar-wrap {
+          width: 128px;
+          height: 128px;
+          margin: 0 auto 20px;
+          border-radius: 50%;
+          padding: 4px;
+          border: 2px solid var(--gold-main, #d4af37);
+          background: var(--surface-raised, #171e2c);
         }
-
-        .avatar-container {
-            width: 140px;
-            height: 140px;
-            margin: 0 auto 25px;
-            position: relative;
-            z-index: 2;
-            border-radius: 50%;
-            padding: 5px;
-            background: linear-gradient(135deg, var(--dark-gold), transparent);
-            animation: pulse-ring 4s infinite alternate;
+        .dossier-avatar {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+          display: block;
         }
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 15px rgba(212,175,55,0.2); }
-            100% { box-shadow: 0 0 30px rgba(212,175,55,0.6); }
+        .dossier-cohort {
+          display: inline-block;
+          color: var(--gold-main, #d4af37);
+          font-size: 0.78rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 8px;
         }
-        
-        .avatar {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--bg-noir);
+        .dossier-name {
+          font-family: ${isRTL ? "inherit" : "var(--font-playfair, 'Playfair Display', serif)"};
+          font-size: clamp(1.65rem, 4.5vw, 2.05rem);
+          color: var(--text-primary, #f2efe9);
+          margin: 0 0 8px 0;
+          line-height: 1.25;
         }
-
-        .title-badge {
-            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent);
-            color: var(--dark-gold);
-            font-family: 'Space Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 4px;
-            padding: 5px 0;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            z-index: 2;
-            position: relative;
+        .dossier-meta-row {
+          display: flex;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 10px 16px;
+          color: var(--text-secondary, #a1a8b5);
+          font-size: 0.85rem;
+          margin-bottom: 22px;
         }
-
-        .name {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            color: #fff;
-            margin-bottom: 5px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-            z-index: 2;
-            position: relative;
+        .dossier-meta-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
         }
-
-        .user-id {
-            color: var(--dark-gold);
-            font-family: 'Space Mono', monospace;
-            margin-bottom: 25px;
-            letter-spacing: 2px;
-            font-size: 0.9rem;
-            z-index: 2;
-            position: relative;
+        .dossier-quote {
+          font-style: italic;
+          color: var(--text-secondary, #a1a8b5);
+          line-height: 1.65;
+          margin: 0 auto 28px;
+          max-width: 42ch;
+          font-size: 0.96rem;
         }
-
-        .motivation {
-            font-style: italic;
-            color: #aaa;
-            line-height: 1.6;
-            margin-bottom: 35px;
-            padding: 0 10px;
-            z-index: 2;
-            position: relative;
-            font-weight: 300;
+        .dossier-actions {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
         }
-        .motivation::before, .motivation::after {
-            content: '"';
-            color: var(--dark-gold);
-            font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
-            line-height: 0;
-            vertical-align: -0.2em;
+        .dossier-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          min-height: 46px;
+          padding: 12px 18px;
+          border-radius: 12px;
+          text-decoration: none;
+          font-size: 0.9rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
         }
-
-        .actions {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            z-index: 2;
-            position: relative;
+        .dossier-btn-primary {
+          background: var(--gold-main, #d4af37);
+          border: 1px solid var(--gold-main, #d4af37);
+          color: #060b14;
+          font-weight: 700;
         }
-
-        .btn-action {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 15px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-family: 'Space Mono', monospace;
-            font-size: 0.85rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+        .dossier-btn-primary:hover {
+          opacity: 0.93;
+          transform: translateY(-1px);
         }
-        
-        .btn-primary {
-            background: rgba(212,175,55,0.1);
-            border: 1px solid var(--dark-gold);
-            color: var(--dark-gold);
+        .dossier-btn-secondary {
+          background: var(--surface-raised, #171e2c);
+          border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.14));
+          color: var(--text-primary, #f2efe9);
         }
-        .btn-primary:hover {
-            background: var(--dark-gold);
-            color: #060b14;
-            box-shadow: 0 0 20px rgba(212,175,55,0.4);
+        .dossier-btn-secondary:hover {
+          border-color: var(--gold-main, #d4af37);
+        }
+        .dossier-btn-disabled {
+          background: var(--surface-inset, #090d16);
+          border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
+          color: var(--text-muted, #8890a0);
+          cursor: not-allowed;
+          opacity: 0.65;
+        }
+        .dossier-back-btn:focus-visible,
+        .dossier-btn:focus-visible {
+          outline: 2px solid var(--focus-ring, #d4af37);
+          outline-offset: 2px;
         }
 
-        .btn-secondary {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #fff;
-        }
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.3);
-        }
+        :root[data-theme="light"] .dossier-page { background: #f6f5f1; color: #18181b; }
+        :root[data-theme="light"] .dossier-back-btn { background: #ffffff; border-color: rgba(124, 82, 10, 0.3); color: #7c520a; }
+        :root[data-theme="light"] .dossier-verified { background: rgba(6, 95, 70, 0.1); border-color: rgba(6, 95, 70, 0.28); color: #065f46; }
+        :root[data-theme="light"] .dossier-card { background: #ffffff; border-color: rgba(24, 24, 27, 0.14); box-shadow: 0 18px 40px rgba(24, 24, 27, 0.08); }
+        :root[data-theme="light"] .dossier-avatar-wrap { border-color: #7c520a; background: #ebe9e1; }
+        :root[data-theme="light"] .dossier-cohort { color: #7c520a; }
+        :root[data-theme="light"] .dossier-name { color: #18181b; }
+        :root[data-theme="light"] .dossier-meta-row,
+        :root[data-theme="light"] .dossier-quote { color: #52525b; }
+        :root[data-theme="light"] .dossier-btn-primary { background: #7c520a; border-color: #7c520a; color: #ffffff; }
+        :root[data-theme="light"] .dossier-btn-secondary { background: #ebe9e1; border-color: rgba(24, 24, 27, 0.14); color: #18181b; }
+        :root[data-theme="light"] .dossier-btn-disabled { background: #f0eee7; color: #676770; border-color: rgba(24, 24, 27, 0.1); }
 
-        @media (min-width: 768px) {
-            .mobile-container { max-width: 600px; }
-            .actions { grid-template-columns: 1fr 1fr; }
-            .btn-action:first-child { grid-column: 1 / -1; }
+        @media (min-width: 560px) {
+          .dossier-actions { grid-template-columns: 1fr 1fr; }
+          .dossier-btn-primary { grid-column: 1 / -1; }
+        }
+        @media (max-width: 480px) {
+          .dossier-card { padding: 28px 20px 24px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .dossier-card, .dossier-btn { transition: none; transform: none !important; }
         }
       `}</style>
-      
-      {loading && (
-          <div id="hacker-loader">
-              <div className="loader-text">{decryptText}</div>
-              <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }}></div></div>
-          </div>
-      )}
 
-      <div className="mobile-container" id="main-content" ref={contentRef} style={{ display: loading ? 'none' : 'block' }}>
-          <div className="header">
-              <button onClick={() => window.history.length > 1 ? router.back() : router.push('/beranda')} className="btn-exit">
-                  <i className="fa-solid fa-arrow-left"></i> {t.common.back.toUpperCase()}
+      <div className="dossier-shell">
+        <div className="dossier-header">
+          <button
+            type="button"
+            onClick={() => (window.history.length > 1 ? router.back() : router.push("/direktori"))}
+            className="dossier-back-btn"
+          >
+            <i className={`fa-solid ${isRTL ? "fa-arrow-right" : "fa-arrow-left"}`} aria-hidden="true"></i>
+            <span>{t.common.back}</span>
+          </button>
+
+          <div className="dossier-verified">
+            <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <span>{locale === "ar" ? "خريج معتمد" : locale === "en" ? "Verified Alumni" : "Alumni Terverifikasi"}</span>
+          </div>
+        </div>
+
+        <div className="dossier-card" id="tilt-card">
+          <div className="dossier-avatar-wrap">
+            <Image
+              src={avatarSrc}
+              width={128}
+              height={128}
+              priority
+              className="dossier-avatar"
+              alt={displayName}
+              onError={() => setAvatarSrc(getAvatarFallback(targetUser.nama_panggilan || targetUser.nama_lengkap))}
+              unoptimized={avatarSrc.startsWith("data:") || avatarSrc.includes("ui-avatars.com") || avatarSrc.includes("supabase.co")}
+            />
+          </div>
+
+          <div className="dossier-cohort">
+            {locale === "ar" ? "الدفعة ٤٣ · معهد الرسالة" : locale === "en" ? "Cohort 43 · Pondok Modern Arrisalah" : "Angkatan 43 · Pondok Modern Arrisalah"}
+          </div>
+
+          <h1 className="dossier-name">{displayName}</h1>
+
+          <div className="dossier-meta-row">
+            {targetUser.nama_panggilan && targetUser.nama_panggilan !== displayName && (
+              <span className="dossier-meta-item">
+                <i className="fa-regular fa-id-badge" aria-hidden="true"></i> {targetUser.nama_panggilan}
+              </span>
+            )}
+            {targetUser.kota_domisili && (
+              <span className="dossier-meta-item">
+                <i className="fa-solid fa-location-dot" aria-hidden="true"></i> {targetUser.kota_domisili}
+              </span>
+            )}
+            {age && age !== "N/A" && (
+              <span className="dossier-meta-item">
+                <i className="fa-regular fa-calendar" aria-hidden="true"></i> {age} {locale === "ar" ? "سنة" : locale === "en" ? "yrs" : "thn"}
+              </span>
+            )}
+          </div>
+
+          <p className="dossier-quote">
+            “{targetUser.motivasi_hidup || (locale === "ar" ? "نسعى للخير ونبني المستقبل معاً." : locale === "en" ? "Growing in faith and friendship together." : "Merangkai kebaikan dan menjaga silaturahmi bersama.")}”
+          </p>
+
+          <div className="dossier-actions">
+            <Link href={`/chat/personal/${targetUser.id}`} className="dossier-btn dossier-btn-primary">
+              <i className="fa-solid fa-comment-dots" aria-hidden="true"></i>
+              <span>{locale === "ar" ? "إرسال رسالة" : locale === "en" ? "Send Message" : "Kirim Pesan"}</span>
+            </Link>
+
+            {instagramHandle ? (
+              <a
+                href={`https://instagram.com/${encodeURIComponent(instagramHandle)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="dossier-btn dossier-btn-secondary"
+              >
+                <i className="fa-brands fa-instagram" aria-hidden="true"></i>
+                <span>Instagram</span>
+              </a>
+            ) : (
+              <button type="button" className="dossier-btn dossier-btn-disabled" disabled>
+                <i className="fa-brands fa-instagram" aria-hidden="true"></i>
+                <span>Instagram</span>
               </button>
-              <div style={{ fontFamily: "'Space Mono'", fontSize: "10px", color: "var(--dark-gold)", letterSpacing: "2px" }}>
-                  ALUMNI TERVERIFIKASI <i className="fa-solid fa-check" style={{ color: "#00c853" }}></i>
-              </div>
-          </div>
-          
-          <div className="dossier-card" id="tilt-card">
-              <div className="avatar-container">
-                  <Image 
-                    src={avatarSrc} 
-                    width={140} 
-                    height={140} 
-                    priority 
-                    className="avatar" 
-                    alt={targetUser.nama_panggilan || targetUser.nama_lengkap || "Avatar"} 
-                    onError={() => setAvatarSrc(getAvatarFallback(targetUser.nama_panggilan || targetUser.nama_lengkap))}
-                    unoptimized={avatarSrc.startsWith("data:") || avatarSrc.includes("ui-avatars.com") || avatarSrc.includes("supabase.co")}
-                  />
-              </div>
+            )}
 
-              <div className="title-badge">ALUMNI EXPEDIENT 43</div>
-              
-              <div className="name" id="hacker-name" ref={nameRef} data-value={targetUser.nama_lengkap || targetUser.nama_panggilan}>
-                  {targetUser.nama_lengkap || targetUser.nama_panggilan}
-              </div>
-              
-              <div className="user-id">EXP-{String(targetUser.id).padStart(3, '0').split('-')[0]}</div>
-              
-              <p className="motivation">
-                  {targetUser.motivasi_hidup || 'Merangkai baris kebaikan, membangun masa depan bersama.'}
-              </p>
-
-              <div className="actions">
-                  <Link href={`/chat/personal/${targetUser.id}`} className="btn-action btn-primary">
-                      <i className="fa-solid fa-comment-dots"></i> {locale === "ar" ? "إرسال رسالة" : locale === "en" ? "SEND MESSAGE" : "KIRIM PESAN"}
-                  </Link>
-                  <a href={targetUser.akun_ig ? `https://instagram.com/${targetUser.akun_ig}` : '#'} target="_blank" className="btn-action btn-secondary" style={!targetUser.akun_ig ? { opacity: 0.5, cursor: 'not-allowed', pointerEvents: 'none' } : {}}>
-                      <i className="fa-brands fa-instagram"></i> INSTAGRAM
-                  </a>
-                  <a href={`/api/vcard/${targetUser.public_token || targetUser.id}`} className="btn-action btn-secondary">
-                      <i className="fa-solid fa-address-card"></i> {locale === "ar" ? "حفظ جهة الاتصال" : locale === "en" ? "SAVE CONTACT" : "SIMPAN KONTAK"}
-                  </a>
-              </div>
+            <a href={`/api/vcard/${targetUser.public_token || targetUser.id}`} className="dossier-btn dossier-btn-secondary">
+              <i className="fa-solid fa-address-card" aria-hidden="true"></i>
+              <span>{locale === "ar" ? "حفظ جهة الاتصال" : locale === "en" ? "Save Contact" : "Simpan Kontak"}</span>
+            </a>
           </div>
+        </div>
       </div>
-    </>
+    </main>
   );
 }

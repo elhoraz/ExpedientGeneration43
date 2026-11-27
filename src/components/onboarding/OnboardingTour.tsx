@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import "./onboarding.css";
 
 type TourStep = {
@@ -284,7 +285,7 @@ export default function OnboardingTour({
   isActive: boolean;
   onComplete: () => void;
 }) {
-  const { locale } = useLanguage();
+  const { locale, isRTL } = useLanguage();
   const tourSteps = useMemo(() => getTourSteps(locale), [locale]);
   const [currentStep, setCurrentStep] = useState(0);
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
@@ -312,16 +313,16 @@ export default function OnboardingTour({
       ensureSidebarOpen();
     }
 
-    // Small delay to let sidebar animation complete
     const delay = step.requireSidebar ? 350 : 50;
     setTimeout(() => {
       const el = document.querySelector(step.selector) as HTMLElement;
       if (!el) {
-        // If element not found, skip step
         if (currentStep < tourSteps.length - 1) {
           setCurrentStep((prev) => prev + 1);
         } else {
-          handleFinish();
+          setIsVisible(false);
+          localStorage.setItem(STORAGE_KEY, "true");
+          onComplete();
         }
         return;
       }
@@ -337,7 +338,6 @@ export default function OnboardingTour({
         )
       );
 
-      // Calculate tooltip position
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const isMobile = vw < 768;
@@ -347,19 +347,25 @@ export default function OnboardingTour({
       let left = 0;
       let arrow: "left" | "right" | "top" | "bottom" = "left";
 
+      // Flip preferred horizontal side automatically in RTL unless mobile/vertical
+      const preferredPosition =
+        isRTL && step.position === "right"
+          ? "left"
+          : isRTL && step.position === "left"
+          ? "right"
+          : step.position;
+
       if (isMobile) {
         left = Math.max(12, (vw - tooltipWidth) / 2);
-        // If spotlight is in lower half of viewport (e.g. sidebar), place tooltip above it
         if (rect.top > vh / 2) {
           top = Math.max(20, rect.top - tooltipHeight - 16);
           arrow = "bottom";
         } else {
-          // If spotlight is in upper half (e.g. widgets), place tooltip below it
           top = Math.min(vh - tooltipHeight - 20, rect.bottom + 16);
           arrow = "top";
         }
       } else {
-        switch (step.position) {
+        switch (preferredPosition) {
           case "right":
             top = rect.top - 10;
             left = rect.right + 20;
@@ -390,7 +396,6 @@ export default function OnboardingTour({
             break;
         }
 
-        // Clamp within viewport
         top = Math.max(20, Math.min(top, vh - tooltipHeight - 20));
         left = Math.max(20, Math.min(left, vw - tooltipWidth - 20));
       }
@@ -399,7 +404,7 @@ export default function OnboardingTour({
       setArrowDir(arrow);
       setIsVisible(true);
     }, delay);
-  }, [step, currentStep, ensureSidebarOpen]);
+  }, [step, currentStep, ensureSidebarOpen, isRTL, onComplete, tourSteps.length]);
 
   useEffect(() => {
     if (isActive) {
@@ -407,7 +412,6 @@ export default function OnboardingTour({
     }
   }, [isActive, currentStep, positionElements]);
 
-  // Handle window resize
   useEffect(() => {
     if (!isActive) return;
 
@@ -415,6 +419,14 @@ export default function OnboardingTour({
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [isActive, positionElements]);
+
+  const handleFinish = useCallback(() => {
+    setIsVisible(false);
+    localStorage.setItem(STORAGE_KEY, "true");
+    onComplete();
+  }, [onComplete]);
+
+  useDialogEscape(isActive && Boolean(spotlightRect), handleFinish);
 
   const handleNext = () => {
     setIsVisible(false);
@@ -432,12 +444,6 @@ export default function OnboardingTour({
     }
   };
 
-  const handleFinish = () => {
-    setIsVisible(false);
-    localStorage.setItem(STORAGE_KEY, "true");
-    onComplete();
-  };
-
   if (!isActive || !spotlightRect) return null;
 
   const isLast = currentStep === tourSteps.length - 1;
@@ -447,6 +453,7 @@ export default function OnboardingTour({
       {/* Spotlight cutout */}
       <div
         className="onboarding-spotlight"
+        aria-hidden="true"
         style={{
           top: spotlightRect.top,
           left: spotlightRect.left,
@@ -458,6 +465,10 @@ export default function OnboardingTour({
       {/* Tooltip */}
       <div
         ref={tooltipRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="onboarding-tour-title"
+        dir={isRTL ? "rtl" : "ltr"}
         className={`onboarding-tooltip arrow-${arrowDir}`}
         style={{
           top: tooltipPos.top,
@@ -473,38 +484,43 @@ export default function OnboardingTour({
             : `Langkah ${currentStep + 1} dari ${tourSteps.length}`}
         </span>
 
-        <div className="onboarding-tooltip-icon">
+        <div className="onboarding-tooltip-icon" aria-hidden="true">
           <i className={step.icon}></i>
         </div>
 
-        <h3 className="onboarding-tooltip-title">{step.title}</h3>
+        <h3 id="onboarding-tour-title" className="onboarding-tooltip-title">{step.title}</h3>
         <p className="onboarding-tooltip-desc">{step.description}</p>
 
         <div className="onboarding-tooltip-footer">
           {currentStep > 0 ? (
-            <button className="onboarding-btn onboarding-btn-prev" onClick={handlePrev}>
-              <i className="fa-solid fa-arrow-left"></i>
+            <button
+              type="button"
+              className="onboarding-btn onboarding-btn-prev"
+              onClick={handlePrev}
+              aria-label={locale === "ar" ? "الخطوة السابقة" : locale === "en" ? "Previous step" : "Langkah sebelumnya"}
+            >
+              <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>
             </button>
           ) : (
-            <button className="onboarding-btn onboarding-btn-skip" onClick={handleFinish}>
+            <button type="button" className="onboarding-btn onboarding-btn-skip" onClick={handleFinish}>
               {locale === "ar" ? "تخطي" : locale === "en" ? "Skip" : "Lewati"}
             </button>
           )}
 
-          <div className="onboarding-dots">
+          <div className="onboarding-dots" aria-hidden="true">
             {tourSteps.map((_, i) => (
               <div key={i} className={`onboarding-dot ${i === currentStep ? "active" : ""}`} />
             ))}
           </div>
 
-          <button className="onboarding-btn onboarding-btn-next" onClick={handleNext}>
+          <button type="button" className="onboarding-btn onboarding-btn-next" onClick={handleNext}>
             {isLast ? (
               <>
-                {locale === "ar" ? "إنهاء" : locale === "en" ? "Finish" : "Selesai"} <i className="fa-solid fa-check"></i>
+                {locale === "ar" ? "إنهاء" : locale === "en" ? "Finish" : "Selesai"} <i className="fa-solid fa-check" aria-hidden="true"></i>
               </>
             ) : (
               <>
-                {locale === "ar" ? "التالي" : locale === "en" ? "Next" : "Lanjut"} <i className="fa-solid fa-arrow-right"></i>
+                {locale === "ar" ? "التالي" : locale === "en" ? "Next" : "Lanjut"} <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
               </>
             )}
           </button>

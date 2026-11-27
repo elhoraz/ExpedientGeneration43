@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
 import { AuthCardSkeleton } from "@/components/ui/Skeleton";
 import "./login.css";
@@ -22,7 +23,9 @@ function LoginContent() {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { t } = useCms();
-  const { t: tLang } = useLanguage();
+  const { t: tLang, locale } = useLanguage();
+
+  useDialogEscape(isModalOpen, () => setIsModalOpen(false));
   
   const searchParams = useSearchParams();
   const errorMsg = searchParams.get("error");
@@ -218,28 +221,34 @@ function LoginContent() {
       </div>
 
       {toastData && (
-        <div id="toastAlert" className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div className="toast-icon"><i className={`fa-solid ${toastData.isError ? 'fa-shield-virus' : 'fa-check-double'}`}></i></div>
-          <div style={{ transform: "translateZ(10px)", flex: 1 }}>
+        <div
+          id="toastAlert"
+          role={toastData.isError ? "alert" : "status"}
+          aria-live="polite"
+          className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}
+          style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+        >
+          <div className="toast-icon" aria-hidden="true"><i className={`fa-solid ${toastData.isError ? 'fa-shield-virus' : 'fa-check-double'}`}></i></div>
+          <div style={{ flex: 1 }}>
             <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem" }}>{toastData.title}</strong><br/>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{toastData.message}</span>
+            <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>{toastData.message}</span>
           </div>
           <button
             type="button"
             onClick={() => setToastData(null)}
-            style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', fontSize: '1rem', lineHeight: 1 }}
+            style={{ minWidth: 44, minHeight: 44, background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 8px', fontSize: '1rem', lineHeight: 1 }}
             title={tLang.login_extra.toast_close_notification}
             aria-label={tLang.login_extra.toast_close_notification}
           >
-            <i className="fa-solid fa-xmark"></i>
+            <i className="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         </div>
       )}
 
       <div className="login-top-bar">
         <LanguageSwitcher variant="pill" />
-        <button className="toggle-widget" id="btnTheme" title={tLang.common.theme_toggle} onClick={toggleTheme}>
-          <div className="icon-orb">
+        <button type="button" className="toggle-widget" id="btnTheme" title={tLang.common.theme_toggle} onClick={toggleTheme}>
+          <div className="icon-orb" aria-hidden="true">
             <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
           </div>
           <span className="widget-text" id="themeText">
@@ -248,11 +257,11 @@ function LoginContent() {
         </button>
       </div>
 
-      <button className="toggle-widget install-app-btn" onClick={() => setIsModalOpen(true)} title={tLang.login.install_app}>
-        <div className="icon-orb" style={{ color: "#d4af37", background: "rgba(212,175,55,0.1)" }}>
+      <button type="button" className="toggle-widget install-app-btn" onClick={() => setIsModalOpen(true)} title={tLang.login.install_app}>
+        <div className="icon-orb" aria-hidden="true">
           <i className="fa-solid fa-download"></i>
         </div>
-        <span className="widget-text" style={{ color: "#d4af37" }}>
+        <span className="widget-text">
           {tLang.login.install_app}
         </span>
       </button>
@@ -266,11 +275,11 @@ function LoginContent() {
         <div className="auth-prism" ref={prismRef}>
           <div className="prism-header">
             <div className={`logo-container ${logoState}`} id="logoContainer">
-              <img src="/images/kristal-puncak.webp" className="logo-part part-1" alt="Part" />
-              <img src="/images/tanduk-perak.webp" className="logo-part part-2" alt="Part" />
-              <img src="/images/zamrud-hijau.webp" className="logo-part part-3" alt="Part" />
-              <img src="/images/cincin-emas.webp" className="logo-part part-4" alt="Part" />
-              <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="Part" />
+              <img src="/images/kristal-puncak.webp" className="logo-part part-1" alt="" aria-hidden="true" />
+              <img src="/images/tanduk-perak.webp" className="logo-part part-2" alt="" aria-hidden="true" />
+              <img src="/images/zamrud-hijau.webp" className="logo-part part-3" alt="" aria-hidden="true" />
+              <img src="/images/cincin-emas.webp" className="logo-part part-4" alt="" aria-hidden="true" />
+              <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="" aria-hidden="true" />
               <img src={t('login_hero_image', '/images/logo-utuh.webp')} className="logo-utuh" alt="Expedient Logo" />
             </div>
             <div className="subtitle-spec">{tLang.hero.title}</div>
@@ -305,19 +314,24 @@ function LoginContent() {
               />
               <label htmlFor="inputPw" className="input-label">{tLang.login.pass_label}</label>
               <div className="input-neon-line"></div>
-              <i
-                className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`}
+              <button
+                type="button"
+                className="icon-eye-btn"
                 onClick={() => setShowPassword(!showPassword)}
-              ></i>
+                aria-label={showPassword ? tLang.login.pass_label : tLang.login.pass_label}
+                aria-pressed={showPassword}
+              >
+                <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true"></i>
+              </button>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-10px", marginBottom: "15px", transform: "translateZ(25px)" }}>
-              <label style={{ color: "var(--text-muted)", fontSize: "clamp(0.7rem,1.3vh,0.8rem)", display: "flex", alignItems: "center", gap: "5px", cursor: "pointer" }}>
-                <input type="checkbox" name="remember" style={{ accentColor: "#d4af37", cursor: "pointer" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "-10px", marginBottom: "15px" }}>
+              <label style={{ color: "var(--text-muted)", fontSize: "clamp(0.75rem,1.4vh,0.82rem)", display: "flex", alignItems: "center", gap: "8px", minHeight: 44, cursor: "pointer" }}>
+                <input type="checkbox" name="remember" style={{ accentColor: "#d4af37", cursor: "pointer", width: 18, height: 18 }} />
                 {tLang.login.remember_me}
               </label>
-              <Link href="/forgot-password" style={{ color: "var(--text-muted)", fontSize: "clamp(0.7rem,1.3vh,0.8rem)", textDecoration: "none", transition: "0.3s", borderBottom: "1px solid transparent" }}>
-                <i className="fa-solid fa-key" style={{ fontSize: "0.65rem", marginRight: "4px" }}></i>{tLang.login.forgot_pass}
+              <Link href="/forgot-password" className="login-forgot-link" style={{ fontSize: "clamp(0.75rem,1.4vh,0.82rem)", textDecoration: "none", minHeight: 44, display: "inline-flex", alignItems: "center" }}>
+                <i className="fa-solid fa-key" style={{ fontSize: "0.75rem", marginInlineEnd: "4px" }} aria-hidden="true"></i>{tLang.login.forgot_pass}
               </Link>
             </div>
 
@@ -326,11 +340,11 @@ function LoginContent() {
                 <button type="submit" className="btn-prime magnetic-btn" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <>
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.login.btn_submitting}
+                      <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> {tLang.login.btn_submitting}
                     </>
                   ) : (
                     <>
-                      {tLang.login.btn_submit} <i className="fa-solid fa-arrow-right-long"></i>
+                      {tLang.login.btn_submit} <i className={`fa-solid ${locale === "ar" ? "fa-arrow-left-long" : "fa-arrow-right-long"}`} aria-hidden="true"></i>
                     </>
                   )}
                 </button>
@@ -349,11 +363,11 @@ function LoginContent() {
                 >
                   {isBioLoading ? (
                     <>
-                      <i className="fa-solid fa-circle-notch fa-spin"></i> {tLang.common.loading}
+                      <i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> {tLang.common.loading}
                     </>
                   ) : (
                     <>
-                      <i className="fa-solid fa-fingerprint" style={{ fontSize: "1.1rem" }}></i> {tLang.login.btn_bio}
+                      <i className="fa-solid fa-fingerprint" style={{ fontSize: "1.1rem" }} aria-hidden="true"></i> {tLang.login.btn_bio}
                     </>
                   )}
                 </button>
@@ -366,30 +380,37 @@ function LoginContent() {
           </div>
 
           <div className="register-link return-link" style={{ marginTop: "10px", paddingTop: "15px", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
-            <Link href="/"><i className="fa-solid fa-arrow-left"></i> {tLang.login.back_home}</Link>
-            <Link href="/download" style={{ color: "#f3ba2f", fontWeight: 600 }}><i className="fa-brands fa-android"></i> {tLang.hero.cta_download}</Link>
+            <Link href="/"><i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} aria-hidden="true"></i> {tLang.login.back_home}</Link>
+            <Link href="/download" className="login-download-link" style={{ fontWeight: 600 }}><i className="fa-brands fa-android" aria-hidden="true"></i> {tLang.hero.cta_download}</Link>
           </div>
         </div>
       </div>
 
-      <div className={`install-modal ${isModalOpen ? "active" : ""}`} id="installModal">
-        <div className="install-content">
-          <h2 className="install-title">{tLang.login.install_modal_title}</h2>
+      <div
+        className={`install-modal ${isModalOpen ? "active" : ""}`}
+        id="installModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="loginInstallModalTitle"
+        onClick={() => setIsModalOpen(false)}
+      >
+        <div className="install-content" onClick={(e) => e.stopPropagation()}>
+          <h2 id="loginInstallModalTitle" className="install-title">{tLang.login.install_modal_title}</h2>
           <div className="install-step">
-            <div className="step-icon"><i className="fa-brands fa-android"></i></div>
+            <div className="step-icon"><i className="fa-brands fa-android" aria-hidden="true"></i></div>
             <div className="step-text">
               <h4>{tLang.login.install_android_step}</h4>
               <p>{tLang.login.install_android_desc}</p>
             </div>
           </div>
           <div className="install-step">
-            <div className="step-icon"><i className="fa-brands fa-apple"></i></div>
+            <div className="step-icon"><i className="fa-brands fa-apple" aria-hidden="true"></i></div>
             <div className="step-text">
               <h4>{tLang.login.install_ios_step}</h4>
               <p>{tLang.login.install_ios_desc}</p>
             </div>
           </div>
-          <button type="button" className="btn-prime magnetic-btn" style={{ marginTop: "20px", width: "100%", borderRadius: "10px", fontSize: "0.8rem" }} onClick={() => setIsModalOpen(false)}>{tLang.login.install_got_it}</button>
+          <button type="button" className="btn-prime magnetic-btn" style={{ marginTop: "20px", width: "100%", borderRadius: "10px", fontSize: "0.84rem" }} onClick={() => setIsModalOpen(false)}>{tLang.login.install_got_it}</button>
         </div>
       </div>
     </div>
@@ -398,7 +419,7 @@ function LoginContent() {
 
 export default function LoginClient() {
   return (
-    <Suspense fallback={<div className="login-page" style={{ width: "100%", minHeight: "100vh" }}><AuthCardSkeleton /></div>}>
+    <Suspense fallback={<div className="login-page" style={{ width: "100%", minHeight: "100dvh" }}><AuthCardSkeleton /></div>}>
       <LoginContent />
     </Suspense>
   );

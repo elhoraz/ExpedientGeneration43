@@ -23,7 +23,7 @@ export default function AnimatedStatsRibbon({
   const [hasAnimated, setHasAnimated] = useState(false);
 
   // Targets
-  const targetAlumni = totalAlumni || 240;
+  const targetAlumni = totalAlumni > 0 ? totalAlumni : 0;
   const targetYear = parseInt(gradYear, 10) || 2025;
   const targetGen = 43;
   const targetStudy = 6;
@@ -89,7 +89,7 @@ export default function AnimatedStatsRibbon({
     >
       <div className="tuku-stat-item">
         <span className="tuku-stat-num" id="counterAlumni">
-          {dispAlumni}
+          {targetAlumni > 0 ? dispAlumni : "—"}
         </span>
         <span className="tuku-stat-lbl">{alumniLabel}</span>
       </div>

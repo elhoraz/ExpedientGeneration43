@@ -4,59 +4,64 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. FLOATING HELP BUTTON TRIGGER
+   1. FLOATING HELP PILL & BUTTON TRIGGER
    -------------------------------------------------------------------------- */
-.floating-help-btn {
+.floating-help-pill {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  inset-inline-end: 24px;
   z-index: 9998;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--glass-bg, rgba(12, 17, 27, 0.92));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  gap: 6px;
+  background: var(--bg-card, #0f141e);
   border: 1px solid var(--border-strong, rgba(242, 239, 233, 0.19));
-  border-radius: 999px;
-  padding: 5px 12px 5px 5px;
+  border-radius: 14px;
+  padding: 4px;
   color: var(--gold-main, #d4af37);
   font-family: var(--font-sans, inherit);
-  cursor: pointer;
   box-shadow: var(--glass-shadow, 0 10px 28px rgba(0, 0, 0, 0.4));
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+}
+
+.floating-help-pill.is-hidden,
+body.sidebar-closed .floating-help-pill {
+  opacity: 0 !important;
+  transform: translateY(25px) scale(0.92) !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+.floating-help-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  padding: 4px 10px 4px 4px;
+  color: var(--gold-main, #d4af37);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
-.floating-help-btn:hover {
-  transform: translateY(-2px);
-  border-color: var(--gold-main, #d4af37);
-}
-
-.floating-help-btn:focus-visible {
+.floating-help-btn:focus-visible,
+.help-btn-lang:focus-visible {
   outline: 2px solid var(--focus-ring, #e5c158);
   outline-offset: 2px;
 }
 
 .floating-help-btn:active {
-  transform: translateY(0) scale(0.98);
-}
-
-/* Sembunyikan tombol bantuan saat navbar / panel disembunyikan (Desktop & Mobile) */
-body.sidebar-closed .floating-help-btn {
-  opacity: 0 !important;
-  transform: translateY(25px) scale(0.92) !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-              visibility 0.3s !important;
+  transform: scale(0.98);
 }
 
 .help-btn-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   background: rgba(212, 175, 55, 0.14);
   border: 1px solid var(--gold-border, rgba(212, 175, 55, 0.35));
   display: flex;
@@ -68,47 +73,55 @@ body.sidebar-closed .floating-help-btn {
 }
 
 .help-btn-label {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
   color: var(--text-primary, #f2efe9);
   transition: color 0.2s ease;
 }
 
-.floating-help-btn:hover .help-btn-label {
-  color: var(--gold-main, #d4af37);
-}
-
 .help-btn-divider {
   width: 1px;
-  height: 16px;
+  height: 20px;
   background: var(--glass-border);
-  margin: 0 4px;
 }
 
 .help-btn-lang {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 3px;
-  padding: 3px 8px;
-  border-radius: 999px;
+  min-height: 44px;
+  min-width: 56px;
+  padding: 6px 10px;
+  border-radius: 10px;
   background: rgba(212, 175, 55, 0.12);
   border: 1px solid var(--gold-border);
   color: var(--gold-main, #d4af37);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.help-btn-lang:hover {
-  background: rgba(212, 175, 55, 0.24);
-  border-color: var(--gold-main, #d4af37);
+@media (hover: hover) and (pointer: fine) {
+  .floating-help-pill:hover {
+    transform: translateY(-2px);
+    border-color: var(--gold-main, #d4af37);
+  }
+
+  .floating-help-btn:hover .help-btn-label {
+    color: var(--gold-main, #d4af37);
+  }
+
+  .help-btn-lang:hover {
+    background: rgba(212, 175, 55, 0.24);
+    border-color: var(--gold-main, #d4af37);
+  }
 }
 
 /* Light Mode Styles for Floating Help */
-:root[data-theme="light"] .floating-help-btn {
-  background: var(--glass-bg, rgba(255, 255, 255, 0.94));
+:root[data-theme="light"] .floating-help-pill {
+  background: #ffffff;
   border-color: var(--border-strong, rgba(24, 24, 27, 0.2));
   color: var(--gold-main, #7c520a);
   box-shadow: var(--glass-shadow);
@@ -137,9 +150,7 @@ body.sidebar-closed .floating-help-btn {
   position: fixed;
   inset: 0;
   z-index: 100000;
-  background: rgba(2, 5, 3, 0.78);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--surface-scrim, rgba(6, 11, 20, 0.76));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -201,8 +212,8 @@ body.sidebar-closed .floating-help-btn {
   width: 48px;
   height: 48px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2), rgba(212, 175, 55, 0.05));
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: var(--surface-raised, #171e2c);
+  border: 1px solid var(--gold-border, rgba(212, 175, 55, 0.35));
   color: var(--gold-main, #d4af37);
   display: flex;
   align-items: center;
@@ -224,35 +235,45 @@ body.sidebar-closed .floating-help-btn {
 }
 
 .guide-modal-category {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--gold-main, #d4af37);
 }
 
 .guide-modal-badge {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(76, 195, 138, 0.14);
   border: 1px solid rgba(76, 195, 138, 0.32);
   color: var(--emerald-gem, #4cc38a);
-  letter-spacing: 0.03em;
+}
+
+[dir="rtl"] .guide-modal-category,
+[dir="rtl"] .guide-modal-badge,
+[dir="rtl"] .guide-section-heading {
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .guide-modal-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair, 'Playfair Display', serif);
   font-size: 1.25rem;
   color: var(--text-primary, #ffffff);
   margin: 0;
   line-height: 1.2;
 }
 
+[dir="rtl"] .guide-modal-title {
+  font-family: inherit;
+}
+
 .guide-modal-subtitle {
-  font-size: 0.78rem;
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  font-size: 0.8rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.65));
   margin: 2px 0 0;
   white-space: nowrap;
   overflow: hidden;
@@ -260,25 +281,27 @@ body.sidebar-closed .floating-help-btn {
 }
 
 .guide-modal-close {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  background: var(--surface-raised, rgba(255, 255, 255, 0.05));
+  color: var(--text-secondary, rgba(255, 255, 255, 0.78));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.05rem;
   cursor: pointer;
-  transition: 0.2s;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
 }
 
-.guide-modal-close:hover {
-  background: rgba(255, 71, 87, 0.15);
-  border-color: #ff4757;
-  color: #ff4757;
+@media (hover: hover) and (pointer: fine) {
+  .guide-modal-close:hover {
+    background: rgba(248, 113, 113, 0.15);
+    border-color: var(--ruby-gem, #f87171);
+    color: var(--ruby-gem, #f87171);
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -288,7 +311,7 @@ body.sidebar-closed .floating-help-btn {
   display: flex;
   gap: 6px;
   padding: 10px 24px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--surface-inset, rgba(0, 0, 0, 0.2));
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
   overflow-x: auto;
   scrollbar-width: none;
@@ -303,26 +326,29 @@ body.sidebar-closed .floating-help-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
-  border-radius: 20px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 12px;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-secondary, rgba(255, 255, 255, 0.65));
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: 0.25s;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.guide-tab-btn:hover {
-  color: var(--text-primary, #ffffff);
-  background: rgba(255, 255, 255, 0.06);
+@media (hover: hover) and (pointer: fine) {
+  .guide-tab-btn:hover {
+    color: var(--text-primary, #ffffff);
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
 
 .guide-tab-btn.active {
   background: rgba(212, 175, 55, 0.16);
-  border-color: rgba(212, 175, 55, 0.4);
+  border-color: var(--gold-border, rgba(212, 175, 55, 0.4));
   color: var(--gold-main, #d4af37);
 }
 
@@ -342,7 +368,7 @@ body.sidebar-closed .floating-help-btn {
   gap: 8px;
   font-size: 0.88rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
   color: var(--gold-main, #d4af37);
   margin: 0 0 14px 0;
   text-transform: uppercase;
@@ -360,19 +386,19 @@ body.sidebar-closed .floating-help-btn {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--surface-inset, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .route-label {
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  color: var(--text-secondary, rgba(255, 255, 255, 0.65));
 }
 
 .route-code {
   color: var(--gold-main, #d4af37);
-  font-family: monospace;
+  font-family: inherit;
   font-weight: 600;
 }
 
@@ -391,8 +417,8 @@ body.sidebar-closed .floating-help-btn {
   align-items: flex-start;
   gap: 12px;
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface-inset, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
   border-radius: 14px;
   line-height: 1.5;
 }
@@ -402,7 +428,7 @@ body.sidebar-closed .floating-help-btn {
   height: 26px;
   border-radius: 50%;
   background: rgba(212, 175, 55, 0.18);
-  border: 1px solid rgba(212, 175, 55, 0.35);
+  border: 1px solid var(--gold-border, rgba(212, 175, 55, 0.35));
   color: var(--gold-main, #d4af37);
   font-size: 0.78rem;
   font-weight: 700;
@@ -431,15 +457,17 @@ body.sidebar-closed .floating-help-btn {
   align-items: flex-start;
   gap: 14px;
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--surface-inset, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
   border-radius: 14px;
-  transition: 0.2s;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.guide-control-item:hover {
-  background: rgba(212, 175, 55, 0.06);
-  border-color: rgba(212, 175, 55, 0.25);
+@media (hover: hover) and (pointer: fine) {
+  .guide-control-item:hover {
+    background: rgba(212, 175, 55, 0.06);
+    border-color: var(--gold-border, rgba(212, 175, 55, 0.25));
+  }
 }
 
 .guide-control-icon {
@@ -447,7 +475,7 @@ body.sidebar-closed .floating-help-btn {
   height: 36px;
   border-radius: 10px;
   background: rgba(212, 175, 55, 0.12);
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  border: 1px solid var(--gold-border, rgba(212, 175, 55, 0.25));
   color: var(--gold-main, #d4af37);
   display: flex;
   align-items: center;
@@ -464,7 +492,7 @@ body.sidebar-closed .floating-help-btn {
 }
 
 .guide-control-info p {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-secondary, rgba(255, 255, 255, 0.65));
   margin: 0;
   line-height: 1.45;
@@ -509,7 +537,7 @@ body.sidebar-closed .floating-help-btn {
   justify-content: space-between;
   gap: 12px;
   padding: 16px 24px;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--surface-inset, rgba(0, 0, 0, 0.25));
   border-top: 1px solid var(--glass-border, rgba(255, 255, 255, 0.08));
   flex-shrink: 0;
 }
@@ -518,16 +546,30 @@ body.sidebar-closed .floating-help-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
   color: var(--gold-main, #d4af37);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
   text-decoration: none;
-  transition: 0.25s;
+  transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
 }
 
-.btn-all-guides:hover {
-  color: var(--text-primary);
-  transform: translateX(3px);
+@media (hover: hover) and (pointer: fine) {
+  .btn-all-guides:hover {
+    color: var(--text-primary);
+    transform: translateX(3px);
+  }
+
+  [dir="rtl"] .btn-all-guides:hover {
+    transform: translateX(-3px);
+  }
+
+  .btn-close-guide:hover {
+    transform: translateY(-1px);
+    opacity: 0.94;
+  }
 }
 
 .btn-close-guide {
@@ -539,14 +581,8 @@ body.sidebar-closed .floating-help-btn {
   color: #060b14;
   font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
   cursor: pointer;
   transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.btn-close-guide:hover {
-  transform: translateY(-1px);
-  opacity: 0.94;
 }
 
 :root[data-theme="light"] .btn-close-guide {
@@ -558,20 +594,20 @@ body.sidebar-closed .floating-help-btn {
    7. TABLET, MOBILE & SAFE AREA ADJUSTMENTS (NO OVERLAP)
    -------------------------------------------------------------------------- */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .floating-help-btn {
+  .floating-help-pill {
     bottom: 28px !important;
-    right: 24px !important;
+    inset-inline-end: 24px !important;
   }
 }
 
 /* Page-specific avoidance on desktop */
-body.page-radar .floating-help-btn {
+body.page-radar .floating-help-pill {
   bottom: 245px;
-  right: 35px;
+  inset-inline-end: 35px;
 }
 
 @media (max-width: 768px) and (orientation: portrait), (max-width: 768px) and (pointer: coarse) {
-  .floating-help-btn {
+  .floating-help-pill {
     display: none !important;
   }
 
@@ -610,27 +646,8 @@ body.page-radar .floating-help-btn {
 /* ==========================================================================
    GUIDE MODAL & FLOATING BUTTON LIGHT THEME
    ========================================================================== */
-:root[data-theme="light"] .floating-help-btn {
-  background: var(--glass-bg, #ffffff);
-  border-color: var(--border-strong);
-  color: var(--gold-main, #7c520a);
-  box-shadow: var(--glass-shadow);
-}
-
-:root[data-theme="light"] .help-btn-icon {
-  background: var(--gold-main, #7c520a);
-  border-color: var(--gold-main, #7c520a);
-  color: #ffffff;
-}
-
-:root[data-theme="light"] .help-btn-divider {
-  background: var(--glass-border);
-}
-
-:root[data-theme="light"] .help-btn-lang {
-  background: rgba(124, 82, 10, 0.08);
-  border-color: var(--gold-border);
-  color: var(--gold-main, #7c520a);
+:root[data-theme="light"] .guide-modal-overlay {
+  background: var(--surface-scrim, rgba(24, 24, 27, 0.48));
 }
 
 :root[data-theme="light"] .guide-modal-card {
@@ -644,21 +661,76 @@ body.page-radar .floating-help-btn {
   border-bottom-color: var(--glass-border);
 }
 
-:root[data-theme="light"] .guide-title {
+:root[data-theme="light"] .guide-modal-header-icon {
+  background: rgba(124, 82, 10, 0.1);
+  border-color: var(--gold-border);
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .guide-modal-category {
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .guide-modal-badge {
+  background: rgba(6, 95, 70, 0.08);
+  border-color: rgba(6, 95, 70, 0.25);
+  color: #065f46;
+}
+
+:root[data-theme="light"] .guide-modal-title {
   color: var(--text-primary, #18181b);
 }
 
-:root[data-theme="light"] .guide-subtitle {
+:root[data-theme="light"] .guide-modal-subtitle {
   color: var(--text-secondary, #52525b);
 }
 
-:root[data-theme="light"] .guide-summary-box {
-  background: rgba(124, 82, 10, 0.07);
+:root[data-theme="light"] .guide-modal-close {
+  background: #ffffff;
+  border-color: var(--border-strong);
+  color: var(--text-secondary, #52525b);
+}
+
+:root[data-theme="light"] .guide-modal-tabs {
+  background: var(--surface-inset, #f0eee7);
+  border-bottom-color: var(--glass-border);
+}
+
+:root[data-theme="light"] .guide-tab-btn {
+  color: var(--text-secondary, #52525b);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  :root[data-theme="light"] .guide-tab-btn:hover {
+    color: var(--text-primary, #18181b);
+    background: var(--surface-raised, #ebe9e1);
+  }
+}
+
+:root[data-theme="light"] .guide-tab-btn.active {
+  background: rgba(124, 82, 10, 0.12);
   border-color: var(--gold-border);
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .guide-section-heading {
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .guide-summary-text {
   color: var(--text-primary, #18181b);
 }
 
-:root[data-theme="light"] .guide-section-title {
+:root[data-theme="light"] .guide-route-box {
+  background: var(--surface-inset, #f0eee7);
+  border-color: var(--glass-border);
+}
+
+:root[data-theme="light"] .route-label {
+  color: var(--text-secondary, #52525b);
+}
+
+:root[data-theme="light"] .route-code {
   color: var(--gold-main, #7c520a);
 }
 
@@ -668,9 +740,14 @@ body.page-radar .floating-help-btn {
   color: var(--text-primary, #18181b);
 }
 
-:root[data-theme="light"] .guide-step-num {
+:root[data-theme="light"] .step-num {
   background: var(--gold-main, #7c520a);
+  border-color: var(--gold-main, #7c520a);
   color: #ffffff;
+}
+
+:root[data-theme="light"] .step-text {
+  color: var(--text-primary, #18181b);
 }
 
 :root[data-theme="light"] .guide-control-item {
@@ -678,11 +755,17 @@ body.page-radar .floating-help-btn {
   border-color: var(--glass-border);
 }
 
-:root[data-theme="light"] .control-name {
+:root[data-theme="light"] .guide-control-icon {
+  background: rgba(124, 82, 10, 0.1);
+  border-color: var(--gold-border);
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .guide-control-info strong {
   color: var(--text-primary, #18181b);
 }
 
-:root[data-theme="light"] .control-desc {
+:root[data-theme="light"] .guide-control-info p {
   color: var(--text-secondary, #52525b);
 }
 
@@ -692,8 +775,29 @@ body.page-radar .floating-help-btn {
   color: #065f46;
 }
 
+:root[data-theme="light"] .tip-icon {
+  color: #065f46;
+}
+
+:root[data-theme="light"] .btn-all-guides {
+  color: var(--gold-main, #7c520a);
+}
+
 :root[data-theme="light"] .guide-modal-footer {
   background: var(--surface-inset, #f0eee7);
   border-top-color: var(--glass-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-help-pill,
+  .guide-modal-overlay,
+  .guide-modal-card,
+  .guide-tab-btn,
+  .guide-control-item,
+  .btn-all-guides,
+  .btn-close-guide {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 

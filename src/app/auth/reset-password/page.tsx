@@ -86,11 +86,11 @@ export default function ResetPasswordPage() {
         <div className="core-orb orb-3"></div>
       </div>
 
-      <div style={{ position: "fixed", top: "20px", right: "20px", zIndex: 100, display: "flex", alignItems: "center", gap: "10px" }}>
-        <LanguageSwitcher />
-        <button className="toggle-widget" id="btnTheme" title={t.common.theme_toggle} onClick={toggleTheme}>
+      <div className="login-top-bar">
+        <LanguageSwitcher variant="pill" />
+        <button type="button" className="toggle-widget" id="btnTheme" title={t.common.theme_toggle} onClick={toggleTheme}>
           <div className="icon-orb">
-            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
+            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon" aria-hidden="true"></i>
           </div>
           <span className="widget-text" id="themeText">
             {theme === "dark" ? t.common.theme_dark : t.common.theme_light}
@@ -99,12 +99,25 @@ export default function ResetPasswordPage() {
       </div>
 
       {toastData && (
-        <div id="toastAlert" className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}>
-          <div className="toast-icon"><i className={`fa-solid ${toastData.isError ? 'fa-shield-virus' : 'fa-check-double'}`}></i></div>
-          <div style={{ transform: "translateZ(10px)" }}>
+        <div
+          id="toastAlert"
+          role={toastData.isError ? "alert" : "status"}
+          aria-live="polite"
+          className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}
+        >
+          <div className="toast-icon"><i className={`fa-solid ${toastData.isError ? 'fa-shield-virus' : 'fa-check-double'}`} aria-hidden="true"></i></div>
+          <div style={{ flex: 1 }}>
             <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem" }}>{toastData.title}</strong><br/>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{toastData.message}</span>
+            <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>{toastData.message}</span>
           </div>
+          <button
+            type="button"
+            onClick={() => setToastData(null)}
+            aria-label={t.common.close || "Close"}
+            style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
         </div>
       )}
 
@@ -122,24 +135,25 @@ export default function ResetPasswordPage() {
 
           {success ? (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: "rgba(76,175,80,0.1)", border: "2px solid rgba(76,175,80,0.4)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 25px", fontSize: "1.8rem", color: "#4caf50" }}>
+              <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: "rgba(16, 185, 129, 0.14)", border: "2px solid #047857", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 25px", fontSize: "1.8rem", color: "#047857" }} aria-hidden="true">
                 <i className="fa-solid fa-check-circle"></i>
               </div>
-              <p style={{ color: "var(--text-primary, #fff)", fontSize: "0.95rem", fontWeight: 600, marginBottom: "10px" }}>
+              <p style={{ color: "var(--text-main, #fff)", fontSize: "0.95rem", fontWeight: 600, marginBottom: "10px" }}>
                 {t.reset_password.toast_success}
               </p>
-              <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7 }}>
+              <p style={{ color: "var(--text-secondary, #94a3b8)", fontSize: "0.88rem", lineHeight: 1.7 }}>
                 {t.reset_password.toast_redirecting}
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "25px", textAlign: "center" }}>
+              <p style={{ color: "var(--text-secondary, #94a3b8)", fontSize: "0.88rem", lineHeight: 1.7, marginBottom: "25px", textAlign: "center" }}>
                 {t.reset_password.subtitle}
               </p>
 
               <div className="input-group">
                 <input
+                  id="resetNewPassword"
                   type={showPassword ? "text" : "password"}
                   className="input-control"
                   required
@@ -148,18 +162,24 @@ export default function ResetPasswordPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
-                <label className="input-label">
+                <label htmlFor="resetNewPassword" className="input-label">
                   {t.reset_password.new_password_label}
                 </label>
                 <div className="input-neon-line"></div>
-                <i
-                  className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`}
+                <button
+                  type="button"
+                  className="icon-eye-btn"
                   onClick={() => setShowPassword(!showPassword)}
-                ></i>
+                  aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                  aria-pressed={showPassword}
+                >
+                  <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true"></i>
+                </button>
               </div>
 
               <div className="input-group">
                 <input
+                  id="resetConfirmPassword"
                   type={showPassword ? "text" : "password"}
                   className="input-control"
                   required
@@ -168,7 +188,7 @@ export default function ResetPasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
-                <label className="input-label">
+                <label htmlFor="resetConfirmPassword" className="input-label">
                   {t.reset_password.confirm_password_label}
                 </label>
                 <div className="input-neon-line"></div>
@@ -178,11 +198,11 @@ export default function ResetPasswordPage() {
                 <div className="magnetic-wrap">
                   <button type="submit" className="btn-prime magnetic-btn" disabled={loading}>
                     {loading ? (
-                      <><i className="fa-solid fa-circle-notch fa-spin"></i> {t.reset_password.btn_submitting}</>
+                      <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> {t.reset_password.btn_submitting}</>
                     ) : (
                       <>
                         {t.reset_password.btn_submit}{" "}
-                        <i className="fa-solid fa-shield-halved" style={{ marginInlineStart: "6px" }}></i>
+                        <i className="fa-solid fa-shield-halved" aria-hidden="true" style={{ marginInlineStart: "6px" }}></i>
                       </>
                     )}
                   </button>
@@ -193,7 +213,7 @@ export default function ResetPasswordPage() {
 
           <div className="register-link" style={{ marginTop: "20px" }}>
             <Link href="/login">
-              <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} style={{ marginInlineEnd: "6px" }}></i>
+              <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
               {t.reset_password.back_to_login}
             </Link>
           </div>

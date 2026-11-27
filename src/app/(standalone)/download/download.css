@@ -42,75 +42,184 @@
   border-radius: 10px;
 }
 
-.download-page-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 175, 55, 0.65);
+@media (hover: hover) and (pointer: fine) {
+  .download-page-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.65);
+  }
 }
 
 /* Card Root Container */
 .download-main-card {
   max-width: 880px;
   width: 100%;
-  background: var(--bg-secondary, rgba(12, 21, 38, 0.92));
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
+  background: var(--bg-secondary, #0c1526);
   border: 1px solid var(--glass-border, rgba(212, 175, 55, 0.3));
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 2.5rem 2rem;
-  box-shadow: var(--glass-shadow, 0 25px 60px rgba(0,0,0,0.8));
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--glass-shadow, 0 24px 48px rgba(0, 0, 0, 0.65));
+  transition: background-color 0.25s ease, border-color 0.25s ease;
   margin: 0 auto;
 }
 
 [data-theme="light"] .download-main-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  box-shadow: 0 20px 50px rgba(212, 175, 55, 0.15), 0 4px 16px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border: 1px solid rgba(161, 114, 24, 0.35);
+  box-shadow: 0 18px 40px rgba(24, 24, 27, 0.08), 0 2px 8px rgba(24, 24, 27, 0.04);
+}
+
+/* Status Pill */
+.download-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 6px 14px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  color: #34d399;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+[data-theme="light"] .download-status-pill {
+  background: rgba(6, 95, 70, 0.09);
+  border-color: rgba(6, 95, 70, 0.28);
+  color: #065f46;
+}
+
+.download-android-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.16);
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+}
+
+[data-theme="light"] .download-android-icon-box {
+  background: rgba(6, 95, 70, 0.1);
+  color: #065f46;
+}
+
+.download-android-sub {
+  font-size: 0.78rem;
+  color: #34d399;
+  font-weight: 600;
+}
+
+[data-theme="light"] .download-android-sub {
+  color: #065f46;
+}
+
+.download-page-scroll-container .theme-widget {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+.download-platform-emblem {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+[data-theme="light"] .download-platform-emblem {
+  background: #f6f5f1;
+  border-color: rgba(124, 82, 10, 0.3);
+}
+
+.download-android-badge {
+  background: rgba(212, 175, 55, 0.16);
+  color: #f3ba2f;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+}
+[data-theme="light"] .download-android-badge {
+  background: rgba(124, 82, 10, 0.12);
+  color: #7c520a;
+  border-color: rgba(124, 82, 10, 0.32);
+}
+
+.download-ios-badge {
+  background: rgba(56, 189, 248, 0.15);
+  color: #60a5fa;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(110, 168, 254, 0.3);
+}
+
+[data-theme="light"] .download-ios-badge {
+  background: rgba(3, 105, 161, 0.1);
+  color: #0369a1;
+  border-color: rgba(3, 105, 161, 0.3);
+}
+
+.download-ios-sub,
+.download-ios-heading {
+  color: #7dd3fc;
+}
+
+[data-theme="light"] .download-ios-sub,
+[data-theme="light"] .download-ios-heading {
+  color: #0369a1;
 }
 
 /* Platform Cards */
 .download-card-ios {
-  background: linear-gradient(155deg, rgba(14, 27, 45, 0.95), rgba(8, 14, 24, 0.98));
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
+  background: linear-gradient(155deg, #0e1b2d, #080e18);
+  border: 1px solid rgba(56, 189, 248, 0.38);
+  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.12);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 [data-theme="light"] .download-card-ios {
   background: linear-gradient(155deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 1px solid rgba(2, 132, 199, 0.35);
-  box-shadow: 0 10px 25px rgba(2, 132, 199, 0.12);
+  border: 1px solid rgba(3, 105, 161, 0.35);
+  box-shadow: 0 10px 25px rgba(3, 105, 161, 0.1);
 }
 
 .download-card-android {
-  background: linear-gradient(155deg, rgba(26, 36, 30, 0.9), rgba(12, 18, 14, 0.95));
+  background: linear-gradient(155deg, #1a241e, #0c120e);
   border: 1px solid rgba(212, 175, 55, 0.4);
-  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.15);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.14);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 [data-theme="light"] .download-card-android {
   background: linear-gradient(155deg, #fffbeb 0%, #fef3c7 100%);
-  border: 1px solid rgba(170, 119, 28, 0.4);
-  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.15);
+  border: 1px solid rgba(124, 82, 10, 0.35);
+  box-shadow: 0 10px 25px rgba(161, 114, 24, 0.12);
 }
 
 .download-card-pwa {
-  background: linear-gradient(155deg, rgba(20, 26, 23, 0.7), rgba(10, 15, 12, 0.85));
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(155deg, #141a17, #0a0f0c);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 [data-theme="light"] .download-card-pwa {
   background: linear-gradient(155deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.4);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
 }
 
-.download-card-ios:hover,
-.download-card-android:hover,
-.download-card-pwa:hover {
-  transform: translateY(-4px);
+@media (hover: hover) and (pointer: fine) {
+  .download-card-ios:hover,
+  .download-card-android:hover,
+  .download-card-pwa:hover {
+    transform: translateY(-4px);
+  }
 }
 
 /* Card titles and text */
@@ -122,32 +231,32 @@
 }
 
 .download-card-desc {
-  color: #94a3b8;
+  color: #b4c0cf;
 }
 [data-theme="light"] .download-card-desc {
-  color: #475569;
+  color: #334155;
 }
 
 .download-card-list {
   color: #cbd5e1;
 }
 [data-theme="light"] .download-card-list {
-  color: #334155;
+  color: #1e293b;
 }
 
 .download-code-tag {
   background: rgba(0, 0, 0, 0.3);
-  color: #38bdf8;
+  color: #93c5fd;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 0.8rem;
-  border: 1px solid rgba(56, 189, 248, 0.2);
+  border: 1px solid rgba(147, 197, 253, 0.22);
 }
 
 [data-theme="light"] .download-code-tag {
-  background: rgba(2, 132, 199, 0.1);
+  background: rgba(3, 105, 161, 0.1);
   color: #0369a1;
-  border-color: rgba(2, 132, 199, 0.25);
+  border-color: rgba(3, 105, 161, 0.28);
 }
 
 .download-code-tag-gold {
@@ -177,7 +286,7 @@
 
 [data-theme="light"] .download-guide-container {
   background: #ffffff;
-  border: 1px solid rgba(24, 24, 27, 0.09);
+  border: 1px solid rgba(24, 24, 27, 0.1);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
 }
 
@@ -199,10 +308,10 @@
 }
 
 .download-step-desc {
-  color: #a1a8b5;
+  color: #b4bac7;
 }
 [data-theme="light"] .download-step-desc {
-  color: #52525b;
+  color: #3f3f46;
 }
 
 /* FAQ Box */
@@ -230,33 +339,49 @@
   color: #cbd5e1;
 }
 [data-theme="light"] .download-faq-a {
-  color: #52525b;
+  color: #3f3f46;
 }
 
 /* Top bar navigation */
 .download-top-link {
-  color: #a1a8b5;
+  color: #b4bac7;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   transition: color 0.2s ease;
 }
-.download-top-link:hover {
-  color: var(--gold-main, #d4af37);
-}
 [data-theme="light"] .download-top-link {
-  color: #52525b;
+  color: #3f3f46;
 }
-[data-theme="light"] .download-top-link:hover {
-  color: #7c520a;
+@media (hover: hover) and (pointer: fine) {
+  .download-top-link:hover {
+    color: var(--gold-main, #d4af37);
+  }
+  [data-theme="light"] .download-top-link:hover {
+    color: #7c520a;
+  }
 }
 
-/* Button styles */
+/* Action & Tab Button styles (>=44px tap targets) */
+.download-action-primary,
+.download-btn-pwa-primary,
+.download-btn-ghost-ios,
+.download-btn-ghost-apk,
+.download-btn-ghost-pwa,
+.download-tab-btn,
+.download-submethod-btn {
+  min-height: 44px;
+}
+
 .download-btn-ghost-ios {
   background: transparent;
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  color: #38bdf8;
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  color: #93c5fd;
 }
 [data-theme="light"] .download-btn-ghost-ios {
   background: rgba(3, 105, 161, 0.08);
-  border-color: rgba(3, 105, 161, 0.3);
+  border-color: rgba(3, 105, 161, 0.35);
   color: #0369a1;
 }
 
@@ -266,26 +391,26 @@
   color: #d4af37;
 }
 [data-theme="light"] .download-btn-ghost-apk {
-  background: rgba(124, 82, 10, 0.1);
+  background: rgba(124, 82, 10, 0.09);
   border-color: rgba(124, 82, 10, 0.35);
   color: #7c520a;
 }
 
 .download-btn-ghost-pwa {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #cbd5e1;
 }
 [data-theme="light"] .download-btn-ghost-pwa {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(148, 163, 184, 0.3);
-  color: #475569;
+  background: rgba(15, 23, 42, 0.05);
+  border-color: rgba(15, 23, 42, 0.22);
+  color: #1e293b;
 }
 
 .download-btn-pwa-primary {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  color: #f8fafc;
 }
 [data-theme="light"] .download-btn-pwa-primary {
   background: #0f172a;
@@ -296,10 +421,27 @@
 @media (max-width: 640px) {
   .download-main-card {
     padding: 1.5rem 1rem;
-    border-radius: 18px;
+    border-radius: 16px;
   }
   .download-guide-container {
     padding: 1.25rem 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .download-page-scroll-container,
+  .download-main-card,
+  .download-card-ios,
+  .download-card-android,
+  .download-card-pwa,
+  .download-guide-container,
+  .download-top-link {
+    transition: none !important;
+  }
+  .download-card-ios:hover,
+  .download-card-android:hover,
+  .download-card-pwa:hover {
+    transform: none !important;
   }
 }
 

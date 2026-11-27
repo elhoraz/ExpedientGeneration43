@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useConfirm } from "@/components/layout/AegisConfirm";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import "./galeri.css";
 
 export interface AlbumItem {
@@ -37,7 +39,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     id: "showcase-1",
     image_url: "/assets/foto_putra/Cover Depan.webp",
     caption: "Sampul Buku Angkatan 43: The Syndicate & Omega",
-    likes_count: 43,
+    likes_count: 0,
     year: 2025,
     album_id: "galeri_ekspi",
     uploader_name: "Presidium Expedient",
@@ -47,7 +49,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     id: "showcase-2",
     image_url: "/assets/foto_putra/Hal 1.webp",
     caption: "Prakata & Kilas Balik Perjalanan 6 Tahun Pengabdian",
-    likes_count: 28,
+    likes_count: 0,
     year: 2025,
     album_id: "foto2mu",
     uploader_name: "Redaksi Yearbook",
@@ -57,7 +59,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     id: "showcase-3",
     image_url: "/assets/foto_putri/Cover Depan.webp",
     caption: "Arsip Omega Dynasty: Generasi Putri 43",
-    likes_count: 39,
+    likes_count: 0,
     year: 2025,
     album_id: "galeri_ekspi",
     uploader_name: "Presidium Putri",
@@ -67,7 +69,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     id: "showcase-4",
     image_url: "/assets/foto_putra/Hal 3.webp",
     caption: "Dokumentasi Pagelaran Seni & Panggung Gembira (PG)",
-    likes_count: 52,
+    likes_count: 0,
     year: 2024,
     album_id: "rihlah",
     uploader_name: "Divisi Dokumentasi",
@@ -77,7 +79,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     id: "showcase-5",
     image_url: "/assets/foto_putri/Hal 2.webp",
     caption: "Senyuman Hangat Kebersamaan di Serambi Asrama",
-    likes_count: 34,
+    likes_count: 0,
     year: 2024,
     album_id: "foto2mu",
     uploader_name: "Keluarga Besar 43",
@@ -87,7 +89,7 @@ const SHOWCASE_FALLBACK_PHOTOS: PhotoItem[] = [
     id: "showcase-6",
     image_url: "/assets/foto_putra/Hal 5.webp",
     caption: "Momen Silaturahmi Akbar & Malam Keakraban Alumni",
-    likes_count: 61,
+    likes_count: 0,
     year: 2025,
     album_id: "galeri_ekspi",
     uploader_name: "Humas Expedient",
@@ -114,6 +116,7 @@ export default function GaleriClient({
   currentUser?: { id: string; email?: string } | null;
 }) {
   const { t, locale } = useLanguage();
+  const { showAlert } = useConfirm();
 
   const getAlbumTitle = (album: AlbumItem) => {
     if (album.id === "all") return t.galeri_extra?.album_all || t.galeri.tab_all;
@@ -162,12 +165,15 @@ export default function GaleriClient({
   // Yearbook 3D State
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
+  useDialogEscape(isExportModalOpen, () => setIsExportModalOpen(false));
+  useDialogEscape(lightboxIndex !== null, () => setLightboxIndex(null));
+
   // Safe Haptic feedback
   const triggerHaptic = useCallback((duration = 15) => {
     if (typeof window !== "undefined" && "vibrate" in navigator) {
       try {
         navigator.vibrate(duration);
-      } catch {}
+      } catch { }
     }
   }, []);
 
@@ -184,7 +190,7 @@ export default function GaleriClient({
             setAlbums(data.albums);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [initialPhotos]);
 
@@ -347,12 +353,13 @@ export default function GaleriClient({
   const handleOpenPrintView = (dim: "putra" | "putri") => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      alert(
+      void showAlert(
+        locale === "ar" ? "تنبيه" : locale === "en" ? "Notice" : "Perhatian",
         locale === "ar"
           ? "يرجى السماح بالنوافذ المنبثقة في المتصفح لتصدير كتاب الذكريات."
           : locale === "en"
-          ? "Please allow browser pop-ups to export the yearbook."
-          : "Harap izinkan pop-up browser untuk mengekspor buku kenangan."
+            ? "Please allow browser pop-ups to export the yearbook."
+            : "Harap izinkan pop-up browser untuk mengekspor buku kenangan."
       );
       return;
     }
@@ -362,13 +369,13 @@ export default function GaleriClient({
         ? locale === "ar"
           ? "كتاب الذكريات (بنين) · إكسبيدينت ٤٣"
           : locale === "en"
-          ? "Brothers Yearbook · Expedient 43"
-          : "Buku Kenangan Putra · Expedient 43"
+            ? "Brothers Yearbook · Expedient 43"
+            : "Buku Kenangan Putra · Expedient 43"
         : locale === "ar"
-        ? "كتاب الذكريات (بنات) · إكسبيدينت ٤٣"
-        : locale === "en"
-        ? "Sisters Yearbook · Expedient 43"
-        : "Buku Kenangan Putri · Expedient 43";
+          ? "كتاب الذكريات (بنات) · إكسبيدينت ٤٣"
+          : locale === "en"
+            ? "Sisters Yearbook · Expedient 43"
+            : "Buku Kenangan Putri · Expedient 43";
     const totalPages = dim === "putra" ? 75 : 41;
     const folder = dim === "putra" ? "foto_putra" : "foto_putri";
 
@@ -509,8 +516,10 @@ export default function GaleriClient({
               {albums.map((album) => {
                 const isActive = selectedAlbum === album.id;
                 return (
-                  <div
+                  <button
+                    type="button"
                     key={album.id}
+                    aria-pressed={isActive}
                     className={`story-capsule cursor-bind ${isActive ? "active-story" : ""}`}
                     onClick={() => {
                       setSelectedAlbum(album.id);
@@ -519,11 +528,11 @@ export default function GaleriClient({
                   >
                     <div className="story-ring-gradient">
                       <div className="story-avatar-box">
-                        <i className={album.icon || "fa-solid fa-images"}></i>
+                        <i className={album.icon || "fa-solid fa-images"} aria-hidden="true"></i>
                       </div>
                     </div>
                     <span className="story-title">{getAlbumTitle(album)}</span>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -681,8 +690,8 @@ export default function GaleriClient({
                       {locale === 'ar'
                         ? `عرض المزيد (${filteredPhotos.length - visibleCount} صورة متبقية)`
                         : locale === 'en'
-                        ? `Load More (${filteredPhotos.length - visibleCount} photos left)`
-                        : `Muat Lebih Banyak (${filteredPhotos.length - visibleCount} foto tersisa)`}
+                          ? `Load More (${filteredPhotos.length - visibleCount} photos left)`
+                          : `Muat Lebih Banyak (${filteredPhotos.length - visibleCount} foto tersisa)`}
                     </span>
                   </button>
                 </div>
@@ -695,6 +704,9 @@ export default function GaleriClient({
           {lightboxIndex !== null && filteredPhotos[lightboxIndex] && (
             <div
               className="vault-lightbox-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t.galeri.title}
               onClick={() => setLightboxIndex(null)}
               onTouchStart={(e) => {
                 touchStartPosRef.current = {
@@ -726,23 +738,25 @@ export default function GaleriClient({
               <button
                 type="button"
                 className="lightbox-nav-btn prev-btn"
+                aria-label="Previous photo"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLightboxPrev();
                 }}
               >
-                <i className="fa-solid fa-chevron-left"></i>
+                <i className="fa-solid fa-chevron-left" aria-hidden="true"></i>
               </button>
 
               <button
                 type="button"
                 className="lightbox-nav-btn next-btn"
+                aria-label="Next photo"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleLightboxNext();
                 }}
               >
-                <i className="fa-solid fa-chevron-right"></i>
+                <i className="fa-solid fa-chevron-right" aria-hidden="true"></i>
               </button>
 
               {/* Lightbox Main Stage */}
@@ -762,8 +776,9 @@ export default function GaleriClient({
                       className="lightbox-action-btn"
                       onClick={() => setIsLightboxZoomed(!isLightboxZoomed)}
                       title={isLightboxZoomed ? t.galeri.zoom_out : t.galeri.zoom_in}
+                      aria-label={isLightboxZoomed ? t.galeri.zoom_out : t.galeri.zoom_in}
                     >
-                      <i className={isLightboxZoomed ? "fa-solid fa-magnifying-glass-minus" : "fa-solid fa-magnifying-glass-plus"}></i>
+                      <i className={isLightboxZoomed ? "fa-solid fa-magnifying-glass-minus" : "fa-solid fa-magnifying-glass-plus"} aria-hidden="true"></i>
                     </button>
 
                     <a
@@ -773,8 +788,9 @@ export default function GaleriClient({
                       rel="noreferrer"
                       className="lightbox-action-btn"
                       title={t.galeri.download_orig}
+                      aria-label={t.galeri.download_orig}
                     >
-                      <i className="fa-solid fa-download"></i>
+                      <i className="fa-solid fa-download" aria-hidden="true"></i>
                     </a>
 
                     <button
@@ -782,8 +798,9 @@ export default function GaleriClient({
                       className="lightbox-action-btn close-btn"
                       onClick={() => setLightboxIndex(null)}
                       title={t.common.close}
+                      aria-label={t.common.close}
                     >
-                      <i className="fa-solid fa-xmark"></i>
+                      <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                     </button>
                   </div>
                 </div>
@@ -854,8 +871,8 @@ export default function GaleriClient({
               {locale === 'ar'
                 ? 'يُفضل تصفح الكتاب التذكاري ثلاثي الأبعاد بالوضع الأفقي. يرجى تدوير جهازك.'
                 : locale === 'en'
-                ? 'The 3D Yearbook is best enjoyed in Landscape mode. Please rotate your device.'
-                : 'Ruang Kenangan 3D terbaik dinikmati dalam mode Landscape. Silakan putar perangkat Anda.'}
+                  ? 'The 3D Yearbook is best enjoyed in Landscape mode. Please rotate your device.'
+                  : 'Ruang Kenangan 3D terbaik dinikmati dalam mode Landscape. Silakan putar perangkat Anda.'}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "20px" }}>
               <button
@@ -909,8 +926,8 @@ export default function GaleriClient({
             <div className="ethereal-text" id="etherealText" title="Double Click for Epilogue">KHAZANAH KENANGAN</div>
             <canvas id="dustCanvas"></canvas>
             <div className="ambient-light" id="ambientLight"></div>
-            <button className="dimension-shift-btn hover-trigger" id="btnShift">
-              <i className="fa-solid fa-rotate"></i> {locale === 'ar' ? 'التبديل إلى ألبوم الطالبات' : locale === 'en' ? 'Beralih ke Album Putri' : 'Beralih ke Album Putri'}
+            <button type="button" className="dimension-shift-btn hover-trigger" id="btnShift">
+              <i className="fa-solid fa-rotate" aria-hidden="true"></i> {locale === 'ar' ? 'التبديل إلى ألبوم الطالبات' : locale === 'en' ? 'Switch to Sisters Album' : 'Beralih ke Album Putri'}
             </button>
 
             <div className="dimension-core" id="dimCore">
@@ -923,28 +940,28 @@ export default function GaleriClient({
               </div>
             </div>
 
-            <button className="whisper-btn hover-trigger" id="btnWhisper" title={t.galeri.play_audio}>
-              <i className="fa-solid fa-microphone-lines"></i>
+            <button type="button" className="whisper-btn hover-trigger" id="btnWhisper" title={t.galeri.play_audio} aria-label={t.galeri.play_audio}>
+              <i className="fa-solid fa-microphone-lines" aria-hidden="true"></i>
             </button>
 
             <div className="gallery-hud">
-              <button className="btn-icon hover-trigger" id="btnAudio" title={t.galeri.play_audio}><i className="fa-solid fa-music"></i></button>
-              <button className="btn-icon hover-trigger" id="btnAutoPlay" title="Auto-Play"><i className="fa-solid fa-play"></i></button>
-              <button className="btn-icon hover-trigger" id="btnIndex" title="Grid"><i className="fa-solid fa-border-all"></i></button>
+              <button type="button" className="btn-icon hover-trigger" id="btnAudio" title={t.galeri.play_audio} aria-label={t.galeri.play_audio}><i className="fa-solid fa-music" aria-hidden="true"></i></button>
+              <button type="button" className="btn-icon hover-trigger" id="btnAutoPlay" title="Auto-Play" aria-label="Auto-Play"><i className="fa-solid fa-play" aria-hidden="true"></i></button>
+              <button type="button" className="btn-icon hover-trigger" id="btnIndex" title="Grid" aria-label="Grid"><i className="fa-solid fa-border-all" aria-hidden="true"></i></button>
 
-              <button className="btn-nav hover-trigger" id="btnPrev"><i className="fa-solid fa-arrow-left"></i></button>
+              <button type="button" className="btn-nav hover-trigger" id="btnPrev" aria-label="Previous"><i className="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
               <div className="indicator-wrapper">
                 <div className="page-indicator" id="pageIndicator">{t.galeri.tab_yearbook}</div>
                 <div className="progress-bar-container"><div className="progress-bar-fill" id="progressFill"></div></div>
               </div>
-              <button className="btn-nav hover-trigger" id="btnNext"><i className="fa-solid fa-arrow-right"></i></button>
+              <button type="button" className="btn-nav hover-trigger" id="btnNext" aria-label="Next"><i className="fa-solid fa-arrow-right" aria-hidden="true"></i></button>
 
-              <button className="btn-icon hover-trigger" id="btnCloseBook" title={t.common.close}><i className="fa-solid fa-book"></i></button>
-              <button className="btn-icon hover-trigger" id="btnPin" title={t.galeri.title}><i className="fa-regular fa-bookmark"></i></button>
-              <button className="btn-icon hover-trigger" id="btnGoToPin" title={t.galeri.title} style={{ display: "none" }}><i className="fa-solid fa-map-location-dot"></i></button>
-              <button className="btn-icon hover-trigger" onClick={() => setIsExportModalOpen(true)} title={t.galeri.export_btn}><i className="fa-solid fa-file-pdf"></i></button>
-              <Link href="/photobooth" className="btn-icon hover-trigger" title={t.fitur.photobooth_title} style={{ color: "#ffd700", display: "flex", alignItems: "center", justifyContent: "center" }}><i className="fa-solid fa-camera-retro"></i></Link>
-              <button className="btn-icon hover-trigger" id="btnFullscreen" title={t.galeri.fullscreen}><i className="fa-solid fa-expand"></i></button>
+              <button type="button" className="btn-icon hover-trigger" id="btnCloseBook" title={t.common.close} aria-label={t.common.close}><i className="fa-solid fa-book" aria-hidden="true"></i></button>
+              <button type="button" className="btn-icon hover-trigger" id="btnPin" title={t.galeri.title} aria-label={t.galeri.title}><i className="fa-regular fa-bookmark" aria-hidden="true"></i></button>
+              <button type="button" className="btn-icon hover-trigger" id="btnGoToPin" title={t.galeri.title} aria-label={t.galeri.title} style={{ display: "none" }}><i className="fa-solid fa-map-location-dot" aria-hidden="true"></i></button>
+              <button type="button" className="btn-icon hover-trigger" onClick={() => setIsExportModalOpen(true)} title={t.galeri.export_btn} aria-label={t.galeri.export_btn}><i className="fa-solid fa-file-pdf" aria-hidden="true"></i></button>
+              <Link href="/photobooth" className="btn-icon hover-trigger" title={t.fitur.photobooth_title} aria-label={t.fitur.photobooth_title} style={{ color: "var(--gold-main, #d4af37)", display: "flex", alignItems: "center", justifyContent: "center" }}><i className="fa-solid fa-camera-retro" aria-hidden="true"></i></Link>
+              <button type="button" className="btn-icon hover-trigger" id="btnFullscreen" title={t.galeri.fullscreen} aria-label={t.galeri.fullscreen}><i className="fa-solid fa-expand" aria-hidden="true"></i></button>
             </div>
           </div>
 
@@ -956,6 +973,9 @@ export default function GaleriClient({
             >
               <div
                 className="yearbook-export-modal-card"
+                role="dialog"
+                aria-modal="true"
+                aria-label={t.galeri.export_btn}
                 onClick={(e) => e.stopPropagation()}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -969,10 +989,11 @@ export default function GaleriClient({
                   </div>
                   <button
                     type="button"
+                    aria-label={t.common.close}
                     onClick={() => setIsExportModalOpen(false)}
-                    style={{ background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "1.2rem", cursor: "pointer" }}
+                    style={{ background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: "1.2rem", cursor: "pointer", minWidth: "44px", minHeight: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                   >
-                    <i className="fa-solid fa-xmark"></i>
+                    <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                   </button>
                 </div>
 
@@ -984,7 +1005,7 @@ export default function GaleriClient({
                   <div className="export-edition-box">
                     <div>
                       <div className="export-edition-title">
-                        <i className="fa-solid fa-mars" style={{ color: "#00bfff", marginRight: "6px" }}></i> {locale === 'ar' ? 'طبعة البنين (The Syndicate)' : locale === 'en' ? 'Boys Edition (The Syndicate)' : 'Edisi Putra (The Syndicate)'}
+                        <i className="fa-solid fa-mars" aria-hidden="true" style={{ color: "#60a5fa", marginInlineEnd: "6px" }}></i> {locale === 'ar' ? 'طبعة البنين (The Syndicate)' : locale === 'en' ? 'Boys Edition (The Syndicate)' : 'Edisi Putra (The Syndicate)'}
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "2px" }}>
                         150 {locale === 'ar' ? 'صفحة كاملة' : locale === 'en' ? 'Complete Pages' : 'Halaman Lengkap'}

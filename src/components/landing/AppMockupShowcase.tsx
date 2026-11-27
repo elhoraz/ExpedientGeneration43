@@ -38,29 +38,35 @@ export default function AppMockupShowcase() {
           </p>
 
           {/* Interactive Screen Switcher Tabs */}
-          <div className="app-preview-tabs">
+          <div className="app-preview-tabs" role="tablist" aria-label={t.app_showcase.title}>
             <button
               type="button"
+              role="tab"
+              aria-selected={activeScreen === "kta"}
               className={`app-tab-btn ${activeScreen === "kta" ? "active" : ""}`}
               onClick={() => setActiveScreen("kta")}
             >
-              <i className="fa-solid fa-id-card"></i>
+              <i className="fa-solid fa-id-card" aria-hidden="true"></i>
               <span>{t.app_showcase.tab_kta}</span>
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={activeScreen === "quran"}
               className={`app-tab-btn ${activeScreen === "quran" ? "active" : ""}`}
               onClick={() => setActiveScreen("quran")}
             >
-              <i className="fa-solid fa-book-quran"></i>
+              <i className="fa-solid fa-book-quran" aria-hidden="true"></i>
               <span>{t.app_showcase.tab_quran}</span>
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={activeScreen === "radar"}
               className={`app-tab-btn ${activeScreen === "radar" ? "active" : ""}`}
               onClick={() => setActiveScreen("radar")}
             >
-              <i className="fa-solid fa-map-location-dot"></i>
+              <i className="fa-solid fa-map-location-dot" aria-hidden="true"></i>
               <span>{t.app_showcase.tab_radar}</span>
             </button>
           </div>

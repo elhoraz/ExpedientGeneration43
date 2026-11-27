@@ -74,17 +74,17 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Menu Utama",
     icon: "fa-solid fa-address-book",
     summary:
-      "Buku alamat lengkap seluruh anggota angkatan ke-43. Memudahkan Anda mencari kontak kawan lama berdasarkan nama, panggilan, konsulat daerah, profesi, hingga kota domisili saat ini.",
+      "Buku alamat seluruh anggota angkatan ke-43 untuk mencari kontak kawan berdasarkan nama, panggilan, kelas, konsulat daerah, hingga kota domisili.",
     howToUse: [
-      "Ketikkan nama atau julukan kawan di kolom pencarian cerdas.",
-      "Gunakan chip filter konsulat di bagian atas untuk menyaring kawan berdasarkan daerah asal.",
-      "Tekan tombol 'WhatsApp' pada kartu alumni untuk langsung memulai chat tanpa perlu menyimpan nomor manual.",
-      "Tekan tombol 'vCard' untuk otomatis mengekspor dan menyimpan kontak ke buku telepon ponsel Anda.",
-      "Tekan kartu alumni untuk membuka profil mendalam sahabat tersebut.",
+      "Ketik nama atau kota domisili kawan pada kolom pencarian.",
+      "Gunakan filter gender atau kelas di bagian atas untuk menyaring daftar alumni.",
+      "Tekan tombol 'Hubungi via WhatsApp' pada detail profil untuk langsung memulai chat.",
+      "Tekan tombol 'Simpan' (vCard) untuk mengekspor dan menyimpan kontak ke buku telepon ponsel Anda.",
+      "Tekan kartu alumni untuk membuka detail profil sahabat tersebut.",
     ],
     controls: [
-      { name: "Kolom Pencarian", icon: "fa-solid fa-magnifying-glass", desc: "Pencarian instan berdasarkan nama lengkap, nama panggilan, atau instansi." },
-      { name: "Filter Konsulat", icon: "fa-solid fa-filter", desc: "Mengelompokkan kawan berdasarkan asal daerah/konsulat masa pondok." },
+      { name: "Kolom Pencarian", icon: "fa-solid fa-magnifying-glass", desc: "Pencarian instan berdasarkan nama lengkap, nama panggilan, kelas, atau kota." },
+      { name: "Filter Gender & Kelas", icon: "fa-solid fa-filter", desc: "Menyaring daftar alumni berdasarkan putra/putri dan kelas." },
       { name: "Tombol WhatsApp", icon: "fa-brands fa-whatsapp", desc: "Membuka aplikasi WhatsApp langsung ke nomor kontak sahabat." },
       { name: "Simpan Kontak (vCard)", icon: "fa-solid fa-id-badge", desc: "Mengunduh file kontak .vcf langsung ke kontak HP Anda." },
     ],
@@ -101,21 +101,21 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Menu Utama",
     icon: "fa-solid fa-film",
     summary:
-      "Arsip digital multimedia yang menyimpan ribuan kenangan visual, foto masa santri, panggung gembira, perkemahan, kegiatan asrama, hingga prosesi wisuda kelulusan.",
+      "Arsip digital multimedia yang menyimpan kenangan visual, foto masa santri, panggung gembira, perkemahan, kegiatan asrama, hingga prosesi wisuda kelulusan.",
     howToUse: [
       "Pilih kategori album foto yang ingin Anda jelajahi di tab bagian atas.",
-      "Klik salah satu foto untuk membuka mode layar penuh (lightbox) berkualitas tinggi.",
+      "Klik salah satu foto untuk membuka mode layar penuh (lightbox).",
       "Gunakan tombol panah kiri dan kanan untuk berpindah foto berikutnya.",
-      "Tekan tombol 'Unggah Kenangan' jika Anda memiliki dokumentasi masa pondok yang ingin dibagikan ke seluruh angkatan.",
+      "Tekan tombol 'Unggah Media' jika Anda memiliki dokumentasi masa pondok untuk dibagikan.",
     ],
     controls: [
       { name: "Tab Kategori Album", icon: "fa-solid fa-folder-open", desc: "Menyaring foto berdasarkan tema kegiatan atau tahun kenangan." },
-      { name: "Pemutar Musik Latar", icon: "fa-solid fa-music", desc: "Memutar alunan instrumen nostalgia yang memperdalam suasana kenangan." },
-      { name: "Unggah Kenangan", icon: "fa-solid fa-cloud-arrow-up", desc: "Formulir kontribusi foto dari alumni dengan kompresi otomatis." },
-      { name: "Unduh Foto", icon: "fa-solid fa-download", desc: "Menyimpan foto resolusi penuh ke memori galeri ponsel Anda." },
+      { name: "Pemutar Musik Latar", icon: "fa-solid fa-music", desc: "Memutar alunan instrumen nostalgia kenangan." },
+      { name: "Unggah Media", icon: "fa-solid fa-cloud-arrow-up", desc: "Formulir kontribusi foto dari alumni." },
+      { name: "Unduh Foto", icon: "fa-solid fa-download", desc: "Menyimpan foto resolusi penuh ke galeri ponsel Anda." },
     ],
     tips: [
-      "Foto yang Anda unggah otomatis dikompresi agar hemat kuota internet tanpa mengurangi ketajaman visual.",
+      "Foto yang diunggah dikompresi agar hemat kuota tanpa mengurangi ketajaman visual.",
     ],
   },
   {
@@ -127,22 +127,22 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Menu Utama",
     icon: "fa-solid fa-map-location-dot",
     summary:
-      "Peta interaktif global yang memetakan domisili rekan-rekan alumni di seluruh Indonesia dan dunia. Sangat berguna ketika Anda sedang dinas, bepergian, atau mencari kawan yang tinggal di kota yang sama.",
+      "Peta interaktif global yang memetakan domisili rekan-rekan alumni di seluruh Indonesia dan dunia saat sedang bepergian atau mencari kawan sekota.",
     howToUse: [
-      "Geser layar untuk menelusuri titik-titik kumpul alumni di peta.",
-      "Tekan switch 'Mode Bola Dunia 3D' untuk tampilan globe futuristik, atau 'Mode Peta 2D' untuk navigasi jalan yang detail.",
-      "Ketik nama kota (misal: 'Jakarta', 'Kairo', 'Surabaya') di bilah pencarian atas untuk melompat langsung.",
-      "Tekan tombol 'Perbarui Lokasi' untuk membagikan koordinat kota Anda saat ini secara aman.",
-      "Klik pin/marker alumni untuk melihat nama dan nomor kontak kawan di kota tersebut.",
+      "Geser peta untuk menelusuri titik kumpul alumni.",
+      "Tekan switch 'Globe 3D' atau ubah lapisan peta pada kontrol kanan bawah.",
+      "Gunakan daftar Top 5 Kota atau perbesar langsung pada cluster kota yang diminati.",
+      "Tekan tombol 'Update Lokasi' untuk membagikan koordinat kota Anda saat ini secara aman.",
+      "Klik pin alumni untuk melihat nama, kota domisili, dan tautan dossier atau WhatsApp.",
     ],
     controls: [
-      { name: "Switch Mode Peta/Globe", icon: "fa-solid fa-globe", desc: "Beralih antara peta jalan 2D Leaflet yang ringan atau Bola Dunia 3D." },
-      { name: "Pencarian Kota", icon: "fa-solid fa-magnifying-glass-location", desc: "Mencari daftar alumni yang berdomisili di kota tujuan." },
+      { name: "Switch Mode Peta/Globe", icon: "fa-solid fa-globe", desc: "Beralih antara peta jalan 2D Leaflet atau tampilan Globe 3D." },
+      { name: "Top 5 Kota", icon: "fa-solid fa-city", desc: "Menampilkan kota dengan domisili alumni terbanyak." },
       { name: "Perbarui Lokasi GPS", icon: "fa-solid fa-crosshairs", desc: "Menyinkronkan kota tinggal Anda agar terbaca oleh rekan seangkatan." },
-      { name: "Drawer Info Profil", icon: "fa-solid fa-address-card", desc: "Panel bawah yang muncul saat pin alumni ditekan untuk menghubungi via WA." },
+      { name: "Panel Info Pin", icon: "fa-solid fa-address-card", desc: "Menampilkan ringkasan alumni dan tautan kontak." },
     ],
     tips: [
-      "Koordinat yang dibagikan hanya sebatas tingkat kota/kabupaten demi menjaga privasi dan keamanan tempat tinggal alumni.",
+      "Koordinat yang dibagikan hanya sebatas tingkat kota/kabupaten demi menjaga privasi tempat tinggal alumni.",
     ],
   },
   {
@@ -154,42 +154,42 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Menu Utama",
     icon: "fa-solid fa-briefcase",
     summary:
-      "Etalase ukhuwah perekonomian angkatan. Tempat mempromosikan bisnis, produk UMKM, dan jasa profesional sesama alumni agar saling memberdayakan dan berbelanja di rekan seangkatan.",
+      "Etalase ekonomi angkatan untuk mempromosikan usaha, produk UMKM, dan jasa sesama alumni agar saling mendukung.",
     howToUse: [
-      "Gunakan kolom pencarian atau filter kategori (Kuliner, Fashion, IT, Jasa, dsb) untuk mencari kebutuhan Anda.",
-      "Tekan kartu usaha untuk melihat deskripsi lengkap, katalog foto, dan alamat toko.",
-      "Klik tombol 'Hubungi Penjual' untuk langsung terhubung via WhatsApp ke rekan pemilik usaha.",
-      "Tekan tombol 'Daftarkan Bisnis' jika Anda ingin mempromosikan usaha milik Anda secara gratis.",
+      "Gunakan kolom pencarian atau filter kategori untuk mencari produk atau jasa.",
+      "Tekan kartu usaha untuk membuka microsite atau detail produk.",
+      "Klik tombol 'Pesan via WhatsApp' untuk langsung terhubung ke pemilik usaha.",
+      "Tekan tombol 'Daftarkan Usaha Anda' bila ingin menampilkan usaha milik Anda.",
     ],
     controls: [
-      { name: "Daftarkan Bisnis", icon: "fa-solid fa-plus", desc: "Membuka formulir pendaftaran merek dagang, foto produk, dan nomor WhatsApp." },
-      { name: "Filter Bidang Industri", icon: "fa-solid fa-tags", desc: "Menyaring bisnis berdasarkan sektor kuliner, teknologi, fashion, properti, dll." },
-      { name: "Beli via WhatsApp", icon: "fa-brands fa-whatsapp", desc: "Kirim pesan pesanan langsung ke nomor kontak pemilik bisnis." },
+      { name: "Daftarkan Usaha", icon: "fa-solid fa-plus", desc: "Membuka formulir pendaftaran merek, deskripsi usaha, dan kontak WhatsApp." },
+      { name: "Filter Kategori", icon: "fa-solid fa-tags", desc: "Menyaring bisnis berdasarkan sektor usaha." },
+      { name: "Pesan via WhatsApp", icon: "fa-brands fa-whatsapp", desc: "Menghubungi pemilik usaha langsung melalui WhatsApp." },
     ],
     tips: [
-      "Dukung bisnis sahabat alumni dengan memberikan ulasan positif atau merekomendasikannya ke jejaring relasi Anda.",
+      "Lengkapi nomor WhatsApp aktif agar rekan alumni mudah memesan produk atau layanan Anda.",
     ],
   },
   {
     id: "fitur",
     route: "/fitur",
     title: "Pusat Menu & Fitur Angkatan",
-    subtitle: "Gerbang Eksklusif Seluruh Layanan Alumni",
+    subtitle: "Gerbang Seluruh Layanan Alumni",
     category: "utama",
     categoryLabel: "Menu Utama",
     icon: "fa-solid fa-cubes",
     summary:
-      "Hub terpadu yang memuat 16+ aplikasi satelit eksklusif angkatan, mencakup KTA 3D, Photobooth, Kas Baitul Maal, Majlis Ilmu, Ruang Dzikir, Kalender Reuni, hingga Wasiat Kenangan.",
+      "Hub terpadu yang memuat lebih dari 20 fitur layanan angkatan, mencakup KTA 3D, Photobooth, Kas Baitul Maal, Majlis Ilmu, Ruang Dzikir, Kalender Reuni, hingga Wasiat Kenangan.",
     howToUse: [
-      "Gulir ke bawah dan pilih salah satu kartu fitur yang ingin Anda buka.",
-      "Setiap kartu dilengkapi ilustrasi tema, ikon, deskripsi singkat, dan tombol luncurkan.",
-      "Pada perangkat komputer, gerakkan mouse di atas kartu untuk menikmati efek 3D Tilt interaktif.",
+      "Pilih tab kategori di bagian atas untuk memfilter fitur.",
+      "Pilih salah satu kartu layanan untuk membuka halamannya.",
+      "Gunakan tombol Pintasan Cepat di bagian atas untuk membuka Obrolan, Direktori, Khatam, atau Kiblat.",
     ],
     controls: [
-      { name: "Kartu Peluncur", icon: "fa-solid fa-arrow-right-long", desc: "Membuka halaman fitur satelit yang dipilih secara instan." },
+      { name: "Kartu Peluncur", icon: "fa-solid fa-arrow-right-long", desc: "Membuka halaman layanan yang dipilih." },
     ],
     tips: [
-      "Fitur-fitur di halaman ini dirancang khusus untuk memenuhi kebutuhan reuni, spiritual, dan produktivitas alumni.",
+      "Seluruh fitur ibadah di bagian Spiritual & Hikmah dapat diakses langsung tanpa perlu masuk akun.",
     ],
   },
   {
@@ -201,21 +201,21 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Menu Utama",
     icon: "fa-solid fa-circle-user",
     summary:
-      "Halaman untuk mengelola informasi pribadi Anda di direktori, mengatur foto avatar, memperbarui nomor WhatsApp, tautan media sosial, profesi, serta melihat kartu anggota digital Anda.",
+      "Halaman untuk mengelola informasi pribadi Anda di direktori, mengatur foto avatar, memperbarui nomor WhatsApp, tautan media sosial, serta melihat kartu anggota digital.",
     howToUse: [
-      "Tekan tombol pada foto profil untuk mengunggah dan memotong (crop) foto terbaik Anda.",
-      "Perbarui formulir nama panggilan, nomor WhatsApp aktif, kota domisili, dan profesi.",
-      "Tekan 'Simpan Perubahan' di bagian bawah agar data terbaru Anda langsung tampil di Direktori.",
-      "Anda juga dapat mengganti kata sandi akun pada tab Keamanan.",
+      "Tekan tombol pada foto profil untuk mengunggah dan memotong foto terbaik Anda.",
+      "Perbarui nama panggilan, nomor WhatsApp aktif, alamat domisili, dan cita-cita.",
+      "Tekan 'Simpan Perubahan' agar data terbaru langsung tampil di Direktori.",
+      "Ganti kata sandi, atur keamanan biometrik, atau ubah bahasa antarmuka pada tab Keamanan & Bahasa.",
     ],
     controls: [
-      { name: "Ubah Foto Profil", icon: "fa-solid fa-camera", desc: "Editor pemotong foto lingkaran untuk avatar profil Anda." },
-      { name: "Simpan Biodata", icon: "fa-solid fa-floppy-disk", desc: "Menyimpan data kontak dan informasi terbaru ke database portal." },
-      { name: "Ganti Kata Sandi", icon: "fa-solid fa-key", desc: "Mengubah password login akun Anda demi keamanan." },
-      { name: "Kartu KTA Mini", icon: "fa-solid fa-id-card", desc: "Pratinjau kartu anggota digital dengan kode nomor ID resmi Anda." },
+      { name: "Ubah Foto Profil", icon: "fa-solid fa-camera", desc: "Pemotong foto rasio 1:1 untuk avatar profil Anda." },
+      { name: "Simpan Perubahan", icon: "fa-solid fa-floppy-disk", desc: "Menyimpan data kontak dan informasi terbaru ke portal." },
+      { name: "Keamanan & Bahasa", icon: "fa-solid fa-key", desc: "Mengubah sandi, bahasa (ID/AR/EN), dan kunci perangkat." },
+      { name: "Kartu Alumni 3D", icon: "fa-solid fa-id-card", desc: "Membuka pratinjau kartu anggota digital Anda." },
     ],
     tips: [
-      "Pastikan nomor WhatsApp Anda aktif dengan format internasional (contoh: 6281234567890) agar tombol chat di direktori berfungsi optimal.",
+      "Pastikan nomor WhatsApp menggunakan format aktif (misal: 6281234567890) agar tombol chat di direktori berfungsi.",
     ],
   },
 
@@ -231,21 +231,21 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Komunikasi",
     icon: "fa-solid fa-comments",
     summary:
-      "Ruang obrolan bersama seluruh anggota angkatan ke-43. Tempat berbagi kabar harian, canda tawa, kirim salam, foto masa lalu, hingga pesan suara dan video bulat.",
+      "Ruang obrolan bersama seluruh anggota angkatan ke-43 untuk bertukar kabar, mengirim foto, pesan suara, maupun pesan video.",
     howToUse: [
-      "Ketik pesan di bilah bawah lalu tekan ikon pesawat kertas atau Enter untuk mengirim.",
-      "Tekan ikon mikrofon untuk merekam Pesan Suara (Voice Note).",
-      "Tekan ikon kamera melingkar untuk merekam Pesan Video Bulat (Video Note) hingga 60 detik.",
-      "Gunakan tombol emotikon untuk menyisipkan stiker emoji ekspresif.",
+      "Ketik pesan di kolom bawah lalu tekan ikon kirim atau Enter.",
+      "Tekan ikon mikrofon untuk merekam Pesan Suara.",
+      "Tekan ikon kamera untuk merekam Pesan Video.",
+      "Gunakan tombol emotikon untuk menyisipkan emoji.",
     ],
     controls: [
-      { name: "Kirim Pesan Suara (VN)", icon: "fa-solid fa-microphone", desc: "Merekam suara Anda dan mengirimkannya sebagai audio player interaktif." },
-      { name: "Pesan Video Bulat", icon: "fa-solid fa-video", desc: "Merekam video selfie berbentuk lingkaran khas aplikasi perpesanan modern." },
-      { name: "Unggah Gambar", icon: "fa-solid fa-image", desc: "Membagikan tangkapan layar atau foto kenangan langsung ke obrolan." },
-      { name: "Emoji Picker", icon: "fa-regular fa-face-smile", desc: "Memilih emoji populer untuk mengekspresikan percakapan." },
+      { name: "Kirim Pesan Suara", icon: "fa-solid fa-microphone", desc: "Merekam suara Anda sebagai audio player." },
+      { name: "Pesan Video", icon: "fa-solid fa-video", desc: "Merekam video pesan singkat ke ruang obrolan." },
+      { name: "Unggah Gambar", icon: "fa-solid fa-image", desc: "Membagikan foto kenangan langsung ke obrolan." },
+      { name: "Emoji Picker", icon: "fa-regular fa-face-smile", desc: "Memilih emoji untuk percakapan." },
     ],
     tips: [
-      "Pada iPhone dan Android, fitur pesan suara dan video sudah dioptimalkan agar berjalan lancar tanpa membebani browser.",
+      "Pesan suara dan video didukung langsung di peramban seluler maupun komputer.",
     ],
   },
   {
@@ -257,12 +257,12 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Komunikasi",
     icon: "fa-solid fa-comment-dots",
     summary:
-      "Ruang percakapan privat 1-lawan-1 antara Anda dan salah satu sahabat alumni, dilengkapi fitur panggilan suara dan video gratis langsung lewat peramban web.",
+      "Ruang percakapan privat 1-lawan-1 antara Anda dan sahabat alumni, dilengkapi panggilan suara dan video langsung lewat peramban web.",
     howToUse: [
-      "Pilih salah satu kawan dari Direktori atau daftar riwayat pesan di `/chat`.",
+      "Pilih salah satu kawan dari Direktori atau daftar riwayat pesan di Kotak Pesan.",
       "Kirim pesan teks, gambar, suara, atau video pribadi.",
-      "Tekan ikon gagang telepon di sudut kanan atas untuk melakukan Panggilan Suara (Voice Call).",
-      "Tekan ikon kamera video untuk melakukan Panggilan Video (Video Call) tatap muka.",
+      "Tekan ikon telepon di sudut kanan atas untuk melakukan Panggilan Suara.",
+      "Tekan ikon kamera video untuk melakukan Panggilan Video tatap muka.",
     ],
     controls: [
       { name: "Panggilan Suara", icon: "fa-solid fa-phone", desc: "Memulai panggilan suara jernih real-time via koneksi WebRTC." },
@@ -454,7 +454,7 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Sosial & Ibadah",
     icon: "fa-solid fa-scroll",
     summary:
-      "Fitur kapsul waktu (*time-capsule*) unik untuk menyimpan pesan rahasia, nasihat kehidupan, atau wasiat persahabatan yang hanya dapat dibuka pada tahun peringatan tertentu di masa depan.",
+      "Fitur kapsul waktu untuk menyimpan pesan rahasia, nasihat kehidupan, atau catatan persahabatan yang baru dapat dibuka pada tahun peringatan tertentu di masa depan.",
     howToUse: [
       "Tuliskan pesan berharga Anda untuk seluruh angkatan atau untuk sahabat tertentu.",
       "Tentukan tanggal buka kunci kapsul waktu (misal: saat reuni 10 tahun atau 20 tahun).",
@@ -549,7 +549,7 @@ export const PAGE_GUIDES: PageGuide[] = [
       { name: "Simpan Hasil", icon: "fa-solid fa-download", desc: "Mengunduh photostrip vertikal beresolusi tajam siap bagikan ke medsos." },
     ],
     tips: [
-      "Ajak kawan-kawan saat sedang berkumpul temu kangen untuk berfoto bersama di satu frame photostrip!",
+      "Ajak kawan-kawan saat sedang berkumpul temu kangen untuk berfoto bersama di satu frame photostrip.",
     ],
   },
   {
@@ -608,15 +608,15 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Fitur Satelit",
     icon: "fa-solid fa-download",
     summary:
-      "Panduan lengkap cara memasang (*install*) portal alumni langsung di layar utama (*home screen*) ponsel pintar Anda layaknya aplikasi asli dari toko aplikasi.",
+      "Panduan cara memasang portal alumni langsung di layar utama ponsel Anda agar mudah diakses seperti aplikasi seluler.",
     howToUse: [
-      "Untuk pengguna Android: Tekan tombol 'Pasang Aplikasi' di halaman ini, lalu setujui penambahan ke layar utama.",
-      "Untuk pengguna iPhone: Tekan tombol 'Share' (ikon kotak bertanda panah atas di Safari), gulir ke bawah, lalu pilih 'Add to Home Screen' (Tambah ke Layar Utama).",
-      "Ikon aplikasi Expedient 43 akan muncul di layar ponsel dan dapat dibuka langsung tanpa mengetik URL peramban.",
+      "Untuk pengguna Android: Tekan tombol unduh APK pada halaman ini atau pasang melalui peramban Chrome ke layar utama.",
+      "Untuk pengguna iPhone: Buka halaman ini di Safari, tekan tombol Share (ikon kotak bertanda panah atas), lalu pilih 'Add to Home Screen' (Tambah ke Layar Utama).",
+      "Ikon aplikasi Expedient 43 akan muncul di layar ponsel dan dapat dibuka langsung tanpa mengetik ulang alamat situs.",
     ],
     controls: [
-      { name: "Tombol Install PWA", icon: "fa-solid fa-mobile-screen-button", desc: "Memicu jendela pasang aplikasi instan di peramban yang mendukung." },
-      { name: "Panduan Video/Gambar", icon: "fa-solid fa-circle-play", desc: "Tutorial visual langkah demi langkah untuk iOS dan Android." },
+      { name: "Unduh Android (.APK)", icon: "fa-solid fa-download", desc: "Mengunduh paket resmi Android Expedient 43 untuk pemasangan langsung." },
+      { name: "Panduan Langkah Demi Langkah", icon: "fa-solid fa-list-check", desc: "Tab instruksi pemasangan tertulis untuk Android APK, iPhone, dan Web App PWA." },
     ],
     tips: [
       "Memasang aplikasi di layar utama membuat notifikasi pesan obrolan dan telepon masuk menjadi lebih responsif.",
@@ -688,10 +688,10 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Fitur Satelit",
     icon: "fa-solid fa-network-wired",
     summary:
-      "Sistem cerdas yang mempertemukan Anda dengan rekan-rekan alumni yang memiliki minat, hobi, profesi, atau lokasi tempat tinggal yang berdekatan.",
+      "Fitur pencocokan profil alumni berdasarkan kemiripan kota domisili, profesi, bidang keahlian, dan minat dari biodata.",
     howToUse: [
-      "Pilih kriteria pencocokan: Berdasarkan Kota, Minat Bisnis, atau Hobi.",
-      "Sistem akan menampilkan daftar sahabat yang paling relevan dengan profil Anda.",
+      "Tekan tombol pindai untuk menghitung skor kesamaan profil Anda dengan sesama alumni.",
+      "Sistem akan menampilkan daftar sahabat dengan kecocokan domisili dan minat tertinggi.",
     ],
     controls: [
       { name: "Mulai Pencocokan", icon: "fa-solid fa-wand-magic-sparkles", desc: "Menjalankan algoritma pencari relasi sesama alumni." },
@@ -726,7 +726,7 @@ export const PAGE_GUIDES: PageGuide[] = [
     categoryLabel: "Fitur Satelit",
     icon: "fa-solid fa-camera",
     summary:
-      "Fitur kecerdasan kamera interaktif yang membaca senyuman Anda dan memberikan kutipan penyemangat persaudaraan yang ceria.",
+      "Fitur kamera interaktif yang menganalisis bingkai video dari kamera perangkat Anda dan menampilkan kutipan penyemangat persaudaraan.",
     howToUse: [
       "Buka kamera dan tersenyumlah ke arah lensa.",
       "Kamera akan mendeteksi ekspresi wajah Anda dan memberikan pesan motivasi sahabat.",

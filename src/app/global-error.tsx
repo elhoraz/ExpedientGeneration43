@@ -27,7 +27,7 @@ export default function GlobalRootError({
           color: "#e6edf3",
           fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           display: "flex",
-          minHeight: "100vh",
+          minHeight: "100dvh",
           alignItems: "center",
           justifyContent: "center",
           padding: "20px",
@@ -36,30 +36,38 @@ export default function GlobalRootError({
       >
         <div
           style={{
-            background: "rgba(18, 10, 12, 0.9)",
-            border: "1px solid rgba(255, 51, 102, 0.4)",
-            borderRadius: "20px",
+            background: "rgba(18, 10, 12, 0.94)",
+            border: "1px solid rgba(225, 29, 72, 0.45)",
+            borderRadius: "16px",
             padding: "40px 30px",
             maxWidth: "480px",
             width: "100%",
             textAlign: "center",
-            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.8)",
+            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.75)",
           }}
         >
-          <div style={{ fontSize: "2.5rem", color: "#ff3366", marginBottom: "16px" }}>⚠️</div>
-          <h2 style={{ fontSize: "1.3rem", color: "#ffffff", margin: "0 0 10px 0" }}>Terjadi Kesalahan Sistem</h2>
-          <p style={{ color: "#8b9ba8", fontSize: "0.85rem", lineHeight: 1.6, margin: "0 0 24px 0" }}>
-            Sistem mendeteksi kendala pada root layout. Silakan muat ulang halaman.
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px", color: "#fb7185" }} aria-hidden="true">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </div>
+          <h1 style={{ fontSize: "1.3rem", color: "#ffffff", margin: "0 0 10px 0" }}>Terjadi Kesalahan Sistem</h1>
+          <p style={{ color: "#94a3b8", fontSize: "0.88rem", lineHeight: 1.6, margin: "0 0 24px 0" }}>
+            Sistem mendeteksi kendala pada tata letak utama. Silakan muat ulang halaman.
           </p>
           <button
+            type="button"
             onClick={() => reset()}
             style={{
+              minHeight: "44px",
               padding: "10px 24px",
-              borderRadius: "24px",
+              borderRadius: "12px",
               border: "1px solid #d4af37",
               background: "#d4af37",
               color: "#060b14",
-              fontSize: "0.85rem",
+              fontSize: "0.88rem",
               fontWeight: 700,
               cursor: "pointer",
             }}

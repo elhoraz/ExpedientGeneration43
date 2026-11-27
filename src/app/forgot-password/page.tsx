@@ -63,11 +63,11 @@ export default function ForgotPasswordPage() {
         <div className="core-orb orb-3"></div>
       </div>
 
-      <div style={{ position: "fixed", top: "20px", right: "20px", zIndex: 100, display: "flex", alignItems: "center", gap: "10px" }}>
-        <LanguageSwitcher />
-        <button className="toggle-widget" id="btnTheme" title={t.common.theme_toggle} onClick={toggleTheme}>
+      <div className="login-top-bar">
+        <LanguageSwitcher variant="pill" />
+        <button type="button" className="toggle-widget" id="btnTheme" title={t.common.theme_toggle} onClick={toggleTheme}>
           <div className="icon-orb">
-            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
+            <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon" aria-hidden="true"></i>
           </div>
           <span className="widget-text" id="themeText">
             {theme === "dark" ? t.common.theme_dark : t.common.theme_light}
@@ -76,12 +76,25 @@ export default function ForgotPasswordPage() {
       </div>
 
       {toastData && (
-        <div id="toastAlert" className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}>
-          <div className="toast-icon"><i className={`fa-solid ${toastData.isError ? 'fa-shield-virus' : 'fa-check-double'}`}></i></div>
-          <div style={{ transform: "translateZ(10px)" }}>
+        <div
+          id="toastAlert"
+          role={toastData.isError ? "alert" : "status"}
+          aria-live="polite"
+          className={`quantum-toast ${toastData.isError ? 'toast-error' : 'toast-success'} show`}
+        >
+          <div className="toast-icon"><i className={`fa-solid ${toastData.isError ? 'fa-shield-virus' : 'fa-check-double'}`} aria-hidden="true"></i></div>
+          <div style={{ flex: 1 }}>
             <strong style={{ fontFamily: "'Playfair Display', serif", fontSize: "1rem" }}>{toastData.title}</strong><br/>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{toastData.message}</span>
+            <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>{toastData.message}</span>
           </div>
+          <button
+            type="button"
+            onClick={() => setToastData(null)}
+            aria-label={t.common.close || "Close"}
+            style={{ background: "transparent", border: "none", color: "var(--text-secondary)", cursor: "pointer", minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+          </button>
         </div>
       )}
 
@@ -89,7 +102,7 @@ export default function ForgotPasswordPage() {
         <div className="auth-prism" style={{ maxWidth: "480px", width: "90%" }}>
           <div className="prism-header">
             <div style={{ marginBottom: "20px" }}>
-              <Image src="/images/logo-utuh.webp" alt="Expedient" width={80} height={80} priority style={{ width: "80px", height: "auto", filter: "drop-shadow(0 0 20px rgba(212,175,55,0.4))", animation: "floatLogo 6s ease-in-out infinite" }} />
+              <Image src="/images/logo-utuh.webp" alt="Expedient" width={80} height={80} priority style={{ width: "80px", height: "auto", filter: "drop-shadow(0 0 20px rgba(212,175,55,0.4))" }} />
             </div>
             <div className="subtitle-spec">Expedient Generation</div>
             <h1 className="title-holo" style={{ fontSize: "clamp(1.2rem, 3vw, 1.6rem)" }}>
@@ -99,12 +112,13 @@ export default function ForgotPasswordPage() {
 
           {step === "request" ? (
             <form onSubmit={handleSubmit}>
-              <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "25px", textAlign: "center" }}>
+              <p style={{ color: "var(--text-secondary, #94a3b8)", fontSize: "0.88rem", lineHeight: 1.7, marginBottom: "25px", textAlign: "center" }}>
                 {t.forgot_password.sent_notice_desc}
               </p>
 
               <div className="input-group">
                 <input
+                  id="forgotEmailInput"
                   type="email"
                   name="email"
                   className="input-control"
@@ -113,7 +127,7 @@ export default function ForgotPasswordPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-                <label className="input-label">
+                <label htmlFor="forgotEmailInput" className="input-label">
                   {t.forgot_password.email_label}
                 </label>
                 <div className="input-neon-line"></div>
@@ -123,11 +137,11 @@ export default function ForgotPasswordPage() {
                 <div className="magnetic-wrap">
                   <button type="submit" className="btn-prime magnetic-btn" disabled={loading}>
                     {loading ? (
-                      <><i className="fa-solid fa-circle-notch fa-spin"></i> {t.forgot_password.btn_sending}</>
+                      <><i className="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> {t.forgot_password.btn_sending}</>
                     ) : (
                       <>
                         {t.forgot_password.btn_send_reset}{" "}
-                        <i className={`fa-solid ${locale === "ar" ? "fa-paper-plane fa-flip-horizontal" : "fa-paper-plane"}`} style={{ marginInlineStart: "6px" }}></i>
+                        <i className={`fa-solid ${locale === "ar" ? "fa-paper-plane fa-flip-horizontal" : "fa-paper-plane"}`} aria-hidden="true" style={{ marginInlineStart: "6px" }}></i>
                       </>
                     )}
                   </button>
@@ -136,20 +150,20 @@ export default function ForgotPasswordPage() {
             </form>
           ) : (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: "rgba(212,175,55,0.1)", border: "2px solid rgba(212,175,55,0.4)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 25px", fontSize: "1.8rem", color: "#d4af37" }}>
+              <div style={{ width: "70px", height: "70px", borderRadius: "50%", background: "rgba(212,175,55,0.12)", border: "2px solid var(--gold-main, #d4af37)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 25px", fontSize: "1.8rem", color: "var(--gold-main, #d4af37)" }} aria-hidden="true">
                 <i className="fa-solid fa-envelope-circle-check"></i>
               </div>
-              <p style={{ color: "var(--text-primary, #fff)", fontSize: "0.95rem", fontWeight: 600, marginBottom: "10px" }}>
+              <p style={{ color: "var(--text-main, #fff)", fontSize: "0.95rem", fontWeight: 600, marginBottom: "10px" }}>
                 {t.forgot_password.sent_notice_title}
               </p>
-              <p style={{ color: "var(--text-muted, #7b8e9b)", fontSize: "0.85rem", lineHeight: 1.7, marginBottom: "30px" }}>
+              <p style={{ color: "var(--text-secondary, #94a3b8)", fontSize: "0.88rem", lineHeight: 1.7, marginBottom: "30px" }}>
                 {t.forgot_password.sent_check_spam}{" "}
-                <strong style={{ color: "#d4af37" }}>{email}</strong>
+                <strong style={{ color: "var(--gold-main, #d4af37)" }}>{email}</strong>
               </p>
               <div className="btn-rack">
                 <div className="magnetic-wrap">
                   <button type="button" className="btn-prime magnetic-btn" onClick={() => { setStep("request"); setEmail(""); }}>
-                    <i className="fa-solid fa-rotate-left" style={{ marginInlineEnd: "8px" }}></i>
+                    <i className="fa-solid fa-rotate-left" aria-hidden="true" style={{ marginInlineEnd: "8px" }}></i>
                     {t.forgot_password.btn_send_reset}
                   </button>
                 </div>
@@ -159,7 +173,7 @@ export default function ForgotPasswordPage() {
 
           <div className="register-link" style={{ marginTop: "20px" }}>
             <Link href="/login">
-              <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} style={{ marginInlineEnd: "6px" }}></i>
+              <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
               {t.forgot_password.back_to_login}
             </Link>
           </div>

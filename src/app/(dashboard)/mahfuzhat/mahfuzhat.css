@@ -7,6 +7,7 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: max(85px, calc(env(safe-area-inset-top, 20px) + 65px)) 16px 85px 16px;
     color: var(--text-primary, #f8fafc);
     box-sizing: border-box;
@@ -14,8 +15,6 @@
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 /* Subtle background hook */
@@ -115,10 +114,8 @@
    -------------------------------------------------------------------------- */
 .mahfuzhat-tabs-nav {
     display: flex;
-    background: rgba(12, 18, 30, 0.8);
+    background: rgba(12, 18, 30, 0.94);
     border: 1px solid rgba(212, 175, 55, 0.25);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border-radius: 35px;
     padding: 4px;
     gap: 4px;
@@ -136,6 +133,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-height: 44px;
     padding: 9px 18px;
     background: transparent;
     border: none;
@@ -148,9 +146,11 @@
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.mahfuzhat-tab-btn:hover {
-    color: var(--gold-main, #d4af37);
-    background: rgba(212, 175, 55, 0.08);
+@media (hover: hover) and (pointer: fine) {
+    .mahfuzhat-tab-btn:hover {
+        color: var(--gold-main, #d4af37);
+        background: rgba(212, 175, 55, 0.08);
+    }
 }
 
 .mahfuzhat-tab-btn.active {
@@ -178,11 +178,10 @@
 .library-search-input {
     width: 100%;
     box-sizing: border-box;
-    padding: 12px 42px 12px 42px;
-    background: rgba(12, 18, 30, 0.7);
+    min-height: 44px;
+    padding: 12px 44px 12px 44px;
+    background: rgba(12, 18, 30, 0.92);
     border: 1px solid rgba(212, 175, 55, 0.22);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border-radius: 14px;
     color: #ffffff;
     font-size: 0.9rem;
@@ -276,7 +275,7 @@
 
 /* Individual Mahfuzhat Card */
 .mahfuzhat-card {
-    background: linear-gradient(145deg, rgba(16, 24, 40, 0.85) 0%, rgba(10, 15, 26, 0.9) 100%);
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.94) 0%, rgba(10, 15, 26, 0.96) 100%);
     border: 1px solid rgba(212, 175, 55, 0.2);
     border-radius: 20px;
     padding: 20px;
@@ -284,18 +283,18 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
 
-.mahfuzhat-card:hover {
-    transform: translateY(-3px);
-    border-color: rgba(212, 175, 55, 0.5);
-    box-shadow: 0 14px 40px rgba(212, 175, 55, 0.15);
+@media (hover: hover) and (pointer: fine) {
+    .mahfuzhat-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(212, 175, 55, 0.5);
+        box-shadow: 0 14px 40px rgba(212, 175, 55, 0.15);
+    }
 }
 
 .mahfuzhat-card-header {
@@ -306,7 +305,7 @@
 }
 
 .mahfuzhat-number-badge {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--gold-main, #d4af37);
     background: rgba(212, 175, 55, 0.12);
@@ -316,7 +315,7 @@
 }
 
 .mahfuzhat-cat-badge {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #94a3b8;
     background: rgba(255, 255, 255, 0.05);
@@ -338,10 +337,13 @@
     font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', serif;
     font-size: clamp(1.4rem, 3.2vw, 1.85rem);
     line-height: 2.1;
+    letter-spacing: 0;
     direction: rtl;
     color: #ffffff;
     text-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
     margin: 0;
+    user-select: text;
+    -webkit-user-select: text;
 }
 
 .mahfuzhat-latin {
@@ -469,8 +471,15 @@
 }
 
 @keyframes floatIcon {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 .quiz-welcome-title {
@@ -568,27 +577,22 @@
     gap: 6px;
     font-size: 0.84rem;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     padding: 4px 14px;
     border-radius: 14px;
     transition: all 0.3s ease;
 }
 
 .hud-timer.normal {
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.12);
-    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: var(--emerald-main, #10b981);
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.35);
 }
 
 .hud-timer.warning {
     color: #ef4444;
     background: rgba(239, 68, 68, 0.15);
     border: 1px solid rgba(239, 68, 68, 0.4);
-    animation: pulseTimer 0.6s infinite alternate;
-}
-
-@keyframes pulseTimer {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.06); }
 }
 
 /* Timer Bar Progress */
@@ -602,7 +606,7 @@
 
 .quiz-timer-fill {
     height: 100%;
-    background: linear-gradient(90deg, #d4af37, #38bdf8);
+    background: linear-gradient(90deg, #d4af37, #10b981);
     transition: width 1s linear;
 }
 
@@ -693,9 +697,21 @@
 }
 
 @keyframes shakeWrong {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-6px); }
-    40%, 80% { transform: translateX(6px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20%,
+    60% {
+        transform: translateX(-6px);
+    }
+
+    40%,
+    80% {
+        transform: translateX(6px);
+    }
 }
 
 /* Explanation / Next Area */
@@ -898,9 +914,7 @@
 .story-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.88);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -917,7 +931,7 @@
     padding: 20px;
     max-width: 480px;
     width: 100%;
-    max-height: 90vh;
+    max-height: 90dvh;
     overflow-y: auto;
     box-sizing: border-box;
     display: flex;
@@ -949,9 +963,13 @@
     background: none;
     border: none;
     color: #94a3b8;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
     cursor: pointer;
-    padding: 4px;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Story Preview Box (9:16 Aspect) */
@@ -1011,8 +1029,15 @@
    Animations & Toast
    -------------------------------------------------------------------------- */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .mahfuzhat-toast {
@@ -1038,6 +1063,7 @@
     body:not(.sidebar-closed) .mahfuzhat-toast {
         bottom: max(95px, calc(80px + env(safe-area-inset-bottom, 16px)));
     }
+
     body.sidebar-closed .mahfuzhat-toast {
         bottom: max(24px, calc(16px + env(safe-area-inset-bottom, 0px)));
     }
@@ -1256,6 +1282,16 @@
         max-width: 95vw;
         max-height: calc(100dvh - 36px);
         padding: 18px 14px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mahfuzhat-card,
+    .quiz-option-btn,
+    .card-action-btn,
+    .story-modal-box {
+        animation: none !important;
+        transition: none !important;
     }
 }
 

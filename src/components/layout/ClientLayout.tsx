@@ -6,6 +6,7 @@ import LoadingScreen from "./LoadingScreen";
 import AppUpdateChecker from "./AppUpdateChecker";
 import AppNotificationManager from "./AppNotificationManager";
 import DynamicPageTranslator from "@/components/i18n/DynamicPageTranslator";
+import CommandPalette from "@/components/layout/CommandPalette";
 import { ToastProvider } from "./AegisToast";
 import { ConfirmProvider } from "./AegisConfirm";
 import gsap from "gsap";
@@ -41,7 +42,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
               try {
                 const u = new URL(target);
                 target = u.pathname + u.search + u.hash;
-              } catch {}
+              } catch { }
             }
             if (target && window.location.pathname + window.location.search !== target) {
               window.location.href = target;
@@ -97,7 +98,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ userId: data.user.id }),
               });
-            } catch {}
+            } catch { }
             window.history.replaceState(null, "", window.location.pathname);
             window.location.href = "/beranda";
           }
@@ -180,7 +181,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const isCoarseOnly = window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches;
     const hasFinePointer = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
     if (window.innerWidth <= 1024 || isCoarseOnly || !hasFinePointer) return;
-    
+
     const isLite = document.documentElement.getAttribute("data-perf") === "lite";
     if (isLite) return;
 
@@ -352,6 +353,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         {!isPublicMicrosite && <AppNotificationManager />}
         <DynamicPageTranslator />
         {children}
+        {!isPublicMicrosite && <CommandPalette />}
       </ToastProvider>
     </ConfirmProvider>
   );

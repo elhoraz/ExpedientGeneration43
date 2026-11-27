@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import {
   ASMAUL_HUSNA_DATA,
   ASMA_CATEGORIES,
@@ -30,6 +31,9 @@ export default function AsmaulHusnaClient() {
   const [storyItem, setStoryItem] = useState<AsmaulHusnaItem | null>(null);
   const [storyTheme, setStoryTheme] = useState<StoryTheme>("obsidian");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useDialogEscape(Boolean(selectedAsma), () => setSelectedAsma(null));
+  useDialogEscape(storyModalOpen, () => setStoryModalOpen(false));
 
   // Dedicated Tasbih Mode State
   const [tasbihAsma, setTasbihAsma] = useState<AsmaulHusnaItem>(ASMAUL_HUSNA_DATA[0]);
@@ -185,7 +189,7 @@ export default function AsmaulHusnaClient() {
       playClickSound();
       stopActiveAudio();
 
-      showToast(locale === "ar" ? `تلاوة: يا ${item.arabic} 🔊` : locale === "en" ? `Reciting: Ya ${item.latin} 🔊` : `Melafalkan: Ya ${item.latin} 🔊`);
+      showToast(locale === "ar" ? `تلاوة: يا ${item.arabic}` : locale === "en" ? `Reciting: Ya ${item.latin}` : `Melafalkan: Ya ${item.latin}`);
 
       try {
         const spokenText = `يا ${item.arabic.replace(/^ال/, "")}، ${item.arabic}`;
@@ -546,11 +550,11 @@ export default function AsmaulHusnaClient() {
     link.download = `asmaul-husna-${storyItem.number}-${storyItem.latin.toLowerCase()}.png`;
     link.href = canvasRef.current.toDataURL("image/png");
     link.click();
-    showToast(locale === "ar" ? "تم تحميل بطاقة قصة أسماء الله الحسنى بنجاح! 📲" : locale === "en" ? "Asmaul Husna story card downloaded successfully! 📲" : "Story card Asmaul Husna berhasil diunduh! 📲");
+    showToast(locale === "ar" ? "تم تحميل بطاقة قصة أسماء الله الحسنى بنجاح" : locale === "en" ? "Asmaul Husna story card downloaded" : "Story card Asmaul Husna berhasil diunduh");
   };
 
   const shareToWhatsApp = (item: AsmaulHusnaItem) => {
-    const text = `*Asmaul Husna Hari Ini: ${item.arabic} (${item.latin})*\n\n"${item.translation}"\n📖 *Dalil Al-Qur'an:* ${item.quranRef}\n\n💡 *Tadabbur & Makna:*\n${item.meaning}\n\n📿 *Amalan Dzikir:*\n${item.dhikrBenefit}\n\nPelajari 99 Asmaul Husna: https://angkatan43.id/asmaul-husna`;
+    const text = `*Asmaul Husna Hari Ini: ${item.arabic} (${item.latin})*\n\n"${item.translation}"\n*Dalil Al-Qur'an:* ${item.quranRef}\n\n*Tadabbur & Makna:*\n${item.meaning}\n\n*Amalan Dzikir:*\n${item.dhikrBenefit}\n\nPelajari 99 Asmaul Husna: https://angkatan43.id/asmaul-husna`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -595,7 +599,7 @@ export default function AsmaulHusnaClient() {
             className={`asma-tab-btn ${activeTab === "gallery" ? "active" : ""}`}
             onClick={() => setActiveTab("gallery")}
           >
-            <span>💎</span>
+            <i className="fa-solid fa-gem" aria-hidden="true"></i>
             <span>{t.asmaul_husna.tab_gallery}</span>
           </button>
           <button
@@ -603,7 +607,7 @@ export default function AsmaulHusnaClient() {
             className={`asma-tab-btn ${activeTab === "tasbih" ? "active" : ""}`}
             onClick={() => setActiveTab("tasbih")}
           >
-            <span>📿</span>
+            <i className="fa-solid fa-circle-dot" aria-hidden="true"></i>
             <span>{t.asmaul_husna.tab_tasbih}</span>
           </button>
           <button
@@ -611,7 +615,7 @@ export default function AsmaulHusnaClient() {
             className={`asma-tab-btn ${activeTab === "player" ? "active" : ""}`}
             onClick={() => setActiveTab("player")}
           >
-            <span>🎧</span>
+            <i className="fa-solid fa-headphones" aria-hidden="true"></i>
             <span>{t.asmaul_husna.tab_murottal}</span>
           </button>
           <button
@@ -619,7 +623,7 @@ export default function AsmaulHusnaClient() {
             className={`asma-tab-btn ${activeTab === "favorites" ? "active" : ""}`}
             onClick={() => setActiveTab("favorites")}
           >
-            <span>⭐</span>
+            <i className="fa-solid fa-star" aria-hidden="true"></i>
             <span>{t.asmaul_husna.tab_favorites} ({favorites.length})</span>
           </button>
         </nav>
@@ -632,8 +636,12 @@ export default function AsmaulHusnaClient() {
             <div className="asma-controls">
               {/* Search Bar */}
               <div className="asma-search-bar">
-                <span className="asma-search-icon">🔍</span>
+                <i className="fa-solid fa-magnifying-glass asma-search-icon" aria-hidden="true"></i>
+                <label htmlFor="asmaSearchInput" className="sr-only">
+                  {t.asmaul_husna.search_placeholder}
+                </label>
                 <input
+                  id="asmaSearchInput"
                   type="text"
                   className="asma-search-input"
                   placeholder={t.asmaul_husna.search_placeholder}
@@ -645,9 +653,10 @@ export default function AsmaulHusnaClient() {
                     type="button"
                     className="asma-search-clear"
                     onClick={() => setSearchQuery("")}
+                    aria-label={locale === "ar" ? "مسح البحث" : locale === "en" ? "Clear search" : "Hapus pencarian"}
                     title={locale === "ar" ? "مسح البحث" : locale === "en" ? "Clear search" : "Hapus pencarian"}
                   >
-                    ✕
+                    <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                   </button>
                 )}
               </div>
@@ -662,7 +671,6 @@ export default function AsmaulHusnaClient() {
                       className={`asma-cat-chip ${selectedCategory === cat.key ? "active" : ""}`}
                       onClick={() => setSelectedCategory(cat.key)}
                     >
-                      <span>{cat.icon}</span>
                       <span>{cat.label}</span>
                     </button>
                   ))}
@@ -680,7 +688,6 @@ export default function AsmaulHusnaClient() {
                   <article
                     key={item.number}
                     className={`asma-jewel-card ${isPlayingThis ? "active-playback" : ""}`}
-                    onClick={() => setSelectedAsma(item)}
                   >
                     <div className="asma-card-top">
                       <span className="asma-num-badge">#{String(item.number).padStart(2, "0")}</span>
@@ -688,24 +695,43 @@ export default function AsmaulHusnaClient() {
                         type="button"
                         className={`asma-fav-btn ${isFav ? "favorited" : ""}`}
                         onClick={(e) => toggleFavorite(item.number, e)}
+                        aria-label={isFav ? (locale === "ar" ? "إزالة من المفضلة" : locale === "en" ? "Remove from favorites" : "Hapus dari favorit") : (locale === "ar" ? "حفظ في المفضلة" : locale === "en" ? "Save to favorites" : "Simpan ke favorit")}
                         title={isFav ? (locale === "ar" ? "إزالة من المفضلة" : locale === "en" ? "Remove from favorites" : "Hapus dari favorit") : (locale === "ar" ? "حفظ في المفضلة" : locale === "en" ? "Save to favorites" : "Simpan ke favorit")}
                       >
-                        {isFav ? "★" : "☆"}
+                        <i className={isFav ? "fa-solid fa-star" : "fa-regular fa-star"} aria-hidden="true"></i>
                       </button>
                     </div>
 
-                    <p className="asma-arabic-display">{item.arabic}</p>
-                    <h3 className="asma-latin-title">{item.latin}</h3>
-                    <p className="asma-meaning-text">{item.translation}</p>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedAsma(item)}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        padding: 0,
+                        width: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: "6px",
+                        cursor: "pointer",
+                        color: "inherit",
+                      }}
+                    >
+                      <p className="asma-arabic-display" lang="ar" dir="rtl">{item.arabic}</p>
+                      <h3 className="asma-latin-title">{item.latin}</h3>
+                      <p className="asma-meaning-text">{item.translation}</p>
+                    </button>
 
                     <div className="asma-card-footer">
                       <button
                         type="button"
                         className="asma-mini-btn"
                         onClick={(e) => speakAsma(item, e)}
+                        aria-label={locale === "ar" ? "استمع للفظ" : locale === "en" ? "Listen to pronunciation" : "Dengarkan pelafalan"}
                         title={locale === "ar" ? "استمع للفظ" : locale === "en" ? "Listen to pronunciation" : "Dengarkan pelafalan"}
                       >
-                        <span>🔊</span>
+                        <i className="fa-solid fa-volume-high" aria-hidden="true"></i>
                       </button>
                       <button
                         type="button"
@@ -713,7 +739,8 @@ export default function AsmaulHusnaClient() {
                         onClick={(e) => startDzikirWithAsma(item, e)}
                         title={locale === "ar" ? "ابدأ التسبيح بهذا الاسم" : locale === "en" ? "Open tasbih for this name" : "Buka tasbih untuk asma ini"}
                       >
-                        <span>📿 {t.asmaul_husna.dzikir_btn}</span>
+                        <i className="fa-solid fa-hands-praying" aria-hidden="true"></i>
+                        <span>{t.asmaul_husna.dzikir_btn}</span>
                       </button>
                       <button
                         type="button"
@@ -721,7 +748,8 @@ export default function AsmaulHusnaClient() {
                         onClick={(e) => openStoryModal(item, e)}
                         title={locale === "ar" ? "إنشاء بطاقة قصة واتساب" : locale === "en" ? "Create WhatsApp Story Card" : "Buat Story Card WhatsApp"}
                       >
-                        <span>🎨 {t.asmaul_husna.story_btn}</span>
+                        <i className="fa-solid fa-image" aria-hidden="true"></i>
+                        <span>{t.asmaul_husna.story_btn}</span>
                       </button>
                     </div>
                   </article>
@@ -730,8 +758,8 @@ export default function AsmaulHusnaClient() {
             </div>
 
             {filteredList.length === 0 && (
-              <div style={{ textAlign: "center", padding: "40px 20px", color: "#94a3b8" }}>
-                <p style={{ fontSize: "1.8rem", marginBottom: "8px" }}>🍃</p>
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-secondary)" }}>
+                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" style={{ fontSize: "1.6rem", marginBottom: "8px", opacity: 0.6 }}></i>
                 <p>
                   {activeTab === "favorites"
                     ? t.asmaul_husna.empty_favorites
@@ -774,14 +802,14 @@ export default function AsmaulHusnaClient() {
 
               {/* Display Current Asma */}
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontFamily: "'Amiri', serif", fontSize: "2.8rem", color: "#ffffff", direction: "rtl", textShadow: "0 0 20px rgba(212,175,55,0.4)" }}>
+                <div style={{ fontFamily: "'Amiri', serif", fontSize: "2.8rem", color: "var(--text-primary)", direction: "rtl", textShadow: "0 0 20px rgba(212,175,55,0.2)" }} lang="ar" dir="rtl">
                   يَا {tasbihAsma.arabic.replace(/^ال/, "")}
                 </div>
                 <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--gold-main)" }}>
                   Ya {tasbihAsma.latin}
                 </div>
-                <div style={{ fontSize: "0.85rem", color: "#94a3b8", marginTop: "2px" }}>
-                  "{tasbihAsma.translation}"
+                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginTop: "2px" }}>
+                  &ldquo;{tasbihAsma.translation}&rdquo;
                 </div>
               </div>
 
@@ -803,14 +831,14 @@ export default function AsmaulHusnaClient() {
               </div>
 
               {/* Interactive SVG Dial Tap Button */}
-              <div
+              <button
+                type="button"
                 className="tasbih-dial-container"
                 onClick={handleTasbihTap}
-                role="button"
-                tabIndex={0}
                 aria-label={t.asmaul_husna.tap_to_count}
+                style={{ background: "transparent", border: "none", padding: 0 }}
               >
-                <svg className="tasbih-dial-svg" viewBox="0 0 220 220">
+                <svg className="tasbih-dial-svg" viewBox="0 0 220 220" aria-hidden="true">
                   <circle className="tasbih-track" cx="110" cy="110" r={radius} />
                   <circle
                     className="tasbih-progress"
@@ -830,12 +858,12 @@ export default function AsmaulHusnaClient() {
                     {tasbihTarget > 0 ? `${t.asmaul_husna.target_times} ${tasbihTarget}x` : t.asmaul_husna.free_target}
                   </span>
                 </div>
-              </div>
+              </button>
 
               {/* Action Buttons */}
               <div className="tasbih-actions-bar">
                 <button type="button" className="tasbih-tool-btn" onClick={resetTasbih}>
-                  <span>🔄</span>
+                  <i className="fa-solid fa-rotate-left" aria-hidden="true"></i>
                   <span>{t.asmaul_husna.reset_btn}</span>
                 </button>
                 <button
@@ -843,7 +871,7 @@ export default function AsmaulHusnaClient() {
                   className="tasbih-tool-btn"
                   onClick={() => setSoundEnabled(!soundEnabled)}
                 >
-                  <span>{soundEnabled ? "🔊" : "🔇"}</span>
+                  <i className={`fa-solid ${soundEnabled ? "fa-volume-high" : "fa-volume-xmark"}`} aria-hidden="true"></i>
                   <span>{soundEnabled ? t.asmaul_husna.sound_active : t.asmaul_husna.sound_mute}</span>
                 </button>
                 <button
@@ -851,7 +879,7 @@ export default function AsmaulHusnaClient() {
                   className="tasbih-tool-btn"
                   onClick={() => setSelectedAsma(tasbihAsma)}
                 >
-                  <span>📖</span>
+                  <i className="fa-solid fa-book-open" aria-hidden="true"></i>
                   <span>{t.asmaul_husna.tadabbur_btn}</span>
                 </button>
               </div>
@@ -865,7 +893,7 @@ export default function AsmaulHusnaClient() {
         {activeTab === "player" && (
           <div className="murattal-player-card">
             <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", color: "var(--gold-main)", fontSize: "0.8rem", fontWeight: 700, textTransform: "uppercase" }}>
-              <span>🎧</span>
+              <i className="fa-solid fa-headphones" aria-hidden="true"></i>
               <span>{t.asmaul_husna.auto_player_title}</span>
             </div>
 
@@ -880,8 +908,9 @@ export default function AsmaulHusnaClient() {
               <p style={{ fontSize: "0.95rem", color: "#cbd5e1", margin: 0 }}>
                 "{ASMAUL_HUSNA_DATA[currentPlayIndex].translation}"
               </p>
-              <div className="asma-quran-ref-badge" style={{ marginTop: "6px" }}>
-                📖 {ASMAUL_HUSNA_DATA[currentPlayIndex].quranRef}
+              <div className="asma-quran-ref-badge" style={{ marginTop: "6px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <i className="fa-solid fa-book-open" aria-hidden="true"></i>
+                <span>{ASMAUL_HUSNA_DATA[currentPlayIndex].quranRef}</span>
               </div>
             </div>
 
@@ -897,16 +926,17 @@ export default function AsmaulHusnaClient() {
                 }}
                 title={locale === "ar" ? "الاسم السابق" : locale === "en" ? "Previous Name" : "Asma Sebelumnya"}
               >
-                ⏮
+                <i className="fa-solid fa-backward-step" aria-hidden="true"></i>
               </button>
 
               <button
                 type="button"
                 className="player-round-btn play"
                 onClick={isPlaying ? pauseSequentialPlay : startSequentialPlay}
+                aria-label={isPlaying ? (locale === "ar" ? "إيقاف مؤقت" : locale === "en" ? "Pause" : "Jeda") : (locale === "ar" ? "تشغيل متتابع" : locale === "en" ? "Play Sequentially" : "Putar Berurutan")}
                 title={isPlaying ? (locale === "ar" ? "إيقاف مؤقت" : locale === "en" ? "Pause" : "Jeda") : (locale === "ar" ? "تشغيل متتابع" : locale === "en" ? "Play Sequentially" : "Putar Berurutan")}
               >
-                {isPlaying ? "⏸" : "▶"}
+                <i className={isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play"} aria-hidden="true"></i>
               </button>
 
               <button
@@ -917,13 +947,14 @@ export default function AsmaulHusnaClient() {
                   setCurrentPlayIndex(next);
                   if (isPlaying) playNextSequential(next);
                 }}
+                aria-label={locale === "ar" ? "الاسم التالي" : locale === "en" ? "Next Name" : "Asma Berikutnya"}
                 title={locale === "ar" ? "الاسم التالي" : locale === "en" ? "Next Name" : "Asma Berikutnya"}
               >
-                ⏭
+                <i className="fa-solid fa-forward-step" aria-hidden="true"></i>
               </button>
             </div>
 
-            <p style={{ fontSize: "0.82rem", color: "#94a3b8", textAlign: "center", maxWidth: "480px" }}>
+            <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", textAlign: "center", maxWidth: "480px" }}>
               {locale === "ar" ? "يقوم هذا الوضع بتشغيل تلاوة 99 اسماً من أسماء الله الحسنى تلقائياً من 1 إلى 99. مناسب للاستماع أثناء الراحة أو القيادة أو الحفظ." : locale === "en" ? "This mode automatically plays the recitation of the 99 Names of Allah sequentially from 1 to 99. Ideal for listening during rest, commute, or memorization." : "Mode ini memutar pelafalan 99 Asmaul Husna secara otomatis dari nomor 1 hingga 99. Cocok didengarkan saat beristirahat, berkendara, atau menghafal."}
             </p>
           </div>
@@ -933,7 +964,13 @@ export default function AsmaulHusnaClient() {
             MODAL TADABBUR & DETAIL LEMBAR
             ------------------------------------------------------------------ */}
         {selectedAsma && (
-          <div className="asma-modal-overlay" onClick={() => setSelectedAsma(null)}>
+          <div
+            className="asma-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedAsma.latin}
+            onClick={() => setSelectedAsma(null)}
+          >
             <div className="asma-modal-box" onClick={(e) => e.stopPropagation()}>
               <div className="asma-modal-header">
                 <span className="asma-num-badge">#{selectedAsma.number} / 99</span>
@@ -941,33 +978,34 @@ export default function AsmaulHusnaClient() {
                   type="button"
                   className="asma-modal-close"
                   onClick={() => setSelectedAsma(null)}
+                  aria-label={t.common.close}
                 >
-                  ✕
+                  <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
               </div>
 
-              <p className="asma-modal-arabic">{selectedAsma.arabic}</p>
+              <p className="asma-modal-arabic" lang="ar" dir="rtl">{selectedAsma.arabic}</p>
               <h2 className="asma-modal-latin">{selectedAsma.latin}</h2>
-              <p className="asma-modal-trans">"{selectedAsma.translation}"</p>
+              <p className="asma-modal-trans">&ldquo;{selectedAsma.translation}&rdquo;</p>
 
               <div className="asma-quran-ref-badge">
-                <span>📖</span>
+                <i className="fa-solid fa-book-open" aria-hidden="true"></i>
                 <span>{t.asmaul_husna.dalil_label}: {selectedAsma.quranRef}</span>
               </div>
 
               {/* Tadabbur Section */}
               <div className="asma-section-box">
                 <div className="asma-section-title">
-                  <span>💡</span>
+                  <i className="fa-regular fa-lightbulb" aria-hidden="true"></i>
                   <span>{t.asmaul_husna.meaning_label}</span>
                 </div>
                 <p className="asma-section-desc">{selectedAsma.meaning}</p>
               </div>
 
               {/* Fadhilah Dzikir Section */}
-              <div className="asma-section-box" style={{ borderColor: "rgba(16, 185, 129, 0.3)" }}>
-                <div className="asma-section-title" style={{ color: "#34d399" }}>
-                  <span>📿</span>
+              <div className="asma-section-box" style={{ borderColor: "rgba(16, 185, 129, 0.35)" }}>
+                <div className="asma-section-title" style={{ color: "#059669" }}>
+                  <i className="fa-solid fa-hands-praying" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "فضائل وذكر الاسم" : locale === "en" ? "Virtues & Dhikr Benefits" : "Khasiat & Amalan Dzikir"}</span>
                 </div>
                 <p className="asma-section-desc">{selectedAsma.dhikrBenefit}</p>
@@ -978,37 +1016,37 @@ export default function AsmaulHusnaClient() {
                 <button
                   type="button"
                   className="asma-mini-btn dzikir"
-                  style={{ padding: "10px 18px", fontSize: "0.85rem" }}
+                  style={{ padding: "10px 18px", fontSize: "0.85rem", minHeight: "44px" }}
                   onClick={() => startDzikirWithAsma(selectedAsma)}
                 >
-                  <span>📿</span>
+                  <i className="fa-solid fa-hands-praying" aria-hidden="true"></i>
                   <span>{t.asmaul_husna.dzikir_btn}</span>
                 </button>
                 <button
                   type="button"
                   className="asma-mini-btn"
-                  style={{ padding: "10px 16px", fontSize: "0.85rem" }}
+                  style={{ padding: "10px 16px", fontSize: "0.85rem", minHeight: "44px" }}
                   onClick={() => speakAsma(selectedAsma)}
                 >
-                  <span>🔊</span>
+                  <i className="fa-solid fa-volume-high" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "تلاوة" : locale === "en" ? "Recite" : "Lafalkan"}</span>
                 </button>
                 <button
                   type="button"
                   className="asma-mini-btn"
-                  style={{ padding: "10px 16px", fontSize: "0.85rem" }}
+                  style={{ padding: "10px 16px", fontSize: "0.85rem", minHeight: "44px" }}
                   onClick={() => openStoryModal(selectedAsma)}
                 >
-                  <span>🎨</span>
+                  <i className="fa-solid fa-image" aria-hidden="true"></i>
                   <span>{t.asmaul_husna.story_btn}</span>
                 </button>
                 <button
                   type="button"
                   className="asma-mini-btn"
-                  style={{ padding: "10px 16px", fontSize: "0.85rem" }}
+                  style={{ padding: "10px 16px", fontSize: "0.85rem", minHeight: "44px" }}
                   onClick={() => shareToWhatsApp(selectedAsma)}
                 >
-                  <span>📲</span>
+                  <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "واتساب" : locale === "en" ? "Share WA" : "Kirim WA"}</span>
                 </button>
               </div>
@@ -1020,31 +1058,44 @@ export default function AsmaulHusnaClient() {
             MODAL STORY CARD GENERATOR (HTML5 CANVAS)
             ------------------------------------------------------------------ */}
         {storyModalOpen && storyItem && (
-          <div className="asma-modal-overlay" onClick={() => setStoryModalOpen(false)}>
+          <div
+            className="asma-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.asmaul_husna.story_preview_title}
+            onClick={() => setStoryModalOpen(false)}
+          >
             <div className="asma-modal-box" onClick={(e) => e.stopPropagation()}>
               <div className="asma-modal-header">
                 <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--gold-main)" }}>
-                  🎨 {t.asmaul_husna.story_preview_title}
+                  <i className="fa-solid fa-image" aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
+                  {t.asmaul_husna.story_preview_title}
                 </span>
                 <button
                   type="button"
                   className="asma-modal-close"
                   onClick={() => setStoryModalOpen(false)}
+                  aria-label={t.common.close}
                 >
-                  ✕
+                  <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
               </div>
 
               {/* Theme Selector */}
-              <div style={{ display: "flex", gap: "8px", justifyContent: "center", width: "100%" }}>
-                {(["obsidian", "emerald", "ivory"] as StoryTheme[]).map((t) => (
+              <div style={{ display: "flex", gap: "8px", justifyContent: "center", width: "100%", flexWrap: "wrap" }}>
+                {(["obsidian", "emerald", "ivory"] as StoryTheme[]).map((themeItem) => (
                   <button
-                    key={t}
+                    key={themeItem}
                     type="button"
-                    className={`preset-chip ${storyTheme === t ? "active" : ""}`}
-                    onClick={() => setStoryTheme(t)}
+                    className={`preset-chip ${storyTheme === themeItem ? "active" : ""}`}
+                    onClick={() => setStoryTheme(themeItem)}
+                    style={{ minHeight: "44px" }}
                   >
-                    {t === "obsidian" ? "Hitam Klasik" : t === "emerald" ? "Hijau Zamrud" : "Putih Gading"}
+                    {themeItem === "obsidian"
+                      ? (locale === "ar" ? "أسود كلاسيكي" : locale === "en" ? "Classic Obsidian" : "Hitam Klasik")
+                      : themeItem === "emerald"
+                        ? (locale === "ar" ? "أخضر زمردي" : locale === "en" ? "Emerald Green" : "Hijau Zamrud")
+                        : (locale === "ar" ? "عاجي أبيض" : locale === "en" ? "Ivory White" : "Putih Gading")}
                   </button>
                 ))}
               </div>
@@ -1070,19 +1121,19 @@ export default function AsmaulHusnaClient() {
                 <button
                   type="button"
                   className="asma-mini-btn dzikir"
-                  style={{ width: "100%", justifyContent: "center", padding: "12px", fontSize: "0.9rem" }}
+                  style={{ width: "100%", justifyContent: "center", padding: "12px", fontSize: "0.9rem", minHeight: "44px" }}
                   onClick={downloadStoryImage}
                 >
-                  <span>📥</span>
+                  <i className="fa-solid fa-download" aria-hidden="true"></i>
                   <span>{t.asmaul_husna.story_download}</span>
                 </button>
                 <button
                   type="button"
                   className="asma-mini-btn"
-                  style={{ width: "100%", justifyContent: "center", padding: "10px", fontSize: "0.85rem" }}
+                  style={{ width: "100%", justifyContent: "center", padding: "10px", fontSize: "0.85rem", minHeight: "44px" }}
                   onClick={() => shareToWhatsApp(storyItem)}
                 >
-                  <span>📲</span>
+                  <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "مشاركة النص إلى واتساب" : locale === "en" ? "Share Text to WhatsApp" : "Bagikan Teks ke WhatsApp"}</span>
                 </button>
               </div>

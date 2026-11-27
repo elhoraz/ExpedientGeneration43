@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { getGuideByPath, PAGE_GUIDES, PageGuide } from "@/data/guideData";
+import { PageGuide } from "@/data/guideData";
+import { getLocalizedGuideByPath, GuideLocale } from "@/data/guideLocales";
 import PageGuideModal from "./PageGuideModal";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./guide.css";
@@ -13,37 +14,70 @@ export default function HelpButtonTrigger() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentGuide, setCurrentGuide] = useState<PageGuide | null>(null);
 
-  // Cari panduan untuk halaman aktif
+  // Cari panduan untuk halaman aktif sesuai bahasa aktif
   useEffect(() => {
     if (!pathname) return;
-    const matched = getGuideByPath(pathname);
+    const guideLocale: GuideLocale = locale === "en" || locale === "ar" ? locale : "id";
+    const matched = getLocalizedGuideByPath(pathname, guideLocale);
     if (matched) {
       setCurrentGuide(matched);
     } else {
-      // Fallback guide jika halaman belum terdaftar khusus
       setCurrentGuide({
         id: "general",
         route: pathname,
-        title: "Panduan Portal",
-        subtitle: "Layanan & Fitur Expedient Generation",
+        title: locale === "ar" ? "دليل البوابة" : locale === "en" ? "Portal Guide" : "Panduan Portal",
+        subtitle: locale === "ar" ? "خدمات ومزايا منصة إكسبيدينت 43" : locale === "en" ? "Expedient 43 Services & Features" : "Layanan & Fitur Expedient Generation",
         category: "utama",
-        categoryLabel: "Umum",
+        categoryLabel: locale === "ar" ? "عام" : locale === "en" ? "General" : "Umum",
         icon: "fa-solid fa-circle-question",
         summary:
-          "Selamat datang di portal alumni Expedient 43. Anda dapat menelusuri seluruh fitur lewat menu samping (Sidebar) atau membuka Pusat Panduan lengkap.",
-        howToUse: [
-          "Gunakan bilah navigasi samping untuk berpindah antar halaman.",
-          "Buka Pusat Panduan untuk membaca dokumentasi seluruh 30+ fitur portal.",
-          "Hubungi pengurus alumni jika memerlukan bantuan tambahan.",
-        ],
-        controls: [
-          { name: "Pusat Panduan", icon: "fa-solid fa-book-bookmark", desc: "Katalog seluruh dokumentasi fitur portal." },
-          { name: "Bilah Samping (Sidebar)", icon: "fa-solid fa-bars", desc: "Daftar navigasi menu utama dan fitur alumni." },
-        ],
-        tips: ["Seluruh fitur dapat diakses optimal melalui ponsel pintar maupun komputer."],
+          locale === "ar"
+            ? "مرحباً بك في بوابة خريجي إكسبيدينت 43. يمكنك التنقل عبر القائمة الجانبية أو فتح مركز الأدلة الكامل."
+            : locale === "en"
+            ? "Welcome to the Expedient 43 alumni portal. Browse features via the sidebar navigation or open the complete Guide Center."
+            : "Portal alumni Expedient 43 menyediakan seluruh layanan angkatan lewat menu samping dan Pusat Panduan.",
+        howToUse:
+          locale === "ar"
+            ? [
+                "استخدم شريط التنقل الجانبي للانتقال بين الصفحات.",
+                "افتح مركز الأدلة للاطلاع على شروحات ميزات البوابة.",
+                "تواصل مع منسقي الخريجين إذا احتجت إلى مساعدة إضافية.",
+              ]
+            : locale === "en"
+            ? [
+                "Use the sidebar navigation to switch between portal pages.",
+                "Open the Guide Center to read documentation across portal features.",
+                "Contact cohort administrators if you need further assistance.",
+              ]
+            : [
+                "Gunakan bilah navigasi samping untuk berpindah antar halaman.",
+                "Buka Pusat Panduan untuk membaca dokumentasi seluruh fitur portal.",
+                "Hubungi pengurus alumni jika memerlukan bantuan tambahan.",
+              ],
+        controls:
+          locale === "ar"
+            ? [
+                { name: "مركز الأدلة", icon: "fa-solid fa-book-bookmark", desc: "دليل شامل لمزايا البوابة." },
+                { name: "الشريط الجانبي", icon: "fa-solid fa-bars", desc: "قائمة التنقل الرئيسية لأقسام الخريجين." },
+              ]
+            : locale === "en"
+            ? [
+                { name: "Guide Center", icon: "fa-solid fa-book-bookmark", desc: "Directory of portal feature documentation." },
+                { name: "Sidebar Navigation", icon: "fa-solid fa-bars", desc: "Primary navigation menu for alumni modules." },
+              ]
+            : [
+                { name: "Pusat Panduan", icon: "fa-solid fa-book-bookmark", desc: "Katalog dokumentasi fitur portal." },
+                { name: "Bilah Samping", icon: "fa-solid fa-bars", desc: "Daftar navigasi menu utama alumni." },
+              ],
+        tips:
+          locale === "ar"
+            ? ["جميع المزايا مصممة للعمل بسلاسة على الهواتف الذكية وأجهزة الحاسوب."]
+            : locale === "en"
+            ? ["All features are optimized for both mobile phones and desktop screens."]
+            : ["Seluruh fitur dapat diakses dengan nyaman melalui ponsel maupun komputer."],
       });
     }
-  }, [pathname]);
+  }, [pathname, locale]);
 
   const [isSidebarClosed, setIsSidebarClosed] = useState(false);
 
@@ -75,40 +109,44 @@ export default function HelpButtonTrigger() {
 
   return (
     <>
-      <button
-        type="button"
-        id="btnFloatingHelp"
-        className="floating-help-btn"
-        onClick={() => {
-          if (navigator.vibrate) navigator.vibrate(20);
-          setIsOpen(true);
-        }}
-        title={`Bantuan & Bahasa / Help & Language (${locale.toUpperCase()})`}
-        aria-label="Bantuan dan Panduan Halaman"
-        aria-hidden={isSidebarClosed}
-        tabIndex={isSidebarClosed ? -1 : 0}
-      >
-        <span className="help-btn-icon">
-          <i className="fa-solid fa-question"></i>
-        </span>
-        <span className="help-btn-label">
-          {locale === "ar" ? "مساعدة" : locale === "en" ? "Help" : "Bantuan"}
-        </span>
-        <span className="help-btn-divider"></span>
-        <span
+      <div className={`floating-help-pill ${isSidebarClosed ? "is-hidden" : ""}`} aria-hidden={isSidebarClosed}>
+        <button
+          type="button"
+          id="btnFloatingHelp"
+          className="floating-help-btn"
+          onClick={() => {
+            if (navigator.vibrate) navigator.vibrate(20);
+            setIsOpen(true);
+          }}
+          title={locale === "ar" ? "دليل هذه الصفحة" : locale === "en" ? "Page Help & Guide" : "Bantuan & Panduan Halaman"}
+          aria-label={locale === "ar" ? "دليل هذه الصفحة" : locale === "en" ? "Page Help & Guide" : "Bantuan dan Panduan Halaman"}
+          tabIndex={isSidebarClosed ? -1 : 0}
+        >
+          <span className="help-btn-icon" aria-hidden="true">
+            <i className="fa-solid fa-question"></i>
+          </span>
+          <span className="help-btn-label">
+            {locale === "ar" ? "مساعدة" : locale === "en" ? "Help" : "Bantuan"}
+          </span>
+        </button>
+        <span className="help-btn-divider" aria-hidden="true"></span>
+        <button
+          type="button"
+          id="btnFloatingLang"
           className="help-btn-lang"
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
             const nextLocale = locale === "id" ? "ar" : locale === "ar" ? "en" : "id";
             if (navigator.vibrate) navigator.vibrate(15);
             setLocale(nextLocale);
           }}
-          title="Klik untuk beralih bahasa / Click to cycle language (ID → AR → EN)"
+          title={locale === "ar" ? "تغيير اللغة" : locale === "en" ? "Switch Language" : "Ganti Bahasa (ID / AR / EN)"}
+          aria-label={locale === "ar" ? "تغيير اللغة" : locale === "en" ? "Switch Language" : "Ganti Bahasa"}
+          tabIndex={isSidebarClosed ? -1 : 0}
         >
-          <i className="fa-solid fa-globe" style={{ fontSize: "0.72rem", marginRight: "3px" }}></i>
+          <i className="fa-solid fa-globe" aria-hidden="true" style={{ fontSize: "0.75rem", marginInlineEnd: "4px" }}></i>
           <span>{locale.toUpperCase()}</span>
-        </span>
-      </button>
+        </button>
+      </div>
 
       <PageGuideModal
         guide={currentGuide}

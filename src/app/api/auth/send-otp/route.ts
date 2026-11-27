@@ -158,7 +158,7 @@ export async function POST(request: Request) {
           <tr>
             <td style="padding: 40px 35px 25px; text-align: center;">
               <div style="font-size: 34px; line-height: 1; margin-bottom: 12px;">👑</div>
-              <h1 style="margin: 0 0 6px; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #ffd700; text-transform: uppercase;">
+              <h1 style="margin: 0 0 6px; font-family: Georgia, 'Times New Roman', serif; font-size: 24px; font-weight: 700; letter-spacing: 2px; color: #d4af37; text-transform: uppercase;">
                 Expedient Generation
               </h1>
               <div style="font-size: 11px; font-weight: 600; letter-spacing: 4px; color: #8fa397; text-transform: uppercase; margin-bottom: 18px;">
@@ -187,8 +187,8 @@ export async function POST(request: Request) {
               <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="margin: 25px 0 30px;">
                 <tr>
                   <td align="center">
-                    <div style="display: inline-block; padding: 18px 36px; background: rgba(212, 175, 55, 0.08); border: 2px solid #ffd700; border-radius: 14px; box-shadow: 0 0 30px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05); text-align: center;">
-                      <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #ffd700; font-weight: 700; margin-bottom: 6px;">
+                    <div style="display: inline-block; padding: 18px 36px; background: rgba(212, 175, 55, 0.08); border: 2px solid #d4af37; border-radius: 14px; box-shadow: 0 0 30px rgba(212, 175, 55, 0.2), inset 0 0 20px rgba(212, 175, 55, 0.05); text-align: center;">
+                      <div style="font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #d4af37; font-weight: 700; margin-bottom: 6px;">
                         KODE VERIFIKASI KEHORMATAN
                       </div>
                       <div style="font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 900; letter-spacing: 12px; color: #ffffff; text-shadow: 0 0 15px rgba(255, 215, 0, 0.6); padding-left: 12px;">
@@ -202,13 +202,13 @@ export async function POST(request: Request) {
               <!-- Notice Badge -->
               <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 12px 18px; margin-bottom: 25px; text-align: center;">
                 <p style="margin: 0; font-size: 12px; color: #94a3b8; line-height: 1.6;">
-                  ⏱️ Kode OTP ini berlaku selama <strong style="color: #ffd700;">10 menit</strong>.<br />
+                  Kode OTP ini berlaku selama <strong style="color: #d4af37;">10 menit</strong>.<br />
                   Jangan berikan kode ini kepada siapa pun demi keamanan akun Anda.
                 </p>
               </div>
 
               <!-- Quote Card -->
-              <div style="border-left: 3px solid #d4af37; background: rgba(212, 175, 55, 0.05); padding: 14px 18px; border-radius: 0 8px 8px 0; margin-bottom: 25px;">
+              <div style="border: 1px solid rgba(212, 175, 55, 0.28); border-top: 2px solid #d4af37; background: rgba(212, 175, 55, 0.05); padding: 14px 18px; border-radius: 8px; margin-bottom: 25px;">
                 <p style="margin: 0 0 6px; font-size: 13px; font-style: italic; color: #cbd5e1; line-height: 1.6;">
                   "Sesungguhnya orang-orang mukmin itu bersaudara, karena itu damaikanlah antara kedua saudaramu dan bertakwalah kepada Allah agar kamu mendapat rahmat."
                 </p>

@@ -36,7 +36,14 @@ export default function BukuTamuClient({ initialMessages, userId }: { initialMes
           const data = await res.json();
           setMessages([data, ...messages]);
           setNewMessage("");
-          await showAlert(t.common.success, t.buku_tamu.btn_submit);
+          await showAlert(
+            t.common.success,
+            locale === "ar"
+              ? "تم إرسال رسالتك إلى سجل الزوار بنجاح!"
+              : locale === "en"
+                ? "Your message has been posted to the guestbook!"
+                : "Pesan Anda berhasil ditambahkan ke Buku Tamu!"
+          );
       } else {
           await showAlert(t.common.error, t.common.error);
       }

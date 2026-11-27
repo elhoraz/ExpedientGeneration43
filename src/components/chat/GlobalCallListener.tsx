@@ -124,7 +124,7 @@ export default function GlobalCallListener() {
 
         // Trigger high-priority native system notification with banner, sound & vibration
         sendSystemNotification({
-          title: `📞 Panggilan ${data.callType === "video" ? "Video" : "Suara"} Masuk`,
+          title: `Panggilan ${data.callType === "video" ? "Video" : "Suara"} Masuk`,
           message: `${callerName} sedang menelepon Anda. Ketuk untuk menjawab.`,
           url: `/chat/personal/${data.callerId}?callAction=accept&type=${data.callType || "voice"}`,
           tag: `call-${data.callerId}`,

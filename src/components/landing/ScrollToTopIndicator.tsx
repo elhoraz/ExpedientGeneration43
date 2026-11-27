@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function ScrollToTopIndicator() {
+  const { locale } = useLanguage();
   const [showBtn, setShowBtn] = useState(false);
   const [scrollPercent, setScrollPercent] = useState(0);
 
@@ -50,11 +52,13 @@ export default function ScrollToTopIndicator() {
   const scrollToTop = () => {
     if (typeof window !== "undefined") {
       if (navigator.vibrate) navigator.vibrate(15);
+      const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const behavior: ScrollBehavior = reduceMotion ? "auto" : "smooth";
       const wrapper = document.querySelector(".landing-wrapper") as HTMLElement | null;
       if (wrapper && wrapper.scrollTop > 0) {
-        wrapper.scrollTo({ top: 0, behavior: "smooth" });
+        wrapper.scrollTo({ top: 0, behavior });
       } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.scrollTo({ top: 0, behavior });
       }
     }
   };
@@ -84,10 +88,10 @@ export default function ScrollToTopIndicator() {
           type="button"
           className="scroll-progress-fab"
           onClick={scrollToTop}
-          title={`Kembali ke atas (${scrollPercent}%)`}
-          aria-label="Scroll ke atas"
+          title={`${locale === "ar" ? "العودة إلى الأعلى" : locale === "en" ? "Back to top" : "Kembali ke atas"} (${scrollPercent}%)`}
+          aria-label={locale === "ar" ? "العودة إلى الأعلى" : locale === "en" ? "Scroll to top" : "Gulir ke atas"}
         >
-          <svg className="scroll-svg-ring" width={size} height={size}>
+          <svg className="scroll-svg-ring" width={size} height={size} aria-hidden="true">
             <circle
               className="scroll-ring-bg"
               stroke="rgba(212, 175, 55, 0.2)"
@@ -111,7 +115,7 @@ export default function ScrollToTopIndicator() {
             />
           </svg>
           <span className="scroll-fab-icon">
-            <i className="fa-solid fa-chevron-up"></i>
+            <i className="fa-solid fa-chevron-up" aria-hidden="true"></i>
           </span>
         </button>
       )}

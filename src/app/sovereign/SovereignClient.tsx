@@ -468,7 +468,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
             width: 50,
             height: 50,
             border: "2px solid rgba(212,175,55,0.1)",
-            borderTopColor: "#ffd700",
+            borderTopColor: "#d4af37",
             borderRadius: "50%",
             animation: "spinLoader 1s linear infinite",
             marginBottom: 20,
@@ -624,7 +624,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                 style={{
                   width: 44,
                   height: 16,
-                  background: "linear-gradient(135deg, #ffd700, #d4af37, #996515)",
+                  background: "linear-gradient(135deg, #d4af37, #c59b27, #996515)",
                   borderRadius: 4,
                   boxShadow: "0 2px 8px rgba(0,0,0,0.5)",
                 }}
@@ -794,7 +794,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                         textAlign: "center",
                         fontSize: 9,
                         letterSpacing: 2,
-                        color: "#ffd700",
+                        color: "#d4af37",
                         fontWeight: 700,
                       }}
                     >
@@ -1120,29 +1120,30 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
-                background: isLightMode ? "rgba(255,255,255,0.92)" : "rgba(18,22,30,0.88)",
-                padding: "3px 5px",
-                borderRadius: 20,
+                background: isLightMode ? "rgba(255,255,255,0.96)" : "rgba(18,22,30,0.94)",
+                padding: "4px 6px",
+                borderRadius: 24,
                 border: "1px solid rgba(212,175,55,0.35)",
                 boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
-                backdropFilter: "blur(12px)",
               }}
             >
               <button
+                type="button"
                 onClick={() => setCardFormat("id")}
                 style={{
-                  padding: "5px 12px",
-                  borderRadius: 14,
+                  minHeight: 40,
+                  padding: "6px 12px",
+                  borderRadius: 18,
                   border: "none",
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 700,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.4,
                   cursor: "pointer",
                   background:
                     cardFormat === "id"
                       ? "linear-gradient(135deg, #d4af37, #f3e5ab)"
                       : "transparent",
-                  color: cardFormat === "id" ? "#000" : isLightMode ? "#666" : "#94a3b8",
+                  color: cardFormat === "id" ? "#000" : isLightMode ? "#52525b" : "#94a3b8",
                   boxShadow: cardFormat === "id" ? "0 2px 8px rgba(212,175,55,0.4)" : "none",
                   transition: "all 0.2s ease",
                   display: "flex",
@@ -1150,25 +1151,27 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                   gap: 5,
                 }}
               >
-                <i className="fa-solid fa-id-badge" />
+                <i className="fa-solid fa-id-badge" aria-hidden="true" />
                 <span>ID Card</span>
               </button>
 
               <button
+                type="button"
                 onClick={() => setCardFormat("kta")}
                 style={{
-                  padding: "5px 12px",
-                  borderRadius: 14,
+                  minHeight: 40,
+                  padding: "6px 12px",
+                  borderRadius: 18,
                   border: "none",
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 700,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.4,
                   cursor: "pointer",
                   background:
                     cardFormat === "kta"
                       ? "linear-gradient(135deg, #d4af37, #f3e5ab)"
                       : "transparent",
-                  color: cardFormat === "kta" ? "#000" : isLightMode ? "#666" : "#94a3b8",
+                  color: cardFormat === "kta" ? "#000" : isLightMode ? "#52525b" : "#94a3b8",
                   boxShadow: cardFormat === "kta" ? "0 2px 8px rgba(212,175,55,0.4)" : "none",
                   transition: "all 0.2s ease",
                   display: "flex",
@@ -1176,7 +1179,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                   gap: 5,
                 }}
               >
-                <i className="fa-solid fa-address-card" />
+                <i className="fa-solid fa-address-card" aria-hidden="true" />
                 <span>KTA Horizontal</span>
               </button>
             </div>
@@ -1187,12 +1190,11 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                background: isLightMode ? "rgba(255,255,255,0.92)" : "rgba(18,22,30,0.88)",
+                background: isLightMode ? "rgba(255,255,255,0.96)" : "rgba(18,22,30,0.94)",
                 padding: "5px 8px",
                 borderRadius: 24,
                 border: "1px solid rgba(212,175,55,0.3)",
                 boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-                backdropFilter: "blur(12px)",
               }}
             >
               <button
@@ -1279,12 +1281,13 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       {/* ========================================================================= */}
       {showMobileChoiceModal && (
         <div
+          role="dialog"
+          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
             zIndex: 9999,
-            background: "rgba(0,0,0,0.88)",
-            backdropFilter: "blur(20px)",
+            background: "rgba(0,0,0,0.92)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1369,22 +1372,22 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                         width: 34,
                         height: 34,
                         borderRadius: "50%",
-                        background: "linear-gradient(135deg, #ffd700, #d4af37)",
+                        background: "linear-gradient(135deg, #d4af37, #aa8529)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        color: "#000",
-                        fontSize: 16,
+                        color: "#0b1410",
+                        fontSize: 14,
                         fontWeight: 900,
                       }}
                     >
-                      ⚡
+                      <i className="fa-solid fa-bolt" aria-hidden="true"></i>
                     </div>
                     <div>
                       <div style={{ fontSize: 14, fontWeight: 800, color: "#fff", letterSpacing: 0.5 }}>
                         Versi Super Ringan
                       </div>
-                      <div style={{ fontSize: 10, color: "#ffd700", fontWeight: 700 }}>
+                      <div style={{ fontSize: 10, color: "#d4af37", fontWeight: 700 }}>
                         SERINGAN-RINGANNYA (60 FPS)
                       </div>
                     </div>
@@ -1529,13 +1532,14 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       {/* ========================================================================= */}
       {showQrModal && (
         <div
+          role="dialog"
+          aria-modal="true"
           onClick={() => setShowQrModal(false)}
           style={{
             position: "fixed",
             inset: 0,
             zIndex: 9999,
-            background: "rgba(0,0,0,0.85)",
-            backdropFilter: "blur(16px)",
+            background: "rgba(0,0,0,0.92)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1677,29 +1681,33 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 7px 14px;
-          background: rgba(0, 0, 0, 0.65);
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 14px;
+          background: rgba(12, 16, 26, 0.92);
           border: 1px solid rgba(212, 175, 55, 0.4);
           border-radius: 20px;
-          color: #d4af37;
-          font-size: 11px;
+          color: var(--gold-main, #d4af37);
+          font-size: 12px;
           font-weight: 700;
-          letter-spacing: 1.5px;
+          letter-spacing: 0.06em;
           text-decoration: none;
           text-transform: uppercase;
-          backdrop-filter: blur(12px);
           box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-          transition: all 0.25s ease;
+          transition: transform 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
         }
         :root[data-theme='light'] .sovereign-back-btn {
-          background: rgba(255, 255, 255, 0.88);
-          color: #111;
+          background: rgba(255, 255, 255, 0.94);
+          color: #18181b;
         }
-        .sovereign-back-btn:hover {
-          transform: translateX(-3px);
-          box-shadow: 0 0 20px rgba(212,175,55,0.5);
-          border-color: #ffd700;
-          color: #fff;
+        @media (hover: hover) and (pointer: fine) {
+          .sovereign-back-btn:hover {
+            transform: translateX(-3px);
+            box-shadow: 0 6px 20px rgba(212,175,55,0.35);
+            border-color: var(--gold-main, #d4af37);
+            color: #fff;
+          }
         }
 
         .sovereign-header-actions {
@@ -1719,17 +1727,17 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           display: inline-flex;
           align-items: center;
           gap: 5px;
-          padding: 6px 12px;
+          min-height: 44px;
+          padding: 8px 14px;
           border-radius: 20px;
           border: 1px solid rgba(212, 175, 55, 0.4);
-          background: rgba(212, 175, 55, 0.15);
-          color: #d4af37;
-          font-size: 10px;
+          background: rgba(18, 22, 32, 0.92);
+          color: var(--gold-main, #d4af37);
+          font-size: 12px;
           font-weight: 700;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.04em;
           cursor: pointer;
-          backdrop-filter: blur(10px);
-          transition: all 0.2s ease;
+          transition: background-color 0.2s ease, border-color 0.2s ease;
         }
         :root[data-theme='light'] .sovereign-mode-pill-btn {
           background: rgba(124, 82, 10, 0.12);
@@ -1737,16 +1745,18 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         }
 
         #btnThemeToggle, #btnExportId {
-          width: 36px;
-          height: 36px;
+          width: 44px;
+          height: 44px;
+          min-width: 44px;
+          min-height: 44px;
           border-radius: 50%;
           display: flex;
           justify-content: center;
           align-items: center;
-          background: rgba(15, 20, 30, 0.85);
+          background: rgba(15, 20, 30, 0.94);
           border: 1px solid rgba(212, 175, 55, 0.35);
-          color: #d4af37;
-          font-size: 14px;
+          color: var(--gold-main, #d4af37);
+          font-size: 15px;
           cursor: pointer;
           transition: transform 0.2s ease, border-color 0.2s ease;
         }

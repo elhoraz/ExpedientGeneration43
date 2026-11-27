@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import {
   MAFHUZHAT_DATA,
   MAFHUZHAT_CATEGORIES,
@@ -37,6 +38,8 @@ export default function MahfuzhatClient() {
   const [storyItem, setStoryItem] = useState<MahfuzhatItem | null>(null);
   const [storyTheme, setStoryTheme] = useState<StoryTheme>("obsidian");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useDialogEscape(storyModalOpen, () => setStoryModalOpen(false));
 
   // Quiz Game State
   const [gameState, setGameState] = useState<"welcome" | "playing" | "answered" | "finished">("welcome");
@@ -189,7 +192,7 @@ export default function MahfuzhatClient() {
       // 2. Stop any existing audio or speech
       stopActiveAudio();
 
-      showToast(`Melafalkan: ${latinText || arabicText} 🔊`);
+      showToast(`Melafalkan: ${latinText || arabicText}`);
 
       // 3. Play authentic native Arabic audio stream
       try {
@@ -220,13 +223,13 @@ export default function MahfuzhatClient() {
   const copyMahfuzhat = (item: MahfuzhatItem) => {
     const text = `« ${item.arabic} »\n(${item.latin})\n\n"${item.translation}"\n\nHikmah:\n${item.syarah}\n\nExpedient Generation 43 · Mahfuzhat Santri`;
     navigator.clipboard.writeText(text).then(() => {
-      showToast("Kutipan berhasil disalin ke clipboard! 📋");
+      showToast("Kutipan berhasil disalin ke clipboard");
     });
   };
 
   // Share to WhatsApp
   const shareToWhatsApp = (item: MahfuzhatItem) => {
-    const text = `*Mahfuzhat Hari Ini - Expedient 43*\n\n« *${item.arabic}* »\n_${item.latin}_\n\n"${item.translation}"\n\n💡 *Syarah & Hikmah:*\n${item.syarah}\n\nKunjungi portal alumni: https://angkatan43.id/mahfuzhat`;
+    const text = `*Mahfuzhat Hari Ini - Expedient 43*\n\n« *${item.arabic}* »\n_${item.latin}_\n\n"${item.translation}"\n\n*Syarah & Hikmah:*\n${item.syarah}\n\nKunjungi portal alumni: https://angkatan43.id/mahfuzhat`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -491,7 +494,7 @@ export default function MahfuzhatClient() {
     link.download = `mahfuzhat-${storyItem.number}-${storyItem.latin.replace(/\s+/g, "-").toLowerCase()}.png`;
     link.href = canvasRef.current.toDataURL("image/png");
     link.click();
-    showToast("Story card berhasil diunduh! 📲");
+    showToast("Story card berhasil diunduh");
   };
 
   // --------------------------------------------------------------------------
@@ -611,7 +614,7 @@ export default function MahfuzhatClient() {
             className={`mahfuzhat-tab-btn ${activeTab === "library" ? "active" : ""}`}
             onClick={() => setActiveTab("library")}
           >
-            <span>📚</span>
+            <i className="fa-solid fa-book-open" aria-hidden="true"></i>
             <span>{locale === "ar" ? "المكتبة (30)" : locale === "en" ? "Library (30)" : "Perpustakaan (30)"}</span>
           </button>
           <button
@@ -619,7 +622,7 @@ export default function MahfuzhatClient() {
             className={`mahfuzhat-tab-btn ${activeTab === "quiz" ? "active" : ""}`}
             onClick={() => setActiveTab("quiz")}
           >
-            <span>⚡</span>
+            <i className="fa-solid fa-puzzle-piece" aria-hidden="true"></i>
             <span>{locale === "ar" ? "مسابقة الإكمال" : locale === "en" ? "Matching Quiz" : "Kuis Sambung"}</span>
           </button>
           <button
@@ -627,7 +630,7 @@ export default function MahfuzhatClient() {
             className={`mahfuzhat-tab-btn ${activeTab === "daily" ? "active" : ""}`}
             onClick={() => setActiveTab("daily")}
           >
-            <span>🌙</span>
+            <i className="fa-solid fa-moon" aria-hidden="true"></i>
             <span>{locale === "ar" ? "حكمة اليوم" : locale === "en" ? "Daily Wisdom" : "Mutiara Hari Ini"}</span>
           </button>
         </nav>
@@ -640,8 +643,12 @@ export default function MahfuzhatClient() {
             <div className="library-controls">
               {/* Search Bar */}
               <div className="library-search-bar">
-                <span className="library-search-icon">🔍</span>
+                <i className="fa-solid fa-magnifying-glass library-search-icon" aria-hidden="true"></i>
+                <label htmlFor="mahfuzhatSearchInput" className="sr-only">
+                  {locale === "ar" ? "ابحث في المحفوظات" : locale === "en" ? "Search mahfuzhat" : "Cari mahfuzhat"}
+                </label>
                 <input
+                  id="mahfuzhatSearchInput"
                   type="text"
                   className="library-search-input"
                   placeholder={locale === "ar" ? "ابحث في المحفوظات... (مثال: صبَرَ، وجد، علم)" : locale === "en" ? "Search mahfuzhat... (e.g. wajada, patience, knowledge)" : "Cari mahfuzhat... (contoh: wajada, sabar, teman, ilmu)"}
@@ -653,9 +660,11 @@ export default function MahfuzhatClient() {
                     type="button"
                     className="library-search-clear"
                     onClick={() => setSearchQuery("")}
+                    aria-label={locale === "ar" ? "مسح البحث" : locale === "en" ? "Clear search" : "Hapus pencarian"}
                     title={locale === "ar" ? "مسح البحث" : locale === "en" ? "Clear search" : "Hapus pencarian"}
+                    style={{ minWidth: "44px", minHeight: "44px" }}
                   >
-                    ✕
+                    <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                   </button>
                 )}
               </div>
@@ -669,7 +678,6 @@ export default function MahfuzhatClient() {
                     className={`cat-chip ${selectedCategory === cat.key ? "active" : ""}`}
                     onClick={() => setSelectedCategory(cat.key)}
                   >
-                    <span>{cat.icon}</span>
                     <span>{cat.label}</span>
                   </button>
                 ))}
@@ -694,34 +702,36 @@ export default function MahfuzhatClient() {
                           type="button"
                           className="card-action-btn"
                           onClick={() => toggleFavorite(item.id)}
+                          aria-label={isFav ? (locale === "ar" ? "إزالة من المفضلة" : locale === "en" ? "Remove from favorites" : "Hapus dari favorit") : (locale === "ar" ? "حفظ في المفضلة" : locale === "en" ? "Save to favorites" : "Simpan ke favorit")}
                           title={isFav ? (locale === "ar" ? "إزالة من المفضلة" : locale === "en" ? "Remove from favorites" : "Hapus dari favorit") : (locale === "ar" ? "حفظ في المفضلة" : locale === "en" ? "Save to favorites" : "Simpan ke favorit")}
-                          style={{ color: isFav ? "#d4af37" : "inherit" }}
+                          style={{ color: isFav ? "#d4af37" : "inherit", minWidth: "44px", minHeight: "44px" }}
                         >
-                          {isFav ? "★" : "☆"}
+                          <i className={isFav ? "fa-solid fa-star" : "fa-regular fa-star"} aria-hidden="true"></i>
                         </button>
                       </div>
                     </div>
 
                     {/* Arabic Text Display */}
                     <div className="mahfuzhat-arabic-box">
-                      <p className="mahfuzhat-arabic-text">{item.arabic}</p>
+                      <p className="mahfuzhat-arabic-text" lang="ar" dir="rtl">{item.arabic}</p>
                     </div>
 
                     {/* Latin & Translation */}
-                    <div className="mahfuzhat-latin">« {item.latin} »</div>
-                    <div className="mahfuzhat-translation">"{item.translation}"</div>
+                    <div className="mahfuzhat-latin">&laquo; {item.latin} &raquo;</div>
+                    <div className="mahfuzhat-translation">&ldquo;{item.translation}&rdquo;</div>
 
                     {/* Syarah Collapsible */}
                     <button
                       type="button"
                       className="mahfuzhat-syarah-toggle"
                       onClick={() => toggleSyarah(item.id)}
+                      aria-expanded={isExpanded}
                     >
                       <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span>💡</span>
+                        <i className="fa-regular fa-lightbulb" aria-hidden="true"></i>
                         <span>{locale === "ar" ? "الشرح والمعاني العميقة" : locale === "en" ? "Syarah & In-depth Meaning" : "Syarah & Makna Mendalam"}</span>
                       </span>
-                      <span>{isExpanded ? "▲" : "▼"}</span>
+                      <i className={`fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true"></i>
                     </button>
 
                     {isExpanded && (
@@ -743,7 +753,7 @@ export default function MahfuzhatClient() {
                         onClick={() => speakArabic(item.arabic, item.latin)}
                         title={locale === "ar" ? "استماع للنطق العربي" : locale === "en" ? "Listen Arabic pronunciation" : "Dengarkan pelafalan bahasa Arab"}
                       >
-                        <span>🔊</span>
+                        <i className="fa-solid fa-volume-high" aria-hidden="true"></i>
                         <span>{locale === "ar" ? "استماع" : locale === "en" ? "Pronounce" : "Lafalkan"}</span>
                       </button>
                       <button
@@ -752,7 +762,7 @@ export default function MahfuzhatClient() {
                         onClick={() => copyMahfuzhat(item)}
                         title={locale === "ar" ? "نسخ للحافظة" : locale === "en" ? "Copy to clipboard" : "Salin ke clipboard"}
                       >
-                        <span>📋</span>
+                        <i className="fa-regular fa-copy" aria-hidden="true"></i>
                         <span>{locale === "ar" ? "نسخ" : locale === "en" ? "Copy" : "Salin"}</span>
                       </button>
                       <button
@@ -761,7 +771,7 @@ export default function MahfuzhatClient() {
                         onClick={() => openStoryModal(item)}
                         title={locale === "ar" ? "إنشاء بطاقة قصة" : locale === "en" ? "Create story card" : "Buat kartu status WhatsApp / Instagram"}
                       >
-                        <span>🎨</span>
+                        <i className="fa-solid fa-image" aria-hidden="true"></i>
                         <span>Story Card</span>
                       </button>
                     </div>
@@ -771,8 +781,8 @@ export default function MahfuzhatClient() {
             </div>
 
             {filteredMahfuzhat.length === 0 && (
-              <div style={{ textAlign: "center", padding: "40px 20px", color: "#94a3b8" }}>
-                <p style={{ fontSize: "1.5rem", marginBottom: "8px" }}>🍃</p>
+              <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--text-secondary)" }}>
+                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" style={{ fontSize: "1.5rem", marginBottom: "8px", opacity: 0.6 }}></i>
                 <p>{locale === "ar" ? `لم يتم العثور على محفوظات بكلمة "${searchQuery}".` : locale === "en" ? `No mahfuzhat found matching "${searchQuery}".` : `Tidak ditemukan mahfuzhat dengan kata kunci "${searchQuery}".`}</p>
               </div>
             )}
@@ -787,22 +797,22 @@ export default function MahfuzhatClient() {
             {/* 1. Welcome Screen */}
             {gameState === "welcome" && (
               <div className="quiz-welcome-card">
-                <div className="quiz-welcome-icon">🕌</div>
+                <div className="quiz-welcome-icon"><i className="fa-solid fa-book-quran" aria-hidden="true"></i></div>
                 <h2 className="quiz-welcome-title">{locale === "ar" ? "مسابقة إكمال المحفوظات" : locale === "en" ? "Mahfuzhat Matching Quiz" : "Kuis Sambung Mahfuzhat"}</h2>
                 <p className="quiz-welcome-desc">
                   {locale === "ar" ? "اختبر قوة ذاكرتك واسترجع محفوظات أيام المعهد المباركة. أكمل شطر الحكمة قبل نفاد الوقت!" : locale === "en" ? "Test your memory and recall your boarding school mahfuzhat memories. Complete the wisdom before time runs out!" : "Uji ketajaman memori dan kenangan hafalan mahfuzhat Anda sewaktu di pesantren. Lanjutkan potongan kalimat hikmah dengan tepat sebelum waktu habis!"}
                 </p>
 
                 <div className="quiz-rules-list">
-                  <div>📌 <strong>{locale === "ar" ? "10 أسئلة" : locale === "en" ? "10 Questions" : "10 Pertanyaan"}</strong> {locale === "ar" ? "عشوائية من كنوز المحفوظات." : locale === "en" ? "random from mahfuzhat treasures." : "acak dari khazanah mahfuzhat."}</div>
-                  <div>⏳ <strong>{locale === "ar" ? "15 ثانية" : locale === "en" ? "15 Seconds" : "15 Detik"}</strong> {locale === "ar" ? "لكل سؤال." : locale === "en" ? "per question." : "batas waktu per pertanyaan."}</div>
-                  <div>🔥 <strong>{locale === "ar" ? "نقاط متتالية وسرعة" : locale === "en" ? "Streak & Speed Bonus" : "Streak & Speed Bonus"}</strong> {locale === "ar" ? "للإجابات الصحيحة والسريعة." : locale === "en" ? "for fast and accurate answers." : "untuk jawaban cepat dan akurat."}</div>
-                  <div>📜 <strong>{locale === "ar" ? "شهادة رقمية" : locale === "en" ? "Digital Certificate" : "Syahadah Digital"}</strong> {locale === "ar" ? "مع رتبة المعهد في نهاية المسابقة." : locale === "en" ? "with pesantren rank at the end." : "dengan predikat pesantren di akhir kuis."}</div>
+                  <div><i className="fa-solid fa-list-ol" aria-hidden="true" style={{ marginInlineEnd: "8px", color: "var(--gold-main)" }}></i><strong>{locale === "ar" ? "10 أسئلة" : locale === "en" ? "10 Questions" : "10 Pertanyaan"}</strong> {locale === "ar" ? "عشوائية من كنوز المحفوظات." : locale === "en" ? "random from mahfuzhat treasures." : "acak dari khazanah mahfuzhat."}</div>
+                  <div><i className="fa-regular fa-clock" aria-hidden="true" style={{ marginInlineEnd: "8px", color: "var(--gold-main)" }}></i><strong>{locale === "ar" ? "15 ثانية" : locale === "en" ? "15 Seconds" : "15 Detik"}</strong> {locale === "ar" ? "لكل سؤال." : locale === "en" ? "per question." : "batas waktu per pertanyaan."}</div>
+                  <div><i className="fa-solid fa-bolt" aria-hidden="true" style={{ marginInlineEnd: "8px", color: "var(--gold-main)" }}></i><strong>{locale === "ar" ? "نقاط متتالية وسرعة" : locale === "en" ? "Streak & Speed Bonus" : "Streak & Speed Bonus"}</strong> {locale === "ar" ? "للإجابات الصحيحة والسريعة." : locale === "en" ? "for fast and accurate answers." : "untuk jawaban cepat dan akurat."}</div>
+                  <div><i className="fa-solid fa-award" aria-hidden="true" style={{ marginInlineEnd: "8px", color: "var(--gold-main)" }}></i><strong>{locale === "ar" ? "شهادة رقمية" : locale === "en" ? "Digital Certificate" : "Syahadah Digital"}</strong> {locale === "ar" ? "مع رتبة المعهد في نهاية المسابقة." : locale === "en" ? "with pesantren rank at the end." : "dengan predikat pesantren di akhir kuis."}</div>
                 </div>
 
-                <button type="button" className="quiz-start-btn" onClick={startQuiz}>
+                <button type="button" className="quiz-start-btn" style={{ minHeight: "48px" }} onClick={startQuiz}>
                   <span>{locale === "ar" ? "بدء اختبار الحفظ" : locale === "en" ? "Start Memory Test" : "Mulai Uji Hafalan"}</span>
-                  <span>➜</span>
+                  <i className={`fa-solid ${locale === "ar" ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
                 </button>
               </div>
             )}
@@ -812,16 +822,17 @@ export default function MahfuzhatClient() {
               <div className="quiz-active-card">
                 {/* HUD Bar */}
                 <div className="quiz-hud-bar">
-                  <div className="hud-pill">
+                  <div className="hud-pill" style={{ fontVariantNumeric: "tabular-nums" }}>
                     <span>{locale === "ar" ? `السؤال ${currentQIndex + 1} / ${quizQuestions.length}` : locale === "en" ? `Question ${currentQIndex + 1} / ${quizQuestions.length}` : `Soal ${currentQIndex + 1} / ${quizQuestions.length}`}</span>
                   </div>
                   <div className={`hud-timer ${timeLeft <= 4 ? "warning" : "normal"}`}>
-                    <span>⏱️</span>
+                    <i className="fa-regular fa-clock" aria-hidden="true"></i>
                     <span>{timeLeft}s</span>
                   </div>
-                  <div className="hud-pill">
-                    <span>⭐ {locale === "ar" ? "النقاط: " : locale === "en" ? "Score: " : "Skor: "}{score}</span>
-                    {streak > 1 && <span style={{ color: "#f59e0b", marginLeft: "4px" }}>🔥 {streak}x</span>}
+                  <div className="hud-pill" style={{ fontVariantNumeric: "tabular-nums" }}>
+                    <i className="fa-solid fa-star" aria-hidden="true"></i>
+                    <span>{locale === "ar" ? "النقاط: " : locale === "en" ? "Score: " : "Skor: "}{score}</span>
+                    {streak > 1 && <span style={{ color: "#d97706", marginInlineStart: "4px" }}>{streak}x</span>}
                   </div>
                 </div>
 
@@ -835,11 +846,11 @@ export default function MahfuzhatClient() {
 
                 {/* Question Prompt */}
                 <div className="quiz-prompt-box">
-                  <div className="quiz-prompt-arabic">
+                  <div className="quiz-prompt-arabic" lang="ar" dir="rtl">
                     {quizQuestions[currentQIndex].item.quiz.questionPart}
                   </div>
                   <div className="quiz-prompt-hint">
-                    {locale === "ar" ? "تلميح: " : locale === "en" ? "Hint: " : "Petunjuk: "} "{quizQuestions[currentQIndex].item.translation}"
+                    {locale === "ar" ? "تلميح: " : locale === "en" ? "Hint: " : "Petunjuk: "} &ldquo;{quizQuestions[currentQIndex].item.translation}&rdquo;
                   </div>
                 </div>
 
@@ -863,7 +874,7 @@ export default function MahfuzhatClient() {
                         disabled={gameState === "answered"}
                         onClick={() => handleAnswer(idx)}
                       >
-                        <span className="quiz-opt-arabic">{opt}</span>
+                        <span className="quiz-opt-arabic" lang="ar" dir="rtl">{opt}</span>
                       </button>
                     );
                   })}
@@ -873,23 +884,27 @@ export default function MahfuzhatClient() {
                 {gameState === "answered" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
                     <div className="quiz-feedback-box">
-                      <div style={{ fontWeight: 700, color: "var(--gold-main)", marginBottom: "4px" }}>
-                        {selectedAnswer === quizQuestions[currentQIndex].correctIndex
-                          ? (locale === "ar" ? "ممتاز! إجابة صحيحة" : locale === "en" ? "Excellent! Correct Answer" : "Mumtaz! Jawaban Tepat")
-                          : selectedAnswer === -1
-                          ? (locale === "ar" ? "⏳ انتهى الوقت!" : locale === "en" ? "⏳ Time is Up!" : "⏳ Waktu Habis!")
-                          : (locale === "ar" ? "❌ غير صحيح" : locale === "en" ? "❌ Not Quite" : "❌ Belum Tepat")}
+                      <div style={{ fontWeight: 700, color: "var(--gold-main)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+                        {selectedAnswer === quizQuestions[currentQIndex].correctIndex ? (
+                          <><i className="fa-solid fa-circle-check" aria-hidden="true"></i> {locale === "ar" ? "ممتاز! إجابة صحيحة" : locale === "en" ? "Excellent! Correct Answer" : "Mumtaz! Jawaban Tepat"}</>
+                        ) : selectedAnswer === -1 ? (
+                          <><i className="fa-solid fa-hourglass-end" aria-hidden="true"></i> {locale === "ar" ? "انتهى الوقت!" : locale === "en" ? "Time is Up!" : "Waktu Habis!"}</>
+                        ) : (
+                          <><i className="fa-solid fa-circle-xmark" aria-hidden="true"></i> {locale === "ar" ? "غير صحيح" : locale === "en" ? "Not Quite" : "Belum Tepat"}</>
+                        )}
                       </div>
                       <div>{quizQuestions[currentQIndex].item.quiz.explanation}</div>
-                      <div style={{ marginTop: "6px", fontStyle: "italic", fontSize: "0.8rem", color: "#94a3b8" }}>
+                      <div style={{ marginTop: "6px", fontStyle: "italic", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
                         {locale === "ar" ? "الكامل: " : locale === "en" ? "Full: " : "Lengkap: "} {quizQuestions[currentQIndex].item.arabic} ({quizQuestions[currentQIndex].item.latin})
                       </div>
                     </div>
 
-                    <button type="button" className="quiz-next-btn" onClick={nextQuestion}>
-                      {currentQIndex + 1 < quizQuestions.length
-                        ? (locale === "ar" ? "السؤال التالي ➜" : locale === "en" ? "Next Question ➜" : "Lanjut ke Soal Berikutnya ➜")
-                        : (locale === "ar" ? "عرض النتيجة واللقب 🏆" : locale === "en" ? "View Rank & Result 🏆" : "Lihat Hasil Predikat 🏆")}
+                    <button type="button" className="quiz-next-btn" style={{ minHeight: "48px" }} onClick={nextQuestion}>
+                      {currentQIndex + 1 < quizQuestions.length ? (
+                        <>{locale === "ar" ? "السؤال التالي" : locale === "en" ? "Next Question" : "Lanjut ke Soal Berikutnya"} <i className={`fa-solid ${locale === "ar" ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i></>
+                      ) : (
+                        <><i className="fa-solid fa-trophy" aria-hidden="true"></i> {locale === "ar" ? "عرض النتيجة واللقب" : locale === "en" ? "View Rank & Result" : "Lihat Hasil Predikat"}</>
+                      )}
                     </button>
                   </div>
                 )}
@@ -899,11 +914,11 @@ export default function MahfuzhatClient() {
             {/* 3. Final Finished Screen */}
             {gameState === "finished" && (
               <div className="quiz-result-card">
-                <div className="result-badge-icon">{finalRank.badge}</div>
+                <div className="result-badge-icon"><i className="fa-solid fa-award" aria-hidden="true"></i></div>
                 <h2 className="result-rank-title">{finalRank.title}</h2>
                 <p className="result-rank-desc">{finalRank.desc}</p>
 
-                <div className="result-score-display">
+                <div className="result-score-display" style={{ fontVariantNumeric: "tabular-nums" }}>
                   <div className="score-item">
                     <span className="score-num">{score}</span>
                     <span className="score-label">{locale === "ar" ? "مجموع النقاط" : locale === "en" ? "Total Score" : "Total Skor"}</span>
@@ -929,9 +944,9 @@ export default function MahfuzhatClient() {
                     type="button"
                     className="card-action-btn primary"
                     onClick={startQuiz}
-                    style={{ padding: "10px 20px" }}
+                    style={{ padding: "10px 20px", minHeight: "44px" }}
                   >
-                    <span>🔄</span>
+                    <i className="fa-solid fa-rotate-left" aria-hidden="true"></i>
                     <span>{locale === "ar" ? "إعادة المسابقة" : locale === "en" ? "Retake Quiz" : "Ulangi Kuis"}</span>
                   </button>
                   <button
@@ -941,18 +956,18 @@ export default function MahfuzhatClient() {
                       const shareMsg = `Alhamdulillah! Saya meraih predikat *${finalRank.title}* dengan skor *${score}* pada Kuis Sambung Mahfuzhat Pesantren (Expedient 43). Yuk uji hafalanmu juga di: https://angkatan43.id/mahfuzhat`;
                       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareMsg)}`, "_blank");
                     }}
-                    style={{ padding: "10px 20px" }}
+                    style={{ padding: "10px 20px", minHeight: "44px" }}
                   >
-                    <span>📲</span>
+                    <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
                     <span>{locale === "ar" ? "مشاركة عبر واتساب" : locale === "en" ? "Share to WhatsApp" : "Bagikan ke WhatsApp"}</span>
                   </button>
                   <button
                     type="button"
                     className="card-action-btn"
                     onClick={() => setActiveTab("library")}
-                    style={{ padding: "10px 20px" }}
+                    style={{ padding: "10px 20px", minHeight: "44px" }}
                   >
-                    <span>📖</span>
+                    <i className="fa-solid fa-book-open" aria-hidden="true"></i>
                     <span>{locale === "ar" ? "فتح المكتبة" : locale === "en" ? "Open Library" : "Buka Perpustakaan"}</span>
                   </button>
                 </div>
@@ -967,17 +982,17 @@ export default function MahfuzhatClient() {
         {activeTab === "daily" && dailyFeatured && (
           <div className="daily-featured-card">
             <div className="daily-tag">
-              <span>📅</span>
+              <i className="fa-regular fa-calendar-check" aria-hidden="true"></i>
               <span>{locale === "ar" ? "حكمة اليوم" : locale === "en" ? "Daily Wisdom" : "Mutiara Hari Ini"}</span>
             </div>
 
-            <p className="daily-arabic">{dailyFeatured.arabic}</p>
-            <div className="daily-latin">« {dailyFeatured.latin} »</div>
-            <div className="daily-trans">"{dailyFeatured.translation}"</div>
+            <p className="daily-arabic" lang="ar" dir="rtl">{dailyFeatured.arabic}</p>
+            <div className="daily-latin">&laquo; {dailyFeatured.latin} &raquo;</div>
+            <div className="daily-trans">&ldquo;{dailyFeatured.translation}&rdquo;</div>
 
             <div className="daily-syarah-box">
               <div className="daily-syarah-title">
-                <span>💡</span>
+                <i className="fa-regular fa-lightbulb" aria-hidden="true"></i>
                 <span>{locale === "ar" ? "تدبر وتأمل في الحياة" : locale === "en" ? "Contemplation & Life Reflection" : "Tadabbur & Refleksi Kehidupan"}</span>
               </div>
               <p className="daily-syarah-text">{dailyFeatured.syarah}</p>
@@ -990,25 +1005,25 @@ export default function MahfuzhatClient() {
                 onClick={() => openStoryModal(dailyFeatured)}
                 style={{ padding: "10px 20px" }}
               >
-                <span>🎨</span>
+                <i className="fa-solid fa-palette" aria-hidden="true"></i>
                 <span>{locale === "ar" ? "إنشاء بطاقة قصة" : locale === "en" ? "Create Story Card" : "Buat Story WhatsApp / IG"}</span>
               </button>
               <button
                 type="button"
                 className="card-action-btn"
                 onClick={() => speakArabic(dailyFeatured.arabic, dailyFeatured.latin)}
-                style={{ padding: "10px 18px" }}
+                style={{ padding: "10px 18px", minHeight: "44px" }}
               >
-                <span>🔊</span>
+                <i className="fa-solid fa-volume-high" aria-hidden="true"></i>
                 <span>{locale === "ar" ? "استماع للنطق" : locale === "en" ? "Listen Pronunciation" : "Dengarkan Pelafalan"}</span>
               </button>
               <button
                 type="button"
                 className="card-action-btn"
                 onClick={() => shareToWhatsApp(dailyFeatured)}
-                style={{ padding: "10px 18px" }}
+                style={{ padding: "10px 18px", minHeight: "44px" }}
               >
-                <span>📲</span>
+                <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
                 <span>{locale === "ar" ? "إرسال إلى صديق" : locale === "en" ? "Send to Friend" : "Kirim ke Sahabat"}</span>
               </button>
             </div>
@@ -1019,19 +1034,27 @@ export default function MahfuzhatClient() {
             MODAL: STORY CARD GENERATOR (CANVAS)
             ------------------------------------------------------------------ */}
         {storyModalOpen && storyItem && (
-          <div className="story-modal-overlay" onClick={() => setStoryModalOpen(false)}>
+          <div
+            className="story-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label={locale === "ar" ? "مولد بطاقات القصة 9:16" : locale === "en" ? "Story Card Generator 9:16" : "Generator Story Card 9:16"}
+            onClick={() => setStoryModalOpen(false)}
+          >
             <div className="story-modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="story-modal-header">
                 <h3 className="story-modal-title">
-                  <span>🎨</span>
+                  <i className="fa-solid fa-image" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "مولد بطاقات القصة 9:16" : locale === "en" ? "Story Card Generator 9:16" : "Generator Story Card 9:16"}</span>
                 </h3>
                 <button
                   type="button"
                   className="story-modal-close"
                   onClick={() => setStoryModalOpen(false)}
+                  aria-label={t.common.close}
+                  style={{ minWidth: "44px", minHeight: "44px" }}
                 >
-                  ✕
+                  <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
               </div>
 
@@ -1041,22 +1064,25 @@ export default function MahfuzhatClient() {
                   type="button"
                   className={`theme-chip-btn ${storyTheme === "obsidian" ? "active" : ""}`}
                   onClick={() => setStoryTheme("obsidian")}
+                  style={{ minHeight: "44px" }}
                 >
-                  Hitam Klasik
+                  {locale === "ar" ? "أسود كلاسيكي" : locale === "en" ? "Classic Obsidian" : "Hitam Klasik"}
                 </button>
                 <button
                   type="button"
                   className={`theme-chip-btn ${storyTheme === "emerald" ? "active" : ""}`}
                   onClick={() => setStoryTheme("emerald")}
+                  style={{ minHeight: "44px" }}
                 >
-                  Hijau Zamrud
+                  {locale === "ar" ? "أخضر زمردي" : locale === "en" ? "Emerald Green" : "Hijau Zamrud"}
                 </button>
                 <button
                   type="button"
                   className={`theme-chip-btn ${storyTheme === "ivory" ? "active" : ""}`}
                   onClick={() => setStoryTheme("ivory")}
+                  style={{ minHeight: "44px" }}
                 >
-                  Putih Gading
+                  {locale === "ar" ? "عاجي أبيض" : locale === "en" ? "Ivory White" : "Putih Gading"}
                 </button>
               </div>
 
@@ -1071,18 +1097,18 @@ export default function MahfuzhatClient() {
                   type="button"
                   className="card-action-btn primary"
                   onClick={downloadStoryImage}
-                  style={{ width: "100%", justifyContent: "center", padding: "12px" }}
+                  style={{ width: "100%", justifyContent: "center", padding: "12px", minHeight: "44px" }}
                 >
-                  <span>📥</span>
+                  <i className="fa-solid fa-download" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "تحميل صورة القصة (PNG HD)" : locale === "en" ? "Download Story Image (PNG HD)" : "Unduh Gambar Story (PNG HD)"}</span>
                 </button>
                 <button
                   type="button"
                   className="card-action-btn"
                   onClick={() => shareToWhatsApp(storyItem)}
-                  style={{ width: "100%", justifyContent: "center", padding: "10px" }}
+                  style={{ width: "100%", justifyContent: "center", padding: "10px", minHeight: "44px" }}
                 >
-                  <span>📲</span>
+                  <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "مشاركة النص عبر واتساب" : locale === "en" ? "Share Text to WhatsApp" : "Bagikan Teks ke WhatsApp"}</span>
                 </button>
               </div>

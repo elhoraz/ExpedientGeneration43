@@ -7,29 +7,38 @@
   font-family: var(--font-sans, inherit);
   color: var(--text-primary);
   margin: 0;
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
   width: 100%;
   position: relative;
 }
 
-.multazam-page-wrapper .multazam-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; z-index: 10; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+.multazam-page-wrapper .multazam-wrapper { position: relative; width: 100%; max-width: 1200px; margin: 0 auto; padding: 40px 20px; z-index: 10; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; }
 
 .multazam-page-wrapper .multazam-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; }
-.multazam-page-wrapper .btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--gold-main); text-decoration: none; font-size: 0.85rem; letter-spacing: 0.02em; font-weight: 600; transition: transform 0.2s ease, background-color 0.2s ease; padding: 9px 18px; border-radius: 30px; border: 1px solid rgba(212,175,55,0.28); background: var(--surface-raised, rgba(255,255,255,0.05)); }
-.multazam-page-wrapper .btn-back:hover { background: rgba(212,175,55,0.12); transform: translateX(-3px); }
-.multazam-page-wrapper .page-title { font-family: 'Playfair Display', serif; font-size: 2.3rem; color: var(--gold-main); margin: 0; text-align: right; }
-.multazam-page-wrapper .page-subtitle { color: var(--text-secondary, #a1a8b5); font-size: 0.92rem; letter-spacing: 0.02em; text-align: right; margin-top: 5px; }
+.multazam-page-wrapper .btn-back { display: inline-flex; align-items: center; gap: 8px; color: var(--gold-main); text-decoration: none; font-size: 0.85rem; letter-spacing: 0.02em; font-weight: 600; transition: transform 0.2s ease, background-color 0.2s ease; min-height: 44px; padding: 10px 18px; border-radius: 30px; border: 1px solid rgba(212,175,55,0.28); background: var(--surface-raised, rgba(255,255,255,0.05)); }
+@media (hover: hover) and (pointer: fine) {
+  .multazam-page-wrapper .btn-back:hover { background: rgba(212,175,55,0.12); transform: translateX(-3px); }
+  .multazam-page-wrapper .vip-ticket:hover { transform: translateY(-4px); box-shadow: 0 22px 48px rgba(0, 0, 0, 0.38); }
+  .multazam-page-wrapper .btn-wallet:hover { transform: translateY(-2px); opacity: 0.94; }
+  .multazam-page-wrapper .btn-secondary:hover { background: rgba(212,175,55,0.1); }
+  .multazam-page-wrapper .btn-close-panel:hover { color: var(--gold-main); border-color: var(--gold-main); }
+}
+.multazam-page-wrapper .page-title { font-family: 'Playfair Display', serif; font-size: 2.3rem; color: var(--gold-main); margin: 0; text-align: end; }
+.multazam-page-wrapper .page-subtitle { color: var(--text-secondary, #a1a8b5); font-size: 0.92rem; letter-spacing: 0.02em; text-align: end; margin-top: 5px; }
 
 .multazam-page-wrapper .ticket-container { perspective: 1500px; margin-bottom: 50px; }
-.multazam-page-wrapper .vip-ticket { width: 100%; max-width: 350px; height: 600px; background: var(--glass-bg); backdrop-filter: var(--glass-blur); border-radius: 20px; position: relative; transform-style: preserve-3d; box-shadow: var(--glass-shadow); border: 1px solid var(--glass-border); display: flex; flex-direction: column; overflow: hidden; margin: 0 auto; }
-.multazam-page-wrapper .vip-ticket::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 45%, rgba(212,175,55,0.4) 50%, rgba(255,255,255,0.1) 55%, transparent 100%); transform: translateZ(1px); pointer-events: none; opacity: 0; transition: opacity 0.5s; mix-blend-mode: color-dodge; }
-.multazam-page-wrapper .vip-ticket { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease; }
-.multazam-page-wrapper .vip-ticket:hover { transform: translateY(-4px); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.15); }
+.multazam-page-wrapper .vip-ticket { width: 100%; max-width: 350px; min-height: 540px; background: var(--bg-card, #0f141e); border-radius: 18px; position: relative; transform-style: preserve-3d; box-shadow: var(--glass-shadow); border: 1px solid var(--border-strong, rgba(212, 175, 55, 0.25)); display: flex; flex-direction: column; overflow: hidden; margin: 0 auto; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease; }
 
-.multazam-page-wrapper .ticket-top { height: 250px; background-image: url('https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?q=80&w=2670&auto=format&fit=crop'); background-size: cover; background-position: center; position: relative; border-bottom: 2px dashed rgba(212,175,55,0.5); }
-.multazam-page-wrapper .ticket-top::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-main) 0%, transparent 100%); }
-.multazam-page-wrapper .ticket-badge { position: absolute; top: 20px; right: 20px; background: var(--gold-main); color: #000; font-size: 0.7rem; font-weight: bold; padding: 5px 12px; border-radius: 20px; letter-spacing: 2px; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+.multazam-page-wrapper .ticket-top {
+  height: 220px;
+  background: radial-gradient(circle at 25% 25%, rgba(212, 175, 55, 0.35), transparent 55%),
+              linear-gradient(135deg, #0b1b15 0%, #09131d 60%, #1d180a 100%);
+  position: relative;
+  border-bottom: 2px dashed rgba(212,175,55,0.45);
+}
+.multazam-page-wrapper .ticket-top::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, var(--bg-card, #0f141e) 0%, transparent 100%); }
+.multazam-page-wrapper .ticket-badge { position: absolute; top: 18px; inset-inline-end: 18px; background: var(--gold-main); color: #060b14; font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 8px; letter-spacing: 0.06em; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0,0,0,0.35); }
 
 .multazam-page-wrapper .cutout { position: absolute; bottom: -15px; width: 30px; height: 30px; background: var(--bg-main); border-radius: 50%; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
 .multazam-page-wrapper .cutout-left { left: -15px; } 
@@ -40,40 +49,48 @@
 .multazam-page-wrapper .event-desc { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px; }
 .multazam-page-wrapper .ticket-details { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
 .multazam-page-wrapper .detail-item { display: flex; flex-direction: column; }
-.multazam-page-wrapper .detail-label { color: var(--text-secondary); font-size: 0.65rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+.multazam-page-wrapper .detail-label { color: var(--text-secondary); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 5px; }
 .multazam-page-wrapper .detail-value { color: var(--text-primary); font-size: 0.9rem; font-weight: bold; }
 
 .multazam-page-wrapper .qr-section { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
-.multazam-page-wrapper .qr-code { width: 80px; height: 80px; background: #fff; padding: 5px; border-radius: 8px; background-image: url('https://upload.wikimedia.org/wikipedia/commons/d/d0/QR_code_for_mobile_English_Wikipedia.svg'); background-size: cover; }
-.multazam-page-wrapper .seat-info { text-align: right; }
-.multazam-page-wrapper .seat-number { font-size: 2rem; font-family: 'Playfair Display', serif; color: var(--gold-main); }
+.multazam-page-wrapper .qr-code { width: 80px; height: 80px; background: #ffffff; padding: 5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(24, 24, 27, 0.12); }
+.multazam-page-wrapper .seat-info { text-align: end; }
+.multazam-page-wrapper .seat-number { font-size: 1.9rem; font-family: var(--font-playfair, 'Playfair Display', serif); color: var(--gold-main); font-variant-numeric: tabular-nums; }
 
-.multazam-page-wrapper .action-buttons { display: flex; gap: 20px; justify-content: center; }
-.multazam-page-wrapper .btn-wallet { background: var(--text-primary); color: var(--bg-main); border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: transform 0.3s, box-shadow 0.3s; text-decoration: none; }
-.multazam-page-wrapper .btn-wallet:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255,255,255,0.2); }
-.multazam-page-wrapper .btn-secondary { background: transparent; color: var(--gold-main); border: 1px solid var(--gold-main); padding: 15px 30px; border-radius: 30px; font-weight: bold; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background 0.3s; }
-.multazam-page-wrapper .btn-secondary:hover { background: rgba(212,175,55,0.1); }
+.multazam-page-wrapper .multazam-empty-ticket { text-align: center; padding: 44px 24px; background: var(--bg-card, #0f141e); border: 1px solid var(--border-strong, rgba(212, 175, 55, 0.25)); border-radius: 16px; color: var(--gold-main); max-width: 440px; }
+.multazam-page-wrapper .multazam-empty-ticket h3 { color: var(--text-primary); margin: 0 0 8px 0; font-family: var(--font-playfair, 'Playfair Display', serif); font-size: 1.25rem; }
+.multazam-page-wrapper .multazam-empty-ticket p { color: var(--text-secondary); font-size: 0.9rem; margin: 0; line-height: 1.55; }
 
-.multazam-page-wrapper .prayer-panel { position: fixed; top: 0; right: -450px; width: 100%; max-width: 450px; height: 100vh; background: var(--bg-main); border-left: 1px solid var(--glass-border); z-index: 1000; transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1); padding: 40px 30px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; color: var(--text-primary); box-shadow: -20px 0 50px rgba(0,0,0,0.3); }
-.multazam-page-wrapper .prayer-panel.open { right: 0; }
-.multazam-page-wrapper .btn-close-panel { position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: var(--text-primary); font-size: 1.5rem; cursor: pointer; z-index: 10; transition: color 0.3s; }
-.multazam-page-wrapper .btn-close-panel:hover { color: var(--gold-main); }
-.multazam-page-wrapper .panel-title { font-family: 'Playfair Display', serif; color: var(--gold-main); font-size: 1.5rem; letter-spacing: 2px; border-bottom: 1px solid rgba(212,175,55,0.3); padding-bottom: 10px; margin-bottom: 10px; padding-right: 30px; }
-.multazam-page-wrapper .prayer-form textarea { width: 100%; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 12px; margin-bottom: 15px; border-radius: 5px; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; box-sizing: border-box; }
-.multazam-page-wrapper .btn-submit-prayer { width: 100%; background: var(--gold-main); color: #000; border: none; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 5px; letter-spacing: 2px; text-transform: uppercase; }
-.multazam-page-wrapper .prayer-card { background: var(--glass-bg); border: 1px dashed var(--glass-border); padding: 20px; border-radius: 8px; margin-bottom: 15px; position: relative; }
-.multazam-page-wrapper .prayer-date { font-size: 0.75rem; color: var(--gold-main); margin-bottom: 10px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-.multazam-page-wrapper .prayer-content { font-size: 1rem; line-height: 1.6; color: var(--text-primary); font-family: 'Playfair Display', serif; font-style: italic; }
-.multazam-page-wrapper .prayer-status { position: absolute; bottom: 15px; right: 15px; font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.multazam-page-wrapper .action-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.multazam-page-wrapper .btn-wallet { background: var(--gold-main); color: #060b14; border: 1px solid var(--gold-main); min-height: 44px; padding: 12px 26px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: transform 0.2s ease, opacity 0.2s ease; text-decoration: none; }
+.multazam-page-wrapper .btn-wallet:disabled { cursor: default; transform: none; }
+.multazam-page-wrapper .btn-wallet.is-saved { background: #4cc38a; border-color: #4cc38a; color: #060b14; }
+.multazam-page-wrapper .btn-secondary { background: transparent; color: var(--gold-main); border: 1px solid var(--gold-main); min-height: 44px; padding: 12px 26px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; transition: background-color 0.2s ease; }
+.multazam-page-wrapper .btn-wallet:focus-visible,
+.multazam-page-wrapper .btn-secondary:focus-visible,
+.multazam-page-wrapper .btn-close-panel:focus-visible,
+.multazam-page-wrapper .btn-submit-prayer:focus-visible { outline: 2px solid var(--focus-ring, #d4af37); outline-offset: 2px; }
+
+.multazam-page-wrapper .prayer-panel { position: fixed; top: 0; inset-inline-end: -450px; width: 100%; max-width: 450px; height: 100dvh; background: var(--bg-main); border-inline-start: 1px solid var(--glass-border); z-index: 1000; transition: inset-inline-end 0.45s cubic-bezier(0.16, 1, 0.3, 1); padding: 40px 28px; display: flex; flex-direction: column; gap: 18px; overflow-y: auto; color: var(--text-primary); box-shadow: -16px 0 40px rgba(0,0,0,0.3); }
+.multazam-page-wrapper .prayer-panel.open { inset-inline-end: 0; }
+.multazam-page-wrapper .btn-close-panel { position: absolute; top: 16px; inset-inline-end: 16px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: transparent; border: 1px solid var(--glass-border); color: var(--text-primary); font-size: 1.2rem; cursor: pointer; z-index: 10; transition: color 0.2s ease, border-color 0.2s ease; }
+.multazam-page-wrapper .panel-title { font-family: var(--font-playfair, 'Playfair Display', serif); color: var(--gold-main); font-size: 1.35rem; letter-spacing: 0.02em; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 8px; padding-inline-end: 48px; }
+.multazam-page-wrapper .prayer-form textarea { width: 100%; background: var(--surface-inset, #090d16); border: 1px solid var(--border-strong); color: var(--text-primary); padding: 12px; margin-bottom: 14px; border-radius: 10px; font-family: var(--font-sans, inherit); font-size: 0.95rem; line-height: 1.5; box-sizing: border-box; resize: vertical; }
+.multazam-page-wrapper .btn-submit-prayer { width: 100%; min-height: 44px; background: var(--gold-main); color: #060b14; border: none; padding: 12px; font-weight: 700; cursor: pointer; border-radius: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.85rem; transition: opacity 0.2s ease; }
+.multazam-page-wrapper .btn-submit-prayer:disabled { opacity: 0.55; cursor: not-allowed; }
+.multazam-page-wrapper .prayer-card { background: var(--bg-card, #0f141e); border: 1px solid var(--glass-border); padding: 18px; border-radius: 12px; margin-bottom: 12px; position: relative; }
+.multazam-page-wrapper .prayer-date { font-size: 0.75rem; color: var(--gold-main); margin-bottom: 8px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.multazam-page-wrapper .prayer-content { font-size: 0.96rem; line-height: 1.6; color: var(--text-primary); font-family: var(--font-playfair, 'Playfair Display', serif); font-style: italic; margin-bottom: 22px; }
+.multazam-page-wrapper .prayer-status { position: absolute; bottom: 12px; inset-inline-end: 16px; font-size: 0.75rem; color: var(--text-secondary); letter-spacing: 0.02em; }
 
 @media (max-width: 768px) {
     .multazam-page-wrapper .multazam-header { flex-direction: column; gap: 15px; align-items: flex-start; margin-bottom: 30px; }
     .multazam-page-wrapper .btn-back { align-self: flex-start; }
-    .multazam-page-wrapper .page-title { text-align: left; font-size: 2rem; }
-    .multazam-page-wrapper .page-subtitle { text-align: left; }
-    .multazam-page-wrapper .vip-ticket { max-width: 320px; height: 550px; margin: 0 auto; }
+    .multazam-page-wrapper .page-title { text-align: start; font-size: 2rem; }
+    .multazam-page-wrapper .page-subtitle { text-align: start; }
+    .multazam-page-wrapper .vip-ticket { max-width: 320px; min-height: 520px; margin: 0 auto; }
     .multazam-page-wrapper .action-buttons { flex-direction: column; width: 100%; max-width: 320px; }
-    .multazam-page-wrapper .prayer-panel { width: 100%; right: -100%; padding: 30px 20px; }
+    .multazam-page-wrapper .prayer-panel { width: 100%; inset-inline-end: -100%; padding: 30px 20px; }
 }
 
 /* ==========================================================================
@@ -101,10 +118,32 @@
   color: #52525b;
 }
 
-:root[data-theme="light"] .multazam-page-wrapper .btn-wallet {
+:root[data-theme="light"] .multazam-page-wrapper .ticket-top::before {
+  background: linear-gradient(to top, #ffffff 0%, transparent 100%);
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .ticket-badge,
+:root[data-theme="light"] .multazam-page-wrapper .btn-submit-prayer {
   background: #7c520a;
   color: #ffffff;
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .btn-wallet {
+  background: #7c520a;
+  border-color: #7c520a;
+  color: #ffffff;
   box-shadow: 0 6px 18px rgba(124, 82, 10, 0.22);
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .btn-wallet.is-saved {
+  background: #065f46;
+  border-color: #065f46;
+  color: #ffffff;
+}
+
+:root[data-theme="light"] .multazam-page-wrapper .multazam-empty-ticket {
+  background: #ffffff;
+  border-color: rgba(124, 82, 10, 0.28);
 }
 
 :root[data-theme="light"] .multazam-page-wrapper .prayer-panel {
@@ -115,12 +154,21 @@
 
 :root[data-theme="light"] .multazam-page-wrapper .prayer-card {
   background: #f6f5f1;
-  border-color: rgba(124, 82, 10, 0.28);
+  border-color: rgba(124, 82, 10, 0.24);
 }
 
 :root[data-theme="light"] .multazam-page-wrapper .prayer-form textarea {
   background: #f6f5f1;
-  border-color: rgba(24, 24, 27, 0.14);
+  border-color: rgba(24, 24, 27, 0.16);
   color: #18181b;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .multazam-page-wrapper .vip-ticket,
+  .multazam-page-wrapper .prayer-panel,
+  .multazam-page-wrapper .btn-wallet,
+  .multazam-page-wrapper .btn-secondary {
+    transition: none;
+  }
 }
 

@@ -43,7 +43,7 @@ export const ALHUFAZ_COLOR_BLOCKS: AlhufazColorBlockConfig[] = [
     colorHex: "#0284c7",
     lightBg: "#e0f2fe",
     darkBg: "rgba(2, 132, 199, 0.18)",
-    borderColor: "#38bdf8",
+    borderColor: "#60a5fa",
     badgeBg: "rgba(2, 132, 199, 0.25)",
   },
   {

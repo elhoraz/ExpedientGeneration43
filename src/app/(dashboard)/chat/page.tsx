@@ -45,10 +45,10 @@ export default async function ChatInboxPage() {
 
       let previewText = msg.message;
       if (!previewText) {
-        if (msg.audio_url || msg.message_type === 'voice') previewText = '🎤 Pesan Suara';
-        else if (msg.video_url || msg.message_type === 'video_note') previewText = '📹 Video Note';
-        else if (msg.image_url || msg.message_type === 'image') previewText = '📷 Gambar';
-        else if (msg.message_type === 'call') previewText = '📞 Panggilan';
+        if (msg.audio_url || msg.message_type === 'voice') previewText = 'Pesan Suara';
+        else if (msg.video_url || msg.message_type === 'video_note') previewText = 'Catatan Video';
+        else if (msg.image_url || msg.message_type === 'image') previewText = 'Lampiran Gambar';
+        else if (msg.message_type === 'call') previewText = 'Panggilan';
         else previewText = 'Pesan baru';
       }
 

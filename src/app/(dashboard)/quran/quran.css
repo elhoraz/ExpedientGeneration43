@@ -18,17 +18,18 @@
    =================================================== */
 
 .quran-page-root {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: 16px 12px 80px;
   position: relative;
   background: var(--bg-main, #060b14);
   color: var(--text-primary, #f2efe9);
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 @media (max-width: 768px) {
   .quran-page-root {
-    padding-top: var(--top-widget-clearance, calc(max(16px, env(safe-area-inset-top, 0px)) + 54px));
+    padding-top: var(--top-widget-clearance, calc(max(16px, env(safe-area-inset-top, 16px)) + 74px));
   }
 }
 
@@ -38,9 +39,9 @@
   top: 24px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(6, 78, 59, 0.96);
+  background: #064e3b;
   border: 1px solid rgba(212, 175, 55, 0.5);
-  color: #fef08a;
+  color: #fefce8;
   padding: 12px 24px;
   border-radius: 50px;
   display: inline-flex;
@@ -86,11 +87,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: 44px;
   padding: 10px 18px;
   border-radius: 40px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #a8b5c8;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -106,13 +108,18 @@
 }
 
 .top-mushaf-tab .live-pill {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 20px;
-  background: rgba(0, 0, 0, 0.25);
-  color: #fef08a;
+  background: rgba(0, 0, 0, 0.28);
+  color: #fefce8;
   font-weight: 800;
   text-transform: uppercase;
+}
+
+.top-mushaf-tab.active .live-pill {
+  background: rgba(6, 11, 20, 0.85);
+  color: #fefce8;
 }
 
 /* ===================================================
@@ -136,8 +143,7 @@
   flex-wrap: wrap;
   padding: 14px 20px;
   border-radius: 20px;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(14px);
+  background: rgba(15, 23, 42, 0.94);
   border: 1px solid rgba(212, 175, 55, 0.3);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
@@ -145,13 +151,15 @@
 .cordoba-nav-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .cordoba-page-nav-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 44px;
   padding: 8px 14px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.08);
@@ -166,7 +174,7 @@
 .cordoba-page-nav-btn:hover:not(:disabled) {
   background: rgba(212, 175, 55, 0.2);
   border-color: rgba(212, 175, 55, 0.6);
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .cordoba-page-nav-btn:disabled {
@@ -196,7 +204,7 @@
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(15, 23, 42, 0.8);
-  color: #ffd700;
+  color: #d4af37;
   font-size: 0.95rem;
   font-weight: 700;
   text-align: center;
@@ -243,34 +251,39 @@
 .cordoba-timer-box {
   display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 100%;
+  box-sizing: border-box;
   background: rgba(6, 78, 59, 0.3);
   border: 1px solid rgba(52, 211, 153, 0.35);
-  padding: 6px 14px;
+  padding: 8px 12px;
   border-radius: 16px;
 }
 
 .timer-toggle-btns {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   background: rgba(0, 0, 0, 0.25);
-  padding: 2px;
-  border-radius: 8px;
+  padding: 4px;
+  border-radius: 10px;
 }
 
 .timer-tab-btn {
-  padding: 4px 8px;
+  min-height: 44px;
+  padding: 8px 12px;
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: #94a3b8;
-  font-size: 0.72rem;
+  color: #cbd5e1;
+  font-size: 0.74rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .timer-tab-btn.active {
-  background: #10b981;
+  background: #047857;
   color: #ffffff;
   font-weight: 700;
 }
@@ -278,6 +291,7 @@
 .timer-display-controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -285,13 +299,13 @@
   font-family: monospace;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #ffd700;
+  color: #d4af37;
   letter-spacing: 1px;
 }
 
 .timer-action-btn {
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   display: flex;
@@ -303,7 +317,7 @@
 }
 
 .timer-action-btn.play {
-  background: #ffd700;
+  background: #d4af37;
   color: #060b14;
 }
 
@@ -343,7 +357,7 @@
 .mobile-col-btn.active {
   background: rgba(212, 175, 55, 0.25);
   border-color: rgba(212, 175, 55, 0.7);
-  color: #ffd700;
+  color: #d4af37;
   font-weight: 700;
 }
 
@@ -359,7 +373,7 @@
 
 .cordoba-loading-state .loading-icon {
   font-size: 2.5rem;
-  color: #ffd700;
+  color: #d4af37;
   margin-bottom: 16px;
 }
 
@@ -376,9 +390,8 @@
   flex-wrap: wrap;
   padding: 8px 16px;
   border-radius: 16px;
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.94);
   border: 1px solid rgba(212, 175, 55, 0.3);
-  backdrop-filter: blur(12px);
 }
 
 .subview-toggle-group {
@@ -391,6 +404,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
   padding: 8px 14px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -399,12 +413,14 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.subview-toggle-btn:hover {
-  background: rgba(212, 175, 55, 0.2);
-  color: #ffd700;
+@media (hover: hover) and (pointer: fine) {
+  .subview-toggle-btn:hover {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--gold-main, #d4af37);
+  }
 }
 
 .subview-toggle-btn.active {
@@ -419,7 +435,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  min-height: 44px;
+  padding: 10px 16px;
   border-radius: 10px;
   border: 1px solid rgba(212, 175, 55, 0.5);
   background: rgba(212, 175, 55, 0.15);
@@ -853,11 +870,10 @@
   padding: 26px 16px;
   border: 2px dashed #dc2626;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.96);
   cursor: pointer;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .blind-cover-card {
@@ -1308,9 +1324,7 @@
 .photo-lightbox-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.92);
   z-index: 99999;
   display: flex;
   align-items: center;
@@ -1357,7 +1371,7 @@
   gap: 8px;
   font-size: 0.92rem;
   font-weight: 700;
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .lightbox-close-btn {
@@ -1494,10 +1508,11 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.7rem;
+  min-height: 44px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: inherit;
-  padding: 2px 4px;
+  padding: 6px 8px;
 }
 
 .quick-pill-toggle.is-closed {
@@ -1510,13 +1525,13 @@
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   color: inherit;
   transition: transform 0.15s ease;
 }
@@ -1858,14 +1873,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.92);
   z-index: 5;
 }
 
 [data-theme="dark"] .mushaf-band-blind-overlay {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.92);
 }
 
 .blind-reveal-btn {
@@ -1921,7 +1934,7 @@
   border-radius: 50px;
   background: rgba(212, 175, 55, 0.12);
   border: 1px solid rgba(212, 175, 55, 0.35);
-  color: #ffd700;
+  color: #d4af37;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 1.2px;
@@ -2034,7 +2047,7 @@
   border-radius: 50px;
   background: rgba(212, 175, 55, 0.1);
   border: 1px solid rgba(212, 175, 55, 0.3);
-  color: #ffd700;
+  color: #d4af37;
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
@@ -2063,9 +2076,7 @@
   gap: 8px;
   margin: 0 auto;
   padding: 5px;
-  background: rgba(12, 20, 16, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(12, 20, 16, 0.94);
   border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 50px;
   max-width: 420px;
@@ -2078,6 +2089,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: 44px;
   padding: 10px 20px;
   border-radius: 40px;
   background: transparent;
@@ -2113,7 +2125,7 @@
 
 .quran-search-wrapper .search-icon {
   position: absolute;
-  left: 16px;
+  inset-inline-start: 16px;
   top: 50%;
   transform: translateY(-50%);
   color: #94a3b8;
@@ -2122,11 +2134,11 @@
 
 .quran-search-input {
   width: 100%;
-  padding: 12px 42px 12px 44px;
+  min-height: 44px;
+  padding: 12px 44px;
   border-radius: 50px;
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #ffffff;
   font-size: 0.92rem;
   outline: none;
@@ -2184,7 +2196,7 @@
 .filter-chip.active {
   background: rgba(212, 175, 55, 0.15);
   border-color: rgba(212, 175, 55, 0.6);
-  color: #ffd700;
+  color: #d4af37;
   font-weight: 700;
 }
 
@@ -2195,9 +2207,9 @@
 }
 
 .filter-chip.chip-madinah.active {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: rgba(56, 189, 248, 0.6);
-  color: #38bdf8;
+  background: rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.6);
+  color: #60a5fa;
 }
 
 /* 4. SURAH GRID & CARDS */
@@ -2211,23 +2223,23 @@
 
 .surah-card {
   position: relative;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(15, 23, 42, 0.94);
   border: 1px solid rgba(212, 175, 55, 0.18);
   border-radius: 20px;
   padding: 20px;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
 }
 
-.surah-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(212, 175, 55, 0.5);
-  background: rgba(15, 23, 42, 0.85);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(212, 175, 55, 0.12);
+@media (hover: hover) and (pointer: fine) {
+  .surah-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(212, 175, 55, 0.5);
+    background: rgba(15, 23, 42, 0.98);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
 }
 
 .surah-card-header {
@@ -2259,18 +2271,21 @@
   font-family: var(--font-playfair, serif);
   font-weight: 700;
   font-size: 0.95rem;
-  color: #ffd700;
+  color: #facc15;
 }
 
-.surah-card:hover .surah-num {
-  transform: rotate(-90deg);
+@media (hover: hover) and (pointer: fine) {
+  .surah-card:hover .surah-num {
+    transform: rotate(-90deg);
+  }
 }
 
 .surah-arabic-title {
   font-family: var(--font-amiri), 'Amiri', serif;
   font-size: 1.7rem;
-  color: #fef08a;
+  color: #facc15;
   direction: rtl;
+  letter-spacing: 0;
 }
 
 .surah-card-body {
@@ -2307,8 +2322,8 @@
   padding: 3px 10px;
   border-radius: 20px;
   text-transform: uppercase;
-  font-size: 0.68rem;
-  letter-spacing: 0.8px;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
 }
 
 .revelation-tag.mekah {
@@ -2318,9 +2333,9 @@
 }
 
 .revelation-tag.madinah {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(14, 165, 233, 0.15);
+  color: #7dd3fc;
+  border: 1px solid rgba(14, 165, 233, 0.3);
 }
 
 .verses-count {
@@ -2340,8 +2355,7 @@
 }
 
 .juz-card {
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(14px);
+  background: rgba(15, 23, 42, 0.92);
   border: 1px solid rgba(52, 211, 153, 0.2);
   border-radius: 20px;
   padding: 22px;
@@ -2352,11 +2366,13 @@
   flex-direction: column;
 }
 
-.juz-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(52, 211, 153, 0.6);
-  background: rgba(6, 78, 59, 0.3);
-  box-shadow: 0 12px 30px rgba(6, 78, 59, 0.25);
+@media (hover: hover) and (pointer: fine) {
+  .juz-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(52, 211, 153, 0.6);
+    background: rgba(6, 78, 59, 0.3);
+    box-shadow: 0 12px 30px rgba(6, 78, 59, 0.25);
+  }
 }
 
 .juz-card-top {
@@ -2380,7 +2396,7 @@
 
 .juz-icon {
   font-size: 1.4rem;
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .juz-title {
@@ -2425,9 +2441,7 @@
   justify-content: space-between;
   padding: 12px 20px;
   border-radius: 18px;
-  background: rgba(10, 18, 14, 0.9);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10, 18, 14, 0.96);
   border: 1px solid rgba(212, 175, 55, 0.35);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   margin-bottom: 18px;
@@ -2463,7 +2477,7 @@
 .reader-surah-name {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .reader-surah-meta {
@@ -2494,7 +2508,7 @@
 .nav-surah-btn:hover {
   background: rgba(212, 175, 55, 0.2);
   border-color: rgba(212, 175, 55, 0.6);
-  color: #ffd700;
+  color: #d4af37;
 }
 
 /* Reader Sub-Settings Bar */
@@ -2572,7 +2586,7 @@
 .toggle-pill.mushaf-toggle.active {
   background: rgba(212, 175, 55, 0.2);
   border-color: rgba(212, 175, 55, 0.6);
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .qari-select {
@@ -2605,7 +2619,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #ffd700;
+  color: #d4af37;
   margin-bottom: 8px;
 }
 
@@ -2640,7 +2654,7 @@
 .bismillah-text {
   font-family: var(--font-amiri), 'Amiri', serif;
   font-size: clamp(1.8rem, 4vw, 2.4rem);
-  color: #ffd700;
+  color: #d4af37;
   direction: rtl;
   display: inline-block;
 }
@@ -2655,12 +2669,11 @@
 
 .ayah-card {
   position: relative;
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 24px 22px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.25s ease, background-color 0.25s ease;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
 }
 
@@ -2686,7 +2699,7 @@
   border-radius: 50px;
   background: rgba(212, 175, 55, 0.12);
   border: 1px solid rgba(212, 175, 55, 0.3);
-  color: #ffd700;
+  color: #d4af37;
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -2716,17 +2729,17 @@
 .ayah-action-btn:hover {
   background: rgba(212, 175, 55, 0.15);
   border-color: rgba(212, 175, 55, 0.4);
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .ayah-action-btn.playing-btn {
   background: linear-gradient(135deg, #d4af37, #aa771c);
-  border-color: #ffd700;
+  border-color: #d4af37;
   color: #060b14;
 }
 
 .ayah-action-btn.bookmarked-btn {
-  color: #ffd700;
+  color: #d4af37;
   border-color: rgba(212, 175, 55, 0.5);
   background: rgba(212, 175, 55, 0.15);
 }
@@ -2775,7 +2788,7 @@
 
 .ayah-end-num {
   font-size: 0.75em;
-  color: #ffd700;
+  color: #d4af37;
   font-weight: 700;
 }
 
@@ -2786,7 +2799,7 @@
 
 .ayah-latin-text {
   font-size: 0.95rem;
-  color: #38bdf8;
+  color: #60a5fa;
   line-height: 1.6;
   margin: 0;
   font-style: italic;
@@ -2851,7 +2864,7 @@
   display: block;
   font-size: 1rem;
   font-weight: 700;
-  color: #ffd700;
+  color: #d4af37;
 }
 
 /* 7. FLOATING STICKY AUDIO PLAYER BAR */
@@ -2862,9 +2875,7 @@
   transform: translateX(-50%);
   width: calc(100% - 32px);
   max-width: 600px;
-  background: rgba(10, 18, 14, 0.95);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+  background: rgba(10, 18, 14, 0.98);
   border: 1px solid rgba(212, 175, 55, 0.5);
   border-radius: 50px;
   padding: 10px 20px;
@@ -2908,7 +2919,7 @@
 
 .wave-bar {
   width: 3px;
-  background: #ffd700;
+  background: #d4af37;
   border-radius: 3px;
   animation: wavePulse 1s ease-in-out infinite;
 }
@@ -2954,7 +2965,7 @@
 
 .audio-qari-name {
   font-size: 0.72rem;
-  color: #ffd700;
+  color: #d4af37;
   white-space: nowrap;
 }
 
@@ -2986,7 +2997,7 @@
 .audio-btn.play-main-btn {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #ffd700, #d4af37);
+  background: linear-gradient(135deg, #e5c158#d4af37);
   color: #060b14;
   font-size: 0.95rem;
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
@@ -3005,9 +3016,7 @@
 .quran-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.86);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -3019,7 +3028,7 @@
 .quran-modal-card {
   width: 100%;
   max-width: 680px;
-  max-height: 85vh;
+  max-height: 85dvh;
   background: rgba(12, 20, 16, 0.96);
   border: 1px solid rgba(212, 175, 55, 0.4);
   border-radius: 24px;
@@ -3062,7 +3071,7 @@
 }
 
 .modal-title-group i.gold-icon {
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .modal-title-group h3 {
@@ -3105,7 +3114,7 @@
 
 .modal-loading-state i {
   font-size: 2rem;
-  color: #ffd700;
+  color: #d4af37;
   margin-bottom: 12px;
 }
 
@@ -3135,7 +3144,7 @@
 
 .tafsir-explanation h4 {
   font-size: 0.95rem;
-  color: #ffd700;
+  color: #d4af37;
   margin: 0 0 10px 0;
 }
 
@@ -3202,7 +3211,7 @@
 .bookmark-surah-tag {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #ffd700;
+  color: #d4af37;
 }
 
 .bookmark-delete-btn {
@@ -3319,7 +3328,7 @@
 
 @media (max-width: 640px) {
   .quran-page-root {
-    padding: 10px 4px 80px 4px !important;
+    padding: var(--top-widget-clearance, calc(max(16px, env(safe-area-inset-top, 16px)) + 74px)) 10px 100px 10px !important;
   }
 
   .cordoba-control-panel {
@@ -3501,9 +3510,7 @@
 .quran-loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(6, 11, 20, 0.72);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(6, 11, 20, 0.88);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -3565,22 +3572,38 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   color: #1e293b;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.cordoba-page-btn:hover:not(:disabled) {
-  background: #16a34a;
-  color: #ffffff;
-  border-color: #16a34a;
-  transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+  .cordoba-page-btn:hover:not(:disabled) {
+    background: #16a34a;
+    color: #ffffff;
+    border-color: #16a34a;
+  }
+
+  [data-theme="dark"] .cordoba-page-btn:hover:not(:disabled) {
+    background: #10b981;
+    border-color: #10b981;
+  }
+}
+
+.cordoba-page-btn:focus-visible {
+  outline: 2px solid #16a34a;
+  outline-offset: 2px;
 }
 
 .cordoba-page-btn:disabled {
@@ -3594,22 +3617,19 @@
   color: #f8fafc;
 }
 
-[data-theme="dark"] .cordoba-page-btn:hover:not(:disabled) {
-  background: #10b981;
-  border-color: #10b981;
-}
-
 .cordoba-page-indicator {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-height: 44px;
   background: #f1f5f9;
-  padding: 4px 14px;
+  padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid #e2e8f0;
   font-size: 0.82rem;
   font-weight: 700;
   color: #0f172a;
+  font-variant-numeric: tabular-nums;
 }
 
 [data-theme="dark"] .cordoba-page-indicator {
@@ -3624,8 +3644,9 @@
 }
 
 .cordoba-page-indicator .page-val {
-  color: #16a34a;
+  color: #15803d;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 [data-theme="dark"] .cordoba-page-indicator .page-val {
@@ -3633,7 +3654,8 @@
 }
 
 .juz-select {
-  padding: 4px 10px;
+  min-height: 44px;
+  padding: 8px 12px;
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   background: #ffffff;
@@ -4027,9 +4049,7 @@
 .original-photo-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.92);
   z-index: 99999;
   display: flex;
   align-items: center;
@@ -4043,7 +4063,7 @@
   border-radius: 16px;
   max-width: 780px;
   width: 100%;
-  max-height: 92vh;
+  max-height: 92dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -4344,10 +4364,12 @@
 }
 
 .zoom-val-btn {
-  padding: 2px 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 8px;
   border: none;
   background: transparent;
-  font-size: 0.7rem;
+  font-size: 0.74rem;
   font-weight: 800;
   color: #854d0e;
   cursor: pointer;
@@ -4358,12 +4380,13 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 10px;
+  min-height: 44px;
+  padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid rgba(202, 138, 4, 0.4);
   background: #ffffff;
   color: #854d0e;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -4377,12 +4400,13 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 12px;
+  min-height: 44px;
+  padding: 8px 14px;
   border-radius: 10px;
   border: none;
-  background: linear-gradient(135deg, #10b981, #047857);
+  background: linear-gradient(135deg, #059669, #047857);
   color: #ffffff;
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
@@ -4897,8 +4921,8 @@
 
 [data-theme="dark"] .tj-qalqalah,
 [data-theme="dark"] .tajweed-qalqalah {
-  color: #38bdf8 !important;
-  text-shadow: 0 0 4px rgba(56, 189, 248, 0.4);
+  color: #60a5fa !important;
+  text-shadow: 0 0 4px rgba(96, 165, 250, 0.35);
 }
 
 [data-theme="dark"] .tj-idgham,
@@ -4926,7 +4950,7 @@
 }
 
 [data-theme="dark"] .tajweed-badge.qalqalah {
-  color: #38bdf8;
+  color: #60a5fa;
 }
 
 [data-theme="dark"] .tajweed-badge.idgham {
@@ -4946,7 +4970,7 @@
 }
 
 [data-theme="dark"] .dot-qalqalah {
-  background: #38bdf8;
+  background: #60a5fa;
 }
 
 [data-theme="dark"] .dot-idgham {
@@ -5370,7 +5394,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  min-height: 44px;
+  padding: 10px 16px;
   border-radius: 8px;
   background: #065f46;
   color: #ffffff;
@@ -5453,21 +5478,21 @@
   }
 
   .quick-pill-audio {
-    width: 28px !important;
-    height: 28px !important;
-    font-size: 0.75rem !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    font-size: 0.82rem !important;
   }
 
   .zoom-btn {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 0.8rem !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 0.85rem !important;
   }
 
   .timer-action-btn {
-    width: 36px !important;
-    height: 36px !important;
-    font-size: 0.85rem !important;
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 0.88rem !important;
   }
 
   .quran-page-root {
@@ -5596,8 +5621,21 @@
 }
 
 :root[data-theme="light"] .cordoba-timer-box {
-  background: rgba(6, 95, 70, 0.1);
+  background: rgba(6, 95, 70, 0.08);
   border-color: rgba(6, 95, 70, 0.3);
+}
+
+:root[data-theme="light"] .timer-toggle-btns {
+  background: rgba(24, 24, 27, 0.08);
+}
+
+:root[data-theme="light"] .timer-tab-btn {
+  color: #27272a;
+}
+
+:root[data-theme="light"] .timer-tab-btn.active {
+  background: #047857;
+  color: #ffffff;
 }
 
 :root[data-theme="light"] .timer-digits {

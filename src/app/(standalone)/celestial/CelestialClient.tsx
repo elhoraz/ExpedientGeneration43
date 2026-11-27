@@ -8,16 +8,16 @@ import ThemeToggle from "@/components/layout/ThemeToggle";
 import "./celestial.css";
 
 const DEFAULT_CARDS = [
-  { numeral: "I", symbol: "☀", name: "The Sun", meaning: "Pencerahan, kesuksesan yang gemilang, dan vitalitas. Segala hal akan menjadi jelas." },
-  { numeral: "II", symbol: "☾", name: "The Moon", meaning: "Intuisi, ilusi, dan ketidaksadaran. Perhatikan mimpimu dan pesan tersirat." },
-  { numeral: "III", symbol: "★", name: "The Star", meaning: "Harapan, inspirasi, dan kedamaian spiritual. Masa depan membawa janji cerah." },
-  { numeral: "IV", symbol: "⚡", name: "The Tower", meaning: "Perubahan mendadak dan runtuhnya struktur lama untuk membangun yang baru." },
-  { numeral: "V", symbol: "⚔", name: "The Sword", meaning: "Keberanian, kebenaran, dan kemampuan untuk memotong segala kebingungan." },
-  { numeral: "VI", symbol: "⚖", name: "Justice", meaning: "Keadilan, keseimbangan, dan hukum karma. Setiap tindakan memiliki konsekuensi." },
-  { numeral: "VII", symbol: "⏳", name: "Time", meaning: "Kesabaran dan siklus alami. Beberapa hal membutuhkan waktu untuk mekar." },
-  { numeral: "VIII", symbol: "∞", name: "Infinity", meaning: "Potensi tak terbatas dan kekuatan batin yang tak terukur." },
-  { numeral: "IX", symbol: "👁", name: "The Oracle", meaning: "Kebijaksanaan batin dan pandangan jauh ke depan. Percayai insting Anda." },
-  { numeral: "X", symbol: "♚", name: "The Sovereign", meaning: "Otoritas, kepemimpinan, dan kendali mutlak atas takdir sendiri." }
+  { numeral: "I", iconClass: "fa-sun", name: "Fajar Cahaya", meaning: "Pencerahan, ketulusan niat, dan kejelasan arah. Segala ikhtiar dimulai dari hati yang jernih." },
+  { numeral: "II", iconClass: "fa-moon", name: "Lailatul Hening", meaning: "Muhasabah, ketenangan batin, dan kepekaan nurani dalam membaca tanda kebaikan." },
+  { numeral: "III", iconClass: "fa-compass", name: "Qiblat Harapan", meaning: "Harapan, keteguhan arah, dan kedamaian spiritual menuju tujuan yang diridhai." },
+  { numeral: "IV", iconClass: "fa-bolt", name: "Azam Perubahan", meaning: "Keberanian memutus kebiasaan lama demi membangun perbaikan yang bermakna." },
+  { numeral: "V", iconClass: "fa-shield-halved", name: "Teguh Prinsip", meaning: "Keberanian membela kebenaran serta ketajaman membedakan yang hak dan batil." },
+  { numeral: "VI", iconClass: "fa-scale-balanced", name: "Mizan Keadilan", meaning: "Keseimbangan hak dan kewajiban; setiap amal akan menuai akibatnya sendiri." },
+  { numeral: "VII", iconClass: "fa-hourglass-half", name: "Sabr & Masa", meaning: "Kesabaran menapaki proses. Hal terbaik tumbuh matang melalui waktu yang tepat." },
+  { numeral: "VIII", iconClass: "fa-infinity", name: "Istiqamah", meaning: "Keteguhan langkah dan keluasan potensi diri yang diasah tanpa henti." },
+  { numeral: "IX", iconClass: "fa-book-open", name: "Bashirah Ilmu", meaning: "Kebijaksanaan batin dan pandangan jauh ke depan yang bersandar pada ilmu." },
+  { numeral: "X", iconClass: "fa-crown", name: "Amanah Khilafah", meaning: "Kepemimpinan yang bertanggung jawab dan pengendalian diri dalam setiap amanah." }
 ];
 
 export default function CelestialClient() {
@@ -25,15 +25,16 @@ export default function CelestialClient() {
   const [flippedCount, setFlippedCount] = useState(0);
   const [canReset, setCanReset] = useState(false);
   const [subtitle, setSubtitle] = useState("Tarik tiga kartu untuk mengungkap takdir Anda hari ini");
-  const [subtitleColor, setSubtitleColor] = useState("#7b8e9b");
+  const [subtitleColor, setSubtitleColor] = useState("var(--text-secondary, #7b8e9b)");
   const [isDrawing, setIsDrawing] = useState(false);
 
   const burstContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const particleField = document.getElementById('particleField');
-    if (particleField) {
-        for (let i = 0; i < 30; i++) {
+    if (particleField && !reducedMotion) {
+        for (let i = 0; i < 24; i++) {
             const p = document.createElement('div');
             p.className = 'particle';
             p.style.left = Math.random() * 100 + 'vw';
@@ -45,11 +46,16 @@ export default function CelestialClient() {
         }
     }
 
+    if (reducedMotion) {
+      gsap.set('#codexTitle, #codexSubtitle, .tarot-card, #btnDraw', { opacity: 1, y: 0 });
+      return;
+    }
+
     const tl = gsap.timeline();
-    tl.to('#codexTitle', { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, 0.3)
-      .to('#codexSubtitle', { opacity: 1, y: 0, duration: 1, ease: "power3.out" }, 0.6)
-      .to('.tarot-card', { opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: "back.out(1.5)" }, 0.8)
-      .to('#btnDraw', { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 1.4);
+    tl.to('#codexTitle', { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.2)
+      .to('#codexSubtitle', { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, 0.4)
+      .to('.tarot-card', { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "back.out(1.4)" }, 0.5)
+      .to('#btnDraw', { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 0.9);
   }, []);
 
   const handleDraw = () => {
@@ -57,7 +63,7 @@ export default function CelestialClient() {
     setDrawnCards(shuffled.slice(0, 3));
     setIsDrawing(true);
     setSubtitle("Sentuh setiap kartu untuk mengungkap takdir Anda");
-    setSubtitleColor("#7b8e9b");
+    setSubtitleColor("var(--text-secondary, #7b8e9b)");
     
     if (navigator.vibrate) navigator.vibrate(30);
   };
@@ -71,7 +77,9 @@ export default function CelestialClient() {
         setFlippedCount(prev => prev + 1);
 
         if (navigator.vibrate) navigator.vibrate([30, 50, 80]);
-        createBurst(cardEl);
+        if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+          createBurst(cardEl);
+        }
     }
   };
 
@@ -79,10 +87,14 @@ export default function CelestialClient() {
     if (flippedCount >= 3) {
         setTimeout(() => {
             setSubtitle(`"Takdir telah berbicara. Simpan kebijaksanaannya."`);
-            setSubtitleColor("#d4af37");
+            setSubtitleColor("var(--gold-main, #d4af37)");
             setCanReset(true);
-            gsap.fromTo('#btnReset', { opacity: 0, y: 10, display: 'inline-block' }, { opacity: 1, y: 0, duration: 0.5 });
-        }, 1200);
+            if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+              gsap.set('#btnReset', { opacity: 1, y: 0, display: 'inline-flex' });
+            } else {
+              gsap.fromTo('#btnReset', { opacity: 0, y: 10, display: 'inline-flex' }, { opacity: 1, y: 0, duration: 0.5 });
+            }
+        }, 1000);
     }
   }, [flippedCount]);
 
@@ -96,7 +108,7 @@ export default function CelestialClient() {
     });
 
     setSubtitle("Tarik tiga kartu untuk mengungkap takdir Anda hari ini");
-    setSubtitleColor("#7b8e9b");
+    setSubtitleColor("var(--text-secondary, #7b8e9b)");
     
     setTimeout(() => {
         setIsDrawing(false);
@@ -110,14 +122,14 @@ export default function CelestialClient() {
     const cy = rect.top + rect.height / 2;
     const container = burstContainerRef.current;
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 16; i++) {
         const p = document.createElement('div');
         p.className = 'burst-particle';
         p.style.left = cx + 'px';
         p.style.top = cy + 'px';
         container.appendChild(p);
 
-        const angle = (Math.PI * 2 / 20) * i;
+        const angle = (Math.PI * 2 / 16) * i;
         const dist = 60 + Math.random() * 80;
         const tx = Math.cos(angle) * dist;
         const ty = Math.sin(angle) * dist;
@@ -127,7 +139,7 @@ export default function CelestialClient() {
             y: ty,
             opacity: 0,
             scale: 0,
-            duration: 0.8 + Math.random() * 0.4,
+            duration: 0.7 + Math.random() * 0.3,
             ease: "power2.out",
             onComplete: () => p.remove()
         });
@@ -152,30 +164,41 @@ export default function CelestialClient() {
 
         <div className="card-stage" id="cardStage">
             {[0, 1, 2].map((i) => (
-                <div key={i} className="tarot-card" id={`card${i}`} style={{ cursor: isDrawing ? 'pointer' : 'default' }} onClick={() => isDrawing && handleFlip(i)}>
+                <button
+                    key={i}
+                    type="button"
+                    className="tarot-card"
+                    id={`card${i}`}
+                    disabled={!isDrawing}
+                    style={{ cursor: isDrawing ? 'pointer' : 'default', background: 'transparent', border: 'none', padding: 0, textAlign: 'inherit' }}
+                    onClick={() => isDrawing && handleFlip(i)}
+                    aria-label={drawnCards[i] ? `${drawnCards[i].name}: ${drawnCards[i].meaning}` : `Card ${i + 1}`}
+                >
                     <div className="card-inner">
                         <div className="card-face card-back">
-                            <div className="card-back-design"><Image src="/images/logo-utuh.webp" alt="Codex" width={100} height={100} priority style={{ width: "50%", height: "auto" }} /></div>
+                            <div className="card-back-design"><Image src="/images/logo-utuh.webp" alt="" aria-hidden="true" width={100} height={100} priority style={{ width: "50%", height: "auto" }} /></div>
                         </div>
                         <div className="card-face card-front">
                             {drawnCards[i] && (
                                 <>
                                     <div className="card-numeral">{drawnCards[i].numeral}</div>
-                                    <div className="card-symbol">{drawnCards[i].symbol}</div>
-                                    <div className="card-line"></div>
+                                    <div className="card-symbol" aria-hidden="true">
+                                      <i className={`fa-solid ${drawnCards[i].iconClass}`}></i>
+                                    </div>
+                                    <div className="card-line" aria-hidden="true"></div>
                                     <div className="card-name">{drawnCards[i].name}</div>
-                                    <div className="card-line"></div>
+                                    <div className="card-line" aria-hidden="true"></div>
                                     <div className="card-meaning">{drawnCards[i].meaning}</div>
                                 </>
                             )}
                         </div>
                     </div>
-                </div>
+                </button>
             ))}
         </div>
 
-        {!isDrawing && <button className="btn-draw" id="btnDraw" onClick={handleDraw}>Tarik Kartu Takdir</button>}
-        <button className="btn-reset" id="btnReset" onClick={handleReset} style={{ display: canReset ? 'inline-block' : 'none' }}>Tarik Ulang</button>
+        {!isDrawing && <button type="button" className="btn-draw" id="btnDraw" onClick={handleDraw}>Tarik Kartu Takdir</button>}
+        <button type="button" className="btn-reset" id="btnReset" onClick={handleReset} style={{ display: canReset ? 'inline-flex' : 'none', alignItems: 'center', justifyContent: 'center' }}>Tarik Ulang</button>
       </div>
 
       <div className="burst-container" id="burstContainer" ref={burstContainerRef}></div>

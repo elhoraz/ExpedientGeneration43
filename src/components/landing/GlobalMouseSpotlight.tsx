@@ -13,7 +13,9 @@ export default function GlobalMouseSpotlight() {
       navigator.maxTouchPoints > 0 ||
       (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
 
-    if (window.innerWidth <= 768 || isTouch) return;
+    const prefersReducedMotion =
+      window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (window.innerWidth <= 768 || isTouch || prefersReducedMotion) return;
 
     const el = spotlightRef.current;
     if (!el) return;

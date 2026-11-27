@@ -7,6 +7,7 @@
     position: relative;
     width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
     padding: max(85px, calc(env(safe-area-inset-top, 20px) + 65px)) 16px 95px 16px;
     color: var(--text-primary, #f8fafc);
     box-sizing: border-box;
@@ -14,8 +15,6 @@
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 /* Subtle background hook */
@@ -115,10 +114,8 @@
    -------------------------------------------------------------------------- */
 .sirah-tabs-nav {
     display: flex;
-    background: rgba(12, 18, 30, 0.85);
+    background: rgba(12, 18, 30, 0.94);
     border: 1px solid rgba(212, 175, 55, 0.25);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border-radius: 35px;
     padding: 4px;
     gap: 4px;
@@ -136,6 +133,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-height: 44px;
     padding: 9px 18px;
     background: transparent;
     border: none;
@@ -148,9 +146,11 @@
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sirah-tab-btn:hover {
-    color: var(--gold-main, #d4af37);
-    background: rgba(212, 175, 55, 0.08);
+@media (hover: hover) and (pointer: fine) {
+    .sirah-tab-btn:hover {
+        color: var(--gold-main, #d4af37);
+        background: rgba(212, 175, 55, 0.08);
+    }
 }
 
 .sirah-tab-btn.active {
@@ -262,9 +262,9 @@
 }
 
 .map-control-btn {
-    width: 38px;
-    height: 38px;
-    background: rgba(12, 18, 30, 0.85);
+    width: 44px;
+    height: 44px;
+    background: rgba(12, 18, 30, 0.94);
     border: 1px solid rgba(212, 175, 55, 0.35);
     border-radius: 10px;
     color: #ffffff;
@@ -273,27 +273,27 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    backdrop-filter: blur(8px);
     transition: all 0.2s ease;
 }
 
-.map-control-btn:hover {
-    background: rgba(212, 175, 55, 0.2);
-    color: var(--gold-main, #d4af37);
-    border-color: var(--gold-main, #d4af37);
+@media (hover: hover) and (pointer: fine) {
+    .map-control-btn:hover {
+        background: rgba(212, 175, 55, 0.2);
+        color: var(--gold-main, #d4af37);
+        border-color: var(--gold-main, #d4af37);
+    }
 }
 
 .map-compass-hud {
     position: absolute;
     top: 14px;
     left: 14px;
-    background: rgba(12, 18, 30, 0.75);
+    background: rgba(12, 18, 30, 0.92);
     border: 1px solid rgba(212, 175, 55, 0.25);
     border-radius: 12px;
     padding: 6px 12px;
-    font-size: 0.74rem;
+    font-size: 0.75rem;
     color: var(--gold-main, #d4af37);
-    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -306,12 +306,11 @@
     left: 14px;
     bottom: 14px;
     max-width: 320px;
-    background: rgba(12, 18, 30, 0.92);
+    background: rgba(12, 18, 30, 0.96);
     border: 1px solid rgba(212, 175, 55, 0.4);
     border-radius: 16px;
     padding: 14px;
     box-sizing: border-box;
-    backdrop-filter: blur(14px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
     z-index: 10;
     display: flex;
@@ -428,7 +427,7 @@
 }
 
 .sirah-event-card {
-    background: linear-gradient(145deg, rgba(16, 24, 40, 0.88) 0%, rgba(10, 15, 26, 0.94) 100%);
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.96) 0%, rgba(10, 15, 26, 0.98) 100%);
     border: 1px solid rgba(212, 175, 55, 0.22);
     border-radius: 18px;
     padding: 20px;
@@ -436,16 +435,17 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    backdrop-filter: blur(12px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
 }
 
-.sirah-event-card:hover {
-    transform: translateX(4px);
-    border-color: rgba(212, 175, 55, 0.5);
-    box-shadow: 0 12px 35px rgba(212, 175, 55, 0.15);
+@media (hover: hover) and (pointer: fine) {
+    .sirah-event-card:hover {
+        transform: translateX(4px);
+        border-color: rgba(212, 175, 55, 0.5);
+        box-shadow: 0 12px 35px rgba(212, 175, 55, 0.15);
+    }
 }
 
 .event-card-header {
@@ -456,7 +456,7 @@
 }
 
 .event-date-badge {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: var(--gold-main, #d4af37);
     background: rgba(212, 175, 55, 0.12);
@@ -466,7 +466,7 @@
 }
 
 .event-phase-tag {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     font-weight: 600;
     padding: 2px 8px;
     border-radius: 6px;
@@ -526,9 +526,7 @@
 .sirah-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.88);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -647,21 +645,24 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    min-height: 44px;
     padding: 8px 14px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(212, 175, 55, 0.25);
     border-radius: 10px;
     color: var(--text-secondary, #94a3b8);
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.sirah-action-btn:hover {
-    background: rgba(212, 175, 55, 0.15);
-    color: var(--gold-main, #d4af37);
-    border-color: var(--gold-main, #d4af37);
+@media (hover: hover) and (pointer: fine) {
+    .sirah-action-btn:hover {
+        background: rgba(212, 175, 55, 0.15);
+        color: var(--gold-main, #d4af37);
+        border-color: var(--gold-main, #d4af37);
+    }
 }
 
 .sirah-action-btn.primary {
@@ -669,6 +670,16 @@
     color: #0b0f19;
     border: none;
     font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sirah-page-wrapper *,
+    .sirah-page-wrapper *::before,
+    .sirah-page-wrapper *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* --------------------------------------------------------------------------

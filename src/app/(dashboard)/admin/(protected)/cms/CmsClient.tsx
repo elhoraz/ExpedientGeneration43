@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import Link from "next/link";
@@ -91,7 +91,7 @@ export default function CmsClient({
 
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { showAlert } = useConfirm();
+  const { showAlert, showConfirm } = useConfirm();
 
   // Group contents by prefix and search query
   const { groupedContents, prefixes, totalFilteredCount } = useMemo(() => {
@@ -143,27 +143,29 @@ export default function CmsClient({
     };
   }, [contents, newKeys, draftDeletions, draftUpdates, searchQuery]);
 
-  // Set default tab if activeTab is empty
-  if (activeTab === "" && prefixes.length > 0) {
-    setActiveTab(prefixes[0]);
-  }
+  // Set default tab safely after mount / filter changes
+  useEffect(() => {
+    if (activeTab === "" && prefixes.length > 0) {
+      setActiveTab(prefixes[0]);
+    }
+  }, [activeTab, prefixes]);
 
   // Sub-section helper for items inside a page
   const getSubSection = (key: string, type: string) => {
     const k = key.toLowerCase();
     if (k.includes('hero') || k.includes('title') || k.includes('eyebrow') || k.includes('welcome') || k.includes('subtitle')) {
-      return { id: 'hero', name: '🎯 Header & Hero Section', icon: 'fa-solid fa-bullhorn' };
+      return { id: 'hero', name: 'Header & Hero Section', icon: 'fa-solid fa-bullhorn' };
     }
     if (k.includes('about') || k.includes('lore') || k.includes('shard') || k.includes('desc') || k.includes('text') || k.includes('jiwa') || k.includes('archive')) {
-      return { id: 'main', name: '📝 Konten & Deskripsi Utama', icon: 'fa-solid fa-align-left' };
+      return { id: 'main', name: 'Konten & Deskripsi Utama', icon: 'fa-solid fa-align-left' };
     }
     if (type === 'image' || k.includes('img') || k.includes('image') || k.includes('logo') || k.includes('card') || k.includes('photo') || k.includes('feat')) {
-      return { id: 'media', name: '🖼️ Media, Gambar & Visual', icon: 'fa-solid fa-photo-film' };
+      return { id: 'media', name: 'Media, Gambar & Visual', icon: 'fa-solid fa-photo-film' };
     }
     if (k.includes('btn') || k.includes('label') || k.includes('ui') || k.includes('footer') || k.includes('stat') || k.includes('copyright')) {
-      return { id: 'ui', name: '🔘 Label UI & Tombol Navigasi', icon: 'fa-solid fa-sliders' };
+      return { id: 'ui', name: 'Label UI & Tombol Navigasi', icon: 'fa-solid fa-sliders' };
     }
-    return { id: 'other', name: '📁 Modul Konten Tambahan', icon: 'fa-solid fa-folder-open' };
+    return { id: 'other', name: 'Modul Konten Tambahan', icon: 'fa-solid fa-folder-open' };
   };
 
   // --- CMS Logic ---
@@ -181,8 +183,8 @@ export default function CmsClient({
     }
   };
 
-  const handleMarkDelete = (id: string) => {
-    if (!confirm("Tandai kunci konten ini untuk dihapus dari database?")) return;
+  const handleMarkDelete = async (id: string) => {
+    if (!(await showConfirm("Hapus Kunci Konten", "Tandai kunci konten ini untuk dihapus dari database?"))) return;
     setDraftDeletions(prev => [...prev, id]);
   };
 
@@ -418,7 +420,7 @@ export default function CmsClient({
   };
 
   const handleDeleteGaleri = async (id: string) => {
-    if (!confirm("Hapus gambar ini dari galeri museum?")) return;
+    if (!(await showConfirm("Hapus Gambar Galeri", "Hapus gambar ini dari galeri museum?"))) return;
     setLoading(true);
     try {
       const res = await fetch('/api/admin/cms', {

@@ -130,23 +130,37 @@ export default function CommandPalette() {
   if (!isOpen) return null;
 
   return (
-    <div className="cmd-palette-overlay" role="dialog" aria-label="Command Palette" aria-modal="true" onClick={(e) => {
-      if (e.target === e.currentTarget) setIsOpen(false);
-    }}>
+    <div
+      className="cmd-palette-overlay"
+      role="dialog"
+      aria-label={t.navbar.search_palette}
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) setIsOpen(false);
+      }}
+    >
       <div className="cmd-palette-box" onClick={e => e.stopPropagation()}>
         <div className="cmd-search-bar">
-          <i className="fa-solid fa-magnifying-glass cmd-search-icon"></i>
+          <i className="fa-solid fa-magnifying-glass cmd-search-icon" aria-hidden="true"></i>
           <input 
             ref={inputRef}
             type="text" 
             className="cmd-input" 
-            placeholder={t.command_palette?.search_placeholder || t.navbar.search_palette} 
+            placeholder={t.command_palette?.search_placeholder || t.navbar.search_palette}
+            aria-label={t.command_palette?.search_placeholder || t.navbar.search_palette}
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoComplete="off" 
             spellCheck="false" 
           />
-          <kbd className="cmd-esc-hint" onClick={() => setIsOpen(false)}>ESC</kbd>
+          <button
+            type="button"
+            className="cmd-esc-hint"
+            onClick={() => setIsOpen(false)}
+            aria-label={t.common.close}
+          >
+            ESC
+          </button>
         </div>
 
         <div className="cmd-quick-strip">
@@ -156,6 +170,7 @@ export default function CommandPalette() {
                 key={langCode}
                 type="button"
                 className={`cmd-quick-pill ${locale === langCode ? "active" : ""}`}
+                aria-pressed={locale === langCode}
                 onClick={() => {
                   if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(12);
                   setLocale(langCode);
@@ -173,7 +188,7 @@ export default function CommandPalette() {
               window.dispatchEvent(new CustomEvent("expedient-open-guide"));
             }}
           >
-            <i className="fa-solid fa-circle-question"></i>
+            <i className="fa-solid fa-circle-question" aria-hidden="true"></i>
             <span>{locale === "ar" ? "مساعدة الصفحة" : locale === "en" ? "Page Guide" : "Bantuan"}</span>
           </button>
         </div>
@@ -185,16 +200,17 @@ export default function CommandPalette() {
                 {locale === "ar" ? "التنقل والميزات" : locale === "en" ? "Main Navigation" : "Navigasi Utama"}
               </div>
               {filteredCommands.map((cmd, index) => (
-                <div 
-                  key={cmd.id} 
-                  className={`cmd-item ${index === selectedIndex ? 'selected' : ''}`}
+                <button
+                  key={cmd.id}
+                  type="button"
+                  className={`cmd-item ${index === selectedIndex ? "selected" : ""}`}
                   onClick={() => executeCommand(cmd)}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
-                  <i className={`fa-solid ${cmd.icon} cmd-item-icon`}></i>
+                  <i className={`fa-solid ${cmd.icon} cmd-item-icon`} aria-hidden="true"></i>
                   <span>{cmd.title}</span>
-                  {index === selectedIndex && <kbd className="cmd-enter-hint">↵</kbd>}
-                </div>
+                  {index === selectedIndex && <kbd className="cmd-enter-hint" aria-hidden="true">↵</kbd>}
+                </button>
               ))}
             </>
           ) : (

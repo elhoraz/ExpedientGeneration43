@@ -38,23 +38,25 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
             className={`lang-pill-btn ${locale === item.code ? "active" : ""}`}
             onClick={() => handleSelect(item.code)}
             title={item.nativeLabel}
+            aria-label={item.nativeLabel}
+            aria-pressed={locale === item.code}
             style={{
-              padding: "5px 12px",
-              borderRadius: "20px",
-              border: locale === item.code ? "1px solid var(--gold-premium, #d4af37)" : "1px solid var(--glass-border)",
-              background: locale === item.code ? "rgba(212, 175, 55, 0.22)" : "rgba(255, 255, 255, 0.04)",
-              color: locale === item.code ? "var(--gold-premium, #d4af37)" : "var(--text-secondary)",
-              fontSize: "0.78rem",
+              padding: "8px 14px",
+              minHeight: "44px",
+              borderRadius: "12px",
+              border: locale === item.code ? "1px solid var(--gold-main, #d4af37)" : "1px solid var(--glass-border)",
+              background: locale === item.code ? "rgba(212, 175, 55, 0.16)" : "var(--surface-raised, rgba(255, 255, 255, 0.04))",
+              color: locale === item.code ? "var(--gold-main, #d4af37)" : "var(--text-secondary)",
+              fontSize: "0.8rem",
               fontWeight: locale === item.code ? 700 : 500,
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
               gap: "6px",
-              transition: "all 0.2s ease",
-              boxShadow: locale === item.code ? "0 0 12px rgba(212, 175, 55, 0.25)" : "none"
+              transition: "background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease",
             }}
           >
-            <span>{item.flag}</span>
+            <span aria-hidden="true">{item.flag}</span>
             <span>{item.nativeLabel}</span>
           </button>
         ))}
@@ -70,6 +72,7 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
             key={item.code}
             type="button"
             onClick={() => handleSelect(item.code)}
+            aria-pressed={locale === item.code}
             className="cursor-bind"
             style={{
               display: "flex",
@@ -77,18 +80,19 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
               alignItems: "center",
               justifyContent: "center",
               padding: "14px 8px",
+              minHeight: "64px",
               borderRadius: "14px",
-              background: locale === item.code ? "rgba(212, 175, 55, 0.15)" : "rgba(255, 255, 255, 0.03)",
-              border: locale === item.code ? "1.5px solid var(--gold-premium, #d4af37)" : "1px solid var(--glass-border)",
-              color: locale === item.code ? "var(--gold-premium, #d4af37)" : "var(--text-primary)",
+              background: locale === item.code ? "rgba(212, 175, 55, 0.15)" : "var(--surface-raised, rgba(255, 255, 255, 0.03))",
+              border: locale === item.code ? "1.5px solid var(--gold-main, #d4af37)" : "1px solid var(--glass-border)",
+              color: locale === item.code ? "var(--gold-main, #d4af37)" : "var(--text-primary)",
               cursor: "pointer",
-              transition: "all 0.25s ease",
+              transition: "background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease",
               textAlign: "center"
             }}
           >
-            <span style={{ fontSize: "1.6rem", marginBottom: "4px" }}>{item.flag}</span>
+            <span aria-hidden="true" style={{ fontSize: "1.6rem", marginBottom: "4px" }}>{item.flag}</span>
             <span style={{ fontWeight: 700, fontSize: "0.82rem" }}>{item.nativeLabel}</span>
-            <span style={{ fontSize: "0.68rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.5px" }}>{item.label}</span>
+            <span style={{ fontSize: "0.72rem", color: "var(--text-secondary)" }}>{item.label}</span>
           </button>
         ))}
       </div>
@@ -99,7 +103,7 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
     return (
       <div className={`lang-sidebar-wrapper ${className}`}>
         <div className="lang-sidebar-label">
-          <i className="fa-solid fa-language"></i>
+          <i className="fa-solid fa-language" aria-hidden="true"></i>
           <span>Bahasa / اللغة</span>
         </div>
         <div className="lang-sidebar-pills">
@@ -110,8 +114,10 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
               className={`lang-sidebar-pill ${locale === item.code ? "active" : ""}`}
               onClick={() => handleSelect(item.code)}
               title={item.nativeLabel}
+              aria-label={item.nativeLabel}
+              aria-pressed={locale === item.code}
             >
-              <span className="lang-flag">{item.flag}</span>
+              <span className="lang-flag" aria-hidden="true">{item.flag}</span>
               <span className="lang-code">{item.code.toUpperCase()}</span>
             </button>
           ))}
@@ -124,15 +130,15 @@ export default function LanguageSwitcher({ variant = "pill", className = "" }: L
     <button
       type="button"
       className={`lang-widget hover-trigger ${className}`}
-      id="btnLang"
-      title="Ganti Bahasa / Switch Language (ID → AR → EN)"
+      title={locale === "ar" ? "تغيير اللغة (ID / AR / EN)" : locale === "en" ? "Switch Language (ID / AR / EN)" : "Ganti Bahasa (ID / AR / EN)"}
+      aria-label={locale === "ar" ? "تغيير اللغة" : locale === "en" ? "Switch Language" : "Ganti Bahasa"}
       onClick={cycleLanguage}
       suppressHydrationWarning
     >
       <div className="icon-orb">
-        <i className="fa-solid fa-globe" id="langIcon"></i>
+        <i className="fa-solid fa-globe lang-icon" aria-hidden="true"></i>
       </div>
-      <span className="widget-text" id="langText">{locale.toUpperCase()}</span>
+      <span className="widget-text">{locale.toUpperCase()}</span>
     </button>
   );
 }

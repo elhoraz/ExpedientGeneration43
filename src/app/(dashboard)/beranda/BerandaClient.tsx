@@ -31,6 +31,22 @@ export default function BerandaClient({
   const { t: tLang, locale } = useLanguage();
   const isAr = locale === "ar";
   const isEn = locale === "en";
+  const [guestbookEntries, setGuestbookEntries] = useState<any[]>(bukuTamu || []);
+
+  useEffect(() => {
+    setGuestbookEntries(bukuTamu || []);
+  }, [bukuTamu]);
+
+  useEffect(() => {
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      (window as any).closeArchive?.();
+      (window as any).closeJiwa?.();
+      (window as any).closeModal?.();
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, []);
 
   const localizedLores = [
     t('beranda_lore_1', '"Dan bersabarlah kamu bersama-sama dengan orang-orang yang menyeru Tuhannya di pagi dan senja hari..." (Al-Kahfi: 28)'),
@@ -71,7 +87,7 @@ export default function BerandaClient({
     },
     {
       title: isAr ? 'بتلات الرخام الأزرق (Blue Marble)' : (isEn ? 'Blue Marble Petals' : t('beranda_shard_8_title', 'Kelopak Blue Marble')),
-      desc: isAr ? 'تأكيد على مسؤولية عمارة الأرض والحفاظ على كوكبنا أمانة من الله تعالى.' : (isEn ? 'Emphasizes ecological responsibility and sustainability as entrusted stewards of Allah’s creation.' : t('beranda_shard_8_desc', 'Merupakan sebutan pertama kali untuk foto bumi yang pertama, yang diambil pada 7 Desember 1972, melambangkan gerakan dalam menjaga dan melestarikan bumi sebagai amanah yang dibebankan kepada seluruh umat manusia sesuai dengan QS. Al-Baqarah: 56. Memicu perlunya pembangkitan berkelanjutan untuk menjaga planet. Kepercayaan, loyalitas, tanggung jawab, keamanan simbol surga spiritualitas. Dan berlist-kan emas melambangkan bahwa alumni Arrisalah tahun 2025 adalah sesuatu yang berharga.'))
+      desc: isAr ? 'تأكيد على مسؤولية عمارة الأرض والحفاظ على كوكبنا أمانة من الله تعالى.' : (isEn ? 'Emphasizes ecological responsibility and sustainability as entrusted stewards of Allah’s creation.' : t('beranda_shard_8_desc', 'Merupakan sebutan pertama kali untuk foto bumi yang pertama, yang diambil pada 7 Desember 1972, melambangkan gerakan dalam menjaga dan melestarikan bumi sebagai amanah yang dibebankan kepada seluruh umat manusia sesuai dengan QS. Al-Baqarah: 30 dan QS. Hud: 61. Memicu perlunya keberlanjutan untuk menjaga bumi, membawa nilai kepercayaan, loyalitas, tanggung jawab, serta bingkai emas yang melambangkan bahwa alumni Arrisalah tahun 2025 adalah generasi yang berharga.'))
     },
     {
       title: isAr ? 'قرن الوعل الذهبي بلفظ محمد ﷺ' : (isEn ? 'Golden Antler with Muhammad (PBUH)' : t('beranda_shard_9_title', 'Tanduk Rusa Emas Berlafazkan Muhammad SAW')),
@@ -211,9 +227,10 @@ export default function BerandaClient({
 
   const handleGuestbookSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const nama = formData.get('nama') as string;
-    const pesan = formData.get('pesan') as string;
+    const formEl = e.currentTarget;
+    const formData = new FormData(formEl);
+    const nama = (formData.get('nama') as string) || '';
+    const pesan = (formData.get('pesan') as string) || '';
 
     // API expects message
     try {
@@ -223,13 +240,21 @@ export default function BerandaClient({
         body: JSON.stringify({ nama, message: pesan })
       });
       if (res.ok) {
+        const created = await res.json().catch(() => null);
+        const nextEntry = created && (created.nama || created.pesan)
+          ? created
+          : { id: Date.now(), nama, pesan, created_at: new Date().toISOString() };
+        setGuestbookEntries((prev) => [nextEntry, ...prev]);
+        formEl.reset();
+        const knob = document.getElementById('swipeKnob');
+        const fill = document.getElementById('swipeFill');
+        if (knob) knob.style.transform = 'translateX(0px)';
+        if (fill) fill.style.width = '0px';
         await showAlert(tLang.common.success, tLang.beranda.toast_sent_success || tLang.common.success);
-        // Reload to show new message or handle optimism
-        window.location.reload();
       } else {
         await showAlert(tLang.common.error, tLang.common.error);
       }
-    } catch (err) {
+    } catch {
       await showAlert(tLang.common.error, tLang.common.error);
     }
   };
@@ -329,21 +354,25 @@ export default function BerandaClient({
         <section className="hall-section">
           <h2 className="section-title reveal-up">{locale === 'id' ? t('beranda_manuskrip_title', tLang.beranda.manuskrip_title) : tLang.beranda.manuskrip_title}</h2>
           <div className="news-list">
-            <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('visi')} style={{ cursor: 'pointer' }}>
-              <span className="news-date">{tLang.beranda_extra.archive_date_visi}</span>
-              <h3 className="news-title">{tLang.beranda_extra.archive_title_visi}</h3>
-              <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
+            <article className="news-item reveal-up">
+              <button type="button" className="news-item-btn" onClick={() => (window as any).openArchive?.('visi')}>
+                <span className="news-date">{tLang.beranda_extra.archive_date_visi}</span>
+                <h3 className="news-title">{tLang.beranda_extra.archive_title_visi}</h3>
+                <span className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open" aria-hidden="true"></i></span>
+              </button>
             </article>
-            <article className="news-item reveal-up" onClick={() => (window as any).openArchive?.('simpul')} style={{ cursor: 'pointer' }}>
-              <span className="news-date">{tLang.beranda_extra.archive_date_simpul}</span>
-              <h3 className="news-title">{tLang.beranda_extra.archive_title_simpul}</h3>
-              <a href="#" onClick={(e) => e.preventDefault()} className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open"></i></a>
+            <article className="news-item reveal-up">
+              <button type="button" className="news-item-btn" onClick={() => (window as any).openArchive?.('simpul')}>
+                <span className="news-date">{tLang.beranda_extra.archive_date_simpul}</span>
+                <h3 className="news-title">{tLang.beranda_extra.archive_title_simpul}</h3>
+                <span className="news-link">{tLang.beranda.read_document} <i className="fa-solid fa-book-open" aria-hidden="true"></i></span>
+              </button>
             </article>
           </div>
         </section>
 
         {/* Modal Arsip Kenangan Alumni */}
-        <div className="archive-modal" id="archiveModal">
+        <div className="archive-modal" id="archiveModal" role="dialog" aria-modal="true" aria-labelledby="arcTitle">
           <div className="archive-backdrop" onClick={() => (window as any).closeArchive?.()}></div>
           <div className="archive-paper" id="archivePaper">
             <div className="archive-header">
@@ -354,7 +383,7 @@ export default function BerandaClient({
             <div className="archive-body" id="arcBody">
               {/* Content injected here */}
             </div>
-            <button className="btn-stamp" style={{ marginTop: '40px', display: 'block', width: '100%', borderColor: 'var(--glass-border)', color: 'var(--text-primary)' }} onClick={() => (window as any).closeArchive?.()}>{tLang.beranda.close_manuscript}</button>
+            <button type="button" className="btn-stamp" style={{ marginTop: '40px', display: 'block', width: '100%', borderColor: 'var(--glass-border)', color: 'var(--text-primary)' }} onClick={() => (window as any).closeArchive?.()}>{tLang.beranda.close_manuscript}</button>
           </div>
         </div>
 
@@ -419,21 +448,21 @@ export default function BerandaClient({
 
         <section className="hall-section monolith-section">
           <div className="monolith-pillar">
-            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('keikhlasan')}>{tLang.beranda.jiwa_keikhlasan}</h2>
-            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kesederhanaan')}>{tLang.beranda.jiwa_kesederhanaan}</h2>
-            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kemandirian')}>{tLang.beranda.jiwa_kemandirian}</h2>
-            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('ukhuwah')}>{tLang.beranda.jiwa_ukhuwah}</h2>
-            <h2 className="gold-engraving panca-jiwa" onClick={() => (window as any).openJiwa?.('kebebasan')}>{tLang.beranda.jiwa_kebebasan}</h2>
+            <h2 className="gold-engraving panca-jiwa"><button type="button" className="panca-jiwa-btn" onClick={() => (window as any).openJiwa?.('keikhlasan')}>{tLang.beranda.jiwa_keikhlasan}</button></h2>
+            <h2 className="gold-engraving panca-jiwa"><button type="button" className="panca-jiwa-btn" onClick={() => (window as any).openJiwa?.('kesederhanaan')}>{tLang.beranda.jiwa_kesederhanaan}</button></h2>
+            <h2 className="gold-engraving panca-jiwa"><button type="button" className="panca-jiwa-btn" onClick={() => (window as any).openJiwa?.('kemandirian')}>{tLang.beranda.jiwa_kemandirian}</button></h2>
+            <h2 className="gold-engraving panca-jiwa"><button type="button" className="panca-jiwa-btn" onClick={() => (window as any).openJiwa?.('ukhuwah')}>{tLang.beranda.jiwa_ukhuwah}</button></h2>
+            <h2 className="gold-engraving panca-jiwa"><button type="button" className="panca-jiwa-btn" onClick={() => (window as any).openJiwa?.('kebebasan')}>{tLang.beranda.jiwa_kebebasan}</button></h2>
           </div>
         </section>
 
         {/* Modal Khusus Panca Jiwa */}
-        <div className="jiwa-modal" id="jiwaModal">
+        <div className="jiwa-modal" id="jiwaModal" role="dialog" aria-modal="true" aria-labelledby="jiwaTitle">
           <div className="jiwa-anim-container" id="jiwaAnimContainer"></div>
           <div className="jiwa-content" id="jiwaContent">
             <h2 className="jiwa-title" id="jiwaTitle">{tLang.beranda_extra.panca_jiwa_modal_title}</h2>
             <div className="jiwa-desc" id="jiwaDesc">{tLang.beranda.close_explanation}</div>
-            <button className="btn-stamp" style={{ marginTop: '30px', fontSize: '0.8rem', padding: '10px 20px' }} onClick={() => (window as any).closeJiwa?.()}>{tLang.beranda.close_explanation}</button>
+            <button type="button" className="btn-stamp" style={{ marginTop: '30px', fontSize: '0.8rem', padding: '10px 20px' }} onClick={() => (window as any).closeJiwa?.()}>{tLang.beranda.close_explanation}</button>
           </div>
         </div>
 
@@ -485,12 +514,12 @@ export default function BerandaClient({
             </div>
           )}
 
-          {bukuTamu.length > 0 && (
+          {guestbookEntries.length > 0 && (
             <div className="guestbook-list">
               <h3 className="guestbook-title">{tLang.beranda.buku_tamu_recent_title}</h3>
               <div className="guestbook-items">
-                {bukuTamu.map((bt, idx) => (
-                  <div className="guestbook-item" key={idx}>
+                {guestbookEntries.map((bt, idx) => (
+                  <div className="guestbook-item" key={bt.id ?? idx}>
                     <div className="guestbook-name">{bt.nama}</div>
                     <div className="guestbook-msg">"{bt.pesan}"</div>
                     <div className="guestbook-date">{new Date(bt.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
@@ -517,7 +546,7 @@ export default function BerandaClient({
                 <Link href={birthdayUsers.length === 1 ? `/birthday/${birthdayUsers[0].id}` : "/birthday"} style={{ color: 'var(--gold-main)', textDecoration: 'none', fontWeight: 700, marginTop: '5px', display: 'inline-block' }}>{tLang.beranda.bday_send_wish} <i className="fa-solid fa-arrow-right-long" style={{ marginLeft: '5px' }}></i></Link>
               </div>
             </div>
-            <button onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 500); }} aria-label={tLang.common.close} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', minWidth: '36px', minHeight: '36px', padding: '5px' }}><i className="fa-solid fa-times"></i></button>
+            <button type="button" onClick={() => { document.getElementById('bdayToast')!.style.opacity = '0'; setTimeout(() => document.getElementById('bdayToast')!.style.display = 'none', 500); }} aria-label={tLang.common.close} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px' }}><i className="fa-solid fa-times" aria-hidden="true"></i></button>
           </div>
         )}
       </main>

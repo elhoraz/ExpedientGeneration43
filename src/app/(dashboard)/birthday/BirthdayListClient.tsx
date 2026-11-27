@@ -55,7 +55,10 @@ export default function BirthdayListClient({
   return (
     <main className="bday-wrapper">
       <div className="bday-header bday-fade-in">
-        <h1>🎂 {locale === "ar" ? "أعياد ميلاد الدفعة" : locale === "en" ? "Cohort Birthdays" : "Ulang Tahun Sahabat"}</h1>
+        <h1>
+          <i className="fa-solid fa-cake-candles" aria-hidden="true" style={{ marginInlineEnd: "10px", color: "var(--gold-main, #d4af37)" }}></i>
+          {locale === "ar" ? "أعياد ميلاد الدفعة" : locale === "en" ? "Cohort Birthdays" : "Ulang Tahun Sahabat"}
+        </h1>
         <p>{t.birthday.subtitle}</p>
         <div className="bday-date-badge">
           <i className="fa-regular fa-calendar"></i>{" "}
@@ -97,7 +100,7 @@ export default function BirthdayListClient({
 
               return (
                 <div key={u.id} className="bday-card bday-fade-in" style={{ animationDelay: `${(i + 2) * 80}ms` }}>
-                  <div className="bday-confetti">🎉</div>
+                  <div className="bday-confetti" aria-hidden="true"><i className="fa-solid fa-star"></i></div>
                   <BirthdayAvatar src={avatarUrl} name={displayName} size={90} />
                   <div className="bday-name">{displayName}</div>
                   {showFullName && <div className="bday-fullname">{u.nama_lengkap}</div>}

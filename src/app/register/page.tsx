@@ -9,6 +9,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import { AuthCardSkeleton } from "@/components/ui/Skeleton";
 import "./register.css";
 
@@ -51,12 +52,18 @@ function RegisterFormContent() {
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-
-
   // OTP Verification States
   const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
   const [otpStep, setOtpStep] = useState<"choose_channel" | "input_otp" | "success">("choose_channel");
   const [selectedChannel, setSelectedChannel] = useState<"gmail" | "whatsapp" | null>(null);
+
+  useDialogEscape(isCropperOpen, () => {
+    setIsCropperOpen(false);
+    setRawCropImage(null);
+  });
+  useDialogEscape(isOtpModalOpen && otpStep !== "success", () => {
+    setIsOtpModalOpen(false);
+  });
   const [registeredEmail, setRegisteredEmail] = useState("");
   const [registeredWa, setRegisteredWa] = useState("");
   const [registeredUserId, setRegisteredUserId] = useState("");
@@ -692,12 +699,12 @@ function RegisterFormContent() {
       )}
 
       <Link href="/login" className="floating-nav">
-        <i className="fa-solid fa-arrow-left-long"></i> <span className="nav-text">{tLang.common.back}</span>
+        <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right-long" : "fa-arrow-left-long"}`} aria-hidden="true"></i> <span className="nav-text">{tLang.common.back}</span>
       </Link>
-      <div className="register-top-bar" style={{ position: "fixed", top: "20px", right: "20px", display: "flex", alignItems: "center", gap: "10px", zIndex: 999 }}>
+      <div className="register-top-bar" style={{ position: "fixed", top: "20px", insetInlineEnd: "20px", display: "flex", alignItems: "center", gap: "10px", zIndex: 999 }}>
         <LanguageSwitcher variant="pill" />
-        <button className="theme-widget" id="btnTheme" title={tLang.common.theme_toggle} onClick={toggleTheme}>
-          <div className="icon-orb">
+        <button type="button" className="theme-widget" id="btnTheme" title={tLang.common.theme_toggle} onClick={toggleTheme}>
+          <div className="icon-orb" aria-hidden="true">
             <i className={`fa-solid ${theme === "dark" ? "fa-moon" : "fa-sun"}`} id="toggleIcon"></i>
           </div>
           <span className="widget-text" id="themeText">
@@ -710,11 +717,11 @@ function RegisterFormContent() {
         <div className="register-vault" id="mainVault">
           <div className="vault-header">
             <div className={`logo-container ${logoState}`} id="logoContainer">
-              <img src="/images/kristal-puncak.webp" className="logo-part part-1" alt="Part" />
-              <img src="/images/tanduk-perak.webp" className="logo-part part-2" alt="Part" />
-              <img src="/images/zamrud-hijau.webp" className="logo-part part-3" alt="Part" />
-              <img src="/images/cincin-emas.webp" className="logo-part part-4" alt="Part" />
-              <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="Part" />
+              <img src="/images/kristal-puncak.webp" className="logo-part part-1" alt="" aria-hidden="true" />
+              <img src="/images/tanduk-perak.webp" className="logo-part part-2" alt="" aria-hidden="true" />
+              <img src="/images/zamrud-hijau.webp" className="logo-part part-3" alt="" aria-hidden="true" />
+              <img src="/images/cincin-emas.webp" className="logo-part part-4" alt="" aria-hidden="true" />
+              <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="" aria-hidden="true" />
               <img src={t('register_hero_image', '/images/logo-utuh.webp')} className="logo-utuh" alt="Expedient Logo" />
             </div>
             <h1 className="title-holographic">{locale === "id" ? t('register_title', tLang.register.title) : tLang.register.title}</h1>
@@ -830,11 +837,19 @@ function RegisterFormContent() {
                     }
                   }}
                 />
-                <label className="input-label">
+                <label htmlFor="passwordInput" className="input-label">
                   {tLang.register.password_label} <span className="req-star">*</span>
                 </label>
                 <div className="input-neon-line"></div>
-                <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"} icon-eye`} onClick={() => setShowPassword(!showPassword)}></i>
+                <button
+                  type="button"
+                  className="icon-eye-btn"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={tLang.register.password_label}
+                  aria-pressed={showPassword}
+                >
+                  <i className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"}`} aria-hidden="true"></i>
+                </button>
                 <div className="error-hint">{tLang.register.password_hint}</div>
 
                 <div className="password-requirements-box">
@@ -914,12 +929,12 @@ function RegisterFormContent() {
 
                 {/* Upload Zone (Tampil saat belum ada foto terpilih) */}
                 {!imagePreview && (
-                  <label className="upload-zone" onClick={() => fileInputRef.current?.click()}>
-                    <i className="fa-solid fa-cloud-arrow-up"></i>
+                  <label className="upload-zone">
+                    <i className="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
                     <span style={{ color: "var(--text-primary)", fontWeight: 600, marginBottom: "5px" }}>{tLang.register.photo_upload_tap}</span>
                     <span style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>{tLang.register.photo_upload_hint}</span>
-                    <span style={{ color: "#d4af37", fontSize: "0.75rem", marginTop: "4px" }}>
-                      <i className="fa-solid fa-crop-simple"></i> {tLang.register.photo_crop_notice}
+                    <span style={{ color: "var(--gold-main, #d4af37)", fontSize: "0.78rem", marginTop: "4px" }}>
+                      <i className="fa-solid fa-crop-simple" aria-hidden="true"></i> {tLang.register.photo_crop_notice}
                     </span>
                     <input
                       type="file"
@@ -1096,7 +1111,7 @@ function RegisterFormContent() {
                     <div className="channel-info">
                       <div className="channel-name" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span>{tLang.register.otp_via_gmail}</span>
-                        <span style={{ fontSize: "0.65rem", padding: "2px 7px", borderRadius: "10px", background: "rgba(212, 175, 55, 0.2)", border: "1px solid rgba(212, 175, 55, 0.45)", color: "#ffd700", fontWeight: 700, letterSpacing: "0.5px" }}>
+                        <span style={{ fontSize: "0.65rem", padding: "2px 7px", borderRadius: "10px", background: "rgba(212, 175, 55, 0.2)", border: "1px solid rgba(212, 175, 55, 0.45)", color: "#d4af37", fontWeight: 700, letterSpacing: "0.5px" }}>
                           {tLang.register.otp_recommended}
                         </span>
                       </div>
@@ -1147,7 +1162,7 @@ function RegisterFormContent() {
                 <h3 className="otp-title">{tLang.register.otp_input_title}</h3>
                 <p className="otp-subtitle">
                   {tLang.register.otp_input_subtitle}{" "}
-                  <strong style={{ color: "#ffd700" }}>
+                  <strong style={{ color: "#d4af37" }}>
                     {selectedChannel === "whatsapp" ? `WhatsApp (${maskedTarget})` : `Gmail (${maskedTarget})`}
                   </strong>
                   .
@@ -1261,7 +1276,7 @@ function RegisterFormContent() {
                       setOtpError(null);
                     }}
                   >
-                    <i className="fa-solid fa-arrow-left"></i> {tLang.register.otp_change_method}
+                    <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} aria-hidden="true"></i> {tLang.register.otp_change_method}
                   </button>
                 </div>
               </div>
@@ -1270,17 +1285,17 @@ function RegisterFormContent() {
             {/* STEP 3: SUKSES VERIFIKASI */}
             {otpStep === "success" && (
               <div className="otp-step-content" style={{ textAlign: "center" }}>
-                <div className="otp-success-icon">
+                <div className="otp-success-icon" aria-hidden="true">
                   <i className="fa-solid fa-circle-check"></i>
                 </div>
-                <h3 className="otp-title" style={{ color: "#ffd700" }}>
+                <h3 className="otp-title">
                   {tLang.register.otp_success_title}
                 </h3>
                 <p className="otp-subtitle" style={{ fontSize: "0.85rem", lineHeight: 1.6 }}>
                   {tLang.register.otp_success_desc}
                 </p>
                 <div style={{ marginTop: "25px" }}>
-                  <Link href="/login" className="btn-prime" style={{ display: "inline-block", padding: "10px 24px", textDecoration: "none", color: "#000", fontWeight: 700, borderRadius: "10px" }}>
+                  <Link href="/login" className="btn-prime" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: 44, padding: "10px 24px", textDecoration: "none", color: "#060b14", fontWeight: 700, borderRadius: "10px" }}>
                     {tLang.register.otp_goto_login}
                   </Link>
                 </div>
@@ -1295,7 +1310,7 @@ function RegisterFormContent() {
 
 export default function RegisterClient() {
   return (
-    <Suspense fallback={<div style={{ width: "100%", minHeight: "100vh", background: "var(--bg-body, #060b14)" }}><AuthCardSkeleton /></div>}>
+    <Suspense fallback={<div style={{ width: "100%", minHeight: "100dvh", background: "var(--bg-body, #060b14)" }}><AuthCardSkeleton /></div>}>
       <RegisterFormContent />
     </Suspense>
   );

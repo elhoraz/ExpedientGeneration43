@@ -6,12 +6,14 @@ import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { mountRadar2D, destroyRadar2D } from "./radar2dEngine";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useConfirm } from "@/components/layout/AegisConfirm";
 import { RadarSkeleton } from "@/components/ui/Skeleton";
 import "leaflet/dist/leaflet.css";
 import "./radar.css";
 
 function RadarMapContent({ nodes }: { nodes: any[] }) {
   const { t } = useLanguage();
+  const { showAlert, showConfirm } = useConfirm();
   const [isClient, setIsClient] = useState(false);
   const [isMapMenuOpen, setIsMapMenuOpen] = useState(false);
   const searchParams = useSearchParams();
@@ -35,8 +37,21 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             setIsMapMenuOpen(false);
         }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            setIsMapMenuOpen(false);
+            const drawer = document.getElementById('infoDrawer');
+            if (drawer?.classList.contains('open')) {
+                document.getElementById('idClose')?.click();
+            }
+        }
+    };
     document.addEventListener('click', handleOutsideClick);
-    return () => document.removeEventListener('click', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+        document.removeEventListener('click', handleOutsideClick);
+        document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   useEffect(() => {
@@ -60,6 +75,11 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             containerId: 'mapViz',
             nodes,
             style: mapStyle,
+            onConfirmDeleteLocation: () =>
+              showConfirm(
+                'Hapus Titik Lokasi',
+                'Apakah antum yakin ingin menghapus titik koordinat lokasi dari Radar?'
+              ),
         });
     }
 
@@ -98,14 +118,14 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         destroyRadar2D();
       }
     };
-  }, [isClient, nodes, mapStyle, is3DMode]);
+  }, [isClient, nodes, mapStyle, is3DMode, showConfirm]);
 
   if (!isClient) return null;
 
   return (
     <>
 
-        <div id="radarLoading" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#060b14', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'opacity 1.5s ease' }}>
+        <div id="radarLoading" style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'var(--bg-main, #060b14)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'opacity 0.6s ease' }}>
             <div className="rl-ring" style={{ width: '80px', height: '80px', border: '2px solid rgba(212,175,55,0.15)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'rlSpin 1s linear infinite', marginBottom: '30px' }}></div>
             <div className="rl-txt" style={{ fontFamily: '"Playfair Display", serif', fontSize: '1.4rem', color: '#d4af37', letterSpacing: '6px', textTransform: 'uppercase', animation: 'rlFade 2s ease-in-out infinite' }}>{t.radar.network_title}</div>
             <div className="rl-sub" style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', letterSpacing: '3px', marginTop: '10px' }}>{t.radar.network_sub}</div>
@@ -156,85 +176,89 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         </div>
 
         <div className="radar-controls" style={{ zIndex: 50 }}>
-            <button className="btn-radar btn-radar-gold" id="btnSyncLocation" title={t.radar.update_loc_title}>
-              <i className="fa-solid fa-location-crosshairs"></i>
+            <button type="button" className="btn-radar btn-radar-gold" id="btnSyncLocation" title={t.radar.update_loc_title}>
+              <i className="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
               <span className="btn-radar-text">{t.radar.update_loc}</span>
             </button>
             <button
+              type="button"
               className="btn-radar btn-radar-glass"
               id="btnDeleteLocation"
               title="Hapus lokasi saya dari radar (privasi)"
               style={{ color: "#f87171" }}
             >
-              <i className="fa-solid fa-location-slash"></i>
+              <i className="fa-solid fa-location-slash" aria-hidden="true"></i>
               <span className="btn-radar-text">Sembunyikan Lokasi</span>
             </button>
-            <button className="btn-radar btn-radar-glass" id="btnAutoTour" title={t.radar.tour_map_title}>
-              <i className="fa-solid fa-plane-departure"></i>
+            <button type="button" className="btn-radar btn-radar-glass" id="btnAutoTour" title={t.radar.tour_map_title}>
+              <i className="fa-solid fa-plane-departure" aria-hidden="true"></i>
               <span className="btn-radar-text">{t.radar.tour_map}</span>
             </button>
             <div className="sync-status" id="syncStatus"></div>
             <div className="map-dropdown-wrap">
                 <button 
+                  type="button"
                   className="btn-radar btn-radar-glass" 
                   id="btnMapMenu"
+                  aria-expanded={isMapMenuOpen}
+                  aria-haspopup="menu"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsMapMenuOpen(!isMapMenuOpen);
                   }}
                   title={t.radar.change_map}
                 >
-                  <i className="fa-solid fa-layer-group"></i>
+                  <i className="fa-solid fa-layer-group" aria-hidden="true"></i>
                   <span className="btn-radar-text">{t.radar.change_map}</span>
                 </button>
-                <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown">
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=globe'; }}><i className="fa-solid fa-earth-asia"></i> {t.radar_layers?.globe || "Globe 3D"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=minimalist'; }}><i className="fa-solid fa-map"></i> {t.radar_layers?.minimalist || "Peta Datar"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=satellite'; }}><i className="fa-solid fa-satellite"></i> {t.radar_layers?.satellite || "Peta Satelit"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=terrain'; }}><i className="fa-solid fa-mountain-sun"></i> {t.radar_layers?.terrain || "Peta Terrain"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=dark'; }}><i className="fa-solid fa-moon"></i> {t.radar_layers?.dark || "Peta Gelap"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=google'; }}><i className="fa-solid fa-map-location-dot"></i> {t.radar_layers?.google || "Peta Google"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=classic'; }}><i className="fa-solid fa-signs-post"></i> {t.radar_layers?.classic || "Peta Klasik"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=natgeo'; }}><i className="fa-solid fa-compass"></i> {t.radar_layers?.natgeo || "Peta NatGeo"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=voyager'; }}><i className="fa-solid fa-paper-plane"></i> {t.radar_layers?.voyager || "Peta Voyager"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=hybrid'; }}><i className="fa-solid fa-satellite-dish"></i> {t.radar_layers?.hybrid || "Peta Hybrid"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=graycanvas'; }}><i className="fa-solid fa-palette"></i> {t.radar_layers?.graycanvas || "Peta Kanvas"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=hot'; }}><i className="fa-solid fa-train-subway"></i> {t.radar_layers?.hot || "Peta HOT"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googleterrain'; }}><i className="fa-solid fa-mountain"></i> {t.radar_layers?.googleterrain || "Peta Rupa Bumi"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=esriclarity'; }}><i className="fa-solid fa-cloud-sun"></i> {t.radar_layers?.esriclarity || "Peta Satelit Bersih"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=nightnav'; }}><i className="fa-solid fa-car-tunnel"></i> {t.radar_layers?.nightnav || "Peta Navigasi Malam"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googletransit'; }}><i className="fa-solid fa-car"></i> {t.radar_layers?.googletransit || "Peta Google Standar"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=physical'; }}><i className="fa-solid fa-mound"></i> {t.radar_layers?.physical || "Peta Relief"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=nasamarble'; }}><i className="fa-solid fa-star"></i> {t.radar_layers?.nasamarble || "Peta NASA Malam"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googletraffic'; }}><i className="fa-solid fa-traffic-light"></i> {t.radar_layers?.googletraffic || "Peta Lalu Lintas"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=navigation'; }}><i className="fa-solid fa-anchor"></i> {t.radar_layers?.navigation || "Peta Navigasi Laut"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=esristreet'; }}><i className="fa-solid fa-city"></i> {t.radar_layers?.esristreet || "Peta Tata Kota"}</button>
-                    <button onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=toner'; }}><i className="fa-solid fa-microchip"></i> {t.radar_layers?.toner || "Peta Hacker (Toner)"}</button>
+                <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown" role="menu">
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=globe'; }}><i className="fa-solid fa-earth-asia" aria-hidden="true"></i> {t.radar_layers?.globe || "Globe 3D"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=minimalist'; }}><i className="fa-solid fa-map" aria-hidden="true"></i> {t.radar_layers?.minimalist || "Peta Datar"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=satellite'; }}><i className="fa-solid fa-satellite" aria-hidden="true"></i> {t.radar_layers?.satellite || "Peta Satelit"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=terrain'; }}><i className="fa-solid fa-mountain-sun" aria-hidden="true"></i> {t.radar_layers?.terrain || "Peta Terrain"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=dark'; }}><i className="fa-solid fa-moon" aria-hidden="true"></i> {t.radar_layers?.dark || "Peta Gelap"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=google'; }}><i className="fa-solid fa-map-location-dot" aria-hidden="true"></i> {t.radar_layers?.google || "Peta Google"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=classic'; }}><i className="fa-solid fa-signs-post" aria-hidden="true"></i> {t.radar_layers?.classic || "Peta Klasik"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=natgeo'; }}><i className="fa-solid fa-compass" aria-hidden="true"></i> {t.radar_layers?.natgeo || "Peta NatGeo"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=voyager'; }}><i className="fa-solid fa-paper-plane" aria-hidden="true"></i> {t.radar_layers?.voyager || "Peta Voyager"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=hybrid'; }}><i className="fa-solid fa-satellite-dish" aria-hidden="true"></i> {t.radar_layers?.hybrid || "Peta Hybrid"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=graycanvas'; }}><i className="fa-solid fa-palette" aria-hidden="true"></i> {t.radar_layers?.graycanvas || "Peta Kanvas"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=hot'; }}><i className="fa-solid fa-train-subway" aria-hidden="true"></i> {t.radar_layers?.hot || "Peta HOT"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googleterrain'; }}><i className="fa-solid fa-mountain" aria-hidden="true"></i> {t.radar_layers?.googleterrain || "Peta Rupa Bumi"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=esriclarity'; }}><i className="fa-solid fa-cloud-sun" aria-hidden="true"></i> {t.radar_layers?.esriclarity || "Peta Satelit Bersih"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=nightnav'; }}><i className="fa-solid fa-car-tunnel" aria-hidden="true"></i> {t.radar_layers?.nightnav || "Peta Navigasi Malam"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googletransit'; }}><i className="fa-solid fa-car" aria-hidden="true"></i> {t.radar_layers?.googletransit || "Peta Google Standar"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=physical'; }}><i className="fa-solid fa-mound" aria-hidden="true"></i> {t.radar_layers?.physical || "Peta Relief"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=nasamarble'; }}><i className="fa-solid fa-star" aria-hidden="true"></i> {t.radar_layers?.nasamarble || "Peta NASA Malam"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=googletraffic'; }}><i className="fa-solid fa-traffic-light" aria-hidden="true"></i> {t.radar_layers?.googletraffic || "Peta Lalu Lintas"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=navigation'; }}><i className="fa-solid fa-anchor" aria-hidden="true"></i> {t.radar_layers?.navigation || "Peta Navigasi Laut"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=esristreet'; }}><i className="fa-solid fa-city" aria-hidden="true"></i> {t.radar_layers?.esristreet || "Peta Tata Kota"}</button>
+                    <button type="button" onClick={() => { setIsMapMenuOpen(false); window.location.href = '/radar?map=toner'; }}><i className="fa-solid fa-microchip" aria-hidden="true"></i> {t.radar_layers?.toner || "Peta Kontras Tinggi (Toner)"}</button>
                 </div>
             </div>
         </div>
 
         <div className="id-overlay" id="idOverlay" style={{ zIndex: 199 }}></div>
-        <div className="info-drawer" id="infoDrawer" style={{ zIndex: 200 }}>
-            <button className="id-close" id="idClose"><i className="fa-solid fa-xmark"></i></button>
+        <div className="info-drawer" id="infoDrawer" role="dialog" aria-modal="true" aria-label={t.radar.view_profile} style={{ zIndex: 200 }}>
+            <button type="button" className="id-close" id="idClose" aria-label={t.common.close}><i className="fa-solid fa-xmark" aria-hidden="true"></i></button>
             <div className="id-header">
                 <img id="idAvatar" className="id-avatar" src="/images/default-avatar.webp" alt="" />
                 <div className="id-name" id="idName"></div>
                 <div className="id-nick" id="idNick"></div>
             </div>
             <div className="id-body">
-                <div className="id-row"><i className="fa-solid fa-location-dot"></i><div><div className="id-row-label">{t.radar.domicile}</div><div className="id-row-val" id="idCity"></div></div></div>
-                <div className="id-row"><i className="fa-solid fa-venus-mars"></i><div><div className="id-row-label">{t.radar.gender}</div><div className="id-row-val" id="idGender"></div></div></div>
-                <div className="id-row"><i className="fa-solid fa-ruler"></i><div><div className="id-row-label">{t.radar.dist_from_pondok}</div><div className="id-row-val" id="idDist"></div></div></div>
+                <div className="id-row"><i className="fa-solid fa-location-dot" aria-hidden="true"></i><div><div className="id-row-label">{t.radar.domicile}</div><div className="id-row-val" id="idCity"></div></div></div>
+                <div className="id-row"><i className="fa-solid fa-venus-mars" aria-hidden="true"></i><div><div className="id-row-label">{t.radar.gender}</div><div className="id-row-val" id="idGender"></div></div></div>
+                <div className="id-row"><i className="fa-solid fa-ruler" aria-hidden="true"></i><div><div className="id-row-label">{t.radar.dist_from_pondok}</div><div className="id-row-val" id="idDist"></div></div></div>
             </div>
             <div className="id-actions">
-                <a className="id-btn id-btn-wa" id="idWa" href="#" target="_blank" onClick={(e) => {
+                <a className="id-btn id-btn-wa" id="idWa" href="#" target="_blank" rel="noopener noreferrer" onClick={(e) => {
                     if (e.currentTarget.getAttribute('href') === '#') {
                         e.preventDefault();
-                        alert(t.radar.wa_not_available);
+                        void showAlert(t.radar.contact_wa, t.radar.wa_not_available);
                     }
-                }}><i className="fa-brands fa-whatsapp"></i> {t.radar.contact_wa}</a>
-                <a className="id-btn id-btn-profile" id="idProfile" href="#"><i className="fa-solid fa-user"></i> {t.radar.view_profile}</a>
+                }}><i className="fa-brands fa-whatsapp" aria-hidden="true"></i> {t.radar.contact_wa}</a>
+                <a className="id-btn id-btn-profile" id="idProfile" href="#"><i className="fa-solid fa-user" aria-hidden="true"></i> {t.radar.view_profile}</a>
             </div>
         </div>
 

@@ -21,7 +21,7 @@
   --dir-wa-soft: rgba(22, 163, 74, 0.16);
   --dir-wa-text: #4cc38a;
   --dir-chat-soft: rgba(56, 189, 248, 0.14);
-  --dir-chat-text: #38bdf8;
+  --dir-chat-text: #7dd3fc;
   --dir-quote-bg: rgba(148, 163, 184, 0.08);
   --dir-shadow: 0 2px 8px rgba(0, 0, 0, 0.35), 0 8px 20px rgba(0, 0, 0, 0.22);
   --dir-sheet-shadow: 0 -10px 36px rgba(0, 0, 0, 0.55);
@@ -29,7 +29,7 @@
   width: 100%;
   max-width: 1360px;
   margin: 0 auto;
-  padding: var(--top-widget-clearance, calc(max(16px, env(safe-area-inset-top, 0px)) + 54px)) 14px 110px;
+  padding: var(--top-widget-clearance, calc(max(16px, env(safe-area-inset-top, 16px)) + 74px)) 14px 110px;
   color: var(--dir-text);
   overflow-x: clip;
   box-sizing: border-box;
@@ -239,8 +239,8 @@
 
 .chip-item {
   flex: 0 0 auto;
-  min-height: 38px;
-  padding: 6px 12px;
+  min-height: 44px;
+  padding: 6px 14px;
   border-radius: 9999px;
   border: 1px solid var(--dir-border-subtle);
   background: var(--dir-surface);

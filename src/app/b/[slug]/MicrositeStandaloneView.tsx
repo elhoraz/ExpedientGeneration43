@@ -316,10 +316,13 @@ export default function MicrositeStandaloneView({
   const hasCustomProducts =
     Array.isArray(business.produk_layanan) && business.produk_layanan.length > 0;
   const currentBlueprint = DEFAULT_BLUEPRINTS[activeThemeId] || DEFAULT_BLUEPRINTS.gold;
+  const showBlueprintSamples = !hasCustomProducts && Boolean(previewTheme);
   const products: ProductItem[] = hasCustomProducts
     ? (business.produk_layanan as ProductItem[])
-    : currentBlueprint.products(logo, banner);
-  const isSampleProducts = !hasCustomProducts;
+    : showBlueprintSamples
+    ? currentBlueprint.products(logo, banner)
+    : [];
+  const isSampleProducts = showBlueprintSamples;
 
   const galleryPhotos: string[] = Array.isArray(business.galeri_foto)
     ? business.galeri_foto.filter(Boolean).map((p) => resolveMediaUrl(p))
@@ -418,6 +421,33 @@ export default function MicrositeStandaloneView({
   );
 
   const renderProductCatalogue = () => {
+    if (products.length === 0) {
+      return (
+        <section className="biz-section" aria-labelledby="sec-products">
+          <div className="biz-section-head biz-reveal">
+            <div>
+              <h2 id="sec-products" className="biz-section-title" style={{ margin: 0 }}>
+                {themeConfig.productsTitle}
+              </h2>
+              <p className="biz-section-note">
+                {locale === "ar"
+                  ? "لم يضف صاحب النشاط قائمة منتجات أو خدمات بعد. تواصل عبر واتساب للاستفسار المباشر."
+                  : locale === "en"
+                  ? "The business owner has not added product or service items yet. Contact directly via WhatsApp for details."
+                  : "Pemilik usaha belum menambahkan daftar produk atau layanan. Hubungi langsung melalui WhatsApp untuk informasi terbaru."}
+              </p>
+            </div>
+            {isOwner && (
+              <Link href="/syndicate" className="biz-btn-secondary">
+                <i className="fa-solid fa-plus" aria-hidden="true"></i>{" "}
+                {locale === "ar" ? "إضافة منتجات" : locale === "en" ? "Add Products" : "Kelola Katalog"}
+              </Link>
+            )}
+          </div>
+        </section>
+      );
+    }
+
     if (activeThemeId === "bistro") {
       return (
         <section className="biz-section" aria-labelledby="sec-products">
@@ -1131,7 +1161,7 @@ export default function MicrositeStandaloneView({
                     </p>
                   </div>
                   <a
-                    href={`${mainWaUrl}&text=${encodeURIComponent(`Halo ${business.nama_bisnis}, saya ingin pesan katering / nasi kotak untuk acara.`)}`}
+                    href={buildWaUrl("Pesanan katering / nasi kotak acara")}
                     target={cleanWa ? "_blank" : "_self"}
                     rel="noopener noreferrer"
                     onClick={handleMissingWa}

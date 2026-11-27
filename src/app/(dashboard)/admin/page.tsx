@@ -85,17 +85,17 @@ export default async function AdminPage() {
           </div>
         </Link>
         <Link href="/admin/wallet-generator" style={{ textDecoration: "none" }}>
-          <div className="metric-card hover-glow-cyan" style={{ transitionDelay: "0.4s", borderColor: "rgba(0, 191, 255, 0.4)", background: "linear-gradient(135deg, rgba(0, 191, 255, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
-            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#00bfff" }}><i className="fa-solid fa-wallet"></i></div>
-            <div className="metric-label" style={{ color: "#00bfff", fontWeight: "bold" }}>Cetak Kartu & Tiket</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Cetak Kartu Alumni & Tiket Acara</div>
+          <div className="metric-card hover-glow-cyan" style={{ transitionDelay: "0.4s", borderColor: "rgba(96, 165, 250, 0.4)", background: "linear-gradient(135deg, rgba(96, 165, 250, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#60a5fa" }}><i className="fa-solid fa-wallet" aria-hidden="true"></i></div>
+            <div className="metric-label" style={{ color: "#60a5fa", fontWeight: "bold" }}>Cetak Kartu &amp; Tiket</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "10px" }}>Cetak Kartu Alumni &amp; Tiket Acara</div>
           </div>
         </Link>
         <Link href="/admin/events" style={{ textDecoration: "none" }}>
-          <div className="metric-card hover-glow-gold" style={{ transitionDelay: "0.5s", borderColor: "rgba(255, 215, 0, 0.4)", background: "linear-gradient(135deg, rgba(255, 215, 0, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
-            <div className="metric-value" style={{ fontSize: "2.5rem", color: "#ffd700" }}><i className="fa-solid fa-ticket-simple"></i></div>
-            <div className="metric-label" style={{ color: "#ffd700", fontWeight: "bold" }}>Manajemen Event</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kelola acara dan pantau RSVP</div>
+          <div className="metric-card hover-glow-gold" style={{ transitionDelay: "0.5s", borderColor: "rgba(212, 175, 55, 0.4)", background: "linear-gradient(135deg, rgba(212, 175, 55, 0.05), transparent)", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%" }}>
+            <div className="metric-value" style={{ fontSize: "2.5rem", color: "var(--gold-main, #d4af37)" }}><i className="fa-solid fa-ticket-simple" aria-hidden="true"></i></div>
+            <div className="metric-label" style={{ color: "var(--gold-main, #d4af37)", fontWeight: "bold" }}>Manajemen Event</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "10px" }}>Kelola acara dan pantau RSVP</div>
           </div>
         </Link>
         <Link href="/admin/export" style={{ textDecoration: "none" }}>
@@ -132,9 +132,9 @@ export default async function AdminPage() {
               <br/><br/>
               Semua transaksi dan perubahan data di dalam panel ini secara otomatis dicatat dalam buku besar *Activity Logs* yang tidak dapat dihapus, menjamin akuntabilitas penuh bagi para admin pengurus angkatan.
             </p>
-            <div style={{ marginTop: "30px", borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#00c853", boxShadow: "0 0 10px #00c853" }}></div>
-              <span style={{ color: "#00c853", fontSize: "0.8rem", fontWeight: "bold", letterSpacing: "1px" }}>SYSTEM SECURE</span>
+            <div style={{ marginTop: "30px", borderTop: "1px solid var(--border-subtle, rgba(255,255,255,0.08))", paddingTop: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#059669" }}></span>
+              <span style={{ color: "#059669", fontSize: "0.82rem", fontWeight: 700 }}>Audit Trail Aktif · RBAC</span>
             </div>
           </div>
         </div>

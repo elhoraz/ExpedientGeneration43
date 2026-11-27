@@ -82,16 +82,16 @@
     align-items: center;
     gap: 8px;
     padding: 9px 18px;
-    background: var(--glass-bg);
+    background: var(--bg-card, var(--glass-bg));
     border: 1px solid var(--glass-border);
     border-radius: 8px;
     color: var(--gold-main, #d4af37);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    letter-spacing: 2px;
+    letter-spacing: 0.08em;
+    min-height: 44px;
     text-decoration: none;
     text-transform: uppercase;
-    backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
@@ -240,18 +240,17 @@
     justify-content: center;
     padding: 16px 10px;
     text-align: center;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 30px rgba(212,175,55,0.2);
-    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.65);
     box-sizing: border-box;
 }
 .card-numeral {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(0.65rem, 1.8vw, 0.85rem);
+    font-size: clamp(0.75rem, 1.8vw, 0.85rem);
     color: var(--gold-main, #d4af37);
-    letter-spacing: 3px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     margin-bottom: 6px;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 .card-symbol {
     font-size: clamp(2rem, 6vw, 3.5rem);
@@ -264,16 +263,16 @@
     font-family: 'Playfair Display', serif;
     font-size: clamp(0.85rem, 2.5vw, 1.2rem);
     color: var(--text-primary);
-    letter-spacing: 1.5px;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     margin-bottom: 6px;
 }
 .card-meaning {
     font-family: var(--font-manrope), sans-serif;
-    font-size: clamp(0.64rem, 1.5vw, 0.74rem);
+    font-size: clamp(0.75rem, 1.6vw, 0.82rem);
     color: var(--text-secondary);
     letter-spacing: 0.01em;
-    line-height: 1.4;
+    line-height: 1.45;
     overflow-wrap: break-word;
     word-break: break-word;
 }
@@ -285,42 +284,49 @@
     opacity: 0.5;
 }
 
-.tarot-card:not(.flipped):hover .card-inner {
-    transform: translateY(-8px) rotateX(5deg);
-}
-.tarot-card:not(.flipped):hover .card-back {
-    box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 20px rgba(212,175,55,0.3);
-    border-color: var(--gold-main, #d4af37);
+@media (hover: hover) and (pointer: fine) {
+    .tarot-card:not(.flipped):hover .card-inner {
+        transform: translateY(-8px) rotateX(5deg);
+    }
+    .tarot-card:not(.flipped):hover .card-back {
+        box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 20px rgba(212,175,55,0.3);
+        border-color: var(--gold-main, #d4af37);
+    }
 }
 
 .btn-draw {
-    padding: 14px 44px;
-    background: rgba(212,175,55,0.1);
-    backdrop-filter: blur(10px);
+    min-height: 46px;
+    padding: 12px 38px;
+    background: rgba(212,175,55,0.12);
     border: 1px solid var(--gold-main, #d4af37);
     color: var(--gold-main, #d4af37);
     font-family: var(--font-sans, inherit);
-    font-size: clamp(0.78rem, 2vw, 0.88rem);
-    font-weight: 600;
+    font-size: clamp(0.8rem, 2vw, 0.88rem);
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: clamp(2px, 0.8vw, 4px);
+    letter-spacing: clamp(0.06em, 0.4vw, 0.12em);
     border-radius: 50px;
     cursor: pointer;
-    transition: all 0.4s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45);
     opacity: 0;
     transform: translateY(20px);
     z-index: 30;
     max-width: 90vw;
 }
-.btn-draw:hover {
-    background: var(--gold-main, #d4af37);
-    color: #000;
-    box-shadow: 0 15px 50px rgba(212,175,55,0.5);
-    transform: translateY(-3px) scale(1.02);
+@media (hover: hover) and (pointer: fine) {
+    .btn-draw:hover {
+        background: var(--gold-main, #d4af37);
+        color: #060b14;
+        box-shadow: 0 15px 40px rgba(212,175,55,0.45);
+        transform: translateY(-2px) scale(1.02);
+    }
+    .btn-reset:hover {
+        color: var(--text-primary);
+    }
 }
 .btn-draw:disabled {
-    opacity: 0.3;
+    opacity: 0.35;
     pointer-events: none;
 }
 
@@ -328,19 +334,17 @@
     background: transparent;
     border: none;
     color: var(--text-secondary);
-    font-size: 0.75rem;
-    letter-spacing: 2px;
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     cursor: pointer;
     text-decoration: underline;
-    transition: 0.3s;
+    transition: color 0.25s ease;
     display: none;
     z-index: 30;
-    padding: 8px 16px;
+    min-height: 44px;
+    padding: 10px 18px;
     margin-top: 4px;
-}
-.btn-reset:hover {
-    color: var(--text-primary);
 }
 
 .burst-container {
@@ -358,6 +362,19 @@
     border-radius: 50%;
 }
 
+.btn-back {
+    min-height: 44px;
+    font-size: 0.78rem;
+}
+
+.tarot-card:focus-visible,
+.btn-draw:focus-visible,
+.btn-reset:focus-visible,
+.btn-back:focus-visible {
+    outline: 2px solid var(--gold-main, #d4af37);
+    outline-offset: 2px;
+}
+
 @media (max-width: 768px) {
     .celestial-wrapper {
         padding-top: max(68px, calc(env(safe-area-inset-top, 16px) + 48px));
@@ -366,27 +383,28 @@
         padding-right: 10px;
     }
     .btn-back {
+        min-height: 44px;
         padding: 8px 14px;
-        font-size: 10px;
-        letter-spacing: 1.5px;
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
     }
     .codex-wrapper {
         gap: 16px;
     }
     .codex-title {
-        letter-spacing: 3px;
+        letter-spacing: 0.06em;
         font-size: 1.4rem;
     }
     .codex-subtitle {
-        letter-spacing: 1.5px;
+        letter-spacing: 0.03em;
     }
     .card-stage {
         gap: 8px;
-        min-height: 210px;
+        min-height: 220px;
     }
     .tarot-card {
-        width: clamp(84px, 28vw, 115px);
-        height: clamp(135px, 44vw, 185px);
+        width: clamp(92px, 29vw, 120px);
+        height: clamp(150px, 46vw, 195px);
     }
     .card-front {
         padding: 10px 6px;
@@ -396,11 +414,11 @@
         margin-bottom: 4px;
     }
     .card-name {
-        font-size: clamp(0.72rem, 2.2vw, 0.88rem);
+        font-size: clamp(0.75rem, 2.2vw, 0.9rem);
         margin-bottom: 4px;
     }
     .card-meaning {
-        font-size: clamp(0.5rem, 1.6vw, 0.62rem);
+        font-size: 0.75rem;
         line-height: 1.35;
         display: -webkit-box;
         -webkit-line-clamp: 3;
@@ -408,9 +426,10 @@
         overflow: hidden;
     }
     .btn-draw {
+        min-height: 46px;
         padding: 12px 30px;
-        font-size: 0.8rem;
-        letter-spacing: 2px;
+        font-size: 0.82rem;
+        letter-spacing: 0.06em;
     }
 }
 
@@ -420,6 +439,19 @@
 :root[data-theme="light"] .celestial-wrapper {
     background-color: var(--bg-main, #f6f5f1);
     color: #18181b;
+}
+
+:root[data-theme="light"] .btn-back,
+:root[data-theme="light"] .btn-draw {
+    background: #ffffff;
+    border-color: rgba(124, 82, 10, 0.4);
+    color: #7c520a;
+}
+
+:root[data-theme="light"] .btn-reset,
+:root[data-theme="light"] .card-numeral,
+:root[data-theme="light"] .card-name {
+    color: #7c520a;
 }
 
 :root[data-theme="light"] .codex-title {
@@ -443,8 +475,16 @@
     color: #18181b;
 }
 
-:root[data-theme="light"] .card-name {
-    color: #7c520a;
+@media (prefers-reduced-motion: reduce) {
+    .tarot-card,
+    .card-inner,
+    .btn-draw,
+    .btn-reset,
+    .btn-back,
+    .burst-particle {
+        transition: none !important;
+        animation: none !important;
+    }
 }
 
 :root[data-theme="light"] .card-meaning {

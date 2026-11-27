@@ -6,7 +6,7 @@
 .asma-page-wrapper {
     position: relative;
     width: 100%;
-    min-height: 100vh;
+    min-height: 100dvh;
     padding: max(85px, calc(env(safe-area-inset-top, 20px) + 65px)) 16px 95px 16px;
     color: var(--text-primary, #f8fafc);
     box-sizing: border-box;
@@ -14,8 +14,6 @@
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
-    user-select: none;
-    -webkit-user-select: none;
 }
 
 /* Subtle background hook */
@@ -115,10 +113,8 @@
    -------------------------------------------------------------------------- */
 .asma-tabs-nav {
     display: flex;
-    background: rgba(12, 18, 30, 0.85);
+    background: rgba(12, 18, 30, 0.94);
     border: 1px solid rgba(212, 175, 55, 0.25);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     border-radius: 35px;
     padding: 4px;
     gap: 4px;
@@ -136,6 +132,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-height: 44px;
     padding: 9px 18px;
     background: transparent;
     border: none;
@@ -148,9 +145,11 @@
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.asma-tab-btn:hover {
-    color: var(--gold-main, #d4af37);
-    background: rgba(212, 175, 55, 0.08);
+@media (hover: hover) and (pointer: fine) {
+    .asma-tab-btn:hover {
+        color: var(--gold-main, #d4af37);
+        background: rgba(212, 175, 55, 0.08);
+    }
 }
 
 .asma-tab-btn.active {
@@ -178,11 +177,10 @@
 .asma-search-input {
     width: 100%;
     box-sizing: border-box;
-    padding: 12px 42px 12px 42px;
-    background: rgba(12, 18, 30, 0.7);
+    min-height: 44px;
+    padding: 12px 44px 12px 44px;
+    background: rgba(12, 18, 30, 0.92);
     border: 1px solid rgba(212, 175, 55, 0.22);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border-radius: 14px;
     color: #ffffff;
     font-size: 0.9rem;
@@ -207,15 +205,19 @@
 
 .asma-search-clear {
     position: absolute;
-    right: 12px;
+    inset-inline-end: 6px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     color: #94a3b8;
-    font-size: 1.1rem;
+    font-size: 1rem;
     cursor: pointer;
-    padding: 4px;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .asma-categories {
@@ -236,8 +238,9 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 14px;
-    background: rgba(20, 27, 45, 0.6);
+    min-height: 44px;
+    padding: 8px 14px;
+    background: rgba(20, 27, 45, 0.78);
     border: 1px solid rgba(212, 175, 55, 0.18);
     border-radius: 20px;
     color: var(--text-secondary, #94a3b8);
@@ -248,9 +251,11 @@
     transition: all 0.2s ease;
 }
 
-.asma-cat-chip:hover {
-    color: var(--gold-main, #d4af37);
-    border-color: rgba(212, 175, 55, 0.4);
+@media (hover: hover) and (pointer: fine) {
+    .asma-cat-chip:hover {
+        color: var(--gold-main, #d4af37);
+        border-color: rgba(212, 175, 55, 0.4);
+    }
 }
 
 .asma-cat-chip.active {
@@ -285,7 +290,7 @@
 
 /* Individual Asma Card */
 .asma-jewel-card {
-    background: linear-gradient(145deg, rgba(16, 24, 40, 0.85) 0%, rgba(10, 15, 26, 0.92) 100%);
+    background: linear-gradient(145deg, rgba(16, 24, 40, 0.96) 0%, rgba(10, 15, 26, 0.98) 100%);
     border: 1px solid rgba(212, 175, 55, 0.22);
     border-radius: 18px;
     padding: 18px 14px;
@@ -294,19 +299,19 @@
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
     position: relative;
     overflow: hidden;
     cursor: pointer;
 }
 
-.asma-jewel-card:hover {
-    transform: translateY(-3px) scale(1.02);
-    border-color: rgba(212, 175, 55, 0.55);
-    box-shadow: 0 14px 35px rgba(212, 175, 55, 0.18);
+@media (hover: hover) and (pointer: fine) {
+    .asma-jewel-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(212, 175, 55, 0.55);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+    }
 }
 
 .asma-jewel-card.active-playback {
@@ -433,9 +438,7 @@
 .asma-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.82);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.86);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -452,7 +455,7 @@
     padding: 24px;
     max-width: 540px;
     width: 100%;
-    max-height: 90vh;
+    max-height: 90dvh;
     overflow-y: auto;
     box-sizing: border-box;
     display: flex;
@@ -474,9 +477,14 @@
     background: none;
     border: none;
     color: #94a3b8;
-    font-size: 1.4rem;
+    font-size: 1.25rem;
     cursor: pointer;
-    padding: 4px;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
 }
 
 .asma-modal-arabic {
@@ -1041,6 +1049,17 @@
 @media (max-width: 380px) {
     .asma-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .asma-jewel-card,
+    .asma-mini-btn,
+    .asma-modal-box,
+    .modal-action-btn,
+    .tasbih-inner-button {
+        animation: none !important;
+        transition: none !important;
     }
 }
 

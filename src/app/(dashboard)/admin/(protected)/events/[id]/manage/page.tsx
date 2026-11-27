@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import AdminLockBtn from "../../../../AdminLockBtn";
+import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
 import "../../../../admin.css";
 
 export const metadata = {
@@ -86,7 +87,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
           <AdminLockBtn />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(138,43,226,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", color: "#8a2be2" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(212,175,55,0.14)", border: "1px solid rgba(212,175,55,0.28)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", color: "#d4af37" }}>
                 <i className="fa-solid fa-ticket"></i>
             </div>
             <div>
@@ -102,15 +103,15 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
 
       <div className="form-panel" style={{ marginBottom: "35px" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", margin: "0 0 16px 0", display: "flex", alignItems: "center", gap: "10px" }}>
-          <i className="fa-solid fa-address-card" style={{ color: "#8a2be2" }}></i> Terbitkan Tiket (Assign Seat)
+          <i className="fa-solid fa-address-card" style={{ color: "#d4af37" }}></i> Terbitkan Tiket (Assign Seat)
         </h2>
         <form action={assignTicket} style={{ display: "flex", gap: "12px", alignItems: "flex-end", flexWrap: "wrap" }}>
           <input type="hidden" name="event_id" value={event.id} />
           
           <div style={{ flex: "2 1 240px" }}>
             <label style={{ display: "block", marginBottom: "6px", color: "var(--text-secondary)", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "1px" }}>Peserta (User)</label>
-            <select name="user_id" required style={{ width: "100%", padding: "10px 14px", background: "rgba(0,0,0,0.3)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }}>
-              <option value="" disabled selected>-- Pilih Alumni Peserta --</option>
+            <select name="user_id" required defaultValue="" style={{ width: "100%", padding: "10px 14px", background: "var(--bg-secondary)", border: "1px solid var(--glass-border)", color: "var(--text-primary)", borderRadius: "10px", outline: "none", fontSize: "0.85rem" }}>
+              <option value="" disabled>-- Pilih Alumni Peserta --</option>
               {users?.map(u => (
                 <option key={u.id} value={u.id}>{u.nama_panggilan} ({u.role})</option>
               ))}
@@ -123,7 +124,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
           </div>
           
           <div style={{ flex: "1 1 140px" }}>
-            <button type="submit" style={{ width: "100%", padding: "10px 16px", background: "linear-gradient(135deg, #8a2be2, #4b0082)", border: "none", color: "#fff", borderRadius: "10px", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", letterSpacing: "1px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }} className="hover-trigger">
+            <button type="submit" style={{ width: "100%", minHeight: "44px", padding: "10px 16px", background: "linear-gradient(135deg, #d4af37, #aa8529)", border: "none", color: "#0b1410", borderRadius: "10px", fontSize: "0.82rem", fontWeight: 700, cursor: "pointer", letterSpacing: "0.5px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }} className="hover-trigger">
                <i className="fa-solid fa-plus"></i> Simpan Tiket
             </button>
           </div>
@@ -135,7 +136,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
           <h2 style={{ fontSize: "1rem", margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "10px" }}>
             <i className="fa-solid fa-ticket-simple" style={{ color: "var(--text-secondary)" }}></i> Daftar Tiket Terbit
           </h2>
-          <span style={{ background: "rgba(138,43,226,0.15)", color: "#8a2be2", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700 }}>
+          <span style={{ background: "rgba(212,175,55,0.14)", color: "#d4af37", border: "1px solid rgba(212,175,55,0.28)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700 }}>
             {tickets?.length || 0} Tiket
           </span>
         </div>
@@ -158,7 +159,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
                   {tickets.map((t) => (
                     <tr key={t.id}>
                       <td>
-                        <div style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", color: "#d4af37", display: "inline-block", padding: "4px 10px", borderRadius: "6px", fontFamily: "monospace", fontSize: "0.8rem", letterSpacing: "1px" }}>
+                        <div style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", color: "#d4af37", display: "inline-block", padding: "4px 10px", borderRadius: "6px", fontVariantNumeric: "tabular-nums", fontSize: "0.8rem", letterSpacing: "1px" }}>
                           {t.ticket_code}
                         </div>
                       </td>
@@ -186,9 +187,15 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
                           <form action={deleteTicket}>
                             <input type="hidden" name="id" value={t.id} />
                             <input type="hidden" name="event_id" value={event.id} />
-                            <button type="submit" style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", color: "#ff3366", width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} className="hover-trigger" title="Hapus Tiket">
+                            <ConfirmSubmitButton
+                              title="Hapus Tiket"
+                              message={`Yakin ingin mencabut tiket ${t.ticket_code}?`}
+                              style={{ background: "rgba(255,51,102,0.1)", border: "1px solid rgba(255,51,102,0.2)", color: "#ff3366", width: "44px", height: "44px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }}
+                              className="hover-trigger"
+                              buttonTitle={`Hapus tiket ${t.ticket_code}`}
+                            >
                               <i className="fa-solid fa-trash-can"></i>
-                            </button>
+                            </ConfirmSubmitButton>
                           </form>
                         </div>
                       </td>
@@ -216,7 +223,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
                   </div>
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
-                    <span style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", color: "#d4af37", padding: "2px 8px", borderRadius: "6px", fontFamily: "monospace", fontSize: "0.75rem" }}>
+                    <span style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.3)", color: "#d4af37", padding: "2px 8px", borderRadius: "6px", fontVariantNumeric: "tabular-nums", fontSize: "0.75rem" }}>
                       {t.ticket_code}
                     </span>
                     <span style={{ color: "var(--text-secondary)" }}>
@@ -228,9 +235,15 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
                     <form action={deleteTicket}>
                       <input type="hidden" name="id" value={t.id} />
                       <input type="hidden" name="event_id" value={event.id} />
-                      <button type="submit" className="btn-action btn-delete-action hover-trigger" style={{ padding: "6px 12px", fontSize: "0.75rem" }}>
+                      <ConfirmSubmitButton
+                        title="Hapus Tiket"
+                        message={`Yakin ingin mencabut tiket ${t.ticket_code}?`}
+                        className="btn-action btn-delete-action hover-trigger"
+                        style={{ padding: "8px 12px", minHeight: "44px", fontSize: "0.75rem" }}
+                        buttonTitle={`Hapus tiket ${t.ticket_code}`}
+                      >
                         <i className="fa-solid fa-trash-can"></i> Hapus Tiket
-                      </button>
+                      </ConfirmSubmitButton>
                     </form>
                   </div>
                 </div>

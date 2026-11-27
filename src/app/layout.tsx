@@ -40,7 +40,10 @@ const amiri = Amiri({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#060b14",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#060b14" },
+    { media: "(prefers-color-scheme: light)", color: "#f6f5f1" },
+  ],
   colorScheme: "dark light",
   width: "device-width",
   initialScale: 1,
@@ -208,7 +211,7 @@ export default async function RootLayout({
       <body className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${amiri.variable}`} suppressHydrationWarning>
         <noscript>
           <style>{`.film-grain,.cursor-dot,.cursor-ring,#loadingScreen{display:none!important}body{background:#060b14;color:#d4af37;font-family:sans-serif}`}</style>
-          <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px", gap: "20px" }}>
+          <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px", gap: "20px" }}>
             <Image src="/images/logo-utuh.webp" width={120} height={120} style={{ opacity: 0.8 }} alt="Expedient" />
             <h2 style={{ fontSize: "1.5rem", margin: 0 }}>JavaScript Diperlukan</h2>
             <p style={{ color: "#a1a8b5", maxWidth: "400px", lineHeight: 1.6 }}>Platform Expedient Generation memerlukan JavaScript untuk berjalan. Silakan aktifkan JavaScript di browser Anda.</p>

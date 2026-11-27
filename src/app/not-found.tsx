@@ -12,7 +12,7 @@ export default function NotFound() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -25,15 +25,13 @@ export default function NotFound() {
     >
       <div
         style={{
-          background: "rgba(10, 16, 13, 0.75)",
-          border: "1px solid rgba(212, 175, 55, 0.25)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderRadius: "24px",
-          padding: "48px 36px",
+          background: "var(--bg-card, #0f141e)",
+          border: "1px solid var(--border-strong, rgba(212, 175, 55, 0.25))",
+          borderRadius: "20px",
+          padding: "44px 32px",
           maxWidth: "540px",
           width: "100%",
-          boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+          boxShadow: "var(--glass-shadow, 0 20px 50px rgba(0, 0, 0, 0.45))",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -45,42 +43,40 @@ export default function NotFound() {
           width={80}
           height={80}
           alt="Expedient Generation"
-          style={{ opacity: 0.9, filter: "drop-shadow(0 0 15px rgba(212,175,55,0.4))" }}
+          style={{ opacity: 0.92 }}
         />
 
         <div
           style={{
             display: "inline-block",
-            fontSize: "4rem",
+            fontSize: "3.75rem",
             fontWeight: 900,
-            letterSpacing: "4px",
+            letterSpacing: "0.06em",
             lineHeight: 1,
-            background: "linear-gradient(135deg, #d4af37 0%, #f3e5ab 50%, #997a15 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            fontFamily: "'Playfair Display', serif",
+            color: "var(--gold-main, #d4af37)",
+            fontFamily: "var(--font-playfair, 'Playfair Display', serif)",
             marginTop: "8px",
           }}
         >
           404
         </div>
 
-        <h2
+        <h1
           style={{
-            fontSize: "1.35rem",
-            color: "#ffffff",
-            fontWeight: 600,
+            fontSize: "1.4rem",
+            color: "var(--text-primary, #f8fafc)",
+            fontWeight: 700,
             margin: 0,
-            fontFamily: "'Playfair Display', serif",
+            fontFamily: "var(--font-playfair, 'Playfair Display', serif)",
           }}
         >
           {locale === "ar" ? "الأرشيف غير موجود" : locale === "en" ? "Archive Not Found" : "Arsip Tidak Ditemukan"}
-        </h2>
+        </h1>
 
         <p
           style={{
-            color: "#8b9ba8",
-            fontSize: "0.9rem",
+            color: "var(--text-secondary, #94a3b8)",
+            fontSize: "0.92rem",
             lineHeight: 1.6,
             margin: 0,
             maxWidth: "420px",
@@ -104,39 +100,43 @@ export default function NotFound() {
           }}
         >
           <button
+            type="button"
             onClick={() => router.back()}
             style={{
-              padding: "12px 24px",
-              borderRadius: "30px",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
-              background: "rgba(255, 255, 255, 0.05)",
-              color: "#e6edf3",
-              fontSize: "0.85rem",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "10px 22px",
+              borderRadius: "12px",
+              border: "1px solid var(--border-strong, rgba(255, 255, 255, 0.2))",
+              background: "transparent",
+              color: "var(--text-primary, #f8fafc)",
+              fontSize: "0.88rem",
               fontWeight: 600,
               cursor: "pointer",
-              transition: "all 0.3s ease",
             }}
           >
-            <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} style={{ marginInlineEnd: "8px" }}></i>
+            <i className={`fa-solid ${locale === "ar" ? "fa-arrow-right" : "fa-arrow-left"}`} aria-hidden="true" style={{ marginInlineEnd: "8px" }}></i>
             {t.common.back}
           </button>
 
           <Link
             href="/beranda"
             style={{
-              padding: "12px 28px",
-              borderRadius: "30px",
-              border: "1px solid #d4af37",
-              background: "linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.05) 100%)",
-              color: "#d4af37",
-              fontSize: "0.85rem",
+              minHeight: "44px",
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "10px 24px",
+              borderRadius: "12px",
+              border: "1px solid var(--gold-main, #d4af37)",
+              background: "var(--gold-main, #d4af37)",
+              color: "#060b14",
+              fontSize: "0.88rem",
               fontWeight: 700,
               textDecoration: "none",
-              letterSpacing: "1px",
-              transition: "all 0.3s ease",
             }}
           >
-            <i className="fa-solid fa-landmark" style={{ marginInlineEnd: "8px" }}></i>
+            <i className="fa-solid fa-landmark" aria-hidden="true" style={{ marginInlineEnd: "8px" }}></i>
             {locale === "ar" ? "الصفحة الرئيسية" : locale === "en" ? "Home Page" : "Beranda Utama"}
           </Link>
         </div>

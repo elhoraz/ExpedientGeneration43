@@ -76,18 +76,22 @@ export default function VideoNotePlayer({ videoUrl }: VideoNotePlayerProps) {
       }}
     >
       {/* 1. Circular Video Card Container (with overflow: hidden) */}
-      <div
+      <button
+        type="button"
         className="video-note-circle"
+        aria-label={isPlaying ? "Jeda catatan video" : "Putar catatan video"}
         style={{
           position: "relative",
           width: "190px",
           height: "190px",
+          padding: 0,
           borderRadius: "50%",
           overflow: "hidden",
           cursor: "pointer",
           boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
           border: "2.5px solid var(--gold-main, #d4af37)",
-          background: "#000000",
+          background: "#080c12",
+          display: "block",
         }}
         onClick={togglePlay}
         title={isPlaying ? "Klik untuk jeda" : "Klik untuk putar"}
@@ -152,27 +156,27 @@ export default function VideoNotePlayer({ videoUrl }: VideoNotePlayerProps) {
               justifyContent: "center",
               color: "#ffffff",
               fontSize: "2.2rem",
-              backdropFilter: "blur(2px)",
             }}
           >
-            <i className="fa-solid fa-play" style={{ marginLeft: "6px", filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.8))" }}></i>
+            <i className="fa-solid fa-play" aria-hidden="true" style={{ filter: "drop-shadow(0 2px 10px rgba(0,0,0,0.8))" }}></i>
           </div>
         )}
-      </div>
+      </button>
 
       {/* 2. Sound Toggle Button: Placed OUTSIDE the clipped circle so it is NEVER truncated */}
       <button
         type="button"
         onClick={toggleMute}
+        aria-label={isMuted ? "Aktifkan suara video" : "Bisukan suara video"}
         style={{
           position: "absolute",
-          bottom: "2px",
-          right: "2px",
+          bottom: "-4px",
+          right: "-4px",
           background: isMuted ? "rgba(255, 71, 87, 0.9)" : "var(--gold-main, #d4af37)",
           border: "2px solid #ffffff",
           color: isMuted ? "#ffffff" : "#060b14",
-          width: "36px",
-          height: "36px",
+          width: "44px",
+          height: "44px",
           borderRadius: "50%",
           display: "flex",
           alignItems: "center",

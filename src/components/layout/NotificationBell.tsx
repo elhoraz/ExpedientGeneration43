@@ -287,17 +287,17 @@ export default function NotificationBell({ userId }: { userId: string }) {
                 .maybeSingle();
 
               const senderName = profile?.nama_panggilan || profile?.nama_lengkap || "Rekan Alumni";
-              const preview = newMsg.message || (newMsg.image_url ? "📷 Mengirim gambar" : newMsg.audio_url ? "🎤 Pesan suara" : "Mengirim lampiran");
+              const preview = newMsg.message || (newMsg.image_url ? "Mengirim gambar" : newMsg.audio_url ? "Pesan suara" : "Mengirim lampiran");
 
               sendSystemNotification({
-                title: `💬 Pesan Baru: ${senderName}`,
+                title: `Pesan Baru: ${senderName}`,
                 message: preview,
                 url: `/chat/personal/${newMsg.sender_id}`,
                 tag: `chat-${newMsg.sender_id}`,
               });
             } catch {
               sendSystemNotification({
-                title: "💬 Pesan Chat Baru",
+                title: "Pesan Chat Baru",
                 message: newMsg.message || "Anda menerima pesan obrolan baru.",
                 url: `/chat/personal/${newMsg.sender_id}`,
                 tag: `chat-${newMsg.sender_id}`,
@@ -409,12 +409,15 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
   return (
     <div className="notif-wrapper" style={{ position: "relative", zIndex: 1001 }}>
-      <button 
+      <button
         ref={buttonRef}
         type="button"
-        className="notif-widget hover-trigger" 
+        className="notif-widget hover-trigger"
         id="btnNotifWidget"
         title={locale === "ar" ? "الإعلانات والمهام" : locale === "en" ? "Announcements & Quests" : "Pengumuman & Misi Alumni"}
+        aria-label={locale === "ar" ? "الإعلانات والمهام" : locale === "en" ? "Announcements & Quests" : "Pengumuman & Misi Alumni"}
+        aria-expanded={isOpen}
+        aria-controls="notifDropdownPanel"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -423,56 +426,70 @@ export default function NotificationBell({ userId }: { userId: string }) {
         style={{ cursor: "pointer", pointerEvents: "auto" }}
       >
         <div className="icon-orb">
-          <i className="fa-solid fa-bell"></i>
+          <i className="fa-solid fa-bell" aria-hidden="true"></i>
         </div>
         {(unreadCount > 0 || !isAllQuestsDone) && (
-          <span id="notifBadge" style={{
-            position: "absolute", top: "2px", right: "2px", 
-            width: "12px", height: "12px", 
-            background: unreadCount > 0 ? "#ff5555" : "#d4af37", 
-            borderRadius: "50%", 
-            boxShadow: `0 0 10px ${unreadCount > 0 ? "#ff5555" : "#d4af37"}`
-          }}></span>
+          <span
+            id="notifBadge"
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "4px",
+              insetInlineEnd: "4px",
+              width: "10px",
+              height: "10px",
+              background: unreadCount > 0 ? "var(--ruby-gem, #dc2626)" : "var(--gold-main, #d4af37)",
+              borderRadius: "50%",
+              border: "2px solid var(--bg-card)",
+            }}
+          ></span>
         )}
       </button>
 
       {isOpen && (
-        <div 
+        <div
+          id="notifDropdownPanel"
           ref={dropdownRef}
-          className="notif-dropdown" 
-          style={{ 
-            display: "block", 
-            opacity: 1, 
-            transform: "none", 
+          className="notif-dropdown"
+          role="dialog"
+          aria-label={locale === "ar" ? "الإعلانات والمهام" : locale === "en" ? "Announcements & Quests" : "Pengumuman & Misi Alumni"}
+          style={{
+            display: "block",
+            opacity: 1,
+            transform: "none",
             pointerEvents: "auto",
-            zIndex: 10002 
+            zIndex: 10002,
           }}
         >
           {/* Tabs header */}
-          <div className="notif-tabs">
+          <div className="notif-tabs" role="tablist">
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === "quest"}
               className={`notif-tab-btn ${activeTab === "quest" ? "active" : ""}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setActiveTab("quest");
               }}
             >
-              <i className="fa-solid fa-scroll"></i>
+              <i className="fa-solid fa-scroll" aria-hidden="true"></i>
               <span>{t.notification_quests?.tab_quests || "Misi Awal"}</span>
               <span className={`tab-badge ${isAllQuestsDone ? "done" : ""}`}>
-                {isAllQuestsDone ? "✓" : `${completedCount}/${totalCount}`}
+                {isAllQuestsDone ? <i className="fa-solid fa-check" aria-hidden="true"></i> : `${completedCount}/${totalCount}`}
               </span>
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={activeTab === "notif"}
               className={`notif-tab-btn ${activeTab === "notif" ? "active" : ""}`}
               onClick={(e) => {
                 e.stopPropagation();
                 setActiveTab("notif");
               }}
             >
-              <i className="fa-solid fa-bell"></i>
+              <i className="fa-solid fa-bell" aria-hidden="true"></i>
               <span>{t.notification_quests?.tab_notifications || "Pemberitahuan"}</span>
               {unreadCount > 0 && (
                 <span className="tab-badge unread">{unreadCount}</span>
@@ -482,7 +499,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
           {/* TAB 1: QUEST / MISI ALUMNI */}
           {activeTab === "quest" && (
-            <div className="quest-tab-content">
+            <div className="quest-tab-content" role="tabpanel">
               <div className="quest-header-bar">
                 <div className="quest-header-info">
                   <span className="quest-header-title">{t.notification_quests?.tab_quests || "Misi Langkah Awal"}</span>
@@ -495,8 +512,8 @@ export default function NotificationBell({ userId }: { userId: string }) {
                   </span>
                 </div>
                 <div className="quest-mini-progress">
-                  <div 
-                    className="quest-mini-progress-fill" 
+                  <div
+                    className="quest-mini-progress-fill"
                     style={{ width: `${(completedCount / totalCount) * 100}%` }}
                   />
                 </div>
@@ -515,7 +532,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
                         else setIsOpen(false);
                       }}
                     >
-                      <div className="quest-tab-icon">
+                      <div className="quest-tab-icon" aria-hidden="true">
                         {isDone ? (
                           <i className="fa-solid fa-circle-check"></i>
                         ) : (
@@ -528,7 +545,11 @@ export default function NotificationBell({ userId }: { userId: string }) {
                           <span className="quest-tab-action">{q.actionText}</span>
                         )}
                       </div>
-                      {isDone && <span className="quest-tab-check">✓</span>}
+                      {isDone && (
+                        <span className="quest-tab-check" aria-hidden="true">
+                          <i className="fa-solid fa-check"></i>
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
@@ -536,7 +557,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
               <div className="quest-tab-footer">
                 <button type="button" className="btn-tour-restart" onClick={restartTour}>
-                  <i className="fa-solid fa-compass"></i> {locale === "ar" ? "إعادة الجولة التعريفية" : locale === "en" ? "Restart Portal Tour" : "Ulangi Tur Panduan Portal"}
+                  <i className="fa-solid fa-compass" aria-hidden="true"></i> {locale === "ar" ? "إعادة الجولة التعريفية" : locale === "en" ? "Restart Portal Tour" : "Ulangi Tur Panduan Portal"}
                 </button>
               </div>
             </div>
@@ -544,9 +565,9 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
           {/* TAB 2: NOTIFIKASI & PENGUMUMAN */}
           {activeTab === "notif" && (
-            <div className="notif-body-wrap">
+            <div className="notif-body-wrap" role="tabpanel">
               <div className="notif-header">
-                <h4>{t.notification_quests?.tab_notifications || "Pemberitahuan"}</h4>
+                <h3>{t.notification_quests?.tab_notifications || "Pemberitahuan"}</h3>
                 {unreadCount > 0 && (
                   <button type="button" onClick={markAllAsRead} className="btn-mark-all">
                     {t.notification_quests?.mark_all_read || "Tandai Semua Dibaca"}
@@ -555,37 +576,17 @@ export default function NotificationBell({ userId }: { userId: string }) {
               </div>
 
               {pushStatus === "default" && (
-                <div style={{
-                  margin: "8px 14px",
-                  padding: "10px 14px",
-                  borderRadius: "12px",
-                  background: "rgba(212, 175, 55, 0.08)",
-                  border: "1px solid rgba(212, 175, 55, 0.25)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "10px"
-                }}>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text-primary)" }}>
-                    <i className="fa-solid fa-bell" style={{ color: "#d4af37", marginRight: "6px" }}></i>
+                <div className="push-enable-banner">
+                  <div className="push-enable-label">
+                    <i className="fa-solid fa-bell" aria-hidden="true"></i>
                     <span>{locale === "ar" ? "تفعيل التنبيهات على الجهاز" : locale === "en" ? "Enable push notifications" : "Aktifkan notifikasi perangkat"}</span>
                   </div>
                   <button
                     type="button"
+                    className="push-enable-btn"
                     onClick={(e) => {
                       e.stopPropagation();
                       enablePush();
-                    }}
-                    style={{
-                      background: "#d4af37",
-                      color: "#060b14",
-                      border: "none",
-                      borderRadius: "20px",
-                      padding: "4px 12px",
-                      fontSize: "0.72rem",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      flexShrink: 0
                     }}
                   >
                     {locale === "ar" ? "تفعيل" : locale === "en" ? "Enable" : "Aktifkan"}
@@ -595,34 +596,50 @@ export default function NotificationBell({ userId }: { userId: string }) {
 
               <div className="notif-body">
                 {notifications.length > 0 ? (
-                  notifications.map((n) => (
-                    <div 
-                      key={n.id} 
-                      className={`notif-item ${!n.is_read ? 'unread' : ''}`}
-                      onClick={() => {
-                        if (!n.is_read) markAsRead(n.id);
-                        setIsOpen(false);
-                      }}
-                    >
-                      <div className="notif-content">
-                        {n.link ? (
-                          <Link href={n.link} style={{ textDecoration: 'none', color: 'inherit' }}>
-                            <h5>{n.title}</h5>
-                            <p>{n.message}</p>
-                          </Link>
-                        ) : (
-                          <>
-                            <h5>{n.title}</h5>
-                            <p>{n.message}</p>
-                          </>
-                        )}
-                        <span className="notif-time">
-                          {new Date(n.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID", { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      {!n.is_read && <div className="unread-dot"></div>}
-                    </div>
-                  ))
+                  notifications.map((n) => {
+                    const bodyContent = (
+                      <>
+                        <div className="notif-content">
+                          <span className="notif-item-title">{n.title}</span>
+                          <p>{n.message}</p>
+                          <span className="notif-time">
+                            {new Date(n.created_at).toLocaleDateString(locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        {!n.is_read && <span className="unread-dot" aria-hidden="true"></span>}
+                      </>
+                    );
+
+                    if (n.link) {
+                      return (
+                        <Link
+                          key={n.id}
+                          href={n.link}
+                          className={`notif-item ${!n.is_read ? "unread" : ""}`}
+                          onClick={() => {
+                            if (!n.is_read) markAsRead(n.id);
+                            setIsOpen(false);
+                          }}
+                        >
+                          {bodyContent}
+                        </Link>
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={n.id}
+                        type="button"
+                        className={`notif-item ${!n.is_read ? "unread" : ""}`}
+                        onClick={() => {
+                          if (!n.is_read) markAsRead(n.id);
+                          setIsOpen(false);
+                        }}
+                      >
+                        {bodyContent}
+                      </button>
+                    );
+                  })
                 ) : (
                   <div className="notif-empty">
                     {t.notification_quests?.empty_notif || "Belum ada pemberitahuan baru."}

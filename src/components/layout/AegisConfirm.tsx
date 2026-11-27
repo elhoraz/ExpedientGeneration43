@@ -2,6 +2,7 @@
 
 import { useState, useCallback, createContext, useContext } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 
 type ConfirmOptions = {
   title: string;
@@ -37,13 +38,15 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const handleClose = (result: boolean) => {
+  const handleClose = useCallback((result: boolean) => {
     if (navigator.vibrate) navigator.vibrate(20);
     if (dialog) {
       dialog.resolve(result);
       setDialog(null);
     }
-  };
+  }, [dialog]);
+
+  useDialogEscape(Boolean(dialog), () => handleClose(Boolean(dialog?.isAlert)));
 
 const DIALOG_TITLE_I18N: Record<string, { en: string; ar: string }> = {
   "Peringatan": { en: "Warning", ar: "تحذير" },
@@ -80,7 +83,8 @@ const DIALOG_MESSAGE_I18N: Record<string, { en: string; ar: string }> = {
   "Gagal membuka segel: Kunci akses tidak cocok.": { en: "Failed to unseal: Passphrase key is incorrect.", ar: "فشل فك الختم: مفتاح المرور غير متطابق." },
   "Munajat berhasil dipanjatkan.": { en: "Supplication successfully sent.", ar: "تم رفع الدعاء والمناجاة بنجاح." },
   "Data usaha berhasil dihapus.": { en: "Business listing removed successfully.", ar: "تم حذف بيانات المشروع بنجاح." },
-  "Website dan data bisnis berhasil disimpan!": { en: "Business profile and website saved successfully!", ar: "تم حفظ بيانات المشروع والموقع بنجاح!" },
+  "Website dan data bisnis berhasil disimpan!": { en: "Business profile and website saved successfully.", ar: "تم حفظ بيانات المشروع والموقع بنجاح." },
+  "Website dan data bisnis berhasil disimpan.": { en: "Business profile and website saved successfully.", ar: "تم حفظ بيانات المشروع والموقع بنجاح." },
   "Pemilik bisnis belum mencantumkan nomor WhatsApp yang aktif.": { en: "The owner has not provided an active WhatsApp number.", ar: "لم يقم صاحب العمل بإدراج رقم واتساب نشط." },
   "Pemilik belum mencantumkan nomor WhatsApp yang aktif.": { en: "The owner has not provided an active WhatsApp number.", ar: "لم يقم صاحب العمل بإدراج رقم واتساب نشط." },
   "Silakan pilih target mentor atau bisnis terlebih dahulu.": { en: "Please select a mentor or business target first.", ar: "يرجى تحديد المرشد أو الفرصة المستهدفة أولاً." },
@@ -105,7 +109,6 @@ const DIALOG_MESSAGE_I18N: Record<string, { en: string; ar: string }> = {
   "Gagal mengirim pesan suara.": { en: "Failed to send voice note.", ar: "فشل إرسال الرسالة الصوتية." },
   "Gagal mengirim video pesan.": { en: "Failed to send video message.", ar: "فشل إرسال رسالة الفيديو." },
   "Gagal mengunggah gambar.": { en: "Failed to upload image.", ar: "فشل تحميل الصورة." },
-  "Fitur FaceID / Sidik Jari untuk Admin sedang dalam pengembangan.": { en: "FaceID / Biometric authentication for Admin is under development.", ar: "خاصية التعرف على الوجه / البصمة قيد التطوير حالياً." },
 };
 
 function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: boolean): string {
@@ -126,8 +129,7 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(6, 11, 20, 0.72)",
-            backdropFilter: "blur(8px)",
+            background: "var(--surface-scrim, rgba(6, 11, 20, 0.72))",
             zIndex: 100000,
             display: "flex",
             alignItems: "center",
@@ -136,6 +138,9 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
           }}
         >
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="aegis-confirm-title"
             style={{
               background: "var(--bg-card, #0f141e)",
               border: "1px solid var(--border-strong, rgba(242, 239, 233, 0.19))",
@@ -150,10 +155,10 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
             }}
             dir={isRTL ? "rtl" : "ltr"}
           >
-            <div style={{ fontSize: "2.4rem", color: "var(--gold-main, #d4af37)", marginBottom: "12px" }}>
+            <div style={{ fontSize: "2.4rem", color: "var(--gold-main, #d4af37)", marginBottom: "12px" }} aria-hidden="true">
               <i className="fa-solid fa-circle-exclamation"></i>
             </div>
-            <h3 style={{ color: "var(--text-primary, #f2efe9)", fontFamily: isRTL ? "inherit" : "var(--font-playfair, 'Playfair Display', serif)", margin: "0 0 12px 0", fontSize: "1.35rem" }}>
+            <h3 id="aegis-confirm-title" style={{ color: "var(--text-primary, #f2efe9)", fontFamily: isRTL ? "inherit" : "var(--font-playfair, 'Playfair Display', serif)", margin: "0 0 12px 0", fontSize: "1.35rem" }}>
               {getLocalizedText(dialog.title, locale, true)}
             </h3>
             <p style={{ color: "var(--text-secondary, #a1a8b5)", fontSize: "0.94rem", marginBottom: "24px", lineHeight: "1.55" }}>
@@ -162,6 +167,7 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
             <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
               {!dialog.isAlert && (
                 <button
+                  type="button"
                   onClick={() => handleClose(false)}
                   style={{
                     flex: 1,
@@ -181,6 +187,7 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
                 </button>
               )}
               <button
+                type="button"
                 onClick={() => handleClose(true)}
                 className="btn-gold"
                 style={{
@@ -205,6 +212,9 @@ function getLocalizedText(rawText: string, locale: "id" | "en" | "ar", isTitle: 
             @keyframes slideUp {
               from { transform: translateY(30px); }
               to { transform: translateY(0); }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
             }
           `}</style>
         </div>

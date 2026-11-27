@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import "./onboarding.css";
 
 type QuestItem = {
@@ -13,52 +15,13 @@ type QuestItem = {
   href: string;
   actionText: string;
   storageKey: string;
-  /** Pages that count as "visited" for this quest */
   trackPaths: string[];
 };
-
-const QUESTS: QuestItem[] = [
-  {
-    id: "login",
-    icon: "fa-solid fa-right-to-bracket",
-    label: "Login ke portal alumni",
-    href: "#",
-    actionText: "Selesai ✓",
-    storageKey: "expedient_quest_login",
-    trackPaths: [], // Always completed
-  },
-  {
-    id: "profile",
-    icon: "fa-solid fa-user-pen",
-    label: "Lengkapi foto & data profil",
-    href: "/profil",
-    actionText: "Buka Profil →",
-    storageKey: "expedient_quest_profile",
-    trackPaths: ["/profil"],
-  },
-  {
-    id: "radar",
-    icon: "fa-solid fa-map-location-dot",
-    label: "Perbarui lokasi tinggalmu di peta",
-    href: "/radar",
-    actionText: "Buka Radar →",
-    storageKey: "expedient_quest_radar",
-    trackPaths: ["/radar"],
-  },
-  {
-    id: "directory",
-    icon: "fa-solid fa-address-book",
-    label: "Cari & sapa kawan lama",
-    href: "/direktori",
-    actionText: "Buka Direktori →",
-    storageKey: "expedient_quest_directory",
-    trackPaths: ["/direktori"],
-  },
-];
 
 const WIDGET_DISMISSED_KEY = "expedient_quest_dismissed";
 
 export default function OnboardingChecklist() {
+  const { t, locale, isRTL } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [isDismissed, setIsDismissed] = useState(true);
@@ -66,13 +29,57 @@ export default function OnboardingChecklist() {
   const [hasAnimated, setHasAnimated] = useState(false);
   const pathname = usePathname();
 
+  useDialogEscape(isOpen, () => setIsOpen(false));
+
+  const quests: QuestItem[] = useMemo(
+    () => [
+      {
+        id: "login",
+        icon: "fa-solid fa-right-to-bracket",
+        label: t.notification_quests?.quest_login || "Masuk ke portal alumni",
+        href: "#",
+        actionText: t.notification_quests?.action_done || "Selesai",
+        storageKey: "expedient_quest_login",
+        trackPaths: [],
+      },
+      {
+        id: "profile",
+        icon: "fa-solid fa-user-pen",
+        label: t.notification_quests?.quest_profile || "Lengkapi foto & data profil",
+        href: "/profil",
+        actionText: t.notification_quests?.action_open_profile || "Buka Profil",
+        storageKey: "expedient_quest_profile",
+        trackPaths: ["/profil"],
+      },
+      {
+        id: "radar",
+        icon: "fa-solid fa-map-location-dot",
+        label: t.notification_quests?.quest_radar || "Perbarui lokasi domisili di peta",
+        href: "/radar",
+        actionText: t.notification_quests?.action_open_radar || "Buka Radar",
+        storageKey: "expedient_quest_radar",
+        trackPaths: ["/radar"],
+      },
+      {
+        id: "directory",
+        icon: "fa-solid fa-address-book",
+        label: t.notification_quests?.quest_directory || "Cari & sapa kawan lama",
+        href: "/direktori",
+        actionText: t.notification_quests?.action_open_directory || "Buka Direktori",
+        storageKey: "expedient_quest_directory",
+        trackPaths: ["/direktori"],
+      },
+    ],
+    [t]
+  );
+
   const reloadQuests = useCallback(async () => {
     if (typeof window === "undefined") return;
     const done = new Set<string>();
     done.add("login");
     localStorage.setItem("expedient_quest_login", "true");
 
-    QUESTS.forEach((q) => {
+    quests.forEach((q) => {
       if (localStorage.getItem(q.storageKey) === "true") {
         done.add(q.id);
       }
@@ -107,7 +114,7 @@ export default function OnboardingChecklist() {
     }
 
     setCompletedIds(new Set(done));
-  }, []);
+  }, [quests]);
 
   // Check auth & initialize quest state
   useEffect(() => {
@@ -141,7 +148,7 @@ export default function OnboardingChecklist() {
     if (!pathname || !isLoggedIn) return;
 
     let changed = false;
-    QUESTS.forEach((q) => {
+    quests.forEach((q) => {
       if (q.trackPaths.length > 0 && q.trackPaths.some((p) => pathname.startsWith(p))) {
         if (localStorage.getItem(q.storageKey) !== "true") {
           localStorage.setItem(q.storageKey, "true");
@@ -154,7 +161,7 @@ export default function OnboardingChecklist() {
       reloadQuests();
       window.dispatchEvent(new CustomEvent("expedient-quest-updated"));
     }
-  }, [pathname, isLoggedIn, reloadQuests]);
+  }, [pathname, isLoggedIn, reloadQuests, quests]);
 
   // Bounce animation on first render to draw attention
   useEffect(() => {
@@ -171,54 +178,73 @@ export default function OnboardingChecklist() {
   };
 
   const completedCount = completedIds.size;
-  const totalCount = QUESTS.length;
+  const totalCount = quests.length;
   const allDone = completedCount >= totalCount;
   const progressPercent = (completedCount / totalCount) * 100;
 
-  // Don't render for guests, dismissed state, or if all quests done
   if (!isLoggedIn || isDismissed || allDone) return null;
 
   const remainingCount = totalCount - completedCount;
+  const panelTitle =
+    t.notification_quests?.tab_quests ||
+    (locale === "ar" ? "مهام الخطوات الأولى" : locale === "en" ? "Starter Missions" : "Misi Langkah Awal");
 
   return (
     <>
-      {/* Floating quest button */}
       <button
+        type="button"
         className={`quest-fab ${!hasAnimated ? "quest-fab-bounce" : ""}`}
         id="btnQuestWidget"
         onClick={() => setIsOpen(!isOpen)}
-        title="Misi Alumni Baru"
+        title={panelTitle}
+        aria-label={panelTitle}
+        aria-expanded={isOpen}
+        aria-controls="questPanelDrawer"
       >
         <div className="quest-fab-inner">
-          <i className="fa-solid fa-scroll"></i>
+          <i className="fa-solid fa-scroll" aria-hidden="true"></i>
           {remainingCount > 0 && (
             <span className="quest-fab-badge">{remainingCount}</span>
           )}
         </div>
       </button>
 
-      {/* Quest panel dropdown */}
       {isOpen && (
-        <div className="quest-panel">
+        <div
+          id="questPanelDrawer"
+          className="quest-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quest-panel-title"
+          dir={isRTL ? "rtl" : "ltr"}
+        >
           <div className="quest-panel-header">
             <div className="quest-panel-title-row">
-              <i className="fa-solid fa-scroll" style={{ color: "var(--gold-main, #d4af37)" }}></i>
-              <h3 className="quest-panel-title">Misi Alumni Baru</h3>
+              <i className="fa-solid fa-scroll" aria-hidden="true" style={{ color: "var(--gold-main, #d4af37)" }}></i>
+              <h3 id="quest-panel-title" className="quest-panel-title">{panelTitle}</h3>
             </div>
             <div className="quest-panel-actions">
               <button
+                type="button"
                 className="quest-panel-close"
                 onClick={() => setIsOpen(false)}
-                title="Tutup"
+                title={t.common.close}
+                aria-label={t.common.close}
               >
-                <i className="fa-solid fa-chevron-down"></i>
+                <i className="fa-solid fa-chevron-down" aria-hidden="true"></i>
               </button>
             </div>
           </div>
 
           <div className="quest-progress-section">
             <div className="quest-progress-text">
-              <span>{completedCount}/{totalCount} selesai</span>
+              <span>
+                {locale === "ar"
+                  ? `${completedCount}/${totalCount} مكتمل`
+                  : locale === "en"
+                  ? `${completedCount}/${totalCount} completed`
+                  : `${completedCount}/${totalCount} selesai`}
+              </span>
               <span>{Math.round(progressPercent)}%</span>
             </div>
             <div className="quest-progress-bar">
@@ -230,7 +256,7 @@ export default function OnboardingChecklist() {
           </div>
 
           <div className="quest-items">
-            {QUESTS.map((quest) => {
+            {quests.map((quest) => {
               const isCompleted = completedIds.has(quest.id);
               return (
                 <Link
@@ -242,7 +268,7 @@ export default function OnboardingChecklist() {
                     else setIsOpen(false);
                   }}
                 >
-                  <div className="quest-item-icon">
+                  <div className="quest-item-icon" aria-hidden="true">
                     {isCompleted ? (
                       <i className="fa-solid fa-circle-check"></i>
                     ) : (
@@ -256,7 +282,9 @@ export default function OnboardingChecklist() {
                     )}
                   </div>
                   {isCompleted && (
-                    <span className="quest-item-done">✓</span>
+                    <span className="quest-item-done" aria-hidden="true">
+                      <i className="fa-solid fa-check"></i>
+                    </span>
                   )}
                 </Link>
               );
@@ -264,30 +292,31 @@ export default function OnboardingChecklist() {
           </div>
 
           <div className="quest-panel-footer">
-              <button
-                className="quest-footer-btn"
-                onClick={() => {
-                  setIsOpen(false);
-                  window.dispatchEvent(new CustomEvent('expedient-restart-tour'));
-                }}
-              >
-                <i className="fa-solid fa-compass"></i>
-                Ulangi Tur Portal
-              </button>
             <button
+              type="button"
+              className="quest-footer-btn"
+              onClick={() => {
+                setIsOpen(false);
+                window.dispatchEvent(new CustomEvent("expedient-restart-tour"));
+              }}
+            >
+              <i className="fa-solid fa-compass" aria-hidden="true"></i>
+              {locale === "ar" ? "إعادة جولة البوابة" : locale === "en" ? "Restart Portal Tour" : "Ulangi Tur Portal"}
+            </button>
+            <button
+              type="button"
               className="quest-footer-btn quest-dismiss-btn"
               onClick={handleDismiss}
             >
-              <i className="fa-solid fa-xmark"></i>
-              Sembunyikan Misi
+              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+              {locale === "ar" ? "إخفاء المهام" : locale === "en" ? "Hide Quests" : "Sembunyikan Misi"}
             </button>
           </div>
         </div>
       )}
 
-      {/* Backdrop for mobile */}
       {isOpen && (
-        <div className="quest-backdrop" onClick={() => setIsOpen(false)} />
+        <div className="quest-backdrop" aria-hidden="true" onClick={() => setIsOpen(false)} />
       )}
     </>
   );

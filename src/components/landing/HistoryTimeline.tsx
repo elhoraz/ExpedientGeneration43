@@ -46,11 +46,13 @@ export default function HistoryTimeline() {
       </div>
 
       {/* Interactive Year Selector Tabs */}
-      <div className="history-tabs-track reveal-on-scroll">
+      <div className="history-tabs-track reveal-on-scroll" role="tablist" aria-label={t.history_section.title}>
         {eras.map((era, idx) => (
           <button
             key={era.year}
             type="button"
+            role="tab"
+            aria-selected={activeIdx === idx}
             className={`history-tab-item ${activeIdx === idx ? "active" : ""}`}
             onClick={() => {
               if (navigator.vibrate) navigator.vibrate(8);

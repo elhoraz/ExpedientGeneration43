@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import "../admin.css";
 import AdminLockBtn from "../../AdminLockBtn";
+import ConfirmSubmitButton from "@/components/admin/ConfirmSubmitButton";
 
 // Server Action for deleting content
 import { deleteAdminContent } from "./actions";
@@ -88,9 +89,14 @@ export default async function ModerationPage() {
                 <form action={deleteAdminContent}>
                   <input type="hidden" name="type" value="chat" />
                   <input type="hidden" name="id" value={c.id} />
-                  <button type="submit" className="btn-del">
+                  <ConfirmSubmitButton
+                    title="Hapus Pesan Chat"
+                    message="Yakin ingin menghapus pesan chat ini dari database?"
+                    className="btn-del"
+                    buttonTitle="Hapus pesan chat"
+                  >
                     <i className="fa-solid fa-trash"></i> Hapus
-                  </button>
+                  </ConfirmSubmitButton>
                 </form>
               ) : (
                 <span style={{ fontSize: "0.7rem", color: "#ff5555" }}>DIHAPUS</span>
@@ -121,9 +127,14 @@ export default async function ModerationPage() {
               <form action={deleteAdminContent}>
                 <input type="hidden" name="type" value="majlis" />
                 <input type="hidden" name="id" value={t.id} />
-                <button type="submit" className="btn-del">
+                <ConfirmSubmitButton
+                  title="Hapus Mosi Majlis"
+                  message={`Yakin ingin menghapus mosi "${t.title}"?`}
+                  className="btn-del"
+                  buttonTitle={`Hapus mosi ${t.title}`}
+                >
                   <i className="fa-solid fa-trash"></i> Hapus
-                </button>
+                </ConfirmSubmitButton>
               </form>
             </div>
           ))
@@ -146,9 +157,14 @@ export default async function ModerationPage() {
               <form action={deleteAdminContent}>
                 <input type="hidden" name="type" value="syndicate" />
                 <input type="hidden" name="id" value={b.id} />
-                <button type="submit" className="btn-del">
+                <ConfirmSubmitButton
+                  title="Hapus Bisnis"
+                  message={`Yakin ingin menghapus data bisnis "${b.nama_bisnis}"?`}
+                  className="btn-del"
+                  buttonTitle={`Hapus bisnis ${b.nama_bisnis}`}
+                >
                   <i className="fa-solid fa-trash"></i> Hapus
-                </button>
+                </ConfirmSubmitButton>
               </form>
             </div>
           ))
@@ -171,9 +187,14 @@ export default async function ModerationPage() {
               <form action={deleteAdminContent}>
                 <input type="hidden" name="type" value="bukutamu" />
                 <input type="hidden" name="id" value={bt.id} />
-                <button type="submit" className="btn-del">
+                <ConfirmSubmitButton
+                  title="Hapus Entri Buku Tamu"
+                  message={`Yakin ingin menghapus pesan buku tamu dari "${bt.nama}"?`}
+                  className="btn-del"
+                  buttonTitle={`Hapus buku tamu ${bt.nama}`}
+                >
                   <i className="fa-solid fa-trash"></i> Hapus
-                </button>
+                </ConfirmSubmitButton>
               </form>
             </div>
           ))

@@ -184,9 +184,10 @@ export interface MountRadar2DOptions {
   containerId: string;
   nodes: any[];
   style: string;
+  onConfirmDeleteLocation?: () => Promise<boolean>;
 }
 
-export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOptions) {
+export async function mountRadar2D({ containerId, nodes, style, onConfirmDeleteLocation }: MountRadar2DOptions) {
   if (typeof window === 'undefined') return;
 
   // Import Leaflet dynamically to prevent SSR errors
@@ -320,7 +321,14 @@ export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOp
         idWa.style.display = 'none';
       }
     }
-    if (idProfile) idProfile.href = '/syndicate';
+    if (idProfile) {
+      if (d.id && d.id !== 'center') {
+        idProfile.href = `/dossier/${d.id}`;
+        idProfile.style.display = 'flex';
+      } else {
+        idProfile.style.display = 'none';
+      }
+    }
 
     const drawer = document.getElementById('infoDrawer');
     const overlay = document.getElementById('idOverlay');
@@ -615,8 +623,9 @@ export async function mountRadar2D({ containerId, nodes, style }: MountRadar2DOp
   const btnDeleteLoc = document.getElementById('btnDeleteLocation') as HTMLButtonElement | null;
   if (btnDeleteLoc) {
     btnDeleteLoc.onclick = async () => {
-      if (!confirm('Apakah antum yakin ingin menghapus titik koordinat lokasi dari Radar?')) {
-        return;
+      if (onConfirmDeleteLocation) {
+        const ok = await onConfirmDeleteLocation();
+        if (!ok) return;
       }
       btnDeleteLoc.disabled = true;
       showStatus('Menghapus lokasi...');

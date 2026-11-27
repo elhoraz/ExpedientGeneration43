@@ -19,13 +19,13 @@ export default function DailyWisdomWidget() {
       try {
         activeAudioRef.current.pause();
         activeAudioRef.current.currentTime = 0;
-      } catch {}
+      } catch { }
       activeAudioRef.current = null;
     }
     if (typeof window !== "undefined" && "speechSynthesis" in window && window.speechSynthesis.speaking) {
       try {
         window.speechSynthesis.cancel();
-      } catch {}
+      } catch { }
     }
     setIsSpeaking(false);
     setIsLoadingAudio(false);
@@ -78,18 +78,21 @@ export default function DailyWisdomWidget() {
   const copyWisdom = () => {
     if (typeof navigator !== "undefined") {
       if (navigator.vibrate) navigator.vibrate(10);
-      const textToCopy = `*Secarik Mahfuzhat Santri Arrisalah*\n\n${current.arabic}\n"${current.latin}"\n\n_Artinya:_ ${current.arti}\n\nExpedient Generation 43`;
+      const headerLabel = locale === "ar" ? "حكمة اليوم - خريجو الرسالة ٤٣" : locale === "en" ? "Cohort Wisdom Note - Arrisalah 43" : "Secarik Mahfuzhat Santri Arrisalah";
+      const meaningLabel = locale === "ar" ? "المعنى:" : locale === "en" ? "Meaning:" : "Artinya:";
+      const textToCopy = `${headerLabel}\n\n${current.arabic}\n"${current.latin}"\n\n${meaningLabel} ${current.arti}\n\nExpedient Generation 43`;
       navigator.clipboard.writeText(textToCopy).then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2200);
-      }).catch(() => {});
+      }).catch(() => { });
     }
   };
 
   const shareToWhatsApp = () => {
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
     const siteUrl = typeof window !== "undefined" ? window.location.origin : "https://expedientgeneration.vercel.app";
-    const textToShare = `*Secarik Mahfuzhat Santri Arrisalah*\n\n${current.arabic}\n"${current.latin}"\n\n_${current.arti}_\n\n${siteUrl}`;
+    const headerLabel = locale === "ar" ? "حكمة اليوم - خريجو الرسالة ٤٣" : locale === "en" ? "Cohort Wisdom Note - Arrisalah 43" : "Secarik Mahfuzhat Santri Arrisalah";
+    const textToShare = `${headerLabel}\n\n${current.arabic}\n"${current.latin}"\n\n${current.arti}\n\n${siteUrl}`;
     const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(textToShare)}`;
     window.open(waUrl, "_blank", "noopener,noreferrer");
   };
@@ -181,7 +184,7 @@ export default function DailyWisdomWidget() {
       <div className="memo-masking-tape" title={locale === "ar" ? "شريط لاصق" : locale === "en" ? "Memo Masking Tape" : "Selotip Secarik Memo"}></div>
       {/* Dog-Ear Paper Fold (Lipatan Pembatas Kertas Memo) */}
       <div className="memo-dog-ear" title={locale === "ar" ? "طيّة حافة المذكرة" : locale === "en" ? "Memo Dog Ear" : "Lipatan Pembatas Memo Santri"}></div>
-      
+
       <div className="wisdom-banner-content">
         <div className="wisdom-banner-left">
           <div className="wisdom-calendar-tag">
@@ -199,16 +202,22 @@ export default function DailyWisdomWidget() {
               type="button"
               className={`btn-listen-arabic ${isSpeaking ? "speaking" : ""} ${isLoadingAudio ? "loading" : ""}`}
               onClick={speakArabic}
-              title={isSpeaking ? "Hentikan Suara" : isLoadingAudio ? "Memuat Suara..." : "Dengarkan Pelafalan Bahasa Arab"}
-              aria-label="Dengarkan Lafal Arab"
+              title={
+                isSpeaking
+                  ? (locale === "ar" ? "إيقاف الصوت" : locale === "en" ? "Stop audio" : "Hentikan suara")
+                  : isLoadingAudio
+                  ? (locale === "ar" ? "جارٍ تحميل الصوت..." : locale === "en" ? "Loading audio..." : "Memuat suara...")
+                  : (locale === "ar" ? "استمع إلى النطق العربي" : locale === "en" ? "Listen to Arabic pronunciation" : "Dengarkan pelafalan bahasa Arab")
+              }
+              aria-label={locale === "ar" ? "استمع إلى النطق العربي" : locale === "en" ? "Listen to Arabic pronunciation" : "Dengarkan Lafal Arab"}
             >
-              <i className={`fa-solid ${isLoadingAudio ? "fa-spinner fa-spin" : isSpeaking ? "fa-volume-high live-audio-pulse" : "fa-volume-low"}`}></i>
+              <i className={`fa-solid ${isLoadingAudio ? "fa-spinner fa-spin" : isSpeaking ? "fa-volume-high live-audio-pulse" : "fa-volume-low"}`} aria-hidden="true"></i>
             </button>
           </div>
 
           <div className="wisdom-translation-row">
             <span className="wisdom-latin">&ldquo;{current.latin}&rdquo;</span>
-            <span className="wisdom-divider">·</span>
+            <span className="wisdom-divider" aria-hidden="true">·</span>
             <span className="wisdom-meaning">{current.arti}</span>
           </div>
         </div>
@@ -221,7 +230,7 @@ export default function DailyWisdomWidget() {
             onClick={nextWisdom}
             title={t.daily_wisdom.next_btn}
           >
-            <i className="fa-solid fa-shuffle"></i>
+            <i className="fa-solid fa-shuffle" aria-hidden="true"></i>
             <span>{t.daily_wisdom.next_btn}</span>
           </button>
 
@@ -230,10 +239,14 @@ export default function DailyWisdomWidget() {
             type="button"
             className={`btn-wisdom-action ${isCopied ? "copied" : ""}`}
             onClick={copyWisdom}
-            title={isCopied ? "Tersalin!" : "Salin Teks Hikmah"}
+            title={
+              isCopied
+                ? (locale === "ar" ? "تم النسخ" : locale === "en" ? "Copied" : "Tersalin")
+                : (locale === "ar" ? "نسخ النص" : locale === "en" ? "Copy quote text" : "Salin teks hikmah")
+            }
           >
-            <i className={`fa-solid ${isCopied ? "fa-check" : "fa-copy"}`}></i>
-            <span>{isCopied ? (locale === "ar" ? "تم النسخ!" : locale === "en" ? "Copied!" : "Tersalin!") : (locale === "ar" ? "نسخ" : locale === "en" ? "Copy" : "Salin")}</span>
+            <i className={`fa-solid ${isCopied ? "fa-check" : "fa-copy"}`} aria-hidden="true"></i>
+            <span>{isCopied ? (locale === "ar" ? "تم النسخ" : locale === "en" ? "Copied" : "Tersalin") : (locale === "ar" ? "نسخ" : locale === "en" ? "Copy" : "Salin")}</span>
           </button>
 
           {/* Quick Action: Share to WhatsApp Story / Chat */}
@@ -241,15 +254,15 @@ export default function DailyWisdomWidget() {
             type="button"
             className="btn-wisdom-action btn-wisdom-wa"
             onClick={shareToWhatsApp}
-            title="Bagikan ke WhatsApp Status"
+            title={locale === "ar" ? "مشاركة عبر واتساب" : locale === "en" ? "Share on WhatsApp" : "Bagikan ke WhatsApp"}
           >
-            <i className="fa-brands fa-whatsapp"></i>
+            <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
             <span>{locale === "ar" ? "مشاركة" : locale === "en" ? "Share" : "Status WA"}</span>
           </button>
 
           {/* Link to Full Mahfuzhat Hub */}
           <Link href="/mahfuzhat" className="btn-explore-mahfuzhat">
-            <i className="fa-solid fa-book-open"></i>
+            <i className="fa-solid fa-book-open" aria-hidden="true"></i>
             <span>{t.daily_wisdom.explore_btn}</span>
           </Link>
         </div>

@@ -3,7 +3,8 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PAGE_GUIDES, CATEGORIES, PageGuide } from "@/data/guideData";
+import { PageGuide } from "@/data/guideData";
+import { getLocalizedCategories, getLocalizedGuides, GuideLocale } from "@/data/guideLocales";
 import PageGuideModal from "@/components/guide/PageGuideModal";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "./panduan.css";
@@ -87,25 +88,8 @@ export default function PanduanClient() {
 
   // Localized Categories
   const categoriesLocalized = useMemo(() => {
-    return CATEGORIES.map((cat) => {
-      let label: string = cat.label;
-      if (locale === "ar") {
-        if (cat.id === "semua") label = "جميع الميزات";
-        else if (cat.id === "utama") label = "القائمة الرئيسية";
-        else if (cat.id === "komunikasi") label = "التواصل";
-        else if (cat.id === "sosial") label = "المجتمع والعبادة";
-        else if (cat.id === "eksklusif") label = "ميزات خاصة";
-        else if (cat.id === "admin") label = "إدارة النظام";
-      } else if (locale === "en") {
-        if (cat.id === "semua") label = "All Features";
-        else if (cat.id === "utama") label = "Main Menu";
-        else if (cat.id === "komunikasi") label = "Communication";
-        else if (cat.id === "sosial") label = "Social & Worship";
-        else if (cat.id === "eksklusif") label = "Special Features";
-        else if (cat.id === "admin") label = "Admin Management";
-      }
-      return { id: cat.id, label, icon: cat.icon };
-    });
+    const guideLocale: GuideLocale = locale === "en" || locale === "ar" ? locale : "id";
+    return getLocalizedCategories(guideLocale);
   }, [locale]);
 
   // Localized FAQs
@@ -115,7 +99,8 @@ export default function PanduanClient() {
 
   // Filter panduan berdasarkan kategori dan kata kunci pencarian
   const filteredGuides = useMemo(() => {
-    return PAGE_GUIDES.filter((guide) => {
+    const guideLocale: GuideLocale = locale === "en" || locale === "ar" ? locale : "id";
+    return getLocalizedGuides(guideLocale).filter((guide) => {
       const matchCategory =
         selectedCategory === "semua" || guide.category === selectedCategory;
 
@@ -133,7 +118,7 @@ export default function PanduanClient() {
         guide.tips.some((t) => t.toLowerCase().includes(q))
       );
     });
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, locale]);
 
   // Restart onboarding tour
   const handleRestartTour = () => {

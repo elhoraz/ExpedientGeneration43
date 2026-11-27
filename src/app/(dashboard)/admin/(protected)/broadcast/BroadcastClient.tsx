@@ -75,14 +75,14 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
       const payload = data.data || data;
       if (payload.api_ok) {
         setGatewayStatus("ok");
-        setGatewayMessage(`✅ Terhubung · ${payload.reason || payload.device || 'Online'}`);
+        setGatewayMessage(`Terhubung · ${payload.reason || payload.device || 'Online'}`);
       } else {
         setGatewayStatus("error");
-        setGatewayMessage(`❌ Terputus · ${payload.reason || payload.raw_response || data.message || 'Offline'}`);
+        setGatewayMessage(`Terputus · ${payload.reason || payload.raw_response || data.message || 'Offline'}`);
       }
     } catch {
       setGatewayStatus("error");
-      setGatewayMessage("⚠ Error · Tidak bisa terhubung ke endpoint diagnostik gateway");
+      setGatewayMessage("Error · Tidak bisa terhubung ke endpoint diagnostik gateway");
     }
   };
 
@@ -149,21 +149,20 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
       <div style={{ background: "linear-gradient(135deg, rgba(0, 200, 83, 0.08), rgba(212, 175, 55, 0.05))", border: `1px solid ${gatewayStatus === 'ok' ? 'rgba(0, 200, 83, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`, borderRadius: "16px", padding: "16px 24px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "14px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               <div style={{ 
-                  width: "12px", height: "12px", borderRadius: "50%", flexShrink: 0,
-                  background: gatewayStatus === 'ok' ? "#00c853" : gatewayStatus === 'checking' ? "#888" : "#ef4444",
-                  boxShadow: gatewayStatus === 'ok' ? "0 0 12px #00c853" : "none"
+                  width: "10px", height: "10px", borderRadius: "50%", flexShrink: 0,
+                  background: gatewayStatus === 'ok' ? "#10b981" : gatewayStatus === 'checking' ? "#888" : "#ef4444"
               }}></div>
               <div>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>
-                      WhatsApp Gateway Engine (Baileys) · <span style={{ color: "#ffd700", fontFamily: "monospace" }}>+62 851-5177-1289</span>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary, #fff)" }}>
+                      WhatsApp Gateway Engine (Baileys) · <span style={{ color: "var(--gold-main, #d4af37)", fontVariantNumeric: "tabular-nums" }}>+62 851-5177-1289</span>
                   </div>
-                  <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", marginTop: "3px" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginTop: "3px" }}>
                       {gatewayMessage}
                   </div>
               </div>
           </div>
-          <button onClick={checkGatewayStatus} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "6px 14px", color: "var(--text-primary)", fontSize: "0.74rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
-              <i className="fa-solid fa-rotate-right"></i> Refresh
+          <button type="button" onClick={checkGatewayStatus} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid var(--glass-border, rgba(255,255,255,0.1))", borderRadius: "8px", minHeight: "44px", padding: "8px 16px", color: "var(--text-primary)", fontSize: "0.78rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+              <i className="fa-solid fa-rotate-right" aria-hidden="true"></i> Refresh
           </button>
       </div>
 
@@ -279,14 +278,14 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
               </div>
 
               {/* Birthday Automation */}
-              <div style={{ background: "var(--glass-bg)", border: "1px solid rgba(255,215,0,0.25)", borderRadius: "20px", padding: "24px" }}>
-                  <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "#ffd700", margin: "0 0 8px 0", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <i className="fa-solid fa-cake-candles"></i> Ucapan Ultah Otomatis
+              <div style={{ background: "var(--bg-card, var(--glass-bg))", border: "1px solid var(--border-gold, rgba(212,175,55,0.28))", borderRadius: "20px", padding: "24px" }}>
+                  <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--gold-main, #d4af37)", margin: "0 0 8px 0", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <i className="fa-solid fa-cake-candles" aria-hidden="true"></i> Ucapan Ultah Otomatis
                   </h2>
-                  <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)", margin: "0 0 16px 0" }}>
+                  <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: "0 0 16px 0" }}>
                       Kirimkan doa dan ucapan selamat ulang tahun personal ke WhatsApp alumni yang berulang tahun hari ini.
                   </p>
-                  <button onClick={async () => {
+                  <button type="button" onClick={async () => {
                       try {
                           showAlert("Info", "Sedang memproses ucapan ulang tahun hari ini...");
                           const res = await fetch("/api/admin/broadcast/birthday", { method: "POST" });
@@ -296,8 +295,8 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
                       } catch {
                           showAlert("Gagal", "Gagal memproses ucapan ulang tahun.");
                       }
-                  }} style={{ width: "100%", padding: "10px", background: "rgba(255,215,0,0.1)", border: "1px solid rgba(255,215,0,0.3)", color: "#ffd700", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer" }} className="hover-trigger">
-                      <i className="fa-solid fa-gift" style={{ marginRight: "6px" }}></i>Trigger Ucapan Ultah Hari Ini
+                  }} style={{ width: "100%", minHeight: "44px", padding: "10px", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.35)", color: "var(--gold-main, #d4af37)", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer" }} className="hover-trigger">
+                      <i className="fa-solid fa-gift" aria-hidden="true" style={{ marginRight: "6px" }}></i>Trigger Ucapan Ultah Hari Ini
                   </button>
               </div>
 
@@ -364,7 +363,10 @@ export default function BroadcastClient({ initialUsers }: { initialUsers: Broadc
                                               {log.message?.substring(0, 80)}...
                                           </div>
                                           {isFailed && log.error_message && (
-                                              <div style={{ color: "#ff3366", fontSize: "0.65rem", marginTop: "3px" }}>⚠ {log.error_message}</div>
+                                              <div style={{ color: "#ff3366", fontSize: "0.65rem", marginTop: "3px" }}>
+                                                <i className="fa-solid fa-triangle-exclamation" aria-hidden="true" style={{ marginRight: "4px" }}></i>
+                                                {log.error_message}
+                                              </div>
                                           )}
                                       </td>
                                       <td style={{ padding: "10px 12px", color: "var(--text-secondary)", whiteSpace: "nowrap", fontSize: "0.75rem" }}>

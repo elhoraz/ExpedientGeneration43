@@ -58,7 +58,7 @@ export default function SovereignThreeScene({
       if (isCancelled || !containerRef.current) return;
 
       const GOLD = "#d4af37";
-      const PURE_GOLD = "#ffd700";
+      const PURE_GOLD = "#e5c158";
       const DARK_BG = "#060b14";
 
       const scene = new THREE.Scene();
@@ -215,11 +215,11 @@ export default function SovereignThreeScene({
         ...(isMobile
           ? {}
           : {
-              metalness: 0.15,
-              roughness: 0.1,
-              clearcoat: 1.0,
-              clearcoatRoughness: 0.05,
-            }),
+            metalness: 0.15,
+            roughness: 0.1,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.05,
+          }),
       });
       const nightMarbleMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), nightMarbleMat);
       if (!isMobile) nightMarbleMesh.receiveShadow = true;
@@ -233,11 +233,11 @@ export default function SovereignThreeScene({
         ...(isMobile
           ? {}
           : {
-              metalness: 0.1,
-              roughness: 0.1,
-              clearcoat: 1.0,
-              clearcoatRoughness: 0.02,
-            }),
+            metalness: 0.1,
+            roughness: 0.1,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.02,
+          }),
       });
       const dayMarbleMesh = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), dayMarbleMat);
       dayMarbleMesh.position.z = 0.1;
@@ -840,9 +840,9 @@ export default function SovereignThreeScene({
         }),
         profileImg
           ? new Promise((resolve) => {
-              profileImg!.onload = resolve;
-              profileImg!.onerror = resolve;
-            })
+            profileImg!.onload = resolve;
+            profileImg!.onerror = resolve;
+          })
           : Promise.resolve(),
       ]).then(() => {
         if (qrImg) {

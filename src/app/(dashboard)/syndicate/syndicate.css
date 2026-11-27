@@ -102,8 +102,8 @@ html[data-theme="light"] .syndicate-page.biz-theme-bistro {
 }
 
 .syndicate-page.biz-theme-agency {
-  --biz-accent: #38bdf8;
-  --biz-accent-hover: #7dd3fc;
+  --biz-accent: #60a5fa;
+  --biz-accent-hover: #93c5fd;
   --biz-accent-ink: #060b14;
   --biz-heading-font: var(--font-manrope), system-ui, sans-serif;
   --biz-radius: 8px;
@@ -299,10 +299,10 @@ html[data-theme="light"] .standalone-microsite-viewport.biz-theme-retail {
   --biz-text-primary: #eef2f6;
   --biz-text-secondary: #c2cdd9;
   --biz-text-muted: #94a3b8;
-  --biz-accent: #38bdf8;
-  --biz-accent-hover: #7dd3fc;
+  --biz-accent: #60a5fa;
+  --biz-accent-hover: #93c5fd;
   --biz-accent-ink: #09131c;
-  --biz-accent-subtle: rgba(56, 189, 248, 0.14);
+  --biz-accent-subtle: rgba(96, 165, 250, 0.14);
   --biz-banner-ph: #19212c;
   --biz-heading-font: var(--font-manrope), system-ui, sans-serif;
   --biz-heading-tracking: -0.025em;

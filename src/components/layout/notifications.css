@@ -6,7 +6,7 @@
 .notif-badge {
   position: absolute;
   top: -4px;
-  right: -4px;
+  inset-inline-end: -4px;
   background: #b91c1c;
   color: #ffffff;
   font-size: 0.65rem;
@@ -23,7 +23,7 @@
 .notif-dropdown {
   position: fixed !important;
   top: 84px !important;
-  right: 32px !important;
+  inset-inline-end: 32px !important;
   width: 340px !important;
   max-width: calc(100vw - 32px) !important;
   background: var(--bg-card, #0f141e) !important;
@@ -42,8 +42,8 @@
 @media (max-width: 768px) and (orientation: portrait) {
   .notif-dropdown {
     top: max(70px, calc(env(safe-area-inset-top, 0px) + 60px)) !important;
-    right: max(12px, env(safe-area-inset-right, 12px)) !important;
-    left: auto !important;
+    inset-inline-end: max(12px, env(safe-area-inset-right, 12px)) !important;
+    inset-inline-start: auto !important;
     width: min(340px, calc(100vw - 24px)) !important;
     max-width: calc(100vw - 24px) !important;
     max-height: calc(100dvh - 160px) !important;
@@ -52,8 +52,8 @@
 @media (orientation: landscape) {
   .notif-dropdown {
     top: 52px !important;
-    right: max(12px, env(safe-area-inset-right, 12px)) !important;
-    left: auto !important;
+    inset-inline-end: max(12px, env(safe-area-inset-right, 12px)) !important;
+    inset-inline-start: auto !important;
     max-height: calc(100dvh - 60px) !important;
   }
 }
@@ -66,7 +66,7 @@
 /* Tab Headers */
 .notif-tabs {
   display: flex;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--surface-inset, rgba(0, 0, 0, 0.35));
   border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
   padding: 4px;
   gap: 4px;
@@ -78,6 +78,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: 44px;
   padding: 10px 12px;
   border: none;
   background: transparent;
@@ -87,12 +88,14 @@
   font-weight: 600;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.notif-tab-btn:hover {
-  color: var(--text-primary, #f0e6d3);
-  background: rgba(255, 255, 255, 0.03);
+@media (hover: hover) and (pointer: fine) {
+  .notif-tab-btn:hover {
+    color: var(--text-primary, #f0e6d3);
+    background: rgba(255, 255, 255, 0.03);
+  }
 }
 
 .notif-tab-btn.active {
@@ -101,8 +104,8 @@
 }
 
 .tab-badge {
-  font-size: 0.68rem;
-  padding: 1px 6px;
+  font-size: 0.7rem;
+  padding: 2px 7px;
   border-radius: 8px;
   background: rgba(212, 175, 55, 0.2);
   color: var(--gold-main, #d4af37);
@@ -136,15 +139,19 @@
 }
 
 .quest-header-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-playfair, 'Playfair Display', serif);
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--gold-main, #d4af37);
 }
 
+[dir="rtl"] .quest-header-title {
+  font-family: inherit;
+}
+
 .quest-header-progress {
   font-family: inherit;
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-secondary, #a0a0a0);
 }
 
@@ -158,7 +165,7 @@
 
 .quest-mini-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--gold-main, #d4af37), var(--gold-premium, #b8941f));
+  background: var(--gold-main, #d4af37);
   border-radius: 2px;
   transition: width 0.5s ease;
 }
@@ -173,20 +180,23 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 44px;
   padding: 8px 10px;
   border-radius: 10px;
   text-decoration: none;
   color: inherit;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
-.quest-tab-item:hover {
-  background: rgba(212, 175, 55, 0.06);
+@media (hover: hover) and (pointer: fine) {
+  .quest-tab-item:hover {
+    background: rgba(212, 175, 55, 0.06);
+  }
 }
 
 .quest-tab-item.completed {
-  opacity: 0.55;
+  opacity: 0.72;
 }
 
 .quest-tab-icon {
@@ -203,8 +213,8 @@
 }
 
 .quest-tab-item.completed .quest-tab-icon {
-  background: rgba(46, 204, 113, 0.15);
-  color: #2ecc71;
+  background: rgba(76, 195, 138, 0.15);
+  color: var(--emerald-gem, #4cc38a);
 }
 
 .quest-tab-details {
@@ -216,7 +226,7 @@
 
 .quest-tab-label {
   font-family: inherit;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-primary, #f0e6d3);
   line-height: 1.25;
 }
@@ -228,12 +238,12 @@
 
 .quest-tab-action {
   font-family: inherit;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--gold-main, #d4af37);
 }
 
 .quest-tab-check {
-  color: #2ecc71;
+  color: var(--emerald-gem, #4cc38a);
   font-weight: 700;
   font-size: 0.85rem;
 }
@@ -246,25 +256,36 @@
 
 .btn-tour-restart {
   width: 100%;
-  padding: 8px;
+  min-height: 44px;
+  padding: 10px 12px;
   background: transparent;
   border: 1px dashed var(--glass-border, rgba(212, 175, 55, 0.25));
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text-secondary, #a0a0a0);
   font-family: inherit;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
 }
 
-.btn-tour-restart:hover {
-  border-color: var(--gold-main, #d4af37);
-  color: var(--gold-main, #d4af37);
-  background: rgba(212, 175, 55, 0.04);
+@media (hover: hover) and (pointer: fine) {
+  .btn-tour-restart:hover {
+    border-color: var(--gold-main, #d4af37);
+    color: var(--gold-main, #d4af37);
+    background: rgba(212, 175, 55, 0.04);
+  }
+
+  .btn-mark-all:hover {
+    text-decoration: underline;
+  }
+
+  .notif-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
 }
 
 /* Notification Section */
@@ -273,11 +294,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.05));
+  background: var(--surface-inset, rgba(0, 0, 0, 0.15));
 }
 
-.notif-header h4 {
+.notif-header h3 {
   margin: 0;
   font-size: 0.88rem;
   color: var(--text-primary, #f0e6d3);
@@ -288,13 +309,48 @@
   background: none;
   border: none;
   color: var(--gold-main, #d4af37);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
+  font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  min-height: 44px;
+  padding: 0 6px;
 }
 
-.btn-mark-all:hover {
-  text-decoration: underline;
+.push-enable-banner {
+  margin: 8px 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid var(--gold-border, rgba(212, 175, 55, 0.25));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.push-enable-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.push-enable-label i {
+  color: var(--gold-main, #d4af37);
+}
+
+.push-enable-btn {
+  background: var(--gold-main, #d4af37);
+  color: #060b14;
+  border: none;
+  border-radius: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .notif-body {
@@ -306,52 +362,61 @@
   width: 4px;
 }
 .notif-body::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
+  background: var(--glass-border, rgba(255,255,255,0.12));
   border-radius: 4px;
 }
 
 .notif-item {
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  text-align: start;
+  text-decoration: none;
+  padding: 12px 14px;
+  min-height: 44px;
+  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.04));
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  transition: 0.2s;
+  gap: 10px;
+  transition: background-color 0.2s ease;
   cursor: pointer;
-}
-
-.notif-item:hover {
-  background: rgba(255, 255, 255, 0.03);
 }
 
 .notif-item.unread {
   background: rgba(212, 175, 55, 0.04);
 }
 
-.notif-content h5 {
+.notif-content {
+  flex: 1;
+}
+
+.notif-item-title {
+  display: block;
   margin: 0 0 0.2rem 0;
   font-size: 0.84rem;
+  font-weight: 700;
   color: var(--text-primary, #f0e6d3);
 }
 
 .notif-content p {
   margin: 0 0 0.4rem 0;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   color: var(--text-secondary, #a0a0a0);
   line-height: 1.35;
 }
 
 .notif-time {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--text-secondary, #8b9ba8);
 }
 
 .unread-dot {
-  width: 7px;
-  height: 7px;
-  background: #d4af37;
+  width: 8px;
+  height: 8px;
+  background: var(--gold-main, #d4af37);
   border-radius: 50%;
-  box-shadow: 0 0 6px #d4af37;
   margin-top: 4px;
   flex-shrink: 0;
 }
@@ -382,9 +447,25 @@
   color: var(--text-secondary, #52525b);
 }
 
-:root[data-theme="light"] .notif-tab-btn:hover {
-  color: var(--text-primary, #18181b);
-  background: var(--surface-raised, #ebe9e1);
+@media (hover: hover) and (pointer: fine) {
+  :root[data-theme="light"] .notif-tab-btn:hover {
+    color: var(--text-primary, #18181b);
+    background: var(--surface-raised, #ebe9e1);
+  }
+
+  :root[data-theme="light"] .quest-tab-item:hover {
+    background: rgba(124, 82, 10, 0.08);
+  }
+
+  :root[data-theme="light"] .notif-item:hover {
+    background: var(--surface-inset, #f0eee7);
+  }
+
+  :root[data-theme="light"] .btn-tour-restart:hover {
+    border-color: var(--gold-main, #7c520a);
+    color: var(--gold-main, #7c520a);
+    background: rgba(124, 82, 10, 0.07);
+  }
 }
 
 :root[data-theme="light"] .notif-tab-btn.active {
@@ -392,7 +473,19 @@
   color: var(--gold-main, #7c520a);
 }
 
-:root[data-theme="light"] .quest-header-title {
+:root[data-theme="light"] .tab-badge {
+  background: rgba(124, 82, 10, 0.12);
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .tab-badge.done {
+  background: rgba(6, 95, 70, 0.12);
+  color: #065f46;
+}
+
+:root[data-theme="light"] .quest-header-title,
+:root[data-theme="light"] .quest-tab-action,
+:root[data-theme="light"] .btn-mark-all {
   color: var(--gold-main, #7c520a);
 }
 
@@ -404,12 +497,40 @@
   background: var(--surface-raised, #ebe9e1);
 }
 
+:root[data-theme="light"] .quest-tab-icon {
+  background: rgba(124, 82, 10, 0.1);
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .quest-tab-item.completed .quest-tab-icon {
+  background: rgba(6, 95, 70, 0.12);
+  color: #065f46;
+}
+
+:root[data-theme="light"] .quest-tab-check {
+  color: #065f46;
+}
+
 :root[data-theme="light"] .quest-tab-label {
   color: var(--text-primary, #18181b);
 }
 
-:root[data-theme="light"] .quest-tab-item:hover {
+:root[data-theme="light"] .quest-tab-item.completed .quest-tab-label {
+  color: var(--text-secondary, #52525b);
+}
+
+:root[data-theme="light"] .push-enable-banner {
   background: rgba(124, 82, 10, 0.08);
+  border-color: var(--gold-border);
+}
+
+:root[data-theme="light"] .push-enable-label i {
+  color: var(--gold-main, #7c520a);
+}
+
+:root[data-theme="light"] .push-enable-btn {
+  background: var(--gold-main, #7c520a);
+  color: #ffffff;
 }
 
 :root[data-theme="light"] .notif-header {
@@ -417,7 +538,7 @@
   border-bottom-color: var(--glass-border);
 }
 
-:root[data-theme="light"] .notif-header h4 {
+:root[data-theme="light"] .notif-header h3 {
   color: var(--text-primary, #18181b);
 }
 
@@ -425,15 +546,11 @@
   border-bottom-color: var(--glass-border);
 }
 
-:root[data-theme="light"] .notif-item:hover {
-  background: var(--surface-inset, #f0eee7);
-}
-
 :root[data-theme="light"] .notif-item.unread {
   background: rgba(124, 82, 10, 0.07);
 }
 
-:root[data-theme="light"] .notif-content h5 {
+:root[data-theme="light"] .notif-item-title {
   color: var(--text-primary, #18181b);
 }
 
@@ -447,7 +564,6 @@
 
 :root[data-theme="light"] .unread-dot {
   background: var(--gold-main, #7c520a);
-  box-shadow: none;
 }
 
 :root[data-theme="light"] .btn-tour-restart {
@@ -455,8 +571,14 @@
   color: var(--text-secondary, #52525b);
 }
 
-:root[data-theme="light"] .btn-tour-restart:hover {
-  border-color: var(--gold-main, #7c520a);
-  color: var(--gold-main, #7c520a);
-  background: rgba(124, 82, 10, 0.07);
+@media (prefers-reduced-motion: reduce) {
+  .notif-dropdown,
+  .notif-tab-btn,
+  .quest-tab-item,
+  .quest-mini-progress-fill,
+  .btn-tour-restart,
+  .notif-item {
+    animation: none !important;
+    transition: none !important;
+  }
 }

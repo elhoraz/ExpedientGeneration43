@@ -2,10 +2,10 @@
 body.page-event .event-wrapper,
 .event-wrapper {
     position: relative;
-    padding: clamp(60px, 12vh, 100px) 20px 80px;
+    padding: clamp(60px, 12dvh, 100px) 20px 80px;
     max-width: 1000px;
     margin: 0 auto;
-    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
 }
@@ -17,6 +17,7 @@ body.page-event .btn-back,
     background: var(--surface-raised, rgba(255, 255, 255, 0.05));
     color: var(--gold-main, #d4af37);
     border: 1px solid rgba(212, 175, 55, 0.3);
+    min-height: 44px;
     padding: 9px 18px;
     border-radius: 30px;
     font-size: 0.85rem;
@@ -29,11 +30,13 @@ body.page-event .btn-back,
     gap: 8px;
     z-index: 50;
 }
-body.page-event .btn-back:hover,
-.event-wrapper .btn-back:hover {
-    background: var(--gold-main, #d4af37);
-    color: var(--bg-main, #060b14);
-    transform: translateX(-3px);
+@media (hover: hover) and (pointer: fine) {
+    body.page-event .btn-back:hover,
+    .event-wrapper .btn-back:hover {
+        background: var(--gold-main, #d4af37);
+        color: var(--bg-main, #060b14);
+        transform: translateX(-3px);
+    }
 }
 
 body.page-event .event-header,
@@ -383,5 +386,15 @@ body.page-event .btn-rsvp.active,
     background: #7c520a;
     border-color: #7c520a;
     color: #ffffff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .event-wrapper .event-header,
+    .event-wrapper .btn-back,
+    .event-wrapper .event-card,
+    .event-wrapper .btn-rsvp {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 

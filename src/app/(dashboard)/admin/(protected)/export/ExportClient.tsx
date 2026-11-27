@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useCms } from "@/components/layout/CmsProvider";
+import { sanitizeHtml } from "@/lib/sanitize";
 import "../admin.css";
 import AdminLockBtn from "../../AdminLockBtn";
 
@@ -151,7 +152,7 @@ export default function ExportClient() {
             <h4 style={{ margin: "0 0 8px 0", fontSize: "0.8rem", color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
                <i className="fa-solid fa-circle-info" style={{ color: "#00c853" }}></i> {t('export_info_title', 'Format Ekspor')}
             </h4>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }} dangerouslySetInnerHTML={{__html: t('export_info_desc', 'Sistem akan memformat seluruh <em>nested JSON objects</em> (seperti detail profil di dalam tabel kehadiran) menjadi kolom tunggal agar mudah dibaca di Microsoft Excel atau Google Sheets. Kolom yang berelasi otomatis akan digabungkan.')}}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }} dangerouslySetInnerHTML={{__html: sanitizeHtml(t('export_info_desc', 'Sistem akan memformat seluruh <em>nested JSON objects</em> (seperti detail profil di dalam tabel kehadiran) menjadi kolom tunggal agar mudah dibaca di Microsoft Excel atau Google Sheets. Kolom yang berelasi otomatis akan digabungkan.'))}}>
             </p>
         </div>
       </div>

@@ -389,8 +389,8 @@ export default function TasbihClient() {
             onClick={handleTap}
             aria-label={locale === "ar" ? "انقر للتسبيح" : locale === "en" ? "Tap to count dhikr" : "Sentuh untuk berdzikir"}
           >
-            <div className="counter-num">{count}</div>
-            <div className="counter-target-lbl">
+            <div className="counter-num" style={{ fontVariantNumeric: "tabular-nums" }} aria-live="polite">{count}</div>
+            <div className="counter-target-lbl" style={{ fontVariantNumeric: "tabular-nums" }}>
               {target > 0 ? `/ ${target}` : t.tasbih.beads_remaining}
             </div>
             {target > 0 && (

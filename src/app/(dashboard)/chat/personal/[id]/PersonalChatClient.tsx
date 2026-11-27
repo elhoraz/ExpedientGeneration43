@@ -24,19 +24,19 @@ type Contact = {
 };
 
 const EMOJI_DATA = {
-  'Wajah': ['😀','😂','🤣','😍','😎','🥰','😢','😭','🤔','😱','🥺','😤','🤝','🙏','💪','👍','👎','❤️','🔥','✨','💯','🎉','🎊'],
-  'Islami': ['☪️','🕌','📿','🤲','🌙','⭐','🕋','📖','🌹','🫶'],
-  'Aktivitas': ['🎓','📚','⚽','🏀','🎯','🏆','💼','🎵','🎤','📸'],
-  'Lainnya': ['👀','💬','📌','🚀','💎','🌍','☕','🍕','👑','⚡','🌈','💡']
+  'Wajah': ['😀', '😂', '🤣', '😍', '😎', '🥰', '😢', '😭', '🤔', '😱', '🥺', '😤', '🤝', '🙏', '💪', '👍', '👎', '❤️', '🔥', '✨', '💯', '🎉', '🎊'],
+  'Islami': ['☪️', '🕌', '📿', '🤲', '🌙', '⭐', '🕋', '📖', '🌹', '🫶'],
+  'Aktivitas': ['🎓', '📚', '⚽', '🏀', '🎯', '🏆', '💼', '🎵', '🎤', '📸'],
+  'Lainnya': ['👀', '💬', '📌', '🚀', '💎', '🌍', '☕', '🍕', '👑', '⚡', '🌈', '💡']
 };
 
-export default function PersonalChatClient({ 
-  initialMessages, 
-  userId, 
-  contact 
-}: { 
-  initialMessages: any[]; 
-  userId: string; 
+export default function PersonalChatClient({
+  initialMessages,
+  userId,
+  contact
+}: {
+  initialMessages: any[];
+  userId: string;
   contact: Contact;
 }) {
   const { t, locale } = useLanguage();
@@ -77,7 +77,7 @@ export default function PersonalChatClient({
   const [inputMessage, setInputMessage] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [activeImage, setActiveImage] = useState<{ url: string; sender: string; time: string } | null>(null);
-  
+
   // WhatsApp-like Call & Recording states
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [showVideoNoteRecorder, setShowVideoNoteRecorder] = useState(false);
@@ -138,7 +138,7 @@ export default function PersonalChatClient({
   const handleToggleBlock = async () => {
     setShowOptionsDropdown(false);
     const action = isBlocked ? "unblock" : "block";
-    const promptMsg = isBlocked 
+    const promptMsg = isBlocked
       ? `Buka blokir kontak ${contact.nama_panggilan}? Anda akan kembali menerima pesan dari mereka.`
       : `Blokir kontak ${contact.nama_panggilan}? Pengguna ini tidak akan dapat mengirim pesan atau melakukan panggilan kepada Anda.`;
 
@@ -249,9 +249,9 @@ export default function PersonalChatClient({
             <i className="fa-solid fa-arrow-left"></i>
           </Link>
           <div className="contact-info">
-            <img 
-              src={contactAvatar} 
-              alt={contact.nama_panggilan} 
+            <img
+              src={contactAvatar}
+              alt={contact.nama_panggilan}
               onError={(e) => {
                 e.currentTarget.onerror = null;
                 e.currentTarget.src = getAvatarFallback(contact.nama_panggilan);
@@ -342,7 +342,6 @@ export default function PersonalChatClient({
                   right: 0,
                   marginTop: "8px",
                   background: "rgba(18, 24, 20, 0.98)",
-                  backdropFilter: "blur(16px)",
                   border: "1px solid rgba(212, 175, 55, 0.3)",
                   borderRadius: "10px",
                   padding: "6px",
@@ -402,8 +401,8 @@ export default function PersonalChatClient({
       <div className="chat-messages-area">
         {hasMore && (
           <div style={{ textAlign: "center", marginBottom: "10px" }}>
-            <button 
-              onClick={handleLoadMore} 
+            <button
+              onClick={handleLoadMore}
               disabled={isLoadingMore}
               style={{
                 background: "rgba(212, 175, 55, 0.1)",
@@ -465,7 +464,7 @@ export default function PersonalChatClient({
 
         {messages.map((msg) => {
           if (msg.is_deleted) return null;
-          
+
           const isMine = msg.sender_id === userId;
           const timeString = new Date(msg.created_at).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' });
 
@@ -474,7 +473,7 @@ export default function PersonalChatClient({
               <div className="msg-bubble-content">
                 {/* 1. Gambar */}
                 {msg.image_url && (
-                  <div 
+                  <div
                     className="msg-image-container"
                     onClick={() => setActiveImage({
                       url: msg.image_url,
@@ -499,10 +498,10 @@ export default function PersonalChatClient({
                 {msg.video_url && (
                   <VideoNotePlayer videoUrl={msg.video_url} isMine={isMine} />
                 )}
-                
+
                 {/* 4. Teks Pesan Biasa */}
                 {msg.message && <div>{msg.message}</div>}
-                
+
                 {/* Meta Row: Waktu, Hapus & Status Tanda Read (WhatsApp Ticks) */}
                 <div className="msg-meta-row">
                   {isMine && (
@@ -518,19 +517,19 @@ export default function PersonalChatClient({
                       {msg.isSending ? (
                         <i className="fa-regular fa-clock" style={{ fontSize: "0.68rem", opacity: 0.6 }} title="Mengirim..."></i>
                       ) : msg.is_read ? (
-                        <i 
-                          className="fa-solid fa-check-double" 
-                          style={{ 
-                            fontSize: "0.78rem", 
+                        <i
+                          className="fa-solid fa-check-double"
+                          style={{
+                            fontSize: "0.78rem",
                             color: "var(--gold-main, #d4af37)",
                             filter: "drop-shadow(0 0 4px rgba(212, 175, 55, 0.5))"
-                          }} 
+                          }}
                           title="Sudah dibaca"
                         ></i>
                       ) : (
-                        <i 
-                          className="fa-solid fa-check" 
-                          style={{ fontSize: "0.78rem", color: "var(--text-secondary)", opacity: 0.7 }} 
+                        <i
+                          className="fa-solid fa-check"
+                          style={{ fontSize: "0.78rem", color: "var(--text-secondary)", opacity: 0.7 }}
                           title="Sudah terkirim ke server"
                         ></i>
                       )}
@@ -580,17 +579,17 @@ export default function PersonalChatClient({
                   ))}
                 </div>
               )}
-              
-              <input 
-                type="file" 
-                accept="image/*" 
-                ref={fileInputRef} 
-                style={{ display: "none" }} 
-                onChange={handleImageUpload} 
+
+              <input
+                type="file"
+                accept="image/*"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={handleImageUpload}
               />
-              <button 
+              <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()} 
+                onClick={() => fileInputRef.current?.click()}
                 disabled={uploadingImage}
                 className="btn-chat-tool"
                 title="Kirim Gambar"
@@ -633,8 +632,8 @@ export default function PersonalChatClient({
               </div>
             ) : (
               <form onSubmit={(e) => handleSendMessage(e)} className="chat-form">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={t.chat.type_message}
@@ -642,8 +641,8 @@ export default function PersonalChatClient({
                 />
 
                 {inputMessage.trim() ? (
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn-chat-send"
                     title={t.chat.send_btn}
                   >
@@ -651,7 +650,7 @@ export default function PersonalChatClient({
                   </button>
                 ) : (
                   /* Voice Note Trigger when input text is empty */
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setIsRecordingVoice(true)}
                     className="btn-chat-send"
@@ -700,11 +699,12 @@ export default function PersonalChatClient({
       {/* UGC User Report Modal Dialog */}
       {showReportModal && (
         <div
+          role="dialog"
+          aria-modal="true"
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.75)",
-            backdropFilter: "blur(6px)",
+            background: "rgba(0, 0, 0, 0.84)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

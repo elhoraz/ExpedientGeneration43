@@ -242,19 +242,20 @@
   border-radius: 20px;
   padding: 30px 22px;
   text-align: center;
-  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.tarbiyah-page-wrapper .item-card:hover {
-  border-color: var(--gold-main);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(212, 175, 55, 0.3);
-  transform: translateY(-6px);
+@media (hover: hover) and (pointer: fine) {
+  .tarbiyah-page-wrapper .item-card:hover {
+    border-color: var(--gold-main);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(212, 175, 55, 0.3);
+    transform: translateY(-6px);
+  }
 }
 
 .tarbiyah-page-wrapper .card-badge {
@@ -508,7 +509,6 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  backdrop-filter: blur(16px);
   position: relative;
 }
 
@@ -725,14 +725,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(12px);
+  transition: border-color 0.25s ease, transform 0.25s ease;
   gap: 20px;
 }
 
-.tarbiyah-page-wrapper .materi-card:hover {
-  border-color: var(--gold-main);
-  transform: translateX(4px);
+@media (hover: hover) and (pointer: fine) {
+  .tarbiyah-page-wrapper .materi-card:hover {
+    border-color: var(--gold-main);
+    transform: translateX(4px);
+  }
 }
 
 .tarbiyah-page-wrapper .materi-content-left {
@@ -831,10 +832,8 @@
   top: 0;
   left: 0;
   width: 100vw;
-  height: 100vh;
   height: 100dvh;
-  background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.84);
   z-index: 9999;
   display: flex;
   justify-content: center;
@@ -1000,14 +999,15 @@
   background: var(--gold-main);
   color: #000;
   border: none;
+  min-height: 44px;
   padding: 12px;
   border-radius: 8px;
   font-size: 0.85rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1015,18 +1015,20 @@
   margin-top: 5px;
 }
 
-.btn-submit-materi:hover {
-  background: #fff;
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .btn-submit-materi:hover {
+    background: #fff;
+    transform: translateY(-2px);
+  }
 }
 
 /* ================= MOBILE RESPONSIVENESS ================= */
 @media (max-width: 768px) {
   .tarbiyah-page-wrapper .tarbiyah-wrapper { padding: 80px 14px 120px 14px; }
   .tarbiyah-page-wrapper .tarbiyah-title { font-size: 1.8rem; }
-  .tarbiyah-page-wrapper .tarbiyah-subtitle { font-size: 0.75rem; letter-spacing: 1px; }
+  .tarbiyah-page-wrapper .tarbiyah-subtitle { font-size: 0.78rem; letter-spacing: 0.04em; }
   .tarbiyah-page-wrapper .nexus-tabs-bar { gap: 6px; }
-  .tarbiyah-page-wrapper .tab-btn { font-size: 0.75rem; padding: 8px 12px; }
+  .tarbiyah-page-wrapper .tab-btn { font-size: 0.78rem; min-height: 44px; padding: 8px 12px; }
   .tarbiyah-page-wrapper .tab-toolbar { flex-direction: column; align-items: stretch; }
   .tarbiyah-page-wrapper .toolbar-right-actions { width: 100%; justify-content: space-between; }
   .tarbiyah-page-wrapper .nexus-search-box { width: 100%; }
@@ -1036,4 +1038,14 @@
   .tarbiyah-page-wrapper .materi-card { flex-direction: column; align-items: flex-start; gap: 14px; }
   .tarbiyah-page-wrapper .btn-materi-link { width: 100%; justify-content: center; }
   .tarbiyah-modal-card { padding: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarbiyah-page-wrapper .item-card,
+  .tarbiyah-page-wrapper .materi-card,
+  .btn-submit-materi,
+  .tarbiyah-modal-card {
+    animation: none !important;
+    transition: none !important;
+  }
 }

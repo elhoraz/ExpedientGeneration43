@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useConfirm } from "@/components/layout/AegisConfirm";
 
 interface VoiceRecorderProps {
   onCancel: () => void;
@@ -8,6 +9,7 @@ interface VoiceRecorderProps {
 }
 
 export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) {
+  const { showAlert } = useConfirm();
   const [recordingTime, setRecordingTime] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -67,7 +69,7 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
       }, 1000);
     } catch (err) {
       console.error("Gagal mengakses mikrofon:", err);
-      alert("Tidak dapat mengakses mikrofon. Pastikan izin mikrofon telah diberikan.");
+      await showAlert("Akses Mikrofon Ditolak", "Tidak dapat mengakses mikrofon. Pastikan izin mikrofon telah diberikan.");
       onCancel();
     }
   };

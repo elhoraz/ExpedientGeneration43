@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import "./onboarding.css";
 
 export default function WelcomeModal({
@@ -12,22 +13,30 @@ export default function WelcomeModal({
   onStartTour: () => void;
   onSkip: () => void;
 }) {
-  const { locale } = useLanguage();
+  const { locale, isRTL } = useLanguage();
   const displayName = userName || (locale === "ar" ? "أيها الرفيق" : locale === "en" ? "Friend" : "Kawan");
 
+  useDialogEscape(true, onSkip);
+
   return (
-    <div className="welcome-modal-backdrop" onClick={onSkip}>
-      <div className="welcome-modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="welcome-modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-modal-title"
+      onClick={onSkip}
+    >
+      <div className="welcome-modal" dir={isRTL ? "rtl" : "ltr"} onClick={(e) => e.stopPropagation()}>
         <div className="welcome-crest" aria-hidden="true">
           <i className="fa-solid fa-star-and-crescent"></i>
         </div>
 
-        <h2 className="welcome-title">
+        <h2 id="welcome-modal-title" className="welcome-title">
           {locale === "ar"
-            ? `أهلاً وسهلاً، ${displayName}!`
+            ? `أهلاً وسهلاً، ${displayName}`
             : locale === "en"
-              ? `Welcome, ${displayName}!`
-              : `Ahlan wa Sahlan, ${displayName}!`}
+              ? `Welcome, ${displayName}`
+              : `Ahlan wa Sahlan, ${displayName}`}
         </h2>
 
         <p className="welcome-subtitle">
@@ -35,27 +44,26 @@ export default function WelcomeModal({
             <>
               مرحباً بك في البوابة الرسمية لخريجي دفعة{" "}
               <strong>Expedient Generation</strong> · معهد الرسالة الحديث
-              الدفعة ٤٣. تم تصميم هذه المنصة لتوطيد أواصر الأخوة وحفظ الذكريات المشتركة.
+              الدفعة ٤٣. صُممت هذه المنصة لتوطيد أواصر الأخوة وحفظ الذكريات المشتركة.
             </>
           ) : locale === "en" ? (
             <>
-              Welcome to the official alumni portal of{" "}
+              Official alumni portal of{" "}
               <strong>Expedient Generation</strong> · Pondok Modern Arrisalah
-              Cohort 43. Built to strengthen our ties and preserve our shared memories.
+              Cohort 43, built for cohort connection and shared memory archives.
             </>
           ) : (
             <>
-              Selamat datang di portal resmi alumni angkatan{" "}
+              Portal resmi alumni angkatan{" "}
               <strong>Expedient Generation</strong> · Pondok Modern Arrisalah
-              ke-43. Portal ini dibuat untuk mempermudah silaturahmi dan
-              mendokumentasikan kenangan bersama.
+              ke-43 untuk menjalin silaturahmi dan menyimpan dokumentasi bersama.
             </>
           )}
         </p>
 
         <div className="welcome-features">
           <div className="welcome-feature-item">
-            <div className="welcome-feature-icon">
+            <div className="welcome-feature-icon" aria-hidden="true">
               <i className="fa-solid fa-landmark"></i>
             </div>
             <div className="welcome-feature-text">
@@ -63,29 +71,29 @@ export default function WelcomeModal({
                 {locale === "ar" ? "المتحف والذكريات" : locale === "en" ? "Museum & Memories" : "Museum & Kenangan"}
               </strong>
               {locale === "ar"
-                ? "أرشيف الصور، الفيديو، خط التاريخ الزمني، وشعار الدفعة ثلاثي الأبعاد."
+                ? "أرشيف الصور والفيديو والجدول التاريخي وشعار الدفعة ثلاثي الأبعاد"
                 : locale === "en"
-                  ? "Archive of photos, videos, timeline history, and interactive 3D cohort emblem."
-                  : "Arsip foto, video, timeline sejarah, dan logo 3D interaktif angkatan."}
+                  ? "Archive of photos, videos, cohort timeline, and 3D emblem"
+                  : "Arsip foto, video, linimasa sejarah, dan emblem 3D angkatan"}
             </div>
           </div>
           <div className="welcome-feature-item">
-            <div className="welcome-feature-icon">
+            <div className="welcome-feature-icon" aria-hidden="true">
               <i className="fa-solid fa-users"></i>
             </div>
             <div className="welcome-feature-text">
               <strong>
-                {locale === "ar" ? "العثور على الزملاء" : locale === "en" ? "Find Old Friends" : "Temukan Kawan Lama"}
+                {locale === "ar" ? "العثور على الزملاء" : locale === "en" ? "Find Cohort Friends" : "Temukan Kawan Lama"}
               </strong>
               {locale === "ar"
-                ? "ابحث عن بيانات الزملاء، خريطة الانتشار الجغرافي، والتواصل المباشر."
+                ? "البحث في سجل الزملاء وخريطة الانتشار الجغرافي والتواصل المباشر"
                 : locale === "en"
-                  ? "Search alumni directory, see regional distribution map, and direct messaging."
-                  : "Cari kontak alumni, lihat peta persebaran, dan ngobrol langsung."}
+                  ? "Search the alumni directory, regional map, and direct chat"
+                  : "Cari kontak alumni, lihat peta persebaran, dan pesan langsung"}
             </div>
           </div>
           <div className="welcome-feature-item">
-            <div className="welcome-feature-icon">
+            <div className="welcome-feature-icon" aria-hidden="true">
               <i className="fa-solid fa-handshake"></i>
             </div>
             <div className="welcome-feature-text">
@@ -93,20 +101,20 @@ export default function WelcomeModal({
                 {locale === "ar" ? "التعاون والتآزر" : locale === "en" ? "Synergy & Mutual Aid" : "Sinergi & Gotong Royong"}
               </strong>
               {locale === "ar"
-                ? "شبكة الأعمال والمهن، بيت المال، جداول اللقاءات، والمزيد."
+                ? "شبكة الأعمال والمهن وبيت المال وجداول اللقاءات"
                 : locale === "en"
-                  ? "Career networking, cohort treasury, reunion schedules, and much more."
-                  : "Jejaring karir, kas angkatan, jadwal reuni, dan banyak lagi."}
+                  ? "Career directory, cohort treasury, and reunion schedules"
+                  : "Jejaring karier, kas angkatan, dan agenda reuni"}
             </div>
           </div>
         </div>
 
         <div className="welcome-actions">
-          <button className="welcome-btn-tour" onClick={onStartTour}>
-            <i className="fa-solid fa-compass"></i>
+          <button type="button" className="welcome-btn-tour" onClick={onStartTour}>
+            <i className="fa-solid fa-compass" aria-hidden="true"></i>
             {locale === "ar" ? "جولة في المنصة" : locale === "en" ? "Take a Quick Tour" : "Tunjukkan Isi Portal"}
           </button>
-          <button className="welcome-btn-skip" onClick={onSkip}>
+          <button type="button" className="welcome-btn-skip" onClick={onSkip}>
             {locale === "ar" ? "لاحقاً" : locale === "en" ? "Maybe Later" : "Nanti Saja"}
           </button>
         </div>

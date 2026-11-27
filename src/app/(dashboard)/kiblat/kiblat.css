@@ -213,7 +213,7 @@ body.page-kiblat .scroll-top-btn {
     border: 1px solid var(--k-border-strong);
     color: var(--k-text-primary);
     padding: 8px 12px;
-    min-height: 38px;
+    min-height: 44px;
     border-radius: 8px;
     font-size: 0.84rem;
     transition: border-color 160ms ease, background-color 160ms ease;
@@ -229,7 +229,7 @@ body.page-kiblat .scroll-top-btn {
     border: 1px solid var(--k-border-strong);
     color: var(--k-text-primary);
     padding: 8px 14px;
-    min-height: 38px;
+    min-height: 44px;
     border-radius: 8px;
     font-size: 0.82rem;
     font-weight: 600;
@@ -239,10 +239,12 @@ body.page-kiblat .scroll-top-btn {
     transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.btn-gps:hover:not(:disabled) {
-    background: var(--k-btn-primary-bg);
-    border-color: var(--k-btn-primary-bg);
-    color: var(--k-btn-primary-text);
+@media (hover: hover) and (pointer: fine) {
+    .btn-gps:hover:not(:disabled) {
+        background: var(--k-btn-primary-bg);
+        border-color: var(--k-btn-primary-bg);
+        color: var(--k-btn-primary-text);
+    }
 }
 
 .btn-gps:active:not(:disabled) {
@@ -273,8 +275,8 @@ body.page-kiblat .scroll-top-btn {
     background: transparent;
     border: 1px solid transparent;
     color: inherit;
-    min-width: 34px;
-    min-height: 34px;
+    min-width: 44px;
+    min-height: 44px;
     border-radius: 6px;
     display: inline-flex;
     align-items: center;
@@ -454,8 +456,8 @@ body.page-kiblat .scroll-top-btn {
     border: 1px solid transparent;
     background: transparent;
     color: var(--k-text-secondary);
-    padding: 6px 14px;
-    min-height: 34px;
+    padding: 8px 14px;
+    min-height: 44px;
     border-radius: 6px;
     font-size: 0.8rem;
     font-weight: 500;

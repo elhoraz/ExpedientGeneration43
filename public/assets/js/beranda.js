@@ -483,7 +483,7 @@ window.closeJiwa = function () {
 };
 
 // =========================================================
-// LOGIK ARSIP SOVEREIGN
+// LOGIK ARSIP KENANGAN ALUMNI
 // =========================================================
 window.openArchive = function (key) {
     const modal = document.getElementById('archiveModal');
@@ -493,7 +493,7 @@ window.openArchive = function (key) {
     if (key === 'visi') {
         data = {
             date: (cms && cms.visi) ? cms.visi.date : '30 MARET 2026',
-            title: (cms && cms.visi) ? cms.visi.title : 'Deklarasi Visi Sovereign',
+            title: (cms && cms.visi) ? cms.visi.title : 'Penetapan Visi Angkatan',
             content: (cms && cms.visi) ? cms.visi.content : `
                 <p>Naskah ini mencatat sumpah agung angkatan Expedient mengenai visi dan arah tujuan masa depan.</p>
                 <p>Kami berjanji untuk memelihara warisan <span class="redacted" onclick="revealRedacted(this)">KEISLAMAN</span> dan mengikat erat <span class="redacted" onclick="revealRedacted(this)">PERSAUDARAAN</span>.</p>

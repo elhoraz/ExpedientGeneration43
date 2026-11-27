@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { useDialogEscape } from "@/hooks/useDialogEscape";
 import {
   SIRAH_PLACES,
   SIRAH_ROUTES,
@@ -42,6 +43,9 @@ export default function SirahClient() {
   const [storyEvent, setStoryEvent] = useState<SirahEvent | null>(null);
   const [storyTheme, setStoryTheme] = useState<StoryTheme>("obsidian");
   const storyCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useDialogEscape(Boolean(selectedEvent), () => setSelectedEvent(null));
+  useDialogEscape(storyModalOpen, () => setStoryModalOpen(false));
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -123,14 +127,18 @@ export default function SirahClient() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    const isLight =
+      typeof document !== "undefined" &&
+      document.documentElement.getAttribute("data-theme") === "light";
+
     const width = canvas.clientWidth;
     const height = canvas.clientHeight;
     canvas.width = width * window.devicePixelRatio;
     canvas.height = height * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-    // Clear with antique parchment tone
-    ctx.fillStyle = "#070b14";
+    // Theme-aware parchment (Light) or night cartography (Dark)
+    ctx.fillStyle = isLight ? "#f4f0e4" : "#070b14";
     ctx.fillRect(0, 0, width, height);
 
     ctx.save();
@@ -140,7 +148,7 @@ export default function SirahClient() {
     ctx.translate(-500, -400); // Center normalized 1000x800 coordinate space
 
     // 1. Grid lines (Ancient nautical cartography lines)
-    ctx.strokeStyle = "rgba(212, 175, 55, 0.07)";
+    ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.12)" : "rgba(212, 175, 55, 0.07)";
     ctx.lineWidth = 1;
     for (let x = 0; x <= 1000; x += 100) {
       ctx.beginPath();
@@ -156,8 +164,8 @@ export default function SirahClient() {
     }
 
     // 2. Red Sea Coastline (Bahrul Ahmar stylized polygon on the west)
-    ctx.fillStyle = "rgba(10, 25, 45, 0.6)";
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.fillStyle = isLight ? "rgba(14, 116, 144, 0.14)" : "rgba(10, 25, 45, 0.6)";
+    ctx.strokeStyle = isLight ? "rgba(14, 116, 144, 0.45)" : "rgba(56, 189, 248, 0.25)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(50, 0);
@@ -171,13 +179,13 @@ export default function SirahClient() {
 
     // Stylized sea label
     ctx.font = "italic 13px 'Playfair Display', serif";
-    ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.fillStyle = isLight ? "rgba(14, 116, 144, 0.85)" : "rgba(56, 189, 248, 0.5)";
     ctx.fillText("بَحْرُ الْقُلْزُمِ (Laut Merah)", 110, 450);
 
     // 3. Mountain Ranges (Jabal Hijaz relief shading)
     const drawMountain = (x: number, y: number, r: number) => {
-      ctx.fillStyle = "rgba(212, 175, 55, 0.08)";
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.2)";
+      ctx.fillStyle = isLight ? "rgba(124, 82, 10, 0.12)" : "rgba(212, 175, 55, 0.08)";
+      ctx.strokeStyle = isLight ? "rgba(124, 82, 10, 0.35)" : "rgba(212, 175, 55, 0.2)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(x - r, y + r * 0.8);
@@ -195,7 +203,11 @@ export default function SirahClient() {
     // 4. Draw Active Routes (Dashed animated trajectories)
     SIRAH_ROUTES.forEach((route) => {
       const isActive = route.id === activeRouteId;
-      ctx.strokeStyle = isActive ? route.color : "rgba(255,255,255,0.15)";
+      ctx.strokeStyle = isActive
+        ? route.color
+        : isLight
+          ? "rgba(24, 24, 27, 0.22)"
+          : "rgba(255,255,255,0.15)";
       ctx.lineWidth = isActive ? 3.5 : 1.5;
       ctx.setLineDash(isActive ? [8, 5] : [4, 4]);
 
@@ -218,29 +230,95 @@ export default function SirahClient() {
       }
     });
 
-    // 5. Draw Historic Landmark Pins
-    SIRAH_PLACES.forEach((place) => {
+    // 5. Draw Historic Landmark Pins & resolve label collisions across clustered Makkah/Madinah landmarks
+    const placedBoxes: Array<{ left: number; right: number; top: number; bottom: number }> = [];
+    const sortedPlaces = [...SIRAH_PLACES].sort((a, b) => {
+      if (a.id === selectedPlace?.id) return -1;
+      if (b.id === selectedPlace?.id) return 1;
+      return a.mapY - b.mapY;
+    });
+
+    sortedPlaces.forEach((place) => {
       const isSelected = selectedPlace?.id === place.id;
       const x = place.mapX;
       const y = place.mapY;
 
       // Outer Glow circle
-      ctx.fillStyle = isSelected ? "rgba(212, 175, 55, 0.35)" : "rgba(212, 175, 55, 0.12)";
+      ctx.fillStyle = isSelected
+        ? isLight
+          ? "rgba(124, 82, 10, 0.28)"
+          : "rgba(212, 175, 55, 0.35)"
+        : isLight
+          ? "rgba(124, 82, 10, 0.14)"
+          : "rgba(212, 175, 55, 0.12)";
       ctx.beginPath();
       ctx.arc(x, y, isSelected ? 16 : 9, 0, Math.PI * 2);
       ctx.fill();
 
       // Pin core
-      ctx.fillStyle = isSelected ? "#ffffff" : "#d4af37";
+      ctx.fillStyle = isSelected
+        ? isLight
+          ? "#7c520a"
+          : "#ffffff"
+        : isLight
+          ? "#a16207"
+          : "#d4af37";
       ctx.beginPath();
       ctx.arc(x, y, isSelected ? 6 : 4, 0, Math.PI * 2);
       ctx.fill();
 
-      // Pin Label
-      ctx.font = isSelected ? "bold 13px 'Inter', sans-serif" : "11px 'Inter', sans-serif";
-      ctx.fillStyle = isSelected ? "#ffd700" : "#cbd5e1";
+      // Collision-free pin label placement
+      ctx.font = isSelected ? "bold 12px 'Inter', sans-serif" : "600 11px 'Inter', sans-serif";
+      const textWidth = ctx.measureText(place.name).width;
+      const padX = 6;
+      const boxW = textWidth + padX * 2;
+      const boxH = 18;
+      const candidateOffsets = [
+        { dx: 0, dy: -(isSelected ? 22 : 16) },
+        { dx: 0, dy: isSelected ? 26 : 22 },
+        { dx: boxW * 0.55 + 12, dy: 4 },
+        { dx: -(boxW * 0.55 + 12), dy: 4 },
+        { dx: 0, dy: -(isSelected ? 40 : 34) },
+        { dx: 0, dy: 38 },
+      ];
+
+      let chosenX = x;
+      let chosenY = y - (isSelected ? 22 : 16);
+      for (const cand of candidateOffsets) {
+        const cx = x + cand.dx;
+        const cy = y + cand.dy;
+        const rect = {
+          left: cx - boxW / 2 - 4,
+          right: cx + boxW / 2 + 4,
+          top: cy - boxH + 4,
+          bottom: cy + 6,
+        };
+        const overlaps = placedBoxes.some(
+          (b) => !(rect.right < b.left || rect.left > b.right || rect.bottom < b.top || rect.top > b.bottom)
+        );
+        if (!overlaps) {
+          chosenX = cx;
+          chosenY = cy;
+          placedBoxes.push(rect);
+          break;
+        }
+      }
+
+      // Subtle pill backing so labels remain crisp over routes/grid
+      ctx.fillStyle = isLight ? "rgba(255, 255, 255, 0.9)" : "rgba(7, 11, 20, 0.88)";
+      ctx.beginPath();
+      ctx.roundRect(chosenX - boxW / 2, chosenY - 12, boxW, boxH, 4);
+      ctx.fill();
+
+      ctx.fillStyle = isSelected
+        ? isLight
+          ? "#7c520a"
+          : "#facc15"
+        : isLight
+          ? "#18181b"
+          : "#e2e8f0";
       ctx.textAlign = "center";
-      ctx.fillText(place.name, x, y - (isSelected ? 20 : 12));
+      ctx.fillText(place.name, chosenX, chosenY + 1);
     });
 
     ctx.restore();
@@ -250,11 +328,19 @@ export default function SirahClient() {
     renderMap();
   }, [renderMap]);
 
-  // Window resize handler for canvas
+  // Repaint canvas when theme toggles & on window resize
   useEffect(() => {
     const handleResize = () => renderMap();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const observer = new MutationObserver(() => renderMap());
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
+    };
   }, [renderMap]);
 
   // Mouse / Touch Interaction for Map
@@ -316,7 +402,7 @@ export default function SirahClient() {
       y: (400 - place.mapY) * 1.5
     });
     setZoom(1.5);
-    showToast(`Membidik: ${place.name} 📍`);
+    showToast(`Membidik: ${place.name}`);
   };
 
   // Guided Automated Hijrah Tour
@@ -324,7 +410,7 @@ export default function SirahClient() {
     setIsTouring(true);
     setActiveRouteId("hijrah");
     setActiveTab("map");
-    showToast("Memulai Tur Ekspedisi Hijrah 🐪");
+    showToast("Memulai Tur Ekspedisi Hijrah");
 
     const tourSteps = [
       { placeId: "makkah", zoom: 1.6, delay: 0 },
@@ -406,7 +492,7 @@ export default function SirahClient() {
     playAmbientChime();
     stopActiveAudio();
 
-    showToast("Memutar narasi sirah nabawiyah 🔊");
+    showToast("Memutar narasi sirah nabawiyah");
 
     try {
       const narrativeText = `${event.title}. ${event.summary}. Pelajaran Kepemimpinan: ${event.leadership.title}. ${event.leadership.lesson}`;
@@ -563,7 +649,7 @@ export default function SirahClient() {
 
     ctx.font = "bold 24px 'Inter', sans-serif";
     ctx.fillStyle = isLight ? "#b45309" : "#d4af37";
-    ctx.fillText("📜 RINGKASAN PERISTIWA", w / 2, boxY + 50);
+    ctx.fillText("RINGKASAN PERISTIWA", w / 2, boxY + 50);
 
     ctx.font = "24px 'Inter', sans-serif";
     ctx.fillStyle = isLight ? "#475569" : "#cbd5e1";
@@ -599,7 +685,7 @@ export default function SirahClient() {
 
     ctx.font = "bold 26px 'Inter', sans-serif";
     ctx.fillStyle = isLight ? "#b45309" : "#f59e0b";
-    ctx.fillText(`⚡ PILAR KEPEMIMPINAN: ${storyEvent.leadership.title.toUpperCase()}`, w / 2, leaderY + 55);
+    ctx.fillText(`PILAR KEPEMIMPINAN: ${storyEvent.leadership.title.toUpperCase()}`, w / 2, leaderY + 55);
 
     ctx.font = "22px 'Inter', sans-serif";
     ctx.fillStyle = isLight ? "#334155" : "#e2e8f0";
@@ -632,7 +718,7 @@ export default function SirahClient() {
 
     ctx.font = "bold 20px 'Inter', sans-serif";
     ctx.fillStyle = isLight ? "#b45309" : "#d4af37";
-    ctx.fillText("💼 RELEVANSI KARIR & ALUMNI:", w / 2, appBoxY + 38);
+    ctx.fillText("RELEVANSI KARIR & ALUMNI:", w / 2, appBoxY + 38);
 
     ctx.font = "20px 'Inter', sans-serif";
     ctx.fillStyle = isLight ? "#475569" : "#cbd5e1";
@@ -673,11 +759,11 @@ export default function SirahClient() {
     link.download = `sirah-${storyEvent.yearM}-${storyEvent.id}.png`;
     link.href = storyCanvasRef.current.toDataURL("image/png");
     link.click();
-    showToast("Story card Sirah berhasil diunduh! 📲");
+    showToast("Story card Sirah berhasil diunduh");
   };
 
   const shareToWhatsApp = (ev: SirahEvent) => {
-    const text = `*Jejak Sirah Nabawiyah: ${ev.title}*\n_${ev.dateString}_\n\n« *${ev.arabicTitle}* »\n\n"${ev.summary}"\n\n⚡ *Pilar Kepemimpinan (${ev.leadership.title}):*\n${ev.leadership.lesson}\n\n💼 *Aplikasi Modern:*\n${ev.leadership.modernApplication}\n\nJelajahi peta interaktif: https://angkatan43.id/sirah`;
+    const text = `*Jejak Sirah Nabawiyah: ${ev.title}*\n_${ev.dateString}_\n\n« *${ev.arabicTitle}* »\n\n"${ev.summary}"\n\n*Pilar Kepemimpinan (${ev.leadership.title}):*\n${ev.leadership.lesson}\n\n*Aplikasi Modern:*\n${ev.leadership.modernApplication}\n\nJelajahi peta interaktif: https://angkatan43.id/sirah`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
   };
 
@@ -690,7 +776,7 @@ export default function SirahClient() {
         {/* Header */}
         <header className="sirah-header">
           <div className="sirah-badge">
-            <span>🕌</span>
+            <i className="fa-solid fa-mosque" aria-hidden="true"></i>
             <span>{locale === "ar" ? "رحلة تاريخية وقيادية نبوية" : locale === "en" ? "Historical & Leadership Expedition" : "Ekspedisi Sejarah & Kepemimpinan"}</span>
           </div>
           <h1 className="sirah-title">{t.sirah.title}</h1>
@@ -700,13 +786,13 @@ export default function SirahClient() {
         </header>
 
         {/* Tab Navigation */}
-        <nav className="sirah-tabs-nav" aria-label="Navigasi Fitur Sirah">
+        <nav className="sirah-tabs-nav" aria-label={locale === "ar" ? "التنقل في السيرة" : locale === "en" ? "Sirah Navigation" : "Navigasi Fitur Sirah"}>
           <button
             type="button"
             className={`sirah-tab-btn ${activeTab === "map" ? "active" : ""}`}
             onClick={() => setActiveTab("map")}
           >
-            <span>🗺️</span>
+            <i className="fa-solid fa-map" aria-hidden="true"></i>
             <span>{locale === "ar" ? "خريطة المخطوطة" : locale === "en" ? "Manuscript Map" : "Peta Manuskrip"}</span>
           </button>
           <button
@@ -714,7 +800,7 @@ export default function SirahClient() {
             className={`sirah-tab-btn ${activeTab === "timeline" ? "active" : ""}`}
             onClick={() => setActiveTab("timeline")}
           >
-            <span>📜</span>
+            <i className="fa-solid fa-scroll" aria-hidden="true"></i>
             <span>{locale === "ar" ? "الخط الزمني التاريخي" : locale === "en" ? "Grand Timeline" : "Linimasa Akbar"}</span>
           </button>
           <button
@@ -722,7 +808,7 @@ export default function SirahClient() {
             className={`sirah-tab-btn ${activeTab === "leadership" ? "active" : ""}`}
             onClick={() => setActiveTab("leadership")}
           >
-            <span>⚡</span>
+            <i className="fa-solid fa-compass" aria-hidden="true"></i>
             <span>{locale === "ar" ? "مبادئ القيادة" : locale === "en" ? "Leadership Principles" : "Prinsip Kepemimpinan"}</span>
           </button>
         </nav>
@@ -745,10 +831,10 @@ export default function SirahClient() {
                     className={`route-chip ${activeRouteId === route.id ? "active" : ""}`}
                     onClick={() => {
                       setActiveRouteId(route.id);
-                      showToast(`Rute: ${route.name}`);
+                      showToast(locale === "ar" ? `المسار: ${route.name}` : locale === "en" ? `Route: ${route.name}` : `Rute: ${route.name}`);
                     }}
                   >
-                    <span>📍</span>
+                    <i className="fa-solid fa-location-dot" aria-hidden="true"></i>
                     <span>{route.name}</span>
                   </button>
                 ))}
@@ -760,7 +846,12 @@ export default function SirahClient() {
                 onClick={runGuidedHijrahTour}
                 disabled={isTouring}
               >
-                <span>{isTouring ? (locale === "ar" ? "⏳ جاري الإبحار..." : locale === "en" ? "⏳ Journeying..." : "⏳ Berlayar...") : (locale === "ar" ? "🐪 جولة الهجرة النبوية" : locale === "en" ? "🐪 Guided Hijrah Tour" : "🐪 Tur Ekspedisi Hijrah")}</span>
+                <i className={`fa-solid ${isTouring ? "fa-hourglass-half" : "fa-route"}`} aria-hidden="true"></i>
+                <span>
+                  {isTouring
+                    ? (locale === "ar" ? "جاري الإبحار..." : locale === "en" ? "Journeying..." : "Berlayar...")
+                    : (locale === "ar" ? "جولة الهجرة النبوية" : locale === "en" ? "Guided Hijrah Tour" : "Tur Ekspedisi Hijrah")}
+                </span>
               </button>
             </div>
 
@@ -779,7 +870,7 @@ export default function SirahClient() {
 
               {/* Compass HUD */}
               <div className="map-compass-hud">
-                <span>🧭</span>
+                <i className="fa-regular fa-compass" aria-hidden="true"></i>
                 <span>{locale === "ar" ? "شبه الجزيرة العربية (610-632 م)" : locale === "en" ? "ARABIAN PENINSULA (610-632 CE)" : "JAZIRAH ARAB (610-632 M)"}</span>
               </div>
 
@@ -789,17 +880,19 @@ export default function SirahClient() {
                   type="button"
                   className="map-control-btn"
                   onClick={() => setZoom((z) => Math.min(3.5, z * 1.25))}
+                  aria-label={locale === "ar" ? "تكبير" : locale === "en" ? "Zoom In" : "Perbesar"}
                   title={locale === "ar" ? "تكبير" : locale === "en" ? "Zoom In" : "Perbesar"}
                 >
-                  +
+                  <i className="fa-solid fa-plus" aria-hidden="true"></i>
                 </button>
                 <button
                   type="button"
                   className="map-control-btn"
                   onClick={() => setZoom((z) => Math.max(0.6, z * 0.8))}
+                  aria-label={locale === "ar" ? "تصغير" : locale === "en" ? "Zoom Out" : "Perkecil"}
                   title={locale === "ar" ? "تصغير" : locale === "en" ? "Zoom Out" : "Perkecil"}
                 >
-                  -
+                  <i className="fa-solid fa-minus" aria-hidden="true"></i>
                 </button>
                 <button
                   type="button"
@@ -809,9 +902,10 @@ export default function SirahClient() {
                     setPan({ x: 0, y: 0 });
                     setSelectedPlace(null);
                   }}
+                  aria-label={locale === "ar" ? "إعادة ضبط الكاميرا" : locale === "en" ? "Reset Camera" : "Reset Kamera"}
                   title={locale === "ar" ? "إعادة ضبط الكاميرا" : locale === "en" ? "Reset Camera" : "Reset Kamera"}
                 >
-                  ↺
+                  <i className="fa-solid fa-rotate-left" aria-hidden="true"></i>
                 </button>
               </div>
 
@@ -822,25 +916,30 @@ export default function SirahClient() {
                     <span className="event-date-badge">{selectedPlace.region}</span>
                     <button
                       type="button"
-                      style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer" }}
+                      style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", minWidth: "44px", minHeight: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                       onClick={() => setSelectedPlace(null)}
+                      aria-label={t.common.close}
                     >
-                      ✕
+                      <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                     </button>
                   </div>
                   <h4 className="place-card-name">{selectedPlace.name}</h4>
-                  <p className="place-card-arabic">{selectedPlace.arabic}</p>
+                  <p className="place-card-arabic" lang="ar" dir="rtl">{selectedPlace.arabic}</p>
                   <p className="place-card-desc">{selectedPlace.description}</p>
-                  <div style={{ fontSize: "0.72rem", color: "var(--gold-main)", marginTop: "4px" }}>
-                    📍 {selectedPlace.distanceInfo}
+                  <div style={{ fontSize: "0.75rem", color: "var(--gold-main)", marginTop: "4px" }}>
+                    <i className="fa-solid fa-location-dot" aria-hidden="true" style={{ marginInlineEnd: "4px" }}></i>
+                    {selectedPlace.distanceInfo}
                   </div>
                 </div>
               )}
             </div>
 
             {/* Sub-bar Description */}
-            <div style={{ fontSize: "0.82rem", color: "#94a3b8", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
-              <span>💡 {locale === "ar" ? "اسحب للتنقل في الخريطة. استخدم العجلة أو اللمس للتكبير. انقر على النقاط للتفاصيل." : locale === "en" ? "Drag to pan the map. Scroll or pinch to zoom. Click locations for details." : "Geser / drag untuk menjelajahi peta. Scroll atau cubit untuk memperbesar. Klik titik nama untuk detail."}</span>
+            <div style={{ fontSize: "0.82rem", color: "var(--text-secondary)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+              <span>
+                <i className="fa-regular fa-lightbulb" aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
+                {locale === "ar" ? "اسحب للتنقل في الخريطة. استخدم العجلة أو اللمس للتكبير. انقر على النقاط للتفاصيل." : locale === "en" ? "Drag to pan the map. Scroll or pinch to zoom. Click locations for details." : "Geser / drag untuk menjelajahi peta. Scroll atau cubit untuk memperbesar. Klik titik nama untuk detail."}
+              </span>
               <span style={{ color: "var(--gold-main)", fontWeight: 600 }}>{locale === "ar" ? "إجمالي 13 موقعاً و 3 مسارات كبرى" : locale === "en" ? "Total 13 Locations & 3 Historic Routes" : "Total 13 Lokasi & 3 Rute Akbar"}</span>
             </div>
           </div>
@@ -855,16 +954,18 @@ export default function SirahClient() {
             <div className="timeline-filters">
               <input
                 type="text"
+                aria-label={locale === "ar" ? "البحث في السيرة" : locale === "en" ? "Search Sirah timeline" : "Cari linimasa Sirah"}
                 placeholder={locale === "ar" ? "ابحث عن أحداث تاريخية، سنوات، أو شخصيات..." : locale === "en" ? "Search historical events, years, or figures..." : "Cari peristiwa sejarah, tahun, atau nama tokoh..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   flex: "1 1 240px",
-                  background: "rgba(12, 18, 30, 0.7)",
-                  border: "1px solid rgba(212, 175, 55, 0.25)",
+                  minHeight: "44px",
+                  background: "var(--bg-card)",
+                  border: "1px solid var(--border-gold)",
                   borderRadius: "14px",
                   padding: "10px 16px",
-                  color: "#ffffff",
+                  color: "var(--text-main)",
                   fontSize: "0.86rem",
                   outline: "none"
                 }}
@@ -880,12 +981,12 @@ export default function SirahClient() {
                   {phase === "all"
                     ? (locale === "ar" ? "الكل (15)" : locale === "en" ? "All (15)" : "Semua (15)")
                     : phase === "makkah"
-                    ? (locale === "ar" ? "العهد المكي" : locale === "en" ? "Meccan Era" : "Fase Makkah")
-                    : phase === "madinah"
-                    ? (locale === "ar" ? "العهد المدني" : locale === "en" ? "Medinan Era" : "Fase Madinah")
-                    : phase === "battle"
-                    ? (locale === "ar" ? "الغزوات الكبرى" : locale === "en" ? "Major Battles" : "Perang Besar")
-                    : (locale === "ar" ? "المعاهدات والدبلوماسية" : locale === "en" ? "Diplomacy & Treaties" : "Diplomasi")}
+                      ? (locale === "ar" ? "العهد المكي" : locale === "en" ? "Meccan Era" : "Fase Makkah")
+                      : phase === "madinah"
+                        ? (locale === "ar" ? "العهد المدني" : locale === "en" ? "Medinan Era" : "Fase Madinah")
+                        : phase === "battle"
+                          ? (locale === "ar" ? "الغزوات الكبرى" : locale === "en" ? "Major Battles" : "Perang Besar")
+                          : (locale === "ar" ? "المعاهدات والدبلوماسية" : locale === "en" ? "Diplomacy & Treaties" : "Diplomasi")}
                 </button>
               ))}
             </div>
@@ -911,18 +1012,20 @@ export default function SirahClient() {
                       <p className="event-card-summary">{ev.summary}</p>
 
                       <div className="event-leadership-pill">
-                        <span>⚡</span>
+                        <i className="fa-solid fa-compass" aria-hidden="true"></i>
                         <span>
                           <strong>{ev.leadership.title}:</strong> {ev.leadership.lesson.slice(0, 85)}...
                         </span>
                       </div>
 
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "6px", paddingTop: "8px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                        <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
-                          📍 {place ? place.name : (locale === "ar" ? "شبه الجزيرة العربية" : locale === "en" ? "Arabian Peninsula" : "Jazirah Arab")}
+                        <span style={{ fontSize: "0.75rem", color: "#94a3b8", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                          <i className="fa-solid fa-location-dot" aria-hidden="true"></i>
+                          {place ? place.name : (locale === "ar" ? "شبه الجزيرة العربية" : locale === "en" ? "Arabian Peninsula" : "Jazirah Arab")}
                         </span>
-                        <span style={{ fontSize: "0.78rem", color: "var(--gold-main)", fontWeight: 600 }}>
-                          {locale === "ar" ? "عرض الحكمة والخريطة ➜" : locale === "en" ? "View Wisdom & Map ➜" : "Lihat Hikmah & Peta ➜"}
+                        <span style={{ fontSize: "0.78rem", color: "var(--gold-main)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                          <span>{locale === "ar" ? "عرض الحكمة والخريطة" : locale === "en" ? "View Wisdom & Map" : "Lihat Hikmah & Peta"}</span>
+                          <i className={`fa-solid ${locale === "ar" ? "fa-arrow-left" : "fa-arrow-right"}`} aria-hidden="true"></i>
                         </span>
                       </div>
                     </article>
@@ -946,7 +1049,7 @@ export default function SirahClient() {
                 onClick={() => { playPinClick(); setSelectedEvent(ev); }}
               >
                 <div className="leadership-header">
-                  <span>⚡</span>
+                  <i className="fa-solid fa-compass" aria-hidden="true"></i>
                   <span>{ev.leadership.title}</span>
                 </div>
                 <div style={{ fontSize: "0.75rem", color: "var(--gold-main)", fontWeight: 600 }}>
@@ -956,7 +1059,8 @@ export default function SirahClient() {
 
                 <div className="leadership-modern-box">
                   <div style={{ fontWeight: 700, fontSize: "0.76rem", marginBottom: "3px" }}>
-                    {locale === "ar" ? "💼 التطبيق المعاصر للخريجين:" : locale === "en" ? "💼 Modern Application for Alumni:" : "💼 Aplikasi Modern Alumni:"}
+                    <i className="fa-solid fa-briefcase" aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
+                    {locale === "ar" ? "التطبيق المعاصر للخريجين:" : locale === "en" ? "Modern Application for Alumni:" : "Aplikasi Modern Alumni:"}
                   </div>
                   {ev.leadership.modernApplication}
                 </div>
@@ -969,7 +1073,13 @@ export default function SirahClient() {
             MODAL DETAIL: PERISTIWA & HIKMAH KEPEMIMPINAN
             ------------------------------------------------------------------ */}
         {selectedEvent && (
-          <div className="sirah-modal-overlay" onClick={() => setSelectedEvent(null)}>
+          <div
+            className="sirah-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedEvent.title}
+            onClick={() => setSelectedEvent(null)}
+          >
             <div className="sirah-modal-box" onClick={(e) => e.stopPropagation()}>
               <div className="sirah-modal-header">
                 <div>
@@ -981,20 +1091,24 @@ export default function SirahClient() {
                   type="button"
                   className="sirah-modal-close"
                   onClick={() => setSelectedEvent(null)}
+                  aria-label={t.common.close}
+                  style={{ minWidth: "44px", minHeight: "44px" }}
                 >
-                  ✕
+                  <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
               </div>
 
               {/* Narrative Story */}
               <div className="sirah-story-box">
                 <div style={{ fontWeight: 700, color: "var(--gold-main)", marginBottom: "6px" }}>
-                  {locale === "ar" ? "📜 تفاصيل الحدث:" : locale === "en" ? "📜 Event Record:" : "📜 Catatan Peristiwa:"}
+                  <i className="fa-solid fa-scroll" aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
+                  {locale === "ar" ? "تفاصيل الحدث:" : locale === "en" ? "Event Record:" : "Catatan Peristiwa:"}
                 </div>
                 {selectedEvent.detailedStory}
                 {selectedEvent.quranRef && (
-                  <div style={{ marginTop: "10px", color: "#34d399", fontSize: "0.8rem", fontWeight: 600 }}>
-                    {locale === "ar" ? "📖 المرجع الدليلي:" : locale === "en" ? "📖 Reference:" : "📖 Rujukan Dalil:"} {selectedEvent.quranRef}
+                  <div style={{ marginTop: "10px", color: "#059669", fontSize: "0.8rem", fontWeight: 600 }}>
+                    <i className="fa-solid fa-book-open" aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
+                    {locale === "ar" ? "المرجع الدليلي:" : locale === "en" ? "Reference:" : "Rujukan Dalil:"} {selectedEvent.quranRef}
                   </div>
                 )}
               </div>
@@ -1002,14 +1116,15 @@ export default function SirahClient() {
               {/* Leadership Pillar */}
               <div className="sirah-leadership-card">
                 <div className="leadership-header">
-                  <span>⚡</span>
+                  <i className="fa-solid fa-compass" aria-hidden="true"></i>
                   <span>{selectedEvent.leadership.title}</span>
                 </div>
                 <p className="leadership-lesson">{selectedEvent.leadership.lesson}</p>
 
                 <div className="leadership-modern-box">
                   <div style={{ fontWeight: 700, fontSize: "0.78rem", marginBottom: "4px" }}>
-                    {locale === "ar" ? "💼 التطبيق في الواقع / للخريجين:" : locale === "en" ? "💼 Real-world / Alumni Application:" : "💼 Aplikasi di Dunia Nyata / Alumni:"}
+                    <i className="fa-solid fa-briefcase" aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
+                    {locale === "ar" ? "التطبيق في الواقع / للخريجين:" : locale === "en" ? "Real-world / Alumni Application:" : "Aplikasi di Dunia Nyata / Alumni:"}
                   </div>
                   {selectedEvent.leadership.modernApplication}
                 </div>
@@ -1021,6 +1136,7 @@ export default function SirahClient() {
                   <button
                     type="button"
                     className="sirah-action-btn"
+                    style={{ minHeight: "44px" }}
                     onClick={() => {
                       const pl = SIRAH_PLACES.find((p) => p.id === selectedEvent.locationId);
                       if (pl) {
@@ -1029,32 +1145,35 @@ export default function SirahClient() {
                       }
                     }}
                   >
-                    <span>📍</span>
+                    <i className="fa-solid fa-location-dot" aria-hidden="true"></i>
                     <span>{locale === "ar" ? "تحديد على الخريطة" : locale === "en" ? "Pin on Map" : "Bidik di Peta"}</span>
                   </button>
                 )}
                 <button
                   type="button"
                   className="sirah-action-btn"
+                  style={{ minHeight: "44px" }}
                   onClick={() => speakNarrative(selectedEvent)}
                 >
-                  <span>🔊</span>
+                  <i className="fa-solid fa-volume-high" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "استماع للسرد" : locale === "en" ? "Listen Narrative" : "Lafalkan Narasi"}</span>
                 </button>
                 <button
                   type="button"
                   className="sirah-action-btn primary"
+                  style={{ minHeight: "44px" }}
                   onClick={() => openStoryModal(selectedEvent)}
                 >
-                  <span>🎨</span>
+                  <i className="fa-solid fa-image" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "إنشاء بطاقة قصة" : locale === "en" ? "Create Story Card" : "Buat Story Card"}</span>
                 </button>
                 <button
                   type="button"
                   className="sirah-action-btn"
+                  style={{ minHeight: "44px" }}
                   onClick={() => shareToWhatsApp(selectedEvent)}
                 >
-                  <span>📲</span>
+                  <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "مشاركة عبر واتساب" : locale === "en" ? "Share to WA" : "Bagikan ke WA"}</span>
                 </button>
               </div>
@@ -1066,31 +1185,45 @@ export default function SirahClient() {
             MODAL STORY CARD GENERATOR (HTML5 CANVAS)
             ------------------------------------------------------------------ */}
         {storyModalOpen && storyEvent && (
-          <div className="sirah-modal-overlay" onClick={() => setStoryModalOpen(false)}>
+          <div
+            className="sirah-modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-label={locale === "ar" ? "مولد بطاقات القصة 9:16" : locale === "en" ? "Sirah Story Card Generator 9:16" : "Generator Story Card Sirah 9:16"}
+            onClick={() => setStoryModalOpen(false)}
+          >
             <div className="sirah-modal-box" onClick={(e) => e.stopPropagation()}>
               <div className="sirah-modal-header">
                 <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "var(--gold-main)" }}>
-                  {locale === "ar" ? "🎨 مولد بطاقات القصة 9:16" : locale === "en" ? "🎨 Sirah Story Card Generator 9:16" : "🎨 Generator Story Card Sirah 9:16"}
+                  <i className="fa-solid fa-image" aria-hidden="true" style={{ marginInlineEnd: "6px" }}></i>
+                  {locale === "ar" ? "مولد بطاقات القصة 9:16" : locale === "en" ? "Sirah Story Card Generator 9:16" : "Generator Story Card Sirah 9:16"}
                 </span>
                 <button
                   type="button"
                   className="sirah-modal-close"
                   onClick={() => setStoryModalOpen(false)}
+                  aria-label={t.common.close}
+                  style={{ minWidth: "44px", minHeight: "44px" }}
                 >
-                  ✕
+                  <i className="fa-solid fa-xmark" aria-hidden="true"></i>
                 </button>
               </div>
 
               {/* Theme Selector */}
-              <div style={{ display: "flex", gap: "8px", justifyContent: "center", width: "100%" }}>
-                {(["obsidian", "parchment", "ivory"] as StoryTheme[]).map((t) => (
+              <div style={{ display: "flex", gap: "8px", justifyContent: "center", width: "100%", flexWrap: "wrap" }}>
+                {(["obsidian", "parchment", "ivory"] as StoryTheme[]).map((themeItem) => (
                   <button
-                    key={t}
+                    key={themeItem}
                     type="button"
-                    className={`timeline-filter-chip ${storyTheme === t ? "active" : ""}`}
-                    onClick={() => setStoryTheme(t)}
+                    className={`timeline-filter-chip ${storyTheme === themeItem ? "active" : ""}`}
+                    style={{ minHeight: "44px" }}
+                    onClick={() => setStoryTheme(themeItem)}
                   >
-                    {t === "obsidian" ? "Hitam Klasik" : t === "parchment" ? "Coklat Manuskrip" : "Putih Gading"}
+                    {themeItem === "obsidian"
+                      ? (locale === "ar" ? "أسود كلاسيكي" : locale === "en" ? "Classic Obsidian" : "Hitam Klasik")
+                      : themeItem === "parchment"
+                        ? (locale === "ar" ? "مخطوطة بنية" : locale === "en" ? "Parchment" : "Coklat Manuskrip")
+                        : (locale === "ar" ? "عاجي أبيض" : locale === "en" ? "Ivory White" : "Putih Gading")}
                   </button>
                 ))}
               </div>
@@ -1116,19 +1249,19 @@ export default function SirahClient() {
                 <button
                   type="button"
                   className="sirah-action-btn primary"
-                  style={{ width: "100%", justifyContent: "center", padding: "12px", fontSize: "0.9rem" }}
+                  style={{ width: "100%", justifyContent: "center", padding: "12px", fontSize: "0.9rem", minHeight: "44px" }}
                   onClick={downloadStoryImage}
                 >
-                  <span>📥</span>
+                  <i className="fa-solid fa-download" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "تحميل صورة القصة (PNG HD)" : locale === "en" ? "Download Story Image (PNG HD)" : "Unduh Gambar Story (PNG HD)"}</span>
                 </button>
                 <button
                   type="button"
                   className="sirah-action-btn"
-                  style={{ width: "100%", justifyContent: "center", padding: "10px", fontSize: "0.85rem" }}
+                  style={{ width: "100%", justifyContent: "center", padding: "10px", fontSize: "0.85rem", minHeight: "44px" }}
                   onClick={() => shareToWhatsApp(storyEvent)}
                 >
-                  <span>📲</span>
+                  <i className="fa-brands fa-whatsapp" aria-hidden="true"></i>
                   <span>{locale === "ar" ? "مشاركة النص عبر واتساب" : locale === "en" ? "Share Text to WhatsApp" : "Bagikan Teks ke WhatsApp"}</span>
                 </button>
               </div>

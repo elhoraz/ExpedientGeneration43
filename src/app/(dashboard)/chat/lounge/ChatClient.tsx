@@ -14,10 +14,10 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import "../chat.css";
 
 const EMOJI_DATA = {
-  'Wajah': ['😀','😂','🤣','😍','😎','🥰','😢','😭','🤔','😱','🥺','😤','🤝','🙏','💪','👍','👎','❤️','🔥','✨','💯','🎉','🎊'],
-  'Islami': ['☪️','🕌','📿','🤲','🌙','⭐','🕋','📖','🌹','🫶'],
-  'Aktivitas': ['🎓','📚','⚽','🏀','🎯','🏆','💼','🎵','🎤','📸'],
-  'Lainnya': ['👀','💬','📌','🚀','💎','🌍','☕','🍕','👑','⚡','🌈','💡']
+  'Wajah': ['😀', '😂', '🤣', '😍', '😎', '🥰', '😢', '😭', '🤔', '😱', '🥺', '😤', '🤝', '🙏', '💪', '👍', '👎', '❤️', '🔥', '✨', '💯', '🎉', '🎊'],
+  'Islami': ['☪️', '🕌', '📿', '🤲', '🌙', '⭐', '🕋', '📖', '🌹', '🫶'],
+  'Aktivitas': ['🎓', '📚', '⚽', '🏀', '🎯', '🏆', '💼', '🎵', '🎤', '📸'],
+  'Lainnya': ['👀', '💬', '📌', '🚀', '💎', '🌍', '☕', '🍕', '👑', '⚡', '🌈', '💡']
 };
 
 export default function ChatClient({ initialMessages, userId }: { initialMessages: any[]; userId: string }) {
@@ -30,7 +30,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
   const [hasMore, setHasMore] = useState(initialMessages.length === 50);
   const [offset, setOffset] = useState(initialMessages.length);
   const [activeImage, setActiveImage] = useState<{ url: string; sender: string; time: string } | null>(null);
-  
+
   // Voice & Video note recording states
   const [isRecordingVoice, setIsRecordingVoice] = useState(false);
   const [showVideoNoteRecorder, setShowVideoNoteRecorder] = useState(false);
@@ -71,7 +71,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
             if (prev.some((m) => m.id === newMessage.id)) return prev;
             return [...prev, newMessage];
           });
-          
+
           setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
           }, 100);
@@ -125,7 +125,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
   };
 
   const handleSendMessage = async (
-    e?: FormEvent, 
+    e?: FormEvent,
     media?: { imageUrl?: string; audioUrl?: string; videoUrl?: string; messageType?: string }
   ) => {
     if (e) e.preventDefault();
@@ -283,8 +283,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
 
       <div style={{
         flex: 1,
-        background: "var(--glass-bg)",
-        backdropFilter: "blur(20px)",
+        background: "var(--bg-card, var(--glass-bg))",
         border: "1px solid var(--glass-border)",
         borderRadius: "18px",
         display: "flex",
@@ -295,8 +294,8 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
         <div className="chat-messages-area">
           {hasMore && (
             <div style={{ textAlign: "center", marginBottom: "10px" }}>
-              <button 
-                onClick={handleLoadMore} 
+              <button
+                onClick={handleLoadMore}
                 disabled={isLoadingMore}
                 style={{
                   background: "rgba(212,175,55,0.1)",
@@ -323,10 +322,10 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
             return (
               <div key={msg.id} className={`msg-bubble-wrapper ${isMine ? 'mine' : 'other'}`}>
                 {!isMine && (
-                  <img 
-                    src={avatarUrl} 
-                    alt="Avatar" 
-                    className="msg-avatar" 
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="msg-avatar"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = getAvatarFallback(senderName);
@@ -342,7 +341,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
 
                   {/* 1. Image */}
                   {msg.image_url && (
-                    <div 
+                    <div
                       className="msg-image-container"
                       onClick={() => setActiveImage({
                         url: msg.image_url,
@@ -373,7 +372,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
 
                   <div className="msg-meta-row">
                     {isMine && (
-                      <button 
+                      <button
                         className="btn-delete-msg"
                         onClick={() => handleDeleteMessage(msg.id)}
                         title={t.common.delete}
@@ -424,18 +423,18 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                     ))}
                   </div>
                 )}
-                
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  ref={fileInputRef} 
-                  style={{ display: "none" }} 
-                  onChange={handleImageUpload} 
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                  onChange={handleImageUpload}
                 />
-                <button 
-                  type="button" 
-                  className="btn-chat-tool" 
-                  onClick={() => fileInputRef.current?.click()} 
+                <button
+                  type="button"
+                  className="btn-chat-tool"
+                  onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingImage}
                   title={t.chat.send_image}
                 >
@@ -454,11 +453,11 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
               </div>
 
               <form onSubmit={handleSendMessage} className="chat-form">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder={t.chat.type_message} 
+                  placeholder={t.chat.type_message}
                   className="chat-text-input"
                   maxLength={1000}
                 />
@@ -467,7 +466,7 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
                     <i className="fa-solid fa-paper-plane"></i>
                   </button>
                 ) : (
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setIsRecordingVoice(true)}
                     className="btn-chat-send"

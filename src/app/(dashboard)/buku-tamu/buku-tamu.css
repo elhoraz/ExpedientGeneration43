@@ -6,11 +6,11 @@
 .buku-tamu-wrapper .bt-textarea { width: 100%; min-height: 110px; background: var(--surface-inset, rgba(255,255,255,0.04)); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 14px; border-radius: 12px; font-family: 'Manrope', sans-serif; resize: vertical; margin-bottom: 15px; font-size: 0.95rem; box-sizing: border-box; }
 .buku-tamu-wrapper .bt-textarea:focus { outline: none; border-color: var(--gold-main, #d4af37); box-shadow: 0 0 0 2px rgba(212,175,55,0.18); }
 .buku-tamu-wrapper .bt-actions { display: flex; justify-content: flex-end; }
-.buku-tamu-wrapper .bt-submit { background: #d4af37; color: #060b14; border: none; padding: 12px 28px; font-weight: 700; border-radius: 30px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease; font-family: 'Manrope', sans-serif; letter-spacing: 0.03em; font-size: 0.88rem; }
+.buku-tamu-wrapper .bt-submit { background: #d4af37; color: #060b14; border: none; min-height: 44px; padding: 12px 28px; font-weight: 700; border-radius: 30px; cursor: pointer; transition: transform 0.2s ease, opacity 0.2s ease; font-family: 'Manrope', sans-serif; letter-spacing: 0.03em; font-size: 0.88rem; }
 .buku-tamu-wrapper .bt-submit:hover:not(:disabled) { transform: translateY(-2px); opacity: 0.92; }
 .buku-tamu-wrapper .bt-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.buku-tamu-wrapper .msg-card { background: var(--bg-card, #0f141e); border: 1px solid var(--glass-border); border-left: 3px solid var(--gold-main, #d4af37); padding: 20px; border-radius: 14px; margin-bottom: 18px; box-shadow: var(--glass-shadow); }
+.buku-tamu-wrapper .msg-card { background: var(--bg-card, #0f141e); border: 1px solid rgba(212, 175, 55, 0.26); padding: 20px; border-radius: 14px; margin-bottom: 18px; box-shadow: var(--glass-shadow); }
 .buku-tamu-wrapper .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 8px; flex-wrap: wrap; gap: 6px; }
 .buku-tamu-wrapper .msg-author { color: var(--gold-main, #d4af37); font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: bold; }
 .buku-tamu-wrapper .msg-date { color: var(--text-secondary); font-size: 0.78rem; font-family: var(--font-manrope), sans-serif; }
@@ -53,8 +53,7 @@
 
 :root[data-theme="light"] .buku-tamu-wrapper .msg-card {
     background: #ffffff;
-    border-color: rgba(24, 24, 27, 0.09);
-    border-left-color: #7c520a;
+    border-color: rgba(124, 82, 10, 0.22);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
 }
 
