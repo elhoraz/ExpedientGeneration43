@@ -3,29 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/AuthContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const { isLoggedIn: authLoggedIn, isAuthLoading } = useAuth();
+  const isLoggedIn = isAuthLoading ? null : authLoggedIn;
   const pathname = usePathname();
-  const supabase = createClient();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsLoggedIn(!!user);
-    };
-    checkAuth();
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      setIsLoggedIn(event !== "SIGNED_OUT");
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
 
   const toggleSidebar = () => {
     if (navigator.vibrate) navigator.vibrate(30);

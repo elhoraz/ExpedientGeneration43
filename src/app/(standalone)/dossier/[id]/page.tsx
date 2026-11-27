@@ -19,7 +19,7 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
   // Fetch the target user profile
   const { data: targetUser } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, nama_lengkap, nama_panggilan, foto_profil, kota_domisili, motivasi_hidup, akun_ig, public_token, tanggal_lahir")
     .eq("id", id)
     .maybeSingle();
 

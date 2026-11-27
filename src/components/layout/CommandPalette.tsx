@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { Locale } from "@/lib/i18n/types";
 import "./CommandPalette.css";
@@ -47,32 +46,43 @@ export default function CommandPalette() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const commands = COMMAND_DEFINITIONS.map(def => ({
-    ...def,
-    title: t.command_palette?.commands?.[def.key] || def.key,
-  }));
-
-  const filteredCommands = commands.filter(cmd => 
-    cmd.title.toLowerCase().includes(query.toLowerCase())
+  const commands = useMemo(
+    () =>
+      COMMAND_DEFINITIONS.map((def) => ({
+        ...def,
+        title: t.command_palette?.commands?.[def.key] || def.key,
+      })),
+    [t]
   );
 
-  const executeCommand = (cmd: (typeof commands)[0]) => {
-    if (cmd.url === "action:open-guide") {
-      setIsOpen(false);
-      window.dispatchEvent(new CustomEvent("expedient-open-guide"));
-      return;
-    }
-    if (cmd.url.startsWith("lang:")) {
-      const targetLang = cmd.url.slice(5) as Locale;
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(15);
+  const filteredCommands = useMemo(
+    () =>
+      commands.filter((cmd) =>
+        cmd.title.toLowerCase().includes(query.toLowerCase())
+      ),
+    [commands, query]
+  );
+
+  const executeCommand = useCallback(
+    (cmd: (typeof commands)[0]) => {
+      if (cmd.url === "action:open-guide") {
+        setIsOpen(false);
+        window.dispatchEvent(new CustomEvent("expedient-open-guide"));
+        return;
       }
-      setLocale(targetLang);
-    } else {
-      router.push(cmd.url);
-    }
-    setIsOpen(false);
-  };
+      if (cmd.url.startsWith("lang:")) {
+        const targetLang = cmd.url.slice(5) as Locale;
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          navigator.vibrate(15);
+        }
+        setLocale(targetLang);
+      } else {
+        router.push(cmd.url);
+      }
+      setIsOpen(false);
+    },
+    [router, setLocale]
+  );
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -113,7 +123,7 @@ export default function CommandPalette() {
       window.addEventListener("keydown", handlePaletteKeyDown);
     }
     return () => window.removeEventListener("keydown", handlePaletteKeyDown);
-  }, [isOpen, filteredCommands, selectedIndex, router]);
+  }, [isOpen, filteredCommands, selectedIndex, executeCommand]);
 
   useEffect(() => {
     if (isOpen) {

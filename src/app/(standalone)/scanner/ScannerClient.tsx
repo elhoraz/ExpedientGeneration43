@@ -36,6 +36,7 @@ export default function ScannerClient() {
 
   useEffect(() => {
     startCamera();
+    const videoEl = videoRef.current;
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     let scanTween: gsap.core.Tween | null = null;
@@ -49,8 +50,8 @@ export default function ScannerClient() {
 
     return () => {
       scanTween?.kill();
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      if (videoEl && videoEl.srcObject) {
+        const tracks = (videoEl.srcObject as MediaStream).getTracks();
         tracks.forEach((track) => track.stop());
       }
     };

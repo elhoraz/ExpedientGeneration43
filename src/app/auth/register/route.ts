@@ -4,12 +4,12 @@ import { NextResponse } from "next/server";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { getRequestOrigin } from "@/lib/url";
 import { convertImageToWebp } from "@/lib/image/convertToWebp";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   const origin = getRequestOrigin(request);
   const clientIp = getClientIp(request);
-  const rl = rateLimit(`auth-register:${clientIp}`, 10, 15 * 60 * 1000);
+  const rl = await rateLimitDistributed(`auth-register:${clientIp}`, 10, 15 * 60 * 1000);
   if (!rl.success) {
     return NextResponse.json(
       { error: "Terlalu banyak percobaan pendaftaran. Silakan coba lagi beberapa saat lagi." },
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const tanggal_lahir = String(formData.get("tanggal_lahir") || "").trim();
   const alamat_lengkap = String(formData.get("alamat_lengkap") || "").trim();
   
-  let rawWa = String(formData.get("no_whatsapp") || "").trim();
+  const rawWa = String(formData.get("no_whatsapp") || "").trim();
   let cleanWa = rawWa.replace(/\D/g, "");
   if (cleanWa.startsWith("0")) {
     cleanWa = "62" + cleanWa.substring(1);

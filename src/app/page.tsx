@@ -16,11 +16,11 @@ export default async function LandingPage() {
 
     const [contentsRes, countRes] = await Promise.allSettled([
       withTimeout(
-        adminSupabase.from("site_content").select("*").like("content_key", "landing_%"),
+        adminSupabase.from("site_content").select("content_key, content_value").like("content_key", "landing_%"),
         { data: [] } as any
       ),
       withTimeout(
-        adminSupabase.from("profiles").select("*", { count: "exact", head: true }),
+        adminSupabase.from("profiles").select("id", { count: "exact", head: true }),
         { count: 0 } as any
       ),
     ]);

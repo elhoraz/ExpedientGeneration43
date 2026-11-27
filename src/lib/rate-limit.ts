@@ -1,10 +1,10 @@
+import { createAdminClient } from "@/lib/supabase/admin";
+
 // lib/rate-limit.ts
-// In-memory rate limiter (per serverless instance).
-//
-// IMPORTANT: On Vercel serverless, each function instance has its own Map.
-// This provides per-instance protection (still blocks rapid bursts from the
-// same client hitting the same instance), but is NOT a distributed rate limiter.
-// For strict distributed rate limiting, migrate to @upstash/ratelimit with Redis.
+// Hybrid distributed rate limiter:
+// 1. Upstash Redis REST (when UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN exist)
+// 2. Supabase Postgres atomic RPC consume_rate_limit (when NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY exist)
+// 3. In-memory fallback map (per serverless instance / local tests)
 //
 // The setInterval-based cleanup was removed because serverless functions are
 // frozen between invocations — intervals never fire. Instead, stale entries
@@ -67,6 +67,102 @@ export function rateLimit(
   // Increment
   entry.count++;
   return { success: true, remaining: limit - entry.count, resetIn: entry.resetTime - now };
+}
+
+function isUnitTestRuntime(): boolean {
+  return (
+    process.env.NODE_ENV === "test" ||
+    process.execArgv.some((arg) => arg.includes("--test")) ||
+    process.argv.some((arg) => arg.includes("--test"))
+  );
+}
+
+/**
+ * Distributed rate limiter for Vercel serverless & multi-instance deployments:
+ * 1. Upstash Redis REST if UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN are set.
+ * 2. Supabase Postgres RPC `consume_rate_limit` if SUPABASE_SERVICE_ROLE_KEY is set.
+ * 3. Automatic fallback to in-memory `rateLimit()` on timeout, error, or test runtime.
+ */
+export async function rateLimitDistributed(
+  key: string,
+  limit: number = 10,
+  windowMs: number = 15 * 60 * 1000
+): Promise<{ success: boolean; remaining: number; resetIn: number }> {
+  if (isUnitTestRuntime()) {
+    return rateLimit(key, limit, windowMs);
+  }
+
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL?.trim();
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
+
+  if (redisUrl && redisToken) {
+    try {
+      const redisKey = `rl:${key}`;
+      const res = await fetch(`${redisUrl.replace(/\/+$/, "")}/pipeline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${redisToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          ["INCR", redisKey],
+          ["PEXPIRE", redisKey, windowMs, "NX"],
+          ["PTTL", redisKey],
+        ]),
+        cache: "no-store",
+        signal: AbortSignal.timeout(1500),
+      });
+
+      if (res.ok) {
+        const pipeline = (await res.json()) as Array<{ result?: number }>;
+        const count = Number(pipeline?.[0]?.result ?? 1);
+        const ttl = Number(pipeline?.[2]?.result ?? windowMs);
+        const resetIn = ttl > 0 ? ttl : windowMs;
+
+        if (count > limit) {
+          return { success: false, remaining: 0, resetIn };
+        }
+        return { success: true, remaining: Math.max(0, limit - count), resetIn };
+      }
+    } catch {
+      // Fall through to Supabase RPC / local fallback
+    }
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+  if (supabaseUrl && serviceKey) {
+    try {
+      const supabaseAdmin = createAdminClient(supabaseUrl, serviceKey);
+      const rpcPromise = supabaseAdmin.rpc("consume_rate_limit", {
+        p_key: key,
+        p_limit: limit,
+        p_window_ms: windowMs,
+      });
+
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: new Error("rateLimit RPC timeout") }), 1500)
+      );
+
+      const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+
+      if (!error && data) {
+        const row = Array.isArray(data) ? data[0] : data;
+        if (row && typeof row.allowed === "boolean") {
+          return {
+            success: row.allowed,
+            remaining: Math.max(0, Number(row.remaining ?? 0)),
+            resetIn: Math.max(0, Number(row.reset_in_ms ?? windowMs)),
+          };
+        }
+      }
+    } catch {
+      // Fall back to in-memory limiter so slow DB never breaks auth/API availability
+    }
+  }
+
+  return rateLimit(key, limit, windowMs);
 }
 
 /**

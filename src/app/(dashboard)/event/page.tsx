@@ -21,25 +21,25 @@ export default async function EventsPage() {
   let eventsWithStats: any[] = [];
 
   try {
-    const { data: events, error } = await supabase
-      .from("events")
-      .select(`
-        id,
-        title,
-        description,
-        event_date,
-        location,
-        creator_id,
-        profiles!creator_id(nama_panggilan)
-      `)
-      .order("event_date", { ascending: true });
+    const [{ data: events, error }, { data: rsvps }] = await Promise.all([
+      supabase
+        .from("events")
+        .select(`
+          id,
+          title,
+          description,
+          event_date,
+          location,
+          creator_id,
+          profiles!creator_id(nama_panggilan)
+        `)
+        .order("event_date", { ascending: true }),
+      supabase.from("event_rsvps").select("event_id, user_id, status"),
+    ]);
 
     if (error) throw error;
 
     if (events) {
-      // For each event, fetch RSVPs
-      const { data: rsvps } = await supabase.from("event_rsvps").select("*");
-      
       eventsWithStats = events.map(ev => {
         const eventRsvps = (rsvps || []).filter(r => r.event_id === ev.id);
         const myRsvp = eventRsvps.find(r => r.user_id === user.id)?.status || null;

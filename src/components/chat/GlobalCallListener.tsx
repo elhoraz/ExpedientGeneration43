@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/AuthContext";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { getAvatarUrl } from "@/lib/avatar";
@@ -21,7 +21,7 @@ export default function GlobalCallListener() {
     callType: "voice" | "video";
   } | null>(null);
 
-  const supabase = createClient();
+  const { userId, supabase } = useAuth();
   const router = useRouter();
   const channelRef = useRef<any>(null);
   const legacyChannelRef = useRef<any>(null);
@@ -70,93 +70,86 @@ export default function GlobalCallListener() {
     } catch { /* ignore */ }
   }, []);
 
-  // Subscribe to user-specific call notification channel
+  // Subscribe to user-specific call notification channel once userId is resolved from shared AuthContext
   useEffect(() => {
     let mounted = true;
+    userIdRef.current = userId;
+    if (!userId) return;
 
-    const setup = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !mounted) return;
+    const handleIncoming = async (data: any) => {
+      if (!data || !mounted) return;
+      if (data.receiverId && data.receiverId !== userId) return;
 
-      userIdRef.current = user.id;
+      console.log("[GlobalCallListener] Incoming call received:", data);
 
-      const handleIncoming = async (data: any) => {
-        if (!data || !mounted) return;
-        if (data.receiverId && data.receiverId !== user.id) return;
-
-        console.log("[GlobalCallListener] Incoming call received:", data);
-
-        // Only skip if a call modal is ALREADY actively visible on screen
-        if (typeof document !== "undefined") {
-          const activeModal = document.querySelector(".chat-call-modal-root, [data-call-active='true']");
-          if (activeModal) {
-            console.log("[GlobalCallListener] Call modal already active on screen, skipping overlay.");
-            return;
-          }
+      // Only skip if a call modal is ALREADY actively visible on screen
+      if (typeof document !== "undefined") {
+        const activeModal = document.querySelector(".chat-call-modal-root, [data-call-active='true']");
+        if (activeModal) {
+          console.log("[GlobalCallListener] Call modal already active on screen, skipping overlay.");
+          return;
         }
+      }
 
-        // Fetch caller profile info
-        let callerName = data.callerName || "Seseorang";
-        let callerAvatar = "";
-        try {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("nama_panggilan, foto_profil")
-            .eq("id", data.callerId)
-            .single();
-          if (profile) {
-            callerName = profile.nama_panggilan || callerName;
-            callerAvatar = getAvatarUrl(profile.foto_profil, callerName);
-          }
-        } catch { /* use defaults */ }
-
-        if (!callerAvatar) {
-          callerAvatar = getAvatarUrl(null, callerName);
+      // Fetch caller profile info
+      let callerName = data.callerName || "Seseorang";
+      let callerAvatar = "";
+      try {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("nama_panggilan, foto_profil")
+          .eq("id", data.callerId)
+          .single();
+        if (profile) {
+          callerName = profile.nama_panggilan || callerName;
+          callerAvatar = getAvatarUrl(profile.foto_profil, callerName);
         }
+      } catch { /* use defaults */ }
 
-        setIncomingCall({
-          callerId: data.callerId,
-          callerName,
-          callerAvatar,
-          callType: data.callType || "voice",
-        });
-        startRingtone();
+      if (!callerAvatar) {
+        callerAvatar = getAvatarUrl(null, callerName);
+      }
 
-        // Trigger high-priority native system notification with banner, sound & vibration
-        sendSystemNotification({
-          title: `Panggilan ${data.callType === "video" ? "Video" : "Suara"} Masuk`,
-          message: `${callerName} sedang menelepon Anda. Ketuk untuk menjawab.`,
-          url: `/chat/personal/${data.callerId}?callAction=accept&type=${data.callType || "voice"}`,
-          tag: `call-${data.callerId}`,
-        });
-      };
+      setIncomingCall({
+        callerId: data.callerId,
+        callerName,
+        callerAvatar,
+        callType: data.callType || "voice",
+      });
+      startRingtone();
 
-      const handleCancel = () => {
-        stopRingtone();
-        setIncomingCall(null);
-      };
-
-      const channel = supabase
-        .channel(`user_call_notify_${user.id}`)
-        .on("broadcast", { event: "incoming_call" }, (payload) => handleIncoming(payload?.payload))
-        .on("broadcast", { event: "incoming_call_notify" }, (payload) => handleIncoming(payload?.payload))
-        .on("broadcast", { event: "cancel_call" }, handleCancel)
-        .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
-        .subscribe();
-
-      const legacyChannel = supabase
-        .channel(`user_call_notification_${user.id}`)
-        .on("broadcast", { event: "incoming_call" }, (payload) => handleIncoming(payload?.payload))
-        .on("broadcast", { event: "incoming_call_notify" }, (payload) => handleIncoming(payload?.payload))
-        .on("broadcast", { event: "cancel_call" }, handleCancel)
-        .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
-        .subscribe();
-
-      channelRef.current = channel;
-      legacyChannelRef.current = legacyChannel;
+      // Trigger high-priority native system notification with banner, sound & vibration
+      sendSystemNotification({
+        title: `Panggilan ${data.callType === "video" ? "Video" : "Suara"} Masuk`,
+        message: `${callerName} sedang menelepon Anda. Ketuk untuk menjawab.`,
+        url: `/chat/personal/${data.callerId}?callAction=accept&type=${data.callType || "voice"}`,
+        tag: `call-${data.callerId}`,
+      });
     };
 
-    setup();
+    const handleCancel = () => {
+      stopRingtone();
+      setIncomingCall(null);
+    };
+
+    const channel = supabase
+      .channel(`user_call_notify_${userId}`)
+      .on("broadcast", { event: "incoming_call" }, (payload) => handleIncoming(payload?.payload))
+      .on("broadcast", { event: "incoming_call_notify" }, (payload) => handleIncoming(payload?.payload))
+      .on("broadcast", { event: "cancel_call" }, handleCancel)
+      .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
+      .subscribe();
+
+    const legacyChannel = supabase
+      .channel(`user_call_notification_${userId}`)
+      .on("broadcast", { event: "incoming_call" }, (payload) => handleIncoming(payload?.payload))
+      .on("broadcast", { event: "incoming_call_notify" }, (payload) => handleIncoming(payload?.payload))
+      .on("broadcast", { event: "cancel_call" }, handleCancel)
+      .on("broadcast", { event: "cancel_call_notify" }, handleCancel)
+      .subscribe();
+
+    channelRef.current = channel;
+    legacyChannelRef.current = legacyChannel;
 
     return () => {
       mounted = false;
@@ -170,7 +163,7 @@ export default function GlobalCallListener() {
         legacyChannelRef.current = null;
       }
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, supabase, startRingtone, stopRingtone]);
 
   // Auto-dismiss after 45 seconds
   useEffect(() => {

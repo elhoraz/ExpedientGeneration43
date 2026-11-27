@@ -1,31 +1,24 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
 import {
   CordobaSpreadSkeleton,
   QuranSurahReaderSkeleton,
-  QuranTafsirSkeleton,
-} from "@/components/ui/Skeleton";
+} from "@/components/ui/skeletons/SkeletonWorship";
 import {
   QURAN_SURAHS,
   JUZ_LIST,
   QARI_LIST,
-  QuranSurahItem,
   QuranSurahDetail,
   QuranAyatItem,
-  QariItem,
 } from "@/lib/data/quranSurahList";
 import {
-  ALHUFAZ_COLOR_BLOCKS,
-  ALHUFAZ_MOTIVASI_LIST,
   PageVerseItem,
   PageHufazBlock,
-  MushafWordItem,
   MushafLineItem,
-  MushafLineSegment,
   getLineSegments,
   PAGE_6_DEFAULT_LINES,
   partition15LinesInto5Blocks,
@@ -33,16 +26,42 @@ import {
   SURAH_START_PAGES,
   JUZ_START_PAGES,
   getAlhufazPageMeta,
-  AlhufazPageSpecialMeta,
 } from "@/lib/data/alhufazData";
+import { QuranAyahCard } from "./components/QuranAyahCard";
+import {
+  toArabicNumerals,
+  type LastReadState,
+  type BookmarkItem,
+  type AudioQueueItem,
+} from "./types";
 import "./quran.css";
-import "@/app/(dashboard)/khatam/khatam.css";
 
-const ARABIC_NUMS = [
-  "", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩", "١٠",
-  "١١", "١٢", "١٣", "١٤", "١٥", "١٦", "١٧", "١٨", "١٩", "٢٠",
-  "٢١", "٢٢", "٢٣", "٢٤", "٢٥", "٢٦", "٢٧", "٢٨", "٢٩", "٣٠"
-];
+const QuranKhatamTab = dynamic(
+  () => import("./components/QuranKhatamTab").then((m) => m.QuranKhatamTab),
+  {
+    ssr: false,
+    loading: () => (
+      <div style={{ padding: "24px 0" }}>
+        <CordobaSpreadSkeleton />
+      </div>
+    ),
+  }
+);
+
+const QuranKhatamDoaModal = dynamic(
+  () => import("./components/QuranKhatamTab").then((m) => m.QuranKhatamDoaModal),
+  { ssr: false }
+);
+
+const QuranTafsirModal = dynamic(
+  () => import("./components/QuranModals").then((m) => m.QuranTafsirModal),
+  { ssr: false }
+);
+
+const QuranBookmarksModal = dynamic(
+  () => import("./components/QuranModals").then((m) => m.QuranBookmarksModal),
+  { ssr: false }
+);
 
 const QARI_EVERYAYAH_MAP: Record<string, string> = {
   "05": "Alafasy_128kbps",
@@ -60,37 +79,7 @@ function getEveryAyahUrl(surahNum: number, ayahNum: number, qariId: string = "05
   return `https://everyayah.com/data/${folder}/${sStr}${aStr}.mp3`;
 }
 
-function toArabicNumerals(num: number): string {
-  const arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
-  return String(num)
-    .split("")
-    .map((d) => arabicDigits[parseInt(d, 10)] || d)
-    .join("");
-}
 
-interface LastReadState {
-  surahNumber: number;
-  surahName: string;
-  ayahNumber: number;
-  timestamp: number;
-}
-
-interface BookmarkItem {
-  surahNumber: number;
-  surahName: string;
-  ayahNumber: number;
-  teksArab: string;
-  teksIndonesia: string;
-  addedAt: number;
-}
-
-interface AudioQueueItem {
-  url: string;
-  ayah: number;
-  surah: number;
-  label?: string;
-  blockId?: number;
-}
 
 interface QuranClientProps {
   currentUserId: string;
@@ -196,6 +185,10 @@ export default function QuranClient({
   const [lastRead, setLastRead] = useState<LastReadState | null>(null);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [showBookmarksModal, setShowBookmarksModal] = useState(false);
+  const [cloudHydrationTick, setCloudHydrationTick] = useState(0);
+  const quranCloudReadyRef = useRef(false);
+  const lastSyncedQuranRef = useRef("");
+  const pendingQuranSyncBodyRef = useRef<string | null>(null);
 
   // Tafsir Modal States
   const [showTafsirModal, setShowTafsirModal] = useState(false);
@@ -210,13 +203,13 @@ export default function QuranClient({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     setToastMessage(msg);
     toastTimeoutRef.current = setTimeout(() => {
       setToastMessage(null);
     }, 2800);
-  };
+  }, []);
 
   const triggerHaptic = useCallback((ms: number | number[] = 12) => {
     if (typeof window !== "undefined" && "vibrate" in navigator) {
@@ -234,6 +227,8 @@ export default function QuranClient({
   };
 
   // Load preferences from localStorage on mount
+  const hasInitialRouteTargetRef = useRef(Boolean(initialPage || initialJuz));
+
   useEffect(() => {
     try {
       const savedLastRead = localStorage.getItem("expedient_quran_last_read");
@@ -248,7 +243,7 @@ export default function QuranClient({
       const savedFontSize = localStorage.getItem("expedient_quran_font_size");
       if (savedFontSize) setFontSize(savedFontSize as any);
 
-      if (!initialPage && !initialJuz) {
+      if (!hasInitialRouteTargetRef.current) {
         const savedPage = localStorage.getItem("expedient_cordoba_page");
         if (savedPage) {
           const parsed = parseInt(savedPage, 10);
@@ -283,7 +278,121 @@ export default function QuranClient({
     } catch (e) {
       console.warn("Error reading Quran preferences from localStorage:", e);
     }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function hydrateQuranFromCloud() {
+      try {
+        const res = await fetch("/api/ibadah/sync", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const remote = json?.state;
+        if (cancelled || !remote) return;
+
+        const remoteLastRead = remote.quran_last_read as LastReadState | null;
+        const remoteBookmarks = Array.isArray(remote.quran_bookmarks)
+          ? (remote.quran_bookmarks as BookmarkItem[])
+          : [];
+
+        lastSyncedQuranRef.current = JSON.stringify({
+          quran_last_read: remoteLastRead ?? null,
+          quran_bookmarks: remoteBookmarks,
+        });
+
+        if (remoteLastRead) {
+          setLastRead((curr) => {
+            if (!curr || remoteLastRead.timestamp > curr.timestamp) {
+              try {
+                localStorage.setItem("expedient_quran_last_read", JSON.stringify(remoteLastRead));
+              } catch {}
+              return remoteLastRead;
+            }
+            return curr;
+          });
+        }
+
+        if (remoteBookmarks.length > 0) {
+          setBookmarks((curr) => {
+            const seen = new Set(curr.map((b) => `${b.surahNumber}:${b.ayahNumber}`));
+            const merged = [...curr];
+            for (const item of remoteBookmarks) {
+              const key = `${item.surahNumber}:${item.ayahNumber}`;
+              if (!seen.has(key)) {
+                seen.add(key);
+                merged.push(item);
+              }
+            }
+            const trimmed = merged.slice(0, 200);
+            try {
+              localStorage.setItem("expedient_quran_bookmarks", JSON.stringify(trimmed));
+            } catch {}
+            return trimmed;
+          });
+        }
+      } catch {
+        // Offline or session expired: keep localStorage data intact
+      } finally {
+        if (!cancelled) {
+          quranCloudReadyRef.current = true;
+          setCloudHydrationTick((n) => n + 1);
+        }
+      }
+    }
+
+    void hydrateQuranFromCloud();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
+
+  // Sync Quran lastRead & bookmarks to cloud (cross-device Web <-> Android APK)
+  useEffect(() => {
+    if (!quranCloudReadyRef.current) return;
+
+    const payload = JSON.stringify({
+      quran_last_read: lastRead,
+      quran_bookmarks: bookmarks,
+    });
+
+    if (payload === lastSyncedQuranRef.current) {
+      pendingQuranSyncBodyRef.current = null;
+      return;
+    }
+
+    pendingQuranSyncBodyRef.current = payload;
+
+    const flushSync = () => {
+      const bodyToSend = pendingQuranSyncBodyRef.current;
+      if (!bodyToSend) return;
+      pendingQuranSyncBodyRef.current = null;
+      fetch("/api/ibadah/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: bodyToSend,
+        keepalive: true,
+      })
+        .then((res) => {
+          if (res.ok) {
+            lastSyncedQuranRef.current = bodyToSend;
+          }
+        })
+        .catch(() => {});
+    };
+
+    const timer = setTimeout(flushSync, 1200);
+    window.addEventListener("pagehide", flushSync);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pagehide", flushSync);
+    };
+  }, [lastRead, bookmarks, cloudHydrationTick]);
 
   // Load Cordoba Mushaf Page
   const loadCordobaPage = useCallback(async (pageNum: number) => {
@@ -740,25 +849,35 @@ export default function QuranClient({
     playQueueItemAtIndex(0);
   };
 
+  // Keep latest Surah/Qari/bookmarks in refs so memoized AyahCard handlers remain referentially stable
+  const surahActionRef = useRef({
+    selectedSurah,
+    autoPlayNext,
+    selectedQari,
+    bookmarks,
+    playQueueItemAtIndex: null as unknown as (index: number) => void,
+  });
+
   // Play in Mode Tilawah: from this ayah onwards
-  const playTilawahAyah = (ayahNum: number) => {
+  const playTilawahAyah = useCallback((ayahNum: number) => {
     triggerHaptic(10);
-    if (!selectedSurah) return;
-    const startIdx = selectedSurah.ayat.findIndex((a) => a.nomorAyat === ayahNum);
-    const ayahsToPlay = autoPlayNext ? selectedSurah.ayat.slice(startIdx) : [selectedSurah.ayat[startIdx]];
+    const { selectedSurah: surah, autoPlayNext: nextAuto, selectedQari: qari, playQueueItemAtIndex: playAt } = surahActionRef.current;
+    if (!surah) return;
+    const startIdx = surah.ayat.findIndex((a) => a.nomorAyat === ayahNum);
+    const ayahsToPlay = nextAuto ? surah.ayat.slice(startIdx) : [surah.ayat[startIdx]];
 
     const items: AudioQueueItem[] = ayahsToPlay.map((a) => ({
-      url: a.audio[selectedQari] || "",
+      url: a.audio[qari] || "",
       ayah: a.nomorAyat,
-      surah: selectedSurah.nomor,
-      label: `${selectedSurah.namaLatin} : Ayat ${a.nomorAyat}`,
+      surah: surah.nomor,
+      label: `${surah.namaLatin} : Ayat ${a.nomorAyat}`,
     }));
 
     audioQueueRef.current = items;
     setAudioQueue(items);
     setCurrentPlayingBlockId(null);
-    playQueueItemAtIndex(0);
-  };
+    playAt(0);
+  }, [triggerHaptic]);
 
   // Jump handlers
   const handleJumpSurah = (surahNum: number) => {
@@ -814,14 +933,15 @@ export default function QuranClient({
   };
 
   // Open Tafsir Modal
-  const openTafsirModal = async (ayahNumber: number) => {
-    if (!selectedSurah) return;
+  const openTafsirModal = useCallback(async (ayahNumber: number) => {
+    const surah = surahActionRef.current.selectedSurah;
+    if (!surah) return;
     triggerHaptic(10);
     setSelectedAyahTafsir(ayahNumber);
     setShowTafsirModal(true);
     setLoadingTafsir(true);
     try {
-      const res = await fetch(`/api/quran/tafsir/${selectedSurah.nomor}`);
+      const res = await fetch(`/api/quran/tafsir/${surah.nomor}`);
       const json = await res.json();
       if (json.success && json.data) {
         setTafsirData(json.data);
@@ -831,38 +951,54 @@ export default function QuranClient({
     } finally {
       setLoadingTafsir(false);
     }
-  };
+  }, [triggerHaptic]);
 
   // Bookmark Toggle
-  const toggleBookmark = (ayah: QuranAyatItem) => {
-    if (!selectedSurah) return;
+  const toggleBookmark = useCallback((ayah: QuranAyatItem) => {
+    const { selectedSurah: surah, bookmarks: currentBookmarks } = surahActionRef.current;
+    if (!surah) return;
     triggerHaptic(10);
-    const exists = bookmarks.some(
-      (b) => b.surahNumber === selectedSurah.nomor && b.ayahNumber === ayah.nomorAyat
+    const exists = currentBookmarks.some(
+      (b) => b.surahNumber === surah.nomor && b.ayahNumber === ayah.nomorAyat
     );
     let updated: BookmarkItem[];
     if (exists) {
-      updated = bookmarks.filter(
-        (b) => !(b.surahNumber === selectedSurah.nomor && b.ayahNumber === ayah.nomorAyat)
+      updated = currentBookmarks.filter(
+        (b) => !(b.surahNumber === surah.nomor && b.ayahNumber === ayah.nomorAyat)
       );
       showToast(`Bookmark Ayat ${ayah.nomorAyat} dihapus`);
     } else {
       const newItem: BookmarkItem = {
-        surahNumber: selectedSurah.nomor,
-        surahName: selectedSurah.namaLatin,
+        surahNumber: surah.nomor,
+        surahName: surah.namaLatin,
         ayahNumber: ayah.nomorAyat,
         teksArab: ayah.teksArab,
         teksIndonesia: ayah.teksIndonesia,
         addedAt: Date.now(),
       };
-      updated = [newItem, ...bookmarks];
+      updated = [newItem, ...currentBookmarks];
       showToast(`Ayat ${ayah.nomorAyat} disimpan ke Bookmark`);
     }
     setBookmarks(updated);
     try {
       localStorage.setItem("expedient_quran_bookmarks", JSON.stringify(updated));
     } catch {}
-  };
+  }, [triggerHaptic, showToast]);
+
+  useEffect(() => {
+    surahActionRef.current = {
+      selectedSurah,
+      autoPlayNext,
+      selectedQari,
+      bookmarks,
+      playQueueItemAtIndex,
+    };
+  });
+
+  const bookmarkSet = useMemo(
+    () => new Set(bookmarks.map((b) => `${b.surahNumber}:${b.ayahNumber}`)),
+    [bookmarks]
+  );
 
   // Filtered Surahs
   const filteredSurahs = useMemo(() => {
@@ -1867,7 +2003,7 @@ export default function QuranClient({
                           <span>{locale === "ar" ? "تحفيز الحفظ" : locale === "en" ? "Motivation" : "Motivasi"}</span>
                         </div>
                         <p className="motivasi-body-text">
-                          "{pageMeta.motivasiQuote}"
+                          &ldquo;{pageMeta.motivasiQuote}&rdquo;
                         </p>
                         <div className="motivasi-author-text">
                           - {pageMeta.motivasiAuthor}
@@ -2111,7 +2247,7 @@ export default function QuranClient({
                   <span>{locale === "ar" ? "المصحف الإلكتروني المعتمد" : locale === "en" ? "Official Digital Mushaf" : "Mushaf Digital Kemenag RI"}</span>
                 </div>
                 <h1 className="quran-hero-title">
-                  Al-Qur'an <span className="gold-text">Al-Karim</span>
+                  Al-Qur&apos;an <span className="gold-text">Al-Karim</span>
                 </h1>
                 <p className="quran-hero-desc">
                   {locale === "ar"
@@ -2349,7 +2485,7 @@ export default function QuranClient({
                 <span className="banner-surah-number">SURAH KE-{selectedSurah.nomor}</span>
                 <h1 className="banner-arabic-name">{selectedSurah.nama}</h1>
                 <h2 className="banner-latin-name">{selectedSurah.namaLatin}</h2>
-                <p className="banner-meaning">"{selectedSurah.arti}" • {selectedSurah.jumlahAyat} Ayat • {selectedSurah.tempatTurun}</p>
+                <p className="banner-meaning">&ldquo;{selectedSurah.arti}&rdquo; • {selectedSurah.jumlahAyat} Ayat • {selectedSurah.tempatTurun}</p>
 
                 {/* Bismillah Banner (except Surah 9 At-Taubah & Surah 1 Al-Fatihah where Bismillah is ayah 1) */}
                 {selectedSurah.nomor !== 9 && selectedSurah.nomor !== 1 && (
@@ -2433,75 +2569,24 @@ export default function QuranClient({
                 </div>
               </div>
 
-              {/* Verses List */}
+              {/* Verses List (React.memo per Ayah + O(1) Bookmark lookup) */}
               <div className={`verses-container font-${fontSize}`}>
                 {selectedSurah.ayat.map((ayah) => {
                   const isCurrentPlaying = currentPlayingAyah === ayah.nomorAyat;
-                  const isBookmarked = bookmarks.some(
-                    (b) => b.surahNumber === selectedSurah.nomor && b.ayahNumber === ayah.nomorAyat
-                  );
-
                   return (
-                    <div
+                    <QuranAyahCard
                       key={ayah.nomorAyat}
-                      id={`ayah-${ayah.nomorAyat}`}
-                      className={`ayah-card ${isCurrentPlaying ? "active-playing" : ""}`}
-                    >
-                      <div className="ayah-header">
-                        <div className="ayah-number-badge">
-                          <span>{selectedSurah.nomor}:{ayah.nomorAyat}</span>
-                        </div>
-                        <div className="ayah-action-buttons">
-                          <button
-                            type="button"
-                            className={`ayah-action-btn ${isCurrentPlaying && isPlaying ? "playing-btn" : ""}`}
-                            onClick={() => playTilawahAyah(ayah.nomorAyat)}
-                            title="Dengar Murottal (Lanjut terus ke ayat berikutnya)"
-                          >
-                            <i className={`fa-solid ${isCurrentPlaying && isPlaying ? "fa-pause" : "fa-play"}`}></i>
-                          </button>
-
-                          <button
-                            type="button"
-                            className={`ayah-action-btn ${isBookmarked ? "bookmarked-btn" : ""}`}
-                            onClick={() => toggleBookmark(ayah)}
-                            title={isBookmarked ? "Hapus dari Bookmark" : "Simpan Bookmark"}
-                          >
-                            <i className={`fa-${isBookmarked ? "solid" : "regular"} fa-star`}></i>
-                          </button>
-
-                          <button
-                            type="button"
-                            className="ayah-action-btn tafsir-btn"
-                            onClick={() => openTafsirModal(ayah.nomorAyat)}
-                            title="Baca Tafsir Ayat"
-                          >
-                            <i className="fa-solid fa-book-open-reader"></i>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="ayah-arabic-wrapper">
-                        <p className="ayah-arabic-text" dir="rtl">
-                          {ayah.teksArab}
-                          <span className="ayah-end-symbol">
-                            ۝<span className="ayah-end-num">{toArabicNumerals(ayah.nomorAyat)}</span>
-                          </span>
-                        </p>
-                      </div>
-
-                      {showLatin && ayah.teksLatin && (
-                        <div className="ayah-latin-wrapper">
-                          <p className="ayah-latin-text">{ayah.teksLatin}</p>
-                        </div>
-                      )}
-
-                      {showTranslation && (
-                        <div className="ayah-translation-wrapper">
-                          <p className="ayah-translation-text">{ayah.teksIndonesia}</p>
-                        </div>
-                      )}
-                    </div>
+                      surahNomor={selectedSurah.nomor}
+                      ayah={ayah}
+                      isCurrentPlaying={isCurrentPlaying}
+                      isPlaying={isCurrentPlaying && isPlaying}
+                      isBookmarked={bookmarkSet.has(`${selectedSurah.nomor}:${ayah.nomorAyat}`)}
+                      showLatin={showLatin}
+                      showTranslation={showTranslation}
+                      onPlayAyah={playTilawahAyah}
+                      onToggleBookmark={toggleBookmark}
+                      onOpenTafsir={openTafsirModal}
+                    />
                   );
                 })}
               </div>
@@ -2541,302 +2626,33 @@ export default function QuranClient({
         </>
       )}
 
-      {/* ========================================================================= */}
-      {/* VIEW 3: KHATAMAN BERSAMA 30 JUZ (ONE MEMBER ONE JUZ REAL-TIME)            */}
-      {/* ========================================================================= */}
+      {/* VIEW 3: KHATAMAN BERSAMA 30 JUZ (Lazy-loaded + Defers khatam.css until active) */}
       {mainDisplayMode === "khataman" && (
-        <div className="khatam-page-wrapper" style={{ padding: 0, minHeight: "auto" }}>
-          <div className="khatam-container" style={{ maxWidth: "1380px", margin: "0 auto", padding: 0 }}>
-            {/* Header Box */}
-            <div className="khatam-header-box">
-              <div className="khatam-badge-sup">
-                <i className="fa-solid fa-kaaba"></i> Khatam Bersama Angkatan
-              </div>
-              <h1 className="khatam-title">Khatam Bersama Real-Time</h1>
-              <p className="khatam-subtitle">
-                One Member One Juz: pembagian 30 Juz Al-Qur&apos;an secara serentak yang terhubung dengan Mushaf Al-Hufaz untuk keluarga besar Expedient Generation 43.
-              </p>
-            </div>
-
-            {/* Hero Progress Card */}
-            <div className="khatam-hero-card">
-              <div className="khatam-stats-row">
-                <div className="khatam-stat-item">
-                  <span className="khatam-stat-label">Sesi Khataman</span>
-                  <span style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--gold-main)" }}>
-                    {khatamSession?.title || "Khataman Pekanan Angkatan 43"}
-                  </span>
-                </div>
-
-                <div className="khatam-stat-item">
-                  <span className="khatam-stat-label">Progres Khatam</span>
-                  <div className="khatam-stat-value">
-                    <span>{khatamCompletedCount}</span>
-                    <span className="khatam-stat-total">/ 30 Juz ({khatamProgressPercent}%)</span>
-                  </div>
-                </div>
-
-                <div className="khatam-stat-item">
-                  <span className="khatam-stat-label">Status Alokasi</span>
-                  <div style={{ display: "flex", gap: "10px", fontSize: "0.82rem", fontWeight: 600 }}>
-                    <span style={{ color: "#2bb97c" }}>{khatamCompletedCount} Selesai</span>
-                    <span style={{ color: "#ffb300" }}>• {khatamReadingCount} Dibaca</span>
-                    <span style={{ color: "var(--text-secondary)" }}>• {khatamAvailableCount} Kosong</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              <div className="khatam-progress-wrapper">
-                <div className="khatam-progress-meta">
-                  <span>
-                    {khatamCompletedCount === 30
-                      ? "30/30 Juz Selesai - Khatam Bersama Berhasil!"
-                      : `${30 - khatamCompletedCount} Juz Menuju Khatam`}
-                  </span>
-                  <span style={{ fontWeight: 700, color: "var(--gold-main)" }}>{khatamProgressPercent}%</span>
-                </div>
-                <div className="khatam-progress-track">
-                  <div
-                    className="khatam-progress-bar"
-                    style={{ width: `${Math.max(khatamProgressPercent, khatamCompletedCount > 0 ? 5 : 0)}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="khatam-hero-actions">
-                {khatamAvailableCount > 0 && (
-                  <button type="button" className="btn-khatam-quick" onClick={handleKhatamQuickClaim}>
-                    <i className="fa-solid fa-bolt-lightning"></i> Ambil Juz Acak
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  className="btn-khatam-doa-modal"
-                  onClick={() => setShowKhatamDoaModal(true)}
-                >
-                  <i className="fa-solid fa-book-quran"></i> Doa Khatam Al-Qur&apos;an
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-khatam-doa-modal"
-                  style={{ background: "rgba(16, 185, 129, 0.15)", borderColor: "#10b981", color: "#34d399" }}
-                  onClick={() => {
-                    setMainDisplayMode("cordoba");
-                    showToast("Membuka Mushaf Al-Hufaz 15 Baris");
-                  }}
-                >
-                  <i className="fa-solid fa-book-open"></i> Buka Mushaf Al-Hufaz
-                </button>
-              </div>
-            </div>
-
-            {/* Filter Bar */}
-            <div className="khatam-filter-bar">
-              <button
-                type="button"
-                className={`khatam-filter-btn ${khatamFilter === "all" ? "active" : ""}`}
-                onClick={() => setKhatamFilter("all")}
-              >
-                Semua Juz (30)
-              </button>
-              <button
-                type="button"
-                className={`khatam-filter-btn ${khatamFilter === "available" ? "active" : ""}`}
-                onClick={() => setKhatamFilter("available")}
-              >
-                Tersedia ({khatamAvailableCount})
-              </button>
-              <button
-                type="button"
-                className={`khatam-filter-btn ${khatamFilter === "my" ? "active" : ""}`}
-                onClick={() => setKhatamFilter("my")}
-              >
-                Juz Saya ({khatamAllocations.filter((a) => a.user_id === currentUser.id).length})
-              </button>
-              <button
-                type="button"
-                className={`khatam-filter-btn ${khatamFilter === "completed" ? "active" : ""}`}
-                onClick={() => setKhatamFilter("completed")}
-              >
-                Selesai ({khatamCompletedCount})
-              </button>
-            </div>
-
-            {/* 30 Juz Grid */}
-            <div className="khatam-grid">
-              {filteredKhatamAllocations.map((item) => {
-                const isMyJuz = item.user_id === currentUser.id;
-                const isBusy = khatamLoadingJuz === item.juz_number;
-
-                return (
-                  <div
-                    key={item.juz_number}
-                    className={`juz-card status-${item.status} ${isMyJuz ? "is-my-juz" : ""}`}
-                  >
-                    {/* Header: Numeral & Status */}
-                    <div className="juz-card-header">
-                      <div className="juz-number-badge">
-                        <span className="juz-arabic-num">{ARABIC_NUMS[item.juz_number]}</span>
-                        <span className="juz-latin-num">Juz {item.juz_number}</span>
-                      </div>
-                      <span className="juz-status-pill">
-                        {item.status === "available" && "Tersedia"}
-                        {item.status === "reading" && "Dibaca"}
-                        {item.status === "completed" && "Selesai"}
-                      </span>
-                    </div>
-
-                    {/* Surah Range */}
-                    <div className="juz-surah-range">
-                      <i className="fa-regular fa-bookmark" style={{ color: "var(--gold-main)", marginRight: "5px" }}></i>
-                      {item.surah_range}
-                    </div>
-
-                    {/* Reader Info */}
-                    {item.status !== "available" ? (
-                      <div className="juz-reader-box">
-                        {item.user_avatar ? (
-                          <Image
-                            src={item.user_avatar}
-                            alt={item.user_name || "Pembaca"}
-                            width={26}
-                            height={26}
-                            className="juz-reader-avatar"
-                          />
-                        ) : (
-                          <div className="juz-reader-fallback">
-                            {(item.user_name || "A")[0].toUpperCase()}
-                          </div>
-                        )}
-                        <span className="juz-reader-name">
-                          {isMyJuz ? "Anda" : item.user_name || "Sahabat 43"}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="juz-reader-box" style={{ opacity: 0.5 }}>
-                        <span style={{ fontSize: "0.72rem", fontStyle: "italic" }}>
-                          Belum ada pembaca
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="juz-card-actions">
-                      {item.status === "available" && (
-                        <button
-                          type="button"
-                          disabled={isBusy}
-                          className="btn-juz-claim"
-                          onClick={() => handleKhatamAction("claim", item.juz_number)}
-                        >
-                          <i className="fa-solid fa-hand-holding-heart"></i>
-                          {isBusy ? "Memproses..." : "Klaim Juz"}
-                        </button>
-                      )}
-
-                      {item.status === "reading" && isMyJuz && (
-                        <>
-                          <button
-                            type="button"
-                            disabled={isBusy}
-                            className="btn-juz-complete"
-                            onClick={() => handleKhatamAction("complete", item.juz_number)}
-                          >
-                            <i className="fa-solid fa-check"></i>
-                            {isBusy ? "Menyimpan..." : "Tandai Selesai"}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={isBusy}
-                            className="btn-juz-unclaim"
-                            onClick={() => handleKhatamAction("unclaim", item.juz_number)}
-                          >
-                            Batalkan Klaim
-                          </button>
-                        </>
-                      )}
-
-                      {item.status === "reading" && !isMyJuz && (
-                        <div style={{ textAlign: "center", fontSize: "0.72rem", color: "#ffb300", padding: "6px 0" }}>
-                          <i className="fa-solid fa-hourglass-half" style={{ marginRight: "4px" }}></i>
-                          Sedang Ditadarus
-                        </div>
-                      )}
-
-                      {item.status === "completed" && (
-                        <div className="juz-completed-stamp">
-                          <i className="fa-solid fa-circle-check"></i>
-                          Khatam
-                        </div>
-                      )}
-
-                      {/* Direct 1-Click Jump to Authentic Mushaf */}
-                      <button
-                        type="button"
-                        className="btn-juz-read-mushaf"
-                        onClick={() => handleOpenJuzInMushaf(item.juz_number)}
-                        title={`Buka Juz ${item.juz_number} langsung di Mushaf Al-Hufaz 15 Baris`}
-                      >
-                        <i className="fa-solid fa-book-open"></i>
-                        <span>Baca di Mushaf (Hal. {JUZ_START_PAGES[item.juz_number] || 1})</span>
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <QuranKhatamTab
+          currentUserId={currentUser.id}
+          khatamSession={khatamSession}
+          khatamAllocations={khatamAllocations}
+          filteredKhatamAllocations={filteredKhatamAllocations}
+          khatamFilter={khatamFilter}
+          setKhatamFilter={setKhatamFilter}
+          khatamCompletedCount={khatamCompletedCount}
+          khatamReadingCount={khatamReadingCount}
+          khatamAvailableCount={khatamAvailableCount}
+          khatamProgressPercent={khatamProgressPercent}
+          khatamLoadingJuz={khatamLoadingJuz}
+          onQuickClaim={handleKhatamQuickClaim}
+          onOpenDoaModal={() => setShowKhatamDoaModal(true)}
+          onOpenMushaf={() => {
+            setMainDisplayMode("cordoba");
+            showToast("Membuka Mushaf Al-Hufaz 15 Baris");
+          }}
+          onKhatamAction={handleKhatamAction}
+          onOpenJuzInMushaf={handleOpenJuzInMushaf}
+        />
       )}
 
-      {/* Doa Khatam Al-Qur'an Modal */}
       {showKhatamDoaModal && (
-        <div className="khatam-modal-backdrop" onClick={() => setShowKhatamDoaModal(false)}>
-          <div className="khatam-modal-box" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="btn-modal-close"
-              onClick={() => setShowKhatamDoaModal(false)}
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-
-            <div className="modal-header-text">
-              <div className="khatam-badge-sup" style={{ margin: "0 auto" }}>
-                <i className="fa-solid fa-star-and-crescent"></i> Doa Mustajab
-              </div>
-              <h2>Doa Khatam Al-Qur&apos;an</h2>
-              <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", margin: 0 }}>
-                اللَّهُمَّ ارْحَمْنَا بِالقُرْءَانِ
-              </p>
-            </div>
-
-            <div className="modal-doa-content">
-              <div className="doa-arabic">
-                اللَّهُمَّ ارْحَمْنِي بِالْقُرْآنِ وَاجْعَلْهُ لِي إِمَامًا وَنُورًا وَهُدًى وَرَحْمَةً، اللَّهُمَّ ذَكِّرْنِي مِنْهُ مَا نَسِيتُ وَعَلِّمْنِي مِنْهُ مَا جَهِلْتُ وَارْزُقْنِي تِلَاوَتَهُ آنَاءَ اللَّيْلِ وَأَطْرَافَ النَّهَارِ وَاجْعَلْهُ لِي حُجَّةً يَا رَبَّ الْعَالَمِينَ
-              </div>
-              <div className="doa-latin">
-                &ldquo;Allāhummarhamnā bil-qur&apos;ān, waj&apos;alhu lanā imāman wa nūran wa hudan wa rahmah. Allāhumma żakkirnā minhu mā nasīnā, wa &apos;allimnā minhu mā jahilnā, warzuqnā tilāwatahu ānā&apos;al-layli wa aṭrāfan-nahār, waj&apos;alhu lanā hujjatan yā rabbal-&apos;ālamīn.&rdquo;
-              </div>
-              <div className="doa-meaning">
-                &ldquo;Ya Allah, rahmatilah kami dengan Al-Qur&apos;an. Jadikanlah ia bagi kami sebagai panutan, cahaya, petunjuk, dan rahmat. Ya Allah, ingatkanlah kami dari apa yang kami lupakan darinya, ajarkanlah kami apa yang belum kami ketahui darinya, anugerahilah kami kemampuan membacanya di sepanjang malam dan siang hari, serta jadikanlah ia sebagai pembela kami, wahai Tuhan semesta alam.&rdquo;
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="btn-khatam-quick"
-              style={{ width: "100%", justifyContent: "center" }}
-              onClick={() => setShowKhatamDoaModal(false)}
-            >
-              Aamiin Ya Rabbal &apos;Alamin
-            </button>
-          </div>
-        </div>
+        <QuranKhatamDoaModal onClose={() => setShowKhatamDoaModal(false)} />
       )}
 
       {/* ========================================================================= */}
@@ -2941,134 +2757,34 @@ export default function QuranClient({
         </div>
       )}
 
-      {/* TAFSIR MODAL */}
       {showTafsirModal && (
-        <div
-          className="quran-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label={locale === "ar" ? "تفسير الآيات الكريمة" : locale === "en" ? "Quranic Tafsir Analysis" : "Tafsir Ringkas Kemenag RI"}
-          onClick={() => setShowTafsirModal(false)}
-        >
-          <div className="quran-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="quran-modal-header">
-              <div className="modal-title-group">
-                <i className="fa-solid fa-book-open-reader" aria-hidden="true"></i>
-                <h3>{locale === "ar" ? "تفسير الآيات الكريمة" : locale === "en" ? "Quranic Tafsir Analysis" : "Tafsir Ringkas Kemenag RI"}</h3>
-              </div>
-              <button
-                type="button"
-                className="modal-close-btn"
-                onClick={() => setShowTafsirModal(false)}
-                aria-label={t.common.close}
-                title={t.common.close}
-              >
-                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
-              </button>
-            </div>
-            <div className="quran-modal-body">
-              {loadingTafsir ? (
-                <QuranTafsirSkeleton />
-              ) : (
-                <>
-                  {selectedAyahTafsir && selectedSurah && (
-                    <div className="tafsir-ayah-box">
-                      <div className="tafsir-arabic" dir="rtl">
-                        {selectedSurah.ayat.find((a) => a.nomorAyat === selectedAyahTafsir)?.teksArab}
-                      </div>
-                      <div className="tafsir-indo">
-                        "{selectedSurah.ayat.find((a) => a.nomorAyat === selectedAyahTafsir)?.teksIndonesia}"
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="tafsir-explanation">
-                    <h4>{locale === "ar" ? "البيان والتفسير:" : locale === "en" ? "Official Tafsir Explanation:" : "Penjelasan Tafsir Resmi:"}</h4>
-                    <p>
-                      {tafsirData?.tafsir?.find((t: any) => t.ayat === selectedAyahTafsir)?.teks ||
-                        (locale === "ar" ? "تفسير هذه الآية قيد المعالجة." : locale === "en" ? "Tafsir for this verse is being loaded." : "Tafsir resmi Kemenag RI untuk ayat ini sedang diproses.")}
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <QuranTafsirModal
+          locale={locale}
+          closeLabel={t.common.close}
+          loadingTafsir={loadingTafsir}
+          selectedAyahTafsir={selectedAyahTafsir}
+          selectedSurah={selectedSurah}
+          tafsirData={tafsirData}
+          onClose={() => setShowTafsirModal(false)}
+        />
       )}
 
-      {/* BOOKMARKS MODAL */}
       {showBookmarksModal && (
-        <div
-          className="quran-modal-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label={locale === "ar" ? "الإشارات المرجعية والآيات المفضلة" : locale === "en" ? "Bookmarks & Favorite Verses" : "Bookmark & Ayat Favorit"}
-          onClick={() => setShowBookmarksModal(false)}
-        >
-          <div className="quran-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="quran-modal-header">
-              <div className="modal-title-group">
-                <i className="fa-solid fa-star gold-icon" aria-hidden="true"></i>
-                <h3>{locale === "ar" ? "الإشارات المرجعية والآيات المفضلة" : locale === "en" ? "Bookmarks & Favorite Verses" : "Bookmark & Ayat Favorit"}</h3>
-              </div>
-              <button
-                type="button"
-                className="modal-close-btn"
-                onClick={() => setShowBookmarksModal(false)}
-                aria-label={t.common.close}
-                title={t.common.close}
-              >
-                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
-              </button>
-            </div>
-            <div className="quran-modal-body">
-              {bookmarks.length === 0 ? (
-                <div className="modal-empty-bookmarks">
-                  <i className="fa-regular fa-bookmark empty-icon"></i>
-                  <p>{locale === "ar" ? "لم يتم حفظ أي آيات بعد" : locale === "en" ? "No bookmarked verses yet" : "Belum ada ayat yang ditandai"}</p>
-                  <span>{locale === "ar" ? "انقر على رمز النجمة بجانب الآية لحفظها هنا." : locale === "en" ? "Tap the star icon next to any verse to save it here." : "Ketuk ikon bintang pada ayat saat membaca untuk menyimpannya di sini."}</span>
-                </div>
-              ) : (
-                <div className="bookmarks-list">
-                  {bookmarks.map((b, idx) => (
-                    <div
-                      key={idx}
-                      className="bookmark-item-card"
-                      onClick={() => {
-                        setShowBookmarksModal(false);
-                        openSurah(b.surahNumber, b.ayahNumber);
-                      }}
-                    >
-                      <div className="bookmark-item-top">
-                        <span className="bookmark-surah-tag">
-                          {locale === "ar" ? `سورة ${b.surahName} : آية ${b.ayahNumber}` : locale === "en" ? `Surah ${b.surahName} : Verse ${b.ayahNumber}` : `Surah ${b.surahName} : Ayat ${b.ayahNumber}`}
-                        </span>
-                        <button
-                          type="button"
-                          className="bookmark-delete-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const updated = bookmarks.filter((_, i) => i !== idx);
-                            setBookmarks(updated);
-                            try {
-                              localStorage.setItem("expedient_quran_bookmarks", JSON.stringify(updated));
-                            } catch {}
-                            showToast(locale === "ar" ? "تمت إزالة الإشارة المرجعية" : locale === "en" ? "Bookmark removed" : "Bookmark dihapus");
-                          }}
-                          title={locale === "ar" ? "حذف الإشارة المرجعية" : locale === "en" ? "Remove bookmark" : "Hapus bookmark"}
-                        >
-                          <i className="fa-solid fa-trash-can"></i>
-                        </button>
-                      </div>
-                      <p className="bookmark-arabic" dir="rtl">{b.teksArab}</p>
-                      <p className="bookmark-translation">{b.teksIndonesia}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <QuranBookmarksModal
+          locale={locale}
+          closeLabel={t.common.close}
+          bookmarks={bookmarks}
+          onClose={() => setShowBookmarksModal(false)}
+          onOpenSurah={openSurah}
+          onRemoveBookmark={(idx) => {
+            const updated = bookmarks.filter((_, i) => i !== idx);
+            setBookmarks(updated);
+            try {
+              localStorage.setItem("expedient_quran_bookmarks", JSON.stringify(updated));
+            } catch {}
+            showToast(locale === "ar" ? "تمت إزالة الإشارة المرجعية" : locale === "en" ? "Bookmark removed" : "Bookmark dihapus");
+          }}
+        />
       )}
     </div>
   );

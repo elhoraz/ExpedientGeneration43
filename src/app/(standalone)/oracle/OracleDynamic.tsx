@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { OracleSkeleton } from "@/components/ui/Skeleton";
+import { OracleSkeleton } from "@/components/ui/skeletons/SkeletonMedia";
 
 const OracleClient = dynamic(() => import("./OracleClient"), {
   ssr: false,

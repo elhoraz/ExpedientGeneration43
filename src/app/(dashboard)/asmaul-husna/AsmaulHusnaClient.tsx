@@ -906,7 +906,7 @@ export default function AsmaulHusnaClient() {
                 {ASMAUL_HUSNA_DATA[currentPlayIndex].latin}
               </h3>
               <p style={{ fontSize: "0.95rem", color: "#cbd5e1", margin: 0 }}>
-                "{ASMAUL_HUSNA_DATA[currentPlayIndex].translation}"
+                &ldquo;{ASMAUL_HUSNA_DATA[currentPlayIndex].translation}&rdquo;
               </p>
               <div className="asma-quran-ref-badge" style={{ marginTop: "6px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
                 <i className="fa-solid fa-book-open" aria-hidden="true"></i>

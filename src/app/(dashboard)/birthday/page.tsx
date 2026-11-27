@@ -37,13 +37,13 @@ export default async function BirthdayListPage() {
     }
     if (isNaN(m) || isNaN(d) || m < 1 || m > 12 || d < 1 || d > 31) continue;
 
-    let thisYearBday = new Date(now.getFullYear(), m - 1, d);
-    let diffMs = thisYearBday.getTime() - todayMidnight.getTime();
+    const thisYearBday = new Date(now.getFullYear(), m - 1, d);
+    const diffMs = thisYearBday.getTime() - todayMidnight.getTime();
     let daysLeft = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
     if (daysLeft < 0) {
       // Birthday already passed this year, compute for next year
-      let nextYearBday = new Date(now.getFullYear() + 1, m - 1, d);
+      const nextYearBday = new Date(now.getFullYear() + 1, m - 1, d);
       daysLeft = Math.round((nextYearBday.getTime() - todayMidnight.getTime()) / (1000 * 60 * 60 * 24));
     }
 

@@ -40,30 +40,69 @@
             : '/images/earth-night.jpg';
     };
 
-    // ===== 5. STAR FIELD =====
+    // ===== 5. STAR FIELD (adaptive tier + pauses when hidden or light mode) =====
     const starCanvas = document.getElementById('starField');
     if (starCanvas) {
-        const ctx = starCanvas.getContext('2d');
-        starCanvas.width = window.innerWidth;
-        starCanvas.height = window.innerHeight;
-        const stars = Array.from({ length: 200 }, () => ({
-            x: Math.random() * starCanvas.width,
-            y: Math.random() * starCanvas.height,
-            r: Math.random() * 1.5 + 0.3,
-            o: Math.random()
-        }));
-        (function drawStars() {
-            if (getTheme() === 'light') { ctx.clearRect(0, 0, starCanvas.width, starCanvas.height); requestAnimationFrame(drawStars); return; }
-            ctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
-            stars.forEach(s => {
-                s.o += (Math.random() - 0.5) * 0.03;
-                s.o = Math.max(0.1, Math.min(1, s.o));
-                ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255,255,255,${s.o})`; ctx.fill();
-            });
-            requestAnimationFrame(drawStars);
-        })();
-        window.addEventListener('resize', () => { starCanvas.width = window.innerWidth; starCanvas.height = window.innerHeight; });
+        const isLitePerf = document.documentElement.getAttribute('data-perf') === 'lite';
+        if (isLitePerf) {
+            starCanvas.style.display = 'none';
+        } else {
+            const ctx = starCanvas.getContext('2d');
+            starCanvas.width = window.innerWidth;
+            starCanvas.height = window.innerHeight;
+            const isMobileView = window.innerWidth < 768;
+            const starCount = isMobileView ? 80 : 180;
+            const stars = Array.from({ length: starCount }, () => ({
+                x: Math.random() * starCanvas.width,
+                y: Math.random() * starCanvas.height,
+                r: Math.random() * 1.5 + 0.3,
+                o: Math.random()
+            }));
+
+            let starRafId = null;
+            let lastStarFrame = 0;
+
+            const drawStars = (now = 0) => {
+                if (document.hidden || getTheme() === 'light') {
+                    if (ctx) ctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+                    starRafId = null;
+                    return;
+                }
+                if (isMobileView && now - lastStarFrame < 32) {
+                    starRafId = requestAnimationFrame(drawStars);
+                    return;
+                }
+                lastStarFrame = now;
+                ctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+                for (let i = 0; i < stars.length; i++) {
+                    const s = stars[i];
+                    s.o += (Math.random() - 0.5) * 0.03;
+                    s.o = Math.max(0.1, Math.min(1, s.o));
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255,255,255,${s.o})`;
+                    ctx.fill();
+                }
+                starRafId = requestAnimationFrame(drawStars);
+            };
+
+            const resumeStarsIfNeeded = () => {
+                if (!document.hidden && getTheme() !== 'light' && !starRafId) {
+                    starRafId = requestAnimationFrame(drawStars);
+                } else if (getTheme() === 'light' && ctx) {
+                    ctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+                }
+            };
+
+            resumeStarsIfNeeded();
+            document.addEventListener('visibilitychange', resumeStarsIfNeeded);
+            const themeObs = new MutationObserver(resumeStarsIfNeeded);
+            themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+            window.addEventListener('resize', () => {
+                starCanvas.width = window.innerWidth;
+                starCanvas.height = window.innerHeight;
+            }, { passive: true });
+        }
     }
 
     // ===== 4. ANIMATED STATS =====
@@ -180,7 +219,15 @@
         const waEl = document.getElementById('idWa');
         if (d.wa) { waEl.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); waEl.style.display = 'flex'; }
         else { waEl.style.display = 'none'; }
-        document.getElementById('idProfile').href = '/syndicate';
+        const profEl = document.getElementById('idProfile');
+        if (profEl) {
+            if (d.id && d.id !== 'center') {
+                profEl.href = '/dossier/' + d.id;
+                profEl.style.display = 'flex';
+            } else {
+                profEl.style.display = 'none';
+            }
+        }
         drawer.classList.add('open');
         overlay.classList.add('open');
         // 9. FLY + ARC HIGHLIGHT

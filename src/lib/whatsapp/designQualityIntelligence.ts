@@ -965,7 +965,7 @@ export async function detectWatermarksAndArtifacts(
     const width = meta.width || 1080;
     const height = meta.height || 1920;
 
-    let hasWatermark = false;
+    const hasWatermark = false;
     let hasBlurryDefect = false;
 
     // 1. Detect severe compression / corrupt artifacts

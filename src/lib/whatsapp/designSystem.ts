@@ -119,7 +119,7 @@ export function calculateHeadlineSize(
 
   // If multi-word headline is long, measure against longest balanced line
   let textToMeasure = clean;
-  let singleLineWidth = estimateTextWidth(clean, baseSize, fontFamily, 3);
+  const singleLineWidth = estimateTextWidth(clean, baseSize, fontFamily, 3);
   if (singleLineWidth > availableWidth && clean.includes(" ") && clean.length > 18) {
     const lines = splitHeadlineBalanced(clean, 16);
     textToMeasure = lines.reduce((a, b) => (a.length > b.length ? a : b), "");

@@ -11,12 +11,12 @@ export default async function CmsPage() {
 
   const { data: contents } = await supabase
     .from("site_content")
-    .select("*")
+    .select("id, content_key, content_type, content_value")
     .order("content_key", { ascending: true });
 
   const { data: galeri } = await supabase
     .from("galeri")
-    .select("*")
+    .select("id, image_url, caption, created_at")
     .order("created_at", { ascending: true });
 
   return (

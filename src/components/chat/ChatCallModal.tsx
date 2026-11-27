@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { getAvatarUrl } from "@/lib/avatar";
@@ -60,7 +60,7 @@ export default function ChatCallModal({
   onEndCall,
   onAcceptCall,
 }: ChatCallModalProps) {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   // ─── State ───
   const [callStatus, setCallStatus] = useState<"calling" | "ringing" | "connected" | "ended">(
     isIncoming && !autoAccept ? "ringing" : "calling"
@@ -481,7 +481,7 @@ export default function ChatCallModal({
       console.error("[Call] Caller: failed to initiate:", err);
       handleEnd();
     }
-  }, [getLocalMedia, createPeerConnection, callType, channel, userId, handleEnd]);
+  }, [getLocalMedia, createPeerConnection, callType, channel, userId, handleEnd, contact.id, supabase]);
 
   // ═══════════════════════════════════════════════════
   // CALLEE FLOW: Accept → getUserMedia → setRemoteDesc(offer) → createAnswer → send answer

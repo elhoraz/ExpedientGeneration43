@@ -19,26 +19,28 @@ export async function GET() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    let userRole = 'member';
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (profile?.role) userRole = profile.role;
-    }
-
     const cookieStore = await cookies();
     const adminToken = cookieStore.get("expedient_admin_session")?.value;
-    const isSignedAdmin = await verifySignedAdminSession(adminToken);
 
+    const [profileRes, isSignedAdmin, txRes, scRes] = await Promise.all([
+      user
+        ? supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+        : Promise.resolve({ data: null }),
+      verifySignedAdminSession(adminToken),
+      supabase
+        .from("baitul_maal_transactions")
+        .select("id, user_id, transaction_type, amount, description, category, status, proof_url, created_at")
+        .order("created_at", { ascending: false })
+        .limit(250),
+      supabase
+        .from("site_content")
+        .select("content_key, content_value")
+        .in("content_key", ["baitul_maal_bank_accounts", "baitul_maal_contact"]),
+    ]);
+
+    const userRole = profileRes?.data?.role || 'member';
     const isManager = userRole === "admin" || userRole === "bendahara" || userRole === "superadmin" || isSignedAdmin;
-
-    const { data: rawTransactions, error } = await supabase
-      .from("baitul_maal_transactions")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data: rawTransactions, error } = txRes;
 
     if (error) throw error;
 
@@ -71,11 +73,7 @@ export async function GET() {
       };
     });
 
-    // Fetch official bank accounts and contact from site_content
-    const { data: scData } = await supabase
-      .from("site_content")
-      .select("content_key, content_value")
-      .in("content_key", ["baitul_maal_bank_accounts", "baitul_maal_contact"]);
+    const scData = scRes.data;
 
     let bankAccounts: any[] = [];
     let contact: any = null;

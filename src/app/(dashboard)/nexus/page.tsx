@@ -14,16 +14,17 @@ export default async function NexusPage() {
     redirect("/login");
   }
 
-  const { data: currentUserProfile } = await supabase
-    .from("profiles")
-    .select("*, syndicate(kategori)")
-    .eq("id", user.id)
-    .single();
-
-  const { data: otherProfiles } = await supabase
-    .from("profiles")
-    .select("*, syndicate(kategori)")
-    .neq("id", user.id);
+  const [{ data: currentUserProfile }, { data: otherProfiles }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, nama_lengkap, nama_panggilan, foto_profil, motivasi_hidup, cita_cita, alamat_lengkap, syndicate(kategori)")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("profiles")
+      .select("id, nama_lengkap, nama_panggilan, foto_profil, motivasi_hidup, cita_cita, alamat_lengkap, syndicate(kategori)")
+      .neq("id", user.id),
+  ]);
 
   return (
     <NexusClient 

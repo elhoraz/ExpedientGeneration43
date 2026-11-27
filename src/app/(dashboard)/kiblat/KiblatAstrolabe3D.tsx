@@ -202,19 +202,25 @@ export default function KiblatAstrolabe3D({
         if (dbg) {
           gpuName = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || "");
         }
-      } catch {}
+      } catch { }
 
       const navAny = navigator as unknown as { deviceMemory?: number };
       const devMem = typeof navAny.deviceMemory === "number" ? navAny.deviceMemory : null;
       const cpuCores = typeof navigator.hardwareConcurrency === "number" ? navigator.hardwareConcurrency : null;
+      const isPerfLiteAttr = document.documentElement.getAttribute("data-perf") === "lite";
       const isUltraEntryGpu =
         /PowerVR.*(GE8320|GE8322|GE8300|GE8100)|Adreno.*(30\d|40\d|504|505|506|508|509|510)|Mali-4\d\d|Mali-T7\d\d|Mali-T8[23]0|Mali-G31/i.test(
           gpuName
         );
+      // Do NOT misclassify 6GB Octa-Core Mid-End Androids whose browser rounds deviceMemory down to 4
+      const isWeakRamTier =
+        (devMem !== null && devMem <= 2) ||
+        (devMem !== null && devMem <= 4 && (cpuCores === null || cpuCores <= 4));
       let isLiteTier =
         isMobInit &&
-        (isUltraEntryGpu ||
-          (devMem !== null && devMem <= 4) ||
+        (isPerfLiteAttr ||
+          isUltraEntryGpu ||
+          isWeakRamTier ||
           (cpuCores !== null && cpuCores <= 4));
 
       const getDpr = (w: number) => {
@@ -222,7 +228,7 @@ export default function KiblatAstrolabe3D({
           // Minimum 1.5x supersampling on 1080p desktop monitors so oblique dial text & calligraphy stay razor-sharp
           return Math.min(Math.max(window.devicePixelRatio || 1, 1.5), 2.5);
         }
-        return Math.min(window.devicePixelRatio || 1, isLiteTier ? 1.0 : 1.15);
+        return Math.min(window.devicePixelRatio || 1, isLiteTier ? 1.0 : 1.45);
       };
 
       renderer.setPixelRatio(getDpr(window.innerWidth));
@@ -341,7 +347,7 @@ export default function KiblatAstrolabe3D({
         if (rootGroup) convertGroupToLitePhong(rootGroup);
         try {
           renderer.compile(scene, camera);
-        } catch {}
+        } catch { }
       };
 
       const modelUrl = isMobInit
@@ -399,7 +405,7 @@ export default function KiblatAstrolabe3D({
           scene.add(rootGroup);
           try {
             renderer.compile(scene, camera);
-          } catch {}
+          } catch { }
           setLoadPct(100);
           setLoading(false);
         },
@@ -641,7 +647,7 @@ export default function KiblatAstrolabe3D({
     st.dragMode = null;
     try {
       e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {}
+    } catch { }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -690,8 +696,8 @@ export default function KiblatAstrolabe3D({
           locale === "ar"
             ? "بوصلة القبلة ثلاثية الأبعاد، استخدم الأسهم لتدوير البوصلة أو ضبط الزاوية"
             : locale === "en"
-            ? "3D Qibla compass, use Left/Right arrow keys to rotate or Up/Down to tilt view"
-            : "Kompas Kiblat 3D, gunakan panah Kiri/Kanan untuk memutar kompas atau Atas/Bawah untuk sudut kamera"
+              ? "3D Qibla compass, use Left/Right arrow keys to rotate or Up/Down to tilt view"
+              : "Kompas Kiblat 3D, gunakan panah Kiri/Kanan untuk memutar kompas atau Atas/Bawah untuk sudut kamera"
         }
         aria-valuemin={0}
         aria-valuemax={359}
@@ -708,13 +714,13 @@ export default function KiblatAstrolabe3D({
             ? locale === "ar"
               ? "اسحب بالزر الأيسر لتدوير البوصلة · بالزر الأيمن لزاوية الكاميرا"
               : locale === "en"
-              ? "Left-drag to rotate compass · Right-drag to orbit 3D view"
-              : "Klik kiri & geser: putar kompas · Klik kanan & geser: orbit sudut 3D"
+                ? "Left-drag to rotate compass · Right-drag to orbit 3D view"
+                : "Klik kiri & geser: putar kompas · Klik kanan & geser: orbit sudut 3D"
             : locale === "ar"
-            ? "أمسك الهاتف أفقياً وأدر جسمك نحو القبلة"
-            : locale === "en"
-            ? "Hold phone flat and rotate to align with Qibla"
-            : "Pegang HP mendatar dan putar untuk membidik Kiblat"
+              ? "أمسك الهاتف أفقياً وأدر جسمك نحو القبلة"
+              : locale === "en"
+                ? "Hold phone flat and rotate to align with Qibla"
+                : "Pegang HP mendatar dan putar untuk membidik Kiblat"
         }
       />
 

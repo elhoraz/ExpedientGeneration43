@@ -17,7 +17,7 @@ import {
   NextPrayerInfo,
 } from "@/lib/prayerTimes";
 import { getOfficialKemenagSchedule, DEFAULT_KEMENAG_CITY_ID } from "@/lib/kemenagPrayerTimes";
-import { QiblaMapSkeleton } from "@/components/ui/Skeleton";
+import { QiblaMapSkeleton } from "@/components/ui/skeletons/SkeletonWorship";
 import "./kiblat.css";
 
 // Dynamic import for Leaflet Qibla Map to prevent SSR errors
@@ -330,12 +330,11 @@ export default function KiblatClient() {
   }, []);
 
   // Setup authentic Adzan Audio (Makkah & Madinah) with local static asset and fallback
-  const adzanSources: Record<string, string> = {
-    makkah: "/assets/audio/adzan_makkah.mp3",
-    madinah: "/assets/audio/adzan_madinah.mp3",
-  };
-
   useEffect(() => {
+    const adzanSources: Record<string, string> = {
+      makkah: "/assets/audio/adzan_makkah.mp3",
+      madinah: "/assets/audio/adzan_madinah.mp3",
+    };
     const audio = new Audio(adzanSources[adzanVersion]);
     audio.preload = "metadata";
 
@@ -1387,422 +1386,422 @@ export default function KiblatClient() {
               </div>
             )}
 
-              {/* iOS Sensor Permission CTA (only shown if not already surfaced in Mobile panel) */}
-              {deviceMode !== "mobile" && needsIosPermission && !isSensorActive && (
-                <button
-                  type="button"
-                  className="btn-gps"
-                  onClick={() => {
-                    deviceModeRef.current = "mobile";
-                    setDeviceMode("mobile");
-                    activateCompassSensor();
-                  }}
-                >
-                  <i className="fa-solid fa-mobile-screen" aria-hidden="true"></i> {t.kiblat.activate_sensor_btn}
-                </button>
-              )}
-
-              {/* Manual Rotation & Preset Controls */}
-              <div className="desktop-sim-controls">
-                <div className="desktop-sim-header">
-                  <label htmlFor="kiblat-heading-slider">
-                    <i className="fa-solid fa-sliders" aria-hidden="true"></i> {t.kiblat.sim_slider_label}
-                  </label>
-                  <strong className="sim-heading-val">{displayHeading}°</strong>
-                </div>
-
-                <input
-                  id="kiblat-heading-slider"
-                  name="heading"
-                  type="range"
-                  min="0"
-                  max="359.9"
-                  step="0.1"
-                  value={heading}
-                  aria-label={t.kiblat.sim_slider_label}
-                  aria-valuetext={`${displayHeading}° ${currentDirection.name}`}
-                  onChange={(e) => {
-                    setIsSensorActive(false);
-                    updateHeading(Number(e.target.value));
-                  }}
-                  className="kiblat-slider"
-                />
-
-                <div className="desktop-presets-row">
-                  <button
-                    type="button"
-                    className={`btn-preset-snap ${isAligned ? "active" : ""}`}
-                    onClick={handleAutoAlignQibla}
-                  >
-                    <i className="fa-solid fa-kaaba" aria-hidden="true"></i> {t.kiblat.snap_qibla} ({qiblaInfo.bearing}°)
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-preset-snap"
-                    onClick={() => {
-                      setIsSensorActive(false);
-                      updateHeading(0);
-                    }}
-                  >
-                    <i className="fa-solid fa-arrow-up" aria-hidden="true"></i> {t.kiblat.snap_north}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-preset-snap"
-                    onClick={() => {
-                      setIsSensorActive(false);
-                      updateHeading(270);
-                    }}
-                  >
-                    <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>{" "}
-                    {locale === "ar" ? "الغرب (٢٧٠°)" : locale === "en" ? "West (270°)" : "Barat (270°)"}
-                  </button>
-
-                  <button
-                    type="button"
-                    className="btn-preset-snap"
-                    onClick={() => {
-                      setIsSensorActive(false);
-                      updateHeading(90);
-                    }}
-                  >
-                    <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>{" "}
-                    {locale === "ar" ? "الشرق (٩٠°)" : locale === "en" ? "East (90°)" : "Timur (90°)"}
-                  </button>
-                </div>
-              </div>
-            </div>
-        )}
-
-            {/* =========================================================================
-            VIEW MODE 2: SATELLITE QIBLA MAP STAGE
-            ========================================================================= */}
-            {viewMode === "map" && (
-              <QiblaMap
-                userLat={currentLocation.lat}
-                userLng={currentLocation.lng}
-                userName={currentLocation.name}
-                bearing={qiblaInfo.bearing}
-                distanceKm={qiblaInfo.distanceKm}
-                angleFromWest={qiblaInfo.angleFromWest}
-                locale={locale}
-              />
+            {/* iOS Sensor Permission CTA (only shown if not already surfaced in Mobile panel) */}
+            {deviceMode !== "mobile" && needsIosPermission && !isSensorActive && (
+              <button
+                type="button"
+                className="btn-gps"
+                onClick={() => {
+                  deviceModeRef.current = "mobile";
+                  setDeviceMode("mobile");
+                  activateCompassSensor();
+                }}
+              >
+                <i className="fa-solid fa-mobile-screen" aria-hidden="true"></i> {t.kiblat.activate_sensor_btn}
+              </button>
             )}
 
-            {/* =========================================================================
-            FALAKIYAH DETAILS & QIBLA DATA CARDS
-            ========================================================================= */}
-            <div className="falak-details-grid">
-              <div className="falak-detail-box is-qibla-focal">
-                  <span className="falak-detail-title">
-                    {locale === "ar"
-                      ? "اتجاه القبلة"
-                      : locale === "en"
-                        ? "Qibla bearing"
-                        : "Arah Kiblat"}
-                  </span>
-                  <div className="falak-detail-value">{qiblaInfo.bearing}°</div>
-                  <span className="falak-detail-sub">{qiblaInfo.dms}</span>
-                </div>
-
-                <div className="falak-detail-box">
-                  <span className="falak-detail-title">
-                    {locale === "ar" ? "الانحراف" : locale === "en" ? "Angle offset" : "Selisih sudut"}
-                  </span>
-                  <div className="falak-detail-value">{qiblaQuadrant.shortLabel}</div>
-                  <span className="falak-detail-sub">{qiblaQuadrant.description}</span>
-                </div>
-
-                <div className="falak-detail-box">
-                  <span className="falak-detail-title">
-                    {locale === "ar"
-                      ? "الاتجاه الحالي"
-                      : locale === "en"
-                        ? "Current heading"
-                        : "Arah hadap"}
-                  </span>
-                  <div className="falak-detail-value">{displayHeading}°</div>
-                  <span className="falak-detail-sub">{currentDirection.name}</span>
-                </div>
-
-                <div className="falak-detail-box">
-                  <span className="falak-detail-title">
-                    {locale === "ar"
-                      ? "المسافة إلى مكة"
-                      : locale === "en"
-                        ? "Distance to Makkah"
-                        : "Jarak ke Makkah"}
-                  </span>
-                  <div className="falak-detail-value">
-                    {qiblaInfo.distanceKm.toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")}{" "}
-                    <small>km</small>
-                  </div>
-                  <span className="falak-detail-sub">
-                    {locale === "ar" ? "المسجد الحرام" : locale === "en" ? "Masjid al-Haram" : "Masjidil Haram"}
-                  </span>
-                </div>
+            {/* Manual Rotation & Preset Controls */}
+            <div className="desktop-sim-controls">
+              <div className="desktop-sim-header">
+                <label htmlFor="kiblat-heading-slider">
+                  <i className="fa-solid fa-sliders" aria-hidden="true"></i> {t.kiblat.sim_slider_label}
+                </label>
+                <strong className="sim-heading-val">{displayHeading}°</strong>
               </div>
 
-              {/* =========================================================================
-            PRAYER SCHEDULE & LIVE COUNTDOWN
-            ========================================================================= */}
-              <div className="prayer-section">
-                {/* Header */}
-                <div className="prayer-header-row">
-                  <div>
-                    <h2 className="prayer-section-title">{t.kiblat.prayer_schedule_title}</h2>
-                    <div className="prayer-meta-row">
-                      <span className="prayer-date-text">{prayerSchedule.dateStr}</span>
-                      {isScheduleLoading ? (
-                        <span className="prayer-source-meta">
-                          {locale === "ar" ? "جارٍ التحديث..." : locale === "en" ? "Updating schedule..." : "Memuat jadwal..."}
-                        </span>
-                      ) : prayerSchedule.isKemenagOfficial ? (
-                        <span className="kemenag-official-tag">
-                          <i className="fa-solid fa-check" aria-hidden="true"></i>
-                          <span>
-                            {locale === "ar"
-                              ? "المصدر: وزارة الشؤون الدينية الإندونيسية"
-                              : locale === "en"
-                                ? "Source: Kemenag RI (Bimas Islam)"
-                                : "Sumber: Bimas Islam Kemenag RI"}
-                          </span>
-                        </span>
-                      ) : (
-                        <span className="prayer-source-meta">({t.kiblat.standard_kemenag})</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+              <input
+                id="kiblat-heading-slider"
+                name="heading"
+                type="range"
+                min="0"
+                max="359.9"
+                step="0.1"
+                value={heading}
+                aria-label={t.kiblat.sim_slider_label}
+                aria-valuetext={`${displayHeading}° ${currentDirection.name}`}
+                onChange={(e) => {
+                  setIsSensorActive(false);
+                  updateHeading(Number(e.target.value));
+                }}
+                className="kiblat-slider"
+              />
 
-                {/* Adzan Audio Card */}
-                <div className="adzan-player-card">
-                  <div className="adzan-card-header">
-                    <div className="adzan-badge-title">
-                      <div className="adzan-pulse-icon" aria-hidden="true">
-                        <i className={`fa-solid ${isPlayingAdzan ? "fa-volume-high" : "fa-volume-low"}`}></i>
-                      </div>
-                      <div>
-                        <h3 className="adzan-card-title">
-                          {locale === "ar" ? "تسجيل الأذان" : locale === "en" ? "Adhan audio" : "Rekaman adzan"}
-                        </h3>
-                        <span className="adzan-card-subtitle">
-                          {adzanVersion === "makkah" ? t.kiblat.adzan_makkah : t.kiblat.adzan_madinah}
-                        </span>
-                      </div>
-                    </div>
+              <div className="desktop-presets-row">
+                <button
+                  type="button"
+                  className={`btn-preset-snap ${isAligned ? "active" : ""}`}
+                  onClick={handleAutoAlignQibla}
+                >
+                  <i className="fa-solid fa-kaaba" aria-hidden="true"></i> {t.kiblat.snap_qibla} ({qiblaInfo.bearing}°)
+                </button>
 
-                    {/* Version Selector: Makkah vs Madinah */}
-                    <div className="adzan-version-pills">
-                      <button
-                        type="button"
-                        className={`adzan-pill-btn ${adzanVersion === "makkah" ? "active" : ""}`}
-                        aria-pressed={adzanVersion === "makkah"}
-                        onClick={() => {
-                          if (adzanVersion !== "makkah") {
-                            setAdzanVersion("makkah");
-                            setIsPlayingAdzan(false);
-                            setAudioCurrentTime(0);
-                          }
-                        }}
-                      >
-                        {locale === "ar" ? "مكة المكرمة" : "Makkah"}
-                      </button>
-                      <button
-                        type="button"
-                        className={`adzan-pill-btn ${adzanVersion === "madinah" ? "active" : ""}`}
-                        aria-pressed={adzanVersion === "madinah"}
-                        onClick={() => {
-                          if (adzanVersion !== "madinah") {
-                            setAdzanVersion("madinah");
-                            setIsPlayingAdzan(false);
-                            setAudioCurrentTime(0);
-                          }
-                        }}
-                      >
-                        {locale === "ar" ? "المدينة المنورة" : "Madinah"}
-                      </button>
-                    </div>
-                  </div>
+                <button
+                  type="button"
+                  className="btn-preset-snap"
+                  onClick={() => {
+                    setIsSensorActive(false);
+                    updateHeading(0);
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-up" aria-hidden="true"></i> {t.kiblat.snap_north}
+                </button>
 
-                  {/* Audio Controls and Live Wave/Duration */}
-                  <div className="adzan-player-body">
-                    <div className="adzan-controls-main">
-                      <button
-                        type="button"
-                        className={`adzan-play-btn ${isPlayingAdzan ? "is-playing" : ""}`}
-                        onClick={toggleAdzanAudio}
-                        aria-label={isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}
-                        title={isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}
-                      >
-                        <i className={`fa-solid ${isPlayingAdzan ? "fa-pause" : "fa-play"}`}></i>
-                      </button>
+                <button
+                  type="button"
+                  className="btn-preset-snap"
+                  onClick={() => {
+                    setIsSensorActive(false);
+                    updateHeading(270);
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-left" aria-hidden="true"></i>{" "}
+                  {locale === "ar" ? "الغرب (٢٧٠°)" : locale === "en" ? "West (270°)" : "Barat (270°)"}
+                </button>
 
-                      <button
-                        type="button"
-                        className="adzan-stop-btn"
-                        onClick={handleStopAudio}
-                        aria-label={locale === "ar" ? "إيقاف الأذان" : locale === "en" ? "Stop adhan audio" : "Hentikan audio adzan"}
-                        title={locale === "ar" ? "إيقاف" : locale === "en" ? "Stop / Reset" : "Hentikan / Reset"}
-                      >
-                        <i className="fa-solid fa-stop" aria-hidden="true"></i>
-                      </button>
-
-                      <div className="adzan-track-container">
-                        <div className="adzan-time-row">
-                          <span className="adzan-time-current">{formatAudioTime(audioCurrentTime)}</span>
-                          {isPlayingAdzan && (
-                            <div className="adzan-wave-bars" aria-hidden="true">
-                              <span className="wave-bar"></span>
-                              <span className="wave-bar"></span>
-                              <span className="wave-bar"></span>
-                              <span className="wave-bar"></span>
-                              <span className="wave-bar"></span>
-                            </div>
-                          )}
-                          <span className="adzan-time-duration">
-                            {formatAudioTime(audioDuration || (adzanVersion === "makkah" ? 192 : 165))}
-                          </span>
-                        </div>
-
-                        <input
-                          id="adzan-seek-slider"
-                          name="adzanSeek"
-                          type="range"
-                          min="0"
-                          max={audioDuration || (adzanVersion === "makkah" ? 192 : 165)}
-                          value={audioCurrentTime}
-                          aria-label={locale === "ar" ? "شريط تقدم الأذان" : locale === "en" ? "Adhan audio progress" : "Posisi pemutaran audio adzan"}
-                          aria-valuetext={`${formatAudioTime(audioCurrentTime)} / ${formatAudioTime(audioDuration || (adzanVersion === "makkah" ? 192 : 165))}`}
-                          onChange={(e) => handleSeekAudio(Number(e.target.value))}
-                          className="adzan-seek-bar"
-                        />
-                      </div>
-                    </div>
-
-
-                    {/* Doa Setelah Adzan Collapsible */}
-                    <div className="adzan-doa-toggle-wrap">
-                      <button
-                        type="button"
-                        className="btn-toggle-doa"
-                        aria-expanded={showDoaAdzan}
-                        aria-controls="doa-adzan-panel"
-                        onClick={() => setShowDoaAdzan((v) => !v)}
-                      >
-                        <i className="fa-solid fa-hands-praying" aria-hidden="true"></i>
-                        <span>
-                          {showDoaAdzan
-                            ? locale === "ar"
-                              ? "إغلاق دعاء بعد الأذان"
-                              : locale === "en"
-                                ? "Hide supplication"
-                                : "Tutup doa setelah adzan"
-                            : t.kiblat.doa_after_adzan}
-                        </span>
-                        <i className={`fa-solid ${showDoaAdzan ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true"></i>
-                      </button>
-
-                      {showDoaAdzan && (
-                        <div id="doa-adzan-panel" className="doa-adzan-card">
-                          <div className="doa-arabic" dir="rtl" lang="ar">
-                            اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ
-                          </div>
-                          <div className="doa-latin">
-                            &ldquo;Allaahumma rabba haadzihid-da&apos;watit-taammah, wash-shalaatil qaa-imah, aati muhammadanil wasiilata wal fadhiilah, wab&apos;atshu maqaamam mahmuudanil-ladzii wa&apos;adtah.&rdquo;
-                          </div>
-                          <div className="doa-translation">
-                            <strong>
-                              {locale === "ar" ? "المصدر:" : locale === "en" ? "Meaning:" : "Artinya:"}
-                            </strong>{" "}
-                            {locale === "ar"
-                              ? "رواه البخاري"
-                              : locale === "en"
-                                ? "O Allah, Lord of this perfect call and established prayer, grant Muhammad the intercession and eminence, and resurrect him to the praised station You have promised him. (Narrated by al-Bukhari)"
-                                : "Ya Allah, Tuhan Pemilik seruan yang sempurna ini dan shalat yang didirikan, berilah Nabi Muhammad wasilah dan keutamaan, serta tempatkanlah beliau pada kedudukan terpuji yang telah Engkau janjikan. (HR. Bukhari)"}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Uji Alarm Adzan */}
-                    <div className="adzan-test-alarm-wrap">
-                      <button
-                        type="button"
-                        className="btn-test-adzan-alarm"
-                        onClick={() => {
-                          if (typeof window !== "undefined") {
-                            if (typeof (window as any).testAdzanAlarm === "function") {
-                              (window as any).testAdzanAlarm(5);
-                            } else {
-                              window.dispatchEvent(new CustomEvent("expedient_test_adzan_alarm"));
-                            }
-                          }
-                        }}
-                      >
-                        <i className="fa-solid fa-bell" aria-hidden="true"></i>
-                        <span>
-                          {locale === "ar"
-                            ? "تجربة منبه الأذان (٥ ثوانٍ)"
-                            : locale === "en"
-                              ? "Test adhan alarm (5s)"
-                              : "Tes alarm adzan (5 detik)"}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Live Next Prayer Countdown Banner */}
-                <div className="next-prayer-banner">
-                  <div className="next-prayer-info">
-                    <span className="next-prayer-lbl">{t.kiblat.countdown_towards}</span>
-                    <div className="next-prayer-name">
-                      {nextPrayerLocalizedName} <small>({nextPrayer.time} {locationTzLabel})</small>
-                    </div>
-                  </div>
-
-                  <div className="next-prayer-timer">
-                    <span className="next-prayer-lbl">{t.kiblat.in_time}</span>
-                    <div className="timer-countdown">{nextPrayer.countdown}</div>
-                  </div>
-                </div>
-
-                {/* 6 Prayer Times Cards Grid */}
-                <div className="prayer-cards-grid">
-                  {[
-                    {
-                      id: "imsak",
-                      name: locale === "ar" ? "الإمساك" : "Imsak",
-                      arabic: "الإمساك",
-                      time: prayerSchedule.imsak,
-                    },
-                    { id: "subuh", name: t.kiblat.prayer_subuh, arabic: "الفجر", time: prayerSchedule.subuh },
-                    { id: "syuruq", name: t.kiblat.prayer_terbit, arabic: "الشروق", time: prayerSchedule.syuruq },
-                    { id: "dzuhur", name: t.kiblat.prayer_dzuhur, arabic: "الظهر", time: prayerSchedule.dzuhur },
-                    { id: "ashar", name: t.kiblat.prayer_ashar, arabic: "العصر", time: prayerSchedule.ashar },
-                    { id: "maghrib", name: t.kiblat.prayer_maghrib, arabic: "المغرب", time: prayerSchedule.maghrib },
-                    { id: "isya", name: t.kiblat.prayer_isya, arabic: "العشاء", time: prayerSchedule.isya },
-                  ].map((p) => {
-                    const isActive = Boolean(now) && nextPrayer.id === p.id;
-                    return (
-                      <div key={p.id} className={`prayer-card ${isActive ? "is-active-prayer" : ""}`}>
-                        {isActive && (
-                          <span className="prayer-active-pill">
-                            {locale === "ar" ? "القادم" : locale === "en" ? "Next" : "Berikutnya"}
-                          </span>
-                        )}
-                        <div className="prayer-card-arabic" lang="ar" dir="rtl">{p.arabic}</div>
-                        <div className="prayer-card-name">{p.name}</div>
-                        <div className="prayer-card-time">{p.time}</div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <button
+                  type="button"
+                  className="btn-preset-snap"
+                  onClick={() => {
+                    setIsSensorActive(false);
+                    updateHeading(90);
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>{" "}
+                  {locale === "ar" ? "الشرق (٩٠°)" : locale === "en" ? "East (90°)" : "Timur (90°)"}
+                </button>
               </div>
             </div>
           </div>
-        );
+        )}
+
+        {/* =========================================================================
+            VIEW MODE 2: SATELLITE QIBLA MAP STAGE
+            ========================================================================= */}
+        {viewMode === "map" && (
+          <QiblaMap
+            userLat={currentLocation.lat}
+            userLng={currentLocation.lng}
+            userName={currentLocation.name}
+            bearing={qiblaInfo.bearing}
+            distanceKm={qiblaInfo.distanceKm}
+            angleFromWest={qiblaInfo.angleFromWest}
+            locale={locale}
+          />
+        )}
+
+        {/* =========================================================================
+            FALAKIYAH DETAILS & QIBLA DATA CARDS
+            ========================================================================= */}
+        <div className="falak-details-grid">
+          <div className="falak-detail-box is-qibla-focal">
+            <span className="falak-detail-title">
+              {locale === "ar"
+                ? "اتجاه القبلة"
+                : locale === "en"
+                  ? "Qibla bearing"
+                  : "Arah Kiblat"}
+            </span>
+            <div className="falak-detail-value">{qiblaInfo.bearing}°</div>
+            <span className="falak-detail-sub">{qiblaInfo.dms}</span>
+          </div>
+
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">
+              {locale === "ar" ? "الانحراف" : locale === "en" ? "Angle offset" : "Selisih sudut"}
+            </span>
+            <div className="falak-detail-value">{qiblaQuadrant.shortLabel}</div>
+            <span className="falak-detail-sub">{qiblaQuadrant.description}</span>
+          </div>
+
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">
+              {locale === "ar"
+                ? "الاتجاه الحالي"
+                : locale === "en"
+                  ? "Current heading"
+                  : "Arah hadap"}
+            </span>
+            <div className="falak-detail-value">{displayHeading}°</div>
+            <span className="falak-detail-sub">{currentDirection.name}</span>
+          </div>
+
+          <div className="falak-detail-box">
+            <span className="falak-detail-title">
+              {locale === "ar"
+                ? "المسافة إلى مكة"
+                : locale === "en"
+                  ? "Distance to Makkah"
+                  : "Jarak ke Makkah"}
+            </span>
+            <div className="falak-detail-value">
+              {qiblaInfo.distanceKm.toLocaleString(locale === "ar" ? "ar-EG" : locale === "en" ? "en-US" : "id-ID")}{" "}
+              <small>km</small>
+            </div>
+            <span className="falak-detail-sub">
+              {locale === "ar" ? "المسجد الحرام" : locale === "en" ? "Masjid al-Haram" : "Masjidil Haram"}
+            </span>
+          </div>
+        </div>
+
+        {/* =========================================================================
+            PRAYER SCHEDULE & LIVE COUNTDOWN
+            ========================================================================= */}
+        <div className="prayer-section">
+          {/* Header */}
+          <div className="prayer-header-row">
+            <div>
+              <h2 className="prayer-section-title">{t.kiblat.prayer_schedule_title}</h2>
+              <div className="prayer-meta-row">
+                <span className="prayer-date-text">{prayerSchedule.dateStr}</span>
+                {isScheduleLoading ? (
+                  <span className="prayer-source-meta">
+                    {locale === "ar" ? "جارٍ التحديث..." : locale === "en" ? "Updating schedule..." : "Memuat jadwal..."}
+                  </span>
+                ) : prayerSchedule.isKemenagOfficial ? (
+                  <span className="kemenag-official-tag">
+                    <i className="fa-solid fa-check" aria-hidden="true"></i>
+                    <span>
+                      {locale === "ar"
+                        ? "المصدر: وزارة الشؤون الدينية الإندونيسية"
+                        : locale === "en"
+                          ? "Source: Kemenag RI (Bimas Islam)"
+                          : "Sumber: Bimas Islam Kemenag RI"}
+                    </span>
+                  </span>
+                ) : (
+                  <span className="prayer-source-meta">({t.kiblat.standard_kemenag})</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Adzan Audio Card */}
+          <div className="adzan-player-card">
+            <div className="adzan-card-header">
+              <div className="adzan-badge-title">
+                <div className="adzan-pulse-icon" aria-hidden="true">
+                  <i className={`fa-solid ${isPlayingAdzan ? "fa-volume-high" : "fa-volume-low"}`}></i>
+                </div>
+                <div>
+                  <h3 className="adzan-card-title">
+                    {locale === "ar" ? "تسجيل الأذان" : locale === "en" ? "Adhan audio" : "Rekaman adzan"}
+                  </h3>
+                  <span className="adzan-card-subtitle">
+                    {adzanVersion === "makkah" ? t.kiblat.adzan_makkah : t.kiblat.adzan_madinah}
+                  </span>
+                </div>
+              </div>
+
+              {/* Version Selector: Makkah vs Madinah */}
+              <div className="adzan-version-pills">
+                <button
+                  type="button"
+                  className={`adzan-pill-btn ${adzanVersion === "makkah" ? "active" : ""}`}
+                  aria-pressed={adzanVersion === "makkah"}
+                  onClick={() => {
+                    if (adzanVersion !== "makkah") {
+                      setAdzanVersion("makkah");
+                      setIsPlayingAdzan(false);
+                      setAudioCurrentTime(0);
+                    }
+                  }}
+                >
+                  {locale === "ar" ? "مكة المكرمة" : "Makkah"}
+                </button>
+                <button
+                  type="button"
+                  className={`adzan-pill-btn ${adzanVersion === "madinah" ? "active" : ""}`}
+                  aria-pressed={adzanVersion === "madinah"}
+                  onClick={() => {
+                    if (adzanVersion !== "madinah") {
+                      setAdzanVersion("madinah");
+                      setIsPlayingAdzan(false);
+                      setAudioCurrentTime(0);
+                    }
+                  }}
+                >
+                  {locale === "ar" ? "المدينة المنورة" : "Madinah"}
+                </button>
+              </div>
+            </div>
+
+            {/* Audio Controls and Live Wave/Duration */}
+            <div className="adzan-player-body">
+              <div className="adzan-controls-main">
+                <button
+                  type="button"
+                  className={`adzan-play-btn ${isPlayingAdzan ? "is-playing" : ""}`}
+                  onClick={toggleAdzanAudio}
+                  aria-label={isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}
+                  title={isPlayingAdzan ? t.kiblat.pause_adzan : t.kiblat.play_adzan}
+                >
+                  <i className={`fa-solid ${isPlayingAdzan ? "fa-pause" : "fa-play"}`}></i>
+                </button>
+
+                <button
+                  type="button"
+                  className="adzan-stop-btn"
+                  onClick={handleStopAudio}
+                  aria-label={locale === "ar" ? "إيقاف الأذان" : locale === "en" ? "Stop adhan audio" : "Hentikan audio adzan"}
+                  title={locale === "ar" ? "إيقاف" : locale === "en" ? "Stop / Reset" : "Hentikan / Reset"}
+                >
+                  <i className="fa-solid fa-stop" aria-hidden="true"></i>
+                </button>
+
+                <div className="adzan-track-container">
+                  <div className="adzan-time-row">
+                    <span className="adzan-time-current">{formatAudioTime(audioCurrentTime)}</span>
+                    {isPlayingAdzan && (
+                      <div className="adzan-wave-bars" aria-hidden="true">
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                        <span className="wave-bar"></span>
+                      </div>
+                    )}
+                    <span className="adzan-time-duration">
+                      {formatAudioTime(audioDuration || (adzanVersion === "makkah" ? 192 : 165))}
+                    </span>
+                  </div>
+
+                  <input
+                    id="adzan-seek-slider"
+                    name="adzanSeek"
+                    type="range"
+                    min="0"
+                    max={audioDuration || (adzanVersion === "makkah" ? 192 : 165)}
+                    value={audioCurrentTime}
+                    aria-label={locale === "ar" ? "شريط تقدم الأذان" : locale === "en" ? "Adhan audio progress" : "Posisi pemutaran audio adzan"}
+                    aria-valuetext={`${formatAudioTime(audioCurrentTime)} / ${formatAudioTime(audioDuration || (adzanVersion === "makkah" ? 192 : 165))}`}
+                    onChange={(e) => handleSeekAudio(Number(e.target.value))}
+                    className="adzan-seek-bar"
+                  />
+                </div>
+              </div>
+
+
+              {/* Doa Setelah Adzan Collapsible */}
+              <div className="adzan-doa-toggle-wrap">
+                <button
+                  type="button"
+                  className="btn-toggle-doa"
+                  aria-expanded={showDoaAdzan}
+                  aria-controls="doa-adzan-panel"
+                  onClick={() => setShowDoaAdzan((v) => !v)}
+                >
+                  <i className="fa-solid fa-hands-praying" aria-hidden="true"></i>
+                  <span>
+                    {showDoaAdzan
+                      ? locale === "ar"
+                        ? "إغلاق دعاء بعد الأذان"
+                        : locale === "en"
+                          ? "Hide supplication"
+                          : "Tutup doa setelah adzan"
+                      : t.kiblat.doa_after_adzan}
+                  </span>
+                  <i className={`fa-solid ${showDoaAdzan ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true"></i>
+                </button>
+
+                {showDoaAdzan && (
+                  <div id="doa-adzan-panel" className="doa-adzan-card">
+                    <div className="doa-arabic" dir="rtl" lang="ar">
+                      اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ
+                    </div>
+                    <div className="doa-latin">
+                      &ldquo;Allaahumma rabba haadzihid-da&apos;watit-taammah, wash-shalaatil qaa-imah, aati muhammadanil wasiilata wal fadhiilah, wab&apos;atshu maqaamam mahmuudanil-ladzii wa&apos;adtah.&rdquo;
+                    </div>
+                    <div className="doa-translation">
+                      <strong>
+                        {locale === "ar" ? "المصدر:" : locale === "en" ? "Meaning:" : "Artinya:"}
+                      </strong>{" "}
+                      {locale === "ar"
+                        ? "رواه البخاري"
+                        : locale === "en"
+                          ? "O Allah, Lord of this perfect call and established prayer, grant Muhammad the intercession and eminence, and resurrect him to the praised station You have promised him. (Narrated by al-Bukhari)"
+                          : "Ya Allah, Tuhan Pemilik seruan yang sempurna ini dan shalat yang didirikan, berilah Nabi Muhammad wasilah dan keutamaan, serta tempatkanlah beliau pada kedudukan terpuji yang telah Engkau janjikan. (HR. Bukhari)"}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Uji Alarm Adzan */}
+              <div className="adzan-test-alarm-wrap">
+                <button
+                  type="button"
+                  className="btn-test-adzan-alarm"
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      if (typeof (window as any).testAdzanAlarm === "function") {
+                        (window as any).testAdzanAlarm(5);
+                      } else {
+                        window.dispatchEvent(new CustomEvent("expedient_test_adzan_alarm"));
+                      }
+                    }
+                  }}
+                >
+                  <i className="fa-solid fa-bell" aria-hidden="true"></i>
+                  <span>
+                    {locale === "ar"
+                      ? "تجربة منبه الأذان (٥ ثوانٍ)"
+                      : locale === "en"
+                        ? "Test adhan alarm (5s)"
+                        : "Tes alarm adzan (5 detik)"}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Next Prayer Countdown Banner */}
+          <div className="next-prayer-banner">
+            <div className="next-prayer-info">
+              <span className="next-prayer-lbl">{t.kiblat.countdown_towards}</span>
+              <div className="next-prayer-name">
+                {nextPrayerLocalizedName} <small>({nextPrayer.time} {locationTzLabel})</small>
+              </div>
+            </div>
+
+            <div className="next-prayer-timer">
+              <span className="next-prayer-lbl">{t.kiblat.in_time}</span>
+              <div className="timer-countdown">{nextPrayer.countdown}</div>
+            </div>
+          </div>
+
+          {/* 6 Prayer Times Cards Grid */}
+          <div className="prayer-cards-grid">
+            {[
+              {
+                id: "imsak",
+                name: locale === "ar" ? "الإمساك" : "Imsak",
+                arabic: "الإمساك",
+                time: prayerSchedule.imsak,
+              },
+              { id: "subuh", name: t.kiblat.prayer_subuh, arabic: "الفجر", time: prayerSchedule.subuh },
+              { id: "syuruq", name: t.kiblat.prayer_terbit, arabic: "الشروق", time: prayerSchedule.syuruq },
+              { id: "dzuhur", name: t.kiblat.prayer_dzuhur, arabic: "الظهر", time: prayerSchedule.dzuhur },
+              { id: "ashar", name: t.kiblat.prayer_ashar, arabic: "العصر", time: prayerSchedule.ashar },
+              { id: "maghrib", name: t.kiblat.prayer_maghrib, arabic: "المغرب", time: prayerSchedule.maghrib },
+              { id: "isya", name: t.kiblat.prayer_isya, arabic: "العشاء", time: prayerSchedule.isya },
+            ].map((p) => {
+              const isActive = Boolean(now) && nextPrayer.id === p.id;
+              return (
+                <div key={p.id} className={`prayer-card ${isActive ? "is-active-prayer" : ""}`}>
+                  {isActive && (
+                    <span className="prayer-active-pill">
+                      {locale === "ar" ? "القادم" : locale === "en" ? "Next" : "Berikutnya"}
+                    </span>
+                  )}
+                  <div className="prayer-card-arabic" lang="ar" dir="rtl">{p.arabic}</div>
+                  <div className="prayer-card-name">{p.name}</div>
+                  <div className="prayer-card-time">{p.time}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -393,11 +393,11 @@ export async function getUpcomingDesignCalendar(daysAhead: number = 7): Promise<
   // 1. Cek Hari Peringatan Nasional & Islam
   for (const event of COMMEMORATIVE_EVENTS) {
     const currentYear = nowWib.getFullYear();
-    let eventDate = new Date(currentYear, event.month - 1, event.day);
+    const eventDate = new Date(currentYear, event.month - 1, event.day);
 
     // Hitung selisih hari
     const diffTime = eventDate.getTime() - new Date(currentYear, nowWib.getMonth(), nowWib.getDate()).getTime();
-    let diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays >= 0 && diffDays <= daysAhead) {
       const pinQuery = encodeURIComponent(`${event.suggestedKeywords} pinterest`);

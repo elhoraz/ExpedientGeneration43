@@ -66,7 +66,7 @@ export async function GET(
       else if (/qalaqah/.test(rawTajweed)) dominantType = "qalqalah";
       else if (/idgham_wo_ghunnah|idgham_mutajanisayn/.test(rawTajweed)) dominantType = "idgham";
 
-      let html = rawTajweed
+      const html = rawTajweed
         .replace(/<rule class=(?:madda_normal|madda_obligatory_mottasel|madda_obligatory_monfasel|madda_permissible|madda_necessary)>/g, '<span class="tj-mad" title="Hukum Mad (Dibaca Panjang)">')
         .replace(/<rule class=(?:ghunnah|idgham_ghunnah|idgham_shafawi)>/g, '<span class="tj-ghunnah" title="Hukum Ghunnah (Dengung 2 Harakat)">')
         .replace(/<rule class=(?:ikhafa|ikhafa_shafawi|iqlab)>/g, '<span class="tj-ikhfa" title="Hukum Ikhfa / Iqlab (Samar / Ditukar)">')

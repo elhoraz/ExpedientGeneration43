@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import Link from "next/link";
@@ -62,7 +62,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
   const [croppedAvatarFile, setCroppedAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const { t } = useCms();
   const { showConfirm } = useConfirm();
   const { t: tLang, locale } = useLanguage();
@@ -91,7 +91,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     setIsClient(true);
   }, []);
 
-  const fetchBiometrics = async () => {
+  const fetchBiometrics = useCallback(async () => {
     try {
       const { data } = await supabase
         .from("user_biometrics")
@@ -104,7 +104,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
     } catch (err) {
       console.error("Error fetching biometrics:", err);
     }
-  };
+  }, [supabase, user.id]);
 
   useEffect(() => {
     setIsClient(true);
@@ -115,7 +115,7 @@ export default function ProfilClient({ user, initialBiometrics = [] }: { user: a
       (window as any).userFotoProfil = user.foto_profil ? getAvatarUrl(user.foto_profil) : null;
     }
     fetchBiometrics();
-  }, [user]);
+  }, [user, fetchBiometrics]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });

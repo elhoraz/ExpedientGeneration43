@@ -3,8 +3,7 @@ import WebSocket from "ws";
 
 // Polyfill WebSocket globally for Node.js environment
 if (typeof globalThis.WebSocket === "undefined") {
-  // @ts-ignore
-  globalThis.WebSocket = WebSocket;
+  (globalThis as Record<string, unknown>).WebSocket = WebSocket;
 }
 if (typeof global !== "undefined" && typeof (global as any).WebSocket === "undefined") {
   (global as any).WebSocket = WebSocket;

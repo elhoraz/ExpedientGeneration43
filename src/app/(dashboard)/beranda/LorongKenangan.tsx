@@ -65,7 +65,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
   // Responsive card dimensions
   const cardW = isMobile ? 240 : 320;
   const cardH = isMobile ? 320 : 430;
-  const imgH  = isMobile ? 210 : 305;
+  const imgH = isMobile ? 210 : 305;
 
   // --- HIGH PERFORMANCE 3D GPU TRANSFORM RENDERER ---
   const apply3DTransforms = useCallback((scroll: number) => {
@@ -160,12 +160,12 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
   }, [updateLoop]);
 
   // Jump or Slide to specific index
-  const goToIndex = (index: number) => {
+  const goToIndex = useCallback((index: number) => {
     const clamped = Math.max(0, Math.min(index, total - 1));
     targetScroll.current = clamped;
     setActiveIndex(clamped);
     wakeEngine();
-  };
+  }, [total, wakeEngine]);
 
   // Re-apply transforms when mode or total items change
   useEffect(() => {
@@ -201,7 +201,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
         hasMoved.current = true;
         try {
           (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-        } catch (_) {}
+        } catch (_) { }
       }
     }
 
@@ -240,7 +240,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
         if ((e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) {
           (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
         }
-      } catch (_) {}
+      } catch (_) { }
     }
 
     const vel = pointerVelocity.current;
@@ -271,7 +271,7 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [total, activeStyle]);
+  }, [total, activeStyle, goToIndex]);
 
   // Wheel horizontal gliding on desktop
   useEffect(() => {
@@ -330,8 +330,8 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
         {(
           [
             { key: 'monolith', icon: 'fa-landmark', label: isMobile ? 'Monolit' : 'Monolit Emas Imperial' },
-            { key: 'ring',     icon: 'fa-circle-notch', label: isMobile ? 'Kubah 360°' : 'Kubah Melingkar 360°' },
-            { key: 'mosaic',   icon: 'fa-border-all',   label: isMobile ? 'Polaroid' : 'Dinding Polaroid Royal' },
+            { key: 'ring', icon: 'fa-circle-notch', label: isMobile ? 'Kubah 360°' : 'Kubah Melingkar 360°' },
+            { key: 'mosaic', icon: 'fa-border-all', label: isMobile ? 'Polaroid' : 'Dinding Polaroid Royal' },
           ] as const
         ).map(({ key, icon, label }) => (
           <button

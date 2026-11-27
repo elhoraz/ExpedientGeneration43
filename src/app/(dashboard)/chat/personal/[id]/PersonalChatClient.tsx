@@ -455,7 +455,7 @@ export default function PersonalChatClient({
                   onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(212, 175, 55, 0.2)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(212, 175, 55, 0.08)")}
                 >
-                  "{greeting}"
+                  &ldquo;{greeting}&rdquo;
                 </button>
               ))}
             </div>

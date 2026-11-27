@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { MajlisSkeleton } from "@/components/ui/Skeleton";
+import { MajlisSkeleton } from "@/components/ui/skeletons/SkeletonMedia";
 
 const MajlisClient = dynamic(() => import("./MajlisClient"), {
   ssr: false,

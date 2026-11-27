@@ -16,23 +16,40 @@ export default async function BaitulMaalPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nama_panggilan, role, foto_profil, no_whatsapp")
-    .eq("id", user.id)
-    .single();
+  // Fetch transactions, bank accounts, & bendahara contact in parallel
+  const [
+    { data: profile },
+    { data: rawTransactions },
+    { data: scData },
+    { data: scContact },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("nama_panggilan, role, foto_profil, no_whatsapp")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("baitul_maal_transactions")
+      .select("id, user_id, transaction_type, amount, description, category, status, proof_url, created_at")
+      .order("created_at", { ascending: false })
+      .limit(250),
+    supabase
+      .from("site_content")
+      .select("content_value")
+      .eq("content_key", "baitul_maal_bank_accounts")
+      .maybeSingle(),
+    supabase
+      .from("site_content")
+      .select("content_value")
+      .eq("content_key", "baitul_maal_contact")
+      .maybeSingle(),
+  ]);
 
   // Check admin/bendahara access (Role or HMAC session cookie)
   const cookieStore = await cookies();
   const adminToken = cookieStore.get("expedient_admin_session")?.value;
   const isSignedAdmin = await verifySignedAdminSession(adminToken);
   const isManager = profile?.role === "admin" || profile?.role === "bendahara" || profile?.role === "superadmin" || isSignedAdmin;
-
-  // Fetch transactions
-  const { data: rawTransactions } = await supabase
-    .from("baitul_maal_transactions")
-    .select("*")
-    .order("created_at", { ascending: false });
 
   // Security Filter: Regular members only see completed entries or their own
   const filteredRows = (rawTransactions || []).filter((t: any) => {
@@ -43,16 +60,40 @@ export default async function BaitulMaalPage() {
     return user && t.user_id === user.id;
   });
 
-  // Safe mapping of donor names
+  // Safe mapping of donor names & fallback bendahara contact
   const userIds = Array.from(new Set(filteredRows.map((t: any) => t.user_id).filter(Boolean)));
-  const profileMap = new Map<string, string>();
-  if (userIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, nama_panggilan")
-      .in("id", userIds);
-    profiles?.forEach((p: any) => profileMap.set(p.id, p.nama_panggilan));
+
+  let bankAccounts: any[] = [];
+  if (scData?.content_value) {
+    try {
+      bankAccounts = JSON.parse(scData.content_value);
+    } catch {}
   }
+
+  let bendaharaContact: { name: string; phone: string } | null = null;
+  if (scContact?.content_value) {
+    try {
+      bendaharaContact = JSON.parse(scContact.content_value);
+    } catch {}
+  }
+
+  const [{ data: profiles }, fallbackManagerResult] = await Promise.all([
+    userIds.length > 0
+      ? supabase.from("profiles").select("id, nama_panggilan").in("id", userIds)
+      : Promise.resolve({ data: [] as any[] }),
+    !bendaharaContact
+      ? supabase
+          .from("profiles")
+          .select("nama_panggilan, no_whatsapp")
+          .in("role", ["bendahara", "admin"])
+          .not("no_whatsapp", "is", null)
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
+
+  const profileMap = new Map<string, string>();
+  profiles?.forEach((p: any) => profileMap.set(p.id, p.nama_panggilan));
 
   const transactions = filteredRows.map((t: any) => {
     const isOut = t.transaction_type === "OUT" || t.transaction_type === "pengeluaran";
@@ -64,44 +105,8 @@ export default async function BaitulMaalPage() {
     };
   });
 
-  // Fetch official bank accounts from site_content
-  const { data: scData } = await supabase
-    .from("site_content")
-    .select("content_value")
-    .eq("content_key", "baitul_maal_bank_accounts")
-    .maybeSingle();
-
-  let bankAccounts: any[] = [];
-  if (scData?.content_value) {
-    try {
-      bankAccounts = JSON.parse(scData.content_value);
-    } catch {}
-  }
-
-  // Fetch bendahara / admin contact
-  const { data: scContact } = await supabase
-    .from("site_content")
-    .select("content_value")
-    .eq("content_key", "baitul_maal_contact")
-    .maybeSingle();
-
-  let bendaharaContact: { name: string; phone: string } | null = null;
-  if (scContact?.content_value) {
-    try {
-      bendaharaContact = JSON.parse(scContact.content_value);
-    } catch {}
-  }
-
   if (!bendaharaContact) {
-    // Fallback: look up user with bendahara or admin role
-    const { data: managerProfile } = await supabase
-      .from("profiles")
-      .select("nama_panggilan, no_whatsapp")
-      .in("role", ["bendahara", "admin"])
-      .not("no_whatsapp", "is", null)
-      .limit(1)
-      .maybeSingle();
-
+    const managerProfile = fallbackManagerResult?.data;
     if (managerProfile && managerProfile.no_whatsapp) {
       bendaharaContact = {
         name: managerProfile.nama_panggilan || "Bendahara",

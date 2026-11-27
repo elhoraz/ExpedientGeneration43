@@ -120,7 +120,7 @@ export function usePersonalChat({
     try {
       const { data: olderMessages, error } = await supabase
         .from("chat_messages")
-        .select("*")
+        .select("id, message, image_url, audio_url, video_url, message_type, created_at, sender_id, receiver_id, is_deleted, is_read")
         .eq("is_lounge", false)
         .eq("is_deleted", false)
         .or(`and(sender_id.eq.${userId},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${userId})`)

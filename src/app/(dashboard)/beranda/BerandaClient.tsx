@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Script from "next/script";
 import Link from "next/link";
 import { useConfirm } from "@/components/layout/AegisConfirm";
@@ -48,15 +48,15 @@ export default function BerandaClient({
     return () => window.removeEventListener("keydown", onEscape);
   }, []);
 
-  const localizedLores = [
+  const localizedLores = useMemo(() => [
     t('beranda_lore_1', '"Dan bersabarlah kamu bersama-sama dengan orang-orang yang menyeru Tuhannya di pagi dan senja hari..." (Al-Kahfi: 28)'),
     t('beranda_lore_2', '"Niscaya Allah akan meninggikan orang-orang yang beriman di antaramu dan orang-orang yang diberi ilmu pengetahuan..." (Al-Mujadilah: 11)'),
     t('beranda_lore_3', '"Dan berpeganglah kamu semuanya kepada tali (agama) Allah, dan janganlah kamu bercerai berai..." (Ali Imran: 103)'),
     t('beranda_lore_4', '"Maka sesungguhnya sesudah kesulitan itu ada kemudahan..." (Al-Insyirah: 5)'),
     t('beranda_lore_5', '"Bukanlah golongan kami orang yang tidak menyayangi yang muda dan tidak menghormati yang tua." (HR. Tirmidzi)')
-  ];
+  ], [t]);
 
-  const localizedShards = [
+  const localizedShards = useMemo(() => [
     {
       title: isAr ? 'الأرض مع شهادتين وقلم ذهبي وكتابين' : (isEn ? 'Earth with Two Shahadas, Golden Feather Pen, and Two Books' : t('beranda_shard_1_title', 'Bumi dengan 2 Lafadz Syahadat, Pena Bulu Emas dan Dua Kitab')),
       desc: isAr ? 'يرمز إلى خلافة الأرض ونشر قيم وشريعة الإسلام القويمة في أرجاء المعمورة، مستمسكين بالقرآن والسنة.' : (isEn ? 'Symbolizing leadership on Earth to spread Islamic values and teachings globally, upholding the Quran and Sunnah.' : t('beranda_shard_1_desc', 'Melambangkan yang menyiratkan makna QS. Al-Baqarah : 30 sebagai pemimpin di bumi yang mempunyai misi dalam menyebarluaskan ajaran, nilai, dan syariat Islam yang benar ke seluruh jagat raya. Pena bulu emas dan dua kitab melambangkan kewajiban alumni Expedient Generation, dalam menjalankan amanah yang berdasarkan Al-Quran\'an & As - Sunnah.'))
@@ -109,7 +109,7 @@ export default function BerandaClient({
       title: isAr ? 'أحجار الزمرد الست' : (isEn ? 'Six Emerald Stones' : t('beranda_shard_13_title', 'Enam Batu Zamrud')),
       desc: isAr ? 'ترمز لأركان الإيمان الستة كأساس لا يتزعزع في قلب المؤمن.' : (isEn ? 'Representing the Six Articles of Faith as the unshakeable foundation of a believer.' : t('beranda_shard_13_desc', 'Enam batu zamrud sebagai simbol kemakmuran dan kelimpahan yang melambangkan enam rukun iman sebagai asas dasar keyakinan seorang muslim.'))
     }
-  ];
+  ], [t, isAr, isEn]);
 
   useEffect(() => {
     document.body.classList.add("page-beranda");
@@ -221,7 +221,7 @@ export default function BerandaClient({
         delete (window as any).BERANDA_CMS;
       }
     };
-  }, [t, tLang, locale, birthdayUsers, isLoggedIn]);
+  }, [t, tLang, locale, birthdayUsers, isLoggedIn, isAr, isEn, localizedLores, localizedShards]);
 
   const { showAlert } = useConfirm();
 
@@ -396,6 +396,8 @@ export default function BerandaClient({
                   <img
                     src={getAvatarUrl(k.foto_profil, k.nama_panggilan || k.nama_lengkap)}
                     alt={k.nama_lengkap || "Kurator"}
+                    loading="lazy"
+                    decoding="async"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
                       e.currentTarget.src = getAvatarFallback(k.nama_panggilan || k.nama_lengkap);
@@ -426,6 +428,8 @@ export default function BerandaClient({
                         src={getAvatarUrl(l.foto_profil, l.nama_panggilan || l.nama_lengkap)}
                         className="leaderboard-avatar"
                         alt="Avatar"
+                        loading="lazy"
+                        decoding="async"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
                           e.currentTarget.src = getAvatarFallback(l.nama_panggilan || l.nama_lengkap);
@@ -521,7 +525,7 @@ export default function BerandaClient({
                 {guestbookEntries.map((bt, idx) => (
                   <div className="guestbook-item" key={bt.id ?? idx}>
                     <div className="guestbook-name">{bt.nama}</div>
-                    <div className="guestbook-msg">"{bt.pesan}"</div>
+                    <div className="guestbook-msg">&ldquo;{bt.pesan}&rdquo;</div>
                     <div className="guestbook-date">{new Date(bt.created_at).toLocaleString(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
                   </div>
                 ))}

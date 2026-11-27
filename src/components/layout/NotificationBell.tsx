@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -29,6 +29,13 @@ type QuestItem = {
   actionText: string;
   storageKey: string;
 };
+
+const QUEST_STORAGE_KEYS: ReadonlyArray<{ id: string; storageKey: string }> = [
+  { id: "login", storageKey: "expedient_quest_login" },
+  { id: "profile", storageKey: "expedient_quest_profile" },
+  { id: "radar", storageKey: "expedient_quest_radar" },
+  { id: "directory", storageKey: "expedient_quest_directory" },
+];
 
 export default function NotificationBell({ userId }: { userId: string }) {
   const { t, locale } = useLanguage();
@@ -120,9 +127,13 @@ export default function NotificationBell({ userId }: { userId: string }) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
   );
 
   // Re-evaluate completed quests from storage and database
@@ -132,7 +143,7 @@ export default function NotificationBell({ userId }: { userId: string }) {
     if (typeof window !== "undefined") {
       localStorage.setItem("expedient_quest_login", "true");
 
-      quests.forEach((q) => {
+      QUEST_STORAGE_KEYS.forEach((q) => {
         if (localStorage.getItem(q.storageKey) === "true") {
           done.add(q.id);
         }

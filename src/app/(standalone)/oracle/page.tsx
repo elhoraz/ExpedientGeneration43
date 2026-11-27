@@ -17,14 +17,14 @@ export default async function OraclePage() {
   // Fetch user's visions
   const { data: visions, error: visionError } = await supabase
     .from("oracle_visions")
-    .select("*")
+    .select("id, vision_text, unlock_date, is_unlocked, created_at")
     .eq("user_id", user.id)
     .order("unlock_date", { ascending: true });
 
   // Fetch user's profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, nama_lengkap, nama_panggilan, foto_profil")
     .eq("id", user.id)
     .single();
 

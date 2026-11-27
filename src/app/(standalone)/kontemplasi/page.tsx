@@ -17,7 +17,7 @@ export default async function KontemplasiPage() {
   // Fetch user journals
   const { data: journals } = await supabase
     .from("kontemplasi_journals")
-    .select("*")
+    .select("id, content, mood, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 

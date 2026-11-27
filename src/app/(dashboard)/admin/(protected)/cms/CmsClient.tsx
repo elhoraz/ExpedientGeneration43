@@ -451,7 +451,7 @@ export default function CmsClient({
 
   const totalChanges = Object.keys(draftUpdates).length + draftDeletions.length + newKeys.length;
   const currentTabConfig = PAGE_CONFIG[activeTab] || { label: activeTab, icon: "fa-solid fa-folder", desc: "Modul Konten" };
-  const currentTabContents = groupedContents[activeTab] || [];
+  const currentTabContents = useMemo(() => groupedContents[activeTab] || [], [groupedContents, activeTab]);
 
   // Group current tab contents into sub-sections
   const subSectionGroups = useMemo(() => {
@@ -575,7 +575,7 @@ export default function CmsClient({
             {Object.keys(subSectionGroups).length === 0 ? (
               <div style={{ background: "var(--glass-bg)", border: "1px solid var(--glass-border)", borderRadius: "16px", padding: "40px", textAlign: "center", color: "var(--text-secondary)", fontSize: "0.85rem" }}>
                 <i className="fa-solid fa-folder-open" style={{ fontSize: "2rem", marginBottom: "12px", display: "block", opacity: 0.4 }}></i>
-                Belum ada kunci konten untuk halaman <strong>{currentTabConfig.label}</strong>. Klik tombol <strong>"Tambah Kunci Konten"</strong> untuk membuat baru.
+                Belum ada kunci konten untuk halaman <strong>{currentTabConfig.label}</strong>. Klik tombol <strong>&ldquo;Tambah Kunci Konten&rdquo;</strong> untuk membuat baru.
               </div>
             ) : (
               Object.keys(subSectionGroups).map(subId => {

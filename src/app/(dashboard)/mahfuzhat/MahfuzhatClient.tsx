@@ -530,7 +530,6 @@ export default function MahfuzhatClient() {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           if (timerRef.current) clearInterval(timerRef.current);
-          handleAnswer(-1); // time out
           return 0;
         }
         return prev - 1;
@@ -567,6 +566,17 @@ export default function MahfuzhatClient() {
 
     setQuizHistory((prev) => [...prev, { isCorrect, userChoice: choiceIndex }]);
   };
+
+  const handleAnswerRef = useRef(handleAnswer);
+  useEffect(() => {
+    handleAnswerRef.current = handleAnswer;
+  });
+
+  useEffect(() => {
+    if (gameState === "playing" && timeLeft === 0) {
+      handleAnswerRef.current(-1);
+    }
+  }, [gameState, timeLeft]);
 
   const nextQuestion = () => {
     if (currentQIndex + 1 < quizQuestions.length) {

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
-import { getAvatarUrl, getAvatarFallback } from "@/lib/avatar";
+import { getAvatarUrl } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export default function InboxClient({ 
@@ -16,7 +16,28 @@ export default function InboxClient({
 }) {
   const { t, locale } = useLanguage();
   const [inboxList, setInboxList] = useState<any[]>(initialInbox);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
+  const fetchContactAndAdd = useCallback(async (contactId: string, msg: any, isSender: boolean) => {
+    const { data: contact } = await supabase
+      .from("profiles")
+      .select("id, nama_panggilan, foto_profil")
+      .eq("id", contactId)
+      .single();
+
+    if (contact) {
+      setInboxList(prev => {
+        if (prev.some(item => item.contact?.id === contactId)) return prev;
+        const newItem = {
+          contact,
+          lastMessage: msg.message || (msg.image_url ? "Lampiran gambar" : "Pesan baru"),
+          lastTime: msg.created_at,
+          unreadCount: !isSender && !msg.is_read ? 1 : 0
+        };
+        return [newItem, ...prev];
+      });
+    }
+  }, [supabase]);
 
   useEffect(() => {
     document.body.classList.add("page-chat");
@@ -92,28 +113,7 @@ export default function InboxClient({
       document.body.classList.remove("page-chat");
       supabase.removeChannel(channel);
     };
-  }, [supabase, userId]);
-
-  const fetchContactAndAdd = async (contactId: string, msg: any, isSender: boolean) => {
-    const { data: contact } = await supabase
-      .from("profiles")
-      .select("id, nama_panggilan, foto_profil")
-      .eq("id", contactId)
-      .single();
-
-    if (contact) {
-      setInboxList(prev => {
-        if (prev.some(item => item.contact?.id === contactId)) return prev;
-        const newItem = {
-          contact,
-          lastMessage: msg.message || (msg.image_url ? "Lampiran gambar" : "Pesan baru"),
-          lastTime: msg.created_at,
-          unreadCount: !isSender && !msg.is_read ? 1 : 0
-        };
-        return [newItem, ...prev];
-      });
-    }
-  };
+  }, [supabase, userId, fetchContactAndAdd]);
 
   const dateLocale = locale === "ar" ? "ar-SA" : locale === "en" ? "en-US" : "id-ID";
 

@@ -22,16 +22,21 @@ import android.webkit.CookieManager;
 import android.webkit.DownloadListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.URLUtil;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.Toast;
 import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebViewClient;
+import org.json.JSONObject;
 import java.io.File;
 import java.io.OutputStream;
 import android.media.AudioAttributes;
@@ -59,7 +64,6 @@ public class MainActivity extends BridgeActivity {
             getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
                 WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
             );
         }
@@ -118,6 +122,22 @@ public class MainActivity extends BridgeActivity {
 
             // Register Native Bridge
             webView.addJavascriptInterface(new NativeDownloadBridge(), "ExpedientNativeBridge");
+
+            // Intercept main-frame network errors with branded local offline screen
+            if (getBridge() != null) {
+                getBridge().setWebViewClient(new BridgeWebViewClient(getBridge()) {
+                    @Override
+                    public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                        super.onReceivedError(view, request, error);
+                        if (request != null && request.isForMainFrame()) {
+                            String failingUrl = request.getUrl() != null ? request.getUrl().toString() : "";
+                            if (!failingUrl.startsWith("file:///android_asset/")) {
+                                view.loadUrl("file:///android_asset/offline.html");
+                            }
+                        }
+                    }
+                });
+            }
 
             // Delayed evaluation of pending navigation to ensure webapp has loaded
             webView.postDelayed(() -> {
@@ -190,6 +210,33 @@ public class MainActivity extends BridgeActivity {
                 }
             });
         }
+
+        // Handle hardware Back button cleanly: dismiss open Web dialogs before navigating back
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                WebView activeWebView = getBridge() != null ? getBridge().getWebView() : null;
+                if (activeWebView == null) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                    return;
+                }
+                activeWebView.evaluateJavascript(
+                    "(function(){ return (typeof window.__expedientHandleBack === 'function' && window.__expedientHandleBack()) ? 'true' : 'false'; })()",
+                    result -> {
+                        if ("\"true\"".equals(result) || "true".equals(result)) {
+                            return;
+                        }
+                        if (activeWebView.canGoBack()) {
+                            activeWebView.goBack();
+                        } else {
+                            setEnabled(false);
+                            getOnBackPressedDispatcher().onBackPressed();
+                        }
+                    }
+                );
+            }
+        });
     }
 
     @Override
@@ -236,9 +283,9 @@ public class MainActivity extends BridgeActivity {
                 if (targetPath == null || targetPath.trim().isEmpty()) {
                     targetPath = "/beranda";
                 }
-                final String finalPath = targetPath;
+                final String finalPathLiteral = JSONObject.quote(targetPath);
                 String js = "(function() { " +
-                    "  var path = '" + finalPath + "'; " +
+                    "  var path = " + finalPathLiteral + "; " +
                     "  if (window.expedientNavigate) { " +
                     "    window.expedientNavigate(path); " +
                     "  } else { " +
@@ -717,13 +764,4 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        WebView webView = getBridge().getWebView();
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
-    }
 }

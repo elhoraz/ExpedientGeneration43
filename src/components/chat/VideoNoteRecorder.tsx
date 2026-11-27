@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 
 interface VideoNoteRecorderProps {
@@ -19,23 +19,19 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const onCancelRef = useRef(onCancel);
   useEffect(() => {
-    initCamera(facingMode);
+    onCancelRef.current = onCancel;
+  }, [onCancel]);
 
-    return () => {
-      stopTracks();
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [facingMode]);
-
-  const stopTracks = () => {
+  const stopTracks = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
-  };
+  }, []);
 
-  const initCamera = async (mode: "user" | "environment") => {
+  const initCamera = useCallback(async (mode: "user" | "environment") => {
     stopTracks();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -55,9 +51,19 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
     } catch (err) {
       console.error("Gagal mengakses kamera/mikrofon:", err);
       await showAlert("Akses Kamera Ditolak", "Tidak dapat mengakses kamera. Pastikan izin kamera & mikrofon telah diberikan.");
-      onCancel();
+      onCancelRef.current();
     }
-  };
+  }, [stopTracks, showAlert]);
+
+  useEffect(() => {
+    initCamera(facingMode);
+    const activeTimerRef = timerRef;
+
+    return () => {
+      stopTracks();
+      if (activeTimerRef.current) clearInterval(activeTimerRef.current);
+    };
+  }, [facingMode, initCamera, stopTracks]);
 
   const startRecording = () => {
     if (!streamRef.current) return;

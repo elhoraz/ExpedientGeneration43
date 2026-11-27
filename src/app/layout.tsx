@@ -145,12 +145,15 @@ export default async function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
         <link rel="icon" type="image/png" sizes="48x48" href="/icon-48.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;600;700&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -192,8 +195,9 @@ export default async function RootLayout({
                   var cpu = navigator.hardwareConcurrency || (isMobile ? 4 : 8);
                   var isSaveData = Boolean(navigator.connection && navigator.connection.saveData);
                   var isLowEnd = isSaveData || (isMobile && (ram <= 3 || cpu <= 4));
+                  var perfTier = isLowEnd ? 'lite' : (isMobile ? 'balanced' : 'high');
 
-                  document.documentElement.setAttribute('data-perf', isLowEnd ? 'lite' : 'high');
+                  document.documentElement.setAttribute('data-perf', perfTier);
                   document.documentElement.setAttribute('data-device', isMobile ? 'mobile' : 'desktop');
                   const savedLang = localStorage.getItem('expedient_locale') || 'id';
                   document.documentElement.lang = savedLang;

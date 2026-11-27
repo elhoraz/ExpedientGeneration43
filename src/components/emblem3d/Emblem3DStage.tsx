@@ -668,19 +668,25 @@ export default function Emblem3DStage({
       const navAny = navigator as unknown as { deviceMemory?: number };
       const devMem = typeof navAny.deviceMemory === "number" ? navAny.deviceMemory : null;
       const cpuCores = typeof navigator.hardwareConcurrency === "number" ? navigator.hardwareConcurrency : null;
+      const isPerfLiteAttr = document.documentElement.getAttribute("data-perf") === "lite";
       const isUltraEntryGpu =
         /PowerVR.*(GE8320|GE8322|GE8300|GE8100)|Adreno.*(30\d|40\d|504|505|506|508|509|510)|Mali-4\d\d|Mali-T7\d\d|Mali-T8[23]0|Mali-G31/i.test(
           gpuRendererName
         );
+      // Do NOT misclassify 6GB Octa-Core Mid-End Androids whose browser rounds deviceMemory down to 4
+      const isWeakRamTier =
+        (devMem !== null && devMem <= 2) ||
+        (devMem !== null && devMem <= 4 && (cpuCores === null || cpuCores <= 4));
       let isLiteTier =
         isMobInit &&
-        (isUltraEntryGpu ||
-          (devMem !== null && devMem <= 4) ||
+        (isPerfLiteAttr ||
+          isUltraEntryGpu ||
+          isWeakRamTier ||
           (cpuCores !== null && cpuCores <= 4));
 
       const getMaxDpr = (w: number) => {
         if (w >= 768) return 2;
-        return isLiteTier ? 1.0 : 1.15;
+        return isLiteTier ? 1.0 : 1.35;
       };
 
       renderer.setSize(width, height);
@@ -722,14 +728,16 @@ export default function Emblem3DStage({
       scene.add(backKeyLight);
 
       let burstLight: any = null;
+      if (!isLiteTier) {
+        const rimLight = new THREE.DirectionalLight(0x4fc3f7, isMobInit ? 0.55 : 0.95);
+        rimLight.position.set(3, 3, -5);
+        scene.add(rimLight);
+      }
+
       if (!isMobInit) {
         const fillLight = new THREE.DirectionalLight(0x90caf9, 0.45);
         fillLight.position.set(-5, -2, 4);
         scene.add(fillLight);
-
-        const rimLight = new THREE.DirectionalLight(0x4fc3f7, 0.95);
-        rimLight.position.set(3, 3, -5);
-        scene.add(rimLight);
 
         const goldUnderLight = new THREE.PointLight(0xd4af37, 0.75, 14);
         goldUnderLight.position.set(0, -3.5, 3);
@@ -1228,7 +1236,7 @@ export default function Emblem3DStage({
         animId = requestAnimationFrame(animate);
         const st = stateRef.current;
 
-        if (!st.isInViewport && !st.isAnimating) {
+        if (document.hidden || (!st.isInViewport && !st.isAnimating)) {
           lastFrameMs = performance.now();
           return;
         }

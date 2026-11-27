@@ -9,7 +9,6 @@ import { getAvatarUrl } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
 
-// @ts-ignore
 // Let faceapi be accessible globally after script loads
 declare global {
   interface Window {
@@ -22,7 +21,6 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [modelsLoaded, setModelsLoaded] = useState(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [statusText, setStatusText] = useState("MEMUAT ASISTEN ALUMNI...");
   const [isScanning, setIsScanning] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -40,27 +38,35 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
   useDialogEscape(Boolean(aiInsight), () => setAiInsight(null));
 
   const supabase = createClient();
+  const streamRef = useRef<MediaStream | null>(null);
+  const initialPhotoProfilRef = useRef(userProfile?.foto_profil);
 
   useEffect(() => {
+    const profileFoto = initialPhotoProfilRef.current;
     // Attempt to load models after script is loaded
     const checkFaceApi = setInterval(async () => {
       if (window.faceapi) {
         clearInterval(checkFaceApi);
         try {
-          const FACE_MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-          // It's possible we need to load tinyFaceDetector instead of faceLandmark68Net
-          await Promise.all([
-            window.faceapi.nets.tinyFaceDetector.loadFromUri(FACE_MODEL_URL),
-            window.faceapi.nets.faceLandmark68Net.loadFromUri(FACE_MODEL_URL),
-            window.faceapi.nets.faceExpressionNet.loadFromUri(FACE_MODEL_URL),
-            window.faceapi.nets.faceRecognitionNet.loadFromUri(FACE_MODEL_URL)
-          ]);
+          const loadModelsFromBase = (baseUrl: string) =>
+            Promise.all([
+              window.faceapi.nets.tinyFaceDetector.loadFromUri(baseUrl),
+              window.faceapi.nets.faceLandmark68Net.loadFromUri(baseUrl),
+              window.faceapi.nets.faceExpressionNet.loadFromUri(baseUrl),
+              window.faceapi.nets.faceRecognitionNet.loadFromUri(baseUrl),
+            ]);
+
+          try {
+            await loadModelsFromBase("/assets/models");
+          } catch {
+            await loadModelsFromBase("https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model");
+          }
           setModelsLoaded(true);
           setStatusText("MEMUAT DATA BIOMETRIK...");
 
-          if (userProfile?.foto_profil) {
+          if (profileFoto) {
             try {
-              const fotoUrl = getAvatarUrl(userProfile.foto_profil);
+              const fotoUrl = getAvatarUrl(profileFoto);
               const img = await window.faceapi.fetchImage(fotoUrl);
               const det = await window.faceapi.detectSingleFace(img, new window.faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
               if (det) setReferenceDescriptor(det.descriptor);
@@ -83,8 +89,9 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
     return () => {
       document.body.classList.remove("page-oracle");
       clearInterval(checkFaceApi);
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
     };
   }, []);
@@ -92,7 +99,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
   const initCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-      setStream(mediaStream);
+      streamRef.current = mediaStream;
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
@@ -332,7 +339,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
 
   return (
     <>
-      <Script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js" strategy="afterInteractive" />
+      <Script src="/vendor/face-api/face-api.min.js" strategy="afterInteractive" />
       <style>{`
         :root {
             --oracle-gold: #d4af37;

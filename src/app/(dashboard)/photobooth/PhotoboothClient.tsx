@@ -1,54 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
-import html2canvas from "html2canvas";
+import { useEffect, useRef, useState, useCallback, type VideoHTMLAttributes } from "react";
+import dynamic from "next/dynamic";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
+import {
+  CURATED_FRAME_THEMES,
+  STUDIO_FRAME_THEMES,
+  PHOTOBOOTH_FILTER_CHIPS,
+  PHOTOBOOTH_STICKERS,
+  type LayoutMode,
+  type FilterMode,
+  type FrameTheme,
+  type AspectRatioMode,
+  type PhotoItem,
+  type PlacedSticker,
+  type ExportedResultState,
+} from "./photoboothPresets";
 import "./photobooth.css";
 
-type LayoutMode = "korean-4cut" | "grid-2x2" | "retro-3cut" | "polaroid";
-type FilterMode = "normal" | "golden" | "noir" | "vintage" | "emerald" | "cyber" | "pastel";
-type FrameTheme =
-  | "gingham"
-  | "cobalt"
-  | "doily"
-  | "portra"
-  | "instagram"
-  | "luggage"
-  | "spiral"
-  | "ticket"
-  | "receipt"
-  | "scrapbook"
-  | "doodle"
-  | "mihrab"
-  | "sovereign"
-  | "white"
-  | "film"
-  | "santri"
-  | "sakura"
-  | "cyber"
-  | "parchment"
-  | "ocean"
-  | "velvet"
-  | "y2k"
-  | "botanical"
-  | "monolith"
-  | "custom";
-type AspectRatioMode = "classic" | "square" | "portrait";
-
-interface PhotoItem {
-  image: string;
-  video?: string;
-}
-
-interface PlacedSticker {
-  id: string;
-  emoji: string;
-  top: number;
-  left: number;
-  scale?: number;
-}
+const PhotoboothExportModal = dynamic(
+  () => import("./components/PhotoboothExportModal").then((m) => m.PhotoboothExportModal),
+  { ssr: false }
+);
 
 // Dedicated hardware-accelerated video player for Photostrip cells
 function LivePhotoCellVideo({
@@ -91,8 +66,7 @@ function LivePhotoCellVideo({
       loop
       muted
       playsInline
-      // @ts-ignore
-      webkit-playsinline="true"
+      {...({ "webkit-playsinline": "true" } as VideoHTMLAttributes<HTMLVideoElement>)}
       preload="auto"
       disablePictureInPicture
       onEnded={() => {
@@ -186,13 +160,7 @@ export default function PhotoboothClient() {
   const [isExporting, setIsExporting] = useState(false);
 
   // Export Result Preview Modal (Ensures 100% reliable download & APK save)
-  const [exportedResult, setExportedResult] = useState<{
-    dataUrl: string;
-    blob: Blob | null;
-    filename: string;
-    downloadUrl?: string;
-    type: "image" | "video";
-  } | null>(null);
+  const [exportedResult, setExportedResult] = useState<ExportedResultState | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
 
   useDialogEscape(showExportModal, () => setShowExportModal(false));
@@ -252,6 +220,12 @@ export default function PhotoboothClient() {
     setIsCameraReady(false);
   }, []);
 
+  const localeRef = useRef(locale);
+  const initialFacingRef = useRef(cameraFacing);
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
+
   // Initialize Camera Stream
   const startCamera = useCallback(async (facing: "user" | "environment") => {
     setCameraError(null);
@@ -306,10 +280,11 @@ export default function PhotoboothClient() {
       }
     } catch (err: any) {
       console.warn("Camera access error:", err);
+      const currentLocale = localeRef.current;
       setCameraError(
-        locale === "ar"
+        currentLocale === "ar"
           ? "تعذر الوصول إلى الكاميرا. يرجى السماح بإذن الكاميرا من إعدادات المتصفح أو رفع الصور من المعرض."
-          : locale === "en"
+          : currentLocale === "en"
           ? "Camera access unavailable. Please enable camera permission in your browser settings or upload photos from your gallery."
           : "Kamera belum dapat diakses. Izinkan akses kamera di browser atau unggah foto langsung dari galeri."
       );
@@ -318,7 +293,8 @@ export default function PhotoboothClient() {
   }, [stopCamera]);
 
   useEffect(() => {
-    startCamera(cameraFacing);
+    startCamera(initialFacingRef.current);
+    const createdBlobUrls = createdBlobUrlsRef.current;
 
     // Guarantee camera turns off when leaving the page or closing tab
     const handleUnload = () => {
@@ -332,12 +308,12 @@ export default function PhotoboothClient() {
       window.removeEventListener("beforeunload", handleUnload);
       window.removeEventListener("pagehide", handleUnload);
       // Clean up any generated video blob URLs to prevent mobile memory leaks
-      createdBlobUrlsRef.current.forEach((url) => {
+      createdBlobUrls.forEach((url) => {
         try { URL.revokeObjectURL(url); } catch {}
       });
-      createdBlobUrlsRef.current.clear();
+      createdBlobUrls.clear();
     };
-  }, [stopCamera]);
+  }, [stopCamera, startCamera]);
 
   // Flip Camera (Mobile)
   const handleToggleFacing = () => {
@@ -2021,8 +1997,9 @@ export default function PhotoboothClient() {
 
       let canvas: HTMLCanvasElement | null = null;
 
-      // Primary attempt: html2canvas with generous 25s timeout & sanitization
+      // Primary attempt: lazy-loaded html2canvas with generous 25s timeout & sanitization
       try {
+        const html2canvas = (await import("html2canvas")).default;
         const h2cPromise = html2canvas(stripRef.current, {
           scale: exportScale,
           useCORS: true,
@@ -2130,6 +2107,7 @@ export default function PhotoboothClient() {
 
       let canvas: HTMLCanvasElement;
       try {
+        const html2canvas = (await import("html2canvas")).default;
         canvas = await html2canvas(stripRef.current, {
           scale: exportScale,
           useCORS: true,
@@ -2232,9 +2210,10 @@ export default function PhotoboothClient() {
         return;
       }
 
-      // ── Capture background frame via html2canvas with native fallback ──
+      // ── Capture background frame via lazy html2canvas with native fallback ──
       let bgCanvas: HTMLCanvasElement;
       try {
+        const html2canvas = (await import("html2canvas")).default;
         bgCanvas = await html2canvas(stripEl, {
           scale: exportScale,
           useCORS: true,
@@ -2689,8 +2668,7 @@ export default function PhotoboothClient() {
                 ref={videoRef}
                 autoPlay
                 playsInline
-                // @ts-ignore
-                webkit-playsinline="true"
+                {...({ "webkit-playsinline": "true" } as VideoHTMLAttributes<HTMLVideoElement>)}
                 muted
                 className={`viewfinder-video ${cameraFacing === "environment" ? "unmirrored" : ""}`}
                 style={{ filter: getFilterStyle() }}
@@ -3021,20 +2999,7 @@ export default function PhotoboothClient() {
                   <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Edisi Kurasi (Khas Santri &amp; Expedient):
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px" }}>
-                  {[
-                    { id: "gingham", label: "Beige Gingham & Washi Tape" },
-                    { id: "cobalt", label: "Cobalt Y2K Every Moment" },
-                    { id: "doily", label: "Korduroi & Renda Doily" },
-                    { id: "portra", label: "Kodak Portra 400" },
-                    { id: "instagram", label: "Instagram Feed UI" },
-                    { id: "luggage", label: "Vintage Luggage Tag" },
-                    { id: "spiral", label: "Spiral Notebook" },
-                    { id: "ticket", label: "Boarding Pass Ticket" },
-                    { id: "receipt", label: "Struk Kopontren Mart" },
-                    { id: "scrapbook", label: "Scrapbook Santri" },
-                    { id: "doodle", label: "Y2K Doodle Pop" },
-                    { id: "mihrab", label: "Mihrab Kubah Emas" },
-                  ].map((item) => (
+                  {CURATED_FRAME_THEMES.map((item) => (
                     <button
                       key={item.id}
                       type="button"
@@ -3053,20 +3018,7 @@ export default function PhotoboothClient() {
                   <i className="fa-solid fa-crown" aria-hidden="true"></i> Edisi Studio &amp; Klasik:
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                  {[
-                    { id: "sovereign", label: "Emas Kehormatan" },
-                    { id: "white", label: "Minimalist White" },
-                    { id: "film", label: "35mm Analog" },
-                    { id: "santri", label: "Nostalgia Santri" },
-                    { id: "sakura", label: "Sakura Pastel" },
-                    { id: "cyber", label: "Emerald Arrisalah" },
-                    { id: "parchment", label: "Vintage Parchment" },
-                    { id: "ocean", label: "Deep Ocean" },
-                    { id: "velvet", label: "Royal Velvet" },
-                    { id: "y2k", label: "Y2K Chrome" },
-                    { id: "botanical", label: "Sage Botanical" },
-                    { id: "monolith", label: "Dark Monolith" },
-                  ].map((item) => (
+                  {STUDIO_FRAME_THEMES.map((item) => (
                     <button
                       key={item.id}
                       type="button"
@@ -3124,55 +3076,16 @@ export default function PhotoboothClient() {
                 <i className="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> 3. Filter Tone Warna (Bisa Diubah Kapan Saja)
               </div>
               <div className="chips-scroll-row">
-                <button
-                  type="button"
-                  className={`chip-btn ${filter === "normal" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setFilter("normal"); }}
-                >
-                  Asli
-                </button>
-                <button
-                  type="button"
-                  className={`chip-btn ${filter === "golden" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setFilter("golden"); }}
-                >
-                  Golden Hour
-                </button>
-                <button
-                  type="button"
-                  className={`chip-btn ${filter === "noir" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setFilter("noir"); }}
-                >
-                  Noir B&amp;W
-                </button>
-                <button
-                  type="button"
-                  className={`chip-btn ${filter === "vintage" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setFilter("vintage"); }}
-                >
-                  90s Film
-                </button>
-                <button
-                  type="button"
-                  className={`chip-btn ${filter === "emerald" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setFilter("emerald"); }}
-                >
-                  Emerald
-                </button>
-                <button
-                  type="button"
-                  className={`chip-btn ${filter === "cyber" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setFilter("cyber"); }}
-                >
-                  Cahaya Pesantren
-                </button>
-                <button
-                  type="button"
-                  className={`chip-btn ${filter === "pastel" ? "active" : ""}`}
-                  onClick={() => { triggerHaptic(10); setFilter("pastel"); }}
-                >
-                  Soft Pastel
-                </button>
+                {PHOTOBOOTH_FILTER_CHIPS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`chip-btn ${filter === item.id ? "active" : ""}`}
+                    onClick={() => { triggerHaptic(10); setFilter(item.id); }}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
 
               {/* Sliders for Brightness and Contrast */}
@@ -3231,7 +3144,7 @@ export default function PhotoboothClient() {
               </div>
 
               <div className="stickers-picker-grid">
-                {["👑", "🎓", "✨", "🌙", "📸", "🤍", "🕶️", "🕌", "🤝", "⚡", "⭐", "🌺"].map((emoji) => (
+                {PHOTOBOOTH_STICKERS.map((emoji) => (
                   <button
                     key={emoji}
                     type="button"
@@ -3364,7 +3277,7 @@ export default function PhotoboothClient() {
                     <span className="doily-flower-badge">🌺</span>
                     <span className="doily-flower-badge-left">🌸</span>
                     <div style={{ fontSize: "0.86rem", fontWeight: 800, color: "#faebd7", letterSpacing: "1px", fontStyle: "italic" }}>
-                      Mahabbah Fillah • '43
+                      Mahabbah Fillah • &apos;43
                     </div>
                   </div>
                 ) : theme === "portra" ? (
@@ -3433,7 +3346,7 @@ export default function PhotoboothClient() {
                     <span className="scrapbook-pin-corner">🧷</span>
                     <span className="scrapbook-washi-tape"></span>
                     <div style={{ fontSize: "0.82rem", fontWeight: 800, color: "#ffe4e8", letterSpacing: "1px" }}>
-                      ✨ AKHI FILLAH • '43
+                      ✨ AKHI FILLAH • &apos;43
                     </div>
                   </div>
                 ) : theme === "doodle" ? (
@@ -3641,7 +3554,7 @@ export default function PhotoboothClient() {
                   <div style={{ width: "100%", marginTop: "12px", textAlign: "center" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", padding: "0 6px" }}>
                       <div className="gingham-masking-wrap">
-                        <span className="gingham-masking-tape">i'd be a fool</span>
+                        <span className="gingham-masking-tape">i&apos;d be a fool</span>
                         <span className="gingham-masking-tape" style={{ transform: "rotate(-2deg)", marginTop: "2px" }}>not to love you</span>
                       </div>
                       <div className="gingham-ransom-badge">
@@ -3892,91 +3805,15 @@ export default function PhotoboothClient() {
         </div>
       )}
 
-      {/* Export Result Preview Modal (Guaranteed Mobile/APK Save & Share) */}
       {showExportModal && exportedResult && (
-        <div
-          className="export-result-modal-backdrop"
-          onClick={() => setShowExportModal(false)}
-        >
-          <div
-            className="export-result-modal-card"
-            role="dialog"
-            aria-modal="true"
-            aria-label={exportedResult.type === "video" ? "Preview Video" : "Preview Photostrip"}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="export-modal-header">
-              <div className="export-modal-title-group">
-                <div className="export-modal-icon">
-                  <i className="fa-solid fa-circle-check" aria-hidden="true"></i>
-                </div>
-                <div>
-                  <h3 className="export-modal-title">Foto Siap Disimpan!</h3>
-                  <p className="export-modal-subtitle">
-                    {exportedResult.type === "video" ? "Format Video Bergerak (HD)" : "Format Foto Photostrip (HD)"}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="export-modal-close-btn"
-                onClick={() => setShowExportModal(false)}
-                aria-label={t.common.close}
-              >
-                <i className="fa-solid fa-xmark" aria-hidden="true"></i>
-              </button>
-            </div>
-
-            <div className="export-modal-body">
-              <div className="export-preview-container">
-                {exportedResult.type === "video" ? (
-                  <video
-                    src={exportedResult.dataUrl}
-                    controls
-                    autoPlay
-                    loop
-                    playsInline
-                    className="export-preview-video"
-                  />
-                ) : (
-                  <img
-                    src={exportedResult.dataUrl}
-                    alt="Hasil Foto Photobooth"
-                    className="export-preview-img"
-                  />
-                )}
-              </div>
-
-              <div className="apk-save-hint">
-                <i className="fa-solid fa-lightbulb"></i>
-                <div>
-                  <strong>Tips Simpan di Aplikasi HP:</strong>
-                  Tekan tombol <strong>Simpan ke Galeri / Bagikan</strong> di bawah untuk langsung menyimpan ke galeri HP tanpa keluar aplikasi. Anda juga bisa <strong>tekan & tahan jari pada foto</strong> di atas lalu pilih <em>"Simpan Gambar"</em>.
-                </div>
-              </div>
-
-              <div className="export-modal-actions">
-                <button
-                  type="button"
-                  className="btn-modal-share"
-                  onClick={handleShareFromModal}
-                >
-                  <i className="fa-solid fa-cloud-arrow-down"></i>
-                  <span>{locale === "ar" ? "حفظ في المعرض / مشاركة" : locale === "en" ? "Save to Gallery / Share" : "Simpan ke Galeri / Bagikan"}</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="btn-modal-download"
-                  onClick={handleDownloadFromModal}
-                >
-                  <i className="fa-solid fa-download"></i>
-                  <span>{locale === "ar" ? "حفظ الملف مباشرة" : locale === "en" ? "Direct Download File" : "Simpan File Langsung"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <PhotoboothExportModal
+          locale={locale}
+          closeLabel={t.common.close}
+          exportedResult={exportedResult}
+          onClose={() => setShowExportModal(false)}
+          onShare={handleShareFromModal}
+          onDownload={handleDownloadFromModal}
+        />
       )}
     </div>
   );

@@ -262,6 +262,7 @@ export default function WrappedClient({ profile, stats }: { profile: any, stats:
             <button
               key={i}
               type="button"
+              role="tab"
               className="wrapped-seg-btn"
               onClick={() => {
                 setCurrentSlide(i);

@@ -662,8 +662,15 @@ select.input-control option { background: var(--bg-main); color: var(--text-prim
     opacity: 1 !important;
 }
 
-[data-perf="lite"] .aurora-container {
+[data-perf="lite"] .aurora-container,
+[data-perf="lite"] .lens-dust {
     display: none !important;
+}
+
+@media (max-width: 768px), (pointer: coarse) {
+    .lens-dust {
+        display: none !important;
+    }
 }
 
 /* ================= 13. REQUIREMENTS & GUIDELINES ================= */

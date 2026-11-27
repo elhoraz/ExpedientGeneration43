@@ -10,10 +10,16 @@ export async function GET() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: topics, error } = await supabase
-      .from("majlis_topics")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const [{ data: topics, error }, votesRes] = await Promise.all([
+      supabase
+        .from("majlis_topics")
+        .select("id, title, description, created_by, votes_count, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(60),
+      user
+        ? supabase.from("majlis_votes").select("topic_id").eq("user_id", user.id)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
 
     if (error) {
       return NextResponse.json({ status: "error", message: error.message, data: null }, { status: 500 });
@@ -30,14 +36,7 @@ export async function GET() {
       profiles?.forEach((p: any) => profileMap.set(p.id, p.nama_panggilan));
     }
 
-    let votedTopicIds = new Set<string>();
-    if (user) {
-      const { data: votes } = await supabase
-        .from('majlis_votes')
-        .select('topic_id')
-        .eq('user_id', user.id);
-      votedTopicIds = new Set(votes?.map((v: any) => v.topic_id) || []);
-    }
+    const votedTopicIds = new Set<string>(votesRes?.data?.map((v: any) => v.topic_id) || []);
 
     const formattedTopics = (topics || []).map((t: any) => ({
       ...t,

@@ -2673,6 +2673,8 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 24px 22px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 210px;
   transition: border-color 0.25s ease, background-color 0.25s ease;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
 }

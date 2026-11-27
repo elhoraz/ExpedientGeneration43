@@ -7,8 +7,13 @@ import gsap from "gsap";
 export default function GenesisClient({ userId }: { userId: string }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isSingularity, setIsSingularity] = useState(false);
+    const isSingularityRef = useRef(false);
     const [showRevelation, setShowRevelation] = useState(false);
     const animationRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        isSingularityRef.current = isSingularity;
+    }, [isSingularity]);
 
     useEffect(() => {
         document.body.classList.add("page-genesis");
@@ -52,15 +57,15 @@ export default function GenesisClient({ userId }: { userId: string }) {
             }
             update(isSing: boolean) {
                 if (isSing) return;
-                let dx = (mouse.x || -1000) - this.x;
-                let dy = (mouse.y || -1000) - this.y;
-                let distance = Math.sqrt(dx * dx + dy * dy);
+                const dx = (mouse.x || -1000) - this.x;
+                const dy = (mouse.y || -1000) - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
 
-                let forceDirectionX = dx / distance;
-                let forceDirectionY = dy / distance;
-                let force = (mouse.radius - distance) / mouse.radius;
-                let directionX = forceDirectionX * force * this.density;
-                let directionY = forceDirectionY * force * this.density;
+                const forceDirectionX = dx / distance;
+                const forceDirectionY = dy / distance;
+                const force = (mouse.radius - distance) / mouse.radius;
+                const directionX = forceDirectionX * force * this.density;
+                const directionY = forceDirectionY * force * this.density;
 
                 if (distance < mouse.radius) {
                     this.x -= directionX;
@@ -108,8 +113,8 @@ export default function GenesisClient({ userId }: { userId: string }) {
                             const b = pixels[index + 2];
                             const color = `rgb(${r}, ${g}, ${b})`;
 
-                            let positionX = x + startX;
-                            let positionY = y + startY;
+                            const positionX = x + startX;
+                            const positionY = y + startY;
 
                             particleArray.push(new Particle(positionX, positionY, color));
                         }
@@ -135,7 +140,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
                 }
                 return;
             }
-            if (!isSingularity && !(canvas as any).isSingularityStarted) {
+            if (!isSingularityRef.current && !(canvas as any).isSingularityStarted) {
                 ctx.fillStyle = 'rgba(6, 11, 20, 0.3)';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 

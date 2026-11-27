@@ -22,32 +22,32 @@ export default function BukuTamuClient({ initialMessages, userId }: { initialMes
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!newMessage.trim()) return;
+    e.preventDefault();
+    if (!newMessage.trim()) return;
 
-      setIsSubmitting(true);
-      const res = await fetch("/api/buku-tamu", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: newMessage }),
-      });
+    setIsSubmitting(true);
+    const res = await fetch("/api/buku-tamu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: newMessage }),
+    });
 
-      if (res.ok) {
-          const data = await res.json();
-          setMessages([data, ...messages]);
-          setNewMessage("");
-          await showAlert(
-            t.common.success,
-            locale === "ar"
-              ? "تم إرسال رسالتك إلى سجل الزوار بنجاح!"
-              : locale === "en"
-                ? "Your message has been posted to the guestbook!"
-                : "Pesan Anda berhasil ditambahkan ke Buku Tamu!"
-          );
-      } else {
-          await showAlert(t.common.error, t.common.error);
-      }
-      setIsSubmitting(false);
+    if (res.ok) {
+      const data = await res.json();
+      setMessages([data, ...messages]);
+      setNewMessage("");
+      await showAlert(
+        t.common.success,
+        locale === "ar"
+          ? "تم إرسال رسالتك إلى سجل الزوار بنجاح!"
+          : locale === "en"
+            ? "Your message has been posted to the guestbook!"
+            : "Pesan Anda berhasil ditambahkan ke Buku Tamu!"
+      );
+    } else {
+      await showAlert(t.common.error, t.common.error);
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -58,18 +58,18 @@ export default function BukuTamuClient({ initialMessages, userId }: { initialMes
       <p className="bt-subtitle">{t.buku_tamu.subtitle}</p>
 
       <form className="bt-form" onSubmit={handleSubmit}>
-          <textarea 
-            className="bt-textarea" 
-            placeholder={t.buku_tamu.placeholder} 
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            disabled={isSubmitting}
-          ></textarea>
-          <div style={{ clear: 'both', overflow: 'hidden' }}>
-            <button type="submit" className="bt-submit" disabled={isSubmitting || !newMessage.trim()}>
-                {isSubmitting ? t.buku_tamu.btn_submitting : t.buku_tamu.btn_submit}
-            </button>
-          </div>
+        <textarea
+          className="bt-textarea"
+          placeholder={t.buku_tamu.placeholder}
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          disabled={isSubmitting}
+        ></textarea>
+        <div style={{ clear: 'both', overflow: 'hidden' }}>
+          <button type="submit" className="bt-submit" disabled={isSubmitting || !newMessage.trim()}>
+            {isSubmitting ? t.buku_tamu.btn_submitting : t.buku_tamu.btn_submit}
+          </button>
+        </div>
       </form>
 
       <div className="msg-list">
@@ -82,7 +82,7 @@ export default function BukuTamuClient({ initialMessages, userId }: { initialMes
                           <div className="msg-author">{msg.nama || msg.profiles?.nama_panggilan || (locale === 'ar' ? 'فاعل خير' : 'Alumni 43')}</div>
                           <div className="msg-date">{new Date(msg.created_at).toLocaleDateString(locale === 'ar' ? 'ar-SA' : locale === 'en' ? 'en-US' : 'id-ID')}</div>
                       </div>
-                      <div className="msg-body">"{msg.pesan || msg.message}"</div>
+                      <div className="msg-body">&ldquo;{msg.pesan || msg.message}&rdquo;</div>
                   </div>
               ))
           )}

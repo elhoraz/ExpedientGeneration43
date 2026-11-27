@@ -455,6 +455,8 @@
   background: var(--dir-surface);
   box-shadow: var(--dir-shadow);
   min-width: 0;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 92px;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 

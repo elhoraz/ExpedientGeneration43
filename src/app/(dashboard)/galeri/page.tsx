@@ -14,28 +14,25 @@ export default async function GaleriPage() {
   } = await supabase.auth.getUser();
 
   // Curated 245 photos and categorized albums from manifest
-  let initialAlbums = galeriManifest.albums || [];
+  const initialAlbums = galeriManifest.albums || [];
   let initialPhotos: any[] = [...(galeriManifest.photos || [])];
 
-  // Also query community uploaded photos from Supabase 'galeri' table
+  // Query community uploaded photos and user likes in parallel
   try {
-    const { data: dbPhotos } = await supabase
-      .from("galeri")
-      .select("id, image_url, caption, created_at")
-      .order("created_at", { ascending: false })
-      .limit(60);
+    const [{ data: dbPhotos }, likesRes] = await Promise.all([
+      supabase
+        .from("galeri")
+        .select("id, image_url, caption, created_at")
+        .order("created_at", { ascending: false })
+        .limit(60),
+      user
+        ? supabase.from("galeri_likes").select("photo_id").eq("user_id", user.id)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
 
     if (dbPhotos && dbPhotos.length > 0) {
-      let likedIds = new Set<string>();
-      if (user) {
-        try {
-          const { data: likes } = await supabase
-            .from("galeri_likes")
-            .select("photo_id")
-            .eq("user_id", user.id);
-          if (likes) likes.forEach((l) => likedIds.add(l.photo_id));
-        } catch {}
-      }
+      const likedIds = new Set<string>();
+      likesRes?.data?.forEach((l: any) => likedIds.add(l.photo_id));
 
       const formattedDbPhotos = dbPhotos.map((p: any) => ({
         id: p.id,

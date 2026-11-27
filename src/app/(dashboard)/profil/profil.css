@@ -121,6 +121,11 @@
         mix-blend-mode: color-dodge;
     }
 
+    [data-perf="lite"] .lens-dust,
+    [data-device="mobile"] .lens-dust {
+        display: none !important;
+    }
+
     /* The luxurious scan line */
     .scan-line {
         position: absolute;

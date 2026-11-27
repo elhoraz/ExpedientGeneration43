@@ -42,7 +42,7 @@ export async function GET(req: Request) {
     // 2. Ambil credential biometrik pengguna yang sudah terdaftar
     const { data: biometrics, error: bioError } = await supabaseAdmin
       .from("user_biometrics")
-      .select("*")
+      .select("credential_id, transports")
       .eq("user_id", targetUser.id);
 
     if (bioError) {

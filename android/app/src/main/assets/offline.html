@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Koneksi Terputus - Expedient 43</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: #060b14;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      text-align: center;
+    }
+    .card {
+      max-width: 360px;
+      width: 100%;
+      padding: 32px 24px;
+      border-radius: 20px;
+      background: #0d1624;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #d4af37;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #f3e5ab;
+    }
+    p {
+      font-size: 14px;
+      line-height: 1.55;
+      color: #94a3b8;
+      margin-bottom: 22px;
+    }
+    button {
+      width: 100%;
+      min-height: 44px;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #d4af37, #b8860b);
+      color: #060b14;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Expedient Generation 43</div>
+    <h1>Koneksi Internet Terputus</h1>
+    <p>Pastikan paket data atau Wi-Fi aktif, lalu ketuk tombol di bawah untuk memuat ulang portal alumni.</p>
+    <button type="button" onclick="window.location.replace('https://expedientgeneration.vercel.app')">Coba Muat Ulang</button>
+  </div>
+  <script>
+    window.addEventListener('online', function () {
+      window.location.replace('https://expedientgeneration.vercel.app');
+    });
+  </script>
+</body>
+</html>

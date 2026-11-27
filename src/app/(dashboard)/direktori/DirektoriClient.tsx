@@ -114,6 +114,44 @@ export default function DirektoriClient({
   // Al-Fatihah devotion counts for Asatidz
   const [fatihahCounts, setFatihahCounts] = useState<Record<string, number>>({});
   const [fatihahToast, setFatihahToast] = useState<Record<string, boolean>>({});
+  const urlSyncReadyRef = useRef(false);
+
+  // Hydrate directory search & filters from URL query parameters cleanly after mount
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      const g = params.get("gender");
+      const k = params.get("kelas");
+      const s = params.get("sort");
+      const tab = params.get("tab");
+      if (q) setSearch(q);
+      if (g === "L" || g === "P") setGenderFilter(g);
+      if (k) setClassFilter(k);
+      if (s === "name_asc" || s === "name_desc" || s === "points") setSortBy(s);
+      if (tab === "alumni" || tab === "asatidz") setActiveMainTab(tab);
+    } catch {
+      // Ignore query parse failures
+    } finally {
+      urlSyncReadyRef.current = true;
+    }
+  }, []);
+
+  // Persist directory filters to URL without page navigation
+  useEffect(() => {
+    if (!urlSyncReadyRef.current || typeof window === "undefined") return;
+    const params = new URLSearchParams();
+    if (activeMainTab !== "alumni") params.set("tab", activeMainTab);
+    if (search.trim()) params.set("q", search.trim());
+    if (genderFilter !== "all") params.set("gender", genderFilter);
+    if (classFilter !== "all") params.set("kelas", classFilter);
+    if (sortBy !== "name_asc") params.set("sort", sortBy);
+    const qs = params.toString();
+    const targetUrl = qs ? `${window.location.pathname}?${qs}` : window.location.pathname;
+    if (window.location.pathname + window.location.search !== targetUrl) {
+      window.history.replaceState(null, "", targetUrl);
+    }
+  }, [activeMainTab, search, genderFilter, classFilter, sortBy]);
 
   useEffect(() => {
     try {

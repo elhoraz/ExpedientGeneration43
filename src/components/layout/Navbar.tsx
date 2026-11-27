@@ -1,28 +1,13 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/AuthContext";
 import NotificationBell from "./NotificationBell";
-import GlobalCallReceiver from "@/components/chat/GlobalCallReceiver";
-import "@/app/(dashboard)/chat/chat.css";
-
-export default function Navbar() {
-  const { t, locale } = useLanguage();
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-
-  useDialogEscape(chatOpen, () => setChatOpen(false));
-  
-  const [recentChats, setRecentChats] = useState<any[]>([]);
-  const [inputChat, setInputChat] = useState("");
-  const [hasNewNotif, setHasNewNotif] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  const supabase = useMemo(() => createClient(), []);
+import "./navbar-chat.css";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 
@@ -40,6 +25,26 @@ function urlBase64ToUint8Array(base64String: string) {
   }
   return outputArray;
 }
+
+export default function Navbar() {
+  const { t, locale } = useLanguage();
+  const { userId, supabase } = useAuth();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  useDialogEscape(chatOpen, () => setChatOpen(false));
+  
+  const [recentChats, setRecentChats] = useState<any[]>([]);
+  const [inputChat, setInputChat] = useState("");
+  const [isSendingChat, setIsSendingChat] = useState(false);
+  const [hasNewNotif, setHasNewNotif] = useState(false);
+
+  const chatOpenRef = useRef(chatOpen);
+  const senderCacheRef = useRef<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    chatOpenRef.current = chatOpen;
+  }, [chatOpen]);
 
   useEffect(() => {
     // 1. Service Worker & Push Notification Subscription (Hanya subscribe otomatis jika izin sudah diberikan pengguna)
@@ -66,41 +71,60 @@ function urlBase64ToUint8Array(base64String: string) {
       }
     }
     // Fetch recent lounge chats
-    const fetchChatsAndUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUserId(user.id);
-
+    const fetchChats = async () => {
       const { data } = await supabase
         .from("chat_messages")
-        .select("id, message, created_at, profiles!sender_id(nama_panggilan)")
+        .select("id, sender_id, message, created_at, profiles!sender_id(nama_panggilan)")
         .eq("is_lounge", true)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(5);
-      if (data) setRecentChats(data.reverse());
+      if (data) {
+        data.forEach((row: any) => {
+          const nick = row.profiles?.nama_panggilan;
+          if (row.sender_id && nick) {
+            senderCacheRef.current.set(row.sender_id, nick);
+          }
+        });
+        setRecentChats(data.reverse());
+      }
     };
-    fetchChatsAndUser();
+    fetchChats();
 
-    // Subscribe to chat_messages
+    // Subscribe to chat_messages (uses refs so toggling chatOpen never tears down channel or SW registration)
     const channel = supabase
       .channel("public:navbar_events")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages", filter: "is_lounge=eq.true" },
         async (payload) => {
-          const { data: sender } = await supabase
-            .from("profiles")
-            .select("nama_panggilan")
-            .eq("id", payload.new.sender_id)
-            .single();
+          const senderId = payload.new?.sender_id;
+          let senderName = senderId ? senderCacheRef.current.get(senderId) : undefined;
 
-          const newMsg: any = { ...payload.new, profiles: sender };
+          if (!senderName && senderId) {
+            const { data: sender } = await supabase
+              .from("profiles")
+              .select("nama_panggilan")
+              .eq("id", senderId)
+              .single();
+            if (sender?.nama_panggilan) {
+              senderName = sender.nama_panggilan;
+              senderCacheRef.current.set(senderId, sender.nama_panggilan);
+            }
+          }
+
+          const newMsg: any = {
+            ...payload.new,
+            profiles: senderName ? { nama_panggilan: senderName } : null,
+          };
           setRecentChats((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg].slice(-5); // keep only last 5
           });
-          
-          if (!chatOpen) {
+
+          const onLoungePage =
+            typeof window !== "undefined" && window.location.pathname === "/chat/lounge";
+          if (!chatOpenRef.current && !onLoungePage) {
             setHasNewNotif(true);
             if (navigator.vibrate) navigator.vibrate(30);
           }
@@ -111,7 +135,7 @@ function urlBase64ToUint8Array(base64String: string) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, chatOpen]);
+  }, [supabase]);
 
   // Close open dropdowns when sidebar panel is collapsed/hidden
   useEffect(() => {
@@ -127,19 +151,22 @@ function urlBase64ToUint8Array(base64String: string) {
 
   const handleSendChat = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputChat.trim()) return;
+    const trimmed = inputChat.trim();
+    if (!trimmed || !userId || isSendingChat) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    setIsSendingChat(true);
+    try {
+      const { error } = await supabase.from("chat_messages").insert([{
+        sender_id: userId,
+        message: trimmed,
+        is_lounge: true
+      }]);
 
-    const { error } = await supabase.from("chat_messages").insert([{
-      sender_id: user.id,
-      message: inputChat,
-      is_lounge: true
-    }]);
-
-    if (!error) {
-      setInputChat("");
+      if (!error) {
+        setInputChat("");
+      }
+    } finally {
+      setIsSendingChat(false);
     }
   };
 
@@ -204,9 +231,6 @@ function urlBase64ToUint8Array(base64String: string) {
         <ThemeToggle />
       </div>
 
-      {/* Global Incoming Call Receiver Widget */}
-      {userId && <GlobalCallReceiver userId={userId} />}
-
       {userId && chatOpen && (
         <div
           id="chatDropdownPanel"
@@ -264,11 +288,12 @@ function urlBase64ToUint8Array(base64String: string) {
               />
               <button
                 type="submit"
+                disabled={isSendingChat || !inputChat.trim()}
                 className="chat-dropdown-send-btn"
                 title={t.navbar.chat_send}
                 aria-label={t.navbar.chat_send}
               >
-                <i className="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                <i className={`fa-solid ${isSendingChat ? "fa-spinner fa-spin" : "fa-paper-plane"}`} aria-hidden="true"></i>
               </button>
             </form>
           </div>

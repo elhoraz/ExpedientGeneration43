@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { RadarSkeleton } from "@/components/ui/Skeleton";
+import { RadarSkeleton } from "@/components/ui/skeletons/SkeletonMedia";
 
 const RadarClient = dynamic(() => import("./RadarClient"), {
   ssr: false,

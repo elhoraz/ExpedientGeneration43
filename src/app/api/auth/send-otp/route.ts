@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendEmail } from "@/lib/email";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 
 async function logOtpDelivery(
   supabase: any,
@@ -34,7 +34,7 @@ async function logOtpDelivery(
 export async function POST(request: Request) {
   try {
     const clientIp = getClientIp(request);
-    const rl = rateLimit(`send-otp:${clientIp}`, 8, 10 * 60 * 1000);
+    const rl = await rateLimitDistributed(`send-otp:${clientIp}`, 8, 10 * 60 * 1000);
     if (!rl.success) {
       return NextResponse.json(
         { error: "Terlalu banyak permintaan pengiriman OTP. Silakan tunggu beberapa menit." },

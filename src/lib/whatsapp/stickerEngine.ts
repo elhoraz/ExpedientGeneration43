@@ -139,7 +139,7 @@ export async function createWhatsAppSticker(
   textOverlay?: string
 ): Promise<Buffer> {
   // 1. Auto-orient foto dari EXIF
-  let pipeline = sharp(imageBuffer).rotate();
+  const pipeline = sharp(imageBuffer).rotate();
 
   // 2. Resize base image agar pas dalam kanvas 512x512 (fit contain) dengan latar transparan
   const resizedBaseBuffer = await pipeline

@@ -21,7 +21,7 @@ export async function GET(req: Request) {
     // Fetch pending emails
     const { data: queue, error } = await supabase
       .from('email_queue')
-      .select('*')
+      .select('id, recipient_email, subject, body_html, attempts')
       .in('status', ['pending', 'failed'])
       .lt('attempts', 3)
       .limit(10);

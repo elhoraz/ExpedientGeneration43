@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/AuthContext";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
 import "./onboarding.css";
@@ -22,10 +22,10 @@ const WIDGET_DISMISSED_KEY = "expedient_quest_dismissed";
 
 export default function OnboardingChecklist() {
   const { t, locale, isRTL } = useLanguage();
+  const { userId, isLoggedIn, isAuthLoading, supabase } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [isDismissed, setIsDismissed] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const pathname = usePathname();
 
@@ -86,13 +86,11 @@ export default function OnboardingChecklist() {
     });
 
     try {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      if (userId) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("foto_profil, no_whatsapp, lat, lng, motivasi_hidup")
-          .eq("id", user.id)
+          .eq("id", userId)
           .maybeSingle();
 
         if (profile) {
@@ -114,24 +112,16 @@ export default function OnboardingChecklist() {
     }
 
     setCompletedIds(new Set(done));
-  }, [quests]);
+  }, [quests, userId, supabase]);
 
   // Check auth & initialize quest state
   useEffect(() => {
-    const init = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+    if (isAuthLoading || !userId) return;
 
-      if (!user) return;
-      setIsLoggedIn(true);
+    const dismissed = localStorage.getItem(WIDGET_DISMISSED_KEY) === "true";
+    setIsDismissed(dismissed);
 
-      const dismissed = localStorage.getItem(WIDGET_DISMISSED_KEY) === "true";
-      setIsDismissed(dismissed);
-
-      await reloadQuests();
-    };
-
-    init();
+    void reloadQuests();
 
     const handleUpdate = () => reloadQuests();
     window.addEventListener("expedient-quest-updated", handleUpdate);
@@ -141,7 +131,7 @@ export default function OnboardingChecklist() {
       window.removeEventListener("expedient-quest-updated", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
-  }, [reloadQuests]);
+  }, [isAuthLoading, userId, reloadQuests]);
 
   // Track page visits reactively when pathname changes
   useEffect(() => {

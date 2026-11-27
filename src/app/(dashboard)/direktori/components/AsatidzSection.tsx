@@ -258,58 +258,58 @@ export function AsatidzSection({
                       font: "inherit",
                     }}
                   >
-                  <div className="asatidz-frame-outer">
-                    <div className="asatidz-frame-inner">
-                      {item.photoUrl ? (
-                        <img
-                          src={item.photoUrl}
-                          alt={item.name}
-                          className="asatidz-img"
-                          loading="lazy"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                            const fallback = e.currentTarget.nextElementSibling;
-                            if (fallback) (fallback as HTMLElement).style.display = "flex";
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className="asatidz-fallback-avatar"
-                        style={{ display: item.photoUrl ? "none" : "flex" }}
-                      >
-                        <i className="fa-solid fa-user-tie asatidz-fallback-icon"></i>
-                        <span className="asatidz-fallback-initials">
-                          {item.titleHonorific || "UST"}
-                        </span>
+                    <div className="asatidz-frame-outer">
+                      <div className="asatidz-frame-inner">
+                        {item.photoUrl ? (
+                          <img
+                            src={item.photoUrl}
+                            alt={item.name}
+                            className="asatidz-img"
+                            loading="lazy"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                              const fallback = e.currentTarget.nextElementSibling;
+                              if (fallback) (fallback as HTMLElement).style.display = "flex";
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="asatidz-fallback-avatar"
+                          style={{ display: item.photoUrl ? "none" : "flex" }}
+                        >
+                          <i className="fa-solid fa-user-tie asatidz-fallback-icon"></i>
+                          <span className="asatidz-fallback-initials">
+                            {item.titleHonorific || "UST"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="asatidz-card-body">
-                    <div className="asatidz-tag-row">
-                      <span className="asatidz-badge">{getCategoryLabel(item)}</span>
-                      {item.isRahimahullah && (
-                        <span className="asatidz-rahimahullah-chip">Rahimahullah</span>
+                    <div className="asatidz-card-body">
+                      <div className="asatidz-tag-row">
+                        <span className="asatidz-badge">{getCategoryLabel(item)}</span>
+                        {item.isRahimahullah && (
+                          <span className="asatidz-rahimahullah-chip">Rahimahullah</span>
+                        )}
+                      </div>
+
+                      <h3 className="asatidz-name">{item.name}</h3>
+                      <div className="asatidz-role">{item.role}</div>
+
+                      {item.subject && (
+                        <div className="asatidz-subject">
+                          <i className="fa-solid fa-book"></i> {item.subject}
+                        </div>
+                      )}
+
+                      {item.quote && <p className="asatidz-quote-preview">&ldquo;{item.quote}&rdquo;</p>}
+
+                      {fatihahCount > 0 && (
+                        <div className="asatidz-fatihah-stat">
+                          <i className="fa-solid fa-hands-praying"></i> {fatihahCount}x doa dikirimkan
+                        </div>
                       )}
                     </div>
-
-                    <h3 className="asatidz-name">{item.name}</h3>
-                    <div className="asatidz-role">{item.role}</div>
-
-                    {item.subject && (
-                      <div className="asatidz-subject">
-                        <i className="fa-solid fa-book"></i> {item.subject}
-                      </div>
-                    )}
-
-                    {item.quote && <p className="asatidz-quote-preview">&ldquo;{item.quote}&rdquo;</p>}
-
-                    {fatihahCount > 0 && (
-                      <div className="asatidz-fatihah-stat">
-                        <i className="fa-solid fa-hands-praying"></i> {fatihahCount}x doa dikirimkan
-                      </div>
-                    )}
-                  </div>
                   </button>
                 </article>
               );
@@ -417,6 +417,8 @@ export function AsatidzSection({
                     src={selectedAsatidz.collageUrl}
                     alt={meta.collageAlt}
                     className="founder-collage-img"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               );

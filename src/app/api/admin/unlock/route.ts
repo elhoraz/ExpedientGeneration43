@@ -3,13 +3,13 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createSignedAdminSession, timingSafeEqualString } from "@/lib/admin-auth";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
-    // Rate limiting: 5 attempts per 15 minutes per IP
+    // Rate limiting: 5 attempts per 15 minutes per IP (distributed when Redis configured)
     const clientIp = getClientIp(request);
-    const rl = rateLimit(`admin-unlock:${clientIp}`, 5, 15 * 60 * 1000);
+    const rl = await rateLimitDistributed(`admin-unlock:${clientIp}`, 5, 15 * 60 * 1000);
     if (!rl.success) {
       return NextResponse.json(
         { status: "error", message: "Terlalu banyak percobaan. Silakan coba lagi nanti." },

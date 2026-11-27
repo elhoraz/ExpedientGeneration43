@@ -149,9 +149,9 @@ export async function POST(request: Request) {
           }
         }
 
-        let finalMediaUrl = mediaUrl;
-        let finalExtension = extension;
-        let finalFilename = filename;
+        const finalMediaUrl = mediaUrl;
+        const finalExtension = extension;
+        const finalFilename = filename;
 
         let parsedContacts: Array<{ displayName: string; phone: string }> = [];
         if (

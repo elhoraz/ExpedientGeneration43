@@ -46,8 +46,8 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
         ticket.style.transition = "transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)";
         ticket.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
       };
-      ticket.addEventListener("mousemove", handleMove);
-      ticket.addEventListener("mouseleave", handleLeave);
+      ticket.addEventListener("mousemove", handleMove, { passive: true });
+      ticket.addEventListener("mouseleave", handleLeave, { passive: true });
 
       return () => {
         ticket.removeEventListener("mousemove", handleMove);
@@ -238,7 +238,7 @@ export default function MultazamClient({ activeTicket, initialPrayers, userId }:
               prayers.map((p, idx) => (
                   <div key={p.id || idx} className="prayer-card">
                       <div className="prayer-date">{new Date(p.created_at).toLocaleDateString(dateLocale, {day: '2-digit', month: 'short', year: 'numeric'})}</div>
-                      <div className="prayer-content">"{p.prayer_text}"</div>
+                      <div className="prayer-content">&ldquo;{p.prayer_text}&rdquo;</div>
                       <div className="prayer-status"><i className="fa-solid fa-check-double" aria-hidden="true" style={{ color: 'var(--gold-main)' }}></i> {p.status}</div>
                   </div>
               ))

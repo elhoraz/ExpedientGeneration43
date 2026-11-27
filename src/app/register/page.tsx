@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, FormEvent, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useCms } from "@/components/layout/CmsProvider";
@@ -10,7 +11,7 @@ import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import ImageCropperModal from "@/components/ui/ImageCropperModal";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
-import { AuthCardSkeleton } from "@/components/ui/Skeleton";
+import { AuthCardSkeleton } from "@/components/ui/skeletons/SkeletonCore";
 import "./register.css";
 
 function RegisterFormContent() {
@@ -99,6 +100,11 @@ function RegisterFormContent() {
     setTimeout(() => setShowToast(false), 6000);
   };
 
+  const toastRegFailedRef = useRef(tLang.register_extra?.toast_reg_failed);
+  useEffect(() => {
+    toastRegFailedRef.current = tLang.register_extra?.toast_reg_failed;
+  }, [tLang]);
+
   useEffect(() => {
     const savedTheme = (localStorage.getItem("expedient_theme") as "dark" | "light") || "dark";
     setTheme(savedTheme);
@@ -106,7 +112,7 @@ function RegisterFormContent() {
 
     if (errorMsg) {
       let text = errorMsg;
-      if (text === "[object Object]") text = tLang.register_extra?.toast_reg_failed || "Terjadi kendala saat registrasi. Silakan ulangi.";
+      if (text === "[object Object]") text = toastRegFailedRef.current || "Terjadi kendala saat registrasi. Silakan ulangi.";
       setToastMessage(text);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 6000);
@@ -147,7 +153,7 @@ function RegisterFormContent() {
   // Helper to compress any image data URL directly to a lightweight Base64 JPEG (max 800px, ~50-90KB)
   const compressImageDataUrl = (dataUrl: string, maxDim = 800, quality = 0.85): Promise<string> => {
     return new Promise((resolve) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => {
         try {
           let w = img.naturalWidth || img.width;
@@ -717,12 +723,12 @@ function RegisterFormContent() {
         <div className="register-vault" id="mainVault">
           <div className="vault-header">
             <div className={`logo-container ${logoState}`} id="logoContainer">
-              <img src="/images/kristal-puncak.webp" className="logo-part part-1" alt="" aria-hidden="true" />
-              <img src="/images/tanduk-perak.webp" className="logo-part part-2" alt="" aria-hidden="true" />
-              <img src="/images/zamrud-hijau.webp" className="logo-part part-3" alt="" aria-hidden="true" />
-              <img src="/images/cincin-emas.webp" className="logo-part part-4" alt="" aria-hidden="true" />
-              <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="" aria-hidden="true" />
-              <img src={t('register_hero_image', '/images/logo-utuh.webp')} className="logo-utuh" alt="Expedient Logo" />
+              <Image src="/images/kristal-puncak.webp" width={120} height={120} className="logo-part part-1" alt="" aria-hidden="true" />
+              <Image src="/images/tanduk-perak.webp" width={120} height={120} className="logo-part part-2" alt="" aria-hidden="true" />
+              <Image src="/images/zamrud-hijau.webp" width={120} height={120} className="logo-part part-3" alt="" aria-hidden="true" />
+              <Image src="/images/cincin-emas.webp" width={120} height={120} className="logo-part part-4" alt="" aria-hidden="true" />
+              <Image src="/images/mahkota-emas.webp" width={120} height={120} className="logo-part part-5" alt="" aria-hidden="true" />
+              <Image src={t('register_hero_image', '/images/logo-utuh.webp')} width={120} height={120} className="logo-utuh" alt="Expedient Logo" priority unoptimized />
             </div>
             <h1 className="title-holographic">{locale === "id" ? t('register_title', tLang.register.title) : tLang.register.title}</h1>
             <p className="subtitle-spec">{locale === "id" ? t('register_subtitle', tLang.register.subtitle) : tLang.register.subtitle}</p>

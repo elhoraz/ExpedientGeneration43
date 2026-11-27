@@ -1,9 +1,10 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import { flushSync } from "react-dom";
 import { Locale, Direction, Dictionary, SUPPORTED_LOCALES, LanguageMeta } from "./types";
-import { DICTIONARIES, getDictionary } from "./index";
+import { idDictionary } from "./dictionaries/id";
+import { getDictionary, loadDictionary } from "./index";
 
 interface LanguageContextValue {
   locale: Locale;
@@ -21,24 +22,48 @@ const STORAGE_KEY = "expedient_locale";
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("id");
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [dictionary, setDictionary] = useState<Dictionary>(() => idDictionary);
 
-  // Initialize from localStorage or cookie on mount
+  // Initialize from localStorage on mount and lazy-load non-Indonesian dictionary if needed
   useEffect(() => {
+    let active = true;
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
-      if (saved && (saved === "id" || saved === "en" || saved === "ar")) {
+      if (saved === "en" || saved === "ar") {
         setLocaleState(saved);
+        loadDictionary(saved).then((dict) => {
+          if (active) setDictionary(dict);
+        });
       } else {
-        // Default to Indonesian ('id') for this Indonesian alumni platform
         setLocaleState("id");
+        setDictionary(idDictionary);
       }
     } catch {
       // Ignore storage errors in restricted contexts
-    } finally {
-      setIsInitialized(true);
     }
+    return () => {
+      active = false;
+    };
   }, []);
+
+  // Load target locale dictionary asynchronously whenever locale changes
+  useEffect(() => {
+    let active = true;
+    if (locale === "id") {
+      setDictionary(idDictionary);
+      return;
+    }
+    const cached = getDictionary(locale);
+    if (cached !== idDictionary) {
+      setDictionary(cached);
+    }
+    loadDictionary(locale).then((dict) => {
+      if (active) setDictionary(dict);
+    });
+    return () => {
+      active = false;
+    };
+  }, [locale]);
 
   // Sync document attributes (lang, dir, class) whenever locale changes
   useEffect(() => {
@@ -66,8 +91,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
   }, [locale]);
 
-  const setLocale = (newLocale: Locale) => {
+  const setLocale = useCallback((newLocale: Locale) => {
     if (newLocale === locale) return;
+
+    // Warm-load dynamic dictionary immediately before visual transition completes
+    if (newLocale !== "id") {
+      void loadDictionary(newLocale);
+    }
 
     if (typeof document !== "undefined") {
       const doc = document as any;
@@ -94,13 +124,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } else {
       setLocaleState(newLocale);
     }
-  };
+  }, [locale]);
 
-  const dictionary = useMemo(() => getDictionary(locale), [locale]);
   const meta = SUPPORTED_LOCALES[locale] || SUPPORTED_LOCALES.id;
   const isRTL = meta.dir === "rtl";
 
-  const translate = (path: string, fallback?: string): string => {
+  const translate = useCallback((path: string, fallback?: string): string => {
     const keys = path.split(".");
     let curr: any = dictionary;
     for (const k of keys) {
@@ -111,7 +140,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       }
     }
     return typeof curr === "string" ? curr : (fallback || path);
-  };
+  }, [dictionary]);
 
   const value = useMemo<LanguageContextValue>(
     () => ({
@@ -123,7 +152,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       t: dictionary,
       translate,
     }),
-    [locale, dictionary, meta, isRTL]
+    [locale, setLocale, dictionary, meta, isRTL, translate]
   );
 
   return (
@@ -137,7 +166,7 @@ export function useLanguage(): LanguageContextValue {
   const ctx = useContext(LanguageContext);
   if (!ctx) {
     // Fallback if rendered outside provider during SSR/tests
-    const defaultDict = DICTIONARIES.id;
+    const defaultDict = idDictionary;
     return {
       locale: "id",
       setLocale: () => {},

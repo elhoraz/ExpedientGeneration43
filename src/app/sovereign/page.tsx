@@ -16,7 +16,7 @@ export default async function SovereignPage() {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, nama_lengkap, nama_panggilan, foto_profil, public_token, prestise_points")
     .eq("id", user.id)
     .single();
 

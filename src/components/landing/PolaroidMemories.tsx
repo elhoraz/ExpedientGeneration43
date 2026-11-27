@@ -32,12 +32,13 @@ export default function PolaroidMemories() {
   const trackRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = 0.45;
+    const audioEl = audioRef.current;
+    if (audioEl) {
+      audioEl.volume = 0.45;
     }
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (audioEl) {
+        audioEl.pause();
       }
     };
   }, []);

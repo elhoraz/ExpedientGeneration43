@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitDistributed } from "@/lib/rate-limit";
 import { callGeminiResilient } from "@/lib/geminiResilient";
 
 export async function POST(req: Request) {
@@ -15,8 +15,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Rate limiting: 5 requests per 10 minutes per user
-    const rl = rateLimit(`oracle:${user.id}`, 5, 10 * 60 * 1000);
+    // Rate limiting: 5 requests per 10 minutes per user (distributed across Vercel instances)
+    const rl = await rateLimitDistributed(`oracle:${user.id}`, 5, 10 * 60 * 1000);
     if (!rl.success) {
       const waitMinutes = Math.max(1, Math.ceil(rl.resetIn / 60000));
       return NextResponse.json(

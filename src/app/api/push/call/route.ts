@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimitDistributed } from "@/lib/rate-limit";
 import webpush from "web-push";
 import { sendFcmNotification } from "@/lib/fcmServer";
 
@@ -49,8 +49,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Rate limit: max 10 call notifications per minute per caller
-    const rl = rateLimit(`push-call:${user.id}`, 10, 60 * 1000);
+    // Rate limit: max 10 call notifications per minute per caller (distributed across Vercel instances)
+    const rl = await rateLimitDistributed(`push-call:${user.id}`, 10, 60 * 1000);
     if (!rl.success) {
       return NextResponse.json(
         { status: "error", message: "Terlalu banyak panggilan. Silakan tunggu sebentar.", data: null },

@@ -17,17 +17,22 @@ export default async function AdminPage() {
   }
 
 
-  // Get some stats
-  const { count: userCount } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-  const { count: activeCount } = await supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true);
-  const { count: wasiatCount } = await supabase.from("wasiats").select("*", { count: "exact", head: true });
-  
-  // Get activity logs
-  const { data: logs } = await supabase
-    .from("activity_logs")
-    .select("*, profiles(nama_panggilan)")
-    .order("created_at", { ascending: false })
-    .limit(15);
+  // Fetch admin dashboard metrics & activity logs in parallel
+  const [
+    { count: userCount },
+    { count: activeCount },
+    { count: wasiatCount },
+    { data: logs },
+  ] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("wasiats").select("id", { count: "exact", head: true }),
+    supabase
+      .from("activity_logs")
+      .select("id, action, details, created_at, user_id, profiles(nama_panggilan)")
+      .order("created_at", { ascending: false })
+      .limit(15),
+  ]);
 
   return (
     <div className="admin-wrapper">
@@ -114,7 +119,7 @@ export default async function AdminPage() {
             {logs?.map(log => (
               <div key={log.id} className="log-item">
                 <div className="log-time">{new Date(log.created_at).toLocaleString('id-ID')}</div>
-                <div className="log-action">{log.profiles?.nama_panggilan || "Unknown"} <span style={{ color: "var(--text-primary)", fontWeight: "normal" }}>· {log.action}</span></div>
+                <div className="log-action">{(Array.isArray(log.profiles) ? log.profiles[0]?.nama_panggilan : (log.profiles as any)?.nama_panggilan) || "Unknown"} <span style={{ color: "var(--text-primary)", fontWeight: "normal" }}>· {log.action}</span></div>
                 <div className="log-desc">{log.details}</div>
               </div>
             ))}

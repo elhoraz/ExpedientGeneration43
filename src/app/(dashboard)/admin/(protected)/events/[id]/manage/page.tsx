@@ -65,7 +65,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = createAdminClient();
 
-  const { data: event } = await supabase.from("events").select("*").eq("id", id).single();
+  const { data: event } = await supabase.from("events").select("id, title").eq("id", id).single();
   
   if (!event) {
     redirect("/admin/events");
@@ -75,7 +75,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
   
   const { data: tickets } = await supabase
     .from("event_tickets")
-    .select("*, profiles(nama_panggilan)")
+    .select("id, ticket_code, seat_number, status, profiles(nama_panggilan)")
     .eq("event_id", id)
     .order("created_at", { ascending: false });
 
@@ -165,7 +165,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
                       </td>
                       <td>
                         <div style={{ fontWeight: 600, color: "var(--text-primary)", fontSize: "0.95rem" }}>
-                          {t.profiles?.nama_panggilan || 'Anonim'}
+                          {(Array.isArray(t.profiles) ? t.profiles[0]?.nama_panggilan : (t.profiles as { nama_panggilan?: string } | null)?.nama_panggilan) || 'Anonim'}
                         </div>
                       </td>
                       <td>
@@ -211,7 +211,7 @@ export default async function EventManagePage({ params }: { params: Promise<{ id
                 <div key={t.id} className="ann-mobile-card">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px" }}>
                     <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)" }}>
-                      {t.profiles?.nama_panggilan || 'Anonim'}
+                      {(Array.isArray(t.profiles) ? t.profiles[0]?.nama_panggilan : (t.profiles as { nama_panggilan?: string } | null)?.nama_panggilan) || 'Anonim'}
                     </div>
                     <span style={{ 
                       background: t.status === 'valid' ? 'rgba(37,211,102,0.15)' : 'rgba(255,51,102,0.15)',

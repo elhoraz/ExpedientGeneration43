@@ -15,13 +15,7 @@ export async function GET(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // 1. Fetch albums for the stories / highlights carousel
-    const { data: albums } = await supabase
-      .from("galeri_albums")
-      .select("id, title, description, cover_url, year, icon")
-      .order("year", { ascending: false });
-
-    // 2. Query photos with uploader info
+    // 1. Build queries for albums & photos and run in parallel
     let photoQuery = supabase
       .from("galeri")
       .select(`
@@ -45,14 +39,20 @@ export async function GET(request: Request) {
       photoQuery = photoQuery.eq("year", parseInt(year, 10));
     }
 
-    const { data: photos, error } = await photoQuery;
+    const [{ data: albums }, { data: photos, error }] = await Promise.all([
+      supabase
+        .from("galeri_albums")
+        .select("id, title, description, cover_url, year, icon")
+        .order("year", { ascending: false }),
+      photoQuery,
+    ]);
 
     if (error) {
       console.warn("Galeri fetch warning:", error.message);
     }
 
     // 3. If user is logged in, check which photos they have liked
-    let userLikedPhotoIds = new Set<string>();
+    const userLikedPhotoIds = new Set<string>();
     if (user && photos && photos.length > 0) {
       const photoIds = photos.map((p) => p.id);
       const { data: userLikes } = await supabase

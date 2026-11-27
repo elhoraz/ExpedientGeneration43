@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     // Find the credential
     const { data: biometrics } = await supabaseAdmin
       .from("user_biometrics")
-      .select("*")
+      .select("id, user_id, credential_id, public_key, counter, sign_count, transports")
       .eq("credential_id", body.id)
       .maybeSingle();
 

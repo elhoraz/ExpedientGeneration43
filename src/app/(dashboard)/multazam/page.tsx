@@ -20,26 +20,32 @@ export default async function MultazamPage() {
   try {
       const { data: ticket } = await supabase
         .from("event_rsvps")
-        .select("*, events(*)")
+        .select("event_id, events(title, description, event_date, location)")
         .eq("user_id", user.id)
         .eq("status", "Hadir")
         .order("created_at", { ascending: false })
         .limit(1)
         .single();
 
-      activeTicket = ticket ? {
+      const joinedEvent = ticket
+        ? Array.isArray(ticket.events)
+          ? ticket.events[0]
+          : (ticket.events as { title?: string; description?: string; event_date?: string; location?: string } | null)
+        : null;
+
+      activeTicket = ticket && joinedEvent ? {
           event_id: ticket.event_id,
-          title: ticket.events.title,
-          description: ticket.events.description,
-          event_date: ticket.events.event_date,
-          location: ticket.events.location,
+          title: joinedEvent.title,
+          description: joinedEvent.description,
+          event_date: joinedEvent.event_date,
+          location: joinedEvent.location,
           dresscode: "Formal / Sesuai Tema",
           seat_number: "VVIP"
       } : null;
 
       const { data: prayersData } = await supabase
         .from("prayers")
-        .select("*")
+        .select("id, prayer_text, status, created_at")
         .order("created_at", { ascending: false });
         
       prayers = prayersData || [];

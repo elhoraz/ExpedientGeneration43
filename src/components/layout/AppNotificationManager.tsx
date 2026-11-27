@@ -15,13 +15,15 @@ import { calculatePrayerTimes, PrayerSchedule } from "@/lib/prayerTimes";
 import { getOfficialKemenagSchedule, DEFAULT_KEMENAG_CITY_ID } from "@/lib/kemenagPrayerTimes";
 import { useToast } from "./AegisToast";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
-
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/AuthContext";
 
 export default function AppNotificationManager() {
   const { showToast } = useToast();
   const { locale } = useLanguage();
+  const { userId } = useAuth();
   const localeRef = useRef(locale);
+  const userIdRef = useRef<string | null>(userId);
+  const lastNativeSyncKeyRef = useRef<string>("");
   const initRef = useRef(false);
 
   useEffect(() => {
@@ -29,10 +31,12 @@ export default function AppNotificationManager() {
   }, [locale]);
 
   useEffect(() => {
+    userIdRef.current = userId;
+  }, [userId]);
+
+  useEffect(() => {
     if (typeof window === "undefined" || initRef.current) return;
     initRef.current = true;
-
-    const supabase = createClient();
 
     const setupNotifications = async () => {
       try {
@@ -113,44 +117,48 @@ export default function AppNotificationManager() {
             ? `It is now time for ${label} prayer in your local area.`
             : `Telah masuk waktu shalat ${label} sesuai jadwal wilayah Anda.`;
 
-        // Register native Android alarms if running inside APK Native Bridge
-        if ((window as any).ExpedientNativeBridge?.schedulePrayerAlarm) {
-          try {
-            if ((window as any).ExpedientNativeBridge?.savePrayerSchedule) {
-              (window as any).ExpedientNativeBridge.savePrayerSchedule(JSON.stringify(prayerList));
-            }
+        // Register native Android alarms ONCE per day / schedule change instead of every 30s poll
+        const nativeSyncSignature = `${dateStr}|${cityId}|${activeLocale}|${prayerList.map((p) => p.time).join(",")}`;
+        if (lastNativeSyncKeyRef.current !== nativeSyncSignature) {
+          lastNativeSyncKeyRef.current = nativeSyncSignature;
+          if ((window as any).ExpedientNativeBridge?.schedulePrayerAlarm) {
+            try {
+              if ((window as any).ExpedientNativeBridge?.savePrayerSchedule) {
+                (window as any).ExpedientNativeBridge.savePrayerSchedule(JSON.stringify(prayerList));
+              }
 
-            for (const prayer of prayerList) {
-              const [pHours, pMins] = prayer.time.split(":").map(Number);
-              (window as any).ExpedientNativeBridge.schedulePrayerAlarm(
-                prayer.name,
-                pHours,
-                pMins,
-                formatPrayerTitle(prayer.label, prayer.time),
-                formatPrayerBody(prayer.label)
-              );
+              for (const prayer of prayerList) {
+                const [pHours, pMins] = prayer.time.split(":").map(Number);
+                (window as any).ExpedientNativeBridge.schedulePrayerAlarm(
+                  prayer.name,
+                  pHours,
+                  pMins,
+                  formatPrayerTitle(prayer.label, prayer.time),
+                  formatPrayerBody(prayer.label)
+                );
+              }
+            } catch (bridgeErr) {
+              console.warn("Native prayer alarm registration notice:", bridgeErr);
             }
-          } catch (bridgeErr) {
-            console.warn("Native prayer alarm registration notice:", bridgeErr);
-          }
-        } else if (Capacitor.isNativePlatform()) {
-          try {
-            const notifs = prayerList.map((prayer, idx) => {
-              const [pHours, pMins] = prayer.time.split(":").map(Number);
-              return {
-                id: 7000 + idx,
-                title: formatPrayerTitle(prayer.label, prayer.time),
-                body: formatPrayerBody(prayer.label),
-                schedule: {
-                  on: { hour: pHours, minute: pMins },
-                  allowWhileIdle: true,
-                },
-                extra: { url: "/kiblat" },
-              };
-            });
-            await LocalNotifications.schedule({ notifications: notifs });
-          } catch (capAlarmErr) {
-            console.warn("Capacitor prayer alarm notice:", capAlarmErr);
+          } else if (Capacitor.isNativePlatform()) {
+            try {
+              const notifs = prayerList.map((prayer, idx) => {
+                const [pHours, pMins] = prayer.time.split(":").map(Number);
+                return {
+                  id: 7000 + idx,
+                  title: formatPrayerTitle(prayer.label, prayer.time),
+                  body: formatPrayerBody(prayer.label),
+                  schedule: {
+                    on: { hour: pHours, minute: pMins },
+                    allowWhileIdle: true,
+                  },
+                  extra: { url: "/kiblat" },
+                };
+              });
+              await LocalNotifications.schedule({ notifications: notifs });
+            } catch (capAlarmErr) {
+              console.warn("Capacitor prayer alarm notice:", capAlarmErr);
+            }
           }
         }
 
@@ -337,10 +345,12 @@ export default function AppNotificationManager() {
       );
     };
 
+    const handleDefaultTestAdzan = () => handleTestAdzanAlarm(5);
+
     (window as any).triggerExpedientNotification = handleTriggerTest;
     (window as any).testAdzanAlarm = handleTestAdzanAlarm;
     window.addEventListener("expedient_trigger_test_notif", handleTriggerTest);
-    window.addEventListener("expedient_test_adzan_alarm", () => handleTestAdzanAlarm(5));
+    window.addEventListener("expedient_test_adzan_alarm", handleDefaultTestAdzan);
     window.addEventListener("expedient_location_updated", checkPrayerSchedule);
 
     // 6. Automatic Native Android FCM Device Token Registration with User Binding
@@ -353,20 +363,20 @@ export default function AppNotificationManager() {
 
         if (!token || token.trim().length < 10) return;
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          // If not logged in yet, token will be registered once user logs in
+        const currentUserId = userIdRef.current;
+        if (!currentUserId) {
+          // If not logged in yet, token will be synced when AuthContext updates userId
           return;
         }
 
-        const userSyncKey = `expedient_synced_fcm_${user.id}`;
+        const userSyncKey = `expedient_synced_fcm_${currentUserId}`;
         const lastTokenForUser = localStorage.getItem(userSyncKey);
 
         if (lastTokenForUser === token) {
           return; // Already registered for this user
         }
 
-        console.log("[FCM] Registering device push token for user:", user.id);
+        console.log("[FCM] Registering device push token for user:", currentUserId);
         const res = await fetch("/api/push/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -381,7 +391,7 @@ export default function AppNotificationManager() {
 
         if (res.ok) {
           localStorage.setItem(userSyncKey, token);
-          console.log("[FCM] Successfully registered device push token to database for user:", user.id);
+          console.log("[FCM] Successfully registered device push token to database for user:", currentUserId);
         } else {
           console.warn("[FCM] Failed to register push token:", res.status);
         }
@@ -395,21 +405,16 @@ export default function AppNotificationManager() {
     const fcmTimer1 = setTimeout(syncNativeFcmToken, 1500);
     const fcmTimer2 = setTimeout(syncNativeFcmToken, 5000);
 
-    // Re-sync on auth state changes (login, token refresh)
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        syncNativeFcmToken();
-      }
-    });
-
     const handleFcmTokenEvent = (e: any) => {
       const newToken = e?.detail?.token;
       if (newToken) {
         syncNativeFcmToken();
       }
     };
+    const handleSyncFcmInternal = () => syncNativeFcmToken();
     window.addEventListener("expedient_fcm_token", handleFcmTokenEvent);
-    (window as any).onExpedientFcmToken = (token: string) => {
+    window.addEventListener("expedient_sync_fcm_internal", handleSyncFcmInternal);
+    (window as any).onExpedientFcmToken = () => {
       syncNativeFcmToken();
     };
 
@@ -419,14 +424,22 @@ export default function AppNotificationManager() {
       clearTimeout(fcmTimer2);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("expedient_trigger_test_notif", handleTriggerTest);
+      window.removeEventListener("expedient_test_adzan_alarm", handleDefaultTestAdzan);
       window.removeEventListener("expedient_fcm_token", handleFcmTokenEvent);
+      window.removeEventListener("expedient_sync_fcm_internal", handleSyncFcmInternal);
       window.removeEventListener("expedient_location_updated", checkPrayerSchedule);
-      authListener?.subscription?.unsubscribe();
       delete (window as any).triggerExpedientNotification;
       delete (window as any).testAdzanAlarm;
       delete (window as any).onExpedientFcmToken;
     };
   }, [showToast]);
+
+  // Trigger FCM sync automatically when AuthContext resolves or updates userId
+  useEffect(() => {
+    if (userId && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("expedient_sync_fcm_internal"));
+    }
+  }, [userId]);
 
   return null;
 }

@@ -4,6 +4,7 @@
 	"webDir": "public",
 	"server": {
 		"androidScheme": "https",
+		"iosScheme": "https",
 		"url": "https://expedientgeneration.vercel.app",
 		"cleartext": false,
 		"allowNavigation": [
@@ -13,6 +14,10 @@
 			"*.sd-rtn.com",
 			"*.tile.openstreetmap.org"
 		]
+	},
+	"ios": {
+		"contentInset": "always",
+		"preferredContentMode": "mobile"
 	},
 	"plugins": {
 		"PushNotifications": {

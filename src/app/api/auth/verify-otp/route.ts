@@ -2,14 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { timingSafeEqualString } from "@/lib/admin-auth";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   try {
     const clientIp = getClientIp(request);
-    const rl = rateLimit(`verify-otp:${clientIp}`, 12, 10 * 60 * 1000);
+    const rl = await rateLimitDistributed(`verify-otp:${clientIp}`, 12, 10 * 60 * 1000);
     if (!rl.success) {
       return NextResponse.json(
         { error: "Terlalu banyak percobaan verifikasi OTP. Silakan tunggu beberapa menit." },

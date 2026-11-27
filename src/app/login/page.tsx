@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useCms } from "@/components/layout/CmsProvider";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import { useDialogEscape } from "@/hooks/useDialogEscape";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
-import { AuthCardSkeleton } from "@/components/ui/Skeleton";
+import { AuthCardSkeleton } from "@/components/ui/skeletons/SkeletonCore";
 import "./login.css";
 
 function LoginContent() {
@@ -275,12 +276,12 @@ function LoginContent() {
         <div className="auth-prism" ref={prismRef}>
           <div className="prism-header">
             <div className={`logo-container ${logoState}`} id="logoContainer">
-              <img src="/images/kristal-puncak.webp" className="logo-part part-1" alt="" aria-hidden="true" />
-              <img src="/images/tanduk-perak.webp" className="logo-part part-2" alt="" aria-hidden="true" />
-              <img src="/images/zamrud-hijau.webp" className="logo-part part-3" alt="" aria-hidden="true" />
-              <img src="/images/cincin-emas.webp" className="logo-part part-4" alt="" aria-hidden="true" />
-              <img src="/images/mahkota-emas.webp" className="logo-part part-5" alt="" aria-hidden="true" />
-              <img src={t('login_hero_image', '/images/logo-utuh.webp')} className="logo-utuh" alt="Expedient Logo" />
+              <Image src="/images/kristal-puncak.webp" width={120} height={120} className="logo-part part-1" alt="" aria-hidden="true" />
+              <Image src="/images/tanduk-perak.webp" width={120} height={120} className="logo-part part-2" alt="" aria-hidden="true" />
+              <Image src="/images/zamrud-hijau.webp" width={120} height={120} className="logo-part part-3" alt="" aria-hidden="true" />
+              <Image src="/images/cincin-emas.webp" width={120} height={120} className="logo-part part-4" alt="" aria-hidden="true" />
+              <Image src="/images/mahkota-emas.webp" width={120} height={120} className="logo-part part-5" alt="" aria-hidden="true" />
+              <Image src={t('login_hero_image', '/images/logo-utuh.webp')} width={120} height={120} className="logo-utuh" alt="Expedient Logo" priority unoptimized />
             </div>
             <div className="subtitle-spec">{tLang.hero.title}</div>
             <h1 className="title-holo">{tLang.login.title}</h1>

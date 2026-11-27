@@ -213,7 +213,7 @@ export async function mountRadar2D({ containerId, nodes, style, onConfirmDeleteL
   const isMobile = window.innerWidth <= 768;
   const initialZoom = isMobile ? 4 : 5;
 
-  let alumniData = Array.isArray(nodes) ? nodes : Object.values(nodes || {});
+  const alumniData = Array.isArray(nodes) ? nodes : Object.values(nodes || {});
   const centerNode = alumniData.find(n => n.type === 'center') || {
     ...CENTER,
     type: 'center',

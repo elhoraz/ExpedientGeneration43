@@ -16,11 +16,22 @@ export default async function MajlisPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("nama_panggilan, role, foto_profil")
-    .eq("id", user.id)
-    .single();
+  const [{ data: profile }, { data: topics }, { data: myVotes }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("nama_panggilan, role, foto_profil")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("majlis_topics")
+      .select("id, title, description, created_by, votes_count, status, created_at")
+      .order("created_at", { ascending: false })
+      .limit(60),
+    supabase
+      .from('majlis_votes')
+      .select('topic_id')
+      .eq('user_id', user.id),
+  ]);
 
   const avatarUrl = getAvatarUrl(profile?.foto_profil, profile?.nama_panggilan || 'A');
 
@@ -30,12 +41,6 @@ export default async function MajlisPage() {
     role: profile?.role || "member",
     avatar: avatarUrl,
   };
-
-  // Fetch topics
-  const { data: topics } = await supabase
-    .from("majlis_topics")
-    .select("*")
-    .order("created_at", { ascending: false });
 
   // Fetch creator names
   const creatorIds = Array.from(new Set(topics?.map((t: any) => t.created_by).filter(Boolean)));
@@ -48,10 +53,6 @@ export default async function MajlisPage() {
     profiles?.forEach((p: any) => profileMap.set(p.id, p.nama_panggilan));
   }
 
-  const { data: myVotes } = await supabase
-    .from('majlis_votes')
-    .select('topic_id')
-    .eq('user_id', user.id);
   const votedTopicIds = new Set(myVotes?.map((v: any) => v.topic_id));
 
   const formattedTopics = (topics || []).map((t: any) => ({

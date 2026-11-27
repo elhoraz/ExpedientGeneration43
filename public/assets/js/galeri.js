@@ -624,13 +624,21 @@ const initGaleri = () => {
 
         if (window.DeviceOrientationEvent && /Mobile|Android|iOS|iPhone|iPad/i.test(navigator.userAgent)) {
             let gyroX = 50, gyroY = 50, targetGyroX = 50, targetGyroY = 50;
-            window.addEventListener('deviceorientation', (e) => { let tiltX = Math.min(Math.max(e.gamma, -20), 20); let tiltY = Math.min(Math.max(e.beta - 45, -20), 20); targetGyroX = 50 + (tiltX / 20) * 15; targetGyroY = 50 + (tiltY / 20) * 15; });
-            const updateGyro = () => { gyroX += (targetGyroX - gyroX) * 0.05; gyroY += (targetGyroY - gyroY) * 0.05; stage.style.perspectiveOrigin = `${gyroX}% ${gyroY}%`; requestAnimationFrame(updateGyro); }; updateGyro();
+            window.addEventListener('deviceorientation', (e) => { let tiltX = Math.min(Math.max(e.gamma, -20), 20); let tiltY = Math.min(Math.max(e.beta - 45, -20), 20); targetGyroX = 50 + (tiltX / 20) * 15; targetGyroY = 50 + (tiltY / 20) * 15; }, { passive: true });
+            const updateGyro = () => {
+                if (!document.hidden && !isIdle) {
+                    gyroX += (targetGyroX - gyroX) * 0.05;
+                    gyroY += (targetGyroY - gyroY) * 0.05;
+                    stage.style.perspectiveOrigin = `${gyroX}% ${gyroY}%`;
+                }
+                requestAnimationFrame(updateGyro);
+            };
+            updateGyro();
         } else {
             window.addEventListener('mousemove', (e) => {
                 const x = (e.clientX / window.innerWidth) * 100; const y = (e.clientY / window.innerHeight) * 100; document.documentElement.style.setProperty('--mx', `${x}%`); document.documentElement.style.setProperty('--my', `${y}%`);
                 if(!isShifting && !isIdle && parallaxActive) { let activeEngine = (activeDim === 'putra') ? bookPutra : bookPutri; if(activeEngine.isIndexMode) return; const tiltX = (window.innerHeight / 2 - e.clientY) / 60; const tiltY = (e.clientX - window.innerWidth / 2) / 60; const baseY = activeDim === 'putra' ? 0 : -180; gsap.to(dimCore, { rotationX: tiltX, rotationY: baseY + tiltY, duration: 0.8, ease: "power2.out" }); }
-            });
+            }, { passive: true });
         }
         
         const btnFullscreen = document.getElementById('btnFullscreen');

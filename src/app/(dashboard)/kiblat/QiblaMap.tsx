@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import "leaflet/dist/leaflet.css";
 import { formatQiblaQuadrant } from "@/lib/prayerTimes";
 import { escapeHtml } from "@/lib/sanitize";
 
@@ -178,7 +179,7 @@ export default function QiblaMap({
         mapInstanceRef.current = null;
       }
     };
-  }, [userLat, userLng, userName, bearing, mapType]);
+  }, [userLat, userLng, userName, bearing, mapType, locale]);
 
   const handleCenterUser = () => {
     if (mapInstanceRef.current) {

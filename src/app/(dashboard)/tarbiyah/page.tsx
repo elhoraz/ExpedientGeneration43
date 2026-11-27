@@ -14,12 +14,41 @@ export default async function TarbiyahNexusPage() {
     redirect("/login");
   }
 
-  // 1. Fetch current user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, nama_panggilan, nama_lengkap, role, foto_profil, motivasi_hidup, cita_cita")
-    .eq("id", user.id)
-    .single();
+  // Parallelize independent queries (profile, mentors, syndicate tenders, sent requests, materi)
+  const [
+    { data: profile },
+    { data: mentorsDb },
+    { data: tendersDb },
+    { data: sentRequestsRaw },
+    { data: materiList },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, nama_panggilan, nama_lengkap, role, foto_profil, motivasi_hidup, cita_cita")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("profiles")
+      .select("id, nama_panggilan, nama_lengkap, foto_profil, motivasi_hidup, role, cita_cita, alamat_lengkap")
+      .neq("id", user.id)
+      .limit(20),
+    supabase
+      .from("syndicate")
+      .select("id, nama_bisnis, kategori, deskripsi, logo_bisnis, user_id, link_url")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase
+      .from("tarbiyah_requests")
+      .select("id, user_id, target_id, type, message, status, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("tarbiyah_materi")
+      .select("id, title, description, event_date, status, created_at")
+      .order("event_date", { ascending: false })
+      .limit(50),
+  ]);
 
   const currentUser = {
     id: user.id,
@@ -28,25 +57,11 @@ export default async function TarbiyahNexusPage() {
     avatar: profile?.foto_profil,
   };
 
-  // 2. Fetch mentors (other profiles)
-  const { data: mentorsDb } = await supabase
-    .from("profiles")
-    .select("id, nama_panggilan, nama_lengkap, foto_profil, motivasi_hidup, role, cita_cita, alamat_lengkap")
-    .neq("id", user.id)
-    .limit(20);
-
   const mentorsRaw = (mentorsDb || []).map((m: any) => ({
     ...m,
     pekerjaan: m.cita_cita || "Alumni Expedient",
     alamat_sekarang: m.alamat_lengkap || "",
   }));
-
-  // 3. Fetch tenders (syndicate businesses)
-  const { data: tendersDb } = await supabase
-    .from("syndicate")
-    .select("id, nama_bisnis, kategori, deskripsi, logo_bisnis, user_id, link_url")
-    .order("created_at", { ascending: false })
-    .limit(20);
 
   const tendersRaw = (tendersDb || []).map((t: any) => ({
     ...t,
@@ -57,18 +72,12 @@ export default async function TarbiyahNexusPage() {
   // 4. Fetch user's syndicate business IDs (to check for incoming tender requests)
   const mySyndicateIds = tendersRaw?.filter(t => t.user_id === user.id).map(t => t.id) || [];
 
-  // 5. Fetch sent requests (Permohonan Keluar)
-  const { data: sentRequestsRaw } = await supabase
-    .from("tarbiyah_requests")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
   // 6. Fetch incoming requests (Permohonan Masuk: as mentor or syndicate owner)
   let incomingRequestsQuery = supabase
     .from("tarbiyah_requests")
-    .select("*")
-    .order("created_at", { ascending: false });
+    .select("id, user_id, target_id, type, message, status, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
 
   if (mySyndicateIds.length > 0) {
     incomingRequestsQuery = incomingRequestsQuery.or(`target_id.eq.${user.id},target_id.in.(${mySyndicateIds.join(",")})`);
@@ -148,12 +157,6 @@ export default async function TarbiyahNexusPage() {
       target_name: targetName,
     };
   });
-
-  // 8. Fetch materi kajian
-  const { data: materiList } = await supabase
-    .from("tarbiyah_materi")
-    .select("*")
-    .order("event_date", { ascending: false });
 
   return (
     <TarbiyahClient

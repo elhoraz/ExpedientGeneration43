@@ -58,11 +58,27 @@ export default function CelestialParticles() {
     };
     window.addEventListener("resize", handleResize, { passive: true });
 
-    // Pause rendering when scrolled out of view to save 100% CPU/GPU on mobile
+    // Pre-render soft golden glow sprite once so loop uses fast drawImage instead of expensive per-frame shadowBlur
+    const spriteSize = 32;
+    const spriteCanvas = document.createElement("canvas");
+    spriteCanvas.width = spriteSize;
+    spriteCanvas.height = spriteSize;
+    const sCtx = spriteCanvas.getContext("2d");
+    if (sCtx) {
+      const grad = sCtx.createRadialGradient(16, 16, 1, 16, 16, 16);
+      grad.addColorStop(0, "rgba(255, 240, 185, 1)");
+      grad.addColorStop(0.35, "rgba(212, 175, 55, 0.78)");
+      grad.addColorStop(0.75, "rgba(212, 175, 55, 0.16)");
+      grad.addColorStop(1, "rgba(212, 175, 55, 0)");
+      sCtx.fillStyle = grad;
+      sCtx.fillRect(0, 0, spriteSize, spriteSize);
+    }
+
+    // Pause rendering when scrolled out of view or backgrounded to save CPU/GPU on mobile
     const observer = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting;
-        if (isVisible && !animId && !prefersReducedMotion) {
+        if (isVisible && !document.hidden && !animId && !prefersReducedMotion) {
           animId = requestAnimationFrame(render);
         }
       },
@@ -70,8 +86,15 @@ export default function CelestialParticles() {
     );
     observer.observe(canvas);
 
+    const handleVisibility = () => {
+      if (!document.hidden && isVisible && !animId && !prefersReducedMotion) {
+        animId = requestAnimationFrame(render);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
     const render = () => {
-      if (!isVisible) {
+      if (!isVisible || document.hidden) {
         animId = null;
         return;
       }
@@ -93,14 +116,17 @@ export default function CelestialParticles() {
           if (p.x > width + 10) p.x = -10;
         }
 
-        // Draw soft golden celestial stardust
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(212, 175, 55, ${Math.max(0.05, p.alpha)})`;
-        ctx.shadowBlur = p.r > 1.5 ? 8 : 4;
-        ctx.shadowColor = "rgba(212, 175, 55, 0.6)";
-        ctx.fill();
+        const glowRadius = p.r * 3.8;
+        ctx.globalAlpha = Math.max(0.08, Math.min(1, p.alpha));
+        ctx.drawImage(
+          spriteCanvas,
+          p.x - glowRadius,
+          p.y - glowRadius,
+          glowRadius * 2,
+          glowRadius * 2
+        );
       }
+      ctx.globalAlpha = 1;
 
       if (!prefersReducedMotion) {
         animId = requestAnimationFrame(render);
@@ -111,6 +137,7 @@ export default function CelestialParticles() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibility);
       observer.disconnect();
       if (animId) cancelAnimationFrame(animId);
     };

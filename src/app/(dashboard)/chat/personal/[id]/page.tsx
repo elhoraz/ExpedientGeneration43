@@ -23,26 +23,26 @@ export default async function PersonalChatPage({ params }: { params: Promise<{ i
     return redirect("/chat"); // Cannot chat with yourself
   }
 
-  // Ambil profil kontak
-  const { data: contact } = await supabase
-    .from("profiles")
-    .select("id, nama_lengkap, nama_panggilan, foto_profil")
-    .eq("id", contactId)
-    .single();
+  // Fetch contact profile and messages in parallel
+  const [{ data: contact }, { data: messages, error }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, nama_lengkap, nama_panggilan, foto_profil")
+      .eq("id", contactId)
+      .single(),
+    supabase
+      .from("chat_messages")
+      .select("id, message, image_url, audio_url, video_url, message_type, created_at, sender_id, receiver_id, is_deleted, is_read")
+      .eq("is_lounge", false)
+      .eq("is_deleted", false)
+      .or(`and(sender_id.eq.${user.id},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${user.id})`)
+      .order("created_at", { ascending: false })
+      .limit(50),
+  ]);
 
   if (!contact) {
     return redirect("/chat");
   }
-
-  // Fetch initial messages between user and contact
-  const { data: messages, error } = await supabase
-    .from("chat_messages")
-    .select("id, message, image_url, audio_url, video_url, message_type, created_at, sender_id, receiver_id, is_deleted, is_read")
-    .eq("is_lounge", false)
-    .eq("is_deleted", false)
-    .or(`and(sender_id.eq.${user.id},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${user.id})`)
-    .order("created_at", { ascending: false })
-    .limit(50);
 
   // Mark messages as read
   if (messages && messages.some(m => m.sender_id === contactId && !m.is_read)) {

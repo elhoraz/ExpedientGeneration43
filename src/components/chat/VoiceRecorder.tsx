@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useConfirm } from "@/components/layout/AegisConfirm";
 
 interface VoiceRecorderProps {
@@ -17,23 +17,19 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const onCancelRef = useRef(onCancel);
   useEffect(() => {
-    startRecording();
+    onCancelRef.current = onCancel;
+  }, [onCancel]);
 
-    return () => {
-      stopTracks();
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, []);
-
-  const stopTracks = () => {
+  const stopTracks = useCallback(() => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
-  };
+  }, []);
 
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -70,9 +66,19 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
     } catch (err) {
       console.error("Gagal mengakses mikrofon:", err);
       await showAlert("Akses Mikrofon Ditolak", "Tidak dapat mengakses mikrofon. Pastikan izin mikrofon telah diberikan.");
-      onCancel();
+      onCancelRef.current();
     }
-  };
+  }, [showAlert]);
+
+  useEffect(() => {
+    startRecording();
+    const activeTimerRef = timerRef;
+
+    return () => {
+      stopTracks();
+      if (activeTimerRef.current) clearInterval(activeTimerRef.current);
+    };
+  }, [startRecording, stopTracks]);
 
   const handleCancel = () => {
     if (mediaRecorderRef.current && isRecording) {

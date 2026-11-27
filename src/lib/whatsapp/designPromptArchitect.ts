@@ -973,7 +973,7 @@ export async function applyPinterestTypographyOverlay(
 ): Promise<Buffer> {
   const sharp = (await import("sharp")).default;
   const ratio = blueprint.auto_brief?.aspect_ratio || "9:16";
-  let W = 1080;
+  const W = 1080;
   let H = 1920;
   if (ratio === "1:1") {
     H = 1080;
@@ -1021,7 +1021,7 @@ export async function applyPinterestTypographyOverlay(
     const presetId: PresetId = (blueprint as any).preset_id || "01_CINEMATIC_HERO";
     const preset = DESIGN_PRESETS[presetId] || DESIGN_PRESETS["01_CINEMATIC_HERO"];
 
-    let svg = preset.renderSvg(W, H, {
+    const svg = preset.renderSvg(W, H, {
       theme: blueprint.title,
       poster_type: blueprint.category,
       primary_colors: blueprint.colorPalette?.map((c) => c.hex) || ["#DC2626"],

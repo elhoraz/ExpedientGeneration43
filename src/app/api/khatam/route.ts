@@ -78,7 +78,7 @@ export async function GET() {
     // Try to get active session from Supabase
     const { data: session, error: sessionErr } = await supabase
       .from("khatam_sessions")
-      .select("*")
+      .select("id, title, target_date, status, total_juz_completed, created_at")
       .eq("status", "active")
       .order("created_at", { ascending: false })
       .limit(1)
@@ -87,7 +87,7 @@ export async function GET() {
     if (!sessionErr && session) {
       const { data: allocations, error: allocErr } = await supabase
         .from("khatam_allocations")
-        .select("*")
+        .select("id, session_id, juz_number, surah_range, user_id, user_name, user_avatar, status, claimed_at, completed_at")
         .eq("session_id", session.id)
         .order("juz_number", { ascending: true });
 

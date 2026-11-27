@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useAuth } from "@/components/providers/AuthContext";
 import WelcomeModal from "./WelcomeModal";
 import OnboardingTour from "./OnboardingTour";
 
@@ -17,9 +17,11 @@ export default function OnboardingProvider() {
   const [phase, setPhase] = useState<"idle" | "welcome" | "tour">("idle");
   const [userName, setUserName] = useState<string>("");
   const [mounted, setMounted] = useState(false);
+  const { user, isAuthLoading, supabase } = useAuth();
 
   useEffect(() => {
     setMounted(true);
+    if (isAuthLoading || !user) return;
 
     const checkOnboarding = async () => {
       // Check localStorage first
@@ -27,14 +29,6 @@ export default function OnboardingProvider() {
       const tourDone = localStorage.getItem(TOUR_KEY) === "true";
 
       if (welcomeDone && tourDone) return; // Already completed everything
-
-      // Check if user is logged in
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) return; // Guest — don't show onboarding
 
       // Fetch user profile
       const { data: profile } = await supabase
@@ -75,7 +69,7 @@ export default function OnboardingProvider() {
     // Small delay to let the dashboard fully render before starting tour
     const timer = setTimeout(checkOnboarding, 1200);
     return () => clearTimeout(timer);
-  }, []);
+  }, [user, isAuthLoading, supabase]);
 
   // Listen for restart-tour event from the checklist widget
   useEffect(() => {

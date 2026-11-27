@@ -19,14 +19,15 @@ export function useMechaAudio(soundEnabledRef: React.MutableRefObject<boolean>) 
   });
 
   useEffect(() => {
+    const engine = audioRef.current;
     return () => {
-      if (audioRef.current.ctx) {
+      if (engine.ctx) {
         try {
-          audioRef.current.ctx.close();
+          engine.ctx.close();
         } catch {}
-        audioRef.current.ctx = null;
-        audioRef.current.master = null;
-        audioRef.current.pinkNoiseBuf = null;
+        engine.ctx = null;
+        engine.master = null;
+        engine.pinkNoiseBuf = null;
       }
     };
   }, []);

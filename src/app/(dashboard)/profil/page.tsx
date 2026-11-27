@@ -18,7 +18,7 @@ export default async function ProfilPage() {
   const [{ data: profile }, { data: faceRecord }, { data: biometrics }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("*")
+      .select("id, nama_lengkap, nama_panggilan, role, prestise_points, is_active, foto_profil, no_whatsapp, wa_notif_opt_in, alamat_lengkap, akun_ig, akun_tiktok, motivasi_hidup, cita_cita")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -28,7 +28,7 @@ export default async function ProfilPage() {
       .maybeSingle(),
     supabase
       .from("user_biometrics")
-      .select("*")
+      .select("id, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);

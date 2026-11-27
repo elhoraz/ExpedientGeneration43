@@ -23,7 +23,7 @@ export default async function BerandaPage() {
     profilesResult,
   ] = await Promise.allSettled([
     withTimeout(supabase.auth.getUser(), { data: { user: null }, error: null } as any),
-    withTimeout(supabase.from("galeri").select("*").order("created_at", { ascending: false }).limit(10), emptyResult),
+    withTimeout(supabase.from("galeri").select("id, image_url, caption, created_at").order("created_at", { ascending: false }).limit(10), emptyResult),
     withTimeout(supabase.from("buku_tamu").select("id, nama, pesan, created_at").order("created_at", { ascending: false }).limit(5), emptyResult),
     withTimeout(supabase.from("profiles").select("id, nama_lengkap, nama_panggilan, role, foto_profil").eq("role", "admin").eq("is_active", true), emptyResult),
     withTimeout(supabase.from("profiles").select("id, nama_lengkap, nama_panggilan, foto_profil, prestise_points").eq("is_active", true).order("prestise_points", { ascending: false }).limit(5), emptyResult),

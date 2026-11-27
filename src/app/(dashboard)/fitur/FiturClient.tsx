@@ -553,8 +553,8 @@ export default function FiturClient({
           card.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
         };
 
-        card.addEventListener("mousemove", mouseMoveHandler);
-        card.addEventListener("mouseleave", mouseLeaveHandler);
+        card.addEventListener("mousemove", mouseMoveHandler, { passive: true });
+        card.addEventListener("mouseleave", mouseLeaveHandler, { passive: true });
 
         (card as any)._mouseMoveHandler = mouseMoveHandler;
         (card as any)._mouseLeaveHandler = mouseLeaveHandler;

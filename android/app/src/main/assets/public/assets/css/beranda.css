@@ -47,7 +47,7 @@
     .logo-utuh-container {
         position: absolute; top: 50%; left: 50%; width: 800px; height: 450px; 
         margin-top: -225px; margin-left: -400px; z-index: 10; display: flex; 
-        justify-content: center; align-items: center; cursor: grab; will-change: filter; transition: filter 0.1s ease-out;
+        justify-content: center; align-items: center; cursor: grab; will-change: transform; transition: filter 0.1s ease-out;
     }
     .logo-utuh-container:active { cursor: grabbing; }
     
@@ -61,7 +61,7 @@
     }
 
     canvas, .shard-static, #fullLogoStatic { position: absolute; width: 100%; height: 100%; object-fit: contain; }
-    .shard-static, #fullLogoStatic { display: none; z-index: 1; } 
+    .shard-static, #fullLogoStatic { display: block; z-index: 1; } 
     canvas { display: block; z-index: 2; }
 
     .mecha-stage.is-scattered .shard-wrapper { pointer-events: auto; cursor: grab; }
@@ -83,7 +83,8 @@
     .merge-flash { position: absolute; inset: 0; background: var(--text-primary); opacity: 0; z-index: 900; pointer-events: none; mix-blend-mode: overlay; }
 
     /* ================= 3. UI CONTROLS ================= */
-    .hud-controls { position: absolute; bottom: 40px; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: none; }
+    #stage .hud-controls { position: absolute; bottom: 40px; z-index: 200; display: flex; flex-direction: column; align-items: center; gap: 15px; pointer-events: none; }
+    .gallery-nav-controls { display: flex !important; flex-direction: row !important; align-items: center !important; justify-content: center !important; pointer-events: auto !important; }
     .hud-hint { color: var(--text-secondary); font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; text-shadow: 0 0 10px var(--bg-main); transition: 0.3s; }
 
     .btn-mecha {
@@ -370,3 +371,9 @@
     .echo-frame.polaroid img { width: 100%; height: 100%; object-fit: contain; object-position: center; border-radius: 2px; background: var(--bg-main, #060b14); pointer-events: none; transform: translateZ(10px); }
     
     .echo-frame.polaroid .echo-caption { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; padding: 15px 10px; background: transparent; color: #222; font-family: 'Courier New', monospace; font-size: 1.1rem; font-weight: bold; text-align: center; transform: translateZ(20px); letter-spacing: -0.5px; }
+
+
+/* Performance optimization: eliminate scroll jitter on beranda */
+body.page-beranda .main-wrapper {
+    scroll-behavior: auto !important;
+}

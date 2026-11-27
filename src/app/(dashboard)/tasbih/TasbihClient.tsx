@@ -156,18 +156,172 @@ export default function TasbihClient() {
   }, [localizedDzikirList, selectedDzikir]);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const [localHydrated, setLocalHydrated] = useState(false);
+  const [cloudHydrationTick, setCloudHydrationTick] = useState(0);
+  const tasbihCloudReadyRef = useRef(false);
+  const baseLocalTotalRef = useRef(0);
+  const localTasbihTouchedRef = useRef(false);
+  const lastSyncedTasbihRef = useRef("");
+  const pendingTasbihBodyRef = useRef<string | null>(null);
 
-  // Load saved session stats from LocalStorage
+  // Load saved session stats from LocalStorage & merge with Cloud Sync
   useEffect(() => {
+    let initialTotal = 0;
+    let hasLocalState = false;
     try {
       const savedTotal = localStorage.getItem("expedient_tasbih_total");
       if (savedTotal) {
-        setTotalDzikir(parseInt(savedTotal, 10) || 0);
+        initialTotal = parseInt(savedTotal, 10) || 0;
+        baseLocalTotalRef.current = initialTotal;
+        setTotalDzikir(initialTotal);
+      }
+      const savedStateRaw = localStorage.getItem("expedient_tasbih_state");
+      if (savedStateRaw) {
+        const parsed = JSON.parse(savedStateRaw) as {
+          selectedId?: string;
+          count?: number;
+          target?: number;
+          round?: number;
+        };
+        const matched = DZIKIR_LIST.find((d) => d.id === parsed?.selectedId);
+        if (matched) {
+          hasLocalState = true;
+          setSelectedDzikir(matched);
+          setCount(Math.max(0, Number(parsed.count) || 0));
+          setTarget(Math.max(1, Number(parsed.target) || matched.defaultTarget));
+          setRound(Math.max(1, Number(parsed.round) || 1));
+        }
       }
     } catch (e) {
       console.warn("LocalStorage access notice:", e);
+    } finally {
+      setLocalHydrated(true);
     }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function hydrateTasbihFromCloud() {
+      try {
+        const res = await fetch("/api/ibadah/sync", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const json = await res.json();
+        const remote = json?.state;
+        if (cancelled || !remote) return;
+
+        const remoteTotal = Math.max(0, Number(remote.tasbih_total ?? 0));
+        const remoteState = remote.tasbih_state as {
+          selectedId?: string;
+          count?: number;
+          target?: number;
+          round?: number;
+        } | null;
+
+        lastSyncedTasbihRef.current = JSON.stringify({
+          tasbih_total: remoteTotal,
+          tasbih_state: remoteState ?? null,
+        });
+
+        setTotalDzikir((prev) => {
+          const tappedDuringFetch = Math.max(0, prev - baseLocalTotalRef.current);
+          const merged = Math.max(prev, remoteTotal + tappedDuringFetch);
+          try {
+            localStorage.setItem("expedient_tasbih_total", String(merged));
+          } catch {}
+          return merged;
+        });
+
+        if (
+          !localTasbihTouchedRef.current &&
+          remoteState &&
+          (!hasLocalState || remoteTotal > initialTotal)
+        ) {
+          const matched = DZIKIR_LIST.find((d) => d.id === remoteState.selectedId);
+          if (matched) {
+            setSelectedDzikir(matched);
+            setCount(Math.max(0, Number(remoteState.count) || 0));
+            setTarget(Math.max(1, Number(remoteState.target) || matched.defaultTarget));
+            setRound(Math.max(1, Number(remoteState.round) || 1));
+          }
+        }
+      } catch {
+        // Offline or session expired: keep localStorage data intact
+      } finally {
+        if (!cancelled) {
+          tasbihCloudReadyRef.current = true;
+          setCloudHydrationTick((n) => n + 1);
+        }
+      }
+    }
+
+    void hydrateTasbihFromCloud();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, []);
+
+  // Persist Tasbih stats locally & sync to cloud (cross-device Web <-> Android APK)
+  useEffect(() => {
+    if (!localHydrated) return;
+
+    const currentState = {
+      selectedId: selectedDzikir.id,
+      count,
+      target,
+      round,
+    };
+
+    try {
+      localStorage.setItem("expedient_tasbih_total", String(totalDzikir));
+      localStorage.setItem("expedient_tasbih_state", JSON.stringify(currentState));
+    } catch {}
+
+    if (!tasbihCloudReadyRef.current) return;
+    if (totalDzikir === 0 && count === 0 && round === 1 && !localTasbihTouchedRef.current) return;
+
+    const payload = JSON.stringify({
+      tasbih_total: totalDzikir,
+      tasbih_state: currentState,
+    });
+
+    if (payload === lastSyncedTasbihRef.current) {
+      pendingTasbihBodyRef.current = null;
+      return;
+    }
+
+    pendingTasbihBodyRef.current = payload;
+
+    const flushSync = () => {
+      const bodyToSend = pendingTasbihBodyRef.current;
+      if (!bodyToSend) return;
+      pendingTasbihBodyRef.current = null;
+      fetch("/api/ibadah/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: bodyToSend,
+        keepalive: true,
+      })
+        .then((res) => {
+          if (res.ok) {
+            lastSyncedTasbihRef.current = bodyToSend;
+          }
+        })
+        .catch(() => {});
+    };
+
+    const timer = setTimeout(flushSync, 1500);
+    window.addEventListener("pagehide", flushSync);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("pagehide", flushSync);
+    };
+  }, [localHydrated, selectedDzikir.id, count, target, round, totalDzikir, cloudHydrationTick]);
 
   // Web Audio Synthesizer: Soft organic wooden bead click
   const playBeadSound = useCallback(() => {
@@ -221,6 +375,7 @@ export default function TasbihClient() {
 
   // Main Tap Counter Function
   const handleTap = () => {
+    localTasbihTouchedRef.current = true;
     playBeadSound();
 
     const nextCount = count + 1;
@@ -248,6 +403,7 @@ export default function TasbihClient() {
 
   // Switch Dzikir Preset
   const handleSelectDzikir = (item: DzikirItem) => {
+    localTasbihTouchedRef.current = true;
     setSelectedDzikir(item);
     setTarget(item.defaultTarget);
     setCount(0);
@@ -256,6 +412,7 @@ export default function TasbihClient() {
   // Undo (-1)
   const handleUndo = () => {
     if (count > 0) {
+      localTasbihTouchedRef.current = true;
       setCount((prev) => prev - 1);
       setTotalDzikir((prev) => Math.max(0, prev - 1));
       triggerHaptic(20);
@@ -265,6 +422,7 @@ export default function TasbihClient() {
   // Reset Round
   const handleReset = () => {
     if (count > 0 || round > 1) {
+      localTasbihTouchedRef.current = true;
       setCount(0);
       setRound(1);
       triggerHaptic([30, 30]);

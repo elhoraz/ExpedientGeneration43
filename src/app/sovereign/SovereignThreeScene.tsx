@@ -79,15 +79,49 @@ export default function SovereignThreeScene({
       );
       camera.position.set(0, 0, isMobile ? 24 : 28);
 
+      const navAny = navigator as unknown as { deviceMemory?: number };
+      const devMem = typeof navAny.deviceMemory === "number" ? navAny.deviceMemory : null;
+      const cpuCores = typeof navigator.hardwareConcurrency === "number" ? navigator.hardwareConcurrency : null;
+      const isPerfLiteAttr = document.documentElement.getAttribute("data-perf") === "lite";
+
       const renderer = new THREE.WebGLRenderer({
         antialias: !isMobile,
         alpha: true,
         powerPreference: "high-performance",
         precision: isMobile ? "mediump" : "highp",
       });
+
+      let gpuName = "";
+      try {
+        const gl = renderer.getContext();
+        const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+        if (dbg) {
+          gpuName = String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || "");
+        }
+      } catch {}
+
+      const isUltraEntryGpu =
+        /PowerVR.*(GE8320|GE8322|GE8300|GE8100)|Adreno.*(30\d|40\d|504|505|506|508|509|510)|Mali-4\d\d|Mali-T7\d\d|Mali-T8[23]0|Mali-G31/i.test(
+          gpuName
+        );
+      const isWeakRamTier =
+        (devMem !== null && devMem <= 2) ||
+        (devMem !== null && devMem <= 4 && (cpuCores === null || cpuCores <= 4));
+      let isLiteTier =
+        isMobile &&
+        (isPerfLiteAttr ||
+          isUltraEntryGpu ||
+          isWeakRamTier ||
+          (cpuCores !== null && cpuCores <= 4));
+
+      const getSovereignDpr = (mob: boolean) => {
+        if (!mob) return Math.min(window.devicePixelRatio || 1, 2);
+        return Math.min(window.devicePixelRatio || 1, isLiteTier ? 1.0 : 1.35);
+      };
+
       renderer.setClearColor(0x000000, 0);
       renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(getSovereignDpr(isMobile));
       renderer.shadowMap.enabled = !isMobile;
       if (!isMobile) {
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -101,13 +135,22 @@ export default function SovereignThreeScene({
       }
       container.appendChild(renderer.domElement);
 
-      const pmremGenerator = new THREE.PMREMGenerator(renderer);
-      scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
-      pmremGenerator.dispose();
+      let envRT: THREE_TYPES.WebGLRenderTarget | null = null;
+      if (!isLiteTier) {
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        envRT = pmremGenerator.fromScene(new RoomEnvironment(), 0.04);
+        scene.environment = envRT.texture;
+        pmremGenerator.dispose();
+      }
 
       // LIGHTING
-      const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 1.0 : 0.8);
+      const ambientLight = new THREE.AmbientLight(0xffffff, isLiteTier ? 1.15 : isMobile ? 1.0 : 0.8);
       scene.add(ambientLight);
+      let hemiLight: THREE_TYPES.HemisphereLight | null = null;
+      if (isLiteTier) {
+        hemiLight = new THREE.HemisphereLight(0xfff5dc, 0x1a2234, 0.95);
+        scene.add(hemiLight);
+      }
 
       const spotLight = new THREE.SpotLight(0xffeedd, isMobile ? 90 : 120);
       spotLight.position.set(10, 30, 25);
@@ -140,7 +183,7 @@ export default function SovereignThreeScene({
 
       // AMBIENT DUST PARTICLES
       const dustGeo = new THREE.BufferGeometry();
-      const dustCount = isMobile ? 40 : 180;
+      const dustCount = isLiteTier ? 16 : isMobile ? 40 : 180;
       const dustPos = new Float32Array(dustCount * 3);
       for (let i = 0; i < dustCount * 3; i += 3) {
         dustPos[i] = (Math.random() - 0.5) * 40;
@@ -445,7 +488,7 @@ export default function SovereignThreeScene({
           ctx.fill();
         }
 
-        if (isBump) {
+        if (isBump && !isLiteTier) {
           ctx.shadowColor = "#ffffff";
           ctx.shadowBlur = 1;
         }
@@ -458,11 +501,11 @@ export default function SovereignThreeScene({
         ctx.letterSpacing = "5px";
         ctx.fillText(expedientData.jabatan.toUpperCase(), 160, 1240, 760);
 
-        if (isBump) ctx.shadowBlur = 0;
+        if (isBump && !isLiteTier) ctx.shadowBlur = 0;
         ctx.fillStyle = isBump ? "#888888" : "rgba(212,175,55,0.3)";
         ctx.fillRect(160, 1300, 760, 2);
 
-        if (isBump) {
+        if (isBump && !isLiteTier) {
           ctx.shadowColor = "#ffffff";
           ctx.shadowBlur = 1;
         }
@@ -471,7 +514,7 @@ export default function SovereignThreeScene({
         ctx.letterSpacing = "2px";
         ctx.fillText("ID: " + expedientData.nomor_id, 160, 1380);
         ctx.fillText(expedientData.exp, 160, 1430);
-        if (isBump) ctx.shadowBlur = 0;
+        if (isBump && !isLiteTier) ctx.shadowBlur = 0;
 
         if (!isBump) {
           ctx.fillStyle = "#ffffff";
@@ -947,11 +990,11 @@ export default function SovereignThreeScene({
       let lastClickTime = 0;
       let isDragging = false,
         hasInteracted = false;
-      let targetPos = new THREE.Vector3().copy(restPos);
+      const targetPos = new THREE.Vector3().copy(restPos);
       let targetRotY = 0,
         targetRotX = 0,
         targetRotZ = 0;
-      let velocity = new THREE.Vector3(0, 0, 0);
+      const velocity = new THREE.Vector3(0, 0, 0);
       const springK = 0.08,
         damping = 0.82;
       let previousMouse = { x: 0, y: 0 };
@@ -1121,8 +1164,8 @@ export default function SovereignThreeScene({
         if (!event.beta || !event.gamma) return;
         if (baseBeta === null) baseBeta = event.beta;
         if (baseGamma === null) baseGamma = event.gamma;
-        let diffBeta = Math.max(-45, Math.min(45, event.beta - baseBeta));
-        let diffGamma = Math.max(-45, Math.min(45, event.gamma - baseGamma));
+        const diffBeta = Math.max(-45, Math.min(45, event.beta - baseBeta));
+        const diffGamma = Math.max(-45, Math.min(45, event.gamma - baseGamma));
         globalCursorX = diffGamma / 45;
         globalCursorY = diffBeta / 45;
         targetCameraX = globalCursorX * 2.5;
@@ -1130,13 +1173,68 @@ export default function SovereignThreeScene({
       };
       window.addEventListener("deviceorientation", onDeviceOrientation, true);
 
-      // RENDER LOOP
+      // RENDER LOOP (with viewport visibility pause, 30fps lite cap, & auto-downgrade guard)
       let animId: number | null = null;
-      let lastCardPos = new THREE.Vector3();
+      const lastCardPos = new THREE.Vector3();
       let lastLanyardUpdate = 0;
+      let isInViewport = true;
+      let lastRenderMs = performance.now();
+      let slowFrames = 0;
+      let measuredFrames = 0;
+      let autoDowngraded = false;
+
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          isInViewport = entry.isIntersecting;
+        },
+        { threshold: 0.05 }
+      );
+      observer.observe(container);
+
+      const activateLiteTierRuntime = () => {
+        if (isLiteTier || !isMobile) return;
+        isLiteTier = true;
+        renderer.setPixelRatio(1.0);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        scene.environment = null;
+        if (envRT) {
+          envRT.dispose();
+          envRT = null;
+        }
+        ambientLight.intensity = 1.15;
+        if (!hemiLight) {
+          hemiLight = new THREE.HemisphereLight(0xfff5dc, 0x1a2234, 0.95);
+          scene.add(hemiLight);
+        }
+      };
 
       function animate() {
         animId = requestAnimationFrame(animate);
+        if (document.hidden || !isInViewport) {
+          lastRenderMs = performance.now();
+          return;
+        }
+
+        const nowMs = performance.now();
+        const elapsedMs = nowMs - lastRenderMs;
+        if (isLiteTier && !isDragging && elapsedMs < 31) {
+          return;
+        }
+        lastRenderMs = nowMs;
+
+        if (isMobile && !isLiteTier && !autoDowngraded && elapsedMs < 150) {
+          if (elapsedMs > 42) slowFrames++;
+          measuredFrames++;
+          if (measuredFrames >= 24) {
+            if (slowFrames >= 12 && (devMem === null || devMem < 8)) {
+              autoDowngraded = true;
+              activateLiteTierRuntime();
+            }
+            measuredFrames = 0;
+            slowFrames = 0;
+          }
+        }
+
         const time = Date.now() * 0.001;
 
         const targetDayOpacity = isLightMode ? 1.0 : 0.0;
@@ -1253,14 +1351,19 @@ export default function SovereignThreeScene({
         }
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(isMob ? 1.0 : Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(getSovereignDpr(isMob));
       };
       window.addEventListener("resize", onResize);
 
       // Cleanup registration
       cleanupFn = () => {
         isCancelled = true;
+        observer.disconnect();
         if (animId) cancelAnimationFrame(animId);
+        if (envRT) {
+          envRT.dispose();
+          envRT = null;
+        }
         window.removeEventListener("resize", onResize);
         window.removeEventListener("mousemove", onPointerMove as EventListener);
         window.removeEventListener("mouseup", onPointerUp);

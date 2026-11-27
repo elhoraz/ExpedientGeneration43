@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { PhotoboothSkeleton } from "@/components/ui/Skeleton";
+import { PhotoboothSkeleton } from "@/components/ui/skeletons/SkeletonMedia";
 
 const PhotoboothClient = dynamic(() => import("./PhotoboothClient"), {
   ssr: false,

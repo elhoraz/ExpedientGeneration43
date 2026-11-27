@@ -1,7 +1,4 @@
-@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
-@import "cropperjs/dist/cropper.min.css";
-@import "leaflet/dist/leaflet.css";
-@import "swiper/css/bundle";
+/* FontAwesome loaded in <head> & library CSS scoped to routes using them */
 
 :root {
   --background: #ffffff;
@@ -147,49 +144,49 @@ body.sidebar-closed .floating-help-btn {
 }
 
 /* ========================================================
-   ADAPTIVE HARDWARE PERFORMANCE (LITE MODE FOR MOBILE & LOW RAM)
+   ADAPTIVE HARDWARE PERFORMANCE (3-TIER: LITE / BALANCED MID-END / HIGH DESKTOP)
    ======================================================== */
+/* Truly entry-level devices: disable all heavy ambient FX */
 [data-perf="lite"] .film-grain,
 [data-perf="lite"] #particles-js,
 [data-perf="lite"] .cursor-dot,
 [data-perf="lite"] .cursor-ring,
 [data-perf="lite"] .aurora-container,
-[data-perf="lite"] .aurora-blob,
-[data-device="mobile"] .film-grain,
-[data-device="mobile"] #particles-js,
-[data-device="mobile"] .cursor-dot,
-[data-device="mobile"] .cursor-ring,
-[data-device="mobile"] .aurora-container,
-[data-device="mobile"] .aurora-blob {
+[data-perf="lite"] .aurora-blob {
   display: none !important;
   animation: none !important;
 }
 
-[data-perf="lite"] .ambient-field,
-[data-device="mobile"] .ambient-field {
+/* Mobile devices (both lite & balanced mid-end): remove desktop cursor overlays & film grain noise overdraw */
+[data-device="mobile"] .film-grain,
+[data-device="mobile"] .cursor-dot,
+[data-device="mobile"] .cursor-ring {
+  display: none !important;
+  animation: none !important;
+}
+
+[data-perf="lite"] .ambient-field {
   display: none !important;
   filter: none !important;
 }
 
-[data-perf="lite"] .core-orb,
-[data-device="mobile"] .core-orb {
+[data-perf="lite"] .core-orb {
   animation: none !important;
   transform: none !important;
   display: none !important;
 }
 
-/* Kurangi beban GPU dan matikan elemen desktop di HP / Layar Sentuh */
+/* Balanced Mid-End Mobile: keep aurora visual depth at lighter opacity without expensive blur */
+[data-perf="balanced"] .aurora-container {
+  opacity: 0.35;
+}
+
+/* Matikan elemen desktop (cursor spotlight & grain) di layar sentuh */
 @media (max-width: 768px),
 (pointer: coarse) {
-
   .film-grain,
-  #particles-js,
   .cursor-dot,
-  .cursor-ring,
-  .aurora-container,
-  .aurora-blob,
-  .core-orb,
-  .ambient-field {
+  .cursor-ring {
     display: none !important;
     animation: none !important;
   }

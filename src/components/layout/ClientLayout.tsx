@@ -9,18 +9,41 @@ import DynamicPageTranslator from "@/components/i18n/DynamicPageTranslator";
 import CommandPalette from "@/components/layout/CommandPalette";
 import { ToastProvider } from "./AegisToast";
 import { ConfirmProvider } from "./AegisConfirm";
-import gsap from "gsap";
+import { AuthProvider } from "@/components/providers/AuthContext";
 
 import { createClient } from "@/lib/supabase/client";
 import { initAegisSentinelWatcher } from "@/lib/sentinel/clientWatcher";
 
-if (typeof window !== "undefined") {
-  (window as any).gsap = gsap;
-}
-
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isOffline, setIsOffline] = useState(false);
+
+  // Lazy-expose window.gsap on demand for legacy animation scripts without bloating initial root parse
+  useEffect(() => {
+    if (typeof window === "undefined" || (window as any).gsap) return;
+    let cancelled = false;
+    const loadGsap = () => {
+      if (cancelled || (window as any).gsap) return;
+      import("gsap")
+        .then((mod) => {
+          if (!cancelled && !(window as any).gsap) {
+            (window as any).gsap = mod.default;
+          }
+        })
+        .catch(() => {});
+    };
+
+    const ric = (window as any).requestIdleCallback;
+    const idleId = typeof ric === "function" ? ric(loadGsap, { timeout: 1500 }) : setTimeout(loadGsap, 200);
+    return () => {
+      cancelled = true;
+      if (typeof ric === "function" && typeof (window as any).cancelIdleCallback === "function") {
+        (window as any).cancelIdleCallback(idleId);
+      } else {
+        clearTimeout(idleId as ReturnType<typeof setTimeout>);
+      }
+    };
+  }, [pathname]);
 
   // Inisialisasi 24/7 Automated Error Watchdog (Aegis Sentinel)
   useEffect(() => {
@@ -169,7 +192,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     const savedTheme = localStorage.getItem("expedient_theme") || "dark";
     document.documentElement.setAttribute("data-theme", savedTheme);
 
-    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       metaThemeColor.setAttribute("content", savedTheme === "light" ? "#f6f5f1" : "#060b14");
     }
@@ -236,34 +259,37 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  // 3. Ambient Particles (Hanya Desktop & Performa Memadai)
+  // 3. Ambient Particles (Desktop High & Mid-End Balanced, hanya pada showcase routes `/` dan `/beranda`)
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    const perfMode = document.documentElement.getAttribute("data-perf");
-    const isCoarseOnly = window.matchMedia && window.matchMedia('(pointer: coarse) and (hover: none)').matches;
-    const isLite = perfMode === "lite" || (window.innerWidth <= 1024 && isCoarseOnly);
 
     const canvas = document.getElementById("particles-js") as HTMLCanvasElement;
     if (!canvas) return;
 
-    if (isLite) {
+    const perfMode = document.documentElement.getAttribute("data-perf");
+    const isLite = perfMode === "lite";
+    const isShowcasePath = pathname === "/" || pathname === "/beranda";
+
+    if (isLite || !isShowcasePath) {
       canvas.style.display = "none";
       return;
     }
 
+    canvas.style.display = "block";
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    const isMobileMid = perfMode === "balanced" || window.innerWidth < 768;
+    const count = isMobileMid ? 14 : 30;
     const particles: Array<{
       x: number; y: number; size: number; speedY: number; speedX: number;
       opacity: number; life: number; maxLife: number;
     }> = [];
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < count; i++) {
       particles.push({
         x: Math.random() * canvas.width,
         y: Math.random() * canvas.height,
@@ -276,12 +302,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       });
     }
 
-    let animId: number;
+    let animId: number | null = null;
     const animate = () => {
-      // Hanya render partikel pada showcase routes desktop agar halaman utilitas tetap tenang dan ringan
-      const isShowcase = document.body.classList.contains("page-landing") || document.body.classList.contains("page-beranda");
-      if (!isShowcase) {
-        animId = requestAnimationFrame(animate);
+      if (document.hidden) {
+        animId = null;
         return;
       }
 
@@ -304,23 +328,31 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     };
     animate();
 
+    const handleVisibility = () => {
+      if (!document.hidden && animId === null) {
+        animate();
+      }
+    };
     const handleResize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize, { passive: true });
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      cancelAnimationFrame(animId);
+      if (animId !== null) cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, []);
+  }, [pathname]);
 
   const isPublicMicrosite = pathname?.startsWith("/b/");
 
   return (
-    <ConfirmProvider>
-      <ToastProvider>
+    <AuthProvider>
+      <ConfirmProvider>
+        <ToastProvider>
         {isOffline && (
           <div
             style={{
@@ -354,7 +386,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <DynamicPageTranslator />
         {children}
         {!isPublicMicrosite && <CommandPalette />}
-      </ToastProvider>
-    </ConfirmProvider>
+        </ToastProvider>
+      </ConfirmProvider>
+    </AuthProvider>
   );
 }

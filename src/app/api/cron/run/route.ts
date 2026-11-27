@@ -20,8 +20,8 @@ export async function GET(request: Request) {
 
   const isSecretValid = Boolean(
     cronSecret &&
-      ((bearerToken && timingSafeEqualString(bearerToken, cronSecret)) ||
-        (queryToken && timingSafeEqualString(queryToken, cronSecret)))
+    ((bearerToken && timingSafeEqualString(bearerToken, cronSecret)) ||
+      (queryToken && timingSafeEqualString(queryToken, cronSecret)))
   );
 
   // Verify secret token for cron (Vercel Cron sends Authorization: Bearer <CRON_SECRET>) or authenticated admin session
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     try {
       const { data: waQueue, error: waError } = await supabase
         .from('whatsapp_queue')
-        .select('*')
+        .select('id, no_whatsapp, message')
         .eq('status', 'pending')
         .order('created_at', { ascending: true })
         .limit(10);
@@ -92,7 +92,7 @@ export async function GET(request: Request) {
   try {
     const { data: emailQueue, error: emailError } = await supabase
       .from('email_queue')
-      .select('*')
+      .select('id, recipient_email, subject, body_html')
       .eq('status', 'pending')
       .order('created_at', { ascending: true })
       .limit(10);
@@ -108,7 +108,7 @@ export async function GET(request: Request) {
           body: msg.body_html || "",
           html: msg.body_html || undefined,
         });
-        
+
         await supabase.from('email_queue').update({ status: 'sent', updated_at: new Date().toISOString() }).eq('id', msg.id);
         emailSent++;
       } catch (err: any) {
@@ -134,8 +134,8 @@ export async function GET(request: Request) {
         .from('profiles')
         .select('id, nama_panggilan, nama_lengkap, no_whatsapp, tanggal_lahir, foto_profil')
         .eq('is_active', true);
-      
-      let bdaySent = 0, bdayFailed = 0;
+
+      const bdaySent = 0, bdayFailed = 0;
       const birthdayUsers = (users || []).filter(u => {
         if (!u.tanggal_lahir || !u.no_whatsapp) return false;
         const parts = u.tanggal_lahir.split(/[-/]/);
@@ -190,7 +190,7 @@ export async function GET(request: Request) {
 
           const ageStr = isAgeValid ? ` yang ke-${rawAge}` : "";
           const bdayLink = `https://expedientgeneration.vercel.app/birthday/${user.id}`;
-          
+
           // ANTI-BAN META: JANGAN PERNAH mengirim pesan japri otomatis ke nomor alumni pribadi.
           // Mengirim japri pembuka berisi link dari IP cloud memicu flag spam instan dari Meta.
           // Ucapan difokuskan secara meriah ke Grup Komunitas Angkatan & notifikasi in-app website.
@@ -253,8 +253,8 @@ export async function GET(request: Request) {
 
   output += `\n===== SELESAI =====\n`;
 
-  return new NextResponse(output, { 
-    status: 200, 
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' } 
+  return new NextResponse(output, {
+    status: 200,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
   });
 }

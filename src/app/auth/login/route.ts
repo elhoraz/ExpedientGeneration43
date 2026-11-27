@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getRequestOrigin } from "@/lib/url";
 import { NextResponse } from "next/server";
-import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { rateLimitDistributed, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   const origin = getRequestOrigin(request);
@@ -11,9 +11,9 @@ export async function POST(request: Request) {
     request.headers.get("content-type")?.includes("application/json") ||
     new URL(request.url).searchParams.get("json") === "true";
 
-  // Rate limiting: 10 login attempts per 15 minutes per IP
+  // Rate limiting: 10 login attempts per 15 minutes per IP (distributed when Redis configured)
   const clientIp = getClientIp(request);
-  const rl = rateLimit(`login:${clientIp}`, 10, 15 * 60 * 1000);
+  const rl = await rateLimitDistributed(`login:${clientIp}`, 10, 15 * 60 * 1000);
   if (!rl.success) {
     const waitMin = Math.max(1, Math.ceil(rl.resetIn / 60000));
     const rateLimitMsg = `Terlalu banyak percobaan login. Coba lagi dalam ${waitMin} menit.`;

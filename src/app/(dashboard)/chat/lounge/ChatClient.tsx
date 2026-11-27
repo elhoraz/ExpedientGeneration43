@@ -38,8 +38,17 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const emojiRef = useRef<HTMLDivElement>(null);
+  const senderProfileCacheRef = useRef<Map<string, any>>(new Map());
   const supabase = createClient();
   const { showAlert, showConfirm } = useConfirm();
+
+  useEffect(() => {
+    initialMessages.forEach((msg: any) => {
+      if (msg?.sender_id && msg?.profiles) {
+        senderProfileCacheRef.current.set(msg.sender_id, msg.profiles);
+      }
+    });
+  }, [initialMessages]);
 
   useEffect(() => {
     document.body.classList.add("page-chat");
@@ -56,15 +65,23 @@ export default function ChatClient({ initialMessages, userId }: { initialMessage
           filter: "is_lounge=eq.true",
         },
         async (payload) => {
-          const { data: senderData } = await supabase
-            .from("profiles")
-            .select("nama_lengkap, nama_panggilan, foto_profil")
-            .eq("id", payload.new.sender_id)
-            .single();
+          const senderId = payload.new?.sender_id;
+          let senderData = senderId ? senderProfileCacheRef.current.get(senderId) : undefined;
+          if (!senderData && senderId) {
+            const { data } = await supabase
+              .from("profiles")
+              .select("nama_lengkap, nama_panggilan, foto_profil")
+              .eq("id", senderId)
+              .single();
+            if (data) {
+              senderData = data;
+              senderProfileCacheRef.current.set(senderId, data);
+            }
+          }
 
           const newMessage: any = {
             ...payload.new,
-            profiles: senderData,
+            profiles: senderData ?? null,
           };
 
           setMessages((prev) => {

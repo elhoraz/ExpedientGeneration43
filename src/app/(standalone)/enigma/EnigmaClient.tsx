@@ -22,14 +22,14 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     const sectionAngle = 360 / symbols.length;
 
     const targetIndices = [3, 1, 9];
-    let ringRotations = [
+    const ringRotations = [
       Math.floor(Math.random() * 10) * 36,
       Math.floor(Math.random() * 10) * 36,
       Math.floor(Math.random() * 10) * 36
     ];
 
     for (let i = 0; i < 3; i++) {
-      let currentIndex = (10 - Math.round(ringRotations[i] / 36) % 10) % 10;
+      const currentIndex = (10 - Math.round(ringRotations[i] / 36) % 10) % 10;
       if (currentIndex === targetIndices[i]) {
         ringRotations[i] += 36;
       }
@@ -92,8 +92,8 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
       if (deltaAngle > 180) deltaAngle -= 360;
       if (deltaAngle < -180) deltaAngle += 360;
 
-      let currentRot = gsap.getProperty(ringElement, "rotation") as number;
-      let newRotation = currentRot + deltaAngle;
+      const currentRot = gsap.getProperty(ringElement, "rotation") as number;
+      const newRotation = currentRot + deltaAngle;
 
       gsap.set(ringElement, { rotation: newRotation });
       lastAngle = currentAngle;
@@ -106,8 +106,8 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
       const ringElement = rings[currentRingIndex];
       ringElement!.style.cursor = 'grab';
 
-      let finalRot = gsap.getProperty(ringElement, "rotation") as number;
-      let snappedRot = Math.round(finalRot / 36) * 36;
+      const finalRot = gsap.getProperty(ringElement, "rotation") as number;
+      const snappedRot = Math.round(finalRot / 36) * 36;
       ringRotations[currentRingIndex] = snappedRot;
 
       gsap.to(ringElement, {
@@ -148,7 +148,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
   }, [completed]);
 
   const getTopIndex = (rotation: number) => {
-    let norm = ((rotation % 360) + 360) % 360;
+    const norm = ((rotation % 360) + 360) % 360;
     let steps = Math.round(norm / 36);
     if (steps >= 10) steps = 0;
     return (10 - steps) % 10;
@@ -156,11 +156,11 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
 
   const handleVerify = async () => {
     setErrorMsg(false);
-    let r0 = gsap.getProperty(ringOuterRef.current, "rotation") as number;
-    let r1 = gsap.getProperty(ringMiddleRef.current, "rotation") as number;
-    let r2 = gsap.getProperty(ringInnerRef.current, "rotation") as number;
+    const r0 = gsap.getProperty(ringOuterRef.current, "rotation") as number;
+    const r1 = gsap.getProperty(ringMiddleRef.current, "rotation") as number;
+    const r2 = gsap.getProperty(ringInnerRef.current, "rotation") as number;
 
-    let combo = [getTopIndex(r0), getTopIndex(r1), getTopIndex(r2)];
+    const combo = [getTopIndex(r0), getTopIndex(r1), getTopIndex(r2)];
 
     setBtnText("MEMVERIFIKASI...");
 
