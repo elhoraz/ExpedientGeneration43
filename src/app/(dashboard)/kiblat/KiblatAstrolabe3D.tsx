@@ -329,7 +329,7 @@ export default function KiblatAstrolabe3D({
         const w = mount.clientWidth || 340;
         const h = mount.clientHeight || 340;
         renderer.setPixelRatio(1);
-        renderer.setSize(w, h);
+        renderer.setSize(w, h, false);
         scene.environment = null;
         if (envRT) {
           envRT.dispose();

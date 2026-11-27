@@ -18,6 +18,8 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const onCancelRef = useRef(onCancel);
+  const mountedRef = useRef(true);
+  const recordingTimeRef = useRef(0);
   useEffect(() => {
     onCancelRef.current = onCancel;
   }, [onCancel]);
@@ -32,6 +34,10 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!mountedRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
 
       const options: MediaRecorderOptions = {};
@@ -59,11 +65,15 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
       // Previously start(100) caused fragmented chunks that couldn't be played back
       mediaRecorder.start();
       setIsRecording(true);
+      recordingTimeRef.current = 0;
 
       timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
+        const next = recordingTimeRef.current + 1;
+        recordingTimeRef.current = next;
+        setRecordingTime(next);
       }, 1000);
     } catch (err) {
+      if (!mountedRef.current) return;
       console.error("Gagal mengakses mikrofon:", err);
       await showAlert("Akses Mikrofon Ditolak", "Tidak dapat mengakses mikrofon. Pastikan izin mikrofon telah diberikan.");
       onCancelRef.current();
@@ -71,17 +81,26 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
   }, [showAlert]);
 
   useEffect(() => {
+    mountedRef.current = true;
     startRecording();
     const activeTimerRef = timerRef;
 
     return () => {
+      mountedRef.current = false;
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        try {
+          mediaRecorderRef.current.onstop = null;
+          mediaRecorderRef.current.stop();
+        } catch {}
+      }
       stopTracks();
       if (activeTimerRef.current) clearInterval(activeTimerRef.current);
     };
   }, [startRecording, stopTracks]);
 
   const handleCancel = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.onstop = null;
       mediaRecorderRef.current.stop();
     }
     stopTracks();
@@ -90,22 +109,24 @@ export default function VoiceRecorder({ onCancel, onSend }: VoiceRecorderProps) 
   };
 
   const handleSend = () => {
-    if (!mediaRecorderRef.current) {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === "inactive") {
       onCancel();
       return;
     }
 
-    const currentDuration = recordingTime;
+    const currentDuration = recordingTimeRef.current;
 
-    mediaRecorderRef.current.onstop = () => {
-      const mimeType = mediaRecorderRef.current?.mimeType || "audio/mp4";
+    recorder.onstop = () => {
+      const mimeType = recorder.mimeType || "audio/mp4";
       const audioBlob = new Blob(chunksRef.current, { type: mimeType });
-      console.log("[VoiceRecorder] Final blob size:", audioBlob.size, "type:", audioBlob.type, "duration:", currentDuration);
       stopTracks();
-      onSend(audioBlob, currentDuration);
+      if (mountedRef.current) {
+        onSend(audioBlob, currentDuration);
+      }
     };
 
-    mediaRecorderRef.current.stop();
+    recorder.stop();
     if (timerRef.current) clearInterval(timerRef.current);
   };
 

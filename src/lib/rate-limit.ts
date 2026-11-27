@@ -133,17 +133,18 @@ export async function rateLimitDistributed(
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
   if (supabaseUrl && serviceKey) {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     try {
-      const supabaseAdmin = createAdminClient(supabaseUrl, serviceKey);
+      const supabaseAdmin = createAdminClient();
       const rpcPromise = supabaseAdmin.rpc("consume_rate_limit", {
         p_key: key,
         p_limit: limit,
         p_window_ms: windowMs,
       });
 
-      const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) =>
-        setTimeout(() => resolve({ data: null, error: new Error("rateLimit RPC timeout") }), 1500)
-      );
+      const timeoutPromise = new Promise<{ data: null; error: Error }>((resolve) => {
+        timeoutId = setTimeout(() => resolve({ data: null, error: new Error("rateLimit RPC timeout") }), 1500);
+      });
 
       const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
 
@@ -159,6 +160,8 @@ export async function rateLimitDistributed(
       }
     } catch {
       // Fall back to in-memory limiter so slow DB never breaks auth/API availability
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
   }
 

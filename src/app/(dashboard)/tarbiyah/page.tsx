@@ -39,7 +39,7 @@ export default async function TarbiyahNexusPage() {
       .limit(20),
     supabase
       .from("tarbiyah_requests")
-      .select("id, user_id, target_id, type, message, status, created_at")
+      .select("id, user_id, target_id, type, status, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50),
@@ -75,7 +75,7 @@ export default async function TarbiyahNexusPage() {
   // 6. Fetch incoming requests (Permohonan Masuk: as mentor or syndicate owner)
   let incomingRequestsQuery = supabase
     .from("tarbiyah_requests")
-    .select("id, user_id, target_id, type, message, status, created_at")
+    .select("id, user_id, target_id, type, status, created_at")
     .order("created_at", { ascending: false })
     .limit(50);
 

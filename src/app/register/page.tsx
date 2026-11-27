@@ -58,10 +58,6 @@ function RegisterFormContent() {
   const [otpStep, setOtpStep] = useState<"choose_channel" | "input_otp" | "success">("choose_channel");
   const [selectedChannel, setSelectedChannel] = useState<"gmail" | "whatsapp" | null>(null);
 
-  useDialogEscape(isCropperOpen, () => {
-    setIsCropperOpen(false);
-    setRawCropImage(null);
-  });
   useDialogEscape(isOtpModalOpen && otpStep !== "success", () => {
     setIsOtpModalOpen(false);
   });

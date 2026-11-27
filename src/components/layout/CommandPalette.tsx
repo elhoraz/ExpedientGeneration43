@@ -107,15 +107,15 @@ export default function CommandPalette() {
 
       if (e.key === "Escape") {
         setIsOpen(false);
-      } else if (e.key === "ArrowDown") {
+      } else if (e.key === "ArrowDown" && filteredCommands.length > 0) {
         e.preventDefault();
         setSelectedIndex(prev => (prev + 1) % filteredCommands.length);
-      } else if (e.key === "ArrowUp") {
+      } else if (e.key === "ArrowUp" && filteredCommands.length > 0) {
         e.preventDefault();
         setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
       } else if (e.key === "Enter" && filteredCommands.length > 0) {
         e.preventDefault();
-        executeCommand(filteredCommands[selectedIndex]);
+        executeCommand(filteredCommands[selectedIndex] || filteredCommands[0]);
       }
     };
 
@@ -152,16 +152,16 @@ export default function CommandPalette() {
       <div className="cmd-palette-box" onClick={e => e.stopPropagation()}>
         <div className="cmd-search-bar">
           <i className="fa-solid fa-magnifying-glass cmd-search-icon" aria-hidden="true"></i>
-          <input 
+          <input
             ref={inputRef}
-            type="text" 
-            className="cmd-input" 
+            type="text"
+            className="cmd-input"
             placeholder={t.command_palette?.search_placeholder || t.navbar.search_palette}
             aria-label={t.command_palette?.search_placeholder || t.navbar.search_palette}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            autoComplete="off" 
-            spellCheck="false" 
+            autoComplete="off"
+            spellCheck="false"
           />
           <button
             type="button"
@@ -202,7 +202,7 @@ export default function CommandPalette() {
             <span>{locale === "ar" ? "مساعدة الصفحة" : locale === "en" ? "Page Guide" : "Bantuan"}</span>
           </button>
         </div>
-        
+
         <div className="cmd-results">
           {filteredCommands.length > 0 ? (
             <>
@@ -229,7 +229,7 @@ export default function CommandPalette() {
             </div>
           )}
         </div>
-        
+
         <div className="cmd-footer">
           <span><kbd>↑↓</kbd> {locale === "ar" ? "تنقل" : locale === "en" ? "Navigate" : "Navigasi"}</span>
           <span><kbd>↵</kbd> {locale === "ar" ? "فتح" : locale === "en" ? "Open" : "Buka"}</span>

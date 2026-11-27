@@ -284,15 +284,21 @@ export default function TasbihClient() {
     if (!tasbihCloudReadyRef.current) return;
     if (totalDzikir === 0 && count === 0 && round === 1 && !localTasbihTouchedRef.current) return;
 
-    const payload = JSON.stringify({
+    const currentSnapshot = JSON.stringify({
       tasbih_total: totalDzikir,
       tasbih_state: currentState,
     });
 
-    if (payload === lastSyncedTasbihRef.current) {
+    if (currentSnapshot === lastSyncedTasbihRef.current) {
       pendingTasbihBodyRef.current = null;
       return;
     }
+
+    const payload = JSON.stringify({
+      tasbih_total: totalDzikir,
+      tasbih_state: currentState,
+      tasbih_authoritative: localTasbihTouchedRef.current,
+    });
 
     pendingTasbihBodyRef.current = payload;
 
@@ -308,7 +314,7 @@ export default function TasbihClient() {
       })
         .then((res) => {
           if (res.ok) {
-            lastSyncedTasbihRef.current = bodyToSend;
+            lastSyncedTasbihRef.current = currentSnapshot;
           }
         })
         .catch(() => {});
@@ -320,8 +326,20 @@ export default function TasbihClient() {
     return () => {
       clearTimeout(timer);
       window.removeEventListener("pagehide", flushSync);
+      if (pendingTasbihBodyRef.current) {
+        flushSync();
+      }
     };
   }, [localHydrated, selectedDzikir.id, count, target, round, totalDzikir, cloudHydrationTick]);
+
+  useEffect(() => {
+    return () => {
+      if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+        audioCtxRef.current.close().catch(() => {});
+        audioCtxRef.current = null;
+      }
+    };
+  }, []);
 
   // Web Audio Synthesizer: Soft organic wooden bead click
   const playBeadSound = useCallback(() => {

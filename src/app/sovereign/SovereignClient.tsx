@@ -34,7 +34,7 @@ interface SovereignUser {
   nama_lengkap: string;
   nama_panggilan: string | null;
   foto_profil: string | null;
-  public_token: string | null;
+  public_token?: string | null;
   prestise_points?: number;
 }
 

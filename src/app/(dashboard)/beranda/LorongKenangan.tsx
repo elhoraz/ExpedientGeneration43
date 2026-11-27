@@ -172,6 +172,15 @@ export default function LorongKenangan({ galeri }: { galeri: any[] }) {
     apply3DTransforms(currentScroll.current);
   }, [activeStyle, isMobile, apply3DTransforms]);
 
+  useEffect(() => {
+    return () => {
+      if (animFrameId.current !== null) {
+        cancelAnimationFrame(animFrameId.current);
+        animFrameId.current = null;
+      }
+    };
+  }, []);
+
   // --- GESTURE & DRAG HANDLERS ---
   const handlePointerDown = (e: React.PointerEvent) => {
     if (activeStyle === 'mosaic') return;

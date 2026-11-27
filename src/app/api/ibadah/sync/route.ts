@@ -111,7 +111,7 @@ function sanitizeTasbihState(raw: unknown): SyncedTasbihState | null {
     !Number.isFinite(count) ||
     count < 0 ||
     !Number.isFinite(target) ||
-    target < 1 ||
+    target < 0 ||
     target > 100000 ||
     !Number.isFinite(round) ||
     round < 1
@@ -214,11 +214,15 @@ export async function POST(request: Request) {
 
     const existingTasbihTotal = Math.max(0, Math.floor(Number(existing?.tasbih_total ?? 0)));
     const incomingTotalRaw = Number(body.tasbih_total);
-    const incomingTasbihTotal =
-      body.tasbih_total !== undefined && Number.isFinite(incomingTotalRaw) && incomingTotalRaw >= 0
-        ? Math.min(Number.MAX_SAFE_INTEGER, Math.floor(incomingTotalRaw))
-        : 0;
-    const nextTasbihTotal = Math.max(existingTasbihTotal, incomingTasbihTotal);
+    const hasValidIncomingTotal =
+      body.tasbih_total !== undefined && Number.isFinite(incomingTotalRaw) && incomingTotalRaw >= 0;
+    const incomingTasbihTotal = hasValidIncomingTotal
+      ? Math.min(Number.MAX_SAFE_INTEGER, Math.floor(incomingTotalRaw))
+      : 0;
+    const nextTasbihTotal =
+      hasValidIncomingTotal && body.tasbih_authoritative === true
+        ? incomingTasbihTotal
+        : Math.max(existingTasbihTotal, incomingTasbihTotal);
 
     const existingTasbihState = sanitizeTasbihState(existing?.tasbih_state);
     const incomingTasbihState =

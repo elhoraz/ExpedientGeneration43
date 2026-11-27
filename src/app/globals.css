@@ -184,6 +184,7 @@ body.sidebar-closed .floating-help-btn {
 /* Matikan elemen desktop (cursor spotlight & grain) di layar sentuh */
 @media (max-width: 768px),
 (pointer: coarse) {
+
   .film-grain,
   .cursor-dot,
   .cursor-ring {
@@ -613,7 +614,7 @@ html[lang="ar"] body {
 html[dir="rtl"],
 html.rtl-mode,
 body.font-arabic {
-  font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', -apple-system, sans-serif !important;
+  font-family: var(--font-amiri), 'Amiri', 'Traditional Arabic', 'Scheherazade New', -apple-system, sans-serif !important;
   letter-spacing: 0px !important;
 }
 

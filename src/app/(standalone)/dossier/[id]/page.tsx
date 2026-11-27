@@ -17,11 +17,15 @@ export default async function DossierPage({ params }: { params: Promise<{ id: st
   }
 
   // Fetch the target user profile
-  const { data: targetUser } = await supabase
+  const { data: rawTargetUser } = await supabase
     .from("profiles")
-    .select("id, nama_lengkap, nama_panggilan, foto_profil, kota_domisili, motivasi_hidup, akun_ig, public_token, tanggal_lahir")
+    .select("id, nama_lengkap, nama_panggilan, foto_profil, alamat_lengkap, motivasi_hidup, akun_ig, tanggal_lahir")
     .eq("id", id)
     .maybeSingle();
+
+  const targetUser = rawTargetUser
+    ? { ...rawTargetUser, kota_domisili: rawTargetUser.alamat_lengkap || null }
+    : null;
 
   if (!targetUser) {
     return (

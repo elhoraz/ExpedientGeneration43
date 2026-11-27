@@ -41,16 +41,19 @@ export default function AlumniCardPreviewPage() {
     const supabase = createClient();
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    const query = supabase
+    if (!isUuid) {
+      setStatus("not_found");
+      return;
+    }
+    supabase
       .from("profiles")
-      .select("id, nama_lengkap, nama_panggilan, kota_domisili, motivasi_hidup, foto_profil");
-
-    (isUuid ? query.eq("id", id) : query.eq("public_token", id))
+      .select("id, nama_lengkap, nama_panggilan, alamat_lengkap, motivasi_hidup, foto_profil")
+      .eq("id", id)
       .maybeSingle()
       .then(({ data }) => {
         if (!active) return;
         if (data) {
-          setProfile(data);
+          setProfile({ ...data, kota_domisili: data.alamat_lengkap || null });
           setStatus("ready");
         } else {
           setStatus("not_found");

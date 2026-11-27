@@ -130,10 +130,10 @@ export default function CmsClient({
     });
 
     // Ensure all defined page categories appear in prefixes if they exist or are configured
-    const definedPrefixes = Object.keys(PAGE_CONFIG).filter(p => p === 'galeri' || (groups[p] && groups[p].length > 0));
+    const definedPrefixes = Object.keys(PAGE_CONFIG).filter(p => p !== 'galeri' && groups[p] && groups[p].length > 0);
     // Add any dynamically discovered prefixes
     Object.keys(groups).forEach(p => {
-      if (!definedPrefixes.includes(p)) definedPrefixes.push(p);
+      if (p !== 'galeri' && !definedPrefixes.includes(p)) definedPrefixes.push(p);
     });
 
     return { 
@@ -142,6 +142,10 @@ export default function CmsClient({
       totalFilteredCount: totalFiltered 
     };
   }, [contents, newKeys, draftDeletions, draftUpdates, searchQuery]);
+
+  useEffect(() => {
+    setContents(initialContents);
+  }, [initialContents]);
 
   // Set default tab safely after mount / filter changes
   useEffect(() => {
@@ -247,11 +251,11 @@ export default function CmsClient({
       }
 
       const data = await res.json();
-      await showAlert("Berhasil", data.message || "Semua perubahan CMS per-halaman berhasil disimpan permanen ke database.");
-      
+      setContents(finalContents);
       setDraftUpdates({});
       setDraftDeletions([]);
       setNewKeys([]);
+      await showAlert("Berhasil", data.message || "Semua perubahan CMS per-halaman berhasil disimpan permanen ke database.");
       router.refresh();
       
     } catch (e: any) {

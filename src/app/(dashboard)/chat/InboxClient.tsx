@@ -100,7 +100,7 @@ export default function InboxClient({
               const newList = [...prev];
               const idx = newList.findIndex(item => item.contact?.id === contactId);
               if (idx >= 0 && msg.receiver_id === userId) {
-                newList[idx].unreadCount = 0;
+                newList[idx] = { ...newList[idx], unreadCount: 0 };
               }
               return newList;
             });

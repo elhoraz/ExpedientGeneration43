@@ -8,6 +8,7 @@ import type LType from "leaflet";
 let currentMap: LType.Map | null = null;
 let currentMarkerGroup: LType.LayerGroup | null = null;
 let currentTourInterval: any = null;
+let currentMountEpoch = 0;
 
 const CENTER = { lat: -8.0358875, lng: 111.414528 };
 
@@ -189,9 +190,11 @@ export interface MountRadar2DOptions {
 
 export async function mountRadar2D({ containerId, nodes, style, onConfirmDeleteLocation }: MountRadar2DOptions) {
   if (typeof window === 'undefined') return;
+  const epoch = ++currentMountEpoch;
 
   // Import Leaflet dynamically to prevent SSR errors
   const leafletModule = await import('leaflet');
+  if (epoch !== currentMountEpoch) return;
   const L = leafletModule.default || leafletModule;
   (window as any).L = L;
 
@@ -647,6 +650,7 @@ export async function mountRadar2D({ containerId, nodes, style, onConfirmDeleteL
 }
 
 export function destroyRadar2D() {
+  currentMountEpoch++;
   if (currentTourInterval) {
     clearInterval(currentTourInterval);
     currentTourInterval = null;

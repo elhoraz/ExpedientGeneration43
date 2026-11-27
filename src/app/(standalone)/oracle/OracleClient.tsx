@@ -40,9 +40,32 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
   const supabase = createClient();
   const streamRef = useRef<MediaStream | null>(null);
   const initialPhotoProfilRef = useRef(userProfile?.foto_profil);
+  const mountedRef = useRef(true);
+  const scanCleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
+    mountedRef.current = true;
     const profileFoto = initialPhotoProfilRef.current;
+
+    const startCameraStream = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+        if (!mountedRef.current) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        streamRef.current = mediaStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      } catch (err) {
+        console.error(err);
+        if (mountedRef.current) {
+          setStatusText("AKSES KAMERA DITOLAK. Mohon berikan izin pada browser.");
+        }
+      }
+    };
+
     // Attempt to load models after script is loaded
     const checkFaceApi = setInterval(async () => {
       if (window.faceapi) {
@@ -61,7 +84,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
           } catch {
             await loadModelsFromBase("https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model");
           }
-          setModelsLoaded(true);
+          if (!mountedRef.current) return;
           setStatusText("MEMUAT DATA BIOMETRIK...");
 
           if (profileFoto) {
@@ -69,17 +92,21 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
               const fotoUrl = getAvatarUrl(profileFoto);
               const img = await window.faceapi.fetchImage(fotoUrl);
               const det = await window.faceapi.detectSingleFace(img, new window.faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-              if (det) setReferenceDescriptor(det.descriptor);
+              if (mountedRef.current && det) setReferenceDescriptor(det.descriptor);
             } catch (err) {
               console.warn("Gagal mengekstrak biometrik foto profil", err);
             }
           }
 
+          if (!mountedRef.current) return;
+          setModelsLoaded(true);
           setStatusText("SYSTEM STANDBY");
-          initCamera();
+          void startCameraStream();
         } catch (e) {
           console.error("Gagal memuat model:", e);
-          setStatusText("GAGAL MEMUAT SISTEM AI. Pastikan model tersedia.");
+          if (mountedRef.current) {
+            setStatusText("GAGAL MEMUAT SISTEM AI. Pastikan model tersedia.");
+          }
         }
       }
     }, 500);
@@ -87,8 +114,13 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
     document.body.classList.add("page-oracle");
 
     return () => {
+      mountedRef.current = false;
       document.body.classList.remove("page-oracle");
       clearInterval(checkFaceApi);
+      if (scanCleanupRef.current) {
+        scanCleanupRef.current();
+        scanCleanupRef.current = null;
+      }
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
@@ -96,21 +128,16 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
     };
   }, []);
 
-  const initCamera = async () => {
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-      streamRef.current = mediaStream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-    } catch (err) {
-      console.error(err);
-      setStatusText("AKSES KAMERA DITOLAK. Mohon berikan izin pada browser.");
-    }
-  };
-
   const handleScan = async () => {
     if (!modelsLoaded || !videoRef.current || !canvasRef.current) return;
+    if (videoRef.current.readyState < 2 || !videoRef.current.videoWidth) {
+      setStatusText("MENYIAPKAN KAMERA... COBA SEBENTAR LAGI.");
+      return;
+    }
+    if (scanCleanupRef.current) {
+      scanCleanupRef.current();
+      scanCleanupRef.current = null;
+    }
     setIsScanning(true);
     if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
 
@@ -125,7 +152,7 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
 
     const msgInterval = setInterval(() => {
       msgIndex++;
-      if (msgIndex < messages.length) {
+      if (mountedRef.current && msgIndex < messages.length) {
         setStatusText(messages[msgIndex]);
       }
     }, 800);
@@ -138,10 +165,12 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
 
     let isScanningActive = true;
     let finalDetections: any = null;
+    let rafId = 0;
+    let detectTimerId: ReturnType<typeof setTimeout> | null = null;
 
     // Real-time Visual Loop
     const drawFrame = () => {
-      if (!isScanningActive) return;
+      if (!isScanningActive || !mountedRef.current) return;
       const ctx = canvas.getContext('2d')!;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
@@ -160,22 +189,30 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
         ctx.fillText(`TITIK HIDUNG: ${Math.round(nose.x)}, ${Math.round(nose.y)}`, nose.x + 15, nose.y);
         ctx.fillText(`MATA KIRI: TERKUNCI`, leftEye.x - 50, leftEye.y - 15);
       }
-      requestAnimationFrame(drawFrame);
+      rafId = requestAnimationFrame(drawFrame);
     };
     drawFrame();
 
     // Background Detection Loop
     const detectLoop = async () => {
-      if (!isScanningActive) return;
-      const det = await window.faceapi.detectSingleFace(video, new window.faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions().withFaceDescriptor();
-      if (det) finalDetections = det;
-      if (isScanningActive) setTimeout(detectLoop, 150);
+      if (!isScanningActive || !mountedRef.current) return;
+      try {
+        const det = await window.faceapi.detectSingleFace(video, new window.faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceExpressions().withFaceDescriptor();
+        if (det) finalDetections = det;
+      } catch {}
+      if (isScanningActive && mountedRef.current) {
+        detectTimerId = setTimeout(detectLoop, 150);
+      }
     };
     detectLoop();
 
-    setTimeout(() => {
+    const scanTimeoutId = setTimeout(() => {
       isScanningActive = false;
       clearInterval(msgInterval);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (detectTimerId) clearTimeout(detectTimerId);
+      scanCleanupRef.current = null;
+      if (!mountedRef.current) return;
       setIsScanning(false);
 
       if (!finalDetections) {
@@ -255,6 +292,14 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       setShowResult(true);
 
     }, 3500);
+
+    scanCleanupRef.current = () => {
+      isScanningActive = false;
+      clearInterval(msgInterval);
+      if (rafId) cancelAnimationFrame(rafId);
+      if (detectTimerId) clearTimeout(detectTimerId);
+      clearTimeout(scanTimeoutId);
+    };
   };
 
   const handleAskGemini = async () => {
@@ -294,7 +339,8 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
 
   const handleSealMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    const formEl = e.currentTarget;
+    const formData = new FormData(formEl);
     const vision_text = formData.get("vision_text") as string;
     const unlock_date = formData.get("unlock_date") as string;
 
@@ -303,11 +349,11 @@ export default function OracleClient({ userId, initialVisions, userProfile }: { 
       vision_text,
       unlock_date,
       is_unlocked: false
-    }).select().single();
+    }).select("id, vision_text, unlock_date, is_unlocked, created_at").single();
 
     if (!error && data) {
       setVisions(prev => [...prev, data]);
-      e.currentTarget.reset();
+      formEl.reset();
     }
   };
 

@@ -24,19 +24,23 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("id");
   const [dictionary, setDictionary] = useState<Dictionary>(() => idDictionary);
 
-  // Initialize from localStorage on mount and lazy-load non-Indonesian dictionary if needed
+  // Initialize from localStorage on mount cleanly (single fetch, atomic swap after dict resolves)
   useEffect(() => {
     let active = true;
     try {
       const saved = localStorage.getItem(STORAGE_KEY) as Locale | null;
       if (saved === "en" || saved === "ar") {
-        setLocaleState(saved);
-        loadDictionary(saved).then((dict) => {
-          if (active) setDictionary(dict);
-        });
-      } else {
-        setLocaleState("id");
-        setDictionary(idDictionary);
+        loadDictionary(saved)
+          .then((dict) => {
+            if (!active) return;
+            setDictionary(dict);
+            setLocaleState(saved);
+          })
+          .catch(() => {
+            if (!active) return;
+            setDictionary(idDictionary);
+            setLocaleState("id");
+          });
       }
     } catch {
       // Ignore storage errors in restricted contexts
@@ -46,7 +50,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Load target locale dictionary asynchronously whenever locale changes
+  // Ensure dictionary stays aligned if locale state changes by any means
   useEffect(() => {
     let active = true;
     if (locale === "id") {
@@ -56,10 +60,18 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const cached = getDictionary(locale);
     if (cached !== idDictionary) {
       setDictionary(cached);
+      return;
     }
-    loadDictionary(locale).then((dict) => {
-      if (active) setDictionary(dict);
-    });
+    loadDictionary(locale)
+      .then((dict) => {
+        if (active) setDictionary(dict);
+      })
+      .catch(() => {
+        if (active) {
+          setDictionary(idDictionary);
+          setLocaleState("id");
+        }
+      });
     return () => {
       active = false;
     };
@@ -94,36 +106,51 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const setLocale = useCallback((newLocale: Locale) => {
     if (newLocale === locale) return;
 
-    // Warm-load dynamic dictionary immediately before visual transition completes
-    if (newLocale !== "id") {
-      void loadDictionary(newLocale);
-    }
-
-    if (typeof document !== "undefined") {
-      const doc = document as any;
-      // 1. If View Transitions API is natively supported, use it for silky smooth cross-fade
-      if (typeof doc.startViewTransition === "function") {
-        doc.startViewTransition(() => {
-          flushSync(() => {
-            setLocaleState(newLocale);
+    const applySwitch = (targetDict: Dictionary) => {
+      if (typeof document !== "undefined") {
+        const doc = document as any;
+        if (typeof doc.startViewTransition === "function") {
+          doc.startViewTransition(() => {
+            flushSync(() => {
+              setDictionary(targetDict);
+              setLocaleState(newLocale);
+            });
           });
-        });
-        return;
-      }
+          return;
+        }
 
-      // 2. Hardware-accelerated CSS dissolve transition fallback
-      document.documentElement.classList.add("lang-switching");
-      setTimeout(() => {
+        document.documentElement.classList.add("lang-switching");
+        setTimeout(() => {
+          setDictionary(targetDict);
+          setLocaleState(newLocale);
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              document.documentElement.classList.remove("lang-switching");
+            }, 60);
+          });
+        }, 120);
+      } else {
+        setDictionary(targetDict);
         setLocaleState(newLocale);
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            document.documentElement.classList.remove("lang-switching");
-          }, 60);
-        });
-      }, 120);
-    } else {
-      setLocaleState(newLocale);
+      }
+    };
+
+    if (newLocale === "id") {
+      applySwitch(idDictionary);
+      return;
     }
+
+    const cached = getDictionary(newLocale);
+    if (cached !== idDictionary) {
+      applySwitch(cached);
+      return;
+    }
+
+    loadDictionary(newLocale)
+      .then((dict) => applySwitch(dict))
+      .catch(() => {
+        // Keep current locale if chunk failed to load offline
+      });
   }, [locale]);
 
   const meta = SUPPORTED_LOCALES[locale] || SUPPORTED_LOCALES.id;

@@ -29,7 +29,7 @@ export async function GET() {
       verifySignedAdminSession(adminToken),
       supabase
         .from("baitul_maal_transactions")
-        .select("id, user_id, transaction_type, amount, description, category, status, proof_url, created_at")
+        .select("id, user_id, transaction_type, amount, description, status, proof_url, created_at")
         .order("created_at", { ascending: false })
         .limit(250),
       supabase

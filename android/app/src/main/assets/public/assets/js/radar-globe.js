@@ -1,16 +1,63 @@
 /**
  * radar-globe.js — All 12 features for Jaringan Silaturahmi
  */
-(function initGlobe() {
-    if (typeof window.Globe === 'undefined') {
-        setTimeout(initGlobe, 100);
-        return;
-    }
-    const elem = document.getElementById('globeViz');
-    if (!elem) {
-        setTimeout(initGlobe, 100);
-        return;
-    }
+(function () {
+    const startGlobe = function initGlobe() {
+        if (typeof window.__expedientDestroyRadarGlobe === 'function') {
+            window.__expedientDestroyRadarGlobe();
+        }
+        if (typeof window.Globe === 'undefined') {
+            window.__radarGlobeBootTimer = setTimeout(initGlobe, 100);
+            return;
+        }
+        const elem = document.getElementById('globeViz');
+        if (!elem) {
+            window.__radarGlobeBootTimer = setTimeout(initGlobe, 100);
+            return;
+        }
+        if (elem.dataset.globeInitialized === 'true') return;
+        elem.dataset.globeInitialized = 'true';
+
+        const listenerAc = new AbortController();
+        const sig = listenerAc.signal;
+        const observers = [];
+        const timers = [];
+        const intervals = [];
+        let starRafId = null;
+        let worldRef = null;
+
+        window.__expedientDestroyRadarGlobe = () => {
+            try { listenerAc.abort(); } catch {}
+            if (window.__radarGlobeBootTimer) {
+                clearTimeout(window.__radarGlobeBootTimer);
+                window.__radarGlobeBootTimer = null;
+            }
+            if (starRafId) {
+                cancelAnimationFrame(starRafId);
+                starRafId = null;
+            }
+            timers.forEach((id) => clearTimeout(id));
+            timers.length = 0;
+            intervals.forEach((id) => clearInterval(id));
+            intervals.length = 0;
+            observers.forEach((obs) => { try { obs.disconnect(); } catch {} });
+            observers.length = 0;
+            if (worldRef) {
+                try {
+                    const controls = typeof worldRef.controls === 'function' ? worldRef.controls() : null;
+                    if (controls) controls.autoRotate = false;
+                    const renderer = typeof worldRef.renderer === 'function' ? worldRef.renderer() : null;
+                    if (renderer && typeof renderer.dispose === 'function') renderer.dispose();
+                    if (typeof worldRef._destructor === 'function') worldRef._destructor();
+                } catch {}
+                worldRef = null;
+            }
+            const curElem = document.getElementById('globeViz');
+            if (curElem) {
+                delete curElem.dataset.globeInitialized;
+                curElem.innerHTML = '';
+            }
+        };
 
     const CENTER = { lat: -8.0358875, lng: 111.414528 };
     let alumniData = window.__radarData || [];
@@ -59,11 +106,10 @@
                 o: Math.random()
             }));
 
-            let starRafId = null;
             let lastStarFrame = 0;
 
             const drawStars = (now = 0) => {
-                if (document.hidden || getTheme() === 'light') {
+                if (sig.aborted || document.hidden || getTheme() === 'light') {
                     if (ctx) ctx.clearRect(0, 0, starCanvas.width, starCanvas.height);
                     starRafId = null;
                     return;
@@ -87,6 +133,7 @@
             };
 
             const resumeStarsIfNeeded = () => {
+                if (sig.aborted) return;
                 if (!document.hidden && getTheme() !== 'light' && !starRafId) {
                     starRafId = requestAnimationFrame(drawStars);
                 } else if (getTheme() === 'light' && ctx) {
@@ -95,13 +142,14 @@
             };
 
             resumeStarsIfNeeded();
-            document.addEventListener('visibilitychange', resumeStarsIfNeeded);
+            document.addEventListener('visibilitychange', resumeStarsIfNeeded, { signal: sig });
             const themeObs = new MutationObserver(resumeStarsIfNeeded);
             themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+            observers.push(themeObs);
             window.addEventListener('resize', () => {
                 starCanvas.width = window.innerWidth;
                 starCanvas.height = window.innerHeight;
-            }, { passive: true });
+            }, { passive: true, signal: sig });
         }
     }
 
@@ -181,44 +229,58 @@
         .onLabelClick(d => { if (d.type !== 'center') openDrawer(d); })
         (elem);
 
+    worldRef = world;
     world.width(window.innerWidth);
     world.height(window.innerHeight);
     world.controls().autoRotate = true;
     world.controls().autoRotateSpeed = 0.45;
-    window.addEventListener('resize', () => { world.width(window.innerWidth); world.height(window.innerHeight); });
+    window.addEventListener('resize', () => { world.width(window.innerWidth); world.height(window.innerHeight); }, { passive: true, signal: sig });
 
     // ===== THEME SYNC =====
-    new MutationObserver(() => {
+    const globeThemeObs = new MutationObserver(() => {
         world.globeImageUrl(getGlobeImg());
         world.atmosphereColor(getTheme() === 'light' ? '#a0b8cc' : 'rgba(212,175,55,0.35)');
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    });
+    globeThemeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    observers.push(globeThemeObs);
 
     // ===== 1. CINEMATIC LOADING =====
     world.pointOfView({ lat: 20, lng: 90, altitude: 4 }); // Start far away
-    setTimeout(() => {
+    timers.push(setTimeout(() => {
+        if (sig.aborted) return;
         world.pointOfView({ lat: centerNode.lat, lng: centerNode.lng, altitude: isMobile ? 3.5 : 2.2 }, 3000);
         const rl = document.getElementById('radarLoading');
         if (rl) {
             rl.style.opacity = '0';
-            setTimeout(() => { if(rl) rl.style.display = 'none'; }, 1500);
+            timers.push(setTimeout(() => { if(rl) rl.style.display = 'none'; }, 1500));
         }
         updateStats(agentNodes);
         buildLeaderboard(agentNodes);
-    }, 1800);
+    }, 1800));
 
     // ===== 2. INFO DRAWER =====
+    const resolveAvatarSrc = (foto) => {
+        if (!foto) return '/images/default-avatar.webp';
+        const s = String(foto).trim();
+        if (s.startsWith('/') || s.startsWith('http://') || s.startsWith('https://')) return s;
+        return '/uploads/profiles/' + s;
+    };
     const drawer = document.getElementById('infoDrawer');
     const overlay = document.getElementById('idOverlay');
     const openDrawer = (d) => {
-        document.getElementById('idAvatar').src = d.foto ? '/uploads/profiles/' + d.foto : '/images/default-avatar.webp';
+        if (!drawer || !overlay) return;
+        const avEl = document.getElementById('idAvatar');
+        if (avEl) avEl.src = resolveAvatarSrc(d.foto);
         document.getElementById('idName').textContent = d.name;
         document.getElementById('idNick').textContent = d.nick ? '"' + d.nick + '"' : '';
         document.getElementById('idCity').textContent = d.city;
         document.getElementById('idGender').textContent = d.gender || '-';
         document.getElementById('idDist').textContent = haversine(CENTER, d) + ' km';
         const waEl = document.getElementById('idWa');
-        if (d.wa) { waEl.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); waEl.style.display = 'flex'; }
-        else { waEl.style.display = 'none'; }
+        if (waEl) {
+            if (d.wa) { waEl.href = 'https://wa.me/' + d.wa.replace(/^0/, '62'); waEl.style.display = 'flex'; }
+            else { waEl.style.display = 'none'; }
+        }
         const profEl = document.getElementById('idProfile');
         if (profEl) {
             if (d.id && d.id !== 'center') {
@@ -233,33 +295,35 @@
         // 9. FLY + ARC HIGHLIGHT
         world.pointOfView({ lat: d.lat, lng: d.lng, altitude: 1.2 }, 2000);
     };
-    const closeDrawer = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
-    document.getElementById('idClose').addEventListener('click', closeDrawer);
-    overlay.addEventListener('click', closeDrawer);
+    const closeDrawer = () => { drawer?.classList.remove('open'); overlay?.classList.remove('open'); };
+    document.getElementById('idClose')?.addEventListener('click', closeDrawer);
+    overlay?.addEventListener('click', closeDrawer);
 
     // ===== 3. SEARCH =====
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
-    searchInput.addEventListener('input', () => {
-        const q = searchInput.value.toLowerCase().trim();
-        if (q.length < 2) { searchResults.classList.remove('open'); return; }
-        const matches = agentNodes.filter(n => n.name.toLowerCase().includes(q) || (n.nick && n.nick.toLowerCase().includes(q))).slice(0, 8);
-        if (!matches.length) { searchResults.classList.remove('open'); return; }
-        searchResults.innerHTML = matches.map(m =>
-            `<div class="sr-item" data-id="${m.id}">
-                <img class="sr-avatar" src="${m.foto ? '/uploads/profiles/' + m.foto : '/images/default-avatar.webp'}" alt="">
-                <div><div class="sr-name">${m.name}</div><div class="sr-city">${m.city}</div></div>
-            </div>`
-        ).join('');
-        searchResults.classList.add('open');
-        searchResults.querySelectorAll('.sr-item').forEach(el => {
-            el.addEventListener('click', () => {
-                const node = agentNodes.find(n => n.id == el.dataset.id);
-                if (node) { openDrawer(node); searchResults.classList.remove('open'); searchInput.value = ''; }
+    if (searchInput && searchResults) {
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value.toLowerCase().trim();
+            if (q.length < 2) { searchResults.classList.remove('open'); return; }
+            const matches = agentNodes.filter(n => n.name.toLowerCase().includes(q) || (n.nick && n.nick.toLowerCase().includes(q))).slice(0, 8);
+            if (!matches.length) { searchResults.classList.remove('open'); return; }
+            searchResults.innerHTML = matches.map(m =>
+                `<div class="sr-item" data-id="${m.id}">
+                    <img class="sr-avatar" src="${resolveAvatarSrc(m.foto)}" alt="">
+                    <div><div class="sr-name">${m.name}</div><div class="sr-city">${m.city}</div></div>
+                </div>`
+            ).join('');
+            searchResults.classList.add('open');
+            searchResults.querySelectorAll('.sr-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const node = agentNodes.find(n => n.id == el.dataset.id);
+                    if (node) { openDrawer(node); searchResults.classList.remove('open'); searchInput.value = ''; }
+                });
             });
         });
-    });
-    document.addEventListener('click', e => { if (!e.target.closest('.search-pill') && !e.target.closest('.search-results')) searchResults.classList.remove('open'); });
+        document.addEventListener('click', e => { if (!e.target.closest('.search-pill') && !e.target.closest('.search-results')) searchResults.classList.remove('open'); }, { signal: sig });
+    }
 
     // ===== 6. MAP DROPDOWN (Handled by React) =====
 
@@ -293,88 +357,128 @@
     const btnTour = document.getElementById('btnAutoTour');
     const tourOverlay = document.getElementById('tourOverlay');
     let isTouring = false, tourInterval;
-    btnTour.addEventListener('click', () => {
-        if (isTouring) {
-            clearInterval(tourInterval);
-            world.controls().autoRotate = true;
-            btnTour.innerHTML = '<i class="fa-solid fa-plane-departure"></i> Jelajahi Jaringan';
-            tourOverlay.classList.remove('show');
-            isTouring = false;
-        } else {
-            isTouring = true;
-            world.controls().autoRotate = false;
-            btnTour.innerHTML = '<i class="fa-solid fa-stop"></i> Hentikan Jelajah';
-            const nodes = filteredAgents.filter(n => n.lat && n.lng);
-            if (!nodes.length) return;
-            let idx = 0;
-            const fly = () => {
-                if (idx >= nodes.length) idx = 0;
-                const t = nodes[idx];
-                world.pointOfView({ lat: t.lat, lng: t.lng, altitude: 0.8 }, 3000);
-                // Tour overlay
-                document.getElementById('tourName').textContent = t.name;
-                document.getElementById('tourCity').textContent = t.city + ' • ' + haversine(CENTER, t) + ' km dari Pondok';
-                tourOverlay.classList.add('show');
-                setTimeout(() => tourOverlay.classList.remove('show'), 4500);
-                idx++;
-            };
-            fly();
-            tourInterval = setInterval(fly, 6000);
-        }
-    });
+    if (btnTour) {
+        btnTour.addEventListener('click', () => {
+            if (isTouring) {
+                clearInterval(tourInterval);
+                world.controls().autoRotate = true;
+                btnTour.innerHTML = '<i class="fa-solid fa-plane-departure"></i> <span class="btn-radar-text">Jelajah Peta</span>';
+                tourOverlay?.classList.remove('show');
+                isTouring = false;
+            } else {
+                isTouring = true;
+                world.controls().autoRotate = false;
+                btnTour.innerHTML = '<i class="fa-solid fa-stop"></i> <span class="btn-radar-text">Hentikan Jelajah</span>';
+                const nodes = filteredAgents.filter(n => n.lat && n.lng);
+                if (!nodes.length) return;
+                let idx = 0;
+                const fly = () => {
+                    if (idx >= nodes.length) idx = 0;
+                    const t = nodes[idx];
+                    world.pointOfView({ lat: t.lat, lng: t.lng, altitude: 0.8 }, 3000);
+                    const tName = document.getElementById('tourName');
+                    const tCity = document.getElementById('tourCity');
+                    if (tName) tName.textContent = t.name;
+                    if (tCity) tCity.textContent = t.city + ' • ' + haversine(CENTER, t) + ' km dari Pondok';
+                    if (tourOverlay) {
+                        tourOverlay.classList.add('show');
+                        setTimeout(() => tourOverlay?.classList.remove('show'), 4500);
+                    }
+                    idx++;
+                };
+                fly();
+                tourInterval = setInterval(fly, 6000);
+                intervals.push(tourInterval);
+            }
+        });
+    }
 
     // ===== SYNC LOCATION =====
     const btnSync = document.getElementById('btnSyncLocation');
+    const btnDeleteLoc = document.getElementById('btnDeleteLocation');
     const statusEl = document.getElementById('syncStatus');
-    const showStatus = (msg, color = '#d4af37') => { statusEl.innerText = msg; statusEl.style.color = color; statusEl.style.opacity = 1; };
-    const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const showStatus = (msg, color = '#d4af37') => {
+        if (!statusEl) return;
+        statusEl.innerText = msg;
+        statusEl.style.color = color;
+        statusEl.style.opacity = 1;
+    };
 
-    btnSync.addEventListener('click', () => {
-        if (!('geolocation' in navigator)) { showStatus('GPS tidak didukung.', '#ff3366'); return; }
-        btnSync.disabled = true;
-        showStatus('Mengakses GPS...');
-        navigator.geolocation.getCurrentPosition(
-            pos => {
-                const { latitude: lat, longitude: lng } = pos.coords;
-                showStatus('Menyelaraskan...');
-                fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`)
-                    .then(r => r.ok ? r.json() : {})
-                    .catch(err => { console.warn('Geocoding blocked or failed:', err); return {}; })
-                    .then(geo => {
-                        const city = geo.city || geo.locality || geo.principalSubdivision;
-                        const payload = { latitude: lat, longitude: lng, city: city };
-                        return fetch('/api/radar/update-location', { 
-                            method: 'POST', 
-                            headers: { 'Content-Type': 'application/json' }, 
-                            body: JSON.stringify(payload) 
-                        });
-                    })
-                    .then(async r => {
-                        const text = await r.text();
-                        let data;
-                        try { data = JSON.parse(text); } catch(e) { throw new Error('Response tidak valid: ' + text.substring(0, 100)); }
-                        if (!r.ok) throw new Error(data.message || data.error || 'Server error ' + r.status);
-                        return data;
-                    })
-                    .then(data => {
-                        if (data.status === 'success' || data.success) {
-                            showStatus('Berhasil disimpan!', '#4ade80');
-                            try {
-                                localStorage.setItem('expedient_quest_radar', 'true');
-                                window.dispatchEvent(new CustomEvent('expedient-quest-updated'));
-                            } catch(e) {}
-                            setTimeout(() => location.reload(), 1500);
-                        }
-                        else throw new Error(data.message || data.error || 'Gagal menyimpan');
-                    })
-                    .catch(err => { showStatus('Gagal: ' + err.message, '#ff3366'); btnSync.disabled = false; });
-            },
-            () => { showStatus('Izin lokasi ditolak.', '#ff3366'); btnSync.disabled = false; },
-            { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
-        );
-    });
+    if (btnSync) {
+        btnSync.addEventListener('click', () => {
+            if (!('geolocation' in navigator)) { showStatus('GPS tidak didukung.', '#ff3366'); return; }
+            btnSync.disabled = true;
+            showStatus('Mengakses GPS...');
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    const { latitude: lat, longitude: lng } = pos.coords;
+                    showStatus('Menyelaraskan...');
+                    fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=id`)
+                        .then(r => r.ok ? r.json() : {})
+                        .catch(err => { console.warn('Geocoding blocked or failed:', err); return {}; })
+                        .then(geo => {
+                            const city = geo.city || geo.locality || geo.principalSubdivision;
+                            const payload = { latitude: lat, longitude: lng, city: city };
+                            return fetch('/api/radar/update-location', { 
+                                method: 'POST', 
+                                headers: { 'Content-Type': 'application/json' }, 
+                                body: JSON.stringify(payload) 
+                            });
+                        })
+                        .then(async r => {
+                            const text = await r.text();
+                            let data;
+                            try { data = JSON.parse(text); } catch(e) { throw new Error('Response tidak valid: ' + text.substring(0, 100)); }
+                            if (!r.ok) throw new Error(data.message || data.error || 'Server error ' + r.status);
+                            return data;
+                        })
+                        .then(data => {
+                            if (data.status === 'success' || data.success) {
+                                showStatus('Berhasil disimpan!', '#4ade80');
+                                try {
+                                    localStorage.setItem('expedient_quest_radar', 'true');
+                                    window.dispatchEvent(new CustomEvent('expedient-quest-updated'));
+                                } catch(e) {}
+                                setTimeout(() => location.reload(), 1500);
+                            }
+                            else throw new Error(data.message || data.error || 'Gagal menyimpan');
+                        })
+                        .catch(err => { showStatus('Gagal: ' + err.message, '#ff3366'); btnSync.disabled = false; });
+                },
+                () => { showStatus('Izin lokasi ditolak.', '#ff3366'); btnSync.disabled = false; },
+                { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+            );
+        });
+    }
+
+    if (btnDeleteLoc) {
+        btnDeleteLoc.addEventListener('click', async () => {
+            if (typeof window.__radarConfirmDeleteLocation === 'function') {
+                const ok = await window.__radarConfirmDeleteLocation();
+                if (!ok) return;
+            }
+            btnDeleteLoc.disabled = true;
+            showStatus('Menghapus lokasi...');
+            try {
+                const res = await fetch('/api/radar/update-location', { method: 'DELETE' });
+                const data = await res.json();
+                if (data.status === 'success' || data.success) {
+                    showStatus('Lokasi berhasil dihapus!', '#4ade80');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    throw new Error(data.message || 'Gagal menghapus');
+                }
+            } catch (err) {
+                showStatus('Gagal: ' + (err && err.message ? err.message : 'Error'), '#ff3366');
+                btnDeleteLoc.disabled = false;
+            }
+        });
+    }
 
     // ===== 10. SUPABASE REALTIME NOTIFICATION =====
     // Supabase Realtime is now handled inside RadarClient.tsx 
     // to maintain React state context and simplify dependencies.
+    };
+    window.__expedientMountRadarGlobe = startGlobe;
+    startGlobe();
 })();

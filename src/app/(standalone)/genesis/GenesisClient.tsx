@@ -29,7 +29,11 @@ export default function GenesisClient({ userId }: { userId: string }) {
         const mouse = { x: undefined as number | undefined, y: undefined as number | undefined, radius: 80 };
 
         const onMouseMove = (event: MouseEvent) => { mouse.x = event.clientX; mouse.y = event.clientY; };
-        const onTouchMove = (event: TouchEvent) => { mouse.x = event.touches[0].clientX; mouse.y = event.touches[0].clientY; };
+        const onTouchMove = (event: TouchEvent) => {
+            if (!event.touches || event.touches.length === 0) return;
+            mouse.x = event.touches[0].clientX;
+            mouse.y = event.touches[0].clientY;
+        };
         const onLeave = () => { mouse.x = undefined; mouse.y = undefined; };
 
         window.addEventListener('mousemove', onMouseMove);
@@ -61,8 +65,8 @@ export default function GenesisClient({ userId }: { userId: string }) {
                 const dy = (mouse.y || -1000) - this.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
-                const forceDirectionX = dx / distance;
-                const forceDirectionY = dy / distance;
+                const forceDirectionX = distance > 0 ? dx / distance : 0;
+                const forceDirectionY = distance > 0 ? dy / distance : 0;
                 const force = (mouse.radius - distance) / mouse.radius;
                 const directionX = forceDirectionX * force * this.density;
                 const directionY = forceDirectionY * force * this.density;
@@ -77,12 +81,17 @@ export default function GenesisClient({ userId }: { userId: string }) {
             }
         }
 
+        let isUnmounted = false;
+        const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
         const initParticles = () => {
             particleArray = [];
+            (canvas as any).particleArray = particleArray;
             const image = new Image();
             image.src = '/images/logo-utuh.webp';
 
             image.onload = () => {
+                if (isUnmounted) return;
                 const isMobile = window.innerWidth <= 768;
                 const logoWidth = isMobile ? 250 : 400;
                 const scale = logoWidth / image.width;
@@ -120,14 +129,11 @@ export default function GenesisClient({ userId }: { userId: string }) {
                         }
                     }
                 }
+                if (reducedMotion) animate();
             };
         };
 
-        const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
         initParticles();
-
-        // Store particle array in ref to be accessible by singularity event
-        (canvas as any).particleArray = particleArray;
 
         const animate = () => {
             if (reducedMotion) {
@@ -162,6 +168,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
         window.addEventListener('resize', onResize);
 
         return () => {
+            isUnmounted = true;
             document.body.classList.remove("page-genesis");
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('touchmove', onTouchMove);
@@ -169,6 +176,7 @@ export default function GenesisClient({ userId }: { userId: string }) {
             window.removeEventListener('touchend', onLeave);
             window.removeEventListener('resize', onResize);
             if (animationRef.current) cancelAnimationFrame(animationRef.current);
+            gsap.killTweensOf((canvas as any).particleArray || []);
         };
     }, []);
 

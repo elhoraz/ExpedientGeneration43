@@ -37,7 +37,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         window.location.href = `/radar?map=${targetStyle}`;
     };
 
-  const supabase = useMemo(() => createClient(), []);
+    const supabase = useMemo(() => createClient(), []);
 
     useEffect(() => {
         setIsClient(true);
@@ -86,17 +86,22 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
         }
 
         // Mount 2D Leaflet map natively if in 2D mode
+        const confirmDeleteLoc = () =>
+            showConfirm(
+                'Hapus Titik Lokasi',
+                'Apakah antum yakin ingin menghapus titik koordinat lokasi dari Radar?'
+            );
+        (window as any).__radarConfirmDeleteLocation = confirmDeleteLoc;
+
         if (!is3DMode) {
             mountRadar2D({
                 containerId: 'mapViz',
                 nodes,
                 style: mapStyle,
-                onConfirmDeleteLocation: () =>
-                    showConfirm(
-                        'Hapus Titik Lokasi',
-                        'Apakah antum yakin ingin menghapus titik koordinat lokasi dari Radar?'
-                    ),
+                onConfirmDeleteLocation: confirmDeleteLoc,
             });
+        } else if (typeof (window as any).__expedientMountRadarGlobe === 'function') {
+            (window as any).__expedientMountRadarGlobe();
         }
 
         // Supabase Realtime for location updates
@@ -130,8 +135,11 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
             clearTimeout(failsafeTimer);
             supabase.removeChannel(channel);
             document.body.classList.remove('page-radar');
+            delete (window as any).__radarConfirmDeleteLocation;
             if (!is3DMode) {
                 destroyRadar2D();
+            } else if (typeof (window as any).__expedientDestroyRadarGlobe === 'function') {
+                (window as any).__expedientDestroyRadarGlobe();
             }
         };
     }, [isClient, nodes, mapStyle, is3DMode, showConfirm, supabase]);
@@ -206,7 +214,28 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                     <i className="fa-solid fa-location-slash" aria-hidden="true"></i>
                     <span className="btn-radar-text">Sembunyikan Lokasi</span>
                 </button>
-                <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown" role="menu">
+                <button type="button" className="btn-radar btn-radar-glass" id="btnAutoTour" title={t.radar.tour_map_title}>
+                    <i className="fa-solid fa-plane-departure" aria-hidden="true"></i>
+                    <span className="btn-radar-text">{t.radar.tour_map}</span>
+                </button>
+                <div className="sync-status" id="syncStatus"></div>
+                <div className="map-dropdown-wrap">
+                    <button
+                        type="button"
+                        className="btn-radar btn-radar-glass"
+                        id="btnMapMenu"
+                        aria-expanded={isMapMenuOpen}
+                        aria-haspopup="menu"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsMapMenuOpen(!isMapMenuOpen);
+                        }}
+                        title={t.radar.change_map}
+                    >
+                        <i className="fa-solid fa-layer-group" aria-hidden="true"></i>
+                        <span className="btn-radar-text">{t.radar.change_map}</span>
+                    </button>
+                    <div className={`map-dropdown ${isMapMenuOpen ? 'open' : ''}`} id="mapDropdown" role="menu">
                     <button type="button" onClick={() => selectMapStyle('globe')}><i className="fa-solid fa-earth-asia" aria-hidden="true"></i> {t.radar_layers?.globe || "Globe 3D"}</button>
                     <button type="button" onClick={() => selectMapStyle('minimalist')}><i className="fa-solid fa-map" aria-hidden="true"></i> {t.radar_layers?.minimalist || "Peta Datar"}</button>
                     <button type="button" onClick={() => selectMapStyle('satellite')}><i className="fa-solid fa-satellite" aria-hidden="true"></i> {t.radar_layers?.satellite || "Peta Satelit"}</button>
@@ -229,6 +258,7 @@ function RadarMapContent({ nodes }: { nodes: any[] }) {
                     <button type="button" onClick={() => selectMapStyle('navigation')}><i className="fa-solid fa-anchor" aria-hidden="true"></i> {t.radar_layers?.navigation || "Peta Navigasi Laut"}</button>
                     <button type="button" onClick={() => selectMapStyle('esristreet')}><i className="fa-solid fa-city" aria-hidden="true"></i> {t.radar_layers?.esristreet || "Peta Tata Kota"}</button>
                     <button type="button" onClick={() => selectMapStyle('toner')}><i className="fa-solid fa-microchip" aria-hidden="true"></i> {t.radar_layers?.toner || "Peta Kontras Tinggi (Toner)"}</button>
+                    </div>
                 </div>
             </div>
 

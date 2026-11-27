@@ -3,9 +3,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { loadDictionary } from "@/lib/i18n";
 import { idDictionary } from "@/lib/i18n/dictionaries/id";
-import { enDictionary } from "@/lib/i18n/dictionaries/en";
-import { arDictionary } from "@/lib/i18n/dictionaries/ar";
 
 /**
  * Extract all known dictionary strings into a fast lookup Set.
@@ -13,6 +12,7 @@ import { arDictionary } from "@/lib/i18n/dictionaries/ar";
  * and must NEVER be modified or overwritten by DynamicPageTranslator.
  */
 const dictionaryStrings = new Set<string>();
+const extractedLocales = new Set<string>(["id"]);
 
 function extractDictionaryStrings(obj: any) {
   if (!obj || typeof obj !== "object") return;
@@ -27,8 +27,6 @@ function extractDictionaryStrings(obj: any) {
 }
 
 extractDictionaryStrings(idDictionary);
-extractDictionaryStrings(enDictionary);
-extractDictionaryStrings(arDictionary);
 
 /**
  * Regex for scripts and tokens that should never be translated:
@@ -408,13 +406,33 @@ export default function DynamicPageTranslator() {
       return;
     }
 
+    let cancelled = false;
     loadLocalCache(locale);
+
+    const runTranslation = async () => {
+      if (!extractedLocales.has(locale)) {
+        try {
+          const dict = await loadDictionary(locale);
+          extractDictionaryStrings(dict);
+          extractedLocales.add(locale);
+        } catch {
+          // Proceed cleanly even if dictionary fetch fails
+        }
+      }
+      if (!cancelled) {
+        scanAndTranslate(locale);
+      }
+    };
+
     // Slight tick to let Next.js hydrate/render new route elements
     const timer = setTimeout(() => {
-      scanAndTranslate(locale);
+      void runTranslation();
     }, 40);
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [locale, pathname, loadLocalCache, restoreOriginals, scanAndTranslate]);
 
   // Effect 2: MutationObserver to detect dynamically added DOM nodes (modals, infinite scroll, client nav)

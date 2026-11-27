@@ -64,9 +64,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+let fallbackClient: SupabaseClient | null = null;
+
+function getFallbackClient(): SupabaseClient {
+  if (!fallbackClient) {
+    fallbackClient = createClient();
+  }
+  return fallbackClient;
+}
+
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  const fallbackSupabase = useMemo(() => createClient(), []);
 
   if (!ctx) {
     return {
@@ -74,7 +82,7 @@ export function useAuth(): AuthContextValue {
       userId: null,
       isLoggedIn: false,
       isAuthLoading: true,
-      supabase: fallbackSupabase,
+      supabase: getFallbackClient(),
     };
   }
 

@@ -20,8 +20,8 @@ function buildFallbackGuide(pathname: string, locale: string): PageGuide {
       locale === "ar"
         ? "خدمات ومزايا منصة إكسبيدينت 43"
         : locale === "en"
-        ? "Expedient 43 Services & Features"
-        : "Layanan & Fitur Expedient Generation",
+          ? "Expedient 43 Services & Features"
+          : "Layanan & Fitur Expedient Generation",
     category: "utama",
     categoryLabel: locale === "ar" ? "عام" : locale === "en" ? "General" : "Umum",
     icon: "fa-solid fa-circle-question",
@@ -29,22 +29,22 @@ function buildFallbackGuide(pathname: string, locale: string): PageGuide {
       locale === "ar"
         ? "مرحباً بك في بوابة خريجي إكسبيدينت 43. يمكنك التنقل عبر القائمة الجانبية أو فتح مركز الأدلة الكامل."
         : locale === "en"
-        ? "Welcome to the Expedient 43 alumni portal. Browse features via the sidebar navigation or open the complete Guide Center."
-        : "Portal alumni Expedient 43 menyediakan seluruh layanan angkatan lewat menu samping dan Pusat Panduan.",
+          ? "Welcome to the Expedient 43 alumni portal. Browse features via the sidebar navigation or open the complete Guide Center."
+          : "Portal alumni Expedient 43 menyediakan seluruh layanan angkatan lewat menu samping dan Pusat Panduan.",
     howToUse:
       locale === "ar"
         ? [
-            "استخدم شريط التنقل الجانبي للانتقال بين الصفحات.",
-            "افتح مركز الأدلة للاطلاع على شروحات ميزات البوابة.",
-            "تواصل مع منسقي الخريجين إذا احتجت إلى مساعدة إضافية.",
-          ]
+          "استخدم شريط التنقل الجانبي للانتقال بين الصفحات.",
+          "افتح مركز الأدلة للاطلاع على شروحات ميزات البوابة.",
+          "تواصل مع منسقي الخريجين إذا احتجت إلى مساعدة إضافية.",
+        ]
         : locale === "en"
-        ? [
+          ? [
             "Use the sidebar navigation to switch between portal pages.",
             "Open the Guide Center to read documentation across portal features.",
             "Contact cohort administrators if you need further assistance.",
           ]
-        : [
+          : [
             "Gunakan bilah navigasi samping untuk berpindah antar halaman.",
             "Buka Pusat Panduan untuk membaca dokumentasi seluruh fitur portal.",
             "Hubungi pengurus alumni jika memerlukan bantuan tambahan.",
@@ -52,15 +52,15 @@ function buildFallbackGuide(pathname: string, locale: string): PageGuide {
     controls:
       locale === "ar"
         ? [
-            { name: "مركز الأدلة", icon: "fa-solid fa-book-bookmark", desc: "دليل شامل لمزايا البوابة." },
-            { name: "الشريط الجانبي", icon: "fa-solid fa-bars", desc: "قائمة التنقل الرئيسية لأقسام الخريجين." },
-          ]
+          { name: "مركز الأدلة", icon: "fa-solid fa-book-bookmark", desc: "دليل شامل لمزايا البوابة." },
+          { name: "الشريط الجانبي", icon: "fa-solid fa-bars", desc: "قائمة التنقل الرئيسية لأقسام الخريجين." },
+        ]
         : locale === "en"
-        ? [
+          ? [
             { name: "Guide Center", icon: "fa-solid fa-book-bookmark", desc: "Directory of portal feature documentation." },
             { name: "Sidebar Navigation", icon: "fa-solid fa-bars", desc: "Primary navigation menu for alumni modules." },
           ]
-        : [
+          : [
             { name: "Pusat Panduan", icon: "fa-solid fa-book-bookmark", desc: "Katalog dokumentasi fitur portal." },
             { name: "Bilah Samping", icon: "fa-solid fa-bars", desc: "Daftar navigasi menu utama alumni." },
           ],
@@ -68,8 +68,8 @@ function buildFallbackGuide(pathname: string, locale: string): PageGuide {
       locale === "ar"
         ? ["جميع المزايا مصممة للعمل بسلاسة على الهواتف الذكية وأجهزة الحاسوب."]
         : locale === "en"
-        ? ["All features are optimized for both mobile phones and desktop screens."]
-        : ["Seluruh fitur dapat diakses dengan nyaman melalui ponsel maupun komputer."],
+          ? ["All features are optimized for both mobile phones and desktop screens."]
+          : ["Seluruh fitur dapat diakses dengan nyaman melalui ponsel maupun komputer."],
   };
 }
 
@@ -77,29 +77,38 @@ export default function HelpButtonTrigger() {
   const pathname = usePathname();
   const { locale, setLocale } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const [currentGuide, setCurrentGuide] = useState<PageGuide | null>(null);
+  const [guideEntry, setGuideEntry] = useState<{ key: string; guide: PageGuide } | null>(null);
   const [isSidebarClosed, setIsSidebarClosed] = useState(false);
+  const activeGuideKey = `${pathname || "/"}:${locale}`;
 
   // Lazy-load 73 KB guide dictionary ONLY when the user actually opens the help modal
   useEffect(() => {
     if (!isOpen || !pathname) return;
     let active = true;
     const guideLocale = locale === "en" || locale === "ar" ? locale : "id";
+    const reqKey = `${pathname}:${locale}`;
 
     import("@/data/guideLocales")
       .then(({ getLocalizedGuideByPath }) => {
         if (!active) return;
         const matched = getLocalizedGuideByPath(pathname, guideLocale);
-        setCurrentGuide(matched || buildFallbackGuide(pathname, locale));
+        setGuideEntry({ key: reqKey, guide: matched || buildFallbackGuide(pathname, locale) });
       })
       .catch(() => {
-        if (active) setCurrentGuide(buildFallbackGuide(pathname, locale));
+        if (active) setGuideEntry({ key: reqKey, guide: buildFallbackGuide(pathname, locale) });
       });
 
     return () => {
       active = false;
     };
   }, [isOpen, pathname, locale]);
+
+  const activeGuide =
+    guideEntry && guideEntry.key === activeGuideKey
+      ? guideEntry.guide
+      : pathname
+      ? buildFallbackGuide(pathname, locale)
+      : null;
 
   // Dengarkan custom event dari tombol lain (misal dari command palette atau checklist)
   useEffect(() => {
@@ -170,7 +179,7 @@ export default function HelpButtonTrigger() {
 
       {isOpen && (
         <PageGuideModal
-          guide={currentGuide}
+          guide={activeGuide}
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
         />

@@ -132,7 +132,10 @@ public class MainActivity extends BridgeActivity {
                         if (request != null && request.isForMainFrame()) {
                             String failingUrl = request.getUrl() != null ? request.getUrl().toString() : "";
                             if (!failingUrl.startsWith("file:///android_asset/")) {
-                                view.loadUrl("file:///android_asset/offline.html");
+                                String target = failingUrl.isEmpty()
+                                    ? "file:///android_asset/offline.html"
+                                    : "file:///android_asset/offline.html?retry=" + Uri.encode(failingUrl);
+                                view.loadUrl(target);
                             }
                         }
                     }
@@ -215,10 +218,12 @@ public class MainActivity extends BridgeActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                OnBackPressedCallback self = this;
                 WebView activeWebView = getBridge() != null ? getBridge().getWebView() : null;
                 if (activeWebView == null) {
-                    setEnabled(false);
+                    self.setEnabled(false);
                     getOnBackPressedDispatcher().onBackPressed();
+                    self.setEnabled(true);
                     return;
                 }
                 activeWebView.evaluateJavascript(
@@ -227,11 +232,14 @@ public class MainActivity extends BridgeActivity {
                         if ("\"true\"".equals(result) || "true".equals(result)) {
                             return;
                         }
-                        if (activeWebView.canGoBack()) {
+                        String currentUrl = activeWebView.getUrl();
+                        boolean onOfflinePage = currentUrl != null && currentUrl.startsWith("file:///android_asset/offline.html");
+                        if (!onOfflinePage && activeWebView.canGoBack()) {
                             activeWebView.goBack();
                         } else {
-                            setEnabled(false);
+                            self.setEnabled(false);
                             getOnBackPressedDispatcher().onBackPressed();
+                            self.setEnabled(true);
                         }
                     }
                 );

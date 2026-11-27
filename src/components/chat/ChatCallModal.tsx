@@ -273,7 +273,7 @@ export default function ChatCallModal({
 
       if (localVideoRef.current && callType === "video") {
         localVideoRef.current.srcObject = stream;
-        localVideoRef.current.play().catch(() => {});
+        localVideoRef.current.play().catch(() => { });
       }
       console.log("[Call] Got local media:", stream.getTracks().map(t => `${t.kind}:${t.label}`));
       return stream;
@@ -326,12 +326,12 @@ export default function ChatCallModal({
         // Assign the full remote stream to both video and audio elements
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = event.streams[0];
-          remoteVideoRef.current.play().catch(() => {});
+          remoteVideoRef.current.play().catch(() => { });
         }
         if (remoteAudioRef.current) {
           remoteAudioRef.current.srcObject = event.streams[0];
           remoteAudioRef.current.volume = 1.0;
-          remoteAudioRef.current.play().catch(() => {});
+          remoteAudioRef.current.play().catch(() => { });
         }
         if (event.track.kind === "video") {
           setHasRemoteVideo(true);
@@ -398,6 +398,7 @@ export default function ChatCallModal({
     console.log("[Call] Caller: initiating call");
     try {
       const stream = await getLocalMedia();
+      if (!isAliveRef.current) return;
       const pc = createPeerConnection();
 
       // Add tracks to peer connection
@@ -446,14 +447,21 @@ export default function ChatCallModal({
           } else {
             targetChan.subscribe(async (status: string) => {
               if (status === "SUBSCRIBED") {
-                await targetChan.send({ type: "broadcast", event: "incoming_call", payload: broadcastPayload });
-                await targetChan.send({ type: "broadcast", event: "incoming_call_notify", payload: broadcastPayload });
-                console.log("[Call] Caller: global notification sent to", contact.id);
+                try {
+                  await targetChan.send({ type: "broadcast", event: "incoming_call", payload: broadcastPayload });
+                  await targetChan.send({ type: "broadcast", event: "incoming_call_notify", payload: broadcastPayload });
+                  console.log("[Call] Caller: global notification sent to", contact.id);
+                } finally {
+                  supabase.removeChannel(targetChan);
+                }
+              } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+                supabase.removeChannel(targetChan);
               }
             });
           }
         } catch (chanErr) {
           console.warn("[Call] Channel send warning:", chanErr);
+          supabase.removeChannel(targetChan);
         }
       };
 
@@ -494,6 +502,7 @@ export default function ChatCallModal({
     console.log("[Call] Callee: accepting call");
     try {
       const stream = await getLocalMedia();
+      if (!isAliveRef.current) return;
       const pc = createPeerConnection();
 
       // Add local tracks
@@ -815,22 +824,22 @@ export default function ChatCallModal({
               position: "absolute",
               ...(isSwappedViews
                 ? {
-                    top: "80px",
-                    right: "18px",
-                    width: "115px",
-                    height: "165px",
-                    borderRadius: "18px",
-                    border: "2px solid var(--gold-main, #d4af37)",
-                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.3)",
-                    zIndex: 20,
-                    cursor: "pointer",
-                  }
+                  top: "80px",
+                  right: "18px",
+                  width: "115px",
+                  height: "165px",
+                  borderRadius: "18px",
+                  border: "2px solid var(--gold-main, #d4af37)",
+                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.3)",
+                  zIndex: 20,
+                  cursor: "pointer",
+                }
                 : {
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    zIndex: 1,
-                  }),
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 1,
+                }),
               objectFit: "cover",
               display: hasRemoteVideo ? "block" : "none",
             }}
@@ -851,22 +860,22 @@ export default function ChatCallModal({
               position: "absolute",
               ...(isSwappedViews || !isConnected
                 ? {
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    zIndex: 1,
-                  }
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 1,
+                }
                 : {
-                    top: "80px",
-                    right: "18px",
-                    width: "115px",
-                    height: "165px",
-                    borderRadius: "18px",
-                    border: "2px solid var(--gold-main, #d4af37)",
-                    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.3)",
-                    zIndex: 20,
-                    cursor: "pointer",
-                  }),
+                  top: "80px",
+                  right: "18px",
+                  width: "115px",
+                  height: "165px",
+                  borderRadius: "18px",
+                  border: "2px solid var(--gold-main, #d4af37)",
+                  boxShadow: "0 10px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.3)",
+                  zIndex: 20,
+                  cursor: "pointer",
+                }),
               objectFit: "cover",
               transform: facingMode === "user" ? "scaleX(-1)" : "none",
               display: isVideoOff ? "none" : "block",

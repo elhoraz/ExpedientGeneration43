@@ -20,6 +20,10 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const onCancelRef = useRef(onCancel);
+  const mountedRef = useRef(true);
+  const cameraEpochRef = useRef(0);
+  const isRecordingRef = useRef(false);
+  const recordingTimeRef = useRef(0);
   useEffect(() => {
     onCancelRef.current = onCancel;
   }, [onCancel]);
@@ -33,6 +37,7 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
 
   const initCamera = useCallback(async (mode: "user" | "environment") => {
     stopTracks();
+    const epoch = ++cameraEpochRef.current;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -43,12 +48,17 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
         },
         audio: true,
       });
+      if (!mountedRef.current || epoch !== cameraEpochRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
       if (videoPreviewRef.current) {
         videoPreviewRef.current.srcObject = stream;
         videoPreviewRef.current.play().catch(() => {});
       }
     } catch (err) {
+      if (!mountedRef.current || epoch !== cameraEpochRef.current) return;
       console.error("Gagal mengakses kamera/mikrofon:", err);
       await showAlert("Akses Kamera Ditolak", "Tidak dapat mengakses kamera. Pastikan izin kamera & mikrofon telah diberikan.");
       onCancelRef.current();
@@ -56,14 +66,52 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
   }, [stopTracks, showAlert]);
 
   useEffect(() => {
+    mountedRef.current = true;
     initCamera(facingMode);
     const activeTimerRef = timerRef;
 
     return () => {
+      mountedRef.current = false;
+      cameraEpochRef.current += 1;
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        try {
+          mediaRecorderRef.current.onstop = null;
+          mediaRecorderRef.current.stop();
+        } catch {}
+      }
       stopTracks();
       if (activeTimerRef.current) clearInterval(activeTimerRef.current);
     };
   }, [facingMode, initCamera, stopTracks]);
+
+  const handleStopAndSend = useCallback(() => {
+    if (!mediaRecorderRef.current || !isRecordingRef.current) {
+      onCancelRef.current();
+      return;
+    }
+
+    isRecordingRef.current = false;
+    setIsRecording(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    const duration = recordingTimeRef.current;
+    const recorder = mediaRecorderRef.current;
+    recorder.onstop = () => {
+      const mimeType = recorder.mimeType || "video/mp4";
+      const videoBlob = new Blob(chunksRef.current, { type: mimeType });
+      stopTracks();
+      if (mountedRef.current) {
+        onSend(videoBlob, duration);
+      }
+    };
+
+    if (recorder.state !== "inactive") {
+      recorder.stop();
+    }
+  }, [onSend, stopTracks]);
 
   const startRecording = () => {
     if (!streamRef.current) return;
@@ -99,48 +147,35 @@ export default function VideoNoteRecorder({ onCancel, onSend }: VideoNoteRecorde
       };
 
       mediaRecorder.start(100);
+      isRecordingRef.current = true;
+      recordingTimeRef.current = 0;
       setIsRecording(true);
       setRecordingTime(0);
 
       timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => {
-          if (prev >= 59) {
-            handleStopAndSend();
-            return 60;
-          }
-          return prev + 1;
-        });
+        const next = recordingTimeRef.current + 1;
+        recordingTimeRef.current = next;
+        setRecordingTime(next);
+        if (next >= 60) {
+          handleStopAndSend();
+        }
       }, 1000);
     } catch (err) {
       console.error("Error starting video recording:", err);
     }
   };
 
-  const handleStopAndSend = () => {
-    if (!mediaRecorderRef.current || !isRecording) {
-      onCancel();
-      return;
-    }
-
-    const duration = recordingTime;
-    mediaRecorderRef.current.onstop = () => {
-      const mimeType = mediaRecorderRef.current?.mimeType || "video/mp4";
-      const videoBlob = new Blob(chunksRef.current, { type: mimeType });
-      stopTracks();
-      onSend(videoBlob, duration);
-    };
-
-    mediaRecorderRef.current.stop();
-    setIsRecording(false);
-    if (timerRef.current) clearInterval(timerRef.current);
-  };
-
   const handleCancel = () => {
-    if (mediaRecorderRef.current && isRecording) {
+    isRecordingRef.current = false;
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.onstop = null;
       mediaRecorderRef.current.stop();
     }
     stopTracks();
-    if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     onCancel();
   };
 

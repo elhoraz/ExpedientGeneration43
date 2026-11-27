@@ -114,13 +114,13 @@ export default function DirektoriClient({
   // Al-Fatihah devotion counts for Asatidz
   const [fatihahCounts, setFatihahCounts] = useState<Record<string, number>>({});
   const [fatihahToast, setFatihahToast] = useState<Record<string, boolean>>({});
-  const urlSyncReadyRef = useRef(false);
+  const [urlHydrated, setUrlHydrated] = useState(false);
 
   // Hydrate directory search & filters from URL query parameters cleanly after mount
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      const q = params.get("q");
+      const q = params.get("q") || params.get("search");
       const g = params.get("gender");
       const k = params.get("kelas");
       const s = params.get("sort");
@@ -133,13 +133,13 @@ export default function DirektoriClient({
     } catch {
       // Ignore query parse failures
     } finally {
-      urlSyncReadyRef.current = true;
+      setUrlHydrated(true);
     }
   }, []);
 
   // Persist directory filters to URL without page navigation
   useEffect(() => {
-    if (!urlSyncReadyRef.current || typeof window === "undefined") return;
+    if (!urlHydrated || typeof window === "undefined") return;
     const params = new URLSearchParams();
     if (activeMainTab !== "alumni") params.set("tab", activeMainTab);
     if (search.trim()) params.set("q", search.trim());
@@ -151,7 +151,7 @@ export default function DirektoriClient({
     if (window.location.pathname + window.location.search !== targetUrl) {
       window.history.replaceState(null, "", targetUrl);
     }
-  }, [activeMainTab, search, genderFilter, classFilter, sortBy]);
+  }, [urlHydrated, activeMainTab, search, genderFilter, classFilter, sortBy]);
 
   useEffect(() => {
     try {

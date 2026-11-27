@@ -298,7 +298,7 @@
     width: 100%;
 }
 
-.juz-card {
+.khatam-grid .juz-card {
     background: var(--glass-bg, rgba(12, 18, 30, 0.94));
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 18px;
@@ -313,35 +313,35 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .juz-card:hover {
+    .khatam-grid .juz-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
     }
 
-    .juz-card.status-available:hover {
+    .khatam-grid .juz-card.status-available:hover {
         border-color: var(--gold-main, #d4af37);
         box-shadow: 0 8px 25px rgba(212, 175, 55, 0.15);
     }
 }
 
 /* Card Status Themes */
-.juz-card.status-available {
+.khatam-grid .juz-card.status-available {
     border: 1px dashed rgba(212, 175, 55, 0.35);
 }
 
-.juz-card.status-reading {
+.khatam-grid .juz-card.status-reading {
     border: 1px solid rgba(255, 179, 0, 0.5);
     background: linear-gradient(180deg, rgba(255, 179, 0, 0.08) 0%, rgba(12, 18, 30, 0.7) 100%);
     box-shadow: 0 4px 20px rgba(255, 179, 0, 0.12);
 }
 
-.juz-card.status-completed {
+.khatam-grid .juz-card.status-completed {
     border: 1px solid rgba(43, 185, 124, 0.5);
     background: linear-gradient(180deg, rgba(27, 94, 32, 0.18) 0%, rgba(12, 18, 30, 0.7) 100%);
     box-shadow: 0 4px 20px rgba(43, 185, 124, 0.15);
 }
 
-.juz-card.is-my-juz {
+.khatam-grid .juz-card.is-my-juz {
     border: 1px solid var(--gold-main, #d4af37) !important;
     box-shadow: 0 0 20px rgba(212, 175, 55, 0.35) !important;
 }
@@ -651,7 +651,7 @@
         gap: 10px;
     }
 
-    .juz-card {
+    .khatam-grid .juz-card {
         padding: 14px 10px;
         border-radius: 14px;
     }
@@ -801,16 +801,16 @@
     font-weight: 700;
 }
 
-:root[data-theme="light"] .juz-card,
-[data-theme="light"] .juz-card {
+:root[data-theme="light"] .khatam-grid .juz-card,
+[data-theme="light"] .khatam-grid .juz-card {
     background: #ffffff;
     border: 1px solid rgba(24, 24, 27, 0.09);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 
 @media (hover: hover) and (pointer: fine) {
-    :root[data-theme="light"] .juz-card:hover,
-    [data-theme="light"] .juz-card:hover {
+    :root[data-theme="light"] .khatam-grid .juz-card:hover,
+    [data-theme="light"] .khatam-grid .juz-card:hover {
         border-color: rgba(124, 82, 10, 0.45);
         box-shadow: 0 10px 24px rgba(0, 0, 0, 0.07);
     }

@@ -66,12 +66,23 @@
     <div class="badge">Expedient Generation 43</div>
     <h1>Koneksi Internet Terputus</h1>
     <p>Pastikan paket data atau Wi-Fi aktif, lalu ketuk tombol di bawah untuk memuat ulang portal alumni.</p>
-    <button type="button" onclick="window.location.replace('https://expedientgeneration.vercel.app')">Coba Muat Ulang</button>
+    <button type="button" id="btnRetry">Coba Muat Ulang</button>
   </div>
   <script>
-    window.addEventListener('online', function () {
-      window.location.replace('https://expedientgeneration.vercel.app');
-    });
+    function getRetryUrl() {
+      var fallback = 'https://expedientgeneration.vercel.app';
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var raw = params.get('retry');
+        if (raw && raw.indexOf(fallback) === 0) return raw;
+      } catch (e) {}
+      return fallback;
+    }
+    function retryConnect() {
+      window.location.replace(getRetryUrl());
+    }
+    document.getElementById('btnRetry').addEventListener('click', retryConnect);
+    window.addEventListener('online', retryConnect);
   </script>
 </body>
 </html>

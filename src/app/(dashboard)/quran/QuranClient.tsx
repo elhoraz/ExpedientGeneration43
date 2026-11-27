@@ -391,11 +391,38 @@ export default function QuranClient({
     return () => {
       clearTimeout(timer);
       window.removeEventListener("pagehide", flushSync);
+      if (pendingQuranSyncBodyRef.current) {
+        flushSync();
+      }
     };
   }, [lastRead, bookmarks, cloudHydrationTick]);
 
+  // Ensure audio, study timer, and toast timers clean up cleanly on SPA unmount
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        try {
+          audioRef.current.pause();
+          audioRef.current.src = "";
+        } catch {}
+        audioRef.current = null;
+      }
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  const lastRequestedCordobaPageRef = useRef<number | null>(null);
+
   // Load Cordoba Mushaf Page
   const loadCordobaPage = useCallback(async (pageNum: number) => {
+    lastRequestedCordobaPageRef.current = pageNum;
     setLoadingPage(true);
     setErrorPage(null);
     setClosedBlocks({}); // Reset block shields on page change
@@ -422,8 +449,9 @@ export default function QuranClient({
     }
   }, []);
 
-  // Initial load of Cordoba Page
+  // Initial / state-driven load of Cordoba Page without duplicate fetch
   useEffect(() => {
+    if (lastRequestedCordobaPageRef.current === cordobaPage) return;
     loadCordobaPage(cordobaPage);
   }, [cordobaPage, loadCordobaPage]);
 
@@ -2676,7 +2704,7 @@ export default function QuranClient({
                     : `Ayat ${currentPlayingAyah}`}
                   {audioQueue.length > 1 && (
                     <span className="audio-track-counter">
-                      {" "}[${queueIndex + 1}/${audioQueue.length}]
+                      {" "}[{queueIndex + 1}/{audioQueue.length}]
                     </span>
                   )}
                 </span>

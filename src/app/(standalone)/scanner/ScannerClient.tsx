@@ -13,6 +13,8 @@ export default function ScannerClient() {
   const [scanSuccess, setScanSuccess] = useState(false);
   const [decodedText, setDecodedText] = useState<string | null>(null);
   const router = useRouter();
+  const mountedRef = useRef(true);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const startCamera = useCallback(() => {
     setCameraState("requesting");
@@ -20,6 +22,11 @@ export default function ScannerClient() {
       navigator.mediaDevices
         .getUserMedia({ video: { facingMode: "environment" } })
         .then((stream) => {
+          if (!mountedRef.current) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+          streamRef.current = stream;
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             videoRef.current.play().catch(() => {});
@@ -27,7 +34,7 @@ export default function ScannerClient() {
           }
         })
         .catch(() => {
-          setCameraState("error");
+          if (mountedRef.current) setCameraState("error");
         });
     } else {
       setCameraState("error");
@@ -35,8 +42,8 @@ export default function ScannerClient() {
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     startCamera();
-    const videoEl = videoRef.current;
 
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     let scanTween: gsap.core.Tween | null = null;
@@ -49,10 +56,11 @@ export default function ScannerClient() {
     }
 
     return () => {
+      mountedRef.current = false;
       scanTween?.kill();
-      if (videoEl && videoEl.srcObject) {
-        const tracks = (videoEl.srcObject as MediaStream).getTracks();
-        tracks.forEach((track) => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       }
     };
   }, [startCamera]);

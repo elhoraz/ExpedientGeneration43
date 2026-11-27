@@ -13,7 +13,7 @@ export async function GET() {
     const [{ data: topics, error }, votesRes] = await Promise.all([
       supabase
         .from("majlis_topics")
-        .select("id, title, description, created_by, votes_count, status, created_at")
+        .select("id, title, description, created_by, votes_setuju, votes_tidak_setuju, status, created_at")
         .order("created_at", { ascending: false })
         .limit(60),
       user

@@ -419,6 +419,7 @@ export default function AppNotificationManager() {
     };
 
     return () => {
+      initRef.current = false;
       clearInterval(prayerInterval);
       clearTimeout(fcmTimer1);
       clearTimeout(fcmTimer2);

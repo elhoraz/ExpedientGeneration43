@@ -13,6 +13,7 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
     const templateCss = fs.readFileSync(path.join(ROOT_DIR, "public/css/template.css"), "utf8");
     const adminCss = fs.readFileSync(path.join(ROOT_DIR, "src/app/(dashboard)/admin/admin.css"), "utf8");
     const chatCss = fs.readFileSync(path.join(ROOT_DIR, "src/app/(dashboard)/chat/chat.css"), "utf8");
+    const navbarChatCss = fs.readFileSync(path.join(ROOT_DIR, "src/components/layout/navbar-chat.css"), "utf8");
 
     test("template.css standardizes interactive touch targets to >= 44x44px", () => {
       assert.ok(templateCss.includes(".touch-target-44"), "Should have .touch-target-44 utility class");
@@ -29,8 +30,10 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
       assert.ok(adminCss.includes("min-width: 44px"), "Admin btn-action should have min-width 44px");
     });
 
-    test("chat.css enforces touch targets on dropdown actions", () => {
-      assert.ok(chatCss.includes(".chat-dropdown-btn-action"), "chat.css should have .chat-dropdown-btn-action");
+    test("chat.css and navbar-chat.css enforce touch targets on chat and dropdown actions", () => {
+      assert.ok(navbarChatCss.includes(".chat-dropdown-btn-action"), "navbar-chat.css should have .chat-dropdown-btn-action");
+      assert.ok(navbarChatCss.includes("min-width: 44px"), "Should have min-width: 44px in navbar-chat.css");
+      assert.ok(navbarChatCss.includes("min-height: 44px"), "Should have min-height: 44px in navbar-chat.css");
       assert.ok(chatCss.includes("min-width: 44px"), "Should have min-width: 44px in chat.css");
       assert.ok(chatCss.includes("min-height: 44px"), "Should have min-height: 44px in chat.css");
     });

@@ -13,6 +13,31 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
   const [completed, setCompleted] = useState(isCompleted);
   const [errorMsg, setErrorMsg] = useState(false);
   const [btnText, setBtnText] = useState("INISIASI PEMBUKAAN");
+  const completedRef = useRef(completed);
+  completedRef.current = completed;
+  const unlockTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const triggerUnlock = () => {
+    completedRef.current = true;
+    setCompleted(true);
+    if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+
+    vaultContainerRef.current?.classList.add('unlocked');
+
+    gsap.to(ringOuterRef.current, { scale: 1.2, opacity: 0, duration: 1.5, ease: "power2.inOut", delay: 0.5 });
+    gsap.to(ringMiddleRef.current, { scale: 1.4, opacity: 0, duration: 1.5, ease: "power2.inOut", delay: 0.8 });
+    gsap.to(ringInnerRef.current, { scale: 1.6, opacity: 0, duration: 1.5, ease: "power2.inOut", delay: 1.1 });
+
+    const overlayTimer = setTimeout(() => {
+      const overlay = document.getElementById('successOverlay');
+      if (!overlay) return;
+      overlay.classList.add('show');
+      gsap.to('.clearance-title', { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 0.5 });
+      gsap.to('.secret-quote', { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 1.5 });
+      gsap.to('.btn-return', { opacity: 1, y: 0, duration: 1, ease: "power3.out", delay: 2.5 });
+    }, 2000);
+    unlockTimersRef.current.push(overlayTimer);
+  };
 
   useEffect(() => {
     const rings = [ringOuterRef.current, ringMiddleRef.current, ringInnerRef.current];
@@ -63,7 +88,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     }
 
     const onPointerDown = (e: any) => {
-      if (completed) return;
+      if (completedRef.current) return;
       e.preventDefault();
       const ring = e.currentTarget as HTMLElement;
       activeRing = parseInt(ring.getAttribute('data-ring') || "0");
@@ -78,7 +103,7 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     };
 
     const onPointerMove = (e: any) => {
-      if (activeRing === null || completed) return;
+      if (activeRing === null || completedRef.current) return;
       e.preventDefault();
 
       const ringElement = rings[activeRing];
@@ -99,8 +124,8 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
       lastAngle = currentAngle;
     };
 
-    const onPointerUp = (e: any) => {
-      if (activeRing === null || completed) return;
+    const onPointerUp = () => {
+      if (activeRing === null || completedRef.current) return;
 
       const currentRingIndex = activeRing;
       const ringElement = rings[currentRingIndex];
@@ -130,22 +155,29 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
     window.addEventListener('mouseup', onPointerUp);
     window.addEventListener('touchend', onPointerUp);
 
-    if (completed) {
-      setTimeout(() => triggerUnlock(), 500);
+    let initUnlockTimer: ReturnType<typeof setTimeout> | null = null;
+    if (completedRef.current) {
+      initUnlockTimer = setTimeout(() => triggerUnlock(), 500);
     }
 
+    const timers = unlockTimersRef.current;
     return () => {
+      if (initUnlockTimer) clearTimeout(initUnlockTimer);
+      timers.forEach((id) => clearTimeout(id));
+      timers.length = 0;
       window.removeEventListener('mousemove', onPointerMove);
       window.removeEventListener('touchmove', onPointerMove);
       window.removeEventListener('mouseup', onPointerUp);
       window.removeEventListener('touchend', onPointerUp);
       rings.forEach(ring => {
         if (ring) {
+          ring.removeEventListener('mousedown', onPointerDown);
+          ring.removeEventListener('touchstart', onPointerDown);
           ring.innerHTML = '';
         }
       });
     };
-  }, [completed]);
+  }, []);
 
   const getTopIndex = (rotation: number) => {
     const norm = ((rotation % 360) + 360) % 360;
@@ -193,26 +225,6 @@ export default function EnigmaClient({ isCompleted, userId }: { isCompleted: boo
   const handleReset = async () => {
     await fetch("/api/enigma/reset", { method: "POST" });
     window.location.reload();
-  };
-
-  const triggerUnlock = () => {
-    setCompleted(true);
-    if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
-
-    const vaultContainer = vaultContainerRef.current!;
-    vaultContainer.classList.add('unlocked');
-
-    gsap.to(ringOuterRef.current, { scale: 1.2, opacity: 0, duration: 1.5, ease: "power2.inOut", delay: 0.5 });
-    gsap.to(ringMiddleRef.current, { scale: 1.4, opacity: 0, duration: 1.5, ease: "power2.inOut", delay: 0.8 });
-    gsap.to(ringInnerRef.current, { scale: 1.6, opacity: 0, duration: 1.5, ease: "power2.inOut", delay: 1.1 });
-
-    setTimeout(() => {
-      const overlay = document.getElementById('successOverlay');
-      overlay!.classList.add('show');
-      gsap.to('.clearance-title', { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 0.5 });
-      gsap.to('.secret-quote', { opacity: 1, y: 0, duration: 1.5, ease: "power3.out", delay: 1.5 });
-      gsap.to('.btn-return', { opacity: 1, y: 0, duration: 1, ease: "power3.out", delay: 2.5 });
-    }, 2000);
   };
 
   return (

@@ -47,6 +47,11 @@ export default function Navbar() {
   }, [chatOpen]);
 
   useEffect(() => {
+    if (!userId) {
+      setRecentChats([]);
+      return;
+    }
+
     // 1. Service Worker & Push Notification Subscription (Hanya subscribe otomatis jika izin sudah diberikan pengguna)
     if ('serviceWorker' in navigator && 'PushManager' in window && VAPID_PUBLIC_KEY) {
       if (typeof window !== "undefined" && 'Notification' in window && Notification.permission === 'granted') {
@@ -135,7 +140,7 @@ export default function Navbar() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase]);
+  }, [supabase, userId]);
 
   // Close open dropdowns when sidebar panel is collapsed/hidden
   useEffect(() => {

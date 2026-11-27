@@ -7,6 +7,8 @@
   right: 35px;
   width: 340px;
   max-width: calc(100vw - 30px);
+  display: flex;
+  flex-direction: column;
   background: var(--bg-card, rgba(12, 16, 14, 0.96));
   border: 1px solid rgba(212, 175, 55, 0.35);
   border-radius: 20px;

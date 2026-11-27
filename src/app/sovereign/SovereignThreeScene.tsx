@@ -9,7 +9,7 @@ export interface SovereignThreeSceneProps {
     nama_lengkap: string;
     nama_panggilan: string | null;
     foto_profil: string | null;
-    public_token: string | null;
+    public_token?: string | null;
     prestise_points?: number;
   };
   nomorId: string;
@@ -28,6 +28,8 @@ export default function SovereignThreeScene({
   onLoaded,
 }: SovereignThreeSceneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const onLoadedRef = useRef(onLoaded);
+  onLoadedRef.current = onLoaded;
 
   // ---------------------------------------------------------------------------
   // THREE.JS 3D STUDIO RUNNER
@@ -36,6 +38,7 @@ export default function SovereignThreeScene({
   useEffect(() => {
     let cleanupFn: (() => void) | null = null;
     let isCancelled = false;
+    let hasNotifiedLoaded = false;
 
     const container = containerRef.current;
     if (!container) return;
@@ -1332,7 +1335,10 @@ export default function SovereignThreeScene({
         }
 
         renderer.render(scene, camera);
-        if (onLoaded) onLoaded();
+        if (!hasNotifiedLoaded) {
+          hasNotifiedLoaded = true;
+          onLoadedRef.current?.();
+        }
       }
       animate();
 
@@ -1375,6 +1381,20 @@ export default function SovereignThreeScene({
           container.removeEventListener("mousedown", onPointerDown as EventListener);
           container.removeEventListener("touchstart", onPointerDown as EventListener);
         }
+        scene.traverse((obj: any) => {
+          if (obj.geometry && typeof obj.geometry.dispose === "function") {
+            obj.geometry.dispose();
+          }
+          const materials = Array.isArray(obj.material) ? obj.material : obj.material ? [obj.material] : [];
+          for (const mat of materials) {
+            for (const val of Object.values(mat)) {
+              if (val && typeof (val as any).dispose === "function") {
+                (val as any).dispose();
+              }
+            }
+            if (typeof mat.dispose === "function") mat.dispose();
+          }
+        });
         renderer.dispose();
         if (container && container.contains(renderer.domElement)) {
           container.removeChild(renderer.domElement);
@@ -1383,9 +1403,10 @@ export default function SovereignThreeScene({
     });
 
     return () => {
+      isCancelled = true;
       if (cleanupFn) cleanupFn();
     };
-  }, [user, nomorId, fotoUrl, qrUrl, isLightMode, onLoaded]);
+  }, [user, nomorId, fotoUrl, qrUrl, isLightMode]);
 
   return (
     <>

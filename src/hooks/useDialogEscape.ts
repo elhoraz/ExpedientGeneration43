@@ -47,8 +47,13 @@ export function useDialogEscape(
     activeDialogClosers.push(closeWrapper);
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !disabled) {
+      if (
+        event.key === "Escape" &&
+        !disabled &&
+        activeDialogClosers[activeDialogClosers.length - 1] === closeWrapper
+      ) {
         event.preventDefault();
+        event.stopImmediatePropagation();
         onCloseRef.current();
       }
     };

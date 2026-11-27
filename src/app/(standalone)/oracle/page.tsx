@@ -24,7 +24,7 @@ export default async function OraclePage() {
   // Fetch user's profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, nama_lengkap, nama_panggilan, foto_profil")
+    .select("id, nama_lengkap, nama_panggilan, foto_profil, tempat_lahir, cita_cita, motivasi_hidup")
     .eq("id", user.id)
     .single();
 

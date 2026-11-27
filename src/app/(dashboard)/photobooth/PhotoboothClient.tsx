@@ -183,13 +183,26 @@ export default function PhotoboothClient() {
     }
   };
 
+  const beepCtxRef = useRef<AudioContext | null>(null);
+  const cameraMountedRef = useRef(true);
+  const cameraRequestEpochRef = useRef(0);
+  const shutterTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const shutterDelayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Synthesized Web Audio Chime for Shutter
   const playBeep = (freq: number = 600, duration: number = 0.1) => {
     if (typeof window === "undefined") return;
     try {
       const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
+      if (!beepCtxRef.current || beepCtxRef.current.state === "closed") {
+        beepCtxRef.current = new AudioContextClass();
+      }
+      const ctx = beepCtxRef.current;
+      if (ctx.state === "suspended") {
+        void ctx.resume();
+      }
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
@@ -205,6 +218,7 @@ export default function PhotoboothClient() {
 
   // Completely Stop Camera Hardware
   const stopCamera = useCallback(() => {
+    cameraRequestEpochRef.current += 1;
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => {
         try {
@@ -233,6 +247,7 @@ export default function PhotoboothClient() {
 
     // Stop any existing stream first to avoid hardware lock
     stopCamera();
+    const requestEpoch = ++cameraRequestEpochRef.current;
 
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -267,6 +282,13 @@ export default function PhotoboothClient() {
         });
       }
 
+      if (!cameraMountedRef.current || requestEpoch !== cameraRequestEpochRef.current) {
+        newStream.getTracks().forEach((t) => {
+          try { t.stop(); } catch {}
+        });
+        return;
+      }
+
       streamRef.current = newStream;
       setStream(newStream);
       if (videoRef.current) {
@@ -279,6 +301,7 @@ export default function PhotoboothClient() {
         };
       }
     } catch (err: any) {
+      if (!cameraMountedRef.current || requestEpoch !== cameraRequestEpochRef.current) return;
       console.warn("Camera access error:", err);
       const currentLocale = localeRef.current;
       setCameraError(
@@ -293,6 +316,7 @@ export default function PhotoboothClient() {
   }, [stopCamera]);
 
   useEffect(() => {
+    cameraMountedRef.current = true;
     startCamera(initialFacingRef.current);
     const createdBlobUrls = createdBlobUrlsRef.current;
 
@@ -304,7 +328,15 @@ export default function PhotoboothClient() {
     window.addEventListener("pagehide", handleUnload);
 
     return () => {
+      cameraMountedRef.current = false;
+      if (shutterTimerRef.current) clearInterval(shutterTimerRef.current);
+      if (shutterDelayTimerRef.current) clearTimeout(shutterDelayTimerRef.current);
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
       stopCamera();
+      if (beepCtxRef.current && beepCtxRef.current.state !== "closed") {
+        beepCtxRef.current.close().catch(() => {});
+        beepCtxRef.current = null;
+      }
       window.removeEventListener("beforeunload", handleUnload);
       window.removeEventListener("pagehide", handleUnload);
       // Clean up any generated video blob URLs to prevent mobile memory leaks
@@ -325,27 +357,25 @@ export default function PhotoboothClient() {
 
   // Compute CSS filter string
   const getFilterStyle = () => {
-    let base = "";
+    const parts: string[] = [];
     if (filter === "golden") {
-      base = "sepia(0.25) saturate(1.2) contrast(1.05) brightness(1.04)";
+      parts.push("sepia(0.25) saturate(1.2) contrast(1.05) brightness(1.04)");
     } else if (filter === "noir") {
-      base = "grayscale(1) contrast(1.3) brightness(0.95)";
+      parts.push("grayscale(1) contrast(1.3) brightness(0.95)");
     } else if (filter === "vintage") {
-      base = "sepia(0.4) saturate(0.85) contrast(1.1) hue-rotate(-10deg)";
+      parts.push("sepia(0.4) saturate(0.85) contrast(1.1) hue-rotate(-10deg)");
     } else if (filter === "emerald") {
-      base = "hue-rotate(45deg) saturate(1.15) brightness(1.02)";
+      parts.push("hue-rotate(45deg) saturate(1.15) brightness(1.02)");
     } else if (filter === "cyber") {
-      base = "hue-rotate(180deg) saturate(1.4) contrast(1.15)";
+      parts.push("hue-rotate(180deg) saturate(1.4) contrast(1.15)");
     } else if (filter === "pastel") {
-      base = "sepia(0.15) brightness(1.08) saturate(0.9) contrast(0.95)";
-    } else {
-      base = "none";
+      parts.push("sepia(0.15) brightness(1.08) saturate(0.9) contrast(0.95)");
     }
 
     if (brightness !== 100 || contrast !== 100) {
-      base += ` brightness(${brightness / 100}) contrast(${contrast / 100})`;
+      parts.push(`brightness(${brightness / 100}) contrast(${contrast / 100})`);
     }
-    return base;
+    return parts.length > 0 ? parts.join(" ") : "none";
   };
 
   // Determine current slot aspect ratio for precise framing without distortion
@@ -604,14 +634,22 @@ export default function PhotoboothClient() {
     setCountdownNum(count);
     playBeep(440, 0.1);
 
-    const timer = setInterval(async () => {
+    if (shutterTimerRef.current) clearInterval(shutterTimerRef.current);
+    shutterTimerRef.current = setInterval(async () => {
+      if (!cameraMountedRef.current) {
+        if (shutterTimerRef.current) clearInterval(shutterTimerRef.current);
+        return;
+      }
       count -= 1;
       if (count > 0) {
         setCountdownNum(count);
         playBeep(440, 0.1);
         triggerHaptic(20);
       } else {
-        clearInterval(timer);
+        if (shutterTimerRef.current) {
+          clearInterval(shutterTimerRef.current);
+          shutterTimerRef.current = null;
+        }
         setCountdownNum(null);
         setIsCountingDown(false);
 
@@ -626,14 +664,18 @@ export default function PhotoboothClient() {
           const recordPromise = recordLiveClip(3000);
 
           // 3. Right when 3.0s finishes, flash & shutter beep and capture crisp peak still frame
-          setTimeout(async () => {
+          shutterDelayTimerRef.current = setTimeout(async () => {
+            if (!cameraMountedRef.current) return;
             playBeep(880, 0.25);
             triggerHaptic(80);
             setIsFlashing(true);
-            setTimeout(() => setIsFlashing(false), 150);
+            flashTimerRef.current = setTimeout(() => {
+              if (cameraMountedRef.current) setIsFlashing(false);
+            }, 150);
 
             const stillFrame = captureFrame();
             const recorded = await recordPromise;
+            if (!cameraMountedRef.current) return;
             setIsLiveRecording(false);
 
             if (stillFrame) {
@@ -645,7 +687,9 @@ export default function PhotoboothClient() {
           playBeep(880, 0.25);
           triggerHaptic(80);
           setIsFlashing(true);
-          setTimeout(() => setIsFlashing(false), 150);
+          flashTimerRef.current = setTimeout(() => {
+            if (cameraMountedRef.current) setIsFlashing(false);
+          }, 150);
 
           const stillFrame = captureFrame();
           if (stillFrame) {

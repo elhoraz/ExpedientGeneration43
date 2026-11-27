@@ -439,11 +439,8 @@ body.sidebar-closed .floating-help-btn {
         --aurora-3: transparent;
     }
 
-    /* Matikan sepenuhnya layer GPU berat: noise SVG, aurora blur, partikel canvas, custom cursor */
+    /* Matikan sepenuhnya elemen GPU/cursor berat di touch mobile, sedangkan aurora/particles dikendalikan oleh tier [data-perf] */
     .film-grain,
-    .aurora-container,
-    .aurora-blob,
-    #particles-js,
     .cursor-dot,
     .cursor-ring {
         display: none !important;
