@@ -87,4 +87,17 @@ describe("AppUpdateChecker version gating & mandatory enforcement", () => {
       "MainActivity User-Agent must not hardcode stale 1.2.2 string"
     );
   });
+
+  test("/api/app-version enforces mandatory update for older builds and points to hosted v1.2.4 APK", async () => {
+    const { GET } = await import("../src/app/api/app-version/route.ts");
+    const response = await GET();
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.latestVersionCode, 6);
+    assert.equal(body.latestVersionName, "1.2.4");
+    assert.equal(body.forceUpdate, true);
+    assert.equal(body.minSupportedVersionCode, 6);
+    assert.ok(body.apkUrl.startsWith("https://"), "apkUrl must be an HTTPS URL");
+    assert.ok(body.apkUrl.includes("Expedient43-v1.2.4.apk"), "apkUrl must point to v1.2.4 APK");
+  });
 });

@@ -19,7 +19,7 @@ export interface CapacitorConfig {
 const config: CapacitorConfig = {
   appId: 'com.expedient43.app',
   appName: 'Expedient 43',
-  webDir: 'public',
+  webDir: 'android-shell',
   server: {
     androidScheme: 'https',
     iosScheme: 'https',

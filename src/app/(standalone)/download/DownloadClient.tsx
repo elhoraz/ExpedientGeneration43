@@ -14,7 +14,7 @@ export default function DownloadClient() {
 
   const apkDownloadUrl =
     process.env.NEXT_PUBLIC_APK_DOWNLOAD_URL ||
-    "https://github.com/elhoraz/ExpedientGeneration43/releases/download/v1.2.3/Expedient43-v1.2.3.apk";
+    "https://dodcwulqgrhqpbldrlik.supabase.co/storage/v1/object/public/apk-releases/Expedient43-v1.2.4.apk";
   const ipaDownloadUrl = (process.env.NEXT_PUBLIC_IPA_DOWNLOAD_URL || "").trim();
   const hasConfiguredIpa = Boolean(ipaDownloadUrl);
 
@@ -170,7 +170,7 @@ export default function DownloadClient() {
                 }}
               >
                 <li>
-                  <code className="download-code-tag-gold">Expedient43-v1.2.3.apk</code> (v1.2.3)
+                  <code className="download-code-tag-gold">Expedient43-v1.2.4.apk</code> (v1.2.4)
                 </li>
                 <li>{t.download_center.apk_size_label}</li>
                 <li>{t.download_center.apk_support_label}</li>
@@ -187,7 +187,7 @@ export default function DownloadClient() {
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <a
                 href={apkDownloadUrl}
-                download="Expedient43-v1.2.3.apk"
+                download="Expedient43-v1.2.4.apk"
                 id="btnDownloadApk"
                 className="download-action-primary"
                 onClick={(e) => {
