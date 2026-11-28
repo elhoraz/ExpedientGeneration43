@@ -100,12 +100,12 @@ body.is-grabbing .sovereign-webgl-stage {
   inset: 0;
   pointer-events: none;
   z-index: 6;
-  background: radial-gradient(circle at center, transparent 30%, rgba(2, 4, 9, 0.72) 100%);
+  background: radial-gradient(circle at center, transparent 42%, rgba(2, 4, 9, 0.42) 100%);
   transition: background 0.45s var(--sov-ease-out);
 }
 
 .sovereign-root.is-light .sovereign-vignette {
-  background: radial-gradient(circle at center, transparent 34%, rgba(224, 215, 198, 0.62) 100%);
+  background: radial-gradient(circle at center, transparent 46%, rgba(212, 198, 174, 0.32) 100%);
 }
 
 /* Preloader */

@@ -39,13 +39,13 @@ export function pbrSurface(holo: number, roughness: number, metalness: number): 
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.16, 0.28);
-const PBR_SATIN_BAND = pbrSurface(0.0, 0.34, 0.14);
-const PBR_GOLD_BULLION = pbrSurface(0.03, 0.13, 0.98);
-const PBR_HOLO_FOIL = pbrSurface(0.52, 0.15, 0.95);
-const PBR_PORTRAIT_GLASS = pbrSurface(0.0, 0.08, 0.05);
+const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.24, 0.04);
+const PBR_SATIN_BAND = pbrSurface(0.0, 0.42, 0.04);
+const PBR_GOLD_BULLION = pbrSurface(0.03, 0.22, 0.92);
+const PBR_HOLO_FOIL = pbrSurface(0.46, 0.2, 0.92);
+const PBR_PORTRAIT_GLASS = pbrSurface(0.0, 0.1, 0.04);
 const PBR_MATTE_IVORY = pbrSurface(0.0, 0.84, 0.02);
-const PBR_ENGRAVED_TYPE = pbrSurface(0.0, 0.22, 0.78);
+const PBR_ENGRAVED_TYPE = pbrSurface(0.0, 0.22, 0.85);
 
 const GOLD = "#d4af37";
 const GOLD_BRIGHT = "#f5e19c";
@@ -192,7 +192,8 @@ function layoutDisplayName(
 }
 
 /**
- * Creates a smooth organic Bezier Kintsugi studio backdrop (zero jagged polyline zig-zags).
+ * Creates a smooth organic Bezier Kintsugi stone studio backdrop framed cleanly within
+ * the camera frustum so mineral strata & 24K seams are crisp on both Day & Night modes.
  */
 export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
@@ -202,56 +203,78 @@ export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCa
 
   const bg = ctx.createRadialGradient(
     size * 0.5,
-    size * 0.45,
-    size * 0.04,
+    size * 0.46,
+    size * 0.03,
     size * 0.5,
     size * 0.5,
-    size * 0.78
+    size * 0.62
   );
   if (isDayMode) {
-    bg.addColorStop(0, "#fbf9f4");
-    bg.addColorStop(0.55, "#f1ece1");
-    bg.addColorStop(1, "#e2dacb");
+    bg.addColorStop(0, "#fcfbf8");
+    bg.addColorStop(0.5, "#efe9dc");
+    bg.addColorStop(1, "#ddd4c2");
   } else {
-    bg.addColorStop(0, "#1b2b46");
-    bg.addColorStop(0.52, "#0e1828");
-    bg.addColorStop(1, "#060a12");
+    bg.addColorStop(0, "#233146");
+    bg.addColorStop(0.48, "#141d2d");
+    bg.addColorStop(1, "#090e17");
   }
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, size, size);
 
-  // Smooth organic stone strata using continuous cubic Bezier ribbons
+  // Soft cloudy marble translucency blooms concentrated inside visible studio alcove
+  const clouds: Array<[number, number, number, string]> = isDayMode
+    ? [
+        [0.34, 0.38, 0.24, "rgba(182, 168, 144, 0.16)"],
+        [0.68, 0.58, 0.26, "rgba(166, 152, 130, 0.15)"],
+        [0.46, 0.68, 0.2, "rgba(255, 253, 248, 0.35)"],
+      ]
+    : [
+        [0.32, 0.36, 0.25, "rgba(56, 82, 124, 0.22)"],
+        [0.68, 0.62, 0.26, "rgba(44, 68, 108, 0.2)"],
+        [0.5, 0.48, 0.22, "rgba(74, 104, 152, 0.12)"],
+      ];
+  for (const [cx, cy, rad, color] of clouds) {
+    const cg = ctx.createRadialGradient(cx * size, cy * size, 0, cx * size, cy * size, rad * size);
+    cg.addColorStop(0, color);
+    cg.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = cg;
+    ctx.fillRect(0, 0, size, size);
+  }
+
+  // Smooth diagonal + sweeping stone mineral strata across [0.15..0.85] UV viewport span
   ctx.save();
-  for (let layer = 0; layer < 14; layer++) {
-    const yBase = (layer / 13) * size;
-    const amp = size * (0.025 + (layer % 3) * 0.012);
+  for (let layer = 0; layer < 16; layer++) {
+    const t = layer / 15;
+    const yStart = (0.14 + t * 0.72) * size;
+    const amp = size * (0.032 + (layer % 4) * 0.014);
     ctx.beginPath();
-    ctx.moveTo(-size * 0.05, yBase);
+    ctx.moveTo(0, yStart + amp * 0.6);
     ctx.bezierCurveTo(
-      size * 0.28,
-      yBase - amp,
-      size * 0.68,
-      yBase + amp * 1.15,
-      size * 1.05,
-      yBase - amp * 0.4
+      size * 0.32,
+      yStart - amp,
+      size * 0.66,
+      yStart + amp * 1.1,
+      size,
+      yStart - amp * 0.5
     );
     ctx.strokeStyle = isDayMode
-      ? `rgba(140, 124, 96, ${0.14 + (layer % 3) * 0.05})`
-      : `rgba(70, 96, 142, ${0.14 + (layer % 3) * 0.05})`;
-    ctx.lineWidth = size * (0.004 + (layer % 4) * 0.0025);
+      ? `rgba(122, 112, 96, ${0.09 + (layer % 3) * 0.045})`
+      : `rgba(88, 120, 172, ${0.12 + (layer % 3) * 0.045})`;
+    ctx.lineWidth = size * (0.0025 + (layer % 3) * 0.0022);
     ctx.stroke();
   }
 
-  // Delicate curved Kintsugi 24K gold seams
-  const seams: Array<[number, number, number, number, number, number, number, number]> = [
-    [0.08, 0.18, 0.32, 0.28, 0.58, 0.14, 0.92, 0.26],
-    [0.14, 0.78, 0.42, 0.66, 0.66, 0.84, 0.95, 0.72],
-    [0.24, 0.04, 0.31, 0.36, 0.21, 0.64, 0.34, 0.96],
-    [0.76, 0.06, 0.69, 0.38, 0.81, 0.66, 0.71, 0.95],
+  // Asymmetric Kintsugi 24K gold veins running visibly behind both cards & alcove interior
+  const seams: Array<[number, number, number, number, number, number, number, number, number]> = [
+    [0.14, 0.28, 0.34, 0.42, 0.6, 0.29, 0.86, 0.44, 1.0],
+    [0.16, 0.68, 0.38, 0.56, 0.64, 0.72, 0.88, 0.58, 0.9],
+    [0.24, 0.16, 0.36, 0.4, 0.29, 0.64, 0.42, 0.84, 0.78],
+    [0.76, 0.18, 0.66, 0.42, 0.74, 0.64, 0.61, 0.84, 0.82],
+    [0.44, 0.36, 0.52, 0.44, 0.56, 0.38, 0.65, 0.47, 0.6],
   ];
 
   ctx.lineCap = "round";
-  for (const [x0, y0, cx1, cy1, cx2, cy2, x1, y1] of seams) {
+  for (const [x0, y0, cx1, cy1, cx2, cy2, x1, y1, weight] of seams) {
     ctx.beginPath();
     ctx.moveTo(x0 * size, y0 * size);
     ctx.bezierCurveTo(
@@ -262,10 +285,20 @@ export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCa
       x1 * size,
       y1 * size
     );
-    ctx.shadowBlur = size * 0.008;
-    ctx.shadowColor = isDayMode ? "rgba(180, 138, 36, 0.16)" : "rgba(229, 193, 88, 0.35)";
-    ctx.strokeStyle = isDayMode ? "rgba(160, 118, 28, 0.7)" : "rgba(235, 200, 96, 0.72)";
-    ctx.lineWidth = Math.max(2, size * 0.0024);
+    ctx.shadowBlur = size * 0.006;
+    ctx.shadowColor = isDayMode ? "rgba(168, 122, 24, 0.25)" : "rgba(240, 200, 88, 0.45)";
+    ctx.strokeStyle = isDayMode
+      ? `rgba(154, 110, 20, ${(0.52 * weight).toFixed(2)})`
+      : `rgba(228, 188, 78, ${(0.58 * weight).toFixed(2)})`;
+    ctx.lineWidth = Math.max(1.5, size * 0.0017 * weight);
+    ctx.stroke();
+
+    // Inner bright metallic filigree highlight thread
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = isDayMode
+      ? `rgba(240, 208, 120, ${(0.5 * weight).toFixed(2)})`
+      : `rgba(252, 232, 166, ${(0.45 * weight).toFixed(2)})`;
+    ctx.lineWidth = Math.max(0.75, size * 0.0007 * weight);
     ctx.stroke();
   }
   ctx.restore();
