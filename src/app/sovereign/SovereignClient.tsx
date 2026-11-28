@@ -78,7 +78,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
   // Nomor ID: 4 karakter pertama UUID uppercase
   const nomorId = "EXP-" + user.id.replace(/-/g, "").substring(0, 4).toUpperCase();
 
-  // Inisialisasi mode: langsung masuk ke 3D Studio di Desktop & Mobile (kecuali user memilih Lite sebelumnya)
+  // Inisialisasi mode & sinkronisasi tema global (Siang/Malam dari localStorage 'expedient_theme')
   useEffect(() => {
     const savedMode = localStorage.getItem("sovereign_chosen_mode") as "lite" | "3d" | null;
     if (savedMode === "lite") {
@@ -86,6 +86,12 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
     } else {
       setViewMode("3d");
     }
+
+    const savedTheme =
+      localStorage.getItem("expedient_theme") ||
+      document.documentElement.getAttribute("data-theme") ||
+      "dark";
+    setIsLightMode(savedTheme === "light");
 
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -331,51 +337,39 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
         transition: "background 0.45s ease",
       }}
     >
-      {/* CSS Marble Gallery & Kintsugi Accent Veins (0 WebGL Overdraw) */}
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 1200 800"
-        preserveAspectRatio="none"
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-          zIndex: 1,
-          opacity: isLightMode ? 0.24 : 0.2,
-          transition: "opacity 0.45s ease",
-        }}
-      >
-        <path
-          d="M-40 160 C 260 220, 420 90, 740 190 T 1260 120"
-          fill="none"
-          stroke="#d4af37"
-          strokeWidth="1.4"
-          strokeOpacity="0.6"
-        />
-        <path
-          d="M-60 540 C 210 470, 520 640, 820 510 T 1260 610"
-          fill="none"
-          stroke="#d4af37"
-          strokeWidth="1.1"
-          strokeOpacity="0.45"
-        />
-        <path
-          d="M320 -20 C 390 210, 290 460, 420 820"
-          fill="none"
-          stroke={isLightMode ? "#c8b998" : "#1d3152"}
-          strokeWidth="1.8"
-          strokeOpacity="0.55"
-        />
-        <path
-          d="M890 -20 C 810 260, 960 520, 830 820"
-          fill="none"
-          stroke={isLightMode ? "#c8b998" : "#1d3152"}
-          strokeWidth="1.5"
-          strokeOpacity="0.45"
-        />
-      </svg>
+      {/* CSS Marble Gallery Fallback for Lite CSS Mode */}
+      {viewMode === "lite" && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 1200 800"
+          preserveAspectRatio="none"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+            zIndex: 1,
+            opacity: isLightMode ? 0.24 : 0.2,
+            transition: "opacity 0.45s ease",
+          }}
+        >
+          <path
+            d="M-40 160 C 260 220, 420 90, 740 190 T 1260 120"
+            fill="none"
+            stroke="#d4af37"
+            strokeWidth="1.4"
+            strokeOpacity="0.6"
+          />
+          <path
+            d="M-60 540 C 210 470, 520 640, 820 510 T 1260 610"
+            fill="none"
+            stroke="#d4af37"
+            strokeWidth="1.1"
+            strokeOpacity="0.45"
+          />
+        </svg>
+      )}
 
       {/* ========================================================================= */}
       {/* PRELOADER INITIAL                                                         */}

@@ -24,10 +24,10 @@ export interface LoadedCardAssets {
 }
 
 /**
- * Encodes three PBR surface properties into RGB channels of one texture:
- * - R: Holographic diffraction intensity (used by custom GLSL foil shader)
- * - G: Micro-surface roughness (roughnessMap)
- * - B: Metalness (metalnessMap)
+ * Encodes PBR surface attributes into RGB channels:
+ * - R: Restrained holographic diffraction intensity (edge foil ribbon & crest outer halo ONLY)
+ * - G: Surface roughness (roughnessMap — low values produce crisp piano-lacquer sheen)
+ * - B: Metalness (metalnessMap — gold foil & trim hit 0.98)
  */
 export function pbrSurface(holo: number, roughness: number, metalness: number): string {
   const r = Math.max(0, Math.min(255, Math.round(holo * 255)));
@@ -36,69 +36,20 @@ export function pbrSurface(holo: number, roughness: number, metalness: number): 
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-const PBR_CARD_DARK = pbrSurface(0.0, 0.48, 0.24);
-const PBR_CARD_LIGHT = pbrSurface(0.0, 0.34, 0.36);
-const PBR_FOIL_GOLD = pbrSurface(0.18, 0.15, 0.96);
-const PBR_HOLO_FOIL = pbrSurface(0.95, 0.14, 0.95);
-const PBR_HOLO_STRIP = pbrSurface(0.72, 0.22, 0.85);
-const PBR_GLASS = pbrSurface(0.04, 0.09, 0.08);
-const PBR_MAG_STRIPE = pbrSurface(0.0, 0.26, 0.12);
+// Iconic glossy dark obsidian + 24K stamped gold card finish (vivid across Day/Night galleries)
+const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.17, 0.34);
+const PBR_GOLD_FOIL = pbrSurface(0.04, 0.14, 0.98);
+const PBR_HOLO_ACCENT = pbrSurface(0.55, 0.16, 0.94);
+const PBR_GLASS = pbrSurface(0.0, 0.08, 0.05);
+const PBR_MAG_STRIPE = pbrSurface(0.0, 0.24, 0.12);
 const PBR_MATTE_QR = pbrSurface(0.0, 0.82, 0.02);
-const PBR_TEXT_PRIMARY = pbrSurface(0.1, 0.32, 0.65);
+const PBR_TEXT_FOIL = pbrSurface(0.0, 0.24, 0.72);
 
-interface Palette {
-  bgGradStart: string;
-  bgGradMid: string;
-  bgGradEnd: string;
-  grainLineA: string;
-  grainLineB: string;
-  guillocheStroke: string;
-  goldMain: string;
-  goldSoft: string;
-  textPrimary: string;
-  textMuted: string;
-  photoBg: string;
-  slotBg: string;
-  magStripe: string;
-  pbrBase: string;
-}
-
-function getPalette(theme: CardThemeMode): Palette {
-  if (theme === "light") {
-    return {
-      bgGradStart: "#ffffff",
-      bgGradMid: "#f5f2ea",
-      bgGradEnd: "#e7dfd0",
-      grainLineA: "rgba(180, 150, 95, 0.07)",
-      grainLineB: "rgba(255, 255, 255, 0.16)",
-      guillocheStroke: "rgba(156, 114, 30, 0.11)",
-      goldMain: "#9b7016",
-      goldSoft: "rgba(155, 112, 22, 0.38)",
-      textPrimary: "#18181b",
-      textMuted: "#52525b",
-      photoBg: "#e6dfd1",
-      slotBg: "#e9e3d5",
-      magStripe: "#1e2430",
-      pbrBase: PBR_CARD_LIGHT,
-    };
-  }
-  return {
-    bgGradStart: "#0f1726",
-    bgGradMid: "#080e1a",
-    bgGradEnd: "#04070e",
-    grainLineA: "rgba(42, 60, 92, 0.09)",
-    grainLineB: "rgba(0, 0, 0, 0.14)",
-    guillocheStroke: "rgba(212, 175, 55, 0.11)",
-    goldMain: "#d4af37",
-    goldSoft: "rgba(212, 175, 55, 0.35)",
-    textPrimary: "#f8fafc",
-    textMuted: "#9aa7b6",
-    photoBg: "#121b2b",
-    slotBg: "#03050a",
-    magStripe: "#05070d",
-    pbrBase: PBR_CARD_DARK,
-  };
-}
+const GOLD = "#d4af37";
+const GOLD_LIGHT = "#f5df96";
+const OBSIDIAN_TOP = "#0c1422";
+const OBSIDIAN_MID = "#060b14";
+const OBSIDIAN_BOT = "#03060c";
 
 /** Loads an image safely with CORS support; resolves to null on error or empty URL. */
 export function loadArtworkImage(url: string): Promise<HTMLImageElement | null> {
@@ -115,67 +66,110 @@ export function loadArtworkImage(url: string): Promise<HTMLImageElement | null> 
   });
 }
 
-function drawGuillocheBackground(
-  ctx: CanvasRenderingContext2D,
-  w: number,
-  h: number,
-  pal: Palette,
-  cx: number,
-  cy: number
-) {
-  const grad = ctx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, pal.bgGradStart);
-  grad.addColorStop(0.52, pal.bgGradMid);
-  grad.addColorStop(1, pal.bgGradEnd);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
+/** Creates an opaque architectural Kintsugi Marble backdrop canvas for the 3D studio wall. */
+export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCanvasElement {
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d")!;
 
-  // Fine brushed satin metal striations
-  for (let i = 0; i < w; i += 3) {
-    ctx.fillStyle = i % 6 === 0 ? pal.grainLineA : pal.grainLineB;
-    ctx.fillRect(i, 0, 1, h);
+  const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size * 0.72);
+  if (isDayMode) {
+    grad.addColorStop(0, "#ffffff");
+    grad.addColorStop(1, "#edeae2");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = "#cbc4b5";
+    ctx.lineWidth = Math.max(4, size * 0.005);
+  } else {
+    grad.addColorStop(0, "#0c182b");
+    grad.addColorStop(1, "#050911");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = "#182842";
+    ctx.lineWidth = Math.max(2, size * 0.0025);
   }
 
-  // Trigonometric guilloche security wave grid
-  ctx.save();
-  ctx.strokeStyle = pal.guillocheStroke;
-  ctx.lineWidth = 1.25;
-  const rows = Math.ceil(h / 42);
-  for (let r = 0; r < rows; r++) {
-    const baseY = r * 42;
+  for (let i = 0; i < 28; i++) {
     ctx.beginPath();
-    for (let x = 0; x <= w; x += 24) {
-      const y =
-        baseY +
-        Math.sin((x / w) * Math.PI * 5 + r * 0.45) * 14 +
-        Math.cos((x / w) * Math.PI * 9 - r * 0.3) * 6;
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+    ctx.moveTo(((i * 97) % 100) * 0.01 * size, 0);
+    for (let j = 1; j <= 6; j++) {
+      const px = (((i * 53 + j * 37) % 100) * 0.01) * size;
+      ctx.lineTo(px, (j / 6) * size);
     }
     ctx.stroke();
   }
 
-  // Geometric Islamic octagonal rosette watermark
-  ctx.translate(cx, cy);
-  ctx.strokeStyle = pal.goldSoft;
-  ctx.lineWidth = 1.2;
-  ctx.globalAlpha = 0.22;
-  for (let ring = 0; ring < 3; ring++) {
-    const rad = 170 + ring * 55;
-    ctx.save();
-    ctx.rotate((ring * Math.PI) / 8);
-    ctx.strokeRect(-rad * 0.707, -rad * 0.707, rad * 1.414, rad * 1.414);
-    ctx.rotate(Math.PI / 4);
-    ctx.strokeRect(-rad * 0.707, -rad * 0.707, rad * 1.414, rad * 1.414);
-    ctx.restore();
+  // Deterministic Kintsugi gold seams
+  ctx.globalAlpha = 0.92;
+  ctx.shadowBlur = Math.round(size * 0.01);
+  ctx.shadowColor = isDayMode ? "rgba(180,140,40,0.18)" : "#e5c158";
+  ctx.strokeStyle = isDayMode ? "#c89f3c" : "#e5c158";
+  ctx.lineWidth = isDayMode ? Math.max(2, size * 0.002) : Math.max(2.5, size * 0.003);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  for (let i = 0; i < 10; i++) {
+    ctx.beginPath();
+    let x = (((i * 71 + 19) % 100) * 0.01) * size;
+    let y = (((i * 43 + 11) % 85) * 0.01) * size;
+    ctx.moveTo(x, y);
+    for (let j = 0; j < 7; j++) {
+      x += ((((i * 17 + j * 29) % 100) - 50) * 0.005) * size;
+      y += (0.04 + (((i + j) * 19) % 10) * 0.008) * size;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
   }
-  ctx.restore();
+  ctx.shadowBlur = 0;
+  return canvas;
 }
 
-function drawBasePbrAndBump(targets: ArtworkPaintTargets, w: number, h: number, pal: Palette) {
-  const { pCtx, bCtx } = targets;
+function drawObsidianLacquerBase(
+  targets: ArtworkPaintTargets,
+  w: number,
+  h: number
+) {
+  const { cCtx, pCtx, bCtx } = targets;
+
+  const grad = cCtx.createLinearGradient(0, 0, w, h);
+  grad.addColorStop(0, OBSIDIAN_TOP);
+  grad.addColorStop(0.5, OBSIDIAN_MID);
+  grad.addColorStop(1, OBSIDIAN_BOT);
+  cCtx.fillStyle = grad;
+  cCtx.fillRect(0, 0, w, h);
+
+  // Subtle vertical satin hairline grain
+  cCtx.globalAlpha = 0.028;
+  for (let i = 0; i < w; i += 3) {
+    cCtx.fillStyle = i % 6 === 0 ? "#283956" : "#000000";
+    cCtx.fillRect(i, 0, 1, h);
+  }
+  cCtx.globalAlpha = 1.0;
+
+  // Delicate architectural guilloche hairlines (barely visible so obsidian stays deep & clean)
+  cCtx.save();
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.042)";
+  cCtx.lineWidth = 1.1;
+  const rows = Math.ceil(h / 96);
+  for (let r = 0; r < rows; r++) {
+    const baseY = r * 96 + 48;
+    cCtx.beginPath();
+    for (let x = 0; x <= w; x += 32) {
+      const y = baseY + Math.sin((x / w) * Math.PI * 4 + r * 0.6) * 18;
+      if (x === 0) cCtx.moveTo(x, y);
+      else cCtx.lineTo(x, y);
+    }
+    cCtx.stroke();
+  }
+  cCtx.restore();
+
   if (pCtx) {
-    pCtx.fillStyle = pal.pbrBase;
+    pCtx.fillStyle = PBR_OBSIDIAN_LACQUER;
     pCtx.fillRect(0, 0, w, h);
   }
   if (bCtx) {
@@ -184,38 +178,30 @@ function drawBasePbrAndBump(targets: ArtworkPaintTargets, w: number, h: number, 
   }
 }
 
-function drawMicroSecurityBorders(
+function drawMicroBorders(
   targets: ArtworkPaintTargets,
   w: number,
   h: number,
-  pal: Palette,
-  inset = 36,
-  radius = 34
+  inset = 34,
+  radius = 32
 ) {
   const { cCtx, pCtx, bCtx } = targets;
-
-  cCtx.strokeStyle = pal.goldMain;
-  cCtx.lineWidth = 3;
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.55)";
+  cCtx.lineWidth = 2.5;
   cCtx.beginPath();
   cCtx.roundRect(inset, inset, w - inset * 2, h - inset * 2, radius);
   cCtx.stroke();
 
-  cCtx.strokeStyle = pal.goldSoft;
-  cCtx.lineWidth = 1.4;
-  cCtx.beginPath();
-  cCtx.roundRect(inset + 9, inset + 9, w - (inset + 9) * 2, h - (inset + 9) * 2, radius - 6);
-  cCtx.stroke();
-
   if (pCtx) {
-    pCtx.strokeStyle = PBR_FOIL_GOLD;
-    pCtx.lineWidth = 4;
+    pCtx.strokeStyle = PBR_GOLD_FOIL;
+    pCtx.lineWidth = 3;
     pCtx.beginPath();
     pCtx.roundRect(inset, inset, w - inset * 2, h - inset * 2, radius);
     pCtx.stroke();
   }
   if (bCtx) {
-    bCtx.strokeStyle = "#b0b0b0";
-    bCtx.lineWidth = 3;
+    bCtx.strokeStyle = "#909090";
+    bCtx.lineWidth = 2.5;
     bCtx.beginPath();
     bCtx.roundRect(inset, inset, w - inset * 2, h - inset * 2, radius);
     bCtx.stroke();
@@ -232,16 +218,17 @@ function drawSmartEmvChip(
 ) {
   const { cCtx, pCtx, bCtx } = targets;
   const grad = cCtx.createLinearGradient(x, y, x + w, y + h);
-  grad.addColorStop(0, "#fce8a6");
-  grad.addColorStop(0.5, "#d4af37");
-  grad.addColorStop(1, "#9a7215");
+  grad.addColorStop(0, "#fce6a4");
+  grad.addColorStop(0.5, GOLD);
+  grad.addColorStop(1, "#9a7114");
   cCtx.fillStyle = grad;
   cCtx.beginPath();
   cCtx.roundRect(x, y, w, h, r);
   cCtx.fill();
 
   if (pCtx) {
-    pCtx.fillStyle = PBR_HOLO_FOIL;
+    // True crisp metallic gold chip without washed-out rainbow glow
+    pCtx.fillStyle = PBR_GOLD_FOIL;
     pCtx.beginPath();
     pCtx.roundRect(x, y, w, h, r);
     pCtx.fill();
@@ -283,7 +270,7 @@ function drawSmartEmvChip(
   };
 
   drawPaths(cCtx, "rgba(72, 46, 0, 0.58)");
-  if (pCtx) drawPaths(pCtx, PBR_CARD_DARK);
+  if (pCtx) drawPaths(pCtx, PBR_OBSIDIAN_LACQUER);
   if (bCtx) drawPaths(bCtx, "#141414");
 }
 
@@ -292,20 +279,18 @@ function drawCrestBadge(
   crestImg: HTMLImageElement | null | undefined,
   cx: number,
   cy: number,
-  radius: number,
-  pal: Palette
+  radius: number
 ) {
   const { cCtx, pCtx, bCtx } = targets;
 
-  // Holographic backing ring
-  const holoGrad = cCtx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
-  holoGrad.addColorStop(0, "#d4af37");
-  holoGrad.addColorStop(0.5, "#fff4cf");
-  holoGrad.addColorStop(1, "#9a6f14");
+  const haloGrad = cCtx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
+  haloGrad.addColorStop(0, GOLD);
+  haloGrad.addColorStop(0.5, GOLD_LIGHT);
+  haloGrad.addColorStop(1, "#9a6f14");
 
   cCtx.save();
-  cCtx.strokeStyle = holoGrad;
-  cCtx.lineWidth = 4;
+  cCtx.strokeStyle = haloGrad;
+  cCtx.lineWidth = 4.5;
   cCtx.beginPath();
   cCtx.arc(cx, cy, radius, 0, Math.PI * 2);
   cCtx.stroke();
@@ -314,14 +299,14 @@ function drawCrestBadge(
     cCtx.beginPath();
     cCtx.arc(cx, cy, radius - 4, 0, Math.PI * 2);
     cCtx.clip();
-    const size = radius * 2.05;
+    const size = radius * 2.04;
     cCtx.drawImage(crestImg, cx - size / 2, cy - size / 2, size, size);
   } else {
-    cCtx.fillStyle = pal.slotBg;
+    cCtx.fillStyle = OBSIDIAN_MID;
     cCtx.beginPath();
-    cCtx.arc(cx, cy, radius - 5, 0, Math.PI * 2);
+    cCtx.arc(cx, cy, radius - 4, 0, Math.PI * 2);
     cCtx.fill();
-    cCtx.fillStyle = pal.goldMain;
+    cCtx.fillStyle = GOLD;
     cCtx.font = `bold ${Math.round(radius * 0.65)}px "Playfair Display", serif`;
     cCtx.textAlign = "center";
     cCtx.textBaseline = "middle";
@@ -329,28 +314,29 @@ function drawCrestBadge(
   }
   cCtx.restore();
 
+  // Subtle holographic accent ONLY on outer gold bezel ring (keeps center crest vivid!)
   if (pCtx) {
-    pCtx.fillStyle = PBR_HOLO_FOIL;
+    pCtx.save();
+    pCtx.strokeStyle = PBR_HOLO_ACCENT;
+    pCtx.lineWidth = 7;
     pCtx.beginPath();
     pCtx.arc(cx, cy, radius, 0, Math.PI * 2);
-    pCtx.fill();
+    pCtx.stroke();
+    pCtx.restore();
   }
   if (bCtx) {
-    bCtx.fillStyle = "#ffffff";
+    bCtx.strokeStyle = "#ffffff";
+    bCtx.lineWidth = 5;
     bCtx.beginPath();
     bCtx.arc(cx, cy, radius, 0, Math.PI * 2);
-    bCtx.fill();
+    bCtx.stroke();
   }
 }
 
-/**
- * Draws the die-cut lanyard slot collar rim around the real ExtrudeGeometry hole
- * (matches x=412..612, y=87..132 on the 1024x1624 canvas coordinate space).
- */
-function drawSlotCollarFraming(targets: ArtworkPaintTargets, pal: Palette) {
+function drawSlotCollarFraming(targets: ArtworkPaintTargets) {
   const { cCtx, pCtx } = targets;
   cCtx.save();
-  cCtx.strokeStyle = pal.goldMain;
+  cCtx.strokeStyle = GOLD;
   cCtx.lineWidth = 4;
   cCtx.beginPath();
   cCtx.roundRect(408, 84, 208, 52, 26);
@@ -358,7 +344,7 @@ function drawSlotCollarFraming(targets: ArtworkPaintTargets, pal: Palette) {
   cCtx.restore();
 
   if (pCtx) {
-    pCtx.strokeStyle = PBR_FOIL_GOLD;
+    pCtx.strokeStyle = PBR_GOLD_FOIL;
     pCtx.lineWidth = 6;
     pCtx.beginPath();
     pCtx.roundRect(408, 84, 208, 52, 26);
@@ -366,66 +352,58 @@ function drawSlotCollarFraming(targets: ArtworkPaintTargets, pal: Palette) {
   }
 }
 
-/** Paints Vertical ID Card Front onto any scaled 1024x1624 canvas context. */
+/** Paints Vertical ID Card Front (Signature Glossy Black Obsidian + 24K Gold Foil). */
 export function drawIdFrontFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
-  theme: CardThemeMode,
+  _theme: CardThemeMode,
   assets: LoadedCardAssets
 ) {
   const W = 1024;
   const H = 1624;
-  const pal = getPalette(theme);
   const { cCtx, pCtx, bCtx } = targets;
 
-  drawGuillocheBackground(cCtx, W, H, pal, 512, 740);
-  drawBasePbrAndBump(targets, W, H, pal);
+  drawObsidianLacquerBase(targets, W, H);
 
-  // Subtle centered official crest watermark behind content
+  // Subtle crest watermark behind photo frame
   if (assets.crestImg) {
     cCtx.save();
-    cCtx.globalAlpha = theme === "light" ? 0.08 : 0.07;
-    cCtx.drawImage(assets.crestImg, 242, 470, 540, 540);
+    cCtx.globalAlpha = 0.06;
+    cCtx.drawImage(assets.crestImg, 252, 490, 520, 520);
     cCtx.restore();
   }
 
-  // Holographic left foil ribbon strip
-  const foilGrad = cCtx.createLinearGradient(56, 40, 82, H - 40);
-  foilGrad.addColorStop(0, "#d4af37");
-  foilGrad.addColorStop(0.35, "#f7e39c");
-  foilGrad.addColorStop(0.65, "#9c7014");
-  foilGrad.addColorStop(1, "#d4af37");
-  cCtx.fillStyle = foilGrad;
-  cCtx.fillRect(64, 52, 10, H - 104);
-  cCtx.fillRect(82, 52, 3, H - 104);
-
+  // Left vertical gold foil security strip
+  cCtx.fillStyle = GOLD;
+  cCtx.fillRect(58, 52, 11, H - 104);
+  cCtx.fillRect(76, 52, 2.5, H - 104);
   if (pCtx) {
-    pCtx.fillStyle = PBR_HOLO_STRIP;
-    pCtx.fillRect(62, 52, 24, H - 104);
+    pCtx.fillStyle = PBR_HOLO_ACCENT;
+    pCtx.fillRect(56, 52, 22, H - 104);
   }
   if (bCtx) {
-    bCtx.fillStyle = "#c4c4c4";
-    bCtx.fillRect(64, 52, 10, H - 104);
-    bCtx.fillRect(82, 52, 3, H - 104);
+    bCtx.fillStyle = "#c0c0c0";
+    bCtx.fillRect(58, 52, 11, H - 104);
   }
 
-  drawMicroSecurityBorders(targets, W, H, pal, 36, 36);
-  drawSlotCollarFraming(targets, pal);
+  drawMicroBorders(targets, W, H, 34, 34);
+  drawSlotCollarFraming(targets);
 
-  // Header brand + Crest Seal + Smart Chip safely below die-cut slot hole (y > 155)
+  // Header brand + Smart Chip + Crest Seal safely below slot hole
   drawSmartEmvChip(targets, 128, 178, 124, 96, 16);
 
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.textAlign = "left";
+  cCtx.fillStyle = GOLD;
   cCtx.font = 'bold 34px "Playfair Display", serif';
-  cCtx.letterSpacing = "7px";
-  cCtx.fillText("EXPEDIENT 43", 288, 224);
-  cCtx.fillStyle = pal.textMuted;
+  cCtx.letterSpacing = "6px";
+  cCtx.fillText("EXPEDIENT 43", 284, 224);
+  cCtx.fillStyle = "#a3b1c2";
   cCtx.font = '600 18px "Inter", sans-serif';
-  cCtx.letterSpacing = "4px";
-  cCtx.fillText("PONDOK MODERN ARRISALAH", 288, 260);
+  cCtx.letterSpacing = "3.5px";
+  cCtx.fillText("PONDOK MODERN ARRISALAH", 284, 260);
   cCtx.letterSpacing = "0px";
 
-  drawCrestBadge(targets, assets.crestImg, 830, 232, 74, pal);
+  drawCrestBadge(targets, assets.crestImg, 830, 232, 74);
 
   // Portrait Photo Frame
   const photoX = 148;
@@ -435,10 +413,10 @@ export function drawIdFrontFace(
 
   cCtx.save();
   cCtx.beginPath();
-  cCtx.roundRect(photoX, photoY, photoW, photoH, 24);
+  cCtx.roundRect(photoX, photoY, photoW, photoH, 22);
   cCtx.clip();
 
-  cCtx.fillStyle = pal.photoBg;
+  cCtx.fillStyle = "#111a28";
   cCtx.fillRect(photoX, photoY, photoW, photoH);
 
   if (assets.avatarImg) {
@@ -453,13 +431,12 @@ export function drawIdFrontFace(
       dh
     );
     const sheen = cCtx.createLinearGradient(photoX, photoY, photoX + photoW, photoY + photoH);
-    sheen.addColorStop(0, "rgba(255,255,255,0.08)");
-    sheen.addColorStop(1, "rgba(0,0,0,0.34)");
+    sheen.addColorStop(0, "rgba(255,255,255,0.06)");
+    sheen.addColorStop(1, "rgba(0,0,0,0.38)");
     cCtx.fillStyle = sheen;
     cCtx.fillRect(photoX, photoY, photoW, photoH);
   } else {
-    // Elegant silhouette placeholder
-    cCtx.fillStyle = theme === "light" ? "#cfc7b7" : "#1c2638";
+    cCtx.fillStyle = "#1c2638";
     cCtx.beginPath();
     cCtx.arc(photoX + photoW / 2, photoY + 250, 118, 0, Math.PI * 2);
     cCtx.fill();
@@ -469,36 +446,35 @@ export function drawIdFrontFace(
   }
   cCtx.restore();
 
-  cCtx.strokeStyle = pal.goldMain;
+  cCtx.strokeStyle = GOLD;
   cCtx.lineWidth = 4;
   cCtx.beginPath();
-  cCtx.roundRect(photoX, photoY, photoW, photoH, 24);
+  cCtx.roundRect(photoX, photoY, photoW, photoH, 22);
   cCtx.stroke();
 
   if (pCtx) {
     pCtx.fillStyle = PBR_GLASS;
     pCtx.beginPath();
-    pCtx.roundRect(photoX, photoY, photoW, photoH, 24);
+    pCtx.roundRect(photoX, photoY, photoW, photoH, 22);
     pCtx.fill();
   }
 
-  // Name & Alumni Rank
-  cCtx.textAlign = "left";
-  cCtx.fillStyle = pal.textPrimary;
+  // Name & Alumni Title
+  cCtx.fillStyle = "#ffffff";
   cCtx.font = 'bold 58px "Playfair Display", serif';
   cCtx.fillText(identity.nama.toUpperCase(), 148, 1126, 728);
 
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = '700 26px "Inter", sans-serif';
   cCtx.letterSpacing = "4.5px";
   cCtx.fillText(identity.angkatanLabel, 148, 1184, 728);
   cCtx.letterSpacing = "0px";
 
   if (pCtx) {
-    pCtx.fillStyle = PBR_TEXT_PRIMARY;
+    pCtx.fillStyle = PBR_TEXT_FOIL;
     pCtx.font = 'bold 58px "Playfair Display", serif';
     pCtx.fillText(identity.nama.toUpperCase(), 148, 1126, 728);
-    pCtx.fillStyle = PBR_FOIL_GOLD;
+    pCtx.fillStyle = PBR_GOLD_FOIL;
     pCtx.font = '700 26px "Inter", sans-serif';
     pCtx.letterSpacing = "4.5px";
     pCtx.fillText(identity.angkatanLabel, 148, 1184, 728);
@@ -510,27 +486,25 @@ export function drawIdFrontFace(
     bCtx.fillText(identity.nama.toUpperCase(), 148, 1126, 728);
   }
 
-  // Divider gold strip
-  cCtx.fillStyle = pal.goldSoft;
+  cCtx.fillStyle = "rgba(212,175,55,0.34)";
   cCtx.fillRect(148, 1236, 728, 3);
   if (pCtx) {
-    pCtx.fillStyle = PBR_FOIL_GOLD;
+    pCtx.fillStyle = PBR_GOLD_FOIL;
     pCtx.fillRect(148, 1236, 728, 3);
   }
 
   // ID Metadata & Barcode
-  cCtx.fillStyle = pal.textMuted;
+  cCtx.fillStyle = "#9aa7b6";
   cCtx.font = "600 28px monospace";
   cCtx.fillText(`ID: ${identity.nomorId}`, 148, 1316);
   cCtx.font = "500 24px monospace";
   cCtx.fillText(identity.berlakuLabel, 148, 1368);
 
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = "700 22px monospace";
   cCtx.fillText("STATUS • TERVERIFIKASI", 148, 1428);
 
-  // Deterministic crisp barcode
-  cCtx.fillStyle = theme === "light" ? "#18181b" : "#e2e8f0";
+  cCtx.fillStyle = "#e2e8f0";
   const barWidths = [6, 2, 4, 2, 8, 3, 2, 6, 2, 5, 3, 7, 2, 4, 2, 6, 3, 8, 2, 4, 3, 6, 2, 5];
   let bx = 636;
   for (const bw of barWidths) {
@@ -543,34 +517,32 @@ export function drawIdFrontFace(
 export function drawIdBackFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
-  theme: CardThemeMode,
+  _theme: CardThemeMode,
   assets: LoadedCardAssets
 ) {
   const W = 1024;
   const H = 1624;
-  const pal = getPalette(theme);
   const { cCtx, pCtx } = targets;
 
-  drawGuillocheBackground(cCtx, W, H, pal, 512, 860);
-  drawBasePbrAndBump(targets, W, H, pal);
-  drawMicroSecurityBorders(targets, W, H, pal, 36, 36);
-  drawSlotCollarFraming(targets, pal);
+  drawObsidianLacquerBase(targets, W, H);
+  drawMicroBorders(targets, W, H, 34, 34);
+  drawSlotCollarFraming(targets);
 
-  // Magnetic Stripe cleanly below slot punch
-  cCtx.fillStyle = pal.magStripe;
-  cCtx.fillRect(38, 184, W - 76, 170);
+  // Magnetic Stripe
+  cCtx.fillStyle = "#03050a";
+  cCtx.fillRect(36, 184, W - 72, 170);
   if (pCtx) {
     pCtx.fillStyle = PBR_MAG_STRIPE;
-    pCtx.fillRect(38, 184, W - 76, 170);
+    pCtx.fillRect(36, 184, W - 72, 170);
   }
 
   cCtx.textAlign = "center";
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = 'bold 40px "Playfair Display", serif';
   cCtx.fillText("KARTU TANDA ALUMNI RESMI", 512, 468);
   cCtx.fillRect(372, 498, 280, 3);
 
-  cCtx.fillStyle = pal.textMuted;
+  cCtx.fillStyle = "#9aa7b6";
   cCtx.font = '400 26px "Inter", sans-serif';
   const copy = [
     "Expedient Generation 43",
@@ -580,7 +552,6 @@ export function drawIdBackFace(
   ];
   copy.forEach((line, i) => cCtx.fillText(line, 512, 580 + i * 44));
 
-  // QR Container Plate (Matte white for effortless scanning in dark/light mode)
   const qx = 322;
   const qy = 820;
   const qs = 380;
@@ -588,7 +559,7 @@ export function drawIdBackFace(
   cCtx.beginPath();
   cCtx.roundRect(qx, qy, qs, qs, 22);
   cCtx.fill();
-  cCtx.strokeStyle = pal.goldMain;
+  cCtx.strokeStyle = GOLD;
   cCtx.lineWidth = 6;
   cCtx.stroke();
 
@@ -602,16 +573,15 @@ export function drawIdBackFace(
     pCtx.fill();
   }
 
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = "700 22px monospace";
   cCtx.fillText("PINDAI QR VERIFIKASI IDENTITAS", 512, 1260);
 
-  // Signature Strip
-  cCtx.fillStyle = theme === "light" ? "#e5dfd0" : "#f8fafc";
+  cCtx.fillStyle = "#f8fafc";
   cCtx.beginPath();
   cCtx.roundRect(184, 1340, 656, 76, 12);
   cCtx.fill();
-  cCtx.strokeStyle = pal.goldSoft;
+  cCtx.strokeStyle = "rgba(212,175,55,0.45)";
   cCtx.lineWidth = 2;
   cCtx.stroke();
 
@@ -625,35 +595,32 @@ export function drawIdBackFace(
 export function drawKtaFrontFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
-  theme: CardThemeMode,
+  _theme: CardThemeMode,
   assets: LoadedCardAssets
 ) {
   const W = 1024;
   const H = 640;
-  const pal = getPalette(theme);
   const { cCtx, pCtx, bCtx } = targets;
 
-  drawGuillocheBackground(cCtx, W, H, pal, 512, 320);
-  drawBasePbrAndBump(targets, W, H, pal);
+  drawObsidianLacquerBase(targets, W, H);
 
   if (assets.crestImg) {
     cCtx.save();
-    cCtx.globalAlpha = theme === "light" ? 0.08 : 0.07;
+    cCtx.globalAlpha = 0.06;
     cCtx.drawImage(assets.crestImg, 312, 120, 400, 400);
     cCtx.restore();
   }
 
-  drawMicroSecurityBorders(targets, W, H, pal, 24, 28);
+  drawMicroBorders(targets, W, H, 24, 28);
   drawSmartEmvChip(targets, 72, 68, 108, 82, 14);
 
-  // Top-right crest + brand title
-  drawCrestBadge(targets, assets.crestImg, 916, 114, 52, pal);
+  drawCrestBadge(targets, assets.crestImg, 916, 114, 52);
   cCtx.textAlign = "right";
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = 'bold 34px "Playfair Display", serif';
   cCtx.letterSpacing = "7px";
   cCtx.fillText("EXPEDIENT", 844, 110);
-  cCtx.fillStyle = pal.textMuted;
+  cCtx.fillStyle = "#9aa7b6";
   cCtx.font = "600 18px monospace";
   cCtx.letterSpacing = "4px";
   cCtx.fillText("ANGKATAN 43 • ARRISALAH", 844, 144);
@@ -661,21 +628,20 @@ export function drawKtaFrontFace(
   cCtx.textAlign = "left";
 
   if (pCtx) {
-    pCtx.fillStyle = PBR_HOLO_FOIL;
+    pCtx.fillStyle = PBR_GOLD_FOIL;
     pCtx.font = 'bold 34px "Playfair Display", serif';
     pCtx.textAlign = "right";
     pCtx.fillText("EXPEDIENT", 844, 110);
     pCtx.textAlign = "left";
   }
 
-  // Embossed Card Number
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = "bold 40px monospace";
   cCtx.letterSpacing = "3px";
   cCtx.fillText(identity.maskedCardNumber, 72, 320);
   cCtx.letterSpacing = "0px";
   if (pCtx) {
-    pCtx.fillStyle = PBR_FOIL_GOLD;
+    pCtx.fillStyle = PBR_GOLD_FOIL;
     pCtx.font = "bold 40px monospace";
     pCtx.fillText(identity.maskedCardNumber, 72, 320);
   }
@@ -685,22 +651,20 @@ export function drawKtaFrontFace(
     bCtx.fillText(identity.maskedCardNumber, 72, 320);
   }
 
-  // Cardholder Name + Metadata
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = '700 17px "Inter", sans-serif';
   cCtx.letterSpacing = "3px";
   cCtx.fillText("PEMEGANG KTA RESMI", 72, 434);
   cCtx.letterSpacing = "0px";
 
-  cCtx.fillStyle = pal.textPrimary;
+  cCtx.fillStyle = "#ffffff";
   cCtx.font = 'bold 40px "Inter", sans-serif';
   cCtx.fillText(identity.nama.toUpperCase(), 72, 488, 590);
 
-  cCtx.fillStyle = pal.textMuted;
+  cCtx.fillStyle = "#9aa7b6";
   cCtx.font = "600 22px monospace";
   cCtx.fillText(`ID: ${identity.nomorId}  •  ${identity.berlakuLabel}`, 72, 540, 590);
 
-  // Circular Avatar Frame right-bottom
   const cx = 834;
   const cy = 428;
   const rad = 112;
@@ -708,7 +672,7 @@ export function drawKtaFrontFace(
   cCtx.beginPath();
   cCtx.arc(cx, cy, rad, 0, Math.PI * 2);
   cCtx.clip();
-  cCtx.fillStyle = pal.photoBg;
+  cCtx.fillStyle = "#111a28";
   cCtx.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
 
   if (assets.avatarImg) {
@@ -717,7 +681,7 @@ export function drawKtaFrontFace(
     const dh = assets.avatarImg.height * s;
     cCtx.drawImage(assets.avatarImg, cx - dw / 2, cy - dh / 2, dw, dh);
   } else {
-    cCtx.fillStyle = pal.goldMain;
+    cCtx.fillStyle = GOLD;
     cCtx.font = 'bold 84px "Playfair Display", serif';
     cCtx.textAlign = "center";
     cCtx.textBaseline = "middle";
@@ -725,7 +689,7 @@ export function drawKtaFrontFace(
   }
   cCtx.restore();
 
-  cCtx.strokeStyle = pal.goldMain;
+  cCtx.strokeStyle = GOLD;
   cCtx.lineWidth = 5;
   cCtx.beginPath();
   cCtx.arc(cx, cy, rad, 0, Math.PI * 2);
@@ -743,20 +707,17 @@ export function drawKtaFrontFace(
 export function drawKtaBackFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
-  theme: CardThemeMode,
+  _theme: CardThemeMode,
   assets: LoadedCardAssets
 ) {
   const W = 1024;
   const H = 640;
-  const pal = getPalette(theme);
   const { cCtx, pCtx } = targets;
 
-  drawGuillocheBackground(cCtx, W, H, pal, 420, 340);
-  drawBasePbrAndBump(targets, W, H, pal);
-  drawMicroSecurityBorders(targets, W, H, pal, 24, 28);
+  drawObsidianLacquerBase(targets, W, H);
+  drawMicroBorders(targets, W, H, 24, 28);
 
-  // Magnetic Stripe
-  cCtx.fillStyle = pal.magStripe;
+  cCtx.fillStyle = "#03050a";
   cCtx.fillRect(26, 68, W - 52, 94);
   if (pCtx) {
     pCtx.fillStyle = PBR_MAG_STRIPE;
@@ -764,24 +725,23 @@ export function drawKtaBackFace(
   }
 
   cCtx.textAlign = "left";
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = 'bold 30px "Playfair Display", serif';
   cCtx.fillText("VERIFIKASI ALUMNI RESMI", 72, 246);
 
-  cCtx.fillStyle = pal.textMuted;
+  cCtx.fillStyle = "#9aa7b6";
   cCtx.font = '400 22px "Inter", sans-serif';
   cCtx.fillText("Expedient Generation 43 • Pondok Modern Arrisalah", 72, 304);
   cCtx.fillText("Slahung, Ponorogo • Jawa Timur, Indonesia", 72, 344);
 
-  cCtx.fillStyle = pal.goldMain;
+  cCtx.fillStyle = GOLD;
   cCtx.font = "700 22px monospace";
   cCtx.fillText(`ID: ${identity.nomorId} • ${identity.berlakuLabel}`, 72, 426);
 
-  cCtx.fillStyle = pal.textMuted;
+  cCtx.fillStyle = "#cbd5e1";
   cCtx.font = 'italic 24px "Playfair Display", serif';
   cCtx.fillText(identity.panggilan, 72, 514);
 
-  // QR Box right side
   const qx = 716;
   const qy = 228;
   const qs = 236;
@@ -789,7 +749,7 @@ export function drawKtaBackFace(
   cCtx.beginPath();
   cCtx.roundRect(qx, qy, qs, qs, 18);
   cCtx.fill();
-  cCtx.strokeStyle = pal.goldMain;
+  cCtx.strokeStyle = GOLD;
   cCtx.lineWidth = 4;
   cCtx.stroke();
 
@@ -813,11 +773,10 @@ export function createWovenStrapCanvas(): HTMLCanvasElement {
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
 
-  ctx.fillStyle = "#121824";
+  ctx.fillStyle = "#111722";
   ctx.fillRect(0, 0, w, h);
 
-  // Subtle woven herringbone ribs
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.045)";
   ctx.lineWidth = 2;
   for (let y = -16; y < h + 16; y += 8) {
     ctx.beginPath();
@@ -827,16 +786,14 @@ export function createWovenStrapCanvas(): HTMLCanvasElement {
     ctx.stroke();
   }
 
-  // Golden satin edge pipings
-  ctx.fillStyle = "rgba(212, 175, 55, 0.55)";
+  ctx.fillStyle = "rgba(212, 175, 55, 0.6)";
   ctx.fillRect(10, 0, 5, h);
   ctx.fillRect(w - 15, 0, 5, h);
 
-  // Subtle vertical woven typography along center of strap
   ctx.save();
   ctx.translate(w / 2, h / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillStyle = "rgba(212, 175, 55, 0.28)";
+  ctx.fillStyle = "rgba(212, 175, 55, 0.34)";
   ctx.font = '700 22px "Inter", sans-serif';
   ctx.letterSpacing = "5px";
   ctx.textAlign = "center";

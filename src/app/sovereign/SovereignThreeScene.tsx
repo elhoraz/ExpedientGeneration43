@@ -6,6 +6,7 @@ import {
   type CardIdentityData,
   type CardThemeMode,
   type LoadedCardAssets,
+  createMarbleWallCanvas,
   createWovenStrapCanvas,
   drawIdBackFace,
   drawIdFrontFace,
@@ -47,74 +48,9 @@ interface CardTextureSet {
 }
 
 /**
- * Builds compact dark/light photographic softbox cubemap reflections so
- * brushed metal, stamped 24K gold foil, and bevel edges glint crisply on every GPU tier.
- */
-function buildCardStudioEnv(
-  THREE: typeof THREE_TYPES,
-  pmrem: THREE_TYPES.PMREMGenerator,
-  isDayMode: boolean
-): THREE_TYPES.WebGLRenderTarget {
-  const envScene = new THREE.Scene();
-  envScene.background = new THREE.Color(isDayMode ? 0xe5dfd3 : 0x090d16);
-
-  const addPanel = (
-    w: number,
-    h: number,
-    pos: [number, number, number],
-    col: number,
-    intensity: number
-  ) => {
-    const geo = new THREE.PlaneGeometry(w, h);
-    const mat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(col).multiplyScalar(intensity),
-      side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(...pos);
-    mesh.lookAt(0, 0, 0);
-    envScene.add(mesh);
-  };
-
-  addPanel(8, 3.6, [3.5, 6.2, 5.2], 0xfff6e3, isDayMode ? 2.4 : 2.3);
-  addPanel(6, 5.0, [-6.5, 2.5, 3.8], 0xd9e8ff, isDayMode ? 1.5 : 1.15);
-  addPanel(7, 2.5, [0.4, 3.8, -6.2], 0xffe29e, 2.0);
-  addPanel(2.6, 8.0, [5.5, -2.5, 4.5], 0xfff0c2, isDayMode ? 1.45 : 1.75);
-
-  const rt = pmrem.fromScene(envScene, 0.04);
-  envScene.traverse((obj) => {
-    const meshObj = obj as THREE_TYPES.Mesh;
-    meshObj.geometry?.dispose?.();
-    if (Array.isArray(meshObj.material)) {
-      meshObj.material.forEach((m) => m.dispose());
-    } else {
-      meshObj.material?.dispose?.();
-    }
-  });
-  return rt;
-}
-
-/** Creates a lightweight projected soft drop-shadow texture. */
-function createSoftShadowTexture(THREE: typeof THREE_TYPES): THREE_TYPES.CanvasTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 128;
-  canvas.height = 128;
-  const ctx = canvas.getContext("2d")!;
-  const grad = ctx.createRadialGradient(64, 64, 6, 64, 64, 62);
-  grad.addColorStop(0, "rgba(0, 0, 0, 0.7)");
-  grad.addColorStop(0.45, "rgba(0, 0, 0, 0.32)");
-  grad.addColorStop(1, "rgba(0, 0, 0, 0)");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 128, 128);
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.needsUpdate = true;
-  return tex;
-}
-
-/**
  * Generates an extruded beveled card BufferGeometry with optional true pass-through
- * die-cut lanyard slot hole and normalized front (+Z) / back (-Z) / edge (gold bevel) UVs.
- * Material groups: 0 = 24K bevel edges & inner hole wall, 1 = Front face, 2 = Back face.
+ * die-cut lanyard slot hole and strict planar Front (+Z) / Back (-Z) UV separation
+ * so thick chamfered 24K gold bevels never bleed into card artwork.
  */
 function createDieCutCardGeometry(
   THREE: typeof THREE_TYPES,
@@ -144,7 +80,6 @@ function createDieCutCardGeometry(
     const sw = slotHole.width / 2;
     const sr = slotHole.height / 2;
     const cy = slotHole.centerY;
-    // Clockwise inner winding for true pass-through die-cut slot
     const hole = new THREE.Path();
     hole.moveTo(-sw + sr, cy + sr);
     hole.lineTo(sw - sr, cy + sr);
@@ -154,13 +89,11 @@ function createDieCutCardGeometry(
     shape.holes.push(hole);
   }
 
-  const bevelThickness = 0.022;
-  const bevelSize = 0.022;
   const raw = new THREE.ExtrudeGeometry(shape, {
     depth: bodyDepth,
     bevelEnabled: true,
-    bevelThickness,
-    bevelSize,
+    bevelThickness: 0.022,
+    bevelSize: 0.022,
     bevelSegments: isMobile ? 2 : 3,
     curveSegments: isMobile ? 10 : 16,
   });
@@ -169,6 +102,14 @@ function createDieCutCardGeometry(
   const srcPos = raw.attributes.position;
   const srcNrm = raw.attributes.normal;
   const srcUv = raw.attributes.uv;
+
+  let maxZ = -Infinity;
+  let minZ = Infinity;
+  for (let i = 0; i < srcPos.count; i++) {
+    const z = srcPos.getZ(i);
+    if (z > maxZ) maxZ = z;
+    if (z < minZ) minZ = z;
+  }
 
   const frontIdx: number[] = [];
   const backIdx: number[] = [];
@@ -183,12 +124,19 @@ function createDieCutCardGeometry(
   let bMinY = Infinity;
   let bMaxY = -Infinity;
 
-  const frontThreshold = bodyDepth * 0.4;
+  // Strict flat-cap check ensures chamfer bevel rings stay 100% in Group 0 (Gold Bevel Edge)
   for (let i = 0; i < srcPos.count; i += 3) {
     const nz = (srcNrm.getZ(i) + srcNrm.getZ(i + 1) + srcNrm.getZ(i + 2)) / 3;
-    const cz = (srcPos.getZ(i) + srcPos.getZ(i + 1) + srcPos.getZ(i + 2)) / 3;
+    const z0 = srcPos.getZ(i);
+    const z1 = srcPos.getZ(i + 1);
+    const z2 = srcPos.getZ(i + 2);
 
-    if (nz > 0.9 && cz > frontThreshold) {
+    if (
+      nz > 0.995 &&
+      Math.abs(z0 - maxZ) < 0.001 &&
+      Math.abs(z1 - maxZ) < 0.001 &&
+      Math.abs(z2 - maxZ) < 0.001
+    ) {
       frontIdx.push(i, i + 1, i + 2);
       for (let k = 0; k < 3; k++) {
         fMinX = Math.min(fMinX, srcPos.getX(i + k));
@@ -196,7 +144,12 @@ function createDieCutCardGeometry(
         fMinY = Math.min(fMinY, srcPos.getY(i + k));
         fMaxY = Math.max(fMaxY, srcPos.getY(i + k));
       }
-    } else if (nz < -0.9 && cz < -frontThreshold) {
+    } else if (
+      nz < -0.995 &&
+      Math.abs(z0 - minZ) < 0.001 &&
+      Math.abs(z1 - minZ) < 0.001 &&
+      Math.abs(z2 - minZ) < 0.001
+    ) {
       backIdx.push(i, i + 1, i + 2);
       for (let k = 0; k < 3; k++) {
         bMinX = Math.min(bMinX, srcPos.getX(i + k));
@@ -239,7 +192,6 @@ function createDieCutCardGeometry(
         outUv[writeCursor * 2] = (px - fMinX) / fSpanX;
         outUv[writeCursor * 2 + 1] = (py - fMinY) / fSpanY;
       } else if (uvMode === "back") {
-        // Flip horizontal UV so rotated 180deg Y back text reads left-to-right upright
         outUv[writeCursor * 2] = 1 - (px - bMinX) / bSpanX;
         outUv[writeCursor * 2 + 1] = (py - bMinY) / bSpanY;
       } else {
@@ -268,9 +220,37 @@ function createDieCutCardGeometry(
   return out;
 }
 
+/** Builds a smooth uniform-thickness oval carabiner wire passing cleanly through the die-cut hole. */
+function createOvalCarabinerGeometry(
+  THREE: typeof THREE_TYPES,
+  centerY: number,
+  heightSpan: number,
+  depthHalf: number,
+  wireRadius: number,
+  isMobile: boolean
+): THREE_TYPES.TubeGeometry {
+  const halfH = heightSpan / 2;
+  const pts = [
+    new THREE.Vector3(0, centerY - halfH, 0),
+    new THREE.Vector3(0, centerY - halfH * 0.72, depthHalf),
+    new THREE.Vector3(0, centerY + halfH * 0.72, depthHalf),
+    new THREE.Vector3(0, centerY + halfH, 0),
+    new THREE.Vector3(0, centerY + halfH * 0.72, -depthHalf),
+    new THREE.Vector3(0, centerY - halfH * 0.72, -depthHalf),
+  ];
+  const loopCurve = new THREE.CatmullRomCurve3(pts, true, "catmullrom", 0.35);
+  return new THREE.TubeGeometry(
+    loopCurve,
+    isMobile ? 20 : 32,
+    wireRadius,
+    isMobile ? 8 : 12,
+    true
+  );
+}
+
 /**
- * Allocates one woven flat satin ribbon BufferGeometry once and updates vertex positions
- * and surface normals in-place along a Verlet pendulum curve with zero per-frame allocations.
+ * Allocates one flat woven satin ribbon BufferGeometry once and updates vertex positions
+ * and surface normals (+Z forward-facing) in-place with zero per-frame allocations.
  */
 function createDynamicRibbonStrap(
   THREE: typeof THREE_TYPES,
@@ -278,17 +258,18 @@ function createDynamicRibbonStrap(
   halfWidth: number,
   halfThick: number
 ) {
-  // 6-point flat stadium cross-section around center
+  // Ordered left-to-right across front (+Z) and right-to-left across back (-Z) for outward winding
   const profX = [
-    halfWidth,
-    halfWidth * 0.85,
-    -halfWidth * 0.85,
     -halfWidth,
-    -halfWidth * 0.85,
-    halfWidth * 0.85,
+    -halfWidth * 0.88,
+    halfWidth * 0.88,
     halfWidth,
+    halfWidth * 0.88,
+    -halfWidth * 0.88,
+    -halfWidth,
   ];
   const profZ = [0, halfThick, halfThick, 0, -halfThick, -halfThick, 0];
+  const uStrip = [0, 0.08, 0.92, 1.0, 0.92, 0.08, 0];
   const ringVerts = profX.length;
   const ringCount = lengthSegments + 1;
   const vertexCount = ringCount * ringVerts;
@@ -299,11 +280,10 @@ function createDynamicRibbonStrap(
   const indices: number[] = [];
 
   for (let i = 0; i <= lengthSegments; i++) {
-    const v = i / lengthSegments;
+    const v = 1 - i / lengthSegments;
     for (let j = 0; j < ringVerts; j++) {
-      const u = j / (ringVerts - 1);
       const uvIdx = (i * ringVerts + j) * 2;
-      uvs[uvIdx] = u * 2.0; // Wrap across ribbon front/back cleanly
+      uvs[uvIdx] = uStrip[j];
       uvs[uvIdx + 1] = v;
     }
   }
@@ -337,9 +317,12 @@ function createDynamicRibbonStrap(
   const orthoRight = new THREE.Vector3();
   const vertNormal = new THREE.Vector3();
 
-  function update(curve: THREE_TYPES.Curve<THREE_TYPES.Vector3>, cardQuaternion: THREE_TYPES.Quaternion) {
+  function update(
+    curve: THREE_TYPES.Curve<THREE_TYPES.Vector3>,
+    cardQuaternion: THREE_TYPES.Quaternion
+  ) {
     cardRight.set(1, 0, 0).applyQuaternion(cardQuaternion).normalize();
-    if (cardRight.x < 0) cardRight.negate(); // Keep shortest flat twist angle even when flipped 180°
+    if (cardRight.x < 0) cardRight.negate();
 
     for (let i = 0; i <= lengthSegments; i++) {
       const t = i / lengthSegments;
@@ -347,13 +330,14 @@ function createDynamicRibbonStrap(
       curve.getTangentAt(t, tangent).normalize();
 
       desiredRight.copy(topRight).lerp(cardRight, t).normalize();
-      strapNormal.crossVectors(desiredRight, tangent);
+      // cross(downTangent, right) yields +Z forward facing normal
+      strapNormal.crossVectors(tangent, desiredRight);
       if (strapNormal.lengthSq() < 1e-5) {
         strapNormal.set(0, 0, 1);
       } else {
         strapNormal.normalize();
       }
-      orthoRight.crossVectors(tangent, strapNormal).normalize();
+      orthoRight.crossVectors(strapNormal, tangent).normalize();
 
       for (let j = 0; j < ringVerts; j++) {
         const px = profX[j];
@@ -385,17 +369,17 @@ function createDynamicRibbonStrap(
 }
 
 /**
- * Injects a lightweight view-angle Holographic Diffraction Foil pass into MeshStandardMaterial
- * reading `holoMask` from `texelRoughness.r` (0 extra samplers, shared program cache key).
+ * Restrained holographic edge-foil diffraction shader (reads mask from texelRoughness.r).
+ * Leaves official crest logo and smart chip crisp without neon color wash.
  */
 function applyHologramFoilShader(
-  material: THREE_TYPES.MeshStandardMaterial,
+  material: THREE_TYPES.MeshPhysicalMaterial,
   uniforms: {
     uHoloTilt: { value: number };
     uHoloStrength: { value: number };
   }
 ) {
-  material.customProgramCacheKey = () => "sovereign-holo-v1";
+  material.customProgramCacheKey = () => "sovereign-holo-v2";
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uHoloTilt = uniforms.uHoloTilt;
     shader.uniforms.uHoloStrength = uniforms.uHoloStrength;
@@ -412,17 +396,17 @@ uniform float uHoloStrength;
         `#include <emissivemap_fragment>
 #ifdef USE_ROUGHNESSMAP
   float _holoMask = texelRoughness.r;
-  if (_holoMask > 0.03) {
+  if (_holoMask > 0.04) {
     vec3 _vDir = normalize(vViewPosition);
     float _ndv = clamp(abs(dot(normalize(normal), _vDir)), 0.0, 1.0);
-    float _phase = (_vDir.x * 2.2 + _vDir.y * 1.35) + (1.0 - _ndv) * 2.4 + vRoughnessMapUv.x * 1.4 + vRoughnessMapUv.y * 0.8 + uHoloTilt;
+    float _phase = (_vDir.x * 2.0 + _vDir.y * 1.2) + (1.0 - _ndv) * 2.2 + vRoughnessMapUv.x * 1.3 + vRoughnessMapUv.y * 0.7 + uHoloTilt;
     vec3 _prism = vec3(
-      0.56 + 0.44 * cos(6.28318 * (_phase + 0.02)),
-      0.58 + 0.42 * cos(6.28318 * (_phase + 0.24)),
-      0.50 + 0.50 * cos(6.28318 * (_phase + 0.58))
+      0.58 + 0.42 * cos(6.28318 * (_phase + 0.04)),
+      0.56 + 0.44 * cos(6.28318 * (_phase + 0.22)),
+      0.46 + 0.54 * cos(6.28318 * (_phase + 0.55))
     );
-    float _glint = smoothstep(0.12, 0.94, pow(0.5 + 0.5 * sin(_phase * 3.14159), 2.0));
-    totalEmissiveRadiance += _prism * _holoMask * (0.22 + 0.78 * _glint) * uHoloStrength;
+    float _glint = smoothstep(0.18, 0.94, pow(0.5 + 0.5 * sin(_phase * 3.14159), 2.0));
+    totalEmissiveRadiance += _prism * _holoMask * (0.2 + 0.8 * _glint) * uHoloStrength;
   }
 #endif`
       );
@@ -469,9 +453,6 @@ export default function SovereignThreeScene({
     }
   }, [cardFormat]);
 
-  // ---------------------------------------------------------------------------
-  // THREE.JS FLAGSHIP 3D RUNNER (mounted once per user; liveRef handles theme/format/flip)
-  // ---------------------------------------------------------------------------
   useEffect(() => {
     let cleanupFn: (() => void) | null = null;
     let isCancelled = false;
@@ -497,7 +478,11 @@ export default function SovereignThreeScene({
           ])
         : Promise.resolve();
 
-    Promise.all([import("three"), fontsReadyPromise]).then(([THREE]) => {
+    Promise.all([
+      import("three"),
+      import("three/examples/jsm/environments/RoomEnvironment.js"),
+      fontsReadyPromise,
+    ]).then(([THREE, { RoomEnvironment }]) => {
       if (isCancelled || !containerRef.current) return;
 
       const isMobileViewport = () =>
@@ -547,7 +532,7 @@ export default function SovereignThreeScene({
         getCameraFov(isMobile),
         aspectInit,
         0.1,
-        160
+        180
       );
       camera.position.set(0, 0, getCameraZ(aspectInit, isMobile));
 
@@ -569,95 +554,111 @@ export default function SovereignThreeScene({
       }
       container.appendChild(renderer.domElement);
 
-      // Compact dark/light studio softbox cubemaps (baked once, zero runtime PMREM cost)
+      // Full 360° RoomEnvironment baked once for luminous gold edges & piano-lacquer reflections
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
-      const nightEnvRT = buildCardStudioEnv(THREE, pmremGenerator, false);
-      const dayEnvRT = buildCardStudioEnv(THREE, pmremGenerator, true);
+      const roomEnvRT = pmremGenerator.fromScene(new RoomEnvironment(), 0.04);
+      scene.environment = roomEnvRT.texture;
       pmremGenerator.dispose();
-      scene.environment = liveRef.current.isLightMode ? dayEnvRT.texture : nightEnvRT.texture;
 
-      // STUDIO LIGHTING
-      const ambientLight = new THREE.AmbientLight(0xffffff, liveRef.current.isLightMode ? 0.95 : 0.72);
+      // LIGHTING
+      const ambientLight = new THREE.AmbientLight(
+        0xffffff,
+        liveRef.current.isLightMode ? 1.55 : 0.78
+      );
       scene.add(ambientLight);
 
-      const hemiLight = new THREE.HemisphereLight(
-        0xfff5dc,
-        0x162033,
-        liveRef.current.isLightMode ? 0.85 : 0.65
+      const spotLight = new THREE.SpotLight(
+        liveRef.current.isLightMode ? 0xffffff : 0xffeedd,
+        liveRef.current.isLightMode ? 185 : 130
       );
-      scene.add(hemiLight);
+      spotLight.position.set(10, 28, 26);
+      spotLight.angle = Math.PI / 4;
+      spotLight.penumbra = 0.85;
+      scene.add(spotLight);
 
-      const keyLight = new THREE.DirectionalLight(0xfff1d6, 2.25);
-      keyLight.position.set(8, 18, 22);
-      scene.add(keyLight);
-
-      const rimLight = new THREE.PointLight(0xffe08a, liveRef.current.isLightMode ? 24 : 42, 46);
-      rimLight.position.set(-11, -5, 11);
+      const rimLight = new THREE.PointLight(
+        0xffe08a,
+        liveRef.current.isLightMode ? 34 : 58,
+        46
+      );
+      rimLight.position.set(-10, -5, 11);
       scene.add(rimLight);
 
-      const mouseLight = new THREE.PointLight(0xffd76a, liveRef.current.isLightMode ? 16 : 36, 38);
-      mouseLight.position.set(0, 0, 8);
+      const cardGlowLight = new THREE.PointLight(
+        0xffaa00,
+        liveRef.current.isLightMode ? 0 : 28,
+        18
+      );
+      cardGlowLight.position.set(0, 0, -1.5);
+      scene.add(cardGlowLight);
+
+      const mouseLight = new THREE.PointLight(
+        liveRef.current.isLightMode ? 0xffffff : 0xffd700,
+        liveRef.current.isLightMode ? 24 : 55,
+        46
+      );
+      mouseLight.position.set(0, 0, -5);
       scene.add(mouseLight);
 
       // FLOATING GOLD DUST MOTES
       const dustGeo = new THREE.BufferGeometry();
-      const dustCount = isUltraEntryGpu || isWeakRam ? 22 : isMobile ? 42 : 120;
+      const dustCount = isUltraEntryGpu || isWeakRam ? 22 : isMobile ? 42 : 140;
       const dustPos = new Float32Array(dustCount * 3);
       for (let i = 0; i < dustCount * 3; i += 3) {
-        dustPos[i] = (Math.random() - 0.5) * 34;
-        dustPos[i + 1] = (Math.random() - 0.5) * 30;
-        dustPos[i + 2] = (Math.random() - 0.5) * 14 - 2;
+        dustPos[i] = (Math.random() - 0.5) * 40;
+        dustPos[i + 1] = (Math.random() - 0.5) * 34;
+        dustPos[i + 2] = (Math.random() - 0.5) * 16 - 2;
       }
       dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
       const dustMat = new THREE.PointsMaterial({
-        size: isMobile ? 0.08 : 0.055,
-        color: 0xd4af37,
+        size: isMobile ? 0.08 : 0.06,
+        color: 0xe5c158,
         transparent: true,
-        opacity: liveRef.current.isLightMode ? 0.18 : 0.42,
-        blending: THREE.NormalBlending,
+        opacity: liveRef.current.isLightMode ? 0.14 : 0.45,
+        blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
       const dustParticles = new THREE.Points(dustGeo, dustMat);
       scene.add(dustParticles);
 
-      // SOFT QUAD DROP SHADOWS
-      const softShadowTex = createSoftShadowTexture(THREE);
-      const idShadowMat = new THREE.MeshBasicMaterial({
-        map: softShadowTex,
-        transparent: true,
-        opacity: liveRef.current.isLightMode ? 0.22 : 0.45,
-        depthWrite: false,
-      });
-      const idShadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(11.5, 16.5), idShadowMat);
-      idShadowPlane.position.set(0.6, -1.2, -3.5);
-      scene.add(idShadowPlane);
+      // SINGLE OPAQUE 3D MARBLE STUDIO WALL (Dramatic spotlight depth, zero dual-plane overdraw!)
+      const marbleTexSize = isMobile ? 512 : 1024;
+      const nightMarbleTex = new THREE.CanvasTexture(
+        createMarbleWallCanvas(false, marbleTexSize)
+      );
+      nightMarbleTex.colorSpace = THREE.SRGBColorSpace;
+      const dayMarbleTex = new THREE.CanvasTexture(
+        createMarbleWallCanvas(true, marbleTexSize)
+      );
+      dayMarbleTex.colorSpace = THREE.SRGBColorSpace;
 
-      const ktaShadowMat = new THREE.MeshBasicMaterial({
-        map: softShadowTex,
-        transparent: true,
-        opacity: liveRef.current.isLightMode ? 0.18 : 0.4,
-        depthWrite: false,
+      const marbleMat = new THREE.MeshStandardMaterial({
+        map: liveRef.current.isLightMode ? dayMarbleTex : nightMarbleTex,
+        metalness: 0.12,
+        roughness: 0.16,
+        envMapIntensity: 0.75,
+        transparent: false,
       });
-      const ktaShadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(10.5, 7.6), ktaShadowMat);
-      ktaShadowPlane.position.set(-8, -0.5, -5.5);
-      scene.add(ktaShadowPlane);
+      const marbleWall = new THREE.Mesh(new THREE.PlaneGeometry(160, 100), marbleMat);
+      marbleWall.position.set(0, 0, -10);
+      scene.add(marbleWall);
 
-      // TOP MOUNT & SWIVEL ANCHOR
-      const anchorPos = new THREE.Vector3(0, 11.4, -2.4);
+      // TOP MOUNT & SWIVEL ANCHOR (Close to card Z plane so card stays upright & proud)
+      const anchorPos = new THREE.Vector3(0, 11.4, -0.55);
       const mountGroup = new THREE.Group();
       mountGroup.position.copy(anchorPos);
 
       const goldHardwareMat = new THREE.MeshStandardMaterial({
         color: 0xe6c15a,
-        metalness: 0.94,
-        roughness: 0.16,
-        envMapIntensity: 1.4,
+        metalness: 0.96,
+        roughness: 0.14,
+        envMapIntensity: 1.45,
       });
       const gunmetalMat = new THREE.MeshStandardMaterial({
         color: 0x1b222e,
-        metalness: 0.85,
-        roughness: 0.28,
-        envMapIntensity: 1.1,
+        metalness: 0.88,
+        roughness: 0.24,
+        envMapIntensity: 1.15,
       });
 
       const mountBase = new THREE.Mesh(
@@ -665,18 +666,18 @@ export default function SovereignThreeScene({
         goldHardwareMat
       );
       mountBase.rotation.x = Math.PI / 2;
-      mountBase.position.z = -0.35;
+      mountBase.position.z = -0.3;
       mountGroup.add(mountBase);
 
       const mountCollar = new THREE.Mesh(
         new THREE.BoxGeometry(0.95, 0.28, 0.24),
         gunmetalMat
       );
-      mountCollar.position.z = -0.05;
+      mountCollar.position.z = -0.02;
       mountGroup.add(mountCollar);
       scene.add(mountGroup);
 
-      // SCALED TEXTURE SETS (shared Obsidian Dark / Pearl Titanium theme painters)
+      // SCALED CARD TEXTURES (Unified Signature Obsidian Lacquer + 24K Gold Foil)
       const texScale = isMobile ? 0.75 : 1.0;
 
       function createTextureSet(baseW: number, baseH: number): CardTextureSet {
@@ -771,31 +772,38 @@ export default function SovereignThreeScene({
         }
       }
 
-      // Paint immediate frame immediately with fallback vector crest before async images arrive
       const initialTheme: CardThemeMode = liveRef.current.isLightMode ? "light" : "dark";
       paintAllFaces(initialTheme);
 
-      // Shared Holographic Foil Uniforms across all 4 face materials
       const holoUniforms = {
         uHoloTilt: { value: 0 },
-        uHoloStrength: { value: isUltraEntryGpu ? 0.5 : 0.72 },
+        uHoloStrength: { value: isUltraEntryGpu ? 0.16 : 0.24 },
       };
 
-      const createFlagshipFaceMaterial = (set: CardTextureSet) => {
-        const mat = new THREE.MeshStandardMaterial({
+      const createLuxuryCardMaterial = (set: CardTextureSet) => {
+        const mat = new THREE.MeshPhysicalMaterial({
           map: set.colorTex,
           roughness: 1.0,
           metalness: 1.0,
           roughnessMap: set.pbrTex,
           metalnessMap: set.pbrTex,
-          envMapIntensity: 1.28,
+          clearcoat: isUltraEntryGpu ? 0.0 : 0.85,
+          clearcoatRoughness: 0.09,
+          envMapIntensity: 1.35,
           ...(set.bumpTex ? { bumpMap: set.bumpTex, bumpScale: 0.025 } : {}),
         });
         applyHologramFoilShader(mat, holoUniforms);
         return mat;
       };
 
-      // TRUE DIE-CUT VERTICAL ID CARD + ARTICULATED CLASP THROUGH HOLE
+      // ID CARD HINGE PIVOT GROUP (Rotates right at clasp tip -> ZERO gap!)
+      const hookOffsetY = 4.94;
+      const idPivotGroup = new THREE.Group();
+      const idCardContainer = new THREE.Group();
+      idCardContainer.position.set(0, -hookOffsetY, 0);
+      idPivotGroup.add(idCardContainer);
+      scene.add(idPivotGroup);
+
       const cardWidth = 5.4;
       const cardHeight = 8.6;
       const idCardGeo = createDieCutCardGeometry(
@@ -809,78 +817,66 @@ export default function SovereignThreeScene({
       );
       const idCard = new THREE.Mesh(idCardGeo, [
         goldHardwareMat,
-        createFlagshipFaceMaterial(idFrontSet),
-        createFlagshipFaceMaterial(idBackSet),
+        createLuxuryCardMaterial(idFrontSet),
+        createLuxuryCardMaterial(idBackSet),
       ]);
-      idCard.position.set(0, 9.6, 0);
-      scene.add(idCard);
+      idCardContainer.add(idCard);
 
-      // Articulated carabiner clasp looping visibly front-to-back through the real slot hole
-      const claspGroup = new THREE.Group();
-      const carabinerRing = new THREE.Mesh(
-        new THREE.TorusGeometry(0.45, 0.058, isMobile ? 10 : 14, isMobile ? 22 : 34),
+      // Uniform round-wire oval carabiner passing front-to-back cleanly through die-cut hole
+      const carabinerMesh = new THREE.Mesh(
+        createOvalCarabinerGeometry(THREE, 4.19, 0.94, 0.155, 0.056, isMobile),
         gunmetalMat
       );
-      carabinerRing.rotation.y = Math.PI / 2;
-      carabinerRing.scale.set(0.36, 1.05, 1.0); // Elliptical profile passing cleanly at z=±0.16 around z=±0.065 card!
-      carabinerRing.position.set(0, 4.19, 0);
-      claspGroup.add(carabinerRing);
+      idCardContainer.add(carabinerMesh);
 
       const clampBarrel = new THREE.Mesh(
         new THREE.CylinderGeometry(0.14, 0.14, 0.34, isMobile ? 12 : 20),
         goldHardwareMat
       );
-      clampBarrel.position.set(0, 4.74, 0);
-      claspGroup.add(clampBarrel);
+      clampBarrel.position.set(0, 4.72, 0);
+      idCardContainer.add(clampBarrel);
 
       const clampCollar = new THREE.Mesh(
-        new THREE.BoxGeometry(0.76, 0.24, 0.2),
+        new THREE.BoxGeometry(0.76, 0.22, 0.18),
         goldHardwareMat
       );
       clampCollar.position.set(0, 4.92, 0);
-      claspGroup.add(clampCollar);
-      idCard.add(claspGroup);
+      idCardContainer.add(clampCollar);
 
-      // WOVEN FLAT RIBBON LANYARD + 6-NODE VERLET PENDULUM
+      // WOVEN FLAT RIBBON LANYARD + CENTERED VERLET PENDULUM
       const strapCanvas = createWovenStrapCanvas();
       const strapTex = new THREE.CanvasTexture(strapCanvas);
       strapTex.wrapS = THREE.RepeatWrapping;
       strapTex.wrapT = THREE.RepeatWrapping;
-      strapTex.repeat.set(1, 3.2);
+      strapTex.repeat.set(1, 3.0);
       strapTex.colorSpace = THREE.SRGBColorSpace;
       strapTex.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), isMobile ? 4 : 8);
 
       const strapMat = new THREE.MeshStandardMaterial({
         map: strapTex,
-        roughness: 0.62,
-        metalness: 0.18,
-        envMapIntensity: 0.9,
+        roughness: 0.6,
+        metalness: 0.2,
+        envMapIntensity: 0.95,
       });
 
-      const ribbonStrap = createDynamicRibbonStrap(
-        THREE,
-        isMobile ? 20 : 28,
-        0.29,
-        0.022
-      );
+      const ribbonStrap = createDynamicRibbonStrap(THREE, isMobile ? 20 : 28, 0.29, 0.02);
       const lanyardMesh = new THREE.Mesh(ribbonStrap.geometry, strapMat);
       scene.add(lanyardMesh);
 
-      // 6-node Verlet pendulum chain between top anchorPos and card clasp collar
       const VERLET_NODES = 6;
-      const hookLocalY = 4.98;
-      const restCardPos = new THREE.Vector3(0, -0.35, 0);
-      const restHookWorld = new THREE.Vector3(0, restCardPos.y + hookLocalY, 0);
-      const totalRopeLen = anchorPos.distanceTo(restHookWorld) + 0.18;
+      const restCardCenterY = 0.22;
+      const restHookWorld = new THREE.Vector3(0, restCardCenterY + hookOffsetY, 0);
+      const totalRopeLen = anchorPos.distanceTo(restHookWorld) + 0.04;
       const segLen = totalRopeLen / (VERLET_NODES - 1);
 
       const verletPos = Array.from({ length: VERLET_NODES }, (_, i) =>
         new THREE.Vector3().lerpVectors(anchorPos, restHookWorld, i / (VERLET_NODES - 1))
       );
       const verletPrev = verletPos.map((p) => p.clone());
+      idPivotGroup.position.copy(restHookWorld);
       const ropeCurve = new THREE.CatmullRomCurve3(verletPos);
 
-      // TRUE BEVELED HORIZONTAL KTA CARD
+      // HORIZONTAL KTA CARD WITH THICK GOLD CHAMFER BEVEL
       const ktaWidth = 5.4;
       const ktaHeight = 3.4;
       const ktaGeo = createDieCutCardGeometry(
@@ -893,17 +889,17 @@ export default function SovereignThreeScene({
       );
       const ktaMesh = new THREE.Mesh(ktaGeo, [
         goldHardwareMat,
-        createFlagshipFaceMaterial(ktaFrontSet),
-        createFlagshipFaceMaterial(ktaBackSet),
+        createLuxuryCardMaterial(ktaFrontSet),
+        createLuxuryCardMaterial(ktaBackSet),
       ]);
       scene.add(ktaMesh);
 
       const getKtaRestPos = (mob: boolean) =>
-        mob ? new THREE.Vector3(-4.2, -5.2, -5.0) : new THREE.Vector3(-8.4, 0.2, -2.5);
+        mob ? new THREE.Vector3(-4.2, -5.0, -4.6) : new THREE.Vector3(-8.4, 0.2, -2.4);
       const getKtaViewPos = (mob: boolean) =>
-        mob ? new THREE.Vector3(0, 0.2, 6.4) : new THREE.Vector3(0, 0.1, 14.5);
+        mob ? new THREE.Vector3(0, 0.25, 6.4) : new THREE.Vector3(0, 0.15, 14.5);
       const getMainViewPos = (mob: boolean) =>
-        mob ? new THREE.Vector3(0, 0.2, 5.2) : new THREE.Vector3(0, 0, 14.0);
+        mob ? new THREE.Vector3(0, 0.25, 5.2) : new THREE.Vector3(0, 0.1, 14.0);
 
       const ktaRestPos = getKtaRestPos(isMobile);
       const ktaViewPos = getKtaViewPos(isMobile);
@@ -915,7 +911,7 @@ export default function SovereignThreeScene({
       );
       ktaMesh.position.copy(ktaRestPos);
 
-      // Async parallel fetch of official crest emblem, user avatar, & verification QR
+      // Async parallel fetch of official crest emblem, user avatar, & QR
       Promise.all([
         loadArtworkImage("/images/logo-utuh.webp"),
         loadArtworkImage(fotoUrl),
@@ -942,7 +938,7 @@ export default function SovereignThreeScene({
       let activePointerId: number | null = null;
       let hasInteracted = false;
 
-      const dragTargetCard = new THREE.Vector3().copy(restCardPos);
+      const dragTargetHook = new THREE.Vector3().copy(restHookWorld);
       let targetRotY = 0;
       let previousPointer = { x: 0, y: 0 };
       let globalCursorX = 0;
@@ -957,7 +953,7 @@ export default function SovereignThreeScene({
         ktaTargetRotX = 0;
         ktaTargetRotY = 0;
         if (nextFmt === "id") {
-          dragTargetCard.copy(restCardPos);
+          dragTargetHook.copy(restHookWorld);
         }
       };
 
@@ -996,8 +992,8 @@ export default function SovereignThreeScene({
         const { normX, normY } = setPointerRay(event.clientX, event.clientY);
         globalCursorX = normX;
         globalCursorY = normY;
-        targetCameraX = normX * 1.8;
-        targetCameraY = normY * 1.6;
+        targetCameraX = normX * 2.0;
+        targetCameraY = normY * 1.8;
 
         if (!isDragging || (activePointerId !== null && activePointerId !== event.pointerId)) {
           return;
@@ -1020,9 +1016,10 @@ export default function SovereignThreeScene({
           return;
         }
 
-        dragTargetCard.x = normX * (isMobile ? 8.8 : 12.5);
-        dragTargetCard.y = Math.max(-7.5, Math.min(5.2, normY * (isMobile ? 8.5 : 11.0)));
-        dragTargetCard.z = 2.6;
+        dragTargetHook.x = normX * (isMobile ? 8.5 : 12.0);
+        dragTargetHook.y =
+          Math.max(-3.0, Math.min(5.2, normY * (isMobile ? 6.5 : 9.0))) + hookOffsetY;
+        dragTargetHook.z = 2.4;
         targetRotY += dx * 0.014;
       };
 
@@ -1036,7 +1033,7 @@ export default function SovereignThreeScene({
 
         const fmt = liveRef.current.cardFormat;
         if (fmt === "id" && !isMainInspect) {
-          dragTargetCard.copy(restCardPos);
+          dragTargetHook.copy(restHookWorld);
         }
 
         if (!wasTap) return;
@@ -1047,7 +1044,7 @@ export default function SovereignThreeScene({
 
         setPointerRay(event.clientX, event.clientY);
         const hitKta = raycaster.intersectObject(ktaMesh, false).length > 0;
-        const hitId = raycaster.intersectObject(idCard, true).length > 0;
+        const hitId = raycaster.intersectObject(idPivotGroup, true).length > 0;
 
         if (fmt === "id" && hitKta && !isMainInspect) {
           liveRef.current.onCardFormatChange?.("kta");
@@ -1075,7 +1072,7 @@ export default function SovereignThreeScene({
       window.addEventListener("pointerup", handlePointerUp);
       window.addEventListener("pointercancel", handlePointerUp);
 
-      // MOBILE GYROSCOPE PARALLAX + HOLOGRAPHIC TILT FEEDBACK
+      // MOBILE GYROSCOPE PARALLAX
       let baseBeta: number | null = null;
       let baseGamma: number | null = null;
       const onDeviceOrientation = (event: DeviceOrientationEvent) => {
@@ -1091,7 +1088,7 @@ export default function SovereignThreeScene({
       };
       window.addEventListener("deviceorientation", onDeviceOrientation, true);
 
-      // ANIMATION LOOP WITH VERLET PENDULUM & ZERO-GC STRAP UPDATE
+      // RENDER LOOP
       let animId: number | null = null;
       let isInViewport = true;
       let lastRenderMs = performance.now();
@@ -1110,7 +1107,6 @@ export default function SovereignThreeScene({
 
       const vDelta = new THREE.Vector3();
       const vVel = new THREE.Vector3();
-      const targetHook = new THREE.Vector3();
       const targetFloatKta = new THREE.Vector3();
       const eulerScratch = new THREE.Euler();
       const quatScratch = new THREE.Quaternion();
@@ -1126,37 +1122,24 @@ export default function SovereignThreeScene({
           prev.copy(cur);
 
           cur.add(vVel);
-          cur.y -= 0.036; // Gravity
+          cur.y -= 0.036;
 
-          // Subtle centering restore in depth + ambient gentle parallax breeze
           if (i === lastIdx && isHangingActive && !isDragging) {
-            cur.x += (restHookWorld.x - cur.x) * 0.028;
-            cur.z += (restHookWorld.z - cur.z) * 0.065;
+            cur.x += (restHookWorld.x - cur.x) * 0.032;
+            cur.z += (restHookWorld.z - cur.z) * 0.14;
           } else {
-            cur.z += ((anchorPos.z * (1 - i / lastIdx)) - cur.z) * 0.04;
+            cur.z += (anchorPos.z * (1 - i / lastIdx) - cur.z) * 0.08;
           }
         }
 
         if (isDragging && isHangingActive) {
-          verletPos[lastIdx].set(
-            dragTargetCard.x,
-            dragTargetCard.y + hookLocalY,
-            dragTargetCard.z
-          );
-        } else if (!isHangingActive) {
-          targetHook.copy(idCard.position).add(new THREE.Vector3(0, hookLocalY, 0));
-          verletPos[lastIdx].lerp(targetHook, 0.25);
+          verletPos[lastIdx].copy(dragTargetHook);
         }
 
-        // Fixed constraint relaxation passes (anchored top, flexible middle)
         for (let iter = 0; iter < 5; iter++) {
           verletPos[0].copy(anchorPos);
           if (isDragging && isHangingActive) {
-            verletPos[lastIdx].set(
-              dragTargetCard.x,
-              dragTargetCard.y + hookLocalY,
-              dragTargetCard.z
-            );
+            verletPos[lastIdx].copy(dragTargetHook);
           }
 
           for (let i = 0; i < lastIdx; i++) {
@@ -1213,27 +1196,28 @@ export default function SovereignThreeScene({
           isFlipped: flippedNow,
         } = liveRef.current;
 
-        // Instant in-place Obsidian <-> Pearl Titanium theme transition (0 WebGL rebuilds!)
+        // Instant in-place Day Calacatta <-> Night Noir studio backdrop update (0 WebGL rebuilds)
         if (lightNow !== lastLightModeApplied) {
           lastLightModeApplied = lightNow;
-          scene.environment = lightNow ? dayEnvRT.texture : nightEnvRT.texture;
-          ambientLight.intensity = lightNow ? 0.95 : 0.72;
-          hemiLight.intensity = lightNow ? 0.85 : 0.65;
-          rimLight.intensity = lightNow ? 24 : 42;
-          mouseLight.intensity = lightNow ? 16 : 36;
-          dustMat.opacity = lightNow ? 0.18 : 0.42;
-          paintAllFaces(lightNow ? "light" : "dark");
+          marbleMat.map = lightNow ? dayMarbleTex : nightMarbleTex;
+          marbleMat.needsUpdate = true;
+          ambientLight.intensity = lightNow ? 1.55 : 0.78;
+          spotLight.intensity = lightNow ? 185 : 130;
+          spotLight.color.setHex(lightNow ? 0xffffff : 0xffeedd);
+          rimLight.intensity = lightNow ? 34 : 58;
+          mouseLight.intensity = lightNow ? 24 : 55;
+          mouseLight.color.setHex(lightNow ? 0xffffff : 0xffd700);
+          dustMat.opacity = lightNow ? 0.14 : 0.45;
         }
 
         const time = nowMs * 0.001;
         const flipOffset = flippedNow ? Math.PI : 0;
 
-        // Holographic tilt shimmer driven continuously by gentle motion + gyro/pointer
         holoUniforms.uHoloTilt.value =
-          globalCursorX * 0.55 + globalCursorY * 0.4 + Math.sin(time * 0.7) * 0.18;
+          globalCursorX * 0.5 + globalCursorY * 0.35 + Math.sin(time * 0.7) * 0.16;
 
-        mouseLight.position.x += (globalCursorX * 14 - mouseLight.position.x) * 0.12;
-        mouseLight.position.y += (globalCursorY * 10 - mouseLight.position.y) * 0.12;
+        mouseLight.position.x += (globalCursorX * 22 - mouseLight.position.x) * 0.12;
+        mouseLight.position.y += (globalCursorY * 14 - mouseLight.position.y) * 0.12;
 
         dustParticles.rotation.y += 0.00045;
         dustParticles.rotation.x += 0.00018;
@@ -1247,49 +1231,60 @@ export default function SovereignThreeScene({
           camera.position.y += (0 - camera.position.y) * 0.1;
         }
         camera.lookAt(lookZero);
+        marbleWall.position.x = -(camera.position.x * 0.05);
+        marbleWall.position.y = -(camera.position.y * 0.05);
 
-        // Physics + Card Motion
         const isHangingId = fmtNow === "id" && !isMainInspect;
         stepVerletPendulum(isHangingId);
 
         const bottomNode = verletPos[VERLET_NODES - 1];
         const prevNode = verletPos[VERLET_NODES - 2];
 
+        // ID CARD MOTION (Pivot centered at clasp when hanging, centered at card body during inspect)
         if (fmtNow === "kta") {
-          idCard.position.lerp(idParkedPos, 0.08);
+          idPivotGroup.position.lerp(idParkedPos, 0.08);
+          idCardContainer.position.y += (0 - idCardContainer.position.y) * 0.1;
           eulerScratch.set(0.08, -0.35 + flipOffset, -0.05);
           quatScratch.setFromEuler(eulerScratch);
-          idCard.quaternion.slerp(quatScratch, 0.08);
+          idPivotGroup.quaternion.slerp(quatScratch, 0.08);
         } else if (isMainInspect) {
-          idCard.position.lerp(mainViewPos, 0.09);
+          idPivotGroup.position.lerp(mainViewPos, 0.09);
+          idCardContainer.position.y += (0 - idCardContainer.position.y) * 0.14;
           eulerScratch.set(mainTargetRotX, mainTargetRotY + flipOffset, 0);
           quatScratch.setFromEuler(eulerScratch);
-          idCard.quaternion.slerp(quatScratch, 0.12);
+          idPivotGroup.quaternion.slerp(quatScratch, 0.12);
         } else {
-          // Hang card directly from Verlet pendulum bottom node with authentic swing tilt!
+          // Hinge stays exact-locked onto bottom Verlet node -> 0.000 clasp detachment gap
+          idCardContainer.position.y += (-hookOffsetY - idCardContainer.position.y) * 0.18;
+          idPivotGroup.position.copy(bottomNode);
+
           const swingRollZ = Math.atan2(
             bottomNode.x - prevNode.x,
-            Math.max(0.4, prevNode.y - bottomNode.y)
+            Math.max(0.5, prevNode.y - bottomNode.y)
           );
-          const swingPitchX = -globalCursorY * 0.3 + Math.atan2(prevNode.z - bottomNode.z, Math.max(0.6, prevNode.y - bottomNode.y)) * 0.45;
+          const swingPitchX =
+            -globalCursorY * 0.34 +
+            Math.atan2(prevNode.z - bottomNode.z, Math.max(0.6, prevNode.y - bottomNode.y)) * 0.4;
           if (!isDragging) {
-            targetRotY = globalCursorX * 0.36;
+            targetRotY = globalCursorX * 0.38;
           }
-
-          idCard.position.set(
-            bottomNode.x,
-            bottomNode.y - hookLocalY,
-            bottomNode.z
-          );
           eulerScratch.set(swingPitchX, targetRotY + flipOffset, swingRollZ * 0.85);
           quatScratch.setFromEuler(eulerScratch);
-          idCard.quaternion.slerp(quatScratch, 0.22);
+          idPivotGroup.quaternion.slerp(quatScratch, 0.24);
         }
 
-        // Update flat woven lanyard ribbon mesh in-place (zero allocations)
-        lanyardMesh.visible = fmtNow === "id" && !isMainInspect;
+        // Glow behind card shifts naturally with active card in Night Mode
+        cardGlowLight.position.set(
+          idPivotGroup.position.x,
+          idPivotGroup.position.y + idCardContainer.position.y,
+          idPivotGroup.position.z - 1.2
+        );
+        cardGlowLight.intensity = lightNow || fmtNow === "kta" ? 0 : 28;
+
+        // Flat woven lanyard updates strictly in-place when hanging
+        lanyardMesh.visible = isHangingId;
         if (lanyardMesh.visible) {
-          ribbonStrap.update(ropeCurve, idCard.quaternion);
+          ribbonStrap.update(ropeCurve, idPivotGroup.quaternion);
         }
 
         // HORIZONTAL KTA MOTION
@@ -1303,33 +1298,17 @@ export default function SovereignThreeScene({
           quatScratch.setFromEuler(eulerScratch);
           ktaMesh.quaternion.slerp(quatScratch, 0.12);
         } else {
-          const floatY = Math.sin(time * 1.2) * 0.36;
+          const floatY = Math.sin(time * 1.2) * 0.38;
           targetFloatKta.set(ktaRestPos.x, ktaRestPos.y + floatY, ktaRestPos.z);
           ktaMesh.position.lerp(targetFloatKta, 0.09);
           eulerScratch.set(
             -globalCursorY * 0.18 + 0.18,
-            globalCursorX * 0.25 + 0.05 + flipOffset,
+            globalCursorX * 0.26 + 0.04 + flipOffset,
             Math.cos(time * 0.9) * 0.045
           );
           quatScratch.setFromEuler(eulerScratch);
           ktaMesh.quaternion.slerp(quatScratch, 0.08);
         }
-
-        // Soft drop shadows track cards
-        idShadowPlane.position.set(
-          idCard.position.x + 0.55,
-          idCard.position.y - 0.85,
-          idCard.position.z - 2.6
-        );
-        idShadowPlane.scale.setScalar(Math.max(0.65, 1 - Math.abs(idCard.position.z) * 0.04));
-        idShadowMat.opacity = (lightNow ? 0.22 : 0.45) * (fmtNow === "kta" ? 0.22 : 1);
-
-        ktaShadowPlane.position.set(
-          ktaMesh.position.x + 0.45,
-          ktaMesh.position.y - 0.7,
-          ktaMesh.position.z - 2.2
-        );
-        ktaShadowMat.opacity = (lightNow ? 0.22 : 0.45) * (fmtNow === "kta" ? 1 : 0.4);
 
         renderer.render(scene, camera);
         if (!hasNotifiedLoaded) {
@@ -1361,9 +1340,9 @@ export default function SovereignThreeScene({
         isCancelled = true;
         observer.disconnect();
         if (animId) cancelAnimationFrame(animId);
-        nightEnvRT.dispose();
-        dayEnvRT.dispose();
-        softShadowTex.dispose();
+        roomEnvRT.dispose();
+        nightMarbleTex.dispose();
+        dayMarbleTex.dispose();
         strapTex.dispose();
         window.removeEventListener("resize", onResize);
         window.removeEventListener("pointermove", handlePointerMove);
@@ -1420,7 +1399,7 @@ export default function SovereignThreeScene({
           maxWidth: 210,
         }}
       >
-        EXPEDIENT 43 · KTA FLAGSHIP
+        EXPEDIENT 43 · KTA 3D
         <br />
         STATUS: TERVERIFIKASI
         <br />
