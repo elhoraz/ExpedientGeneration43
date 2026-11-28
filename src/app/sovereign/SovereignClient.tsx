@@ -7,6 +7,15 @@ import { getAvatarUrl } from "@/lib/avatar";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import { executeThemeTransition } from "@/lib/theme/executeThemeTransition";
+import {
+  type CardIdentityData,
+  type CardThemeMode,
+  drawIdBackFace,
+  drawIdFrontFace,
+  drawKtaBackFace,
+  drawKtaFrontFace,
+  loadArtworkImage,
+} from "./cardArtwork";
 
 const SovereignThreeScene = dynamic(() => import("./SovereignThreeScene"), {
   ssr: false,
@@ -166,7 +175,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
   }, [viewMode]);
 
   // ---------------------------------------------------------------------------
-  // GENERATOR EKSPOR HIGH-RESOLUTION PNG (2400 x 1800)
+  // GENERATOR EKSPOR HIGH-RESOLUTION PNG (2400 x 1800) - UNIFIED FLAGSHIP ARTWORK
   // ---------------------------------------------------------------------------
   const handleExportPng = useCallback(async () => {
     if (isExporting) return;
@@ -178,222 +187,120 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       compCanvas.width = 2400;
       compCanvas.height = 1800;
 
-      // Background Dark / Light
+      const themeMode: CardThemeMode = isLightMode ? "light" : "dark";
       const bgGrad = ctx.createLinearGradient(0, 0, compCanvas.width, compCanvas.height);
       if (isLightMode) {
-        bgGrad.addColorStop(0, "#f6f5f1");
-        bgGrad.addColorStop(1, "#ebe9e1");
+        bgGrad.addColorStop(0, "#faf8f3");
+        bgGrad.addColorStop(1, "#eae3d4");
       } else {
-        bgGrad.addColorStop(0, "#0f141e");
+        bgGrad.addColorStop(0, "#0e192d");
         bgGrad.addColorStop(0.5, "#060b14");
-        bgGrad.addColorStop(1, "#060b14");
+        bgGrad.addColorStop(1, "#04070e");
       }
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, compCanvas.width, compCanvas.height);
 
-      // Watermark Header
-      ctx.fillStyle = isLightMode ? "rgba(124,82,10,0.08)" : "rgba(212,175,55,0.06)";
-      ctx.font = '900 130px "Playfair Display", serif';
+      ctx.fillStyle = isLightMode ? "rgba(155,112,22,0.08)" : "rgba(212,175,55,0.06)";
+      ctx.font = '900 116px "Playfair Display", serif';
       ctx.textAlign = "center";
-      ctx.fillText("EXPEDIENT 43 ALUMNI REGISTRY", 1200, 240);
+      ctx.fillText("EXPEDIENT 43 ALUMNI REGISTRY", 1200, 220);
 
-      ctx.fillStyle = isLightMode ? "#7c520a" : "#d4af37";
-      ctx.font = '600 24px "Inter", sans-serif';
+      ctx.fillStyle = isLightMode ? "#9b7016" : "#d4af37";
+      ctx.font = '600 22px "Inter", sans-serif';
       ctx.letterSpacing = "6px";
-      ctx.fillText("EXPEDIENT 43 • OFFICIAL COHORT IDENTIFICATION CREDENTIAL", 1200, 310);
+      ctx.fillText("KARTU TANDA ALUMNI RESMI • PONDOK MODERN ARRISALAH", 1200, 290);
+      ctx.letterSpacing = "0px";
 
-      // Helper load image
-      const loadImage = (url: string): Promise<HTMLImageElement | null> => {
-        return new Promise((resolve) => {
-          if (!url) return resolve(null);
-          const img = new Image();
-          img.crossOrigin = "Anonymous";
-          img.src = url;
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-        });
-      };
-
-      const [avatarImg, qrImg] = await Promise.all([
-        fotoUrl ? loadImage(fotoUrl) : Promise.resolve(null),
-        loadImage(qrUrl),
+      const [crestImg, avatarImg, qrImg] = await Promise.all([
+        loadArtworkImage("/images/logo-utuh.webp"),
+        loadArtworkImage(fotoUrl),
+        loadArtworkImage(qrUrl),
       ]);
 
-      const drawCardPlate = (x: number, y: number, w: number, h: number, r: number) => {
-        ctx.save();
-        ctx.shadowColor = "rgba(0,0,0,0.6)";
-        ctx.shadowBlur = 35;
-        ctx.shadowOffsetY = 15;
-        ctx.fillStyle = isLightMode ? "#ffffff" : "#0f131a";
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, r);
-        ctx.fill();
-        ctx.strokeStyle = "#d4af37";
-        ctx.lineWidth = 4;
-        ctx.stroke();
-        ctx.restore();
+      const identity: CardIdentityData = {
+        nama: user.nama_lengkap,
+        panggilan: user.nama_panggilan || user.nama_lengkap,
+        nomorId,
+        angkatanLabel: "ALUMNI ANGKATAN KE-43",
+        berlakuLabel: "BERLAKU SELAMANYA",
+        maskedCardNumber: `4300 •••• •••• ${nomorId.replace("EXP-", "")}`,
+      };
+      const assets = { crestImg, avatarImg, qrImg };
+
+      const renderSubCanvas = (
+        w: number,
+        h: number,
+        painter: (cCtx: CanvasRenderingContext2D) => void
+      ) => {
+        const sub = document.createElement("canvas");
+        sub.width = w;
+        sub.height = h;
+        painter(sub.getContext("2d")!);
+        return sub;
       };
 
-      // 1. ID CARD VERTIKAL (MUKA DEPAN) - x=180, y=420, w=580, h=920
-      const idX = 180, idY = 420, idW = 580, idH = 920;
-      drawCardPlate(idX, idY, idW, idH, 36);
+      const idFrontCanvas = renderSubCanvas(1024, 1624, (cCtx) =>
+        drawIdFrontFace({ cCtx }, identity, themeMode, assets)
+      );
+      const idBackCanvas = renderSubCanvas(1024, 1624, (cCtx) =>
+        drawIdBackFace({ cCtx }, identity, themeMode, assets)
+      );
+      const ktaFrontCanvas = renderSubCanvas(1024, 640, (cCtx) =>
+        drawKtaFrontFace({ cCtx }, identity, themeMode, assets)
+      );
+      const ktaBackCanvas = renderSubCanvas(1024, 640, (cCtx) =>
+        drawKtaBackFace({ cCtx }, identity, themeMode, assets)
+      );
 
-      // Clip Lanyard Top
-      ctx.fillStyle = "#d4af37";
-      ctx.fillRect(idX + idW / 2 - 40, idY - 20, 80, 25);
+      const drawFramedCard = (
+        src: HTMLCanvasElement,
+        x: number,
+        y: number,
+        w: number,
+        h: number,
+        r: number
+      ) => {
+        ctx.save();
+        ctx.shadowColor = isLightMode ? "rgba(24,24,27,0.22)" : "rgba(0,0,0,0.72)";
+        ctx.shadowBlur = 38;
+        ctx.shadowOffsetX = 12;
+        ctx.shadowOffsetY = 20;
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, r);
+        ctx.fillStyle = isLightMode ? "#f5f2ea" : "#080e1a";
+        ctx.fill();
+        ctx.restore();
 
-      // Gold Chip
-      ctx.fillStyle = "#d4af37";
-      ctx.beginPath();
-      ctx.roundRect(idX + 50, idY + 50, 90, 70, 10);
-      ctx.fill();
-
-      // VVIP Badge
-      ctx.fillStyle = isLightMode ? "#111" : "#ffffff";
-      ctx.font = 'bold 32px "Playfair Display", serif';
-      ctx.textAlign = "right";
-      ctx.fillText("VVIP", idX + idW - 50, idY + 95);
-
-      // Avatar Foto
-      const pX = idX + 50, pY = idY + 160, pW = idW - 100, pH = 340;
-      ctx.fillStyle = "#1a1f2c";
-      ctx.fillRect(pX, pY, pW, pH);
-      if (avatarImg) {
-        ctx.drawImage(avatarImg, pX, pY, pW, pH);
-      }
-      ctx.strokeStyle = "#d4af37";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(pX, pY, pW, pH);
-
-      // Nama Anggota
-      ctx.textAlign = "center";
-      ctx.fillStyle = isLightMode ? "#111" : "#ffffff";
-      ctx.font = 'bold 36px "Playfair Display", serif';
-      ctx.fillText(user.nama_lengkap.toUpperCase(), idX + idW / 2, idY + 580, idW - 80);
-
-      ctx.fillStyle = "#d4af37";
-      ctx.font = '700 18px "Inter", sans-serif';
-      ctx.letterSpacing = "4px";
-      ctx.fillText("ALUMNI ANGKATAN KE-43", idX + idW / 2, idY + 625);
-
-      // ID Tag
-      ctx.fillStyle = isLightMode ? "#555" : "#94a3b8";
-      ctx.font = "bold 22px monospace";
-      ctx.fillText(`ID: ${nomorId}`, idX + idW / 2, idY + 700);
-      ctx.fillText("BERLAKU SELAMANYA", idX + idW / 2, idY + 740);
-
-      // Barcode
-      ctx.fillStyle = isLightMode ? "#000000" : "#ffffff";
-      for (let i = 0; i < 36; i++) {
-        const bw = (i % 3 === 0 ? 6 : i % 2 === 0 ? 3 : 2);
-        ctx.fillRect(idX + 80 + i * 11, idY + 800, bw, 50);
-      }
-
-      // 2. ID CARD VERTIKAL (MUKA BELAKANG) - x=840, y=420, w=580, h=920
-      const bX = 840, bY = 420;
-      drawCardPlate(bX, bY, idW, idH, 36);
-
-      // Magnetic Stripe
-      ctx.fillStyle = "#060b14";
-      ctx.fillRect(bX, bY + 60, idW, 90);
-
-      // Directive Text
-      ctx.textAlign = "center";
-      ctx.fillStyle = "#d4af37";
-      ctx.font = 'bold 26px "Playfair Display", serif';
-      ctx.fillText("KARTU ANGGOTA RESMI", bX + idW / 2, bY + 230);
-
-      ctx.fillStyle = isLightMode ? "#555" : "#94a3b8";
-      ctx.font = '18px "Inter", sans-serif';
-      ctx.fillText("Expedient Generation 43", bX + idW / 2, bY + 280);
-      ctx.fillText("Pondok Modern Arrisalah Slahung Ponorogo", bX + idW / 2, bY + 315);
-
-      // QR Code
-      const qrBoxX = bX + (idW - 240) / 2, qrBoxY = bY + 360;
-      if (qrImg) {
-        ctx.drawImage(qrImg, qrBoxX, qrBoxY, 240, 240);
-        ctx.strokeStyle = "#d4af37";
-        ctx.lineWidth = 3;
-        ctx.strokeRect(qrBoxX, qrBoxY, 240, 240);
-      }
-
-      ctx.fillStyle = isLightMode ? "#333" : "#e2e8f0";
-      ctx.font = "bold 18px monospace";
-      ctx.fillText("SCAN TO VERIFY CREDENTIAL", bX + idW / 2, bY + 650);
-
-      // Signature Strip
-      ctx.fillStyle = isLightMode ? "#e2e8f0" : "#ffffff";
-      ctx.fillRect(bX + 80, bY + 720, idW - 160, 50);
-      ctx.fillStyle = "#000000";
-      ctx.font = 'italic bold 22px "Playfair Display", serif';
-      ctx.fillText(user.nama_panggilan || user.nama_lengkap, bX + idW / 2, bY + 755);
-
-      // 3. KTA HORIZONTAL (FRONT) - x=1500, y=420, w=720, h=440
-      const kX = 1500, kY = 420, kW = 720, kH = 440;
-      drawCardPlate(kX, kY, kW, kH, 30);
-
-      ctx.fillStyle = "#d4af37";
-      ctx.beginPath();
-      ctx.roundRect(kX + 60, kY + 60, 90, 70, 10);
-      ctx.fill();
-
-      ctx.textAlign = "right";
-      ctx.fillStyle = isLightMode ? "#111" : "#ffffff";
-      ctx.font = 'bold 28px "Playfair Display", serif';
-      ctx.fillText("EXPEDIENT SOVEREIGN", kX + kW - 60, kY + 90);
-
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#d4af37";
-      ctx.font = "bold 32px monospace";
-      ctx.fillText(`4300 •••• •••• ${nomorId.replace("EXP-", "")}`, kX + 60, kY + 230);
-
-      ctx.fillStyle = isLightMode ? "#111" : "#ffffff";
-      ctx.font = 'bold 28px "Inter", sans-serif';
-      ctx.fillText(user.nama_lengkap.toUpperCase(), kX + 60, kY + 320, 450);
-
-      ctx.fillStyle = isLightMode ? "#666" : "#94a3b8";
-      ctx.font = "16px monospace";
-      ctx.fillText("BERLAKU SELAMANYA", kX + 60, kY + 360);
-
-      if (avatarImg) {
         ctx.save();
         ctx.beginPath();
-        ctx.arc(kX + kW - 110, kY + 310, 70, 0, Math.PI * 2);
+        ctx.roundRect(x, y, w, h, r);
         ctx.clip();
-        ctx.drawImage(avatarImg, kX + kW - 180, kY + 240, 140, 140);
+        ctx.drawImage(src, x, y, w, h);
         ctx.restore();
-        ctx.strokeStyle = "#d4af37";
-        ctx.lineWidth = 3;
+
+        ctx.strokeStyle = isLightMode ? "#9b7016" : "#d4af37";
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.arc(kX + kW - 110, kY + 310, 70, 0, Math.PI * 2);
+        ctx.roundRect(x, y, w, h, r);
         ctx.stroke();
-      }
+      };
 
-      // 4. KTA HORIZONTAL (BACK) - x=1500, y=900, w=720, h=440
-      const kbY = 900;
-      drawCardPlate(kX, kbY, kW, kH, 30);
-
-      ctx.fillStyle = "#060b14";
-      ctx.fillRect(kX, kbY + 50, kW, 70);
-
-      ctx.textAlign = "left";
+      // Subtle flat woven strap silhouette above Vertical ID Card
+      ctx.save();
+      ctx.fillStyle = "#171d29";
+      ctx.fillRect(425, 0, 90, 412);
+      ctx.fillStyle = "rgba(212,175,55,0.65)";
+      ctx.fillRect(430, 0, 5, 412);
+      ctx.fillRect(505, 0, 5, 412);
       ctx.fillStyle = "#d4af37";
-      ctx.font = 'bold 24px "Playfair Display", serif';
-      ctx.fillText("VERIFIKASI ALUMNI RESMI", kX + 60, kbY + 180);
+      ctx.fillRect(438, 392, 64, 34);
+      ctx.restore();
 
-      ctx.fillStyle = isLightMode ? "#555" : "#94a3b8";
-      ctx.font = '16px "Inter", sans-serif';
-      ctx.fillText("Kartu Tanda Alumni Resmi • Expedient 43", kX + 60, kbY + 225);
-      ctx.fillText("Pondok Modern Arrisalah • Slahung, Ponorogo.", kX + 60, kbY + 260);
+      drawFramedCard(idFrontCanvas, 180, 420, 580, 920, 34);
+      drawFramedCard(idBackCanvas, 840, 420, 580, 920, 34);
+      drawFramedCard(ktaFrontCanvas, 1500, 420, 720, 450, 28);
+      drawFramedCard(ktaBackCanvas, 1500, 910, 720, 450, 28);
 
-      if (qrImg) {
-        ctx.drawImage(qrImg, kX + kW - 200, kbY + 170, 140, 140);
-        ctx.strokeStyle = "#d4af37";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(kX + kW - 200, kbY + 170, 140, 140);
-      }
-
-      // Download file PNG
       const link = document.createElement("a");
       link.download = `sovereign-credential-${nomorId}.png`;
       link.href = compCanvas.toDataURL("image/png");
@@ -683,13 +590,13 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                 justifyContent: "space-between",
               }}
             >
-              {/* Dynamic Holographic Glare Sweep */}
+              {/* Dynamic Holographic Glare + Spectral Foil Sweep */}
               <div
                 style={{
                   position: "absolute",
                   inset: 0,
                   pointerEvents: "none",
-                  background: `radial-gradient(circle 350px at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,215,0,0.22) 0%, rgba(255,255,255,0.08) 25%, transparent 65%)`,
+                  background: `radial-gradient(circle 340px at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,215,0,0.22) 0%, rgba(16,185,129,0.08) 22%, rgba(56,189,248,0.06) 42%, transparent 68%)`,
                   mixBlendMode: isLightMode ? "multiply" : "screen",
                 }}
               />
@@ -744,15 +651,19 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                         display: "flex",
                         alignItems: "center",
                         gap: 6,
-                        padding: "4px 10px",
-                        borderRadius: 12,
-                        background: isLightMode ? "rgba(212,175,55,0.15)" : "rgba(212,175,55,0.1)",
-                        border: "1px solid rgba(212,175,55,0.4)",
+                        padding: "3px 8px 3px 4px",
+                        borderRadius: 16,
+                        background: isLightMode ? "rgba(155,112,22,0.12)" : "rgba(212,175,55,0.12)",
+                        border: "1px solid rgba(212,175,55,0.45)",
                       }}
                     >
-                      <i className="fa-solid fa-crown" style={{ color: "#d4af37", fontSize: 10 }} />
+                      <img
+                        src="/images/logo-utuh.webp"
+                        alt="Expedient 43"
+                        style={{ width: 22, height: 22, borderRadius: "50%", objectFit: "cover" }}
+                      />
                       <span style={{ fontSize: 10, fontWeight: 800, color: "#d4af37", letterSpacing: 1 }}>
-                        VVIP
+                        43
                       </span>
                     </div>
                   </div>
@@ -909,19 +820,32 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                       />
                     </div>
 
-                    <div style={{ textAlign: "right" }}>
-                      <div
-                        style={{
-                          fontFamily: "'Playfair Display', serif",
-                          fontSize: 13,
-                          fontWeight: 800,
-                          letterSpacing: 2,
-                          color: "#d4af37",
-                        }}
-                      >
-                        EXPEDIENT
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div
+                          style={{
+                            fontFamily: "'Playfair Display', serif",
+                            fontSize: 13,
+                            fontWeight: 800,
+                            letterSpacing: 2,
+                            color: "#d4af37",
+                          }}
+                        >
+                          EXPEDIENT
+                        </div>
+                        <div style={{ fontSize: 8.5, letterSpacing: 2, opacity: 0.7 }}>ANGKATAN 43</div>
                       </div>
-                      <div style={{ fontSize: 9, letterSpacing: 3, opacity: 0.6 }}>SOVEREIGN</div>
+                      <img
+                        src="/images/logo-utuh.webp"
+                        alt="Expedient 43 Crest"
+                        style={{
+                          width: 34,
+                          height: 34,
+                          borderRadius: "50%",
+                          border: "1px solid rgba(212,175,55,0.5)",
+                          objectFit: "cover",
+                        }}
+                      />
                     </div>
                   </div>
 
@@ -943,7 +867,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
                     <div>
                       <div style={{ fontSize: 9, letterSpacing: 2, color: "#d4af37", textTransform: "uppercase" }}>
-                        CARDHOLDER
+                        PEMEGANG KTA RESMI
                       </div>
                       <div
                         style={{

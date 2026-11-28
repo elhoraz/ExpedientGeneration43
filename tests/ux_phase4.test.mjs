@@ -229,20 +229,32 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
     });
   });
 
-  describe("UX-05: Sovereign KTA 3D Zero-Overdraw Studio PBR & Mobile Parity", () => {
+  describe("UX-05: Sovereign KTA 3D Flagship Artwork, Die-Cut Slot & Zero-Overdraw Studio PBR", () => {
     const sovereignScene = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/SovereignThreeScene.tsx"), "utf8");
     const sovereignClient = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/SovereignClient.tsx"), "utf8");
+    const cardArtwork = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/cardArtwork.ts"), "utf8");
 
-    test("SovereignThreeScene avoids full-screen WebGL backdrops and per-frame TubeGeometry GC churn", () => {
-      assert.ok(sovereignScene.includes("buildCardStudioEnv"), "Uses compact dark/light studio softbox reflections");
-      assert.ok(sovereignScene.includes("createDynamicLanyardTube"), "Uses zero-allocation dynamic lanyard buffer updates");
-      assert.ok(sovereignScene.includes("roughnessMap: bundle.pbrTex"), "Packs roughness/metalness into unified PBR map");
-      assert.ok(!sovereignScene.includes("PlaneGeometry(160, 100)"), "Must not render full-screen transparent marble planes inside WebGL");
-      assert.ok(sovereignScene.includes("}, [user, nomorId, fotoUrl, qrUrl]);"), "Theme toggle must update lighting without rebuilding WebGL context");
+    test("Flagship cardArtwork engine embeds official crest, guilloche, & dark/light themes", () => {
+      assert.ok(cardArtwork.includes("drawGuillocheBackground"), "Renders intricate guilloche security wave patterns");
+      assert.ok(cardArtwork.includes("createWovenStrapCanvas"), "Generates woven EXPEDIENT 43 lanyard strap texture");
+      assert.ok(sovereignScene.includes("/images/logo-utuh.webp"), "Loads official Expedient 43 crest onto 3D cards");
     });
 
-    test("SovereignClient defaults to 3D Studio without mobile blocker and unifies bottom controls", () => {
+    test("SovereignThreeScene uses true die-cut slot hole, Verlet pendulum ribbon, hologram shader & zero overdraw", () => {
+      assert.ok(sovereignScene.includes("buildCardStudioEnv"), "Uses compact dark/light studio softbox reflections");
+      assert.ok(sovereignScene.includes("createDieCutCardGeometry"), "Extrudes real die-cut slot punch hole with separated front/back UVs");
+      assert.ok(sovereignScene.includes("createDynamicRibbonStrap"), "Uses zero-allocation flat satin ribbon strap buffer updates");
+      assert.ok(sovereignScene.includes("stepVerletPendulum"), "Simulates 6-node Verlet pendulum physics");
+      assert.ok(sovereignScene.includes("applyHologramFoilShader"), "Injects lightweight diffraction foil shader onBeforeCompile");
+      assert.ok(sovereignScene.includes("roughnessMap: set.pbrTex"), "Packs holoMask/roughness/metalness into unified PBR map");
+      assert.ok(!sovereignScene.includes("PlaneGeometry(160, 100)"), "Must not render full-screen transparent marble planes inside WebGL");
+      assert.ok(sovereignScene.includes("}, [user, nomorId, fotoUrl, qrUrl]);"), "Theme toggle must update studio without rebuilding WebGL context");
+    });
+
+    test("SovereignClient unifies PNG export & Lite mode with flagship artwork without mobile blocker", () => {
       assert.ok(!sovereignClient.includes("showMobileChoiceModal"), "Blocking mobile startup modal must be removed");
+      assert.ok(sovereignClient.includes("drawIdFrontFace"), "Reuses flagship cardArtwork painters inside 2400x1800 PNG export");
+      assert.ok(sovereignClient.includes("/images/logo-utuh.webp"), "Lite CSS card renders official Expedient 43 crest");
       assert.ok(sovereignClient.includes("sovereign-bottom-dock"), "Unified bottom dock controls work across both 3D and Lite views");
       assert.ok(sovereignClient.includes("cardFormat={cardFormat}"), "Passes format switcher state directly into 3D scene");
       assert.ok(sovereignClient.includes("isFlipped={isFlipped}"), "Passes flip state directly into 3D scene");
