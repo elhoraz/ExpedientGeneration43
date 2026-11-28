@@ -228,4 +228,25 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
       assert.ok(!galeriCss.includes("@media (max-width: 1024px)"), "Galeri mobile FAB must not overlap tablet left sidebar");
     });
   });
+
+  describe("UX-05: Sovereign KTA 3D Zero-Overdraw Studio PBR & Mobile Parity", () => {
+    const sovereignScene = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/SovereignThreeScene.tsx"), "utf8");
+    const sovereignClient = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/SovereignClient.tsx"), "utf8");
+
+    test("SovereignThreeScene avoids full-screen WebGL backdrops and per-frame TubeGeometry GC churn", () => {
+      assert.ok(sovereignScene.includes("buildCardStudioEnv"), "Uses compact dark/light studio softbox reflections");
+      assert.ok(sovereignScene.includes("createDynamicLanyardTube"), "Uses zero-allocation dynamic lanyard buffer updates");
+      assert.ok(sovereignScene.includes("roughnessMap: bundle.pbrTex"), "Packs roughness/metalness into unified PBR map");
+      assert.ok(!sovereignScene.includes("PlaneGeometry(160, 100)"), "Must not render full-screen transparent marble planes inside WebGL");
+      assert.ok(sovereignScene.includes("}, [user, nomorId, fotoUrl, qrUrl]);"), "Theme toggle must update lighting without rebuilding WebGL context");
+    });
+
+    test("SovereignClient defaults to 3D Studio without mobile blocker and unifies bottom controls", () => {
+      assert.ok(!sovereignClient.includes("showMobileChoiceModal"), "Blocking mobile startup modal must be removed");
+      assert.ok(sovereignClient.includes("sovereign-bottom-dock"), "Unified bottom dock controls work across both 3D and Lite views");
+      assert.ok(sovereignClient.includes("cardFormat={cardFormat}"), "Passes format switcher state directly into 3D scene");
+      assert.ok(sovereignClient.includes("isFlipped={isFlipped}"), "Passes flip state directly into 3D scene");
+      assert.ok(!sovereignClient.includes("EXPEDIENT INHABITANT"), "Replaces placeholder sci-fi copy with Alumni Angkatan 43 identity");
+    });
+  });
 });
