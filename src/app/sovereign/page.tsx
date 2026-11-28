@@ -3,12 +3,14 @@ import { redirect } from "next/navigation";
 import SovereignClient from "./SovereignClient";
 
 export const metadata = {
-  title: "Kartu Alumni 3D - Expedient",
+  title: "Kartu Tanda Alumni 3D — Expedient 43",
 };
 
 export default async function SovereignPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect("/login");
@@ -16,7 +18,9 @@ export default async function SovereignPage() {
 
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, nama_lengkap, nama_panggilan, foto_profil, prestise_points")
+    .select(
+      "id, nama_lengkap, nama_panggilan, foto_profil, prestise_points, alamat_lengkap, role"
+    )
     .eq("id", user.id)
     .single();
 

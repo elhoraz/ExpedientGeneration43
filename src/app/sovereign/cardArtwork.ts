@@ -1,11 +1,14 @@
 "use client";
 
+import QRCode from "qrcode";
+
 export type CardThemeMode = "dark" | "light";
 
 export interface CardIdentityData {
   nama: string;
   panggilan: string;
   nomorId: string;
+  domisili: string;
   angkatanLabel: string;
   berlakuLabel: string;
   maskedCardNumber: string;
@@ -20,14 +23,14 @@ export interface ArtworkPaintTargets {
 export interface LoadedCardAssets {
   crestImg?: HTMLImageElement | null;
   avatarImg?: HTMLImageElement | null;
-  qrImg?: HTMLImageElement | null;
+  qrCanvas?: HTMLCanvasElement | null;
 }
 
 /**
- * Encodes PBR surface attributes into RGB channels:
- * - R: Restrained holographic diffraction intensity (edge foil ribbon & crest outer halo ONLY)
- * - G: Surface roughness (roughnessMap — low values produce crisp piano-lacquer sheen)
- * - B: Metalness (metalnessMap — gold foil & trim hit 0.98)
+ * Encodes PBR surface attributes into RGB channels of a single texture:
+ * - R: Restrained holographic security foil mask (edge security line & seal rim ONLY)
+ * - G: Micro-surface roughness (low = glossy piano lacquer, high = matte QR paper)
+ * - B: Metalness (high = 24K stamped gold bullion)
  */
 export function pbrSurface(holo: number, roughness: number, metalness: number): string {
   const r = Math.max(0, Math.min(255, Math.round(holo * 255)));
@@ -36,22 +39,90 @@ export function pbrSurface(holo: number, roughness: number, metalness: number): 
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-// Iconic glossy dark obsidian + 24K stamped gold card finish (vivid across Day/Night galleries)
-const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.17, 0.34);
-const PBR_GOLD_FOIL = pbrSurface(0.04, 0.14, 0.98);
-const PBR_HOLO_ACCENT = pbrSurface(0.55, 0.16, 0.94);
-const PBR_GLASS = pbrSurface(0.0, 0.08, 0.05);
-const PBR_MAG_STRIPE = pbrSurface(0.0, 0.24, 0.12);
-const PBR_MATTE_QR = pbrSurface(0.0, 0.82, 0.02);
-const PBR_TEXT_FOIL = pbrSurface(0.0, 0.24, 0.72);
+const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.16, 0.28);
+const PBR_SATIN_BAND = pbrSurface(0.0, 0.34, 0.14);
+const PBR_GOLD_BULLION = pbrSurface(0.03, 0.13, 0.98);
+const PBR_HOLO_FOIL = pbrSurface(0.52, 0.15, 0.95);
+const PBR_PORTRAIT_GLASS = pbrSurface(0.0, 0.08, 0.05);
+const PBR_MATTE_IVORY = pbrSurface(0.0, 0.84, 0.02);
+const PBR_ENGRAVED_TYPE = pbrSurface(0.0, 0.22, 0.78);
 
 const GOLD = "#d4af37";
-const GOLD_LIGHT = "#f5df96";
-const OBSIDIAN_TOP = "#0c1422";
-const OBSIDIAN_MID = "#060b14";
-const OBSIDIAN_BOT = "#03060c";
+const GOLD_BRIGHT = "#f5e19c";
+const GOLD_DEEP = "#8f6b14";
+const OBSIDIAN_0 = "#0d1320";
+const OBSIDIAN_1 = "#070a12";
+const OBSIDIAN_2 = "#030509";
+const IVORY = "#f8fafc";
+const SLATE_MUTED = "#94a3b8";
 
-/** Loads an image safely with CORS support; resolves to null on error or empty URL. */
+/** Formats a raw address string into a concise, dignified domicile label for card engraving. */
+export function formatDomisiliLabel(raw?: string | null): string {
+  if (!raw || !raw.trim()) return "Ponorogo · Jawa Timur";
+  const cleaned = raw.trim().replace(/\s+/g, " ");
+  if (cleaned.length <= 28) return cleaned;
+  const parts = cleaned
+    .split(/[,/-]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (parts.length >= 2) {
+    const tail = `${parts[parts.length - 2]} · ${parts[parts.length - 1]}`;
+    if (tail.length <= 30) return tail;
+  }
+  return cleaned.slice(0, 26).trim() + "…";
+}
+
+/** Generates a crisp, zero-network local QR code canvas with high error-correction (`H`). */
+export async function generateVerificationQrCanvas(
+  verificationUrl: string,
+  pixelSize = 480
+): Promise<HTMLCanvasElement | null> {
+  if (typeof document === "undefined" || !verificationUrl) return null;
+  try {
+    const canvas = document.createElement("canvas");
+    await QRCode.toCanvas(canvas, verificationUrl, {
+      width: pixelSize,
+      margin: 1,
+      errorCorrectionLevel: "H",
+      color: {
+        dark: "#070a12",
+        light: "#faf8f3",
+      },
+    });
+
+    // Center miniature 43 seal emblem (safe under Level H 30% error correction)
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      const c = canvas.width / 2;
+      const r = canvas.width * 0.105;
+      ctx.save();
+      ctx.fillStyle = "#faf8f3";
+      ctx.beginPath();
+      ctx.arc(c, c, r + 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#070a12";
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = GOLD;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = GOLD_BRIGHT;
+      ctx.font = `700 ${Math.round(r * 0.92)}px "Playfair Display", Georgia, serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("43", c, c + 1);
+      ctx.restore();
+    }
+    return canvas;
+  } catch {
+    return null;
+  }
+}
+
+/** Loads an image safely with CORS support; resolves to null on failure. */
 export function loadArtworkImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     if (!url || typeof Image === "undefined") {
@@ -66,104 +137,170 @@ export function loadArtworkImage(url: string): Promise<HTMLImageElement | null> 
   });
 }
 
-/** Creates an opaque architectural Kintsugi Marble backdrop canvas for the 3D studio wall. */
+/**
+ * Fits a member's full name into 1 or 2 balanced lines without ever squishing glyph widths.
+ */
+function layoutDisplayName(
+  ctx: CanvasRenderingContext2D,
+  fullName: string,
+  maxWidth: number,
+  maxFontPx: number,
+  minFontPx: number,
+  family: string
+): { lines: string[]; fontSize: number } {
+  const normalized = (fullName || "ALUMNI EXPEDIENT").trim().replace(/\s+/g, " ").toUpperCase();
+
+  // Try single line from maxFontPx down to a comfortable threshold
+  const singleLineFloor = Math.round(maxFontPx * 0.72);
+  for (let px = maxFontPx; px >= singleLineFloor; px -= 2) {
+    ctx.font = `700 ${px}px ${family}`;
+    if (ctx.measureText(normalized).width <= maxWidth) {
+      return { lines: [normalized], fontSize: px };
+    }
+  }
+
+  // Split into 2 balanced lines at word boundary closest to midpoint
+  const words = normalized.split(" ");
+  if (words.length >= 2) {
+    let bestSplit = 1;
+    let bestDiff = Infinity;
+    for (let i = 1; i < words.length; i++) {
+      const left = words.slice(0, i).join(" ");
+      const right = words.slice(i).join(" ");
+      const diff = Math.abs(left.length - right.length);
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestSplit = i;
+      }
+    }
+    const line1 = words.slice(0, bestSplit).join(" ");
+    const line2 = words.slice(bestSplit).join(" ");
+
+    for (let px = Math.round(maxFontPx * 0.82); px >= minFontPx; px -= 2) {
+      ctx.font = `700 ${px}px ${family}`;
+      if (
+        ctx.measureText(line1).width <= maxWidth &&
+        ctx.measureText(line2).width <= maxWidth
+      ) {
+        return { lines: [line1, line2], fontSize: px };
+      }
+    }
+    return { lines: [line1, line2], fontSize: minFontPx };
+  }
+
+  return { lines: [normalized], fontSize: minFontPx };
+}
+
+/**
+ * Creates a smooth organic Bezier Kintsugi studio backdrop (zero jagged polyline zig-zags).
+ */
 export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext("2d")!;
 
-  const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size * 0.72);
+  const bg = ctx.createRadialGradient(
+    size * 0.5,
+    size * 0.45,
+    size * 0.04,
+    size * 0.5,
+    size * 0.5,
+    size * 0.78
+  );
   if (isDayMode) {
-    grad.addColorStop(0, "#ffffff");
-    grad.addColorStop(1, "#edeae2");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, size, size);
-
-    ctx.globalAlpha = 0.22;
-    ctx.strokeStyle = "#cbc4b5";
-    ctx.lineWidth = Math.max(4, size * 0.005);
+    bg.addColorStop(0, "#fbf9f4");
+    bg.addColorStop(0.55, "#f1ece1");
+    bg.addColorStop(1, "#e2dacb");
   } else {
-    grad.addColorStop(0, "#0c182b");
-    grad.addColorStop(1, "#050911");
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, size, size);
-
-    ctx.globalAlpha = 0.22;
-    ctx.strokeStyle = "#182842";
-    ctx.lineWidth = Math.max(2, size * 0.0025);
+    bg.addColorStop(0, "#0e1726");
+    bg.addColorStop(0.52, "#070c15");
+    bg.addColorStop(1, "#03050a");
   }
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, size, size);
 
-  for (let i = 0; i < 28; i++) {
+  // Smooth organic stone strata using continuous cubic Bezier ribbons
+  ctx.save();
+  for (let layer = 0; layer < 14; layer++) {
+    const yBase = (layer / 13) * size;
+    const amp = size * (0.025 + (layer % 3) * 0.012);
     ctx.beginPath();
-    ctx.moveTo(((i * 97) % 100) * 0.01 * size, 0);
-    for (let j = 1; j <= 6; j++) {
-      const px = (((i * 53 + j * 37) % 100) * 0.01) * size;
-      ctx.lineTo(px, (j / 6) * size);
-    }
+    ctx.moveTo(-size * 0.05, yBase);
+    ctx.bezierCurveTo(
+      size * 0.28,
+      yBase - amp,
+      size * 0.68,
+      yBase + amp * 1.15,
+      size * 1.05,
+      yBase - amp * 0.4
+    );
+    ctx.strokeStyle = isDayMode
+      ? `rgba(168, 154, 128, ${0.06 + (layer % 3) * 0.025})`
+      : `rgba(38, 56, 88, ${0.07 + (layer % 3) * 0.025})`;
+    ctx.lineWidth = size * (0.004 + (layer % 4) * 0.0025);
     ctx.stroke();
   }
 
-  // Deterministic Kintsugi gold seams
-  ctx.globalAlpha = 0.92;
-  ctx.shadowBlur = Math.round(size * 0.01);
-  ctx.shadowColor = isDayMode ? "rgba(180,140,40,0.18)" : "#e5c158";
-  ctx.strokeStyle = isDayMode ? "#c89f3c" : "#e5c158";
-  ctx.lineWidth = isDayMode ? Math.max(2, size * 0.002) : Math.max(2.5, size * 0.003);
+  // Delicate curved Kintsugi 24K gold seams
+  const seams: Array<[number, number, number, number, number, number, number, number]> = [
+    [0.08, 0.18, 0.32, 0.28, 0.58, 0.14, 0.92, 0.26],
+    [0.14, 0.78, 0.42, 0.66, 0.66, 0.84, 0.95, 0.72],
+    [0.24, 0.04, 0.31, 0.36, 0.21, 0.64, 0.34, 0.96],
+    [0.76, 0.06, 0.69, 0.38, 0.81, 0.66, 0.71, 0.95],
+  ];
+
   ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-
-  for (let i = 0; i < 10; i++) {
+  for (const [x0, y0, cx1, cy1, cx2, cy2, x1, y1] of seams) {
     ctx.beginPath();
-    let x = (((i * 71 + 19) % 100) * 0.01) * size;
-    let y = (((i * 43 + 11) % 85) * 0.01) * size;
-    ctx.moveTo(x, y);
-    for (let j = 0; j < 7; j++) {
-      x += ((((i * 17 + j * 29) % 100) - 50) * 0.005) * size;
-      y += (0.04 + (((i + j) * 19) % 10) * 0.008) * size;
-      ctx.lineTo(x, y);
-    }
+    ctx.moveTo(x0 * size, y0 * size);
+    ctx.bezierCurveTo(
+      cx1 * size,
+      cy1 * size,
+      cx2 * size,
+      cy2 * size,
+      x1 * size,
+      y1 * size
+    );
+    ctx.shadowBlur = size * 0.008;
+    ctx.shadowColor = isDayMode ? "rgba(180, 138, 36, 0.16)" : "rgba(229, 193, 88, 0.35)";
+    ctx.strokeStyle = isDayMode ? "rgba(176, 134, 38, 0.38)" : "rgba(229, 193, 88, 0.42)";
+    ctx.lineWidth = Math.max(1.4, size * 0.0016);
     ctx.stroke();
   }
-  ctx.shadowBlur = 0;
+  ctx.restore();
+
   return canvas;
 }
 
-function drawObsidianLacquerBase(
-  targets: ArtworkPaintTargets,
-  w: number,
-  h: number
-) {
+function drawObsidianLacquerSurface(targets: ArtworkPaintTargets, w: number, h: number) {
   const { cCtx, pCtx, bCtx } = targets;
 
-  const grad = cCtx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, OBSIDIAN_TOP);
-  grad.addColorStop(0.5, OBSIDIAN_MID);
-  grad.addColorStop(1, OBSIDIAN_BOT);
+  const grad = cCtx.createLinearGradient(0, 0, w * 0.85, h);
+  grad.addColorStop(0, OBSIDIAN_0);
+  grad.addColorStop(0.48, OBSIDIAN_1);
+  grad.addColorStop(1, OBSIDIAN_2);
   cCtx.fillStyle = grad;
   cCtx.fillRect(0, 0, w, h);
 
-  // Subtle vertical satin hairline grain
-  cCtx.globalAlpha = 0.028;
-  for (let i = 0; i < w; i += 3) {
-    cCtx.fillStyle = i % 6 === 0 ? "#283956" : "#000000";
-    cCtx.fillRect(i, 0, 1, h);
-  }
-  cCtx.globalAlpha = 1.0;
-
-  // Delicate architectural guilloche hairlines (barely visible so obsidian stays deep & clean)
+  // Ultra-fine brushed titanium micro-striations
   cCtx.save();
-  cCtx.strokeStyle = "rgba(212, 175, 55, 0.042)";
+  cCtx.globalAlpha = 0.022;
+  for (let x = 0; x < w; x += 3) {
+    cCtx.fillStyle = x % 6 === 0 ? "#334768" : "#000000";
+    cCtx.fillRect(x, 0, 1, h);
+  }
+  cCtx.restore();
+
+  // Whisper-quiet concentric security compass arcs (anchored off-center for editorial depth)
+  cCtx.save();
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.045)";
   cCtx.lineWidth = 1.1;
-  const rows = Math.ceil(h / 96);
-  for (let r = 0; r < rows; r++) {
-    const baseY = r * 96 + 48;
+  const ax = w * 0.82;
+  const ay = h * 0.18;
+  for (let r = 140; r <= 680; r += 54) {
     cCtx.beginPath();
-    for (let x = 0; x <= w; x += 32) {
-      const y = baseY + Math.sin((x / w) * Math.PI * 4 + r * 0.6) * 18;
-      if (x === 0) cCtx.moveTo(x, y);
-      else cCtx.lineTo(x, y);
-    }
+    cCtx.arc(ax, ay, r, 0, Math.PI * 2);
     cCtx.stroke();
   }
   cCtx.restore();
@@ -178,29 +315,41 @@ function drawObsidianLacquerBase(
   }
 }
 
-function drawMicroBorders(
+function drawPrecisionPerimeterRule(
   targets: ArtworkPaintTargets,
   w: number,
   h: number,
-  inset = 34,
-  radius = 32
+  inset: number,
+  radius: number
 ) {
   const { cCtx, pCtx, bCtx } = targets;
-  cCtx.strokeStyle = "rgba(212, 175, 55, 0.55)";
-  cCtx.lineWidth = 2.5;
+
+  const ruleGrad = cCtx.createLinearGradient(0, 0, w, h);
+  ruleGrad.addColorStop(0, "rgba(245, 225, 156, 0.72)");
+  ruleGrad.addColorStop(0.5, "rgba(212, 175, 55, 0.42)");
+  ruleGrad.addColorStop(1, "rgba(143, 107, 20, 0.68)");
+
+  cCtx.strokeStyle = ruleGrad;
+  cCtx.lineWidth = 2.4;
   cCtx.beginPath();
   cCtx.roundRect(inset, inset, w - inset * 2, h - inset * 2, radius);
   cCtx.stroke();
 
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.18)";
+  cCtx.lineWidth = 1.1;
+  cCtx.beginPath();
+  cCtx.roundRect(inset + 10, inset + 10, w - (inset + 10) * 2, h - (inset + 10) * 2, radius - 6);
+  cCtx.stroke();
+
   if (pCtx) {
-    pCtx.strokeStyle = PBR_GOLD_FOIL;
-    pCtx.lineWidth = 3;
+    pCtx.strokeStyle = PBR_GOLD_BULLION;
+    pCtx.lineWidth = 3.5;
     pCtx.beginPath();
     pCtx.roundRect(inset, inset, w - inset * 2, h - inset * 2, radius);
     pCtx.stroke();
   }
   if (bCtx) {
-    bCtx.strokeStyle = "#909090";
+    bCtx.strokeStyle = "#a8a8a8";
     bCtx.lineWidth = 2.5;
     bCtx.beginPath();
     bCtx.roundRect(inset, inset, w - inset * 2, h - inset * 2, radius);
@@ -208,7 +357,7 @@ function drawMicroBorders(
   }
 }
 
-function drawSmartEmvChip(
+function drawPrecisionEmvChip(
   targets: ArtworkPaintTargets,
   x: number,
   y: number,
@@ -217,64 +366,60 @@ function drawSmartEmvChip(
   r: number
 ) {
   const { cCtx, pCtx, bCtx } = targets;
+
   const grad = cCtx.createLinearGradient(x, y, x + w, y + h);
-  grad.addColorStop(0, "#fce6a4");
-  grad.addColorStop(0.5, GOLD);
-  grad.addColorStop(1, "#9a7114");
+  grad.addColorStop(0, "#fae7a8");
+  grad.addColorStop(0.45, "#d8b23c");
+  grad.addColorStop(1, "#8f6912");
   cCtx.fillStyle = grad;
   cCtx.beginPath();
   cCtx.roundRect(x, y, w, h, r);
   cCtx.fill();
 
   if (pCtx) {
-    // True crisp metallic gold chip without washed-out rainbow glow
-    pCtx.fillStyle = PBR_GOLD_FOIL;
+    pCtx.fillStyle = PBR_GOLD_BULLION;
     pCtx.beginPath();
     pCtx.roundRect(x, y, w, h, r);
     pCtx.fill();
   }
   if (bCtx) {
-    bCtx.fillStyle = "#ffffff";
+    bCtx.fillStyle = "#e8e8e8";
     bCtx.beginPath();
     bCtx.roundRect(x, y, w, h, r);
     bCtx.fill();
   }
 
-  const drawPaths = (ctx: CanvasRenderingContext2D, stroke: string) => {
+  const etch = (ctx: CanvasRenderingContext2D, stroke: string) => {
     ctx.strokeStyle = stroke;
-    ctx.lineWidth = 2.6;
+    ctx.lineWidth = 2.2;
     ctx.beginPath();
-    ctx.roundRect(x + 7, y + 7, w - 14, h - 14, Math.max(3, r - 4));
+    ctx.roundRect(x + 6, y + 6, w - 12, h - 12, Math.max(3, r - 4));
     ctx.stroke();
 
     const cx = x + w / 2;
     const cy = y + h / 2;
     ctx.beginPath();
-    ctx.ellipse(cx, cy, w * 0.21, h * 0.25, 0, 0, Math.PI * 2);
+    ctx.roundRect(cx - w * 0.18, cy - h * 0.24, w * 0.36, h * 0.48, 5);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(x + 7, cy - 13);
-    ctx.lineTo(cx - w * 0.21, cy - 13);
-    ctx.moveTo(x + 7, cy + 13);
-    ctx.lineTo(cx - w * 0.21, cy + 13);
-    ctx.moveTo(x + w - 7, cy - 13);
-    ctx.lineTo(cx + w * 0.21, cy - 13);
-    ctx.moveTo(x + w - 7, cy + 13);
-    ctx.lineTo(cx + w * 0.21, cy + 13);
-    ctx.moveTo(cx, y + 7);
-    ctx.lineTo(cx, cy - h * 0.25);
-    ctx.moveTo(cx, y + h - 7);
-    ctx.lineTo(cx, cy + h * 0.25);
+    ctx.moveTo(x + 6, cy - h * 0.12);
+    ctx.lineTo(cx - w * 0.18, cy - h * 0.12);
+    ctx.moveTo(x + 6, cy + h * 0.12);
+    ctx.lineTo(cx - w * 0.18, cy + h * 0.12);
+    ctx.moveTo(x + w - 6, cy - h * 0.12);
+    ctx.lineTo(cx + w * 0.18, cy - h * 0.12);
+    ctx.moveTo(x + w - 6, cy + h * 0.12);
+    ctx.lineTo(cx + w * 0.18, cy + h * 0.12);
     ctx.stroke();
   };
 
-  drawPaths(cCtx, "rgba(72, 46, 0, 0.58)");
-  if (pCtx) drawPaths(pCtx, PBR_OBSIDIAN_LACQUER);
-  if (bCtx) drawPaths(bCtx, "#141414");
+  etch(cCtx, "rgba(58, 38, 4, 0.55)");
+  if (pCtx) etch(pCtx, PBR_OBSIDIAN_LACQUER);
+  if (bCtx) etch(bCtx, "#181818");
 }
 
-function drawCrestBadge(
+function drawOfficialCrestMedallion(
   targets: ArtworkPaintTargets,
   crestImg: HTMLImageElement | null | undefined,
   cx: number,
@@ -283,76 +428,128 @@ function drawCrestBadge(
 ) {
   const { cCtx, pCtx, bCtx } = targets;
 
-  const haloGrad = cCtx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
-  haloGrad.addColorStop(0, GOLD);
-  haloGrad.addColorStop(0.5, GOLD_LIGHT);
-  haloGrad.addColorStop(1, "#9a6f14");
-
   cCtx.save();
-  cCtx.strokeStyle = haloGrad;
-  cCtx.lineWidth = 4.5;
+  const ringGrad = cCtx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
+  ringGrad.addColorStop(0, GOLD_BRIGHT);
+  ringGrad.addColorStop(0.5, GOLD);
+  ringGrad.addColorStop(1, GOLD_DEEP);
+
+  cCtx.strokeStyle = ringGrad;
+  cCtx.lineWidth = 3.5;
   cCtx.beginPath();
   cCtx.arc(cx, cy, radius, 0, Math.PI * 2);
   cCtx.stroke();
 
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.28)";
+  cCtx.lineWidth = 1.2;
+  cCtx.beginPath();
+  cCtx.arc(cx, cy, radius + 7, 0, Math.PI * 2);
+  cCtx.stroke();
+
   if (crestImg) {
     cCtx.beginPath();
-    cCtx.arc(cx, cy, radius - 4, 0, Math.PI * 2);
+    cCtx.arc(cx, cy, radius - 3, 0, Math.PI * 2);
     cCtx.clip();
-    const size = radius * 2.04;
-    cCtx.drawImage(crestImg, cx - size / 2, cy - size / 2, size, size);
+    const s = radius * 2.02;
+    cCtx.drawImage(crestImg, cx - s / 2, cy - s / 2, s, s);
   } else {
-    cCtx.fillStyle = OBSIDIAN_MID;
+    cCtx.fillStyle = OBSIDIAN_1;
     cCtx.beginPath();
-    cCtx.arc(cx, cy, radius - 4, 0, Math.PI * 2);
+    cCtx.arc(cx, cy, radius - 3, 0, Math.PI * 2);
     cCtx.fill();
-    cCtx.fillStyle = GOLD;
-    cCtx.font = `bold ${Math.round(radius * 0.65)}px "Playfair Display", serif`;
+    cCtx.fillStyle = GOLD_BRIGHT;
+    cCtx.font = `700 ${Math.round(radius * 0.64)}px "Playfair Display", Georgia, serif`;
     cCtx.textAlign = "center";
     cCtx.textBaseline = "middle";
     cCtx.fillText("43", cx, cy + 2);
   }
   cCtx.restore();
 
-  // Subtle holographic accent ONLY on outer gold bezel ring (keeps center crest vivid!)
+  // Holographic prism ONLY on the thin outer ring (center crest stays 100% crisp & untinted)
   if (pCtx) {
     pCtx.save();
-    pCtx.strokeStyle = PBR_HOLO_ACCENT;
-    pCtx.lineWidth = 7;
+    pCtx.strokeStyle = PBR_HOLO_FOIL;
+    pCtx.lineWidth = 6;
     pCtx.beginPath();
-    pCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+    pCtx.arc(cx, cy, radius + 2, 0, Math.PI * 2);
     pCtx.stroke();
     pCtx.restore();
   }
   if (bCtx) {
     bCtx.strokeStyle = "#ffffff";
-    bCtx.lineWidth = 5;
+    bCtx.lineWidth = 4;
     bCtx.beginPath();
     bCtx.arc(cx, cy, radius, 0, Math.PI * 2);
     bCtx.stroke();
   }
 }
 
-function drawSlotCollarFraming(targets: ArtworkPaintTargets) {
-  const { cCtx, pCtx } = targets;
+function drawSlotGrommet(targets: ArtworkPaintTargets) {
+  const { cCtx, pCtx, bCtx } = targets;
+  // Matches createDieCutCardGeometry slotHole at centerY = 3.718 -> canvas (408..616, 84..136)
   cCtx.save();
-  cCtx.strokeStyle = GOLD;
-  cCtx.lineWidth = 4;
+  const gGrad = cCtx.createLinearGradient(404, 80, 620, 140);
+  gGrad.addColorStop(0, GOLD_BRIGHT);
+  gGrad.addColorStop(0.5, GOLD);
+  gGrad.addColorStop(1, GOLD_DEEP);
+  cCtx.strokeStyle = gGrad;
+  cCtx.lineWidth = 4.5;
   cCtx.beginPath();
   cCtx.roundRect(408, 84, 208, 52, 26);
   cCtx.stroke();
   cCtx.restore();
 
   if (pCtx) {
-    pCtx.strokeStyle = PBR_GOLD_FOIL;
-    pCtx.lineWidth = 6;
+    pCtx.strokeStyle = PBR_GOLD_BULLION;
+    pCtx.lineWidth = 7;
     pCtx.beginPath();
     pCtx.roundRect(408, 84, 208, 52, 26);
     pCtx.stroke();
   }
+  if (bCtx) {
+    bCtx.strokeStyle = "#ffffff";
+    bCtx.lineWidth = 5;
+    bCtx.beginPath();
+    bCtx.roundRect(408, 84, 208, 52, 26);
+    bCtx.stroke();
+  }
 }
 
-/** Paints Vertical ID Card Front (Signature Glossy Black Obsidian + 24K Gold Foil). */
+function drawQrPlate(
+  targets: ArtworkPaintTargets,
+  qrCanvas: HTMLCanvasElement | null | undefined,
+  x: number,
+  y: number,
+  size: number,
+  radius: number
+) {
+  const { cCtx, pCtx } = targets;
+
+  cCtx.save();
+  cCtx.fillStyle = "#faf8f3";
+  cCtx.beginPath();
+  cCtx.roundRect(x, y, size, size, radius);
+  cCtx.fill();
+
+  cCtx.strokeStyle = GOLD;
+  cCtx.lineWidth = 4;
+  cCtx.stroke();
+
+  if (qrCanvas) {
+    const pad = Math.round(size * 0.055);
+    cCtx.drawImage(qrCanvas, x + pad, y + pad, size - pad * 2, size - pad * 2);
+  }
+  cCtx.restore();
+
+  if (pCtx) {
+    pCtx.fillStyle = PBR_MATTE_IVORY;
+    pCtx.beginPath();
+    pCtx.roundRect(x, y, size, size, radius);
+    pCtx.fill();
+  }
+}
+
+/** Paints Vertical Lanyard ID Card Front (1024x1624 logical coordinate space). */
 export function drawIdFrontFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
@@ -363,157 +560,193 @@ export function drawIdFrontFace(
   const H = 1624;
   const { cCtx, pCtx, bCtx } = targets;
 
-  drawObsidianLacquerBase(targets, W, H);
+  drawObsidianLacquerSurface(targets, W, H);
+  drawPrecisionPerimeterRule(targets, W, H, 34, 34);
+  drawSlotGrommet(targets);
 
-  // Subtle crest watermark behind photo frame
-  if (assets.crestImg) {
-    cCtx.save();
-    cCtx.globalAlpha = 0.06;
-    cCtx.drawImage(assets.crestImg, 252, 490, 520, 520);
-    cCtx.restore();
-  }
-
-  // Left vertical gold foil security strip
-  cCtx.fillStyle = GOLD;
-  cCtx.fillRect(58, 52, 11, H - 104);
-  cCtx.fillRect(76, 52, 2.5, H - 104);
+  // Subtle holographic security thread along left inner margin
+  const threadGrad = cCtx.createLinearGradient(0, 120, 0, H - 120);
+  threadGrad.addColorStop(0, "rgba(212,175,55,0)");
+  threadGrad.addColorStop(0.2, "rgba(245,225,156,0.65)");
+  threadGrad.addColorStop(0.5, "rgba(212,175,55,0.35)");
+  threadGrad.addColorStop(0.8, "rgba(245,225,156,0.65)");
+  threadGrad.addColorStop(1, "rgba(212,175,55,0)");
+  cCtx.fillStyle = threadGrad;
+  cCtx.fillRect(68, 110, 3.5, H - 220);
   if (pCtx) {
-    pCtx.fillStyle = PBR_HOLO_ACCENT;
-    pCtx.fillRect(56, 52, 22, H - 104);
-  }
-  if (bCtx) {
-    bCtx.fillStyle = "#c0c0c0";
-    bCtx.fillRect(58, 52, 11, H - 104);
+    pCtx.fillStyle = PBR_HOLO_FOIL;
+    pCtx.fillRect(64, 110, 12, H - 220);
   }
 
-  drawMicroBorders(targets, W, H, 34, 34);
-  drawSlotCollarFraming(targets);
-
-  // Header brand + Smart Chip + Crest Seal safely below slot hole
-  drawSmartEmvChip(targets, 128, 178, 124, 96, 16);
+  // Balanced Header: Official Crest + Institution Title (left) & 24K EMV Chip (right)
+  drawOfficialCrestMedallion(targets, assets.crestImg, 186, 236, 62);
 
   cCtx.textAlign = "left";
-  cCtx.fillStyle = GOLD;
-  cCtx.font = 'bold 34px "Playfair Display", serif';
-  cCtx.letterSpacing = "6px";
-  cCtx.fillText("EXPEDIENT 43", 284, 224);
-  cCtx.fillStyle = "#a3b1c2";
-  cCtx.font = '600 18px "Inter", sans-serif';
-  cCtx.letterSpacing = "3.5px";
-  cCtx.fillText("PONDOK MODERN ARRISALAH", 284, 260);
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = '700 30px "Playfair Display", Georgia, serif';
+  cCtx.letterSpacing = "4px";
+  cCtx.fillText("EXPEDIENT 43", 274, 226);
   cCtx.letterSpacing = "0px";
 
-  drawCrestBadge(targets, assets.crestImg, 830, 232, 74);
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 19px "Inter", sans-serif';
+  cCtx.fillText("Pondok Modern Arrisalah", 274, 260);
 
-  // Portrait Photo Frame
-  const photoX = 148;
-  const photoY = 348;
-  const photoW = 728;
-  const photoH = 660;
+  drawPrecisionEmvChip(targets, 774, 190, 122, 92, 15);
+
+  // Editorial Portrait Window (x=128, y=340, w=768, h=704)
+  const px = 128;
+  const py = 340;
+  const pw = 768;
+  const ph = 704;
 
   cCtx.save();
   cCtx.beginPath();
-  cCtx.roundRect(photoX, photoY, photoW, photoH, 22);
+  cCtx.roundRect(px, py, pw, ph, 22);
   cCtx.clip();
 
-  cCtx.fillStyle = "#111a28";
-  cCtx.fillRect(photoX, photoY, photoW, photoH);
+  const portBg = cCtx.createRadialGradient(
+    px + pw / 2,
+    py + ph * 0.38,
+    40,
+    px + pw / 2,
+    py + ph / 2,
+    pw * 0.75
+  );
+  portBg.addColorStop(0, "#172236");
+  portBg.addColorStop(1, "#090e18");
+  cCtx.fillStyle = portBg;
+  cCtx.fillRect(px, py, pw, ph);
 
   if (assets.avatarImg) {
-    const scale = Math.max(photoW / assets.avatarImg.width, photoH / assets.avatarImg.height);
+    const scale = Math.max(pw / assets.avatarImg.width, ph / assets.avatarImg.height);
     const dw = assets.avatarImg.width * scale;
     const dh = assets.avatarImg.height * scale;
-    cCtx.drawImage(
-      assets.avatarImg,
-      photoX + (photoW - dw) / 2,
-      photoY + (photoH - dh) / 2,
-      dw,
-      dh
-    );
-    const sheen = cCtx.createLinearGradient(photoX, photoY, photoX + photoW, photoY + photoH);
-    sheen.addColorStop(0, "rgba(255,255,255,0.06)");
-    sheen.addColorStop(1, "rgba(0,0,0,0.38)");
-    cCtx.fillStyle = sheen;
-    cCtx.fillRect(photoX, photoY, photoW, photoH);
+    cCtx.drawImage(assets.avatarImg, px + (pw - dw) / 2, py + (ph - dh) / 2, dw, dh);
+
+    const botShade = cCtx.createLinearGradient(0, py + ph * 0.65, 0, py + ph);
+    botShade.addColorStop(0, "rgba(7, 10, 18, 0)");
+    botShade.addColorStop(1, "rgba(7, 10, 18, 0.55)");
+    cCtx.fillStyle = botShade;
+    cCtx.fillRect(px, py, pw, ph);
   } else {
-    cCtx.fillStyle = "#1c2638";
-    cCtx.beginPath();
-    cCtx.arc(photoX + photoW / 2, photoY + 250, 118, 0, Math.PI * 2);
-    cCtx.fill();
-    cCtx.beginPath();
-    cCtx.arc(photoX + photoW / 2, photoY + 640, 265, Math.PI, 0);
-    cCtx.fill();
+    // Dignified calligraphic monogram portrait fallback
+    if (assets.crestImg) {
+      cCtx.globalAlpha = 0.14;
+      cCtx.drawImage(assets.crestImg, px + pw / 2 - 200, py + ph / 2 - 200, 400, 400);
+      cCtx.globalAlpha = 1.0;
+    }
+    cCtx.fillStyle = GOLD_BRIGHT;
+    cCtx.font = '700 180px "Playfair Display", Georgia, serif';
+    cCtx.textAlign = "center";
+    cCtx.textBaseline = "middle";
+    cCtx.fillText(identity.nama.charAt(0).toUpperCase(), px + pw / 2, py + ph / 2);
   }
   cCtx.restore();
 
   cCtx.strokeStyle = GOLD;
-  cCtx.lineWidth = 4;
+  cCtx.lineWidth = 3.2;
   cCtx.beginPath();
-  cCtx.roundRect(photoX, photoY, photoW, photoH, 22);
+  cCtx.roundRect(px, py, pw, ph, 22);
+  cCtx.stroke();
+
+  cCtx.strokeStyle = "rgba(245, 225, 156, 0.24)";
+  cCtx.lineWidth = 1.2;
+  cCtx.beginPath();
+  cCtx.roundRect(px + 10, py + 10, pw - 20, ph - 20, 16);
   cCtx.stroke();
 
   if (pCtx) {
-    pCtx.fillStyle = PBR_GLASS;
+    pCtx.fillStyle = PBR_PORTRAIT_GLASS;
     pCtx.beginPath();
-    pCtx.roundRect(photoX, photoY, photoW, photoH, 22);
+    pCtx.roundRect(px, py, pw, ph, 22);
     pCtx.fill();
   }
 
-  // Name & Alumni Title
-  cCtx.fillStyle = "#ffffff";
-  cCtx.font = 'bold 58px "Playfair Display", serif';
-  cCtx.fillText(identity.nama.toUpperCase(), 148, 1126, 728);
-
+  // Editorial Identity Block (No horizontal text squishing!)
+  cCtx.textAlign = "left";
+  cCtx.textBaseline = "alphabetic";
   cCtx.fillStyle = GOLD;
-  cCtx.font = '700 26px "Inter", sans-serif';
-  cCtx.letterSpacing = "4.5px";
-  cCtx.fillText(identity.angkatanLabel, 148, 1184, 728);
+  cCtx.font = '600 21px "Inter", sans-serif';
+  cCtx.letterSpacing = "3px";
+  cCtx.fillText("KARTU TANDA ALUMNI RESMI", 128, 1112);
   cCtx.letterSpacing = "0px";
 
+  const { lines: nameLines, fontSize: namePx } = layoutDisplayName(
+    cCtx,
+    identity.nama,
+    768,
+    58,
+    38,
+    '"Playfair Display", Georgia, serif'
+  );
+
+  cCtx.fillStyle = IVORY;
+  cCtx.font = `700 ${namePx}px "Playfair Display", Georgia, serif`;
+  const nameStartY = nameLines.length === 1 ? 1188 : 1172;
+  const lineStep = Math.round(namePx * 1.16);
+  nameLines.forEach((ln, idx) => {
+    cCtx.fillText(ln, 128, nameStartY + idx * lineStep);
+  });
+
   if (pCtx) {
-    pCtx.fillStyle = PBR_TEXT_FOIL;
-    pCtx.font = 'bold 58px "Playfair Display", serif';
-    pCtx.fillText(identity.nama.toUpperCase(), 148, 1126, 728);
-    pCtx.fillStyle = PBR_GOLD_FOIL;
-    pCtx.font = '700 26px "Inter", sans-serif';
-    pCtx.letterSpacing = "4.5px";
-    pCtx.fillText(identity.angkatanLabel, 148, 1184, 728);
-    pCtx.letterSpacing = "0px";
+    pCtx.fillStyle = PBR_ENGRAVED_TYPE;
+    pCtx.font = `700 ${namePx}px "Playfair Display", Georgia, serif`;
+    nameLines.forEach((ln, idx) => {
+      pCtx.fillText(ln, 128, nameStartY + idx * lineStep);
+    });
   }
   if (bCtx) {
     bCtx.fillStyle = "#ffffff";
-    bCtx.font = 'bold 58px "Playfair Display", serif';
-    bCtx.fillText(identity.nama.toUpperCase(), 148, 1126, 728);
+    bCtx.font = `700 ${namePx}px "Playfair Display", Georgia, serif`;
+    nameLines.forEach((ln, idx) => {
+      bCtx.fillText(ln, 128, nameStartY + idx * lineStep);
+    });
   }
 
-  cCtx.fillStyle = "rgba(212,175,55,0.34)";
-  cCtx.fillRect(148, 1236, 728, 3);
+  // Hairline gold divider above 2-column architectural metadata grid
+  const divY = 1288;
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.34)";
+  cCtx.fillRect(128, divY, 768, 2);
   if (pCtx) {
-    pCtx.fillStyle = PBR_GOLD_FOIL;
-    pCtx.fillRect(148, 1236, 728, 3);
+    pCtx.fillStyle = PBR_GOLD_BULLION;
+    pCtx.fillRect(128, divY, 768, 2);
   }
 
-  // ID Metadata & Barcode
-  cCtx.fillStyle = "#9aa7b6";
-  cCtx.font = "600 28px monospace";
-  cCtx.fillText(`ID: ${identity.nomorId}`, 148, 1316);
-  cCtx.font = "500 24px monospace";
-  cCtx.fillText(identity.berlakuLabel, 148, 1368);
+  // Left Column: Domisili & Cohort
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 19px "Inter", sans-serif';
+  cCtx.fillText("Domisili", 128, 1340);
+  cCtx.fillStyle = IVORY;
+  cCtx.font = '600 25px "Inter", sans-serif';
+  cCtx.fillText(identity.domisili, 128, 1376);
 
-  cCtx.fillStyle = GOLD;
-  cCtx.font = "700 22px monospace";
-  cCtx.fillText("STATUS • TERVERIFIKASI", 148, 1428);
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 19px "Inter", sans-serif';
+  cCtx.fillText("Angkatan", 128, 1434);
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = '600 24px "Inter", sans-serif';
+  cCtx.fillText("Ke-43 · Expedient Generation", 128, 1470);
 
-  cCtx.fillStyle = "#e2e8f0";
-  const barWidths = [6, 2, 4, 2, 8, 3, 2, 6, 2, 5, 3, 7, 2, 4, 2, 6, 3, 8, 2, 4, 3, 6, 2, 5];
-  let bx = 636;
-  for (const bw of barWidths) {
-    cCtx.fillRect(bx, 1300, bw, 92);
-    bx += bw + 4;
-  }
+  // Right Column: Tabular Alumni ID & Verification Status
+  cCtx.textAlign = "right";
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 19px "Inter", sans-serif';
+  cCtx.fillText("Nomor Anggota", 896, 1340);
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = "700 30px monospace";
+  cCtx.fillText(identity.nomorId, 896, 1378);
+
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 19px "Inter", sans-serif';
+  cCtx.fillText("Masa Berlaku", 896, 1434);
+  cCtx.fillStyle = IVORY;
+  cCtx.font = '600 24px "Inter", sans-serif';
+  cCtx.fillText("Seumur Hidup", 896, 1470);
+  cCtx.textAlign = "left";
 }
 
-/** Paints Vertical ID Card Back onto any scaled 1024x1624 canvas context. */
+/** Paints Vertical Lanyard ID Card Back (1024x1624 logical coordinate space). */
 export function drawIdBackFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
@@ -524,74 +757,62 @@ export function drawIdBackFace(
   const H = 1624;
   const { cCtx, pCtx } = targets;
 
-  drawObsidianLacquerBase(targets, W, H);
-  drawMicroBorders(targets, W, H, 34, 34);
-  drawSlotCollarFraming(targets);
+  drawObsidianLacquerSurface(targets, W, H);
+  drawPrecisionPerimeterRule(targets, W, H, 34, 34);
+  drawSlotGrommet(targets);
 
-  // Magnetic Stripe
-  cCtx.fillStyle = "#03050a";
-  cCtx.fillRect(36, 184, W - 72, 170);
+  // Satin Magnetic Band cleanly below die-cut slot grommet
+  cCtx.fillStyle = "#020408";
+  cCtx.fillRect(36, 178, W - 72, 154);
   if (pCtx) {
-    pCtx.fillStyle = PBR_MAG_STRIPE;
-    pCtx.fillRect(36, 184, W - 72, 170);
+    pCtx.fillStyle = PBR_SATIN_BAND;
+    pCtx.fillRect(36, 178, W - 72, 154);
   }
 
   cCtx.textAlign = "center";
-  cCtx.fillStyle = GOLD;
-  cCtx.font = 'bold 40px "Playfair Display", serif';
-  cCtx.fillText("KARTU TANDA ALUMNI RESMI", 512, 468);
-  cCtx.fillRect(372, 498, 280, 3);
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = '700 38px "Playfair Display", Georgia, serif';
+  cCtx.fillText("Verifikasi Keanggotaan Resmi", 512, 438);
 
-  cCtx.fillStyle = "#9aa7b6";
-  cCtx.font = '400 26px "Inter", sans-serif';
-  const copy = [
-    "Expedient Generation 43",
-    "Pondok Modern Arrisalah • Slahung, Ponorogo.",
-    "Identitas resmi silaturahmi & ekosistem digital",
-    "Keluarga Besar Alumni Angkatan ke-43.",
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.38)";
+  cCtx.fillRect(382, 466, 260, 2);
+
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '400 25px "Inter", sans-serif';
+  const lines = [
+    "Kartu ini menerangkan bahwa pemegang bernama di balik",
+    "adalah anggota sah Keluarga Besar Alumni Angkatan ke-43",
+    "Pondok Modern Arrisalah, Slahung, Ponorogo.",
   ];
-  copy.forEach((line, i) => cCtx.fillText(line, 512, 580 + i * 44));
+  lines.forEach((line, idx) => cCtx.fillText(line, 512, 534 + idx * 42));
 
-  const qx = 322;
-  const qy = 820;
-  const qs = 380;
-  cCtx.fillStyle = "#ffffff";
-  cCtx.beginPath();
-  cCtx.roundRect(qx, qy, qs, qs, 22);
-  cCtx.fill();
-  cCtx.strokeStyle = GOLD;
-  cCtx.lineWidth = 6;
-  cCtx.stroke();
-
-  if (assets.qrImg) {
-    cCtx.drawImage(assets.qrImg, qx + 22, qy + 22, qs - 44, qs - 44);
-  }
-  if (pCtx) {
-    pCtx.fillStyle = PBR_MATTE_QR;
-    pCtx.beginPath();
-    pCtx.roundRect(qx, qy, qs, qs, 22);
-    pCtx.fill();
-  }
+  // Crisp Local High-DPI Verification QR Plate
+  drawQrPlate(targets, assets.qrCanvas, 312, 706, 400, 26);
 
   cCtx.fillStyle = GOLD;
-  cCtx.font = "700 22px monospace";
-  cCtx.fillText("PINDAI QR VERIFIKASI IDENTITAS", 512, 1260);
+  cCtx.font = '600 22px "Inter", sans-serif';
+  cCtx.fillText("Pindai kode QR untuk membuka profil verifikasi", 512, 1166);
 
-  cCtx.fillStyle = "#f8fafc";
+  // Authorized Signature Strip
+  cCtx.fillStyle = "#f4f1ea";
   cCtx.beginPath();
-  cCtx.roundRect(184, 1340, 656, 76, 12);
+  cCtx.roundRect(172, 1244, 680, 86, 14);
   cCtx.fill();
-  cCtx.strokeStyle = "rgba(212,175,55,0.45)";
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.5)";
   cCtx.lineWidth = 2;
   cCtx.stroke();
 
   cCtx.fillStyle = "#0f172a";
-  cCtx.font = 'italic bold 34px "Playfair Display", serif';
-  cCtx.fillText(identity.panggilan, 512, 1390);
+  cCtx.font = 'italic 700 36px "Playfair Display", Georgia, serif';
+  cCtx.fillText(identity.panggilan, 512, 1299);
+
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = "600 22px monospace";
+  cCtx.fillText(`${identity.nomorId}  ·  PONDOK MODERN ARRISALAH`, 512, 1438);
   cCtx.textAlign = "left";
 }
 
-/** Paints Horizontal KTA Front onto any scaled 1024x640 canvas context. */
+/** Paints Horizontal Wallet KTA Card Front (1024x640 ISO ID-1 proportion). */
 export function drawKtaFrontFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
@@ -602,108 +823,135 @@ export function drawKtaFrontFace(
   const H = 640;
   const { cCtx, pCtx, bCtx } = targets;
 
-  drawObsidianLacquerBase(targets, W, H);
+  drawObsidianLacquerSurface(targets, W, H);
 
   if (assets.crestImg) {
     cCtx.save();
-    cCtx.globalAlpha = 0.06;
-    cCtx.drawImage(assets.crestImg, 312, 120, 400, 400);
+    cCtx.globalAlpha = 0.055;
+    cCtx.drawImage(assets.crestImg, 322, 110, 420, 420);
     cCtx.restore();
   }
 
-  drawMicroBorders(targets, W, H, 24, 28);
-  drawSmartEmvChip(targets, 72, 68, 108, 82, 14);
+  drawPrecisionPerimeterRule(targets, W, H, 24, 28);
 
-  drawCrestBadge(targets, assets.crestImg, 916, 114, 52);
-  cCtx.textAlign = "right";
-  cCtx.fillStyle = GOLD;
-  cCtx.font = 'bold 34px "Playfair Display", serif';
-  cCtx.letterSpacing = "7px";
-  cCtx.fillText("EXPEDIENT", 844, 110);
-  cCtx.fillStyle = "#9aa7b6";
-  cCtx.font = "600 18px monospace";
-  cCtx.letterSpacing = "4px";
-  cCtx.fillText("ANGKATAN 43 • ARRISALAH", 844, 144);
-  cCtx.letterSpacing = "0px";
+  // Top Header: Official Crest + Expedient 43 Title
+  drawOfficialCrestMedallion(targets, assets.crestImg, 114, 112, 46);
+
   cCtx.textAlign = "left";
-
-  if (pCtx) {
-    pCtx.fillStyle = PBR_GOLD_FOIL;
-    pCtx.font = 'bold 34px "Playfair Display", serif';
-    pCtx.textAlign = "right";
-    pCtx.fillText("EXPEDIENT", 844, 110);
-    pCtx.textAlign = "left";
-  }
-
-  cCtx.fillStyle = GOLD;
-  cCtx.font = "bold 40px monospace";
-  cCtx.letterSpacing = "3px";
-  cCtx.fillText(identity.maskedCardNumber, 72, 320);
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = '700 30px "Playfair Display", Georgia, serif';
+  cCtx.letterSpacing = "4px";
+  cCtx.fillText("EXPEDIENT GENERATION", 182, 106);
   cCtx.letterSpacing = "0px";
+
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 18px "Inter", sans-serif';
+  cCtx.fillText("Pondok Modern Arrisalah · Alumni Angkatan ke-43", 182, 136);
+
+  // Mid-left 24K Gold EMV Chip + Contactless Wave
+  drawPrecisionEmvChip(targets, 72, 202, 108, 82, 13);
+
+  cCtx.save();
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.55)";
+  cCtx.lineWidth = 2.6;
+  cCtx.lineCap = "round";
+  for (let r = 12; r <= 28; r += 8) {
+    cCtx.beginPath();
+    cCtx.arc(204, 243, r, -Math.PI * 0.34, Math.PI * 0.34);
+    cCtx.stroke();
+  }
+  cCtx.restore();
+
+  // Embossed Tabular Credential Number
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = "700 35px monospace";
+  cCtx.letterSpacing = "2px";
+  cCtx.fillText(identity.maskedCardNumber, 72, 356);
+  cCtx.letterSpacing = "0px";
+
   if (pCtx) {
-    pCtx.fillStyle = PBR_GOLD_FOIL;
-    pCtx.font = "bold 40px monospace";
-    pCtx.fillText(identity.maskedCardNumber, 72, 320);
+    pCtx.fillStyle = PBR_GOLD_BULLION;
+    pCtx.font = "700 35px monospace";
+    pCtx.letterSpacing = "2px";
+    pCtx.fillText(identity.maskedCardNumber, 72, 356);
+    pCtx.letterSpacing = "0px";
   }
   if (bCtx) {
     bCtx.fillStyle = "#ffffff";
-    bCtx.font = "bold 40px monospace";
-    bCtx.fillText(identity.maskedCardNumber, 72, 320);
+    bCtx.font = "700 35px monospace";
+    bCtx.letterSpacing = "2px";
+    bCtx.fillText(identity.maskedCardNumber, 72, 356);
+    bCtx.letterSpacing = "0px";
   }
 
+  // Bottom-Left Member Name (Auto-fitted, never horizontally squished)
   cCtx.fillStyle = GOLD;
-  cCtx.font = '700 17px "Inter", sans-serif';
-  cCtx.letterSpacing = "3px";
-  cCtx.fillText("PEMEGANG KTA RESMI", 72, 434);
+  cCtx.font = '600 16px "Inter", sans-serif';
+  cCtx.letterSpacing = "2.5px";
+  cCtx.fillText("PEMEGANG KARTU", 72, 430);
   cCtx.letterSpacing = "0px";
 
-  cCtx.fillStyle = "#ffffff";
-  cCtx.font = 'bold 40px "Inter", sans-serif';
-  cCtx.fillText(identity.nama.toUpperCase(), 72, 488, 590);
+  const { lines: ktaLines, fontSize: ktaPx } = layoutDisplayName(
+    cCtx,
+    identity.nama,
+    620,
+    38,
+    26,
+    '"Playfair Display", Georgia, serif'
+  );
+  cCtx.fillStyle = IVORY;
+  cCtx.font = `700 ${ktaPx}px "Playfair Display", Georgia, serif`;
+  const ktaBaseY = ktaLines.length === 1 ? 482 : 468;
+  ktaLines.forEach((ln, idx) => {
+    cCtx.fillText(ln, 72, ktaBaseY + idx * Math.round(ktaPx * 1.14));
+  });
 
-  cCtx.fillStyle = "#9aa7b6";
-  cCtx.font = "600 22px monospace";
-  cCtx.fillText(`ID: ${identity.nomorId}  •  ${identity.berlakuLabel}`, 72, 540, 590);
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 20px "Inter", sans-serif';
+  cCtx.fillText(`${identity.domisili}  ·  ${identity.nomorId}`, 72, 566);
 
-  const cx = 834;
-  const cy = 428;
-  const rad = 112;
+  // Right Chamfered Portrait Window (x=736, y=194, w=224, h=376, r=20)
+  const ax = 736;
+  const ay = 194;
+  const aw = 224;
+  const ah = 376;
+
   cCtx.save();
   cCtx.beginPath();
-  cCtx.arc(cx, cy, rad, 0, Math.PI * 2);
+  cCtx.roundRect(ax, ay, aw, ah, 20);
   cCtx.clip();
-  cCtx.fillStyle = "#111a28";
-  cCtx.fillRect(cx - rad, cy - rad, rad * 2, rad * 2);
+  cCtx.fillStyle = "#111a2a";
+  cCtx.fillRect(ax, ay, aw, ah);
 
   if (assets.avatarImg) {
-    const s = Math.max((rad * 2) / assets.avatarImg.width, (rad * 2) / assets.avatarImg.height);
+    const s = Math.max(aw / assets.avatarImg.width, ah / assets.avatarImg.height);
     const dw = assets.avatarImg.width * s;
     const dh = assets.avatarImg.height * s;
-    cCtx.drawImage(assets.avatarImg, cx - dw / 2, cy - dh / 2, dw, dh);
+    cCtx.drawImage(assets.avatarImg, ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh);
   } else {
-    cCtx.fillStyle = GOLD;
-    cCtx.font = 'bold 84px "Playfair Display", serif';
+    cCtx.fillStyle = GOLD_BRIGHT;
+    cCtx.font = '700 92px "Playfair Display", Georgia, serif';
     cCtx.textAlign = "center";
     cCtx.textBaseline = "middle";
-    cCtx.fillText(identity.nama.charAt(0).toUpperCase(), cx, cy + 4);
+    cCtx.fillText(identity.nama.charAt(0).toUpperCase(), ax + aw / 2, ay + ah / 2);
   }
   cCtx.restore();
 
   cCtx.strokeStyle = GOLD;
-  cCtx.lineWidth = 5;
+  cCtx.lineWidth = 3;
   cCtx.beginPath();
-  cCtx.arc(cx, cy, rad, 0, Math.PI * 2);
+  cCtx.roundRect(ax, ay, aw, ah, 20);
   cCtx.stroke();
 
   if (pCtx) {
-    pCtx.fillStyle = PBR_GLASS;
+    pCtx.fillStyle = PBR_PORTRAIT_GLASS;
     pCtx.beginPath();
-    pCtx.arc(cx, cy, rad, 0, Math.PI * 2);
+    pCtx.roundRect(ax, ay, aw, ah, 20);
     pCtx.fill();
   }
 }
 
-/** Paints Horizontal KTA Back onto any scaled 1024x640 canvas context. */
+/** Paints Horizontal Wallet KTA Card Back (1024x640 ISO ID-1 proportion). */
 export function drawKtaBackFace(
   targets: ArtworkPaintTargets,
   identity: CardIdentityData,
@@ -714,54 +962,51 @@ export function drawKtaBackFace(
   const H = 640;
   const { cCtx, pCtx } = targets;
 
-  drawObsidianLacquerBase(targets, W, H);
-  drawMicroBorders(targets, W, H, 24, 28);
+  drawObsidianLacquerSurface(targets, W, H);
+  drawPrecisionPerimeterRule(targets, W, H, 24, 28);
 
-  cCtx.fillStyle = "#03050a";
-  cCtx.fillRect(26, 68, W - 52, 94);
+  // Satin Magnetic Band
+  cCtx.fillStyle = "#020408";
+  cCtx.fillRect(26, 62, W - 52, 92);
   if (pCtx) {
-    pCtx.fillStyle = PBR_MAG_STRIPE;
-    pCtx.fillRect(26, 68, W - 52, 94);
+    pCtx.fillStyle = PBR_SATIN_BAND;
+    pCtx.fillRect(26, 62, W - 52, 92);
   }
 
-  cCtx.textAlign = "left";
-  cCtx.fillStyle = GOLD;
-  cCtx.font = 'bold 30px "Playfair Display", serif';
-  cCtx.fillText("VERIFIKASI ALUMNI RESMI", 72, 246);
-
-  cCtx.fillStyle = "#9aa7b6";
-  cCtx.font = '400 22px "Inter", sans-serif';
-  cCtx.fillText("Expedient Generation 43 • Pondok Modern Arrisalah", 72, 304);
-  cCtx.fillText("Slahung, Ponorogo • Jawa Timur, Indonesia", 72, 344);
-
-  cCtx.fillStyle = GOLD;
-  cCtx.font = "700 22px monospace";
-  cCtx.fillText(`ID: ${identity.nomorId} • ${identity.berlakuLabel}`, 72, 426);
-
-  cCtx.fillStyle = "#cbd5e1";
-  cCtx.font = 'italic 24px "Playfair Display", serif';
-  cCtx.fillText(identity.panggilan, 72, 514);
-
-  const qx = 716;
-  const qy = 228;
-  const qs = 236;
-  cCtx.fillStyle = "#ffffff";
+  // Signature Strip + Official Verification Text on Left
+  cCtx.fillStyle = "#f4f1ea";
   cCtx.beginPath();
-  cCtx.roundRect(qx, qy, qs, qs, 18);
+  cCtx.roundRect(68, 198, 560, 68, 10);
   cCtx.fill();
-  cCtx.strokeStyle = GOLD;
-  cCtx.lineWidth = 4;
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.45)";
+  cCtx.lineWidth = 1.8;
   cCtx.stroke();
 
-  if (assets.qrImg) {
-    cCtx.drawImage(assets.qrImg, qx + 16, qy + 16, qs - 32, qs - 32);
-  }
-  if (pCtx) {
-    pCtx.fillStyle = PBR_MATTE_QR;
-    pCtx.beginPath();
-    pCtx.roundRect(qx, qy, qs, qs, 18);
-    pCtx.fill();
-  }
+  cCtx.textAlign = "left";
+  cCtx.fillStyle = "#0f172a";
+  cCtx.font = 'italic 700 30px "Playfair Display", Georgia, serif';
+  cCtx.fillText(identity.panggilan, 92, 243);
+
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = '700 26px "Playfair Display", Georgia, serif';
+  cCtx.fillText("Kartu Tanda Alumni Resmi", 68, 336);
+
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '400 21px "Inter", sans-serif';
+  cCtx.fillText("Keluarga Besar Alumni Angkatan ke-43", 68, 378);
+  cCtx.fillText("Pondok Modern Arrisalah · Slahung, Ponorogo", 68, 412);
+
+  cCtx.fillStyle = GOLD;
+  cCtx.font = "600 22px monospace";
+  cCtx.fillText(`${identity.nomorId}  ·  SEUMUR HIDUP`, 68, 548);
+
+  // Right High-DPI Local Verification QR Plate
+  drawQrPlate(targets, assets.qrCanvas, 694, 198, 262, 20);
+  cCtx.textAlign = "center";
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = '500 17px "Inter", sans-serif';
+  cCtx.fillText("Pindai Verifikasi", 825, 494);
+  cCtx.textAlign = "left";
 }
 
 /** Creates a procedural satin woven ribbon strap texture printed with subtle cohort branding. */
@@ -773,32 +1018,34 @@ export function createWovenStrapCanvas(): HTMLCanvasElement {
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
 
-  ctx.fillStyle = "#111722";
+  ctx.fillStyle = "#0e131d";
   ctx.fillRect(0, 0, w, h);
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.045)";
+  // Herringbone satin weave
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.038)";
   ctx.lineWidth = 2;
   for (let y = -16; y < h + 16; y += 8) {
     ctx.beginPath();
     ctx.moveTo(0, y);
-    ctx.lineTo(w / 2, y + 10);
+    ctx.lineTo(w / 2, y + 9);
     ctx.lineTo(w, y);
     ctx.stroke();
   }
 
-  ctx.fillStyle = "rgba(212, 175, 55, 0.6)";
-  ctx.fillRect(10, 0, 5, h);
-  ctx.fillRect(w - 15, 0, 5, h);
+  // Fine woven 24K gold edge selvedge
+  ctx.fillStyle = "rgba(212, 175, 55, 0.55)";
+  ctx.fillRect(10, 0, 4, h);
+  ctx.fillRect(w - 14, 0, 4, h);
 
   ctx.save();
   ctx.translate(w / 2, h / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillStyle = "rgba(212, 175, 55, 0.34)";
-  ctx.font = '700 22px "Inter", sans-serif';
+  ctx.fillStyle = "rgba(212, 175, 55, 0.3)";
+  ctx.font = '600 20px "Inter", sans-serif';
   ctx.letterSpacing = "5px";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("EXPEDIENT 43 • ARRISALAH", 0, 0);
+  ctx.fillText("EXPEDIENT 43 · ARRISALAH", 0, 0);
   ctx.restore();
 
   return canvas;

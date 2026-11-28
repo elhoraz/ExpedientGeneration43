@@ -229,35 +229,44 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
     });
   });
 
-  describe("UX-05: Sovereign KTA 3D Flagship Artwork, Die-Cut Slot & Hinged Pendulum PBR", () => {
+  describe("UX-05: Sovereign KTA 3D Horology Studio, Local QR Verification & Micro-Machined Bezels", () => {
     const sovereignScene = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/SovereignThreeScene.tsx"), "utf8");
     const sovereignClient = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/SovereignClient.tsx"), "utf8");
     const cardArtwork = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/cardArtwork.ts"), "utf8");
 
-    test("Flagship cardArtwork engine embeds official crest, subtle lacquer finish & woven strap", () => {
-      assert.ok(cardArtwork.includes("drawObsidianLacquerBase"), "Preserves deep glossy Obsidian Lacquer card finish");
+    test("cardArtwork engine generates local high-DPI QR codes, un-squished typography & Bezier Kintsugi stone", () => {
+      assert.ok(cardArtwork.includes("generateVerificationQrCanvas"), "Generates offline local QR canvas via qrcode package");
+      assert.ok(!cardArtwork.includes("api.qrserver.com"), "Eliminates external QR image dependency");
+      assert.ok(cardArtwork.includes("layoutDisplayName"), "Auto-fits full names across 1-2 lines without horizontal glyph squishing");
+      assert.ok(cardArtwork.includes("drawObsidianLacquerSurface"), "Renders deep glossy Obsidian Lacquer card finish");
       assert.ok(cardArtwork.includes("createWovenStrapCanvas"), "Generates woven EXPEDIENT 43 lanyard strap texture");
       assert.ok(cardArtwork.includes("createMarbleWallCanvas"), "Provides opaque day/night Kintsugi marble wall backdrop");
       assert.ok(sovereignScene.includes("/images/logo-utuh.webp"), "Loads official Expedient 43 crest onto 3D cards");
     });
 
-    test("SovereignThreeScene uses RoomEnvironment 360, opaque marble wall, hinged clasp pivot & exact planar bevels", () => {
-      assert.ok(sovereignScene.includes("RoomEnvironment"), "Restores full 360-degree RoomEnvironment studio reflections");
+    test("SovereignThreeScene uses horology softbox PMREM, 2x desktop supersampling, hinged clasp & micro-bezels", () => {
+      assert.ok(sovereignScene.includes("buildHorologyCardEnv"), "Bakes high-contrast horology softbox studio environment maps");
       assert.ok(sovereignScene.includes("transparent: false"), "Uses single opaque marble wall to eliminate dual-plane alpha overdraw");
       assert.ok(sovereignScene.includes("createDieCutCardGeometry"), "Extrudes real die-cut slot punch hole with planar gold bevel isolation");
-      assert.ok(sovereignScene.includes("createRaisedRectBezelGeometry"), "Mounts real raised 3D 24K gold bezels on card surfaces");
-      assert.ok(sovereignScene.includes("vaultRingsGroup"), "Adds desktop golden orbital vault showcase rings behind cards");
+      assert.ok(sovereignScene.includes("createRaisedRectBezelGeometry"), "Mounts precision micro-chamfered 24K gold bezels on card surfaces");
+      assert.ok(sovereignScene.includes("createRaisedRingBezelGeometry"), "Mounts watch-caliber flat circular bezel rings around official crest");
+      assert.ok(!sovereignScene.includes("vaultRingsGroup"), "Removes decorative floating wireframe rings in favor of architectural brass alcove");
       assert.ok(sovereignScene.includes("idPivotGroup"), "Hinges card rotation right at clasp tip for zero ribbon detachment gap");
       assert.ok(sovereignScene.includes("createDynamicRibbonStrap"), "Uses +Z forward zero-allocation woven ribbon strap buffer updates");
       assert.ok(sovereignScene.includes("stepVerletPendulum"), "Simulates 6-node Verlet pendulum physics");
-      assert.ok(sovereignScene.includes("applyHologramFoilShader"), "Injects restrained hologram foil shader only on edge accents");
-      assert.ok(sovereignScene.includes("}, [user, nomorId, fotoUrl, qrUrl]);"), "Theme toggle must update lighting and marble map without rebuilding WebGL context");
+      assert.ok(sovereignScene.includes("applyHologramFoilShader"), "Injects restrained hologram foil shader only on edge security accents");
+      assert.ok(
+        sovereignScene.includes("}, [user, nomorId, fotoUrl, verificationUrl]);"),
+        "Theme toggle updates studio lighting and marble map in-place without rebuilding WebGL context"
+      );
     });
 
-    test("SovereignClient syncs global theme, unifies PNG export & Lite mode without mobile blocker", () => {
+    test("SovereignClient routes verification QR to /dossier/[id], syncs global theme & unifies HD PNG export", () => {
       assert.ok(!sovereignClient.includes("showMobileChoiceModal"), "Blocking mobile startup modal must be removed");
+      assert.ok(!sovereignClient.includes("api.qrserver.com"), "Client must not depend on external QR server");
+      assert.ok(sovereignClient.includes("/dossier/"), "Verification URL links directly to live /dossier/[id] route");
       assert.ok(sovereignClient.includes("expedient_theme"), "Synchronizes initial Siang/Malam state with global theme preference");
-      assert.ok(sovereignClient.includes("drawIdFrontFace"), "Reuses flagship cardArtwork painters inside 2400x1800 PNG export");
+      assert.ok(sovereignClient.includes("drawIdFrontFace"), "Reuses cardArtwork painters inside 2400x1800 PNG export");
       assert.ok(sovereignClient.includes("/images/logo-utuh.webp"), "Lite CSS card renders official Expedient 43 crest");
       assert.ok(sovereignClient.includes("sovereign-bottom-dock"), "Unified bottom dock controls work across both 3D and Lite views");
       assert.ok(sovereignClient.includes("cardFormat={cardFormat}"), "Passes format switcher state directly into 3D scene");
