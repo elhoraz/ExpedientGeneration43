@@ -491,7 +491,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
             <div
               className="sovereign-lite-face"
               style={{
-                padding: cardFormat === "id" ? "18px 18px 16px" : "16px 20px",
+                padding: cardFormat === "id" ? "14px 16px 14px" : "16px 20px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
@@ -559,9 +559,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                     style={{
                       width: "100%",
                       flex: 1,
-                      minHeight: 148,
+                      minHeight: 108,
                       maxHeight: 205,
-                      margin: "10px 0",
+                      margin: "6px 0",
                       borderRadius: 12,
                       border: "1.5px solid rgba(212, 175, 55, 0.65)",
                       overflow: "hidden",
@@ -576,6 +576,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                       <img
                         src={fotoUrl}
                         alt={user.nama_lengkap}
+                        crossOrigin="anonymous"
+                        decoding="sync"
+                        loading="eager"
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
                     ) : (
@@ -754,6 +757,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                       <img
                         src={fotoUrl}
                         alt={user.nama_lengkap}
+                        crossOrigin="anonymous"
+                        decoding="sync"
+                        loading="eager"
                         style={{ width: "100%", height: "100%", objectFit: "cover" }}
                       />
                     ) : (

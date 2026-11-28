@@ -39,14 +39,14 @@ export function pbrSurface(holo: number, roughness: number, metalness: number): 
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.26, 0.04);
-const PBR_OBSIDIAN_SATIN_BACK = pbrSurface(0.0, 0.36, 0.03);
-const PBR_SATIN_BAND = pbrSurface(0.0, 0.46, 0.03);
-const PBR_GOLD_BULLION = pbrSurface(0.03, 0.22, 0.92);
-const PBR_HOLO_FOIL = pbrSurface(0.46, 0.2, 0.92);
-const PBR_PORTRAIT_GLASS = pbrSurface(0.0, 0.12, 0.03);
-const PBR_MATTE_IVORY = pbrSurface(0.0, 0.86, 0.02);
-const PBR_ENGRAVED_TYPE = pbrSurface(0.0, 0.24, 0.78);
+const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.14, 0.02);
+const PBR_OBSIDIAN_SATIN_BACK = pbrSurface(0.0, 0.15, 0.02);
+const PBR_SATIN_BAND = pbrSurface(0.0, 0.52, 0.02);
+const PBR_GOLD_BULLION = pbrSurface(0.03, 0.24, 0.86);
+const PBR_HOLO_FOIL = pbrSurface(0.42, 0.2, 0.88);
+const PBR_PORTRAIT_GLASS = pbrSurface(0.0, 0.1, 0.02);
+const PBR_MATTE_IVORY = pbrSurface(0.0, 0.88, 0.01);
+const PBR_ENGRAVED_TYPE = pbrSurface(0.0, 0.24, 0.82);
 
 interface ResolvedFontStacks {
   serif: string;
@@ -871,57 +871,130 @@ export function drawIdBackFace(
   const fonts = resolveCardFontStacks();
 
   drawObsidianLacquerSurface(targets, W, H, true);
+
+  // Subtle institutional crest guilloche watermark behind central verification vault
+  if (assets.crestImg) {
+    cCtx.save();
+    cCtx.globalAlpha = 0.048;
+    cCtx.drawImage(assets.crestImg, 272, 666, 480, 480);
+    cCtx.restore();
+  }
+
   drawPrecisionPerimeterRule(targets, W, H, 34, 34);
   drawSlotGrommet(targets);
 
-  // Satin Magnetic Band cleanly below die-cut slot grommet
-  cCtx.fillStyle = "#020408";
-  cCtx.fillRect(36, 178, W - 72, 154);
+  // Framed Matte Obsidian Magnetic Track (cleanly inset inside perimeter rule)
+  cCtx.fillStyle = "#03050a";
+  cCtx.beginPath();
+  cCtx.roundRect(56, 178, W - 112, 154, 12);
+  cCtx.fill();
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.32)";
+  cCtx.lineWidth = 2;
+  cCtx.stroke();
   if (pCtx) {
     pCtx.fillStyle = PBR_SATIN_BAND;
-    pCtx.fillRect(36, 178, W - 72, 154);
+    pCtx.fillRect(56, 178, W - 112, 154);
   }
 
+  // Editorial Diplomatic Certificate Heading
   cCtx.textAlign = "center";
-  cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = `700 38px ${fonts.serif}`;
-  cCtx.fillText("Verifikasi Keanggotaan Resmi", 512, 438);
+  cCtx.fillStyle = GOLD;
+  cCtx.font = `600 18px ${fonts.sans}`;
+  cCtx.letterSpacing = "3.5px";
+  cCtx.fillText("DOKUMEN IDENTITAS RESMI", 512, 404);
+  cCtx.letterSpacing = "0px";
 
-  cCtx.fillStyle = "rgba(212, 175, 55, 0.38)";
-  cCtx.fillRect(382, 466, 260, 2);
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = `700 40px ${fonts.serif}`;
+  cCtx.fillText("Verifikasi Keanggotaan Resmi", 512, 456);
+
+  // Delicate architectural rule flanked by gold diamond pip
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.35)";
+  cCtx.fillRect(284, 486, 198, 1.8);
+  cCtx.fillRect(542, 486, 198, 1.8);
+  cCtx.save();
+  cCtx.translate(512, 487);
+  cCtx.rotate(Math.PI / 4);
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.fillRect(-5, -5, 10, 10);
+  cCtx.restore();
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = `400 25px ${fonts.sans}`;
+  cCtx.font = `400 24px ${fonts.sans}`;
   const lines = [
-    "Kartu ini menerangkan bahwa pemegang bernama di balik",
-    "adalah anggota sah Keluarga Besar Alumni Angkatan ke-43",
+    "Pemegang kartu tertera di balik adalah anggota sah",
+    "Keluarga Besar Alumni Angkatan ke-43",
     "Pondok Modern Arrisalah, Slahung, Ponorogo.",
   ];
-  lines.forEach((line, idx) => cCtx.fillText(line, 512, 534 + idx * 42));
+  lines.forEach((line, idx) => cCtx.fillText(line, 512, 542 + idx * 40));
 
-  // Crisp Local High-DPI Verification QR Plate
+  // Corner Precision Registration Brackets framing the QR Verification Vault
+  cCtx.save();
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.52)";
+  cCtx.lineWidth = 2.4;
+  const bx0 = 282;
+  const by0 = 676;
+  const bSize = 460;
+  const arm = 34;
+  const corners: Array<[number, number, number, number]> = [
+    [bx0, by0, 1, 1],
+    [bx0 + bSize, by0, -1, 1],
+    [bx0, by0 + bSize, 1, -1],
+    [bx0 + bSize, by0 + bSize, -1, -1],
+  ];
+  for (const [cx, cy, dx, dy] of corners) {
+    cCtx.beginPath();
+    cCtx.moveTo(cx + arm * dx, cy);
+    cCtx.lineTo(cx, cy);
+    cCtx.lineTo(cx, cy + arm * dy);
+    cCtx.stroke();
+  }
+  cCtx.restore();
+
+  // Crisp Local High-DPI Verification QR Plate (exact centered match to 3D idBackQrBezel)
   drawQrPlate(targets, assets.qrCanvas, 312, 706, 400, 26);
 
   cCtx.fillStyle = GOLD;
-  cCtx.font = `600 22px ${fonts.sans}`;
-  cCtx.fillText("Pindai kode QR untuk membuka profil verifikasi", 512, 1166);
+  cCtx.font = `600 20px ${fonts.sans}`;
+  cCtx.letterSpacing = "1.5px";
+  cCtx.fillText("PINDAI QR VERIFIKASI DARING", 512, 1172);
+  cCtx.letterSpacing = "0px";
 
-  // Authorized Signature Strip
-  cCtx.fillStyle = "#f4f1ea";
+  // Authorized Signature Plaque (x=172, y=1232, w=680, h=84 -> synced with 3D idBackSigBezel)
+  const sigGrad = cCtx.createLinearGradient(172, 1232, 852, 1316);
+  sigGrad.addColorStop(0, "#f7f3ea");
+  sigGrad.addColorStop(0.5, "#fbf9f5");
+  sigGrad.addColorStop(1, "#ede6d6");
+  cCtx.fillStyle = sigGrad;
   cCtx.beginPath();
-  cCtx.roundRect(172, 1244, 680, 86, 14);
+  cCtx.roundRect(172, 1232, 680, 84, 14);
   cCtx.fill();
-  cCtx.strokeStyle = "rgba(212, 175, 55, 0.5)";
-  cCtx.lineWidth = 2;
-  cCtx.stroke();
+
+  // Subtle horizontal ruled line inside signature vellum
+  cCtx.fillStyle = "rgba(143, 107, 20, 0.22)";
+  cCtx.fillRect(212, 1294, 600, 1.2);
 
   cCtx.fillStyle = "#0f172a";
   cCtx.font = `italic 700 36px ${fonts.serif}`;
-  cCtx.fillText(identity.panggilan, 512, 1299);
+  cCtx.fillText(identity.panggilan, 512, 1284);
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = `600 24px ${fonts.tabular}`;
-  cCtx.fillText(`${identity.nomorId}  ·  PONDOK MODERN ARRISALAH`, 512, 1438);
+  cCtx.font = `500 18px ${fonts.sans}`;
+  cCtx.fillText("Tanda Tangan & Identitas Terdaftar", 512, 1356);
+
+  // Subtle hairline & Official Registry Seal Footer
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.28)";
+  cCtx.fillRect(172, 1396, 680, 1.5);
+
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = `700 25px ${fonts.tabular}`;
+  cCtx.letterSpacing = "2px";
+  cCtx.fillText(`${identity.nomorId}  ·  ANGKATAN KE-43`, 512, 1448);
+  cCtx.letterSpacing = "0px";
+
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = `500 19px ${fonts.sans}`;
+  cCtx.fillText("PONDOK MODERN ARRISALAH · SLAHUNG, PONOROGO", 512, 1486);
   cCtx.textAlign = "left";
 }
 
@@ -1085,49 +1158,74 @@ export function drawKtaBackFace(
   const fonts = resolveCardFontStacks();
 
   drawObsidianLacquerSurface(targets, W, H, true);
-  drawPrecisionPerimeterRule(targets, W, H, 24, 28);
 
-  // Satin Magnetic Band
-  cCtx.fillStyle = "#020408";
-  cCtx.fillRect(26, 62, W - 52, 92);
-  if (pCtx) {
-    pCtx.fillStyle = PBR_SATIN_BAND;
-    pCtx.fillRect(26, 62, W - 52, 92);
+  if (assets.crestImg) {
+    cCtx.save();
+    cCtx.globalAlpha = 0.045;
+    cCtx.drawImage(assets.crestImg, 210, 220, 320, 320);
+    cCtx.restore();
   }
 
-  // Signature Strip + Official Verification Text on Left
-  cCtx.fillStyle = "#f4f1ea";
+  drawPrecisionPerimeterRule(targets, W, H, 24, 28);
+
+  // Framed Satin Magnetic Band inset inside perimeter rule
+  cCtx.fillStyle = "#03050a";
+  cCtx.beginPath();
+  cCtx.roundRect(46, 62, W - 92, 92, 10);
+  cCtx.fill();
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.3)";
+  cCtx.lineWidth = 1.8;
+  cCtx.stroke();
+  if (pCtx) {
+    pCtx.fillStyle = PBR_SATIN_BAND;
+    pCtx.fillRect(46, 62, W - 92, 92);
+  }
+
+  // Signature Plaque + Official Verification Text on Left
+  const sigGrad = cCtx.createLinearGradient(68, 198, 628, 266);
+  sigGrad.addColorStop(0, "#f7f3ea");
+  sigGrad.addColorStop(0.5, "#fbf9f5");
+  sigGrad.addColorStop(1, "#ede6d6");
+  cCtx.fillStyle = sigGrad;
   cCtx.beginPath();
   cCtx.roundRect(68, 198, 560, 68, 10);
   cCtx.fill();
-  cCtx.strokeStyle = "rgba(212, 175, 55, 0.45)";
-  cCtx.lineWidth = 1.8;
-  cCtx.stroke();
+  cCtx.fillStyle = "rgba(143, 107, 20, 0.22)";
+  cCtx.fillRect(92, 249, 512, 1.2);
 
   cCtx.textAlign = "left";
   cCtx.fillStyle = "#0f172a";
   cCtx.font = `italic 700 30px ${fonts.serif}`;
-  cCtx.fillText(identity.panggilan, 92, 243);
+  cCtx.fillText(identity.panggilan, 92, 241);
+
+  cCtx.fillStyle = GOLD;
+  cCtx.font = `600 15px ${fonts.sans}`;
+  cCtx.letterSpacing = "2px";
+  cCtx.fillText("TANDA TANGAN PEMEGANG RESMI", 68, 294);
+  cCtx.letterSpacing = "0px";
 
   cCtx.fillStyle = GOLD_BRIGHT;
   cCtx.font = `700 28px ${fonts.serif}`;
-  cCtx.fillText("Kartu Tanda Alumni Resmi", 68, 336);
+  cCtx.fillText("Kartu Tanda Alumni Resmi", 68, 354);
 
   cCtx.fillStyle = SLATE_MUTED;
   cCtx.font = `400 21px ${fonts.sans}`;
-  cCtx.fillText("Keluarga Besar Alumni Angkatan ke-43", 68, 378);
-  cCtx.fillText("Pondok Modern Arrisalah · Slahung, Ponorogo", 68, 412);
+  cCtx.fillText("Keluarga Besar Alumni Angkatan ke-43", 68, 396);
+  cCtx.fillText("Pondok Modern Arrisalah · Slahung, Ponorogo", 68, 428);
 
-  cCtx.fillStyle = GOLD;
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.28)";
+  cCtx.fillRect(68, 488, 540, 1.5);
+
+  cCtx.fillStyle = GOLD_BRIGHT;
   cCtx.font = `700 23px ${fonts.tabular}`;
-  cCtx.fillText(`${identity.nomorId}  ·  SEUMUR HIDUP`, 68, 548);
+  cCtx.fillText(`${identity.nomorId}  ·  TERVERIFIKASI  ·  SEUMUR HIDUP`, 68, 548);
 
   // Right High-DPI Local Verification QR Plate
   drawQrPlate(targets, assets.qrCanvas, 694, 198, 262, 20);
   cCtx.textAlign = "center";
-  cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = `500 18px ${fonts.sans}`;
-  cCtx.fillText("Pindai Verifikasi", 825, 494);
+  cCtx.fillStyle = GOLD;
+  cCtx.font = `600 17px ${fonts.sans}`;
+  cCtx.fillText("Pindai Verifikasi", 825, 496);
   cCtx.textAlign = "left";
 }
 

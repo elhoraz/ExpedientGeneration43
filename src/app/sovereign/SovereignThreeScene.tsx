@@ -61,8 +61,8 @@ function buildHorologyCardEnv(
   isDayMode: boolean
 ): THREE_TYPES.WebGLRenderTarget {
   const envScene = new THREE.Scene();
-  // Dark negative-fill chamber behind the camera keeps dielectric obsidian jet-black in BOTH Day & Night
-  envScene.background = new THREE.Color(isDayMode ? 0x090c13 : 0x050810);
+  // Pure dark studio chamber behind camera (+Z) ensures Obsidian stays deep jet-black at all angles
+  envScene.background = new THREE.Color(0x020307);
 
   const addSoftbox = (
     w: number,
@@ -83,19 +83,13 @@ function buildHorologyCardEnv(
     envScene.add(mesh);
   };
 
-  const boost = isDayMode ? 0.96 : 1.0;
-  // 1. Broad soft champagne umbrella facing card normals: solid gold EMV chip & clearcoat depth without flat wash
-  addSoftbox(18, 8, 1.35 * boost, 1.12 * boost, 0.7 * boost, [0, 5.5, 12], [0, 0, 0]);
-  // 2. Warm overhead horology key softbox
-  addSoftbox(18, 9, 2.35 * boost, 2.0 * boost, 1.42 * boost, [0, 14, 5], [0, 0, 0]);
-  // 3. Controlled diagonal 24K bullion sweep bar (toned down so flipped card backs show satin sheen, never white glare wash)
-  addSoftbox(18, 4.0, 2.15 * boost, 1.65 * boost, 0.78 * boost, [-11, 7, 10], [0, 0, 0]);
-  // 4. Right champagne architectural strip
-  addSoftbox(6, 15, 1.85 * boost, 1.56 * boost, 1.08 * boost, [13, 2, 8], [0, 0, 0]);
-  // 5. Subtle cool sapphire counter-rim for chromatic gold separation
-  addSoftbox(7, 14, 0.72 * boost, 0.94 * boost, 1.36 * boost, [-14, -2, -6], [0, 0, 0]);
-  // 6. Subtle lower bounce panel
-  addSoftbox(16, 7, 0.85 * boost, 0.68 * boost, 0.42 * boost, [0, -13, 6], [0, 0, 0]);
+  const boost = isDayMode ? 0.94 : 1.04;
+  // Grazing studio key strips (positioned off-axis so flat obsidian card backs never wash out grey)
+  addSoftbox(18, 7, 2.5 * boost, 2.1 * boost, 1.45 * boost, [0, 14.5, 4], [0, 0, 0]);
+  addSoftbox(16, 3.6, 2.35 * boost, 1.75 * boost, 0.85 * boost, [-13, 8, 7.5], [0, 0, 0]);
+  addSoftbox(5.5, 14, 1.95 * boost, 1.62 * boost, 1.1 * boost, [14, 3, 6.5], [0, 0, 0]);
+  addSoftbox(7, 14, 0.78 * boost, 0.98 * boost, 1.45 * boost, [-14, -2, -6], [0, 0, 0]);
+  addSoftbox(15, 6, 0.92 * boost, 0.74 * boost, 0.44 * boost, [0, -14, 4.5], [0, 0, 0]);
 
   const rt = pmrem.fromScene(envScene, 0.036);
   envScene.traverse((obj) => {
@@ -779,7 +773,7 @@ export default function SovereignThreeScene({
         liveRef.current.isLightMode ? 0xfffaf0 : 0xf4ecdc,
         liveRef.current.isLightMode ? 0.72 : 0.85
       );
-      keyFillLight.position.set(-4, 9, 18);
+      keyFillLight.position.set(-14, 11, 7);
       scene.add(keyFillLight);
 
       const spotLight = new THREE.SpotLight(
@@ -941,17 +935,17 @@ export default function SovereignThreeScene({
 
         scene.add(galleryStageGroup);
 
-        // Recessed architectural stone piers flanking outer edges (x=±18.2, z=-6.6)
+        // Recessed architectural stone piers flanking wide outer edges beyond watermark & secondary card
         const pierGeo = new THREE.BoxGeometry(1.5, 26, 1.4);
         const pierTrimGeo = new THREE.BoxGeometry(0.05, 26, 0.08);
         for (const sign of [-1, 1]) {
           const pier = new THREE.Mesh(pierGeo, plinthMat);
-          pier.position.set(sign * 18.2, 0, -6.6);
+          pier.position.set(sign * 21.8, 0, -6.6);
           pier.receiveShadow = true;
           scene.add(pier);
 
           const pierTrim = new THREE.Mesh(pierTrimGeo, brushedBrassMat);
-          pierTrim.position.set(sign * 17.44, 0, -5.92);
+          pierTrim.position.set(sign * 21.04, 0, -5.92);
           scene.add(pierTrim);
         }
       }
@@ -1090,12 +1084,12 @@ export default function SovereignThreeScene({
           metalness: 1.0,
           roughnessMap: set.pbrTex,
           metalnessMap: set.pbrTex,
-          clearcoat: isUltraEntryGpu ? 0.0 : 0.34,
-          clearcoatRoughness: 0.22,
-          reflectivity: 0.58,
+          clearcoat: isUltraEntryGpu ? 0.0 : 0.28,
+          clearcoatRoughness: 0.08,
+          reflectivity: 0.52,
           envMap: activeEnvTex,
-          envMapIntensity: 0.88,
-          ...(set.bumpTex ? { bumpMap: set.bumpTex, bumpScale: 0.02 } : {}),
+          envMapIntensity: 0.84,
+          ...(set.bumpTex ? { bumpMap: set.bumpTex, bumpScale: 0.018 } : {}),
         });
         applyHologramFoilShader(mat, holoUniforms);
         return mat;
@@ -1176,20 +1170,27 @@ export default function SovereignThreeScene({
       idPhotoFrame3D.position.set(0, 0.784, 0.062);
       idCardContainer.add(idPhotoFrame3D);
 
-      // ID Back Verification QR Plate Bezel & Recessed Magstripe Lower Brass Rail
+      // ID Back Exact-Aligned QR Vault Bezel (cy = (0.5 - 906/1624)*8.6 = -0.498), Sig Plaque Bezel & Inset Mag Rails
       const idBackQrBezel = new THREE.Mesh(
         createRaisedRectBezelGeometry(THREE, 2.126, 2.134, 0.024, 0.14, 0.01),
         goldHardwareMat
       );
-      idBackQrBezel.position.set(0, -0.598, -0.072);
+      idBackQrBezel.position.set(0, -0.498, -0.072);
       idCardContainer.add(idBackQrBezel);
 
-      const idBackMagRail = new THREE.Mesh(
-        new THREE.BoxGeometry(5.02, 0.022, 0.006),
-        brushedBrassMat
+      const idBackSigBezel = new THREE.Mesh(
+        createRaisedRectBezelGeometry(THREE, 3.602, 0.462, 0.022, 0.078, 0.009),
+        goldHardwareMat
       );
-      idBackMagRail.position.set(0, 2.54, -0.064);
-      idCardContainer.add(idBackMagRail);
+      idBackSigBezel.position.set(0, -2.447, -0.071);
+      idCardContainer.add(idBackSigBezel);
+
+      const idMagRailGeo = new THREE.BoxGeometry(4.81, 0.02, 0.006);
+      for (const railY of [3.357, 2.542]) {
+        const rail = new THREE.Mesh(idMagRailGeo, brushedBrassMat);
+        rail.position.set(0, railY, -0.065);
+        idCardContainer.add(rail);
+      }
 
       // Articulated Multi-Part Swivel Clasp, Spring-Gate Sleeve & Twin-Bolt Yoke Collar
       const carabinerMesh = new THREE.Mesh(
@@ -1346,7 +1347,7 @@ export default function SovereignThreeScene({
       ktaPortraitBezel.position.set(1.772, -0.327, 0.05);
       ktaMesh.add(ktaPortraitBezel);
 
-      // KTA Back Verification QR Plate Bezel & Magstripe Lower Brass Rail
+      // KTA Back Verification QR Vault Bezel, Signature Plaque Bezel & Inset Mag Rails
       const ktaBackQrBezel = new THREE.Mesh(
         createRaisedRectBezelGeometry(THREE, 1.398, 1.398, 0.022, 0.108, 0.009),
         goldHardwareMat
@@ -1354,21 +1355,28 @@ export default function SovereignThreeScene({
       ktaBackQrBezel.position.set(-1.651, -0.048, -0.059);
       ktaMesh.add(ktaBackQrBezel);
 
-      const ktaBackMagRail = new THREE.Mesh(
-        new THREE.BoxGeometry(5.1, 0.018, 0.005),
-        brushedBrassMat
+      const ktaBackSigBezel = new THREE.Mesh(
+        createRaisedRectBezelGeometry(THREE, 2.97, 0.376, 0.02, 0.058, 0.008),
+        goldHardwareMat
       );
-      ktaBackMagRail.position.set(0, 0.87, -0.051);
-      ktaMesh.add(ktaBackMagRail);
+      ktaBackSigBezel.position.set(0.865, 0.464, -0.058);
+      ktaMesh.add(ktaBackSigBezel);
 
-      // Staging coordinates: Desktop showcases both objects in sculptural 3D depth;
-      // Mobile parks the inactive card cleanly outside the narrow portrait viewport.
+      const ktaMagRailGeo = new THREE.BoxGeometry(4.915, 0.016, 0.005);
+      for (const railY of [1.36, 0.875]) {
+        const rail = new THREE.Mesh(ktaMagRailGeo, brushedBrassMat);
+        rail.position.set(0, railY, -0.052);
+        ktaMesh.add(rail);
+      }
+
+      // Staging coordinates: Desktop showcases both objects cleanly inside safe header/dock bounds
+      // even during close double-tap inspection (mainViewPos z=10.4 fits full ID inside 1280x632!)
       const getKtaRestPos = (mob: boolean) =>
         mob ? new THREE.Vector3(-10.8, -5.2, -7.5) : new THREE.Vector3(-7.75, -0.25, -1.35);
       const getKtaViewPos = (mob: boolean) =>
-        mob ? new THREE.Vector3(0, 0.35, 7.6) : new THREE.Vector3(0, 0.15, 14.8);
+        mob ? new THREE.Vector3(0, 0.2, 6.2) : new THREE.Vector3(0, 0.05, 12.6);
       const getMainViewPos = (mob: boolean) =>
-        mob ? new THREE.Vector3(0, 0.3, 5.6) : new THREE.Vector3(0, 0.1, 14.0);
+        mob ? new THREE.Vector3(0, 0.2, 4.4) : new THREE.Vector3(0, -0.05, 10.4);
       const getIdParkedPos = (mob: boolean) =>
         mob ? new THREE.Vector3(10.8, 5.2, -7.5) : new THREE.Vector3(9.1, 2.1, -6.2);
 

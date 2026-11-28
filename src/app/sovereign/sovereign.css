@@ -505,8 +505,7 @@ body.is-grabbing .sovereign-webgl-stage {
   position: absolute;
   top: 0;
   width: 34px;
-  height: calc(50dvh - 196px);
-  min-height: 44px;
+  height: max(68px, calc(50dvh - min(220px, calc(50dvh - 132px)) - 4px));
   background: linear-gradient(180deg, #0b0f18 0%, #141b29 100%);
   border-inline: 1.5px solid rgba(212, 175, 55, 0.52);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
@@ -555,10 +554,10 @@ body.is-grabbing .sovereign-webgl-stage {
 }
 
 .sovereign-lite-card.is-id {
-  width: min(298px, 80vw);
+  height: min(440px, calc(100dvh - 264px));
+  width: auto;
+  max-width: 82vw;
   aspect-ratio: 54 / 86;
-  max-height: calc(100dvh - 246px);
-  max-width: calc((100dvh - 246px) * 54 / 86);
 }
 
 .sovereign-lite-card.is-kta {
