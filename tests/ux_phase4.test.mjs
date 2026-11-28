@@ -245,6 +245,8 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
       assert.ok(sovereignScene.includes("RoomEnvironment"), "Restores full 360-degree RoomEnvironment studio reflections");
       assert.ok(sovereignScene.includes("transparent: false"), "Uses single opaque marble wall to eliminate dual-plane alpha overdraw");
       assert.ok(sovereignScene.includes("createDieCutCardGeometry"), "Extrudes real die-cut slot punch hole with planar gold bevel isolation");
+      assert.ok(sovereignScene.includes("createRaisedRectBezelGeometry"), "Mounts real raised 3D 24K gold bezels on card surfaces");
+      assert.ok(sovereignScene.includes("vaultRingsGroup"), "Adds desktop golden orbital vault showcase rings behind cards");
       assert.ok(sovereignScene.includes("idPivotGroup"), "Hinges card rotation right at clasp tip for zero ribbon detachment gap");
       assert.ok(sovereignScene.includes("createDynamicRibbonStrap"), "Uses +Z forward zero-allocation woven ribbon strap buffer updates");
       assert.ok(sovereignScene.includes("stepVerletPendulum"), "Simulates 6-node Verlet pendulum physics");
