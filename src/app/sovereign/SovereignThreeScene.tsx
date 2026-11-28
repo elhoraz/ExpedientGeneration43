@@ -83,19 +83,19 @@ function buildHorologyCardEnv(
     envScene.add(mesh);
   };
 
-  const boost = isDayMode ? 1.05 : 1.0;
-  // 1. Front-upper warm studio umbrella: keeps brushed 24K gold EMV chip & bezels gleaming at 0 deg
-  addSoftbox(18, 8, 1.45 * boost, 1.2 * boost, 0.74 * boost, [0, 5.5, 12], [0, 0, 0]);
+  const boost = isDayMode ? 0.96 : 1.0;
+  // 1. Broad soft champagne umbrella facing card normals: solid gold EMV chip & clearcoat depth without flat wash
+  addSoftbox(18, 8, 1.35 * boost, 1.12 * boost, 0.7 * boost, [0, 5.5, 12], [0, 0, 0]);
   // 2. Warm overhead horology key softbox
-  addSoftbox(18, 10, 3.0 * boost, 2.55 * boost, 1.75 * boost, [0, 14, 5], [0, 0, 0]);
-  // 3. Diagonal 24K bullion sweep bar
-  addSoftbox(20, 4.5, 3.4 * boost, 2.5 * boost, 1.05 * boost, [-11, 7, 10], [0, 0, 0]);
+  addSoftbox(18, 9, 2.35 * boost, 2.0 * boost, 1.42 * boost, [0, 14, 5], [0, 0, 0]);
+  // 3. Controlled diagonal 24K bullion sweep bar (toned down so flipped card backs show satin sheen, never white glare wash)
+  addSoftbox(18, 4.0, 2.15 * boost, 1.65 * boost, 0.78 * boost, [-11, 7, 10], [0, 0, 0]);
   // 4. Right champagne architectural strip
-  addSoftbox(6.5, 16, 2.25 * boost, 1.9 * boost, 1.32 * boost, [13, 2, 8], [0, 0, 0]);
+  addSoftbox(6, 15, 1.85 * boost, 1.56 * boost, 1.08 * boost, [13, 2, 8], [0, 0, 0]);
   // 5. Subtle cool sapphire counter-rim for chromatic gold separation
-  addSoftbox(7, 14, 0.85 * boost, 1.1 * boost, 1.6 * boost, [-14, -2, -6], [0, 0, 0]);
-  // 6. Warm lower marble bounce panel
-  addSoftbox(18, 8, 1.2 * boost, 0.94 * boost, 0.56 * boost, [0, -13, 6], [0, 0, 0]);
+  addSoftbox(7, 14, 0.72 * boost, 0.94 * boost, 1.36 * boost, [-14, -2, -6], [0, 0, 0]);
+  // 6. Subtle lower bounce panel
+  addSoftbox(16, 7, 0.85 * boost, 0.68 * boost, 0.42 * boost, [0, -13, 6], [0, 0, 0]);
 
   const rt = pmrem.fromScene(envScene, 0.036);
   envScene.traverse((obj) => {
@@ -345,6 +345,51 @@ function createRaisedRectBezelGeometry(
     bevelSegments: 2,
     curveSegments: 14,
   });
+}
+
+/** Builds a stepped solid 3D machined 24K EMV contact pad assembly protruding inside its bezel. */
+function createEmvChip3DGroup(
+  THREE: typeof THREE_TYPES,
+  chipW: number,
+  chipH: number,
+  goldMat: THREE_TYPES.Material,
+  seamMat: THREE_TYPES.Material
+): THREE_TYPES.Group {
+  const group = new THREE.Group();
+
+  // Base chamfered gold silicon plate
+  const basePlate = new THREE.Mesh(
+    new THREE.BoxGeometry(chipW * 0.92, chipH * 0.9, 0.008),
+    goldMat
+  );
+  basePlate.position.z = 0.004;
+  group.add(basePlate);
+
+  // Dark anodized engraved channel grooves separating the 6 contact pads
+  const seamV = new THREE.BoxGeometry(0.012, chipH * 0.86, 0.003);
+  for (const sx of [-chipW * 0.16, chipW * 0.16]) {
+    const bar = new THREE.Mesh(seamV, seamMat);
+    bar.position.set(sx, 0, 0.008);
+    group.add(bar);
+  }
+  const seamH = new THREE.BoxGeometry(chipW * 0.28, 0.012, 0.003);
+  for (const sx of [-chipW * 0.31, chipW * 0.31]) {
+    for (const sy of [-chipH * 0.16, chipH * 0.16]) {
+      const hBar = new THREE.Mesh(seamH, seamMat);
+      hBar.position.set(sx, sy, 0.008);
+      group.add(hBar);
+    }
+  }
+
+  // Central domed 24K die island
+  const centerIsland = new THREE.Mesh(
+    new THREE.BoxGeometry(chipW * 0.29, chipH * 0.52, 0.006),
+    goldMat
+  );
+  centerIsland.position.z = 0.01;
+  group.add(centerIsland);
+
+  return group;
 }
 
 /** Builds a watch-caliber flat chamfered circular bezel ring (replaces chunky torus tubes). */
@@ -627,7 +672,13 @@ export default function SovereignThreeScene({
           ])
         : Promise.resolve();
 
-    Promise.all([import("three"), fontsReadyPromise]).then(([THREE]) => {
+    Promise.all([
+      import("three"),
+      fontsReadyPromise,
+      loadArtworkImage("/images/logo-utuh.webp"),
+      loadArtworkImage(fotoUrl),
+      generateVerificationQrCanvas(verificationUrl, 520),
+    ]).then(([THREE, , preCrestImg, preAvatarImg, preQrCanvas]) => {
       if (isCancelled || !containerRef.current) return;
 
       const isMobileViewport = () =>
@@ -852,6 +903,59 @@ export default function SovereignThreeScene({
       if (!isMobile) marbleWall.receiveShadow = true;
       marbleStageGroup.add(marbleWall);
 
+      // Stepped 3D Architectural Gallery Plinth & Edge Piers on Desktop (Multi-depth spatial stage)
+      let plinthMat: THREE_TYPES.MeshStandardMaterial | null = null;
+      if (!isMobile) {
+        const galleryStageGroup = new THREE.Group();
+        galleryStageGroup.position.set(0, -6.58, -3.6);
+
+        plinthMat = new THREE.MeshStandardMaterial({
+          color: liveRef.current.isLightMode ? 0xefe9dc : 0x151820,
+          metalness: liveRef.current.isLightMode ? 0.04 : 0.12,
+          roughness: 0.62,
+        });
+
+        const lowerTier = new THREE.Mesh(new THREE.BoxGeometry(24.6, 0.44, 5.2), plinthMat);
+        lowerTier.position.y = -0.14;
+        lowerTier.receiveShadow = true;
+        galleryStageGroup.add(lowerTier);
+
+        const upperTier = new THREE.Mesh(new THREE.BoxGeometry(22.8, 0.24, 4.1), plinthMat);
+        upperTier.position.y = 0.2;
+        upperTier.receiveShadow = true;
+        galleryStageGroup.add(upperTier);
+
+        const brassFrontLip = new THREE.Mesh(
+          new THREE.BoxGeometry(22.86, 0.045, 0.08),
+          brushedBrassMat
+        );
+        brassFrontLip.position.set(0, 0.29, 2.07);
+        galleryStageGroup.add(brassFrontLip);
+
+        const brassSubLip = new THREE.Mesh(
+          new THREE.BoxGeometry(24.64, 0.036, 0.06),
+          goldHardwareMat
+        );
+        brassSubLip.position.set(0, 0.06, 2.61);
+        galleryStageGroup.add(brassSubLip);
+
+        scene.add(galleryStageGroup);
+
+        // Recessed architectural stone piers flanking outer edges (x=±18.2, z=-6.6)
+        const pierGeo = new THREE.BoxGeometry(1.5, 26, 1.4);
+        const pierTrimGeo = new THREE.BoxGeometry(0.05, 26, 0.08);
+        for (const sign of [-1, 1]) {
+          const pier = new THREE.Mesh(pierGeo, plinthMat);
+          pier.position.set(sign * 18.2, 0, -6.6);
+          pier.receiveShadow = true;
+          scene.add(pier);
+
+          const pierTrim = new THREE.Mesh(pierTrimGeo, brushedBrassMat);
+          pierTrim.position.set(sign * 17.44, 0, -5.92);
+          scene.add(pierTrim);
+        }
+      }
+
       // TOP CEILING ANCHOR (Positioned above viewport margin so ribbon enters cleanly behind top pill)
       const anchorPos = new THREE.Vector3(0, 11.95, -0.55);
       const mountGroup = new THREE.Group();
@@ -933,7 +1037,11 @@ export default function SovereignThreeScene({
       const ktaFrontSet = createTextureSet(1024, 640);
       const ktaBackSet = createTextureSet(1024, 640);
 
-      const loadedAssets: LoadedCardAssets = {};
+      const loadedAssets: LoadedCardAssets = {
+        crestImg: preCrestImg,
+        avatarImg: preAvatarImg,
+        qrCanvas: preQrCanvas,
+      };
 
       function paintAllFaces(theme: CardThemeMode) {
         drawIdFrontFace(
@@ -982,12 +1090,12 @@ export default function SovereignThreeScene({
           metalness: 1.0,
           roughnessMap: set.pbrTex,
           metalnessMap: set.pbrTex,
-          clearcoat: isUltraEntryGpu ? 0.0 : 0.48,
-          clearcoatRoughness: 0.16,
-          reflectivity: 0.65,
+          clearcoat: isUltraEntryGpu ? 0.0 : 0.34,
+          clearcoatRoughness: 0.22,
+          reflectivity: 0.58,
           envMap: activeEnvTex,
-          envMapIntensity: 0.92,
-          ...(set.bumpTex ? { bumpMap: set.bumpTex, bumpScale: 0.024 } : {}),
+          envMapIntensity: 0.88,
+          ...(set.bumpTex ? { bumpMap: set.bumpTex, bumpScale: 0.02 } : {}),
         });
         applyHologramFoilShader(mat, holoUniforms);
         return mat;
@@ -1034,31 +1142,41 @@ export default function SovereignThreeScene({
       idSlotEyeletBack.position.set(0, 3.718, -0.072);
       idCardContainer.add(idSlotEyeletBack);
 
-      // ID Top-Left Official Crest Watch-Caliber Bezel Ring (cx=186, cy=236, r=62+5 on 1024x1624)
+      // ID Top-Left Official Crest Watch-Caliber Bezel Ring (cx=186, cy=232 on 1024x1624)
       const idCrestRing3D = new THREE.Mesh(
         createRaisedRingBezelGeometry(THREE, 0.358, 0.02, 0.009, isMobile),
         goldHardwareMat
       );
-      idCrestRing3D.position.set(-1.719, 3.05, 0.062);
+      idCrestRing3D.position.set(-1.719, 3.071, 0.062);
       idCardContainer.add(idCrestRing3D);
 
-      // ID Top-Right 24K EMV Chip Bezel (x=774, y=190, w=122, h=92 on 1024x1624)
+      // ID Top-Right 24K EMV Chip Bezel + Stepped 3D Machined Gold Pad Island (x=774, y=186, w=122, h=92)
       const idChipBezel = new THREE.Mesh(
         createRaisedRectBezelGeometry(THREE, 0.66, 0.504, 0.024, 0.082, 0.01),
         goldHardwareMat
       );
-      idChipBezel.position.set(1.703, 3.05, 0.062);
+      idChipBezel.position.set(1.703, 3.071, 0.062);
       idCardContainer.add(idChipBezel);
 
-      // ID Editorial Portrait Window Bezel (x=128, y=340, w=768, h=704 on 1024x1624)
+      const idChip3DPads = createEmvChip3DGroup(
+        THREE,
+        0.59,
+        0.44,
+        goldHardwareMat,
+        gunmetalMat
+      );
+      idChip3DPads.position.set(1.703, 3.071, 0.062);
+      idCardContainer.add(idChip3DPads);
+
+      // ID Editorial Portrait Window Bezel (x=128, y=330, w=768, h=668 -> cy=0.784, h=3.554)
       const idPhotoFrame3D = new THREE.Mesh(
-        createRaisedRectBezelGeometry(THREE, 4.066, 3.744, 0.024, 0.118, 0.01),
+        createRaisedRectBezelGeometry(THREE, 4.066, 3.554, 0.024, 0.118, 0.01),
         goldHardwareMat
       );
-      idPhotoFrame3D.position.set(0, 0.636, 0.062);
+      idPhotoFrame3D.position.set(0, 0.784, 0.062);
       idCardContainer.add(idPhotoFrame3D);
 
-      // ID Back Verification QR Plate Bezel (x=312, y=706, size=400 on 1024x1624)
+      // ID Back Verification QR Plate Bezel & Recessed Magstripe Lower Brass Rail
       const idBackQrBezel = new THREE.Mesh(
         createRaisedRectBezelGeometry(THREE, 2.126, 2.134, 0.024, 0.14, 0.01),
         goldHardwareMat
@@ -1066,13 +1184,28 @@ export default function SovereignThreeScene({
       idBackQrBezel.position.set(0, -0.598, -0.072);
       idCardContainer.add(idBackQrBezel);
 
-      // Articulated Multi-Part Swivel Clasp & Oval Carabiner Assembly
+      const idBackMagRail = new THREE.Mesh(
+        new THREE.BoxGeometry(5.02, 0.022, 0.006),
+        brushedBrassMat
+      );
+      idBackMagRail.position.set(0, 2.54, -0.064);
+      idCardContainer.add(idBackMagRail);
+
+      // Articulated Multi-Part Swivel Clasp, Spring-Gate Sleeve & Twin-Bolt Yoke Collar
       const carabinerMesh = new THREE.Mesh(
         createOvalCarabinerGeometry(THREE, 4.19, 0.94, 0.155, 0.054, isMobile),
         gunmetalMat
       );
       if (!isMobile) carabinerMesh.castShadow = true;
       idCardContainer.add(carabinerMesh);
+
+      const gateSleeve = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.074, 0.074, 0.34, isMobile ? 12 : 20),
+        goldHardwareMat
+      );
+      gateSleeve.rotation.x = Math.PI * 0.44;
+      gateSleeve.position.set(0, 4.21, 0.155);
+      idCardContainer.add(gateSleeve);
 
       const swivelRing = new THREE.Mesh(
         new THREE.CylinderGeometry(0.17, 0.17, 0.08, isMobile ? 14 : 24),
@@ -1089,25 +1222,25 @@ export default function SovereignThreeScene({
       idCardContainer.add(clampBarrel);
 
       const clampCollar = new THREE.Mesh(
-        new THREE.BoxGeometry(0.72, 0.22, 0.16),
+        new THREE.BoxGeometry(0.74, 0.22, 0.17),
         goldHardwareMat
       );
       clampCollar.position.set(0, 4.93, 0);
       if (!isMobile) clampCollar.castShadow = true;
       idCardContainer.add(clampCollar);
 
-      // Engraved gold rivet studs on ribbon crimp collar
+      // Brushed twin rivets & saddle loop on ribbon crimp collar
       if (!isMobile) {
-        const rivetGeo = new THREE.CylinderGeometry(0.028, 0.028, 0.18, 12);
+        const rivetGeo = new THREE.CylinderGeometry(0.032, 0.032, 0.19, 12);
         rivetGeo.rotateX(Math.PI / 2);
         for (const rx of [-0.22, 0.22]) {
-          const rivet = new THREE.Mesh(rivetGeo, brushedBrassMat);
+          const rivet = new THREE.Mesh(rivetGeo, gunmetalMat);
           rivet.position.set(rx, 4.93, 0);
           idCardContainer.add(rivet);
         }
       }
 
-      // WOVEN FLAT RIBBON LANYARD + 6-NODE VERLET PENDULUM
+      // WOVEN FLAT RIBBON LANYARD + SLIDING CHROME-GOLD ADJUSTER BUCKLE + 6-NODE VERLET PENDULUM
       const strapCanvas = createWovenStrapCanvas();
       const strapTex = new THREE.CanvasTexture(strapCanvas);
       strapTex.wrapS = THREE.RepeatWrapping;
@@ -1129,8 +1262,22 @@ export default function SovereignThreeScene({
       if (!isMobile) lanyardMesh.castShadow = true;
       scene.add(lanyardMesh);
 
+      const sliderBuckleGroup = new THREE.Group();
+      const buckleBody = new THREE.Mesh(
+        new THREE.BoxGeometry(0.68, 0.24, 0.12),
+        goldHardwareMat
+      );
+      if (!isMobile) buckleBody.castShadow = true;
+      sliderBuckleGroup.add(buckleBody);
+      const buckleCenterSlot = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 0.06, 0.135),
+        gunmetalMat
+      );
+      sliderBuckleGroup.add(buckleCenterSlot);
+      scene.add(sliderBuckleGroup);
+
       const VERLET_NODES = 6;
-      const restCardCenterY = 0.22;
+      const restCardCenterY = 0.16;
       const restHookWorld = new THREE.Vector3(0, restCardCenterY + hookOffsetY, 0);
       const totalRopeLen = anchorPos.distanceTo(restHookWorld) + 0.04;
       const segLen = totalRopeLen / (VERLET_NODES - 1);
@@ -1173,13 +1320,23 @@ export default function SovereignThreeScene({
       ktaCrestRing3D.position.set(-2.099, 1.097, 0.05);
       ktaMesh.add(ktaCrestRing3D);
 
-      // KTA Mid-Left 24K EMV Chip Bezel (x=72, y=202, w=108, h=82 on 1024x640)
+      // KTA Mid-Left 24K EMV Chip Bezel + Stepped 3D Gold Pad Island (x=72, y=202, w=108, h=82)
       const ktaChipBezel = new THREE.Mesh(
         createRaisedRectBezelGeometry(THREE, 0.586, 0.448, 0.022, 0.072, 0.009),
         goldHardwareMat
       );
       ktaChipBezel.position.set(-2.036, 0.406, 0.05);
       ktaMesh.add(ktaChipBezel);
+
+      const ktaChip3DPads = createEmvChip3DGroup(
+        THREE,
+        0.52,
+        0.39,
+        goldHardwareMat,
+        gunmetalMat
+      );
+      ktaChip3DPads.position.set(-2.036, 0.406, 0.05);
+      ktaMesh.add(ktaChip3DPads);
 
       // KTA Right Chamfered Portrait Window Bezel (x=736, y=194, w=224, h=376 on 1024x640)
       const ktaPortraitBezel = new THREE.Mesh(
@@ -1189,7 +1346,7 @@ export default function SovereignThreeScene({
       ktaPortraitBezel.position.set(1.772, -0.327, 0.05);
       ktaMesh.add(ktaPortraitBezel);
 
-      // KTA Back Verification QR Plate Bezel (x=694, y=198, size=262 on 1024x640, mirrored X on back)
+      // KTA Back Verification QR Plate Bezel & Magstripe Lower Brass Rail
       const ktaBackQrBezel = new THREE.Mesh(
         createRaisedRectBezelGeometry(THREE, 1.398, 1.398, 0.022, 0.108, 0.009),
         goldHardwareMat
@@ -1197,10 +1354,17 @@ export default function SovereignThreeScene({
       ktaBackQrBezel.position.set(-1.651, -0.048, -0.059);
       ktaMesh.add(ktaBackQrBezel);
 
-      // Staging coordinates: Desktop showcases both objects in architectural depth;
+      const ktaBackMagRail = new THREE.Mesh(
+        new THREE.BoxGeometry(5.1, 0.018, 0.005),
+        brushedBrassMat
+      );
+      ktaBackMagRail.position.set(0, 0.87, -0.051);
+      ktaMesh.add(ktaBackMagRail);
+
+      // Staging coordinates: Desktop showcases both objects in sculptural 3D depth;
       // Mobile parks the inactive card cleanly outside the narrow portrait viewport.
       const getKtaRestPos = (mob: boolean) =>
-        mob ? new THREE.Vector3(-10.8, -5.2, -7.5) : new THREE.Vector3(-7.75, -0.15, -1.1);
+        mob ? new THREE.Vector3(-10.8, -5.2, -7.5) : new THREE.Vector3(-7.75, -0.25, -1.35);
       const getKtaViewPos = (mob: boolean) =>
         mob ? new THREE.Vector3(0, 0.35, 7.6) : new THREE.Vector3(0, 0.15, 14.8);
       const getMainViewPos = (mob: boolean) =>
@@ -1213,19 +1377,6 @@ export default function SovereignThreeScene({
       const mainViewPos = getMainViewPos(isMobile);
       const idParkedPos = getIdParkedPos(isMobile);
       ktaMesh.position.copy(ktaRestPos);
-
-      // Load official crest, member portrait, and local high-DPI verification QR in parallel
-      Promise.all([
-        loadArtworkImage("/images/logo-utuh.webp"),
-        loadArtworkImage(fotoUrl),
-        generateVerificationQrCanvas(verificationUrl, 520),
-      ]).then(([crestImg, avatarImg, qrCanvas]) => {
-        if (isCancelled) return;
-        loadedAssets.crestImg = crestImg;
-        loadedAssets.avatarImg = avatarImg;
-        loadedAssets.qrCanvas = qrCanvas;
-        paintAllFaces(liveRef.current.isLightMode ? "light" : "dark");
-      });
 
       // INTERACTION & KINEMATICS
       const raycaster = new THREE.Raycaster();
@@ -1414,6 +1565,10 @@ export default function SovereignThreeScene({
       const eulerScratch = new THREE.Euler();
       const quatScratch = new THREE.Quaternion();
       const lookZero = new THREE.Vector3(0, 0, 0);
+      const bucklePos = new THREE.Vector3();
+      const buckleTan = new THREE.Vector3();
+      const buckleDown = new THREE.Vector3(0, -1, 0);
+      const buckleAlignQuat = new THREE.Quaternion();
 
       function stepVerletPendulum(isHangingActive: boolean) {
         const lastIdx = VERLET_NODES - 1;
@@ -1532,6 +1687,10 @@ export default function SovereignThreeScene({
           mouseLight.intensity = lightNow ? 12 : 26;
           mouseLight.color.setHex(lightNow ? 0xfff2cc : 0xffdf7a);
           dustMat.opacity = lightNow ? 0.12 : 0.42;
+          if (plinthMat) {
+            plinthMat.color.setHex(lightNow ? 0xefe9dc : 0x151820);
+            plinthMat.metalness = lightNow ? 0.04 : 0.12;
+          }
         }
 
         const time = nowMs * 0.001;
@@ -1592,7 +1751,8 @@ export default function SovereignThreeScene({
             -globalCursorY * 0.32 +
             Math.atan2(prevNode.z - bottomNode.z, Math.max(0.6, prevNode.y - bottomNode.y)) * 0.38;
           if (!isDragging) {
-            targetRotY = globalCursorX * 0.38 + Math.sin(time * 0.55) * 0.035;
+            // Subtle sculptural hero 3D angle reveals gold bevel depth & 3D EMV chip relief immediately
+            targetRotY = globalCursorX * 0.4 + Math.sin(time * 0.48) * 0.065 + 0.085;
           }
           eulerScratch.set(swingPitchX, targetRotY + flipOffset, swingRollZ * 0.85);
           quatScratch.setFromEuler(eulerScratch);
@@ -1604,11 +1764,17 @@ export default function SovereignThreeScene({
           idPivotGroup.position.y + idCardContainer.position.y,
           idPivotGroup.position.z - 1.25
         );
-        cardGlowLight.intensity = lightNow || fmtNow === "kta" ? 0 : 20;
+        cardGlowLight.intensity = lightNow || fmtNow === "kta" ? 0 : 18;
 
         lanyardMesh.visible = isHangingId;
+        sliderBuckleGroup.visible = isHangingId;
         if (lanyardMesh.visible) {
           ribbonStrap.update(ropeCurve, idPivotGroup.quaternion);
+          ropeCurve.getPointAt(0.68, bucklePos);
+          ropeCurve.getTangentAt(0.68, buckleTan).normalize();
+          sliderBuckleGroup.position.copy(bucklePos);
+          buckleAlignQuat.setFromUnitVectors(buckleDown, buckleTan);
+          sliderBuckleGroup.quaternion.copy(buckleAlignQuat);
         }
 
         if (fmtNow === "kta") {
@@ -1623,13 +1789,13 @@ export default function SovereignThreeScene({
           ktaMesh.quaternion.slerp(quatScratch, 0.12);
         } else {
           ktaMesh.visible = !isMobile || ktaMesh.position.x > -9.8;
-          const floatY = Math.sin(time * 1.15) * 0.32;
+          const floatY = Math.sin(time * 1.15) * 0.28;
           targetFloatKta.set(ktaRestPos.x, ktaRestPos.y + floatY, ktaRestPos.z);
           ktaMesh.position.lerp(targetFloatKta, 0.085);
           eulerScratch.set(
-            -globalCursorY * 0.16 + 0.14,
-            globalCursorX * 0.24 + 0.16 + flipOffset,
-            Math.cos(time * 0.85) * 0.035
+            -globalCursorY * 0.16 + 0.12,
+            globalCursorX * 0.24 + 0.28 + flipOffset,
+            Math.cos(time * 0.85) * 0.03
           );
           quatScratch.setFromEuler(eulerScratch);
           ktaMesh.quaternion.slerp(quatScratch, 0.085);

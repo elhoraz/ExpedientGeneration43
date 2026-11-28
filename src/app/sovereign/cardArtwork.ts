@@ -39,13 +39,56 @@ export function pbrSurface(holo: number, roughness: number, metalness: number): 
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.24, 0.04);
-const PBR_SATIN_BAND = pbrSurface(0.0, 0.42, 0.04);
+const PBR_OBSIDIAN_LACQUER = pbrSurface(0.0, 0.26, 0.04);
+const PBR_OBSIDIAN_SATIN_BACK = pbrSurface(0.0, 0.36, 0.03);
+const PBR_SATIN_BAND = pbrSurface(0.0, 0.46, 0.03);
 const PBR_GOLD_BULLION = pbrSurface(0.03, 0.22, 0.92);
 const PBR_HOLO_FOIL = pbrSurface(0.46, 0.2, 0.92);
-const PBR_PORTRAIT_GLASS = pbrSurface(0.0, 0.1, 0.04);
-const PBR_MATTE_IVORY = pbrSurface(0.0, 0.84, 0.02);
-const PBR_ENGRAVED_TYPE = pbrSurface(0.0, 0.22, 0.85);
+const PBR_PORTRAIT_GLASS = pbrSurface(0.0, 0.12, 0.03);
+const PBR_MATTE_IVORY = pbrSurface(0.0, 0.86, 0.02);
+const PBR_ENGRAVED_TYPE = pbrSurface(0.0, 0.24, 0.78);
+
+interface ResolvedFontStacks {
+  serif: string;
+  sans: string;
+  tabular: string;
+}
+
+let cachedFonts: ResolvedFontStacks | null = null;
+
+function resolveVarFont(cssVar: string, fallback: string): string {
+  if (typeof document === "undefined" || !document.body) return fallback;
+  try {
+    const el = document.createElement("span");
+    el.style.fontFamily = `var(${cssVar}, ${fallback})`;
+    el.style.position = "fixed";
+    el.style.visibility = "hidden";
+    el.style.pointerEvents = "none";
+    document.body.appendChild(el);
+    const computed = getComputedStyle(el).fontFamily;
+    document.body.removeChild(el);
+    return computed && computed.trim() ? computed : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Resolves actual next/font/google font families onto Canvas 2D contexts. */
+export function resolveCardFontStacks(): ResolvedFontStacks {
+  if (cachedFonts && typeof document !== "undefined") return cachedFonts;
+  const resolved: ResolvedFontStacks = {
+    serif: resolveVarFont("--font-playfair", '"Playfair Display", Georgia, serif'),
+    sans: resolveVarFont("--font-inter", '"Inter", sans-serif'),
+    tabular: resolveVarFont("--font-manrope", '"Manrope", "Inter", sans-serif'),
+  };
+  if (typeof document !== "undefined" && document.body) {
+    cachedFonts = resolved;
+  }
+  return resolved;
+}
+
+const artworkImageCache = new Map<string, Promise<HTMLImageElement | null>>();
+const artworkQrCache = new Map<string, Promise<HTMLCanvasElement | null>>();
 
 const GOLD = "#d4af37";
 const GOLD_BRIGHT = "#f5e19c";
@@ -72,69 +115,89 @@ export function formatDomisiliLabel(raw?: string | null): string {
   return cleaned.slice(0, 26).trim() + "…";
 }
 
-/** Generates a crisp, zero-network local QR code canvas with high error-correction (`H`). */
-export async function generateVerificationQrCanvas(
+/** Generates and caches a crisp, zero-network local QR code canvas (`errorCorrectionLevel: H`). */
+export function generateVerificationQrCanvas(
   verificationUrl: string,
   pixelSize = 480
 ): Promise<HTMLCanvasElement | null> {
-  if (typeof document === "undefined" || !verificationUrl) return null;
-  try {
-    const canvas = document.createElement("canvas");
-    await QRCode.toCanvas(canvas, verificationUrl, {
-      width: pixelSize,
-      margin: 1,
-      errorCorrectionLevel: "H",
-      color: {
-        dark: "#070a12",
-        light: "#faf8f3",
-      },
-    });
-
-    // Center miniature 43 seal emblem (safe under Level H 30% error correction)
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      const c = canvas.width / 2;
-      const r = canvas.width * 0.105;
-      ctx.save();
-      ctx.fillStyle = "#faf8f3";
-      ctx.beginPath();
-      ctx.arc(c, c, r + 5, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#070a12";
-      ctx.beginPath();
-      ctx.arc(c, c, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = GOLD;
-      ctx.lineWidth = 3;
-      ctx.stroke();
-
-      ctx.fillStyle = GOLD_BRIGHT;
-      ctx.font = `700 ${Math.round(r * 0.92)}px "Playfair Display", Georgia, serif`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("43", c, c + 1);
-      ctx.restore();
-    }
-    return canvas;
-  } catch {
-    return null;
+  if (typeof document === "undefined" || !verificationUrl) {
+    return Promise.resolve(null);
   }
+  const cacheKey = `${verificationUrl}::${pixelSize}`;
+  const cached = artworkQrCache.get(cacheKey);
+  if (cached) return cached;
+
+  const job = (async () => {
+    try {
+      const canvas = document.createElement("canvas");
+      await QRCode.toCanvas(canvas, verificationUrl, {
+        width: pixelSize,
+        margin: 1,
+        errorCorrectionLevel: "H",
+        color: {
+          dark: "#070a12",
+          light: "#faf8f3",
+        },
+      });
+
+      const { serif } = resolveCardFontStacks();
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const c = canvas.width / 2;
+        const r = canvas.width * 0.105;
+        ctx.save();
+        ctx.fillStyle = "#faf8f3";
+        ctx.beginPath();
+        ctx.arc(c, c, r + 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#070a12";
+        ctx.beginPath();
+        ctx.arc(c, c, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = GOLD;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = GOLD_BRIGHT;
+        ctx.font = `700 ${Math.round(r * 0.92)}px ${serif}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("43", c, c + 1);
+        ctx.restore();
+      }
+      return canvas;
+    } catch {
+      artworkQrCache.delete(cacheKey);
+      return null;
+    }
+  })();
+
+  artworkQrCache.set(cacheKey, job);
+  return job;
 }
 
-/** Loads an image safely with CORS support; resolves to null on failure. */
+/** Loads and caches an artwork image safely so mode switches render zero-flicker frames. */
 export function loadArtworkImage(url: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    if (!url || typeof Image === "undefined") {
-      resolve(null);
-      return;
-    }
+  if (!url || typeof Image === "undefined") {
+    return Promise.resolve(null);
+  }
+  const cached = artworkImageCache.get(url);
+  if (cached) return cached;
+
+  const job = new Promise<HTMLImageElement | null>((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => resolve(img.naturalWidth > 0 ? img : null);
-    img.onerror = () => resolve(null);
+    img.onerror = () => {
+      artworkImageCache.delete(url);
+      resolve(null);
+    };
     img.src = url;
   });
+
+  artworkImageCache.set(url, job);
+  return job;
 }
 
 /**
@@ -317,7 +380,12 @@ export function createMarbleWallCanvas(isDayMode: boolean, width: number): HTMLC
   return canvas;
 }
 
-function drawObsidianLacquerSurface(targets: ArtworkPaintTargets, w: number, h: number) {
+function drawObsidianLacquerSurface(
+  targets: ArtworkPaintTargets,
+  w: number,
+  h: number,
+  isBackFace = false
+) {
   const { cCtx, pCtx, bCtx } = targets;
 
   const grad = cCtx.createLinearGradient(0, 0, w * 0.85, h);
@@ -350,7 +418,7 @@ function drawObsidianLacquerSurface(targets: ArtworkPaintTargets, w: number, h: 
   cCtx.restore();
 
   if (pCtx) {
-    pCtx.fillStyle = PBR_OBSIDIAN_LACQUER;
+    pCtx.fillStyle = isBackFace ? PBR_OBSIDIAN_SATIN_BACK : PBR_OBSIDIAN_LACQUER;
     pCtx.fillRect(0, 0, w, h);
   }
   if (bCtx) {
@@ -603,8 +671,9 @@ export function drawIdFrontFace(
   const W = 1024;
   const H = 1624;
   const { cCtx, pCtx, bCtx } = targets;
+  const fonts = resolveCardFontStacks();
 
-  drawObsidianLacquerSurface(targets, W, H);
+  drawObsidianLacquerSurface(targets, W, H, false);
   drawPrecisionPerimeterRule(targets, W, H, 34, 34);
   drawSlotGrommet(targets);
 
@@ -623,26 +692,26 @@ export function drawIdFrontFace(
   }
 
   // Balanced Header: Official Crest + Institution Title (left) & 24K EMV Chip (right)
-  drawOfficialCrestMedallion(targets, assets.crestImg, 186, 236, 62);
+  drawOfficialCrestMedallion(targets, assets.crestImg, 186, 232, 62);
 
   cCtx.textAlign = "left";
   cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = '700 30px "Playfair Display", Georgia, serif';
+  cCtx.font = `700 30px ${fonts.serif}`;
   cCtx.letterSpacing = "4px";
-  cCtx.fillText("EXPEDIENT 43", 274, 226);
+  cCtx.fillText("EXPEDIENT 43", 274, 222);
   cCtx.letterSpacing = "0px";
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 19px "Inter", sans-serif';
-  cCtx.fillText("Pondok Modern Arrisalah", 274, 260);
+  cCtx.font = `500 20px ${fonts.sans}`;
+  cCtx.fillText("Pondok Modern Arrisalah", 274, 258);
 
-  drawPrecisionEmvChip(targets, 774, 190, 122, 92, 15);
+  drawPrecisionEmvChip(targets, 774, 186, 122, 92, 15);
 
-  // Editorial Portrait Window (x=128, y=340, w=768, h=704)
+  // Editorial Portrait Window (x=128, y=330, w=768, h=668 -> leaves generous room for metadata)
   const px = 128;
-  const py = 340;
+  const py = 330;
   const pw = 768;
-  const ph = 704;
+  const ph = 668;
 
   cCtx.save();
   cCtx.beginPath();
@@ -670,18 +739,17 @@ export function drawIdFrontFace(
 
     const botShade = cCtx.createLinearGradient(0, py + ph * 0.65, 0, py + ph);
     botShade.addColorStop(0, "rgba(7, 10, 18, 0)");
-    botShade.addColorStop(1, "rgba(7, 10, 18, 0.55)");
+    botShade.addColorStop(1, "rgba(7, 10, 18, 0.58)");
     cCtx.fillStyle = botShade;
     cCtx.fillRect(px, py, pw, ph);
   } else {
-    // Dignified calligraphic monogram portrait fallback
     if (assets.crestImg) {
       cCtx.globalAlpha = 0.14;
       cCtx.drawImage(assets.crestImg, px + pw / 2 - 200, py + ph / 2 - 200, 400, 400);
       cCtx.globalAlpha = 1.0;
     }
     cCtx.fillStyle = GOLD_BRIGHT;
-    cCtx.font = '700 180px "Playfair Display", Georgia, serif';
+    cCtx.font = `700 180px ${fonts.serif}`;
     cCtx.textAlign = "center";
     cCtx.textBaseline = "middle";
     cCtx.fillText(identity.nama.charAt(0).toUpperCase(), px + pw / 2, py + ph / 2);
@@ -707,27 +775,27 @@ export function drawIdFrontFace(
     pCtx.fill();
   }
 
-  // Editorial Identity Block (No horizontal text squishing!)
+  // Editorial Identity Block (Genuine resolved Playfair Display + crisp spacious metadata)
   cCtx.textAlign = "left";
   cCtx.textBaseline = "alphabetic";
   cCtx.fillStyle = GOLD;
-  cCtx.font = '600 21px "Inter", sans-serif';
+  cCtx.font = `600 22px ${fonts.sans}`;
   cCtx.letterSpacing = "3px";
-  cCtx.fillText("KARTU TANDA ALUMNI RESMI", 128, 1112);
+  cCtx.fillText("KARTU TANDA ALUMNI RESMI", 128, 1070);
   cCtx.letterSpacing = "0px";
 
   const { lines: nameLines, fontSize: namePx } = layoutDisplayName(
     cCtx,
     identity.nama,
     768,
-    58,
-    38,
-    '"Playfair Display", Georgia, serif'
+    60,
+    40,
+    fonts.serif
   );
 
   cCtx.fillStyle = IVORY;
-  cCtx.font = `700 ${namePx}px "Playfair Display", Georgia, serif`;
-  const nameStartY = nameLines.length === 1 ? 1188 : 1172;
+  cCtx.font = `700 ${namePx}px ${fonts.serif}`;
+  const nameStartY = nameLines.length === 1 ? 1148 : 1134;
   const lineStep = Math.round(namePx * 1.16);
   nameLines.forEach((ln, idx) => {
     cCtx.fillText(ln, 128, nameStartY + idx * lineStep);
@@ -735,58 +803,58 @@ export function drawIdFrontFace(
 
   if (pCtx) {
     pCtx.fillStyle = PBR_ENGRAVED_TYPE;
-    pCtx.font = `700 ${namePx}px "Playfair Display", Georgia, serif`;
+    pCtx.font = `700 ${namePx}px ${fonts.serif}`;
     nameLines.forEach((ln, idx) => {
       pCtx.fillText(ln, 128, nameStartY + idx * lineStep);
     });
   }
   if (bCtx) {
-    bCtx.fillStyle = "#ffffff";
-    bCtx.font = `700 ${namePx}px "Playfair Display", Georgia, serif`;
+    bCtx.fillStyle = "#b8b8b8";
+    bCtx.font = `700 ${namePx}px ${fonts.serif}`;
     nameLines.forEach((ln, idx) => {
       bCtx.fillText(ln, 128, nameStartY + idx * lineStep);
     });
   }
 
-  // Hairline gold divider above 2-column architectural metadata grid
-  const divY = 1288;
-  cCtx.fillStyle = "rgba(212, 175, 55, 0.34)";
+  // Hairline gold divider above legible 2-column metadata grid
+  const divY = 1254;
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.36)";
   cCtx.fillRect(128, divY, 768, 2);
   if (pCtx) {
     pCtx.fillStyle = PBR_GOLD_BULLION;
     pCtx.fillRect(128, divY, 768, 2);
   }
 
-  // Left Column: Domisili & Cohort
+  // Left Column: Domisili & Angkatan
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 19px "Inter", sans-serif';
-  cCtx.fillText("Domisili", 128, 1340);
+  cCtx.font = `500 21px ${fonts.sans}`;
+  cCtx.fillText("Domisili", 128, 1312);
   cCtx.fillStyle = IVORY;
-  cCtx.font = '600 25px "Inter", sans-serif';
-  cCtx.fillText(identity.domisili, 128, 1376);
+  cCtx.font = `600 29px ${fonts.sans}`;
+  cCtx.fillText(identity.domisili, 128, 1354);
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 19px "Inter", sans-serif';
-  cCtx.fillText("Angkatan", 128, 1434);
+  cCtx.font = `500 21px ${fonts.sans}`;
+  cCtx.fillText("Angkatan", 128, 1422);
   cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = '600 24px "Inter", sans-serif';
-  cCtx.fillText("Ke-43 · Expedient Generation", 128, 1470);
+  cCtx.font = `600 27px ${fonts.sans}`;
+  cCtx.fillText("Ke-43 · Expedient Generation", 128, 1464);
 
   // Right Column: Tabular Alumni ID & Verification Status
   cCtx.textAlign = "right";
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 19px "Inter", sans-serif';
-  cCtx.fillText("Nomor Anggota", 896, 1340);
+  cCtx.font = `500 21px ${fonts.sans}`;
+  cCtx.fillText("Nomor Anggota", 896, 1312);
   cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = "700 30px monospace";
-  cCtx.fillText(identity.nomorId, 896, 1378);
+  cCtx.font = `700 34px ${fonts.tabular}`;
+  cCtx.fillText(identity.nomorId, 896, 1356);
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 19px "Inter", sans-serif';
-  cCtx.fillText("Masa Berlaku", 896, 1434);
+  cCtx.font = `500 21px ${fonts.sans}`;
+  cCtx.fillText("Masa Berlaku", 896, 1422);
   cCtx.fillStyle = IVORY;
-  cCtx.font = '600 24px "Inter", sans-serif';
-  cCtx.fillText("Seumur Hidup", 896, 1470);
+  cCtx.font = `600 27px ${fonts.sans}`;
+  cCtx.fillText("Seumur Hidup", 896, 1464);
   cCtx.textAlign = "left";
 }
 
@@ -800,8 +868,9 @@ export function drawIdBackFace(
   const W = 1024;
   const H = 1624;
   const { cCtx, pCtx } = targets;
+  const fonts = resolveCardFontStacks();
 
-  drawObsidianLacquerSurface(targets, W, H);
+  drawObsidianLacquerSurface(targets, W, H, true);
   drawPrecisionPerimeterRule(targets, W, H, 34, 34);
   drawSlotGrommet(targets);
 
@@ -815,14 +884,14 @@ export function drawIdBackFace(
 
   cCtx.textAlign = "center";
   cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = '700 38px "Playfair Display", Georgia, serif';
+  cCtx.font = `700 38px ${fonts.serif}`;
   cCtx.fillText("Verifikasi Keanggotaan Resmi", 512, 438);
 
   cCtx.fillStyle = "rgba(212, 175, 55, 0.38)";
   cCtx.fillRect(382, 466, 260, 2);
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '400 25px "Inter", sans-serif';
+  cCtx.font = `400 25px ${fonts.sans}`;
   const lines = [
     "Kartu ini menerangkan bahwa pemegang bernama di balik",
     "adalah anggota sah Keluarga Besar Alumni Angkatan ke-43",
@@ -834,7 +903,7 @@ export function drawIdBackFace(
   drawQrPlate(targets, assets.qrCanvas, 312, 706, 400, 26);
 
   cCtx.fillStyle = GOLD;
-  cCtx.font = '600 22px "Inter", sans-serif';
+  cCtx.font = `600 22px ${fonts.sans}`;
   cCtx.fillText("Pindai kode QR untuk membuka profil verifikasi", 512, 1166);
 
   // Authorized Signature Strip
@@ -847,11 +916,11 @@ export function drawIdBackFace(
   cCtx.stroke();
 
   cCtx.fillStyle = "#0f172a";
-  cCtx.font = 'italic 700 36px "Playfair Display", Georgia, serif';
+  cCtx.font = `italic 700 36px ${fonts.serif}`;
   cCtx.fillText(identity.panggilan, 512, 1299);
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = "600 22px monospace";
+  cCtx.font = `600 24px ${fonts.tabular}`;
   cCtx.fillText(`${identity.nomorId}  ·  PONDOK MODERN ARRISALAH`, 512, 1438);
   cCtx.textAlign = "left";
 }
@@ -865,9 +934,10 @@ export function drawKtaFrontFace(
 ) {
   const W = 1024;
   const H = 640;
-  const { cCtx, pCtx, bCtx } = targets;
+  const { cCtx, pCtx } = targets;
+  const fonts = resolveCardFontStacks();
 
-  drawObsidianLacquerSurface(targets, W, H);
+  drawObsidianLacquerSurface(targets, W, H, false);
 
   if (assets.crestImg) {
     cCtx.save();
@@ -883,13 +953,13 @@ export function drawKtaFrontFace(
 
   cCtx.textAlign = "left";
   cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = '700 30px "Playfair Display", Georgia, serif';
+  cCtx.font = `700 30px ${fonts.serif}`;
   cCtx.letterSpacing = "4px";
   cCtx.fillText("EXPEDIENT GENERATION", 182, 106);
   cCtx.letterSpacing = "0px";
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 18px "Inter", sans-serif';
+  cCtx.font = `500 18px ${fonts.sans}`;
   cCtx.fillText("Pondok Modern Arrisalah · Alumni Angkatan ke-43", 182, 136);
 
   // Mid-left 24K Gold EMV Chip + Contactless Wave
@@ -906,52 +976,59 @@ export function drawKtaFrontFace(
   }
   cCtx.restore();
 
-  // Embossed Tabular Credential Number
-  cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = "700 35px monospace";
-  cCtx.letterSpacing = "2px";
-  cCtx.fillText(identity.maskedCardNumber, 72, 356);
-  cCtx.letterSpacing = "0px";
+  // Sharp Tabular Credential Number + Custom-Drawn Security Pips (Zero Bump Smudge!)
+  const suffix = identity.nomorId.replace("EXP-", "");
+  const digitFont = `700 34px ${fonts.tabular}`;
+  const drawCredentialLine = (ctx: CanvasRenderingContext2D, color: string) => {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.font = digitFont;
+    ctx.letterSpacing = "2.5px";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("4300", 72, 356);
+    ctx.fillText("2026", 190, 356);
 
+    // 4 crisp circular geometric security pips (never thick fuzzy monospace bullets)
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.arc(320 + i * 20, 344, 4.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillText(suffix, 412, 356);
+    ctx.letterSpacing = "0px";
+    ctx.restore();
+  };
+
+  drawCredentialLine(cCtx, GOLD_BRIGHT);
   if (pCtx) {
-    pCtx.fillStyle = PBR_GOLD_BULLION;
-    pCtx.font = "700 35px monospace";
-    pCtx.letterSpacing = "2px";
-    pCtx.fillText(identity.maskedCardNumber, 72, 356);
-    pCtx.letterSpacing = "0px";
-  }
-  if (bCtx) {
-    bCtx.fillStyle = "#ffffff";
-    bCtx.font = "700 35px monospace";
-    bCtx.letterSpacing = "2px";
-    bCtx.fillText(identity.maskedCardNumber, 72, 356);
-    bCtx.letterSpacing = "0px";
+    drawCredentialLine(pCtx, PBR_GOLD_BULLION);
   }
 
-  // Bottom-Left Member Name (Auto-fitted, never horizontally squished)
+  // Bottom-Left Member Name (Auto-fitted in genuine Playfair Display)
   cCtx.fillStyle = GOLD;
-  cCtx.font = '600 16px "Inter", sans-serif';
+  cCtx.font = `600 17px ${fonts.sans}`;
   cCtx.letterSpacing = "2.5px";
-  cCtx.fillText("PEMEGANG KARTU", 72, 430);
+  cCtx.fillText("PEMEGANG KARTU", 72, 428);
   cCtx.letterSpacing = "0px";
 
   const { lines: ktaLines, fontSize: ktaPx } = layoutDisplayName(
     cCtx,
     identity.nama,
     620,
-    38,
+    40,
     26,
-    '"Playfair Display", Georgia, serif'
+    fonts.serif
   );
   cCtx.fillStyle = IVORY;
-  cCtx.font = `700 ${ktaPx}px "Playfair Display", Georgia, serif`;
+  cCtx.font = `700 ${ktaPx}px ${fonts.serif}`;
   const ktaBaseY = ktaLines.length === 1 ? 482 : 468;
   ktaLines.forEach((ln, idx) => {
     cCtx.fillText(ln, 72, ktaBaseY + idx * Math.round(ktaPx * 1.14));
   });
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 20px "Inter", sans-serif';
+  cCtx.font = `500 21px ${fonts.sans}`;
   cCtx.fillText(`${identity.domisili}  ·  ${identity.nomorId}`, 72, 566);
 
   // Right Chamfered Portrait Window (x=736, y=194, w=224, h=376, r=20)
@@ -974,7 +1051,7 @@ export function drawKtaFrontFace(
     cCtx.drawImage(assets.avatarImg, ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh);
   } else {
     cCtx.fillStyle = GOLD_BRIGHT;
-    cCtx.font = '700 92px "Playfair Display", Georgia, serif';
+    cCtx.font = `700 92px ${fonts.serif}`;
     cCtx.textAlign = "center";
     cCtx.textBaseline = "middle";
     cCtx.fillText(identity.nama.charAt(0).toUpperCase(), ax + aw / 2, ay + ah / 2);
@@ -1005,8 +1082,9 @@ export function drawKtaBackFace(
   const W = 1024;
   const H = 640;
   const { cCtx, pCtx } = targets;
+  const fonts = resolveCardFontStacks();
 
-  drawObsidianLacquerSurface(targets, W, H);
+  drawObsidianLacquerSurface(targets, W, H, true);
   drawPrecisionPerimeterRule(targets, W, H, 24, 28);
 
   // Satin Magnetic Band
@@ -1028,27 +1106,27 @@ export function drawKtaBackFace(
 
   cCtx.textAlign = "left";
   cCtx.fillStyle = "#0f172a";
-  cCtx.font = 'italic 700 30px "Playfair Display", Georgia, serif';
+  cCtx.font = `italic 700 30px ${fonts.serif}`;
   cCtx.fillText(identity.panggilan, 92, 243);
 
   cCtx.fillStyle = GOLD_BRIGHT;
-  cCtx.font = '700 26px "Playfair Display", Georgia, serif';
+  cCtx.font = `700 28px ${fonts.serif}`;
   cCtx.fillText("Kartu Tanda Alumni Resmi", 68, 336);
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '400 21px "Inter", sans-serif';
+  cCtx.font = `400 21px ${fonts.sans}`;
   cCtx.fillText("Keluarga Besar Alumni Angkatan ke-43", 68, 378);
   cCtx.fillText("Pondok Modern Arrisalah · Slahung, Ponorogo", 68, 412);
 
   cCtx.fillStyle = GOLD;
-  cCtx.font = "600 22px monospace";
+  cCtx.font = `700 23px ${fonts.tabular}`;
   cCtx.fillText(`${identity.nomorId}  ·  SEUMUR HIDUP`, 68, 548);
 
   // Right High-DPI Local Verification QR Plate
   drawQrPlate(targets, assets.qrCanvas, 694, 198, 262, 20);
   cCtx.textAlign = "center";
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = '500 17px "Inter", sans-serif';
+  cCtx.font = `500 18px ${fonts.sans}`;
   cCtx.fillText("Pindai Verifikasi", 825, 494);
   cCtx.textAlign = "left";
 }
@@ -1081,11 +1159,12 @@ export function createWovenStrapCanvas(): HTMLCanvasElement {
   ctx.fillRect(10, 0, 4, h);
   ctx.fillRect(w - 14, 0, 4, h);
 
+  const fonts = resolveCardFontStacks();
   ctx.save();
   ctx.translate(w / 2, h / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillStyle = "rgba(212, 175, 55, 0.3)";
-  ctx.font = '600 20px "Inter", sans-serif';
+  ctx.fillStyle = "rgba(212, 175, 55, 0.34)";
+  ctx.font = `600 20px ${fonts.sans}`;
   ctx.letterSpacing = "5px";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";

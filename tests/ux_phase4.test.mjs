@@ -234,9 +234,10 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
     const sovereignClient = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/SovereignClient.tsx"), "utf8");
     const cardArtwork = fs.readFileSync(path.join(ROOT_DIR, "src/app/sovereign/cardArtwork.ts"), "utf8");
 
-    test("cardArtwork engine generates local high-DPI QR codes, un-squished typography & Bezier Kintsugi stone", () => {
+    test("cardArtwork engine generates local high-DPI QR codes, resolved Google fonts, un-squished typography & fBm stone", () => {
       assert.ok(cardArtwork.includes("generateVerificationQrCanvas"), "Generates offline local QR canvas via qrcode package");
       assert.ok(!cardArtwork.includes("api.qrserver.com"), "Eliminates external QR image dependency");
+      assert.ok(cardArtwork.includes("resolveCardFontStacks"), "Resolves next/font CSS font families onto Canvas 2D contexts");
       assert.ok(cardArtwork.includes("layoutDisplayName"), "Auto-fits full names across 1-2 lines without horizontal glyph squishing");
       assert.ok(cardArtwork.includes("drawObsidianLacquerSurface"), "Renders deep glossy Obsidian Lacquer card finish");
       assert.ok(cardArtwork.includes("createWovenStrapCanvas"), "Generates woven EXPEDIENT 43 lanyard strap texture");
@@ -244,13 +245,16 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
       assert.ok(sovereignScene.includes("/images/logo-utuh.webp"), "Loads official Expedient 43 crest onto 3D cards");
     });
 
-    test("SovereignThreeScene uses horology softbox PMREM, 2x desktop supersampling, hinged clasp & micro-bezels", () => {
+    test("SovereignThreeScene uses horology softbox PMREM, 2x supersampling, 3D EMV chip pads, plinth stage & mechanical buckle", () => {
       assert.ok(sovereignScene.includes("buildHorologyCardEnv"), "Bakes high-contrast horology softbox studio environment maps");
       assert.ok(sovereignScene.includes("transparent: false"), "Uses single opaque marble wall to eliminate dual-plane alpha overdraw");
       assert.ok(sovereignScene.includes("createDieCutCardGeometry"), "Extrudes real die-cut slot punch hole with planar gold bevel isolation");
       assert.ok(sovereignScene.includes("createRaisedRectBezelGeometry"), "Mounts precision micro-chamfered 24K gold bezels on card surfaces");
       assert.ok(sovereignScene.includes("createRaisedRingBezelGeometry"), "Mounts watch-caliber flat circular bezel rings around official crest");
-      assert.ok(!sovereignScene.includes("vaultRingsGroup"), "Removes decorative floating wireframe rings in favor of architectural brass alcove");
+      assert.ok(sovereignScene.includes("createEmvChip3DGroup"), "Mounts multi-tiered solid 3D machined 24K EMV contact pad assembly");
+      assert.ok(sovereignScene.includes("galleryStageGroup"), "Mounts desktop stepped 3D architectural stone plinth & piers");
+      assert.ok(sovereignScene.includes("sliderBuckleGroup"), "Simulates mechanical lanyard buckle & articulated clasp");
+      assert.ok(!sovereignScene.includes("vaultRingsGroup"), "Removes decorative floating wireframe rings in favor of architectural stage");
       assert.ok(sovereignScene.includes("idPivotGroup"), "Hinges card rotation right at clasp tip for zero ribbon detachment gap");
       assert.ok(sovereignScene.includes("createDynamicRibbonStrap"), "Uses +Z forward zero-allocation woven ribbon strap buffer updates");
       assert.ok(sovereignScene.includes("stepVerletPendulum"), "Simulates 6-node Verlet pendulum physics");

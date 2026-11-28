@@ -17,6 +17,7 @@ import {
   formatDomisiliLabel,
   generateVerificationQrCanvas,
   loadArtworkImage,
+  resolveCardFontStacks,
 } from "./cardArtwork";
 import "./sovereign.css";
 
@@ -96,10 +97,16 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
     };
   }, []);
 
-  // Generate local verification QR DataURL once origin resolves (zero external API dependency)
+  // Preload & cache official crest + member portrait immediately so mode switches have 0 flicker
+  useEffect(() => {
+    void loadArtworkImage("/images/logo-utuh.webp");
+    if (fotoUrl) void loadArtworkImage(fotoUrl);
+  }, [fotoUrl]);
+
+  // Generate & cache local verification QR DataURL once origin resolves
   useEffect(() => {
     let active = true;
-    generateVerificationQrCanvas(`${originUrl}/dossier/${user.id}`, 480).then((canvas) => {
+    generateVerificationQrCanvas(`${originUrl}/dossier/${user.id}`, 520).then((canvas) => {
       if (active && canvas) {
         setQrDataUrl(canvas.toDataURL("image/png"));
       }
@@ -218,13 +225,14 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       ctx.lineWidth = 3;
       ctx.strokeRect(56, 56, compCanvas.width - 112, compCanvas.height - 112);
 
+      const fonts = resolveCardFontStacks();
       ctx.textAlign = "center";
       ctx.fillStyle = isLightMode ? "#18181b" : "#f5e19c";
-      ctx.font = '700 62px "Playfair Display", Georgia, serif';
+      ctx.font = `700 62px ${fonts.serif}`;
       ctx.fillText("Kartu Tanda Alumni Resmi · Expedient 43", 1200, 186);
 
       ctx.fillStyle = isLightMode ? "#7c520a" : "#94a3b8";
-      ctx.font = '500 24px "Inter", sans-serif';
+      ctx.font = `500 24px ${fonts.sans}`;
       ctx.fillText(
         `Pondok Modern Arrisalah, Slahung, Ponorogo  ·  ${user.nama_lengkap} (${nomorId})`,
         1200,
@@ -324,7 +332,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
       ctx.textAlign = "center";
       ctx.fillStyle = isLightMode ? "#52525b" : "#64748b";
-      ctx.font = '500 20px "Inter", sans-serif';
+      ctx.font = `500 20px ${fonts.sans}`;
       ctx.fillText(
         `Verifikasi daring: ${verificationUrl}`,
         1200,
@@ -464,6 +472,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
           {cardFormat === "id" && (
             <div className="sovereign-lite-strap" aria-hidden="true">
               <div className="sovereign-lite-clasp" />
+              <div className="sovereign-lite-ring" />
             </div>
           )}
 
@@ -499,6 +508,9 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
 
               {cardFormat === "id" ? (
                 <>
+                  {/* Die-Cut Lanyard Slot Cutout */}
+                  <div className="sovereign-lite-slot" aria-hidden="true" />
+
                   {/* Header: Official Crest + Title & 24K EMV Chip */}
                   <div
                     style={{

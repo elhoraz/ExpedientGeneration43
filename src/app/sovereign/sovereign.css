@@ -261,11 +261,15 @@ body.is-grabbing .sovereign-webgl-stage {
   gap: 3px;
   padding: 4px;
   border-radius: 999px;
-  background: var(--sov-surface);
+  background: rgba(11, 15, 24, 0.96);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid var(--sov-border);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+
+.sovereign-root.is-light .sovereign-mode-switcher {
+  background: rgba(255, 253, 248, 0.96);
 }
 
 .sovereign-mode-tab {
@@ -501,23 +505,45 @@ body.is-grabbing .sovereign-webgl-stage {
   position: absolute;
   top: 0;
   width: 34px;
-  height: calc(50dvh - 210px);
-  min-height: 52px;
+  height: calc(50dvh - 196px);
+  min-height: 44px;
   background: linear-gradient(180deg, #0b0f18 0%, #141b29 100%);
-  border-inline: 1.5px solid rgba(212, 175, 55, 0.5);
+  border-inline: 1.5px solid rgba(212, 175, 55, 0.52);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
   z-index: 12;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .sovereign-lite-clasp {
   width: 44px;
-  height: 14px;
+  height: 15px;
   border-radius: 3px;
   background: linear-gradient(135deg, #f5e19c 0%, #d4af37 52%, #8f6b14 100%);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 246, 212, 0.5);
+}
+
+.sovereign-lite-ring {
+  width: 14px;
+  height: 18px;
+  margin-bottom: -8px;
+  border-radius: 999px;
+  border: 3px solid #d4af37;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+.sovereign-lite-slot {
+  align-self: center;
+  width: 58px;
+  height: 12px;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  background: rgba(6, 9, 16, 0.92);
+  border: 1.5px solid rgba(212, 175, 55, 0.72);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .sovereign-lite-card {
@@ -529,10 +555,10 @@ body.is-grabbing .sovereign-webgl-stage {
 }
 
 .sovereign-lite-card.is-id {
-  width: min(306px, 80vw);
+  width: min(298px, 80vw);
   aspect-ratio: 54 / 86;
-  max-height: calc(100dvh - 228px);
-  max-width: calc((100dvh - 228px) * 54 / 86);
+  max-height: calc(100dvh - 246px);
+  max-width: calc((100dvh - 246px) * 54 / 86);
 }
 
 .sovereign-lite-card.is-kta {
