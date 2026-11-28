@@ -213,9 +213,9 @@ export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCa
     bg.addColorStop(0.55, "#f1ece1");
     bg.addColorStop(1, "#e2dacb");
   } else {
-    bg.addColorStop(0, "#0e1726");
-    bg.addColorStop(0.52, "#070c15");
-    bg.addColorStop(1, "#03050a");
+    bg.addColorStop(0, "#1b2b46");
+    bg.addColorStop(0.52, "#0e1828");
+    bg.addColorStop(1, "#060a12");
   }
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, size, size);
@@ -236,8 +236,8 @@ export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCa
       yBase - amp * 0.4
     );
     ctx.strokeStyle = isDayMode
-      ? `rgba(168, 154, 128, ${0.06 + (layer % 3) * 0.025})`
-      : `rgba(38, 56, 88, ${0.07 + (layer % 3) * 0.025})`;
+      ? `rgba(140, 124, 96, ${0.14 + (layer % 3) * 0.05})`
+      : `rgba(70, 96, 142, ${0.14 + (layer % 3) * 0.05})`;
     ctx.lineWidth = size * (0.004 + (layer % 4) * 0.0025);
     ctx.stroke();
   }
@@ -264,8 +264,8 @@ export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCa
     );
     ctx.shadowBlur = size * 0.008;
     ctx.shadowColor = isDayMode ? "rgba(180, 138, 36, 0.16)" : "rgba(229, 193, 88, 0.35)";
-    ctx.strokeStyle = isDayMode ? "rgba(176, 134, 38, 0.38)" : "rgba(229, 193, 88, 0.42)";
-    ctx.lineWidth = Math.max(1.4, size * 0.0016);
+    ctx.strokeStyle = isDayMode ? "rgba(160, 118, 28, 0.7)" : "rgba(235, 200, 96, 0.72)";
+    ctx.lineWidth = Math.max(2, size * 0.0024);
     ctx.stroke();
   }
   ctx.restore();

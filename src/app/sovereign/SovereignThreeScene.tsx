@@ -61,7 +61,7 @@ function buildHorologyCardEnv(
   isDayMode: boolean
 ): THREE_TYPES.WebGLRenderTarget {
   const envScene = new THREE.Scene();
-  envScene.background = new THREE.Color(isDayMode ? 0xe7dfd0 : 0x04060b);
+  envScene.background = new THREE.Color(isDayMode ? 0x3b372f : 0x070a12);
 
   const addSoftbox = (
     w: number,
@@ -82,7 +82,7 @@ function buildHorologyCardEnv(
     envScene.add(mesh);
   };
 
-  const boost = isDayMode ? 1.15 : 1.0;
+  const boost = isDayMode ? 0.95 : 1.0;
   // 1. Warm overhead horology key softbox
   addSoftbox(16, 10, 3.2 * boost, 2.75 * boost, 1.95 * boost, [0, 13, 7], [0, 0, 0]);
   // 2. Diagonal 24K bullion sweep bar (creates liquid gold sheen when card tilts)
@@ -698,7 +698,7 @@ export default function SovereignThreeScene({
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       }
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = liveRef.current.isLightMode ? 1.08 : 1.16;
+      renderer.toneMappingExposure = liveRef.current.isLightMode ? 1.0 : 1.16;
 
       while (container.firstChild) {
         container.removeChild(container.firstChild);
@@ -711,12 +711,14 @@ export default function SovereignThreeScene({
       const nightEnvRT = buildHorologyCardEnv(THREE, pmremGenerator, false);
       const dayEnvRT = buildHorologyCardEnv(THREE, pmremGenerator, true);
       scene.environment = liveRef.current.isLightMode ? dayEnvRT.texture : nightEnvRT.texture;
+      // Material.envMapIntensity is ignored for scene.environment; scene-level intensity is what applies
+      scene.environmentIntensity = liveRef.current.isLightMode ? 0.62 : 1.3;
       pmremGenerator.dispose();
 
       // CONTROLLED HOROLOGY GALLERY LIGHTING (Low ambient preserves deep velvet obsidian)
       const ambientLight = new THREE.AmbientLight(
         liveRef.current.isLightMode ? 0xfffaf0 : 0xdbe4f5,
-        liveRef.current.isLightMode ? 0.68 : 0.28
+        liveRef.current.isLightMode ? 0.3 : 0.4
       );
       scene.add(ambientLight);
 
@@ -770,10 +772,10 @@ export default function SovereignThreeScene({
       // Front-sweeping 24K Gold Specular Key Light following cursor/gyroscope
       const mouseLight = new THREE.PointLight(
         liveRef.current.isLightMode ? 0xfff2cc : 0xffd700,
-        liveRef.current.isLightMode ? 36 : 86,
+        liveRef.current.isLightMode ? 22 : 54,
         50
       );
-      mouseLight.position.set(0, 1.5, 7.6);
+      mouseLight.position.set(0, 1.5, 10.5);
       scene.add(mouseLight);
 
       // OPTICAL BOKEH 24K GOLD MOTES (Soft radial sprite, zero square pixels)
@@ -789,11 +791,12 @@ export default function SovereignThreeScene({
       }
       dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
       const dustMat = new THREE.PointsMaterial({
-        size: isMobile ? 0.16 : 0.18,
+        size: isMobile ? 6 : 8,
+        sizeAttenuation: false,
         map: bokehTex,
         color: 0xffdf73,
         transparent: true,
-        opacity: liveRef.current.isLightMode ? 0.18 : 0.56,
+        opacity: liveRef.current.isLightMode ? 0.1 : 0.34,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
@@ -876,7 +879,7 @@ export default function SovereignThreeScene({
 
         // Architectural Gallery Brass Light Bar above alcove
         const sconceGroup = new THREE.Group();
-        sconceGroup.position.set(0, 9.55, 0.65);
+        sconceGroup.position.set(0, 7.9, 0.65);
         const sconceBar = new THREE.Mesh(
           new THREE.CylinderGeometry(0.09, 0.09, 8.6, 24),
           goldHardwareMat
@@ -1550,7 +1553,8 @@ export default function SovereignThreeScene({
         if (lightNow !== lastLightModeApplied) {
           lastLightModeApplied = lightNow;
           scene.environment = lightNow ? dayEnvRT.texture : nightEnvRT.texture;
-          renderer.toneMappingExposure = lightNow ? 1.08 : 1.16;
+          renderer.toneMappingExposure = lightNow ? 1.0 : 1.16;
+          scene.environmentIntensity = lightNow ? 0.62 : 1.3;
           marbleMat.map = lightNow ? dayMarbleTex : nightMarbleTex;
           marbleMat.needsUpdate = true;
           if (scene.fog) {
@@ -1558,14 +1562,14 @@ export default function SovereignThreeScene({
             (scene.fog as THREE_TYPES.FogExp2).density = lightNow ? 0.0055 : 0.012;
           }
           ambientLight.color.setHex(lightNow ? 0xfffaf0 : 0xdbe4f5);
-          ambientLight.intensity = lightNow ? 0.68 : 0.28;
+          ambientLight.intensity = lightNow ? 0.3 : 0.4;
           spotLight.intensity = lightNow ? 210 : 195;
           spotLight.color.setHex(lightNow ? 0xfff8eb : 0xffe6b8);
           galleryWashLight.intensity = lightNow ? 48 : 115;
           rimLight.intensity = lightNow ? 32 : 76;
-          mouseLight.intensity = lightNow ? 36 : 86;
+          mouseLight.intensity = lightNow ? 22 : 54;
           mouseLight.color.setHex(lightNow ? 0xfff2cc : 0xffd700);
-          dustMat.opacity = lightNow ? 0.18 : 0.56;
+          dustMat.opacity = lightNow ? 0.1 : 0.34;
         }
 
         const time = nowMs * 0.001;
