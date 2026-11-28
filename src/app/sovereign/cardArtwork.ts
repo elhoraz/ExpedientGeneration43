@@ -191,118 +191,129 @@ function layoutDisplayName(
   return { lines: [normalized], fontSize: minFontPx };
 }
 
+function marbleHash(x: number, y: number): number {
+  let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263)) | 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+}
+
+function marbleNoise(x: number, y: number): number {
+  const ix = Math.floor(x);
+  const iy = Math.floor(y);
+  const fx = x - ix;
+  const fy = y - iy;
+  const ux = fx * fx * (3 - 2 * fx);
+  const uy = fy * fy * (3 - 2 * fy);
+  const a = marbleHash(ix, iy);
+  const b = marbleHash(ix + 1, iy);
+  const c = marbleHash(ix, iy + 1);
+  const d = marbleHash(ix + 1, iy + 1);
+  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
+}
+
+function marbleFbm(x: number, y: number, octaves: number): number {
+  let value = 0;
+  let amp = 0.5;
+  let sx = x;
+  let sy = y;
+  for (let i = 0; i < octaves; i++) {
+    value += amp * marbleNoise(sx, sy);
+    sx = sx * 2.04 + 13.7;
+    sy = sy * 2.04 + 29.3;
+    amp *= 0.5;
+  }
+  return value;
+}
+
 /**
- * Creates a smooth organic Bezier Kintsugi stone studio backdrop framed cleanly within
- * the camera frustum so mineral strata & 24K seams are crisp on both Day & Night modes.
+ * Generates an organic geological Italian Calacatta Gold (Day) or Nero Marquina (Night)
+ * marble texture via domain-warped fBm turbulence at 16:10 aspect ratio.
  */
-export function createMarbleWallCanvas(isDayMode: boolean, size: number): HTMLCanvasElement {
+export function createMarbleWallCanvas(isDayMode: boolean, width: number): HTMLCanvasElement {
+  const outW = Math.max(320, width);
+  const outH = Math.round(outW * 0.625);
   const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
+  canvas.width = outW;
+  canvas.height = outH;
   const ctx = canvas.getContext("2d")!;
 
-  const bg = ctx.createRadialGradient(
-    size * 0.5,
-    size * 0.46,
-    size * 0.03,
-    size * 0.5,
-    size * 0.5,
-    size * 0.62
-  );
-  if (isDayMode) {
-    bg.addColorStop(0, "#fcfbf8");
-    bg.addColorStop(0.5, "#efe9dc");
-    bg.addColorStop(1, "#ddd4c2");
-  } else {
-    bg.addColorStop(0, "#233146");
-    bg.addColorStop(0.48, "#141d2d");
-    bg.addColorStop(1, "#090e17");
+  const simW = outW <= 640 ? 288 : 448;
+  const simH = Math.round(simW * 0.625);
+  const simCanvas = document.createElement("canvas");
+  simCanvas.width = simW;
+  simCanvas.height = simH;
+  const simCtx = simCanvas.getContext("2d")!;
+  const imgData = simCtx.createImageData(simW, simH);
+  const data = imgData.data;
+
+  for (let py = 0; py < simH; py++) {
+    const ny = py / simH;
+    for (let px = 0; px < simW; px++) {
+      const nx = px / simW;
+      const dx = nx - 0.5;
+      const dy = ny - 0.5;
+      const radial = Math.min(1, Math.hypot(dx * 1.12, dy * 1.15) / 0.72);
+
+      const qx = nx * 2.8;
+      const qy = ny * 1.85;
+      const w1 = marbleFbm(qx + 4.2, qy + 1.9, 5);
+      const w2 = marbleFbm(qx + 1.55 * w1 + 8.3, qy + 1.55 * w1 + 5.1, 5);
+      const cloud = marbleFbm(nx * 2.3 + w1 * 0.75, ny * 1.6 + w2 * 0.75, 4);
+
+      const diag = nx * 2.35 + ny * 1.45;
+      const vein1 = Math.pow(1 - Math.abs(Math.sin((diag + w2 * 2.05) * Math.PI)), 22);
+      const vein2 = Math.pow(
+        1 - Math.abs(Math.sin((diag * 0.72 - ny * 1.1 + w1 * 1.9 + 0.35) * Math.PI)),
+        8
+      );
+      const crispDetail = Math.pow(
+        1 - Math.abs(Math.sin((nx * 4.4 + ny * 2.8 + w2 * 2.6) * Math.PI)),
+        32
+      );
+      const goldGate = Math.max(0, Math.sin((nx * 3.1 - ny * 2.2 + w1 * 2.4) * Math.PI));
+      const gMask = Math.min(
+        1,
+        crispDetail * goldGate * 1.15 + Math.pow(vein1, 2.2) * goldGate * 0.55
+      );
+
+      let r: number;
+      let g: number;
+      let b: number;
+      if (isDayMode) {
+        const baseR = 250 - radial * 15 - cloud * 10;
+        const baseG = 247 - radial * 17 - cloud * 11;
+        const baseB = 240 - radial * 21 - cloud * 13;
+        r = baseR - vein2 * 16 - vein1 * 24 - crispDetail * 14;
+        g = baseG - vein2 * 17 - vein1 * 25 - crispDetail * 15;
+        b = baseB - vein2 * 18 - vein1 * 27 - crispDetail * 16;
+        r = r * (1 - gMask * 0.65) + 194 * gMask * 0.65;
+        g = g * (1 - gMask * 0.65) + 152 * gMask * 0.65;
+        b = b * (1 - gMask * 0.65) + 58 * gMask * 0.65;
+      } else {
+        const lumGlow = (1 - radial) * 16 + cloud * 12;
+        const baseR = 14 + lumGlow;
+        const baseG = 15 + lumGlow;
+        const baseB = 18 + lumGlow * 1.04;
+        r = baseR + vein2 * 13 + vein1 * 20 + crispDetail * 14;
+        g = baseG + vein2 * 13 + vein1 * 20 + crispDetail * 15;
+        b = baseB + vein2 * 14 + vein1 * 22 + crispDetail * 17;
+        r = r * (1 - gMask * 0.85) + 224 * gMask * 0.85;
+        g = g * (1 - gMask * 0.85) + 182 * gMask * 0.85;
+        b = b * (1 - gMask * 0.85) + 74 * gMask * 0.85;
+      }
+
+      const idx = (py * simW + px) * 4;
+      data[idx] = Math.max(0, Math.min(255, Math.round(r)));
+      data[idx + 1] = Math.max(0, Math.min(255, Math.round(g)));
+      data[idx + 2] = Math.max(0, Math.min(255, Math.round(b)));
+      data[idx + 3] = 255;
+    }
   }
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, size, size);
 
-  // Soft cloudy marble translucency blooms concentrated inside visible studio alcove
-  const clouds: Array<[number, number, number, string]> = isDayMode
-    ? [
-        [0.34, 0.38, 0.24, "rgba(182, 168, 144, 0.16)"],
-        [0.68, 0.58, 0.26, "rgba(166, 152, 130, 0.15)"],
-        [0.46, 0.68, 0.2, "rgba(255, 253, 248, 0.35)"],
-      ]
-    : [
-        [0.32, 0.36, 0.25, "rgba(56, 82, 124, 0.22)"],
-        [0.68, 0.62, 0.26, "rgba(44, 68, 108, 0.2)"],
-        [0.5, 0.48, 0.22, "rgba(74, 104, 152, 0.12)"],
-      ];
-  for (const [cx, cy, rad, color] of clouds) {
-    const cg = ctx.createRadialGradient(cx * size, cy * size, 0, cx * size, cy * size, rad * size);
-    cg.addColorStop(0, color);
-    cg.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = cg;
-    ctx.fillRect(0, 0, size, size);
-  }
-
-  // Smooth diagonal + sweeping stone mineral strata across [0.15..0.85] UV viewport span
-  ctx.save();
-  for (let layer = 0; layer < 16; layer++) {
-    const t = layer / 15;
-    const yStart = (0.14 + t * 0.72) * size;
-    const amp = size * (0.032 + (layer % 4) * 0.014);
-    ctx.beginPath();
-    ctx.moveTo(0, yStart + amp * 0.6);
-    ctx.bezierCurveTo(
-      size * 0.32,
-      yStart - amp,
-      size * 0.66,
-      yStart + amp * 1.1,
-      size,
-      yStart - amp * 0.5
-    );
-    ctx.strokeStyle = isDayMode
-      ? `rgba(122, 112, 96, ${0.09 + (layer % 3) * 0.045})`
-      : `rgba(88, 120, 172, ${0.12 + (layer % 3) * 0.045})`;
-    ctx.lineWidth = size * (0.0025 + (layer % 3) * 0.0022);
-    ctx.stroke();
-  }
-
-  // Asymmetric Kintsugi 24K gold veins running visibly behind both cards & alcove interior
-  const seams: Array<[number, number, number, number, number, number, number, number, number]> = [
-    [0.14, 0.28, 0.34, 0.42, 0.6, 0.29, 0.86, 0.44, 1.0],
-    [0.16, 0.68, 0.38, 0.56, 0.64, 0.72, 0.88, 0.58, 0.9],
-    [0.24, 0.16, 0.36, 0.4, 0.29, 0.64, 0.42, 0.84, 0.78],
-    [0.76, 0.18, 0.66, 0.42, 0.74, 0.64, 0.61, 0.84, 0.82],
-    [0.44, 0.36, 0.52, 0.44, 0.56, 0.38, 0.65, 0.47, 0.6],
-  ];
-
-  ctx.lineCap = "round";
-  for (const [x0, y0, cx1, cy1, cx2, cy2, x1, y1, weight] of seams) {
-    ctx.beginPath();
-    ctx.moveTo(x0 * size, y0 * size);
-    ctx.bezierCurveTo(
-      cx1 * size,
-      cy1 * size,
-      cx2 * size,
-      cy2 * size,
-      x1 * size,
-      y1 * size
-    );
-    ctx.shadowBlur = size * 0.006;
-    ctx.shadowColor = isDayMode ? "rgba(168, 122, 24, 0.25)" : "rgba(240, 200, 88, 0.45)";
-    ctx.strokeStyle = isDayMode
-      ? `rgba(154, 110, 20, ${(0.52 * weight).toFixed(2)})`
-      : `rgba(228, 188, 78, ${(0.58 * weight).toFixed(2)})`;
-    ctx.lineWidth = Math.max(1.5, size * 0.0017 * weight);
-    ctx.stroke();
-
-    // Inner bright metallic filigree highlight thread
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = isDayMode
-      ? `rgba(240, 208, 120, ${(0.5 * weight).toFixed(2)})`
-      : `rgba(252, 232, 166, ${(0.45 * weight).toFixed(2)})`;
-    ctx.lineWidth = Math.max(0.75, size * 0.0007 * weight);
-    ctx.stroke();
-  }
-  ctx.restore();
-
+  simCtx.putImageData(imgData, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(simCanvas, 0, 0, outW, outH);
   return canvas;
 }
 

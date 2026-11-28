@@ -717,20 +717,27 @@ export default function SovereignThreeScene({
       scene.environment = null;
       pmremGenerator.dispose();
 
-      // CONTROLLED HOROLOGY GALLERY LIGHTING (Dielectric obsidian stays jet-black while walls glow clearly)
+      // CONTROLLED HOROLOGY GALLERY LIGHTING (Calibrated to Three.js r184 RECIPROCAL_PI diffuse units)
       const ambientLight = new THREE.AmbientLight(
-        liveRef.current.isLightMode ? 0xfefcf6 : 0xdbe5f8,
-        liveRef.current.isLightMode ? 0.62 : 0.48
+        liveRef.current.isLightMode ? 0xfefcf6 : 0xe4e7ef,
+        liveRef.current.isLightMode ? 1.15 : 1.45
       );
       scene.add(ambientLight);
 
+      const keyFillLight = new THREE.DirectionalLight(
+        liveRef.current.isLightMode ? 0xfffaf0 : 0xf4ecdc,
+        liveRef.current.isLightMode ? 0.72 : 0.85
+      );
+      keyFillLight.position.set(-4, 9, 18);
+      scene.add(keyFillLight);
+
       const spotLight = new THREE.SpotLight(
         liveRef.current.isLightMode ? 0xfff8eb : 0xffeed0,
-        liveRef.current.isLightMode ? 88 : 96,
-        75,
-        Math.PI / 3.6,
-        0.88,
-        1.15
+        liveRef.current.isLightMode ? 65 : 78,
+        85,
+        Math.PI / 3.2,
+        0.94,
+        1.0
       );
       spotLight.position.set(8.5, 22, 24);
       if (!isMobile) {
@@ -738,27 +745,13 @@ export default function SovereignThreeScene({
         spotLight.shadow.mapSize.width = 2048;
         spotLight.shadow.mapSize.height = 2048;
         spotLight.shadow.bias = -0.00012;
-        spotLight.shadow.radius = 3.2;
+        spotLight.shadow.radius = 3.6;
       }
       scene.add(spotLight);
 
-      // Warm 24K Gold Architectural Wash strictly behind cards (z=-2.2) bathing Marble Alcove & Brass Trim
-      const galleryWashLight = new THREE.SpotLight(
-        0xffd98a,
-        liveRef.current.isLightMode ? 26 : 72,
-        72,
-        Math.PI / 2.2,
-        0.95,
-        1.0
-      );
-      galleryWashLight.position.set(0, 11.5, -2.2);
-      galleryWashLight.target.position.set(0, -0.4, -10);
-      scene.add(galleryWashLight);
-      scene.add(galleryWashLight.target);
-
       const rimLight = new THREE.PointLight(
         0xffc845,
-        liveRef.current.isLightMode ? 22 : 48,
+        liveRef.current.isLightMode ? 18 : 42,
         54,
         1.2
       );
@@ -767,7 +760,7 @@ export default function SovereignThreeScene({
 
       const cardGlowLight = new THREE.PointLight(
         0xffaa1d,
-        liveRef.current.isLightMode ? 0 : 24,
+        liveRef.current.isLightMode ? 0 : 20,
         18,
         1.25
       );
@@ -777,7 +770,7 @@ export default function SovereignThreeScene({
       // Front-sweeping 24K Gold Specular Key Light following cursor/gyroscope without wall hotspot glare
       const mouseLight = new THREE.PointLight(
         liveRef.current.isLightMode ? 0xfff2cc : 0xffdf7a,
-        liveRef.current.isLightMode ? 14 : 30,
+        liveRef.current.isLightMode ? 12 : 26,
         58,
         1.15
       );
@@ -797,12 +790,12 @@ export default function SovereignThreeScene({
       }
       dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
       const dustMat = new THREE.PointsMaterial({
-        size: isMobile ? 5 : 6,
+        size: isMobile ? 4.5 : 5.5,
         sizeAttenuation: false,
         map: bokehTex,
         color: 0xffdf73,
         transparent: true,
-        opacity: liveRef.current.isLightMode ? 0.12 : 0.44,
+        opacity: liveRef.current.isLightMode ? 0.12 : 0.42,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
@@ -834,73 +827,30 @@ export default function SovereignThreeScene({
         envMapIntensity: 1.25,
       });
 
-      // SINGLE OPAQUE 3D MARBLE ALCOVE WALL + DESKTOP ARCHITECTURAL BRASS INLAY MOLDINGS
+      // SINGLE SEAMLESS 16:10 ITALIAN MARBLE GALLERY WALL (Calacatta Gold Day / Nero Marquina Night)
       const marbleStageGroup = new THREE.Group();
       marbleStageGroup.position.set(0, 0, -10);
       scene.add(marbleStageGroup);
 
-      const marbleTexSize = isMobile ? 512 : 2048;
+      const marbleTexWidth = isMobile ? 640 : 1440;
       const nightMarbleTex = new THREE.CanvasTexture(
-        createMarbleWallCanvas(false, marbleTexSize)
+        createMarbleWallCanvas(false, marbleTexWidth)
       );
       nightMarbleTex.colorSpace = THREE.SRGBColorSpace;
       const dayMarbleTex = new THREE.CanvasTexture(
-        createMarbleWallCanvas(true, marbleTexSize)
+        createMarbleWallCanvas(true, marbleTexWidth)
       );
       dayMarbleTex.colorSpace = THREE.SRGBColorSpace;
 
-      const marbleMat = isMobile
-        ? new THREE.MeshStandardMaterial({
-            map: liveRef.current.isLightMode ? dayMarbleTex : nightMarbleTex,
-            metalness: 0.04,
-            roughness: 0.56,
-            transparent: false,
-          })
-        : new THREE.MeshPhysicalMaterial({
-            map: liveRef.current.isLightMode ? dayMarbleTex : nightMarbleTex,
-            metalness: 0.04,
-            roughness: 0.56,
-            clearcoat: 0.06,
-            clearcoatRoughness: 0.45,
-            transparent: false,
-          });
-      // Sized to 82x48 so 2048px marble strata & Kintsugi seams map crisply inside the viewport
-      const marbleWall = new THREE.Mesh(new THREE.PlaneGeometry(82, 48), marbleMat);
+      const marbleMat = new THREE.MeshStandardMaterial({
+        map: liveRef.current.isLightMode ? dayMarbleTex : nightMarbleTex,
+        metalness: 0.02,
+        roughness: 0.72,
+        transparent: false,
+      });
+      const marbleWall = new THREE.Mesh(new THREE.PlaneGeometry(80, 50), marbleMat);
       if (!isMobile) marbleWall.receiveShadow = true;
       marbleStageGroup.add(marbleWall);
-
-      // Desktop Architectural Coffered Brass Alcove Moldings & Corner Escutcheons
-      if (!isMobile) {
-        const outerAlcoveTrim = new THREE.Mesh(
-          createRaisedRectBezelGeometry(THREE, 27.8, 17.2, 0.12, 0.42, 0.09),
-          brushedBrassMat
-        );
-        outerAlcoveTrim.position.set(0, 0.05, 0.02);
-        outerAlcoveTrim.receiveShadow = true;
-        marbleStageGroup.add(outerAlcoveTrim);
-
-        const innerAlcoveTrim = new THREE.Mesh(
-          createRaisedRectBezelGeometry(THREE, 26.4, 15.8, 0.05, 0.3, 0.06),
-          goldHardwareMat
-        );
-        innerAlcoveTrim.position.set(0, 0.05, 0.03);
-        marbleStageGroup.add(innerAlcoveTrim);
-
-        // Four machined 24K corner escutcheon accents (clear of center lanyard & header)
-        const cornerStudGeo = new THREE.OctahedronGeometry(0.16, 0);
-        const cornerCoords: Array<[number, number]> = [
-          [-13.0, 7.85],
-          [13.0, 7.85],
-          [-13.0, -7.75],
-          [13.0, -7.75],
-        ];
-        for (const [cx, cy] of cornerCoords) {
-          const stud = new THREE.Mesh(cornerStudGeo, goldHardwareMat);
-          stud.position.set(cx, cy, 0.12);
-          stud.scale.set(1, 1, 0.5);
-          marbleStageGroup.add(stud);
-        }
-      }
 
       // TOP CEILING ANCHOR (Positioned above viewport margin so ribbon enters cleanly behind top pill)
       const anchorPos = new THREE.Vector3(0, 11.95, -0.55);
@@ -1572,15 +1522,16 @@ export default function SovereignThreeScene({
             scene.fog.color.setHex(lightNow ? 0xf3eee3 : 0x070b14);
             (scene.fog as THREE_TYPES.FogExp2).density = lightNow ? 0.004 : 0.0055;
           }
-          ambientLight.color.setHex(lightNow ? 0xfefcf6 : 0xdbe5f8);
-          ambientLight.intensity = lightNow ? 0.62 : 0.48;
-          spotLight.intensity = lightNow ? 88 : 96;
+          ambientLight.color.setHex(lightNow ? 0xfefcf6 : 0xe4e7ef);
+          ambientLight.intensity = lightNow ? 1.15 : 1.45;
+          keyFillLight.color.setHex(lightNow ? 0xfffaf0 : 0xf4ecdc);
+          keyFillLight.intensity = lightNow ? 0.72 : 0.85;
+          spotLight.intensity = lightNow ? 65 : 78;
           spotLight.color.setHex(lightNow ? 0xfff8eb : 0xffeed0);
-          galleryWashLight.intensity = lightNow ? 26 : 72;
-          rimLight.intensity = lightNow ? 22 : 48;
-          mouseLight.intensity = lightNow ? 14 : 30;
+          rimLight.intensity = lightNow ? 18 : 42;
+          mouseLight.intensity = lightNow ? 12 : 26;
           mouseLight.color.setHex(lightNow ? 0xfff2cc : 0xffdf7a);
-          dustMat.opacity = lightNow ? 0.12 : 0.44;
+          dustMat.opacity = lightNow ? 0.12 : 0.42;
         }
 
         const time = nowMs * 0.001;
@@ -1653,7 +1604,7 @@ export default function SovereignThreeScene({
           idPivotGroup.position.y + idCardContainer.position.y,
           idPivotGroup.position.z - 1.25
         );
-        cardGlowLight.intensity = lightNow || fmtNow === "kta" ? 0 : 24;
+        cardGlowLight.intensity = lightNow || fmtNow === "kta" ? 0 : 20;
 
         lanyardMesh.visible = isHangingId;
         if (lanyardMesh.visible) {
