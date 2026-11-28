@@ -14,10 +14,11 @@ import {
   drawIdFrontFace,
   drawKtaBackFace,
   drawKtaFrontFace,
+  ensureCardFontsLoaded,
+  formatCalligraphyLabel,
   formatDomisiliLabel,
   generateVerificationQrCanvas,
   loadArtworkImage,
-  resolveCardFontStacks,
 } from "./cardArtwork";
 import "./sovereign.css";
 
@@ -225,7 +226,7 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
       ctx.lineWidth = 3;
       ctx.strokeRect(56, 56, compCanvas.width - 112, compCanvas.height - 112);
 
-      const fonts = resolveCardFontStacks();
+      const fonts = await ensureCardFontsLoaded(700);
       ctx.textAlign = "center";
       ctx.fillStyle = isLightMode ? "#18181b" : "#f5e19c";
       ctx.font = `700 62px ${fonts.serif}`;
@@ -837,19 +838,46 @@ export default function SovereignClient({ user }: { user: SovereignUser }) {
                   <div
                     style={{
                       marginTop: 10,
-                      padding: "4px 12px",
-                      background: "#f4f1ea",
-                      borderRadius: 6,
-                      border: "1px solid rgba(212, 175, 55, 0.55)",
-                      fontFamily: "var(--font-playfair, Georgia, serif)",
-                      fontStyle: "italic",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: "#0f172a",
-                      display: "inline-block",
+                      padding: "6px 14px",
+                      background:
+                        "radial-gradient(circle at 50% 50%, #101727 0%, #050810 100%)",
+                      borderRadius: 8,
+                      border: "1px solid rgba(212, 175, 55, 0.52)",
+                      boxShadow: "inset 0 0 12px rgba(212, 175, 55, 0.08)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 12,
                     }}
                   >
-                    {user.nama_panggilan || user.nama_lengkap}
+                    <span
+                      style={{
+                        fontSize: 8,
+                        fontWeight: 700,
+                        letterSpacing: "0.14em",
+                        color: "#94a3b8",
+                        textTransform: "uppercase",
+                        borderLeft: "2px solid rgba(212, 175, 55, 0.7)",
+                        paddingLeft: 6,
+                      }}
+                    >
+                      Paraf Sah
+                    </span>
+                    <span
+                      style={{
+                        fontFamily:
+                          'var(--font-signature, "Great Vibes", "Brush Script MT", cursive)',
+                        fontSize: 22,
+                        fontWeight: 400,
+                        lineHeight: 1,
+                        background:
+                          "linear-gradient(135deg, #d4af37 0%, #fff4c9 50%, #c49422 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        paddingInline: 4,
+                      }}
+                    >
+                      {formatCalligraphyLabel(user.nama_panggilan || user.nama_lengkap)}
+                    </span>
                   </div>
                 </div>
 

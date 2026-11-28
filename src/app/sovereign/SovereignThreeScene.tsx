@@ -12,6 +12,7 @@ import {
   drawIdFrontFace,
   drawKtaBackFace,
   drawKtaFrontFace,
+  ensureCardFontsLoaded,
   formatDomisiliLabel,
   generateVerificationQrCanvas,
   loadArtworkImage,
@@ -658,17 +659,9 @@ export default function SovereignThreeScene({
       maskedCardNumber: `4300  2026  ••••  ${nomorId.replace("EXP-", "")}`,
     };
 
-    const fontsReadyPromise =
-      typeof document !== "undefined" && document.fonts?.ready
-        ? Promise.race([
-            document.fonts.ready,
-            new Promise<void>((res) => setTimeout(res, 450)),
-          ])
-        : Promise.resolve();
-
     Promise.all([
       import("three"),
-      fontsReadyPromise,
+      ensureCardFontsLoaded(700),
       loadArtworkImage("/images/logo-utuh.webp"),
       loadArtworkImage(fotoUrl),
       generateVerificationQrCanvas(verificationUrl, 520),

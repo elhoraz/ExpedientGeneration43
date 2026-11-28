@@ -52,6 +52,7 @@ interface ResolvedFontStacks {
   serif: string;
   sans: string;
   tabular: string;
+  signature: string;
 }
 
 let cachedFonts: ResolvedFontStacks | null = null;
@@ -80,11 +81,36 @@ export function resolveCardFontStacks(): ResolvedFontStacks {
     serif: resolveVarFont("--font-playfair", '"Playfair Display", Georgia, serif'),
     sans: resolveVarFont("--font-inter", '"Inter", sans-serif'),
     tabular: resolveVarFont("--font-manrope", '"Manrope", "Inter", sans-serif'),
+    signature: resolveVarFont(
+      "--font-signature",
+      '"Great Vibes", "Brush Script MT", "Snell Roundhand", cursive'
+    ),
   };
   if (typeof document !== "undefined" && document.body) {
     cachedFonts = resolved;
   }
   return resolved;
+}
+
+/** Preloads card typography including calligraphic signature webfonts before Canvas painting. */
+export async function ensureCardFontsLoaded(timeoutMs = 700): Promise<ResolvedFontStacks> {
+  const fonts = resolveCardFontStacks();
+  if (typeof document === "undefined" || !document.fonts) return fonts;
+  try {
+    await Promise.race([
+      Promise.all([
+        document.fonts.ready,
+        document.fonts.load(`400 54px ${fonts.signature}`, "Elhoraz"),
+        document.fonts.load(`700 32px ${fonts.serif}`),
+        document.fonts.load(`600 22px ${fonts.sans}`),
+        document.fonts.load(`700 24px ${fonts.tabular}`),
+      ]),
+      new Promise<void>((res) => setTimeout(res, timeoutMs)),
+    ]);
+  } catch {
+    // Graceful fallback if font subsystem declines explicit load
+  }
+  return fonts;
 }
 
 const artworkImageCache = new Map<string, Promise<HTMLImageElement | null>>();
@@ -858,6 +884,216 @@ export function drawIdFrontFace(
   cCtx.textAlign = "left";
 }
 
+/** Formats a member nickname or fallback name into graceful Title Case for calligraphy engraving. */
+export function formatCalligraphyLabel(raw?: string | null): string {
+  const cleaned = (raw || "Alumni").trim().replace(/\s+/g, " ");
+  return cleaned
+    .split(" ")
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function traceSignatureFlourish(
+  ctx: CanvasRenderingContext2D,
+  sigCenterX: number,
+  flourishHalf: number,
+  fY: number,
+  compact: boolean
+) {
+  ctx.beginPath();
+  ctx.moveTo(sigCenterX - flourishHalf, fY + 1);
+  ctx.bezierCurveTo(
+    sigCenterX - flourishHalf * 0.28,
+    fY - (compact ? 5 : 6),
+    sigCenterX + flourishHalf * 0.34,
+    fY + (compact ? 4 : 5),
+    sigCenterX + flourishHalf,
+    fY - 2.5
+  );
+  ctx.stroke();
+}
+
+/**
+ * Paints a recessed smoked-obsidian banknote guilloche signature cartouche
+ * stamped with luminous 24K gold calligraphic lettering, hand-drawn pen
+ * flourish, left signatory badge, and right cohort hallmark seal.
+ */
+function drawSignaturePlaque(
+  targets: ArtworkPaintTargets,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  radius: number,
+  rawName: string,
+  fonts: ResolvedFontStacks
+) {
+  const { cCtx, pCtx, bCtx } = targets;
+  const sigText = formatCalligraphyLabel(rawName);
+  const cx = x + w * 0.5;
+  const cy = y + h * 0.5;
+  const compact = h < 74;
+
+  cCtx.save();
+  // Recessed dark velvet obsidian substrate with perimeter gold trim
+  const bgGrad = cCtx.createRadialGradient(cx, cy, h * 0.15, cx, cy, w * 0.58);
+  bgGrad.addColorStop(0, "#101727");
+  bgGrad.addColorStop(0.55, "#080c15");
+  bgGrad.addColorStop(1, "#04060b");
+  cCtx.fillStyle = bgGrad;
+  cCtx.beginPath();
+  cCtx.roundRect(x, y, w, h, radius);
+  cCtx.fill();
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.52)";
+  cCtx.lineWidth = 2;
+  cCtx.stroke();
+
+  // Clip guilloche filaments inside cartouche
+  cCtx.save();
+  cCtx.beginPath();
+  cCtx.roundRect(x + 2, y + 2, w - 4, h - 4, Math.max(4, radius - 2));
+  cCtx.clip();
+
+  const glow = cCtx.createRadialGradient(cx, cy, 4, cx, cy, w * 0.34);
+  glow.addColorStop(0, "rgba(212, 175, 55, 0.13)");
+  glow.addColorStop(1, "rgba(212, 175, 55, 0)");
+  cCtx.fillStyle = glow;
+  cCtx.fillRect(x, y, w, h);
+
+  // Fine sinusoidal banknote guilloche waves
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.085)";
+  cCtx.lineWidth = 1;
+  for (let i = 0; i < 6; i++) {
+    const phase = i * 0.72;
+    const baseY = y + h * (0.2 + i * 0.12);
+    cCtx.beginPath();
+    for (let sx = x; sx <= x + w; sx += 18) {
+      const sy = baseY + Math.sin((sx - x) * 0.022 + phase) * (h * 0.13);
+      if (sx === x) cCtx.moveTo(sx, sy);
+      else cCtx.lineTo(sx, sy);
+    }
+    cCtx.stroke();
+  }
+  cCtx.restore();
+
+  // Delicate interior hairline rule
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.25)";
+  cCtx.lineWidth = 1.2;
+  cCtx.beginPath();
+  cCtx.roundRect(x + 6, y + 6, w - 12, h - 12, Math.max(4, radius - 4));
+  cCtx.stroke();
+
+  // Left micro-hallmark badge ("PARAF SAH / PEMEGANG")
+  const leftPad = compact ? 22 : 28;
+  const accentH = Math.round(h * 0.44);
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.75)";
+  cCtx.fillRect(x + leftPad, cy - accentH * 0.5, 2.5, accentH);
+  cCtx.textAlign = "left";
+  cCtx.textBaseline = "alphabetic";
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = `700 ${compact ? 10.5 : 12}px ${fonts.sans}`;
+  cCtx.letterSpacing = "1.6px";
+  cCtx.fillText("PARAF SAH", x + leftPad + 11, cy - 2);
+  cCtx.fillStyle = SLATE_MUTED;
+  cCtx.font = `500 ${compact ? 9.5 : 10.5}px ${fonts.sans}`;
+  cCtx.letterSpacing = "1.2px";
+  cCtx.fillText("PEMEGANG", x + leftPad + 11, cy + (compact ? 11 : 13));
+  cCtx.letterSpacing = "0px";
+
+  // Right micro-seal medallion ("43")
+  const sealX = x + w - (compact ? 38 : 46);
+  const sealR = compact ? 16 : 19;
+  cCtx.strokeStyle = "rgba(212, 175, 55, 0.58)";
+  cCtx.lineWidth = 1.4;
+  cCtx.beginPath();
+  cCtx.arc(sealX, cy, sealR, 0, Math.PI * 2);
+  cCtx.stroke();
+  cCtx.fillStyle = "rgba(212, 175, 55, 0.12)";
+  cCtx.fill();
+  cCtx.textAlign = "center";
+  cCtx.textBaseline = "middle";
+  cCtx.fillStyle = GOLD_BRIGHT;
+  cCtx.font = `700 ${compact ? 11 : 13}px ${fonts.tabular}`;
+  cCtx.fillText("43", sealX, cy + 0.5);
+
+  // Center luminous 24K gold calligraphic signature (`Great Vibes` / cursive script)
+  const leftClear = x + leftPad + 98;
+  const rightClear = sealX - sealR - 18;
+  const maxTextW = Math.max(160, rightClear - leftClear);
+  const sigCenterX = (leftClear + rightClear) * 0.5;
+  let fontPx = compact ? 46 : 56;
+  cCtx.font = `400 ${fontPx}px ${fonts.signature}`;
+  let measuredW = cCtx.measureText(sigText).width;
+  while (measuredW > maxTextW && fontPx > 28) {
+    fontPx -= 2;
+    cCtx.font = `400 ${fontPx}px ${fonts.signature}`;
+    measuredW = cCtx.measureText(sigText).width;
+  }
+
+  const goldInk = cCtx.createLinearGradient(
+    sigCenterX - measuredW * 0.6,
+    y + 10,
+    sigCenterX + measuredW * 0.6,
+    y + h - 10
+  );
+  goldInk.addColorStop(0, "#d4af37");
+  goldInk.addColorStop(0.35, "#fff4c9");
+  goldInk.addColorStop(0.68, "#f3d87c");
+  goldInk.addColorStop(1, "#c49422");
+
+  cCtx.fillStyle = goldInk;
+  cCtx.textAlign = "center";
+  cCtx.textBaseline = "middle";
+  cCtx.shadowColor = "rgba(212, 175, 55, 0.35)";
+  cCtx.shadowBlur = 6;
+  cCtx.fillText(sigText, sigCenterX, cy - (compact ? 2 : 3));
+  cCtx.shadowBlur = 0;
+
+  const flourishHalf = Math.min(maxTextW * 0.48, Math.max(66, measuredW * 0.62));
+  const fY = cy + (compact ? 16 : 20);
+  cCtx.strokeStyle = goldInk;
+  cCtx.lineWidth = compact ? 1.5 : 1.8;
+  cCtx.lineCap = "round";
+  traceSignatureFlourish(cCtx, sigCenterX, flourishHalf, fY, compact);
+  cCtx.restore();
+
+  // Mirror hot-stamped gold foil metallic reflectance & micro-emboss into PBR/bump
+  if (pCtx) {
+    pCtx.save();
+    pCtx.fillStyle = pbrSurface(0.0, 0.28, 0.04);
+    pCtx.fillRect(x, y, w, h);
+    pCtx.fillStyle = PBR_HOLO_FOIL;
+    pCtx.textAlign = "center";
+    pCtx.textBaseline = "middle";
+    pCtx.font = `400 ${fontPx}px ${fonts.signature}`;
+    pCtx.fillText(sigText, sigCenterX, cy - (compact ? 2 : 3));
+    pCtx.strokeStyle = PBR_HOLO_FOIL;
+    pCtx.lineWidth = compact ? 1.8 : 2.1;
+    pCtx.lineCap = "round";
+    traceSignatureFlourish(pCtx, sigCenterX, flourishHalf, fY, compact);
+    pCtx.strokeStyle = PBR_GOLD_BULLION;
+    pCtx.lineWidth = 1.6;
+    pCtx.beginPath();
+    pCtx.arc(sealX, cy, sealR, 0, Math.PI * 2);
+    pCtx.stroke();
+    pCtx.restore();
+  }
+  if (bCtx) {
+    bCtx.save();
+    bCtx.fillStyle = "rgba(255, 255, 255, 0.72)";
+    bCtx.textAlign = "center";
+    bCtx.textBaseline = "middle";
+    bCtx.font = `400 ${fontPx}px ${fonts.signature}`;
+    bCtx.fillText(sigText, sigCenterX, cy - (compact ? 2 : 3));
+    bCtx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    bCtx.lineWidth = compact ? 1.8 : 2.1;
+    bCtx.lineCap = "round";
+    traceSignatureFlourish(bCtx, sigCenterX, flourishHalf, fY, compact);
+    bCtx.restore();
+  }
+}
+
 /** Paints Vertical Lanyard ID Card Back (1024x1624 logical coordinate space). */
 export function drawIdBackFace(
   targets: ArtworkPaintTargets,
@@ -961,26 +1197,13 @@ export function drawIdBackFace(
   cCtx.letterSpacing = "0px";
 
   // Authorized Signature Plaque (x=172, y=1232, w=680, h=84 -> synced with 3D idBackSigBezel)
-  const sigGrad = cCtx.createLinearGradient(172, 1232, 852, 1316);
-  sigGrad.addColorStop(0, "#f7f3ea");
-  sigGrad.addColorStop(0.5, "#fbf9f5");
-  sigGrad.addColorStop(1, "#ede6d6");
-  cCtx.fillStyle = sigGrad;
-  cCtx.beginPath();
-  cCtx.roundRect(172, 1232, 680, 84, 14);
-  cCtx.fill();
-
-  // Subtle horizontal ruled line inside signature vellum
-  cCtx.fillStyle = "rgba(143, 107, 20, 0.22)";
-  cCtx.fillRect(212, 1294, 600, 1.2);
-
-  cCtx.fillStyle = "#0f172a";
-  cCtx.font = `italic 700 36px ${fonts.serif}`;
-  cCtx.fillText(identity.panggilan, 512, 1284);
+  drawSignaturePlaque(targets, 172, 1232, 680, 84, 14, identity.panggilan, fonts);
 
   cCtx.fillStyle = SLATE_MUTED;
-  cCtx.font = `500 18px ${fonts.sans}`;
-  cCtx.fillText("Tanda Tangan & Identitas Terdaftar", 512, 1356);
+  cCtx.font = `600 16px ${fonts.sans}`;
+  cCtx.letterSpacing = "1.6px";
+  cCtx.fillText("TANDA TANGAN & IDENTITAS SAH PEMEGANG", 512, 1354);
+  cCtx.letterSpacing = "0px";
 
   // Subtle hairline & Official Registry Seal Footer
   cCtx.fillStyle = "rgba(212, 175, 55, 0.28)";
@@ -1181,27 +1404,14 @@ export function drawKtaBackFace(
     pCtx.fillRect(46, 62, W - 92, 92);
   }
 
-  // Signature Plaque + Official Verification Text on Left
-  const sigGrad = cCtx.createLinearGradient(68, 198, 628, 266);
-  sigGrad.addColorStop(0, "#f7f3ea");
-  sigGrad.addColorStop(0.5, "#fbf9f5");
-  sigGrad.addColorStop(1, "#ede6d6");
-  cCtx.fillStyle = sigGrad;
-  cCtx.beginPath();
-  cCtx.roundRect(68, 198, 560, 68, 10);
-  cCtx.fill();
-  cCtx.fillStyle = "rgba(143, 107, 20, 0.22)";
-  cCtx.fillRect(92, 249, 512, 1.2);
+  // Signature Plaque + Official Verification Text on Left (synced with 3D ktaBackSigBezel)
+  drawSignaturePlaque(targets, 68, 198, 560, 68, 10, identity.panggilan, fonts);
 
   cCtx.textAlign = "left";
-  cCtx.fillStyle = "#0f172a";
-  cCtx.font = `italic 700 30px ${fonts.serif}`;
-  cCtx.fillText(identity.panggilan, 92, 241);
-
   cCtx.fillStyle = GOLD;
   cCtx.font = `600 15px ${fonts.sans}`;
   cCtx.letterSpacing = "2px";
-  cCtx.fillText("TANDA TANGAN PEMEGANG RESMI", 68, 294);
+  cCtx.fillText("TANDA TANGAN & PARAF SAH", 68, 294);
   cCtx.letterSpacing = "0px";
 
   cCtx.fillStyle = GOLD_BRIGHT;

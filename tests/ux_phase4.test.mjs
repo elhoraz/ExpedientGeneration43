@@ -238,6 +238,8 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
       assert.ok(cardArtwork.includes("generateVerificationQrCanvas"), "Generates offline local QR canvas via qrcode package");
       assert.ok(!cardArtwork.includes("api.qrserver.com"), "Eliminates external QR image dependency");
       assert.ok(cardArtwork.includes("resolveCardFontStacks"), "Resolves next/font CSS font families onto Canvas 2D contexts");
+      assert.ok(cardArtwork.includes("ensureCardFontsLoaded"), "Preloads calligraphy signature and card fonts before painting Canvas");
+      assert.ok(cardArtwork.includes("drawSignaturePlaque"), "Renders recessed smoked-obsidian guilloche calligraphic gold-foil signature plaque");
       assert.ok(cardArtwork.includes("layoutDisplayName"), "Auto-fits full names across 1-2 lines without horizontal glyph squishing");
       assert.ok(cardArtwork.includes("drawObsidianLacquerSurface"), "Renders deep glossy Obsidian Lacquer card finish");
       assert.ok(cardArtwork.includes("createWovenStrapCanvas"), "Generates woven EXPEDIENT 43 lanyard strap texture");
@@ -250,6 +252,7 @@ describe("Phase 4: UI/UX & Ergonomic Enhancements", () => {
       assert.ok(sovereignScene.includes("transparent: false"), "Uses single opaque marble wall to eliminate dual-plane alpha overdraw");
       assert.ok(sovereignScene.includes("createDieCutCardGeometry"), "Extrudes real die-cut slot punch hole with planar gold bevel isolation");
       assert.ok(sovereignScene.includes("createRaisedRectBezelGeometry"), "Mounts precision micro-chamfered 24K gold bezels on card surfaces");
+      assert.ok(sovereignScene.includes("idBackSigBezel") && sovereignScene.includes("ktaBackSigBezel"), "Frames card back signature plaques in solid 3D 24K gold bezels");
       assert.ok(sovereignScene.includes("createRaisedRingBezelGeometry"), "Mounts watch-caliber flat circular bezel rings around official crest");
       assert.ok(sovereignScene.includes("createEmvChip3DGroup"), "Mounts multi-tiered solid 3D machined 24K EMV contact pad assembly");
       assert.ok(sovereignScene.includes("galleryStageGroup"), "Mounts desktop stepped 3D architectural stone plinth & piers");

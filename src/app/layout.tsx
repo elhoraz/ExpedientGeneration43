@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Image from "next/image";
 import { Analytics } from "@vercel/analytics/react";
-import { Inter, Playfair_Display, Manrope, Amiri } from "next/font/google";
+import { Inter, Playfair_Display, Manrope, Amiri, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import "../../public/css/design-system.css";
 import "../../public/css/template.css";
@@ -36,6 +36,13 @@ const amiri = Amiri({
   subsets: ["arabic"],
   weight: ["400", "700"],
   variable: "--font-amiri",
+  display: "swap",
+});
+
+const signature = Great_Vibes({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-signature",
   display: "swap",
 });
 
@@ -212,7 +219,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${amiri.variable}`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} ${manrope.variable} ${amiri.variable} ${signature.variable}`} suppressHydrationWarning>
         <noscript>
           <style>{`.film-grain,.cursor-dot,.cursor-ring,#loadingScreen{display:none!important}body{background:#060b14;color:#d4af37;font-family:sans-serif}`}</style>
           <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "40px", gap: "20px" }}>
